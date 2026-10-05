@@ -5,6 +5,7 @@
 | 视频 | 原作者 | 更新 |
 |---|---|---|
 | [LangGraph Complete Course for Beginners – Complex AI Agents with Python](medias/SS5NF/) | freeCodeCamp.org | 2026-10-05 |
+| [Claude Code Full Course – Autonomous Goals, MCP, and VS Code Setup](medias/N0SRH/) | freeCodeCamp.org | 2026-10-05 |
 | [Kubernetes Operator Best Practices – Kubebuilder Deep Dive](medias/A1EGJ/) | freeCodeCamp.org | 2026-10-05 |
 
 视频内容版权归原作者所有。
