@@ -1,0 +1,3568 @@
+1
+00:00:00,160 --> 00:00:08,388
+This beginner's course is designed to teach you the fundamentals of graphics programming with zero prior experience required.
+
+2
+00:00:08,974 --> 00:00:18,340
+You'll start by understanding how the GPU renders pixels and progressively learn core concepts like vertex and fragment shaders,
+
+3
+00:00:18,720 --> 00:00:21,508
+domain repetition, and shaping functions.
+
+4
+00:00:22,062 --> 00:00:31,120
+By following along in P5JS, you will apply these techniques to build a stunning animated fractal heart effect entirely from scratch.
+
+5
+00:00:31,630 --> 00:00:33,280
+Developed by Pat Vera.
+
+6
+00:00:33,742 --> 00:00:41,440
+This course is the perfect starting point for creative developers eager to break into WebGL and master the math of motion.
+
+7
+00:00:41,806 --> 00:00:42,640
+Hi everyone!
+
+8
+00:00:42,830 --> 00:00:43,920
+Today is today.
+
+9
+00:00:53,040 --> 00:00:54,720
+Well, let me tell you why.
+
+10
+00:00:54,958 --> 00:01:04,640
+If you have seen these beautiful sketches and wonder how are they made, or if you have created a sketch like this and wonder how can I make it run a little bit faster,
+
+11
+00:01:04,880 --> 00:01:07,040
+shaders might be your answer.
+
+12
+00:01:07,310 --> 00:01:15,360
+This video is the very first part of the shaders mini series where I'll walk you through the fundamental concepts of shaders and by the end of the series
+
+13
+00:01:15,440 --> 00:01:17,840
+you'll be able to create this piece from scratch.
+
+14
+00:01:18,080 --> 00:01:20,880
+So let's answer the big question.
+
+15
+00:01:21,200 --> 00:01:25,680
+What is a shader and why does it make things run so much faster?
+
+16
+00:01:25,902 --> 00:01:30,080
+The speed difference comes down to how the CPU and the GPU handle data.
+
+17
+00:01:30,254 --> 00:01:38,880
+The CPU or the central processing unit is the main brain of your computer built to handle complex logic one task at a time.
+
+18
+00:01:39,150 --> 00:01:47,428
+Think of a CPU like a master artisan, incredible at complex work, but slow if forced to build thousands basic tables one by one.
+
+19
+00:01:47,854 --> 00:01:56,560
+The GPU, on the other hand, is a specialized processor built to handle massive grids of data simultaneously by running tasks in parallel.
+
+20
+00:01:56,814 --> 00:02:04,720
+Think of the GPU as a mass-scale factory floor, thousands of simple workstations executing identical tasks at once.
+
+21
+00:02:05,006 --> 00:02:08,068
+A shader is simply the code written to run on the GPU.
+
+22
+00:02:08,240 --> 00:02:14,320
+It is the single blueprint distributed to every workstation on that factory floor at the exact same moment.
+
+23
+00:02:14,670 --> 00:02:17,760
+The trade-off for this speed is total isolation.
+
+24
+00:02:18,062 --> 00:02:20,960
+Pixels on the GPU cannot communicate with each other.
+
+25
+00:02:21,166 --> 00:02:24,160
+Your code has no idea what the pixel next to it is doing.
+
+26
+00:02:24,334 --> 00:02:36,600
+The only reason these millions of isolated pixels can form a cohesive image is because every single workstation executes the exact same mathematical blueprint across a shared current
+
+27
+00:02:36,960 --> 00:02:37,348
+space.
+
+28
+00:02:37,710 --> 00:02:47,280
+For this series, we'll be setting up our sketches in JavaScript using P5.js, but the actual shader code will be written in a dedicated language called GLSL
+
+29
+00:02:47,520 --> 00:02:49,920
+or OpenGL Shading Language.
+
+30
+00:02:50,126 --> 00:02:58,080
+While different frameworks require different boilerplate to get a shader on the screen, the core mathematical logic you write inside GLSL
+
+31
+00:02:58,400 --> 00:03:00,160
+is universally transferable.
+
+32
+00:03:00,334 --> 00:03:10,400
+The newer version of P5 actually has a library called P5 Strands that allows you to write your shader code in JavaScript and it translates it to the GPU behind the scenes,
+
+33
+00:03:10,480 --> 00:03:15,040
+and you can check out this amazing tutorial by Juan Rodriguez Garcia to learn more.
+
+34
+00:03:15,278 --> 00:03:24,324
+But for this mini series, I thought that we would look at how the logic works fundamentally so that you can pick up your shader code and drop it in any environment that you choose.
+
+35
+00:03:24,686 --> 00:03:31,520
+Okay, so now that we have the split between the setup code and the shader code, how do they actually talk to each other?
+
+36
+00:03:31,886 --> 00:03:38,052
+To make that happen, your setup code, or in my case, my P5JS code, needs to do exactly three things.
+
+37
+00:03:38,446 --> 00:03:44,708
+First, it tells the browser to use the graphics card 3D pipeline or set it to the WebGL mode.
+
+38
+00:03:45,038 --> 00:03:50,656
+And then it loads the GLSL text files into memory and sends them over to the GPU.
+
+39
+00:03:50,736 --> 00:03:55,856
+And lastly, it sends information over to the GPU on every single frame.
+
+40
+00:03:56,110 --> 00:04:05,536
+This live data includes two things, dynamic global variables like running timer or your live mouse coordinate, and the actual geometry data
+
+41
+00:04:05,696 --> 00:04:08,256
+or the shape that you want to have drawn.
+
+42
+00:04:08,462 --> 00:04:17,616
+To kick off the visual pipeline, the CPU sends a list of points to the GPU and this is where your shader code takes over and processes those points into
+
+43
+00:04:17,838 --> 00:04:20,896
+distinct stages across two shader files.
+
+44
+00:04:21,198 --> 00:04:29,296
+The vertex shader positions our geometry in space and the fragment shader determines the final color of every single pixel.
+
+45
+00:04:29,678 --> 00:04:39,456
+When working in 2D, the vertex shader is incredibly simple. The CPU only needs to send four points or vertices off the four corners of the canvas.
+
+46
+00:04:39,790 --> 00:04:44,816
+Our vertex shader is then just a boilerplate that stretches a flat canvas to frame the screen.
+
+47
+00:04:44,976 --> 00:04:50,576
+Because of that, we will focus most of our energy inside the fragment shader that does all the painting.
+
+48
+00:04:50,736 --> 00:04:53,856
+Alright, now let's zoom into the fragment shader.
+
+49
+00:04:54,096 --> 00:05:03,536
+If your canvas is the size of let's say 800 pixels by 600 pixels, the fragment shader runs exactly 480,000 times per frame.
+
+50
+00:05:03,758 --> 00:05:10,256
+On a standard 1080p display, that scale increases to over 2 million individual pixels.
+
+51
+00:05:10,542 --> 00:05:19,296
+Because of this massive scale, how you approach writing a fragment shader is going to be very different from how you write a standard P5JS sketch.
+
+52
+00:05:19,566 --> 00:05:29,136
+Let's say when you draw a circle on a standard P5 sketch, you would write a function like an ellipse or a circle and you would give it the xy coordinate and its size.
+
+53
+00:05:29,422 --> 00:05:34,736
+But in a fragment shader, you're writing your code based on a perspective of a single pixel.
+
+54
+00:05:34,990 --> 00:05:40,736
+Like mentioned before, each pixel is isolated and has no idea what its neighbor is doing.
+
+55
+00:05:40,976 --> 00:05:45,764
+Without a way to talk to its neighbors, it solves for its color in four quick steps.
+
+56
+00:05:45,998 --> 00:05:56,656
+First, it looks up its exact XY location on the screen, then it imports external context from the CPU like time or your mouse coordinate, And then it tests its position against your code,
+
+57
+00:05:56,974 --> 00:06:02,416
+asking, for example, is my specific distance from the center less than 200 pixels?
+
+58
+00:06:02,576 --> 00:06:05,056
+And if so, set the color to blue.
+
+59
+00:06:05,358 --> 00:06:09,456
+And lastly, it sends the finalized color value directly out to the screen.
+
+60
+00:06:09,710 --> 00:06:12,336
+Alright, so I think we have enough context to start coding.
+
+61
+00:06:12,496 --> 00:06:13,216
+So let's go.
+
+62
+00:06:13,518 --> 00:06:22,084
+First, what we're going to do is change the P5 version to the newer version, P5JS version 2.
+
+63
+00:06:23,182 --> 00:06:26,788
+Actually, I'm why don't use the 2.2.2.
+
+64
+00:06:27,662 --> 00:06:28,256
+And then
+
+65
+00:06:29,198 --> 00:06:30,244
+we're going to set
+
+66
+00:06:31,136 --> 00:06:34,404
+the canvas mode, change the canvas mode to
+
+67
+00:06:35,342 --> 00:06:36,324
+WebGL mode.
+
+68
+00:06:36,378 --> 00:06:47,236
+all right so with WebGL, the center, the origin is now at the middle of the canvas. So why don't we try to draw a rectangle?
+
+69
+00:06:48,206 --> 00:06:52,964
+So if I do rectangle of 0, comma 0 and a size of width and height,
+
+70
+00:06:55,790 --> 00:07:09,376
+you can see that now it is off the screen. So what we want to do is that we want to actually change this to width divided by 2, negative width divided by 2, and negative height divided by 2
+
+71
+00:07:09,646 --> 00:07:12,736
+so that it's positioned in the middle of the canvas.
+
+72
+00:07:12,976 --> 00:07:17,220
+Next, what we want to do is that how about we create our shader
+
+73
+00:07:18,254 --> 00:07:18,656
+variable?
+
+74
+00:07:18,798 --> 00:07:20,656
+Let's call it my shader.
+
+75
+00:07:21,870 --> 00:07:33,380
+And then as I set up, we're going to load the shader files, which we have not yet written. So let's do my shader equals to load shader,
+
+76
+00:07:34,414 --> 00:07:36,676
+and then we'll put the shader files in here.
+
+77
+00:07:36,910 --> 00:07:44,704
+But as you can see, I am not using the preload function that I usually do in my other tutorials.
+
+78
+00:07:44,878 --> 00:07:55,140
+And that is because we're using p5j as version 2, and instead of loading files using preload, we're going to be using async and await structure that allows us to load files
+
+79
+00:07:55,584 --> 00:07:56,944
+asynchronously.
+
+80
+00:07:57,262 --> 00:08:03,492
+Okay, so let's put async here and await before the loading function.
+
+81
+00:08:03,822 --> 00:08:08,452
+That's all you need to do. And two files that we're going to load.
+
+82
+00:08:08,750 --> 00:08:11,620
+Actually, why don't we create those files first?
+
+83
+00:08:11,886 --> 00:08:16,836
+So let's come to this arrow here, click the plus sign, and then click create file.
+
+84
+00:08:17,134 --> 00:08:19,344
+We're gonna call it shader.
+
+85
+00:08:19,790 --> 00:08:29,184
+So we're gonna be creating two shader files, the vertex shader and then the fragment shader. So I'm going to call it as you can see here, shader.vert
+
+86
+00:08:30,254 --> 00:08:30,948
+add file,
+
+87
+00:08:31,664 --> 00:08:34,916
+and one more is shader.frag.
+
+88
+00:08:35,182 --> 00:08:36,484
+Let's go back to sketch.
+
+89
+00:08:38,030 --> 00:08:47,740
+So now inside the load shader function here, we can put in shader.vert and then comma shader dot frag,
+
+90
+00:08:48,624 --> 00:08:48,944
+Okay.
+
+91
+00:08:50,062 --> 00:08:51,748
+All right, click run.
+
+92
+00:08:53,390 --> 00:08:54,224
+No error.
+
+93
+00:08:54,544 --> 00:08:55,344
+We're all good.
+
+94
+00:08:55,598 --> 00:08:56,932
+But nothing happens either.
+
+95
+00:08:57,264 --> 00:08:57,860
+That's okay.
+
+96
+00:08:58,638 --> 00:09:03,744
+Now inside draw here, first I'm actually going to delete the background.
+
+97
+00:09:04,078 --> 00:09:05,584
+We don't need background here.
+
+98
+00:09:06,304 --> 00:09:06,628
+Run.
+
+99
+00:09:07,310 --> 00:09:07,584
+Okay.
+
+100
+00:09:08,144 --> 00:09:11,684
+And what we're gonna put in here is a function called shader.
+
+101
+00:09:11,918 --> 00:09:13,060
+And this basically
+
+102
+00:09:13,934 --> 00:09:21,124
+tell the file that we're going to not use the default shading presets that comes with the WebGL mode.
+
+103
+00:09:21,344 --> 00:09:28,516
+Let's use our shader file to create this about to be amazing sketch.
+
+104
+00:09:28,942 --> 00:09:32,304
+So I'm going to pass in my shader here and click run.
+
+105
+00:09:32,846 --> 00:09:35,012
+And now it gives us an error because
+
+106
+00:09:36,174 --> 00:09:36,644
+I guess
+
+107
+00:09:37,358 --> 00:09:40,932
+there's nothing inside these two files yet.
+
+108
+00:09:41,390 --> 00:09:49,184
+So before we start writing the vertex shader and the fragment shaders, I thought that we would look at the syntax of GLSL and also the structure
+
+109
+00:09:49,344 --> 00:09:52,464
+so that you get a little bit familiar with before we start writing.
+
+110
+00:09:52,784 --> 00:09:56,624
+GLSL inherits its rigid syntax from C.
+
+111
+00:09:56,910 --> 00:10:00,144
+Every single statement must end with a semicolon.
+
+112
+00:10:00,494 --> 00:10:04,388
+It is also statically typed, requiring strict type matching.
+
+113
+00:10:04,718 --> 00:10:09,988
+Even a whole number must include a decimal point to be recognized as a float.
+
+114
+00:10:10,350 --> 00:10:14,980
+You must explicitly tell the GPU how much memory to allocate for decimals.
+
+115
+00:10:15,374 --> 00:10:18,864
+Depending on your performance needs, you have three options here.
+
+116
+00:10:19,054 --> 00:10:26,864
+You might notice later that I only write this line in our fragment shader, and that is because the vertex shader automatically defaults to high P.
+
+117
+00:10:27,024 --> 00:10:37,504
+Because shaders handle spatial math and color spaces, you will work constantly with vectors. Despite GLSL's strict nature, vectors are incredibly flexible.
+
+118
+00:10:37,774 --> 00:10:40,224
+First, you get shorthand initializers.
+
+119
+00:10:40,462 --> 00:10:45,104
+Writing this automatically fills all three channels with 1.0.
+
+120
+00:10:45,582 --> 00:10:49,904
+Second, you can access data using naming conventions that match your intent.
+
+121
+00:10:50,064 --> 00:10:55,684
+Use XYZW for positions or RGBA for colors.
+
+122
+00:10:55,982 --> 00:10:57,744
+They are completely interchangeable.
+
+123
+00:10:57,904 --> 00:10:59,744
+And lastly, swizzling.
+
+124
+00:11:00,206 --> 00:11:05,344
+Swizzling lets you instantly rearrange, duplicate, or slice components in a single line.
+
+125
+00:11:05,710 --> 00:11:12,260
+For example, calling .bgr swaps the blue and red channels to instantly flip your color palette.
+
+126
+00:11:12,512 --> 00:11:20,032
+Or grabbing .xy from a VEC3 drops the third channel, instantly flattening it into a 2D VEC2.
+
+127
+00:11:20,352 --> 00:11:22,592
+Now, how do these files actually look?
+
+128
+00:11:22,830 --> 00:11:28,196
+Every shader revolves around a single main function, which acts as your entry point.
+
+129
+00:11:28,494 --> 00:11:34,660
+To actually output your visuals, your code must write data to the GPU's dedicated target variables.
+
+130
+00:11:35,054 --> 00:11:43,684
+In the vertex shader, your target is gl underscore position, a built-in VEC4 that tells the GPU where geometry exists in space.
+
+131
+00:11:43,982 --> 00:11:53,632
+And in the fragment shader, your target is a custom variable, usually named FRAC color, which is a VEC4 that dictates the final pixel color.
+
+132
+00:11:53,870 --> 00:11:59,812
+To route data through this isolated world, everything flows in a strict single direction downstream.
+
+133
+00:12:00,112 --> 00:12:02,724
+Data moves through this pipeline in three ways.
+
+134
+00:12:03,086 --> 00:12:14,192
+It enters a stage as an input, it exits a stage as an output, or it gets broadcast globally from the CPU to every single pixel at once as a uniform.
+
+135
+00:12:14,352 --> 00:12:19,332
+If you're looking at the older shader tutorials online, the syntax might look a little bit different.
+
+136
+00:12:19,694 --> 00:12:26,752
+Here is a quick reference table showing how the keywords change between the original WebGL1 and the current WebGL2.
+
+137
+00:12:27,342 --> 00:12:34,672
+To tell the browser that we want to use this updated syntax, you need to write this as the very first line of both your shader files.
+
+138
+00:12:34,894 --> 00:12:36,272
+Why the number 300?
+
+139
+00:12:36,432 --> 00:12:45,632
+Because while browsers call this WebGL2, under the hood it runs on the mobile hardware standard OpenGLES 3.0.
+
+140
+00:12:45,934 --> 00:12:51,232
+That 300ES tag simply points directly to that version 3.0 spec.
+
+141
+00:12:51,438 --> 00:12:56,752
+So now that you have all the context, let's start with the vertex shader files, shall we?
+
+142
+00:12:57,038 --> 00:13:05,952
+So shader.vert right so in here, we're going to start by declaring that this is the newer WebGL
+
+143
+00:13:06,192 --> 00:13:06,592
+mode.
+
+144
+00:13:06,752 --> 00:13:08,820
+Let's do this pound sign
+
+145
+00:13:09,792 --> 00:13:12,420
+version 300 ES.
+
+146
+00:13:12,974 --> 00:13:15,428
+And I'm actually going to do the same thing
+
+147
+00:13:16,238 --> 00:13:18,112
+inside the fragment shaders too.
+
+148
+00:13:18,222 --> 00:13:19,076
+So I don't forget.
+
+149
+00:13:19,406 --> 00:13:20,420
+Right, let's go back.
+
+150
+00:13:20,974 --> 00:13:23,872
+Next, it's going to have one main function.
+
+151
+00:13:23,982 --> 00:13:26,592
+So let's do void main.
+
+152
+00:13:27,182 --> 00:13:35,872
+And then the next thing is that we're going to be receiving the coordinate positions, the vertices of the canvas size from
+
+153
+00:13:36,302 --> 00:13:38,352
+JavaScript or from the CPU, right?
+
+154
+00:13:38,670 --> 00:13:41,552
+So actually JavaScript, even though the
+
+155
+00:13:42,734 --> 00:13:44,432
+size here is
+
+156
+00:13:45,998 --> 00:13:47,748
+it's the size of the width, which is
+
+157
+00:13:48,558 --> 00:13:57,604
+400 and the height of 400, right? But when it sends to the GPU, actually P5 converts it to values between 0 to 1.
+
+158
+00:13:58,032 --> 00:14:06,672
+So what we're gonna do here inside shader.vert is that we're going to use the qualifier call in, right?
+
+159
+00:14:07,072 --> 00:14:09,060
+And then we're going to set
+
+160
+00:14:09,966 --> 00:14:13,604
+the type, which is vec 3, and then
+
+161
+00:14:15,214 --> 00:14:18,244
+set this built-in variable called a position.
+
+162
+00:14:18,832 --> 00:14:20,992
+And inside here,
+
+163
+00:14:22,094 --> 00:14:28,196
+we're going to write gl underscore position and then set it to.
+
+164
+00:14:28,196 --> 00:14:37,152
+we cannot set it directly to a position because gl underscore position needs a vec4 So we're gonna do vec4
+
+165
+00:14:38,606 --> 00:14:44,004
+a position and then provide 1.0 as the last argument.
+
+166
+00:14:44,622 --> 00:14:45,860
+Let's try and run this.
+
+167
+00:14:49,294 --> 00:14:52,004
+Okay, it gives us an error.
+
+168
+00:14:53,984 --> 00:14:54,304
+And
+
+169
+00:14:55,918 --> 00:15:03,812
+I think it's because we loaded the fragment shader, but we have not written anything on it. So let's go there.
+
+170
+00:15:04,718 --> 00:15:09,024
+So shader.fragment and same thing.
+
+171
+00:15:09,264 --> 00:15:11,504
+It has one main function.
+
+172
+00:15:11,918 --> 00:15:14,212
+Yeah, let's just run this and see if there's an error.
+
+173
+00:15:14,464 --> 00:15:16,464
+Okay, I guess that was it.
+
+174
+00:15:16,784 --> 00:15:23,344
+So now nothing is being colored in because that is the job of the fragment shader.
+
+175
+00:15:23,664 --> 00:15:25,264
+So let's do that.
+
+176
+00:15:25,614 --> 00:15:27,424
+So let's go back to shader.vert.
+
+177
+00:15:28,046 --> 00:15:31,424
+So now that we have in, we want to send out.
+
+178
+00:15:31,822 --> 00:15:38,144
+So we want to send the position of these four coordinates to the fragment shader.
+
+179
+00:15:38,224 --> 00:15:43,984
+So we're going to do out, but we're actually going to just send two points x and y.
+
+180
+00:15:44,270 --> 00:15:45,824
+Why don't we call it v pose?
+
+181
+00:15:45,966 --> 00:15:48,932
+So that it's a position that is sending from vertex.
+
+182
+00:15:49,646 --> 00:15:51,012
+And we're going to send
+
+183
+00:15:52,624 --> 00:15:58,224
+v pose equals to a position.xy.
+
+184
+00:15:58,384 --> 00:16:01,984
+And this is what I described earlier as Switzerland right?
+
+185
+00:16:02,094 --> 00:16:07,024
+So we're only taking the first and the second components of this vector, right?
+
+186
+00:16:07,246 --> 00:16:14,704
+And then inside shader.frag, we're going to be receiving in v pose, which is a vec two,
+
+187
+00:16:15,886 --> 00:16:16,676
+v pose.
+
+188
+00:16:17,024 --> 00:16:23,492
+We also need to declare frac color, right? In this new version of
+
+189
+00:16:24,366 --> 00:16:37,450
+WebGL, and we're going to set frac color to it. Also, is a vec4 and the range is between 0 and 1, 0.0 and 1.0.
+
+190
+00:16:38,126 --> 00:16:44,388
+So what we're gonna do is, how about actually let's set it to the color black,
+
+191
+00:16:45,966 --> 00:16:48,228
+and the fourth argument is the
+
+192
+00:16:49,102 --> 00:16:50,564
+transparency, right?
+
+193
+00:16:50,944 --> 00:16:54,384
+So if I set it to 1.0
+
+194
+00:17:03,118 --> 00:17:05,647
+frag color is a
+
+195
+00:17:05,742 --> 00:17:07,010
+vec4.
+
+196
+00:17:09,486 --> 00:17:09,924
+Nope.
+
+197
+00:17:11,344 --> 00:17:16,644
+A few moments later. Ah so I forgot to set the precision right in the fragment shader.
+
+198
+00:17:16,974 --> 00:17:17,824
+So let's do that.
+
+199
+00:17:18,030 --> 00:17:22,784
+So let's do precision medium P
+
+200
+00:17:24,366 --> 00:17:25,636
+for the type float.
+
+201
+00:17:26,304 --> 00:17:26,596
+Run.
+
+202
+00:17:27,214 --> 00:17:27,824
+Yay!
+
+203
+00:17:28,144 --> 00:17:32,624
+Okay, so we have the color black.
+
+204
+00:17:32,846 --> 00:17:37,476
+Let's say if I change the first value here to 1.0, what do you expect?
+
+205
+00:17:39,086 --> 00:17:39,584
+Red.
+
+206
+00:17:40,302 --> 00:17:40,900
+That's correct.
+
+207
+00:17:41,742 --> 00:17:44,544
+If I do both of these, you get magenta.
+
+208
+00:17:44,878 --> 00:17:49,412
+That's great, but why is it in the top right corner here?
+
+209
+00:17:49,838 --> 00:17:59,300
+That is because what is being sent from the CPU or P5 sketch is the values between 0 and 1.
+
+210
+00:17:59,726 --> 00:18:01,124
+So what I said earlier that
+
+211
+00:18:01,806 --> 00:18:13,572
+the CPU sends this data here to the vertex shader it actually converts it to the value, it's mapped to a value between 0 and 1.
+
+212
+00:18:13,904 --> 00:18:14,212
+But
+
+213
+00:18:15,406 --> 00:18:21,184
+the vertex shaders actually need a clipping space that ranges between negative 1 and 1.
+
+214
+00:18:21,486 --> 00:18:24,548
+So right now a position is between 0 and 1.
+
+215
+00:18:25,006 --> 00:18:26,244
+So as you can see here,
+
+216
+00:18:26,894 --> 00:18:31,812
+so what we want is that we want to make sure that it is between negative 1
+
+217
+00:18:32,558 --> 00:18:33,060
+and 1.
+
+218
+00:18:33,390 --> 00:18:38,784
+What we can do is why don't we create a separate variable?
+
+219
+00:18:39,086 --> 00:18:45,956
+So let's do a VIC4 call position and set it initially as this.
+
+220
+00:18:47,470 --> 00:18:49,956
+And then we're gonna replace this here.
+
+221
+00:18:50,384 --> 00:18:56,224
+So nothing is different yet, right? Because we just uh what did I do wrong?
+
+222
+00:18:56,878 --> 00:18:58,020
+Ha ha okay.
+
+223
+00:18:59,022 --> 00:19:04,996
+I forgot that I'm not writing JavaScript anymore. This is GOSL, and I forgot a semicolon here.
+
+224
+00:19:06,894 --> 00:19:13,488
+Whew, works now. Okay, so what we need is we need to remap this, right?
+
+225
+00:19:13,774 --> 00:19:22,788
+So to change from 0 to 1 to negative 1 to 1, what we need to do is I'm going to set the xy position
+
+226
+00:19:23,310 --> 00:19:24,128
+to be close to
+
+227
+00:19:25,774 --> 00:19:29,888
+the current xy position times 2.0, right?
+
+228
+00:19:30,048 --> 00:19:40,996
+So between 0 and 1, we multiply it by 2, so now it becomes between 0 and 2, and then we just subtract it by 1.0, so now it becomes between negative 1 and 1.
+
+229
+00:19:41,614 --> 00:19:42,724
+And click run.
+
+230
+00:19:43,598 --> 00:19:48,608
+Ta-da! Okay, now let's go back to the fragment shader.
+
+231
+00:19:48,688 --> 00:19:59,648
+So this is basically the boilerplate for this 2D sketch, and we're not going to touch the vertex shader for right now.
+
+232
+00:20:00,014 --> 00:20:03,204
+So we're going to go to the shader, the fragment shader file.
+
+233
+00:20:04,014 --> 00:20:06,048
+Now we don't want just a solid color.
+
+234
+00:20:06,254 --> 00:20:09,156
+What if we change so that it becomes a gradient?
+
+235
+00:20:09,646 --> 00:20:12,004
+So what we can do is that we already have this
+
+236
+00:20:12,878 --> 00:20:15,748
+incoming data from the vertex shader, right?
+
+237
+00:20:16,462 --> 00:20:23,492
+Which is the position of all the pixels, right, across the x-axis and the y-axis.
+
+238
+00:20:23,982 --> 00:20:28,688
+So what if we do v pose.x?
+
+239
+00:20:29,454 --> 00:20:34,928
+Actually, we can just do that, right? So vpose dot x is already between zero and one.
+
+240
+00:20:35,630 --> 00:20:37,060
+So if we do this,
+
+241
+00:20:38,702 --> 00:20:40,688
+this would range between zero and one.
+
+242
+00:20:41,102 --> 00:20:42,436
+And if I click run,
+
+243
+00:20:43,246 --> 00:20:43,728
+ta-da!
+
+244
+00:20:45,038 --> 00:20:46,180
+Isn't that amazing?
+
+245
+00:20:46,766 --> 00:20:48,768
+So we're not doing any looping.
+
+246
+00:20:48,928 --> 00:20:53,572
+Like I said before, the pixel itself doesn't actually know
+
+247
+00:20:54,638 --> 00:20:56,768
+what's happening around it, right?
+
+248
+00:20:57,006 --> 00:21:04,768
+All it knows is that what it is, like its current xy position in relative to this canvas, this ranges between zero and one.
+
+249
+00:21:05,008 --> 00:21:13,008
+So let's say, like in this exact location here, let's say it is 0.5, so that's why the color here is purple-ish,
+
+250
+00:21:13,648 --> 00:21:18,564
+but if you go all the way to the left, the position of vpose dot x is
+
+251
+00:21:19,918 --> 00:21:31,888
+zero, right? And so that's why it becomes blue, and on the very right side here, the value is 1.0, and that's why it's magenta, and then it's a gradient in between.
+
+252
+00:21:32,238 --> 00:21:36,928
+So we can do the same for the second one too. So let's do vpose.y.
+
+253
+00:21:40,526 --> 00:21:41,488
+Cool, huh?
+
+254
+00:21:42,734 --> 00:21:48,848
+Okay, I get really excited already with just three gradient color.
+
+255
+00:21:49,070 --> 00:22:00,768
+But before we end this video, this first part, I want to make things move a little bit so that it is exciting before we end here, and so that you keep watching to the next episode.
+
+256
+00:22:01,102 --> 00:22:07,940
+So, what we're going to do next is we're going to be sending the global variable, right?
+
+257
+00:22:08,048 --> 00:22:09,568
+The dynamic global variable.
+
+258
+00:22:09,806 --> 00:22:15,044
+So basically, I'm going to be sending the time and we're going to do that from sketch.
+
+259
+00:22:15,598 --> 00:22:18,528
+We're going to be using this function called set uniform.
+
+260
+00:22:18,798 --> 00:22:22,532
+It sets the shaders uniform global variables.
+
+261
+00:22:23,328 --> 00:22:24,772
+So let's see.
+
+262
+00:22:25,614 --> 00:22:29,168
+We want to put in the name of our shader, right?
+
+263
+00:22:29,408 --> 00:22:35,328
+Which we set it as exact same name here, my shader, and then just do dot set uniform.
+
+264
+00:22:35,662 --> 00:22:41,248
+This is the name of the variable that we want to send, and then this is the value that it wants to set.
+
+265
+00:22:41,486 --> 00:22:43,236
+Okay, so let's go back.
+
+266
+00:22:43,808 --> 00:22:48,128
+My shader dot set uniform,
+
+267
+00:22:49,390 --> 00:22:52,340
+and then I'm going to name it you time
+
+268
+00:22:53,582 --> 00:23:00,048
+and then we're going to be sending the function melee, which will send the timer, right?
+
+269
+00:23:00,622 --> 00:23:07,812
+And actually, why don't we print what Millie is so you can see what is the data being sent.
+
+270
+00:23:10,606 --> 00:23:10,948
+Yeah.
+
+271
+00:23:11,598 --> 00:23:11,888
+So
+
+272
+00:23:14,766 --> 00:23:18,688
+it just keeps increasing based on the start of the program
+
+273
+00:23:19,568 --> 00:23:22,120
+in milliseconds. all
+
+274
+00:23:24,200 --> 00:23:26,308
+right so it's going to be really fast.
+
+275
+00:23:26,862 --> 00:23:32,516
+Now we know that it's sending that to we're going to send it to the fragment shader.
+
+276
+00:23:32,814 --> 00:23:41,348
+So what we're going to do here is we're going to set the qualifier say uniform, it's going to be a float,
+
+277
+00:23:41,808 --> 00:23:45,028
+and it's going to be called uTime.
+
+278
+00:23:46,254 --> 00:23:49,988
+Now what we can do is what if I put
+
+279
+00:23:50,830 --> 00:23:58,848
+actually let's set another variable called float x equals to v pose dot x plus u time.
+
+280
+00:24:02,638 --> 00:24:05,348
+Um I'm going to set this to 0.0 for now.
+
+281
+00:24:08,208 --> 00:24:17,284
+And you just see magenta if this is zero, it probably was blue before, but it quickly turns magenta because this value here just changes x
+
+282
+00:24:17,728 --> 00:24:20,128
+to more than one very quickly.
+
+283
+00:24:20,494 --> 00:24:27,780
+So what we want to do is we want to cap U time between some range that will make this make sense.
+
+284
+00:24:28,238 --> 00:24:30,724
+So actually, I'm going to put in the sign function.
+
+285
+00:24:31,438 --> 00:24:32,644
+So the sign function
+
+286
+00:24:33,582 --> 00:24:35,968
+ranges between negative one and one, right?
+
+287
+00:24:36,174 --> 00:24:39,268
+So this value will only be between
+
+288
+00:24:40,014 --> 00:24:40,448
+what is it?
+
+289
+00:24:40,750 --> 00:24:44,324
+So it's between zero and one, so it's going to be between
+
+290
+00:24:45,648 --> 00:24:47,248
+negative one
+
+291
+00:24:48,768 --> 00:24:49,088
+and
+
+292
+00:24:53,008 --> 00:24:53,328
+two,
+
+293
+00:24:55,406 --> 00:24:56,528
+yeah, right?
+
+294
+00:24:57,166 --> 00:25:05,488
+Because at this become if this is zero and then this is negative, the most it would be negative one, and if this is one
+
+295
+00:25:05,838 --> 00:25:07,888
+and this is one, the most it would be two.
+
+296
+00:25:08,334 --> 00:25:11,204
+Okay, so let's try that.
+
+297
+00:25:12,302 --> 00:25:12,608
+Oh
+
+298
+00:25:13,550 --> 00:25:15,620
+sorry, that flickering
+
+299
+00:25:17,422 --> 00:25:25,892
+sketch. Um, we're going to actually divide this by a large number. Let's do 2000 so that
+
+300
+00:25:26,574 --> 00:25:28,004
+it moves a little bit slower.
+
+301
+00:25:28,622 --> 00:25:39,108
+And you can see there is like that a little bit of this like line, kind of like a blown-out magenta color, and that is when the value just reaches above
+
+302
+00:25:40,128 --> 00:25:40,448
+one,
+
+303
+00:25:41,294 --> 00:25:41,568
+right?
+
+304
+00:25:42,528 --> 00:25:42,848
+Okay.
+
+305
+00:25:43,968 --> 00:25:46,368
+Um yeah, let's go back.
+
+306
+00:25:46,606 --> 00:25:50,048
+What if we do the exact same thing for y?
+
+307
+00:25:53,966 --> 00:25:55,780
+Actually, I'm going to also set
+
+308
+00:25:56,814 --> 00:25:57,796
+let's call it pulse.
+
+309
+00:25:58,894 --> 00:25:59,908
+Pulse is
+
+310
+00:26:00,782 --> 00:26:02,608
+sign of you time.
+
+311
+00:26:04,688 --> 00:26:05,316
+Pulse.
+
+312
+00:26:11,210 --> 00:26:13,060
+All right, and then set X and Y here.
+
+313
+00:26:18,222 --> 00:26:19,172
+Pretty nice, huh?
+
+314
+00:26:23,758 --> 00:26:27,168
+Okay, lastly, before I go, let's go back to sketch.
+
+315
+00:26:27,328 --> 00:26:31,556
+What if we change from rect to ellipse
+
+316
+00:26:33,648 --> 00:26:36,048
+at width and height?
+
+317
+00:26:38,574 --> 00:26:41,156
+And let's set this to 100 details.
+
+318
+00:26:43,190 --> 00:26:44,190
+All right.
+
+319
+00:26:44,846 --> 00:26:45,380
+okay,
+
+320
+00:26:46,190 --> 00:26:56,388
+I think this is enough of the hello world shader style, and yeah, I will have a few more episodes that will show you
+
+321
+00:26:57,166 --> 00:27:00,260
+more and more of this amazing technique.
+
+322
+00:27:00,528 --> 00:27:04,208
+So stay tuned or go to the next one if it's already up there.
+
+323
+00:27:04,368 --> 00:27:06,660
+We're gonna start where we left off last time.
+
+324
+00:27:06,928 --> 00:27:10,500
+So, first we're going to see what we have.
+
+325
+00:27:11,086 --> 00:27:14,180
+So we have this moving gradient in a shape of a circle.
+
+326
+00:27:14,670 --> 00:27:20,516
+So I'm going to actually comment out the ellipses and change it back to a rectangle.
+
+327
+00:27:21,088 --> 00:27:29,888
+And I'm gonna make it a little bit boring just for now, but we're gonna go to the fragment shader and we're going to actually stop it from animating.
+
+328
+00:27:29,968 --> 00:27:31,908
+So I'm actually going to delete this line.
+
+329
+00:27:33,806 --> 00:27:35,332
+The pulse is now gone.
+
+330
+00:27:36,608 --> 00:27:44,388
+And also, I'm going to change from this beautiful color into a monotone of
+
+331
+00:27:45,166 --> 00:27:46,756
+the grayscale, black and white.
+
+332
+00:27:47,278 --> 00:27:54,048
+First, I'm going to actually change these values to X, X, and X.
+
+333
+00:27:54,734 --> 00:27:57,348
+And X outputs a value between 0 and 1.
+
+334
+00:27:57,934 --> 00:28:03,396
+So if I click run, what you see is a gradient that goes from black to white.
+
+335
+00:28:03,918 --> 00:28:05,728
+And then if I change it to Y,
+
+336
+00:28:08,238 --> 00:28:12,772
+you also see the same gradient, but now it goes from bottom to top.
+
+337
+00:28:13,230 --> 00:28:22,048
+So what I wanted you to see is actually the GLSL coordinate space, which actually goes from left to right, bottom to top.
+
+338
+00:28:22,288 --> 00:28:31,488
+and the origin point is at the bottom left corner here, which is a little bit different, which is different, basically from the P5JS
+
+339
+00:28:31,728 --> 00:28:33,732
+coordinate space that we're familiar with.
+
+340
+00:28:33,998 --> 00:28:35,968
+Now we want to draw a circle.
+
+341
+00:28:36,174 --> 00:28:37,488
+So how do we do that?
+
+342
+00:28:37,774 --> 00:28:43,168
+In a regular P5 sketch, we would define the center of the circle and then its radius or diameter.
+
+343
+00:28:43,328 --> 00:28:52,608
+But in the case of a shader, it's just asking every single pixel how far away are you from the center and use that number to map out the circle.
+
+344
+00:28:52,878 --> 00:29:00,452
+To do that, we can use the GLSL built-in function called length to find the distance and pass in the pixels xy coordinates.
+
+345
+00:29:00,718 --> 00:29:05,728
+This will return the distance between each pixel and its origin point.
+
+346
+00:29:05,998 --> 00:29:09,380
+Alright, we're gonna try that, but first we're going to actually delete these.
+
+347
+00:29:10,368 --> 00:29:13,956
+And I'm going to define a new variable
+
+348
+00:29:15,310 --> 00:29:18,288
+of the type vec2, and I'm gonna call it uv.
+
+349
+00:29:18,768 --> 00:29:22,436
+And this is just a conventional name for current space and shaders.
+
+350
+00:29:22,862 --> 00:29:24,996
+And I'm going to set it equals to V pose.
+
+351
+00:29:25,582 --> 00:29:34,372
+And then I'm going to define another variable called D, set it as a float, and then set it equals to the function length
+
+352
+00:29:35,088 --> 00:29:36,868
+and put in UV.
+
+353
+00:29:37,934 --> 00:29:41,124
+And then now inside frac color, we're gonna put in D,
+
+354
+00:29:42,288 --> 00:29:43,108
+D, D.
+
+355
+00:29:43,980 --> 00:29:53,968
+all right we see something here, and as you can see, it also shows us the current space within the GLSL canvas,
+
+356
+00:29:54,128 --> 00:29:54,368
+right?
+
+357
+00:29:54,688 --> 00:30:03,808
+D, which ranges between, I guess it might be, yeah, it is between zero and one because if you pose this between zero and one, and we pass
+
+358
+00:30:04,128 --> 00:30:12,848
+that into the frack color, the distance closest to the origin, the distance would be zero or pretty close to zero, right?
+
+359
+00:30:12,928 --> 00:30:20,132
+So that's why it's black and as far away from the origin as possible, which is this point here, it is completely white.
+
+360
+00:30:20,526 --> 00:30:30,448
+We actually want a circle that has the origin in the middle of the canvas, and we can do that by shifting the coordinate space.
+
+361
+00:30:30,734 --> 00:30:38,608
+So instead of having the coordinate space that ranges between 0 and 1, we want it to be between negative 0.5
+
+362
+00:30:38,928 --> 00:30:40,368
+to positive 0.5.
+
+363
+00:30:40,814 --> 00:30:46,528
+So this point originally is 0, so all we need to do is subtract it by negative 0.5.
+
+364
+00:30:47,438 --> 00:30:50,884
+So we're going to do V pose minus 0.5.
+
+365
+00:30:52,878 --> 00:30:53,648
+And ta-da!
+
+366
+00:30:54,222 --> 00:30:55,716
+Now we have a circle.
+
+367
+00:30:56,398 --> 00:31:01,408
+And you can see that we can't see the white color anymore, right?
+
+368
+00:31:01,728 --> 00:31:09,968
+And that is because length here now ranges between negative 5, negative 0.5 to positive 0.5.
+
+369
+00:31:10,446 --> 00:31:16,964
+Let's say we multiply this by 2.0, making it range between negative 1 and 1.
+
+370
+00:31:18,094 --> 00:31:20,487
+Now we can see a circle.
+
+371
+00:31:21,038 --> 00:31:24,624
+all right so I'm actually going to move it back to this.
+
+372
+00:31:25,326 --> 00:31:28,624
+Right now, to get the position of the
+
+373
+00:31:29,582 --> 00:31:33,264
+square or the canvas, we actually pass in
+
+374
+00:31:34,224 --> 00:31:41,344
+the vertex points from the CPU to the vertex shader through V pose.
+
+375
+00:31:41,454 --> 00:31:49,348
+and then we send it into the fragment shader here, and we receive it as V POS here through the out and in qualifiers.
+
+376
+00:31:49,744 --> 00:31:51,744
+But actually, we don't need to do that.
+
+377
+00:31:51,982 --> 00:32:00,384
+And the reason that I did it this way is because I wanted to show you how data is being passed through the pipeline, but actually, when it comes to reading screens positions,
+
+378
+00:32:00,464 --> 00:32:10,544
+the GPU already tracks this all under the hood, and you can actually get the coordinates automatically through a built-in variable called GL frac
+
+379
+00:32:10,704 --> 00:32:11,024
+chord.
+
+380
+00:32:11,184 --> 00:32:15,744
+To see where this data comes from, we need to look at the process called rasterization.
+
+381
+00:32:15,982 --> 00:32:23,504
+And rasterization is the process in computer graphics that converts shapes into a 2D grid of pixels to display on the screen.
+
+382
+00:32:23,662 --> 00:32:35,504
+The rasterizer is the specific GPU step that takes those triangles defined by the vertices that the CPU sent and figures out exactly which physical pixels on your monitor
+
+383
+00:32:35,664 --> 00:32:36,784
+fall inside them.
+
+384
+00:32:37,102 --> 00:32:43,300
+First, I'm going to comment this and I'm going to just color this our screen
+
+385
+00:32:44,206 --> 00:32:46,064
+with the color red.
+
+386
+00:32:49,198 --> 00:32:55,716
+all right and we're going to go back to sketch and we're going to bring back the circle.
+
+387
+00:32:58,318 --> 00:33:04,064
+As you can see here, I put in five arguments, and I don't usually do, right?
+
+388
+00:33:04,544 --> 00:33:07,264
+Because what is this last argument here?
+
+389
+00:33:07,502 --> 00:33:17,092
+The fifth parameter detail determines how many vertices are used to draw the ellipse in WebGL mode, and the default value is 25.
+
+390
+00:33:17,344 --> 00:33:19,364
+If I delete this,
+
+391
+00:33:21,422 --> 00:33:25,344
+you can see that the circle is a lot rougher, right?
+
+392
+00:33:25,710 --> 00:33:28,036
+So what if we put in 10?
+
+393
+00:33:29,582 --> 00:33:34,304
+And now we count 1, 2, 3, 4, 5, 6, 7, 8, 9, 10.
+
+394
+00:33:34,384 --> 00:33:38,944
+So basically it gives us the number of vertices based on this number here.
+
+395
+00:33:39,310 --> 00:33:40,224
+So now we have 10.
+
+396
+00:33:40,398 --> 00:33:44,164
+If I put one, you want to say anything because it's just a point,
+
+397
+00:33:45,422 --> 00:33:45,664
+two,
+
+398
+00:33:46,638 --> 00:33:48,804
+you get a line, three,
+
+399
+00:33:49,710 --> 00:33:53,104
+a triangle, and then four, and so on,
+
+400
+00:33:54,784 --> 00:34:06,624
+But these are actually just a set of triangles stitched together, right? So if we put 25, which is their default setting, if I put a hundred,
+
+401
+00:34:07,726 --> 00:34:12,544
+now it looks like a circle, right? I mean it was a circle before, but just a rough circle.
+
+402
+00:34:12,718 --> 00:34:14,464
+Now it's a very smooth circle.
+
+403
+00:34:14,704 --> 00:34:23,504
+This circle basically is just a set of many many triangles stitched together with a bunch of vertices, right? In this case, a hundred.
+
+404
+00:34:24,046 --> 00:34:27,236
+So I'm going to bring back our rectangle,
+
+405
+00:34:28,384 --> 00:34:36,644
+and then inside the vertex shader, I'm actually going to delete the V pose. We don't need it anymore.
+
+406
+00:34:37,104 --> 00:34:37,316
+Okay.
+
+407
+00:34:38,190 --> 00:34:41,476
+And then inside here the fragment shader.
+
+408
+00:34:41,984 --> 00:34:43,652
+We don't need this either.
+
+409
+00:34:43,950 --> 00:34:51,424
+And then we're going to replace V pose with GL underscore frag chord.
+
+410
+00:34:51,824 --> 00:34:57,264
+But we also only want the X and Y coordinates, so we need to do dot XY.
+
+411
+00:34:58,030 --> 00:34:58,916
+Then click run.
+
+412
+00:35:00,238 --> 00:35:04,708
+Oh, it doesn't, nothing happens right now because we need this part here
+
+413
+00:35:05,838 --> 00:35:07,844
+where the UV is being used.
+
+414
+00:35:09,454 --> 00:35:09,860
+Mmm,
+
+415
+00:35:10,734 --> 00:35:11,716
+it's all white.
+
+416
+00:35:12,622 --> 00:35:13,776
+What's happening here?
+
+417
+00:35:14,126 --> 00:35:21,616
+Exactly what's happening here is that the range for gl underscore frac chord and vpose are actually different.
+
+418
+00:35:21,870 --> 00:35:29,572
+For vpose it ranges between zero and one, but for gl frac chord it actually ranges between our canvas size, which is
+
+419
+00:35:30,126 --> 00:35:33,476
+in my case between 0 and 400.
+
+420
+00:35:33,966 --> 00:35:36,516
+So what we want to do is that we want to normalize it.
+
+421
+00:35:36,814 --> 00:35:45,284
+So we're gonna go to sketch and we're going to actually send the value of the resolution, the width and the height
+
+422
+00:35:45,536 --> 00:35:47,268
+in the form of a uniform.
+
+423
+00:35:47,854 --> 00:35:55,296
+So we're gonna do a very similar way to this. So my shader dot set uniform
+
+424
+00:35:57,056 --> 00:35:58,756
+and we're gonna call it
+
+425
+00:35:59,536 --> 00:36:01,696
+UResolution.
+
+426
+00:36:03,406 --> 00:36:08,416
+Okay, and then we're gonna send it as an array, a 2D vector basically.
+
+427
+00:36:08,576 --> 00:36:11,236
+So we're gonna send width and height,
+
+428
+00:36:11,950 --> 00:36:18,016
+and then now inside shader, the fragment shaders, we just need to receive it right.
+
+429
+00:36:18,222 --> 00:36:19,204
+So uniform,
+
+430
+00:36:19,886 --> 00:36:23,296
+we're going to receive it as a vec 2, and it is called
+
+431
+00:36:26,170 --> 00:36:26,596
+UResolution.
+
+432
+00:36:27,182 --> 00:36:30,576
+Then now we want to use it, right? We want to divide
+
+433
+00:36:31,456 --> 00:36:34,692
+this that goes between 0 and 400
+
+434
+00:36:35,536 --> 00:36:35,856
+to
+
+435
+00:36:36,736 --> 00:36:39,616
+U Rissovolution
+
+436
+00:36:39,776 --> 00:36:44,676
+dot XY, which is the width and a height, then we click run.
+
+437
+00:36:46,630 --> 00:36:46,870
+Hmm
+
+438
+00:36:48,590 --> 00:36:56,196
+That is not what we expected, right? We want the circle to be in the middle here, and it is supposed to fill the screen.
+
+439
+00:36:56,814 --> 00:37:09,860
+And the reason this is happening is because even though this is the values of 400 comma 400, right? The width and the height, GLfracord here is actually not between 0 and 400.
+
+440
+00:37:10,176 --> 00:37:10,596
+Why?
+
+441
+00:37:11,118 --> 00:37:13,856
+It's because of my screen's resolution.
+
+442
+00:37:14,222 --> 00:37:19,300
+So what we need to do is we're going to go to sketch and we're going to put in
+
+443
+00:37:20,302 --> 00:37:25,376
+a function called pixel density and put in an argument of one.
+
+444
+00:37:27,950 --> 00:37:28,576
+And ta-da!
+
+445
+00:37:28,896 --> 00:37:29,696
+It works now.
+
+446
+00:37:29,966 --> 00:37:34,496
+So before we move forward, let's just go to the documentation page so you see what's happening.
+
+447
+00:37:34,862 --> 00:37:39,492
+Displays with smaller pixels have a higher pixel density and create sharper images.
+
+448
+00:37:39,918 --> 00:37:50,656
+And I guess in my case it has a higher pixel density, but we don't want that, we want it to be the same scale, so we can call pixel density with a variable of one
+
+449
+00:37:50,816 --> 00:37:51,696
+to turn this off.
+
+450
+00:37:51,918 --> 00:38:04,388
+So let's quickly recap what we just did. We are using the built-in gl underscore frac chord variable, which tracks raw screen space, meaning currents running from 0 to 400 on the canvas.
+
+451
+00:38:04,846 --> 00:38:13,856
+Then we normalize the value to range between 0 and 1, and we do that by dividing gl underscore frac chord by the total width and height of the canvas,
+
+452
+00:38:14,094 --> 00:38:18,576
+which we pass from the CPU as a uniform called U resolution.
+
+453
+00:38:18,798 --> 00:38:27,136
+And we also set the pixel density to 1 on the P5 side to guarantee our shader coordinates and canvas size maintain a perfect one-to-one ratio.
+
+454
+00:38:27,216 --> 00:38:35,936
+And lastly, we assign this normalized result to the variable UV, which is just a universal convention for current space in the shader world.
+
+455
+00:38:36,176 --> 00:38:40,176
+Next is the exciting part. How are we doing the tiling?
+
+456
+00:38:40,526 --> 00:38:46,096
+To create a grid, we don't need to do a lot of different loops that we usually do with columns and rows.
+
+457
+00:38:46,256 --> 00:38:49,616
+We just need to use one built-in function called fract.
+
+458
+00:38:50,062 --> 00:38:56,356
+And what fract does is that it strips away the whole number part of a value and returns only the decimal leftovers.
+
+459
+00:38:56,686 --> 00:39:04,896
+For positive number, the return value is pretty intuitive, but actually for a negative number, you can't just drop the decimal and slap on the negative sign.
+
+460
+00:39:05,070 --> 00:39:10,372
+The actual equation is fract of x equals to x minus floor of x.
+
+461
+00:39:10,734 --> 00:39:15,296
+So for example, fract of negative 0.3 returns 0.7.
+
+462
+00:39:15,950 --> 00:39:24,804
+And if you look at it on a graph, it forms a perfect repeating sawtooth wave that climbs from 0 to 1 and goes back to 0 at every single integer
+
+463
+00:39:25,056 --> 00:39:27,204
+for both positive and negative numbers.
+
+464
+00:39:27,438 --> 00:39:37,572
+And the reason that we can use frac to create a grid is because it basically ignores the whole numbers and provide us with the range between 0 and 1 over and over and over again,
+
+465
+00:39:37,902 --> 00:39:42,336
+and that just create a repeating pattern that creates a beautiful tile.
+
+466
+00:39:42,656 --> 00:39:45,376
+uv equals to fract of
+
+467
+00:39:46,256 --> 00:39:46,576
+uv.
+
+468
+00:39:48,750 --> 00:39:49,060
+Hmm.
+
+469
+00:39:50,144 --> 00:39:52,544
+It doesn't look like what we expected, right?
+
+470
+00:39:52,718 --> 00:39:58,624
+The reason that it looks like this is because basically, this point here, you get zero.
+
+471
+00:39:59,022 --> 00:40:03,264
+but then this point here you get fract of negative 0.5, which is 0.5.
+
+472
+00:40:03,758 --> 00:40:06,784
+and then fract here is 0.5 is still 0.5.
+
+473
+00:40:07,264 --> 00:40:11,876
+but in between here, it just increases and then becomes zero.
+
+474
+00:40:12,078 --> 00:40:13,984
+and then it keeps increases. again.
+
+475
+00:40:14,286 --> 00:40:16,612
+But now if we multiply it by let's say two,
+
+476
+00:40:17,582 --> 00:40:29,904
+we get something that we expected, right? We have a grid of two by two, but the circle inside each tile is also not center, and that is because the range is between zero and one,
+
+477
+00:40:30,286 --> 00:40:34,500
+and that's why the color is between black and white from left to right.
+
+478
+00:40:34,798 --> 00:40:38,180
+So we can do the exact same fix here by just
+
+479
+00:40:39,022 --> 00:40:47,824
+subtracting it by 0.5 so that we can remap this values from here to here so it becomes negative 0.5 to 0.5,
+
+480
+00:40:48,462 --> 00:40:49,444
+and we do that here
+
+481
+00:40:51,024 --> 00:40:51,904
+and ta da.
+
+482
+00:40:52,526 --> 00:40:58,180
+You can multiply the distance here by another constant like we did originally.
+
+483
+00:40:59,104 --> 00:41:04,132
+And you can change this constant here to 3
+
+484
+00:41:06,446 --> 00:41:06,884
+4
+
+485
+00:41:08,782 --> 00:41:20,144
+5. So here are the four steps that we did. First we normalize the coordinate values to be between 0 and 1, and then we center the global coordinates by subtracting uv
+
+486
+00:41:20,544 --> 00:41:25,984
+by 0.5, and this basically shifts the coordinate space to be between negative 0.5 and 0.5.
+
+487
+00:41:26,286 --> 00:41:34,384
+And then we'll multiply by a constant of the number of cells that we want, and then we slice it using the function fract.
+
+488
+00:41:34,862 --> 00:41:43,024
+And lastly, we basically do another centering for each of the shapes inside the cell, and we do that the exact same way by subtracting uv
+
+489
+00:41:43,504 --> 00:41:44,224
+by 0.5.
+
+490
+00:41:44,782 --> 00:41:49,582
+Okay, so I rewrote this to reflect the steps that we just discussed.
+
+491
+00:41:49,838 --> 00:41:53,504
+All right, now let's go back to sketch again.
+
+492
+00:41:53,664 --> 00:41:57,828
+What if I change the canvas size to 600 by 400?
+
+493
+00:41:58,478 --> 00:42:01,264
+Now you can see that our circles are being stretched, right?
+
+494
+00:42:01,424 --> 00:42:05,264
+To fix that, we need to do some aspect ratio adjusting.
+
+495
+00:42:05,550 --> 00:42:08,740
+We're actually going to use this one equation
+
+496
+00:42:09,550 --> 00:42:10,660
+right before
+
+497
+00:42:11,566 --> 00:42:12,324
+all of this.
+
+498
+00:42:13,038 --> 00:42:14,304
+So we're going to do uv
+
+499
+00:42:16,366 --> 00:42:24,224
+dot x, just x coordinates, multiply equals to u resolution.x divided by u
+
+500
+00:42:24,704 --> 00:42:26,544
+resolution
+
+501
+00:42:27,824 --> 00:42:28,704
+dot y.
+
+502
+00:42:30,062 --> 00:42:30,436
+Run.
+
+503
+00:42:31,694 --> 00:42:32,544
+And ta-da!
+
+504
+00:42:33,454 --> 00:42:34,564
+It magically works.
+
+505
+00:42:34,894 --> 00:42:36,544
+So how does it work exactly?
+
+506
+00:42:36,846 --> 00:42:48,944
+So by dividing the width by the height, so 600 by 400, the shader calculates a scaling ratio of 1.5, and this tells us the screen is exactly 1.5 times wider than it is tall.
+
+507
+00:42:49,104 --> 00:43:03,904
+And without this fix, both axes are forced into a strict 0 to 1 range, and by multiplying uv x by that 1.5 fraction, we expand the range of the x-axis to match the physical shape of the monitor.
+
+508
+00:43:04,206 --> 00:43:10,384
+The y-axis stays locked between 0 and 1, but the x-axis now stretches out from 0 to 1.5.
+
+509
+00:43:10,544 --> 00:43:13,060
+But notice what this does to our center point.
+
+510
+00:43:13,358 --> 00:43:19,264
+Since our width is between 0 and 1.5, the middle point is now 0.75.
+
+511
+00:43:19,470 --> 00:43:24,784
+By subtracting a hard-coded value of 0.5, our visuals are now off-centered.
+
+512
+00:43:24,878 --> 00:43:29,504
+To fix this, we can calculate the shifts for both the x and y axis independently.
+
+513
+00:43:29,742 --> 00:43:34,544
+For the x-axis, we can subtract half of the aspect ratio to account for that extra width.
+
+514
+00:43:34,670 --> 00:43:40,224
+For the y-axis, since it spans from 0 to 1, we can safely subtract it by 0.5.
+
+515
+00:43:40,398 --> 00:43:43,824
+And that's it, and that's how you create the beautiful tiling inside shaders.
+
+516
+00:43:43,904 --> 00:43:47,184
+But before I end here, I want to point out one final thing.
+
+517
+00:43:47,534 --> 00:43:55,104
+If you open up sites like Shader Toy or you look up some other resources online, the first line of mini fragment shader might look like this.
+
+518
+00:43:55,470 --> 00:44:06,064
+And don't be scared because you have seen it before. So if you look at our vertex shader file here, you can see that position.xy here is also multiplied by 2 and subtract
+
+519
+00:44:06,224 --> 00:44:06,724
+by 1.
+
+520
+00:44:06,958 --> 00:44:10,752
+The only difference is that The scaling is different.
+
+521
+00:44:10,992 --> 00:44:16,112
+Here the range is between 0 and 1, and we want to map it to negative 1 and 1.
+
+522
+00:44:16,270 --> 00:44:19,552
+So we multiply it by 2 and then we subtract it by 1.
+
+523
+00:44:19,822 --> 00:44:30,832
+But in the case of the GL frac chord, which ranges between 0 and 400, what we want to do is that we want to multiply it by 2, and then we want to subtract it by the width, basically, right?
+
+524
+00:44:30,990 --> 00:44:35,876
+And then the divide by U resolution that Y at the end here is the exact same thing that we just discussed.
+
+525
+00:44:36,206 --> 00:44:43,364
+But you can see that it looks like there are many more cells here, and you're exactly right.
+
+526
+00:44:43,662 --> 00:44:52,272
+That is because now the range that this provides is between negative one and one, whereas how we did it before
+
+527
+00:44:52,526 --> 00:44:58,052
+the range was between negative 0.5 and 0.5. So this basically doubles the grid size.
+
+528
+00:44:58,542 --> 00:45:00,836
+And that is it for this video. I hope you stick around.
+
+529
+00:45:01,326 --> 00:45:01,792
+Let's go!
+
+530
+00:45:02,030 --> 00:45:06,912
+So this is where we left off in the last episode. I want to make some changes before we move forward.
+
+531
+00:45:07,086 --> 00:45:11,588
+So first I want to change the size of the canvas to 400 by 400.
+
+532
+00:45:12,270 --> 00:45:20,912
+Okay, and then we're gonna go to the fragment shaders, and then remember we talked about the two different ways to get the UV
+
+533
+00:45:21,072 --> 00:45:21,444
+coordinates.
+
+534
+00:45:21,632 --> 00:45:27,460
+I'm actually going to use this equation here, and I'm going to delete this first part.
+
+535
+00:45:31,118 --> 00:45:33,956
+Alright, and then I want to change
+
+536
+00:45:34,734 --> 00:45:39,268
+the constant here to 2.0 so that we have a 4x4 grid.
+
+537
+00:45:39,502 --> 00:45:44,752
+So next we're going to talk about a shaping function. So what is a shaping function?
+
+538
+00:45:44,912 --> 00:45:51,472
+A shaping function is any math function that takes in a number and sculpts it into a different shape.
+
+539
+00:45:51,726 --> 00:45:56,900
+And to talk about the shaping function, what I want to do is I actually also want to comment this out.
+
+540
+00:45:57,262 --> 00:46:03,364
+So instead of working with a 2D space, why don't we start with a 1D space so that it's easier to grasp the concept?
+
+541
+00:46:03,886 --> 00:46:14,084
+So I'm going to create a variable called X and we're going to set X to be equals to the UV dot X, which is the X component of the UV coordinate.
+
+542
+00:46:14,638 --> 00:46:18,116
+And then I'm going to change this to X, comma X, comma X.
+
+543
+00:46:20,526 --> 00:46:24,672
+The first shaping function that we're going to play with is the sign function.
+
+544
+00:46:24,846 --> 00:46:25,792
+Let's put in sign
+
+545
+00:46:26,894 --> 00:46:28,228
+of UV dot X.
+
+546
+00:46:30,126 --> 00:46:31,300
+What do you notice here?
+
+547
+00:46:31,758 --> 00:46:34,992
+Maybe you can see it more if I multiply it by a bigger number.
+
+548
+00:46:36,878 --> 00:46:41,188
+It seems like the black band is bigger than the white band, right?
+
+549
+00:46:41,582 --> 00:46:42,672
+And that is because
+
+550
+00:46:43,790 --> 00:46:44,164
+if I
+
+551
+00:46:44,846 --> 00:46:53,732
+delete this, that is because if you look here, the range here is between negative one and one, right? The range of the UV current space.
+
+552
+00:46:54,112 --> 00:47:05,952
+And when you put it inside here, inside signed, which oscillates between value of negative one and one, the color that is being rendered is actually only
+
+553
+00:47:06,190 --> 00:47:07,472
+is between zero and one.
+
+554
+00:47:07,854 --> 00:47:13,712
+So any negative number that is put as an input returns a value of zero.
+
+555
+00:47:13,792 --> 00:47:23,792
+So the GPU basically just clips the negative number as zero, and so that's why anything that is on the left side where the range is between negative one
+
+556
+00:47:23,952 --> 00:47:30,512
+and zero is black, and then anything on the right side now just returns values between zero and one.
+
+557
+00:47:30,958 --> 00:47:37,476
+And because sine of one is around 0.8, you can see that this point here is like gray.
+
+558
+00:47:37,774 --> 00:47:41,952
+Now, what if we want a clean edge or a hard cutoff between black and white?
+
+559
+00:47:42,158 --> 00:47:48,192
+We can actually use another shaping function called step, and step takes in two arguments.
+
+560
+00:47:48,352 --> 00:47:53,392
+The first one is the threshold, and then the second one is the input value.
+
+561
+00:47:53,712 --> 00:47:58,512
+x equals to step of 0.0 comma x.
+
+562
+00:47:58,926 --> 00:48:04,352
+0.0 is the threshold, so anything below 0 will return a value of 0.
+
+563
+00:48:04,512 --> 00:48:07,588
+Anything above 0 will return a value of 1.
+
+564
+00:48:08,112 --> 00:48:10,148
+And as you can see here, anything
+
+565
+00:48:10,862 --> 00:48:16,836
+below 0 is the negative number here. So the left side should be black and the right side should be white, right?
+
+566
+00:48:17,198 --> 00:48:18,180
+Let's give it a try.
+
+567
+00:48:19,598 --> 00:48:20,352
+And ta-da!
+
+568
+00:48:21,102 --> 00:48:22,116
+You get a clean
+
+569
+00:48:22,958 --> 00:48:25,092
+cut between black and white.
+
+570
+00:48:25,774 --> 00:48:29,632
+But what if you think that this is a little bit too jarring?
+
+571
+00:48:29,792 --> 00:48:39,300
+You want a little bit of a transition between the two, you can actually use another shaping function called smooth step to get that smooth transition.
+
+572
+00:48:40,512 --> 00:48:42,788
+It requires one additional
+
+573
+00:48:43,662 --> 00:48:44,192
+argument.
+
+574
+00:48:44,398 --> 00:48:50,752
+I'm going to comment this out and then just put in x equals to step, no, smooth step of
+
+575
+00:48:51,566 --> 00:48:57,188
+how about we do negative 0.5, 0.5, and then x.
+
+576
+00:48:59,854 --> 00:49:02,724
+And then now you can see that there is this
+
+577
+00:49:03,406 --> 00:49:05,200
+nice transition between the two.
+
+578
+00:49:05,422 --> 00:49:11,204
+So basically, we provide two arguments: the lower threshold and then the upper threshold.
+
+579
+00:49:11,600 --> 00:49:15,280
+And anything that is below the lower threshold returns zero.
+
+580
+00:49:15,520 --> 00:49:19,200
+Anything that is above the upper threshold returns one.
+
+581
+00:49:19,520 --> 00:49:23,300
+And anything in between gets a nice transition, as you can see here.
+
+582
+00:49:23,598 --> 00:49:26,372
+So if we provide a smaller
+
+583
+00:49:27,374 --> 00:49:30,340
+band here, so negative 0.1 and 0.1,
+
+584
+00:49:31,534 --> 00:49:35,600
+you can see that this transition in between is smaller.
+
+585
+00:49:35,760 --> 00:49:43,920
+But to create the glowing ring, we're actually not going to be using either of these shaping functions. We're going to be using abs or absolute.
+
+586
+00:49:44,320 --> 00:49:55,268
+We don't want to clip out any of the negative values. We want to fold the negative value to be a positive value, and that's how we actually create those glowing rings.
+
+587
+00:49:55,600 --> 00:50:00,324
+x equals to absolute value of x.
+
+588
+00:50:02,158 --> 00:50:07,300
+Now the negative values basically just mirror the positive side.
+
+589
+00:50:07,662 --> 00:50:11,236
+Instead of just providing uv dot x and you just get this
+
+590
+00:50:12,078 --> 00:50:14,800
+one set of gradient, right?
+
+591
+00:50:15,118 --> 00:50:18,160
+What if we multiply it by a multiple of pi?
+
+592
+00:50:18,510 --> 00:50:20,996
+Let's start with this pi, 3.14.
+
+593
+00:50:21,870 --> 00:50:29,028
+You can see that in the middle point here is sine of 0, which returns 0, and you get this black band.
+
+594
+00:50:29,440 --> 00:50:36,640
+And then at this point here, which is sine of pi over 2, you get a color white because it returns 1.
+
+595
+00:50:36,910 --> 00:50:42,308
+And then at the right edge here, which is sine of pi, which equals to 0, and then you get another black edge here.
+
+596
+00:50:42,638 --> 00:50:44,400
+Same thing on the left side, right?
+
+597
+00:50:44,560 --> 00:50:50,596
+Now that we put in the absolute value, we get the mirror image of the right side.
+
+598
+00:50:51,022 --> 00:50:52,932
+And then you can multiply it by
+
+599
+00:50:55,694 --> 00:50:59,200
+other constants to get multiple periods.
+
+600
+00:50:59,534 --> 00:51:02,596
+So I'm actually going to do four.
+
+601
+00:51:03,438 --> 00:51:05,280
+Why don't we bring back our
+
+602
+00:51:06,254 --> 00:51:07,780
+2D space?
+
+603
+00:51:08,206 --> 00:51:10,276
+So let's uncomment this.
+
+604
+00:51:10,880 --> 00:51:14,640
+And what we need to do is we need to
+
+605
+00:51:18,094 --> 00:51:25,092
+now set D to be equal to the sign function here, and then also set D here.
+
+606
+00:51:25,422 --> 00:51:27,012
+Change all the X to D.
+
+607
+00:51:29,440 --> 00:51:30,404
+Okay. all
+
+608
+00:51:31,438 --> 00:51:32,836
+right that looks kind of nice.
+
+609
+00:51:33,870 --> 00:51:38,560
+Now to the most exciting part, at least for me, is to create those glowing rings.
+
+610
+00:51:38,766 --> 00:51:39,680
+How do we do that?
+
+611
+00:51:39,854 --> 00:51:43,920
+We do it using this equation that mimics how light behaves.
+
+612
+00:51:44,080 --> 00:51:46,080
+This is the inverse distance equation.
+
+613
+00:51:46,222 --> 00:51:50,000
+So we basically divide a small constant by our distance value.
+
+614
+00:51:50,286 --> 00:51:55,108
+Alright, let's give this a try. So we're gonna do d equals to n divided by d, right?
+
+615
+00:51:55,200 --> 00:51:59,812
+And we can pick our n. So I'm going to start with 0.1 divided by d.
+
+616
+00:52:01,518 --> 00:52:06,724
+Alright, what if we increase the value of the numerator here?
+
+617
+00:52:08,302 --> 00:52:08,800
+Ooh,
+
+618
+00:52:09,806 --> 00:52:10,960
+it glows a lot more.
+
+619
+00:52:11,120 --> 00:52:13,220
+And how about we decrease it to
+
+620
+00:52:13,902 --> 00:52:14,948
+0.05?
+
+621
+00:52:16,782 --> 00:52:18,980
+Okay, how about even smaller?
+
+622
+00:52:20,494 --> 00:52:29,600
+So how does this work exactly? If you look here where the sharp values are, this is where the absolute function brings the wave to zero, right?
+
+623
+00:52:29,710 --> 00:52:38,160
+And so by dividing a number extremely close to zero, the output basically is just going towards infinity and the GPU just cap it to one,
+
+624
+00:52:38,320 --> 00:52:39,600
+which is the color white.
+
+625
+00:52:39,760 --> 00:52:49,280
+And as you get away or get further from the value the distance D gets bigger, and the output is closer to zero and the brightness falls off quickly.
+
+626
+00:52:49,614 --> 00:53:00,480
+And as we modify the numerator, you could see that the size of the glowing rings changes, right? And that is because the numerator literally is the distance at which you get the full brightness.
+
+627
+00:53:00,782 --> 00:53:11,280
+Let's say you set it to 0.02, the only pixels within that distance 0.02 are the ones that are going to be fully white and everything else will fall off or is black.
+
+628
+00:53:11,440 --> 00:53:17,920
+If you set it to a different number, let's say 0.1 or 0.5, that full brightness zone just get wider.
+
+629
+00:53:18,126 --> 00:53:22,720
+And here's the part I find most fascinating. This is how light actually behaves.
+
+630
+00:53:22,958 --> 00:53:25,028
+Brightness falls with distance from a source.
+
+631
+00:53:25,360 --> 00:53:38,532
+In physics, there's actually a law called an inverse square law, and the equation is 1 divided by d square. But in shaders, we're using 1 divided by d because it looks right and it costs less.
+
+632
+00:53:38,734 --> 00:53:41,520
+And there's even a name in painting, it's called.
+
+633
+00:53:41,934 --> 00:53:48,800
+Chia Rose Curo. I believe this is Italian. So any Italian audience out there, correct my pronunciation.
+
+634
+00:53:48,960 --> 00:53:53,600
+It is the contrast between light and dark that creates the illusion of luminosity.
+
+635
+00:53:53,774 --> 00:53:55,972
+And you've seen it in many famous paintings.
+
+636
+00:53:56,270 --> 00:54:02,400
+Next, we're going to bring back some animation. So remember the uTime uniform variable that we used in the first episode?
+
+637
+00:54:02,606 --> 00:54:09,410
+Let's bring that back. So inside sketch, we're gonna do my shader dot set uniform.
+
+638
+00:54:10,478 --> 00:54:14,880
+And then the variable is going to be named UTime.
+
+639
+00:54:15,694 --> 00:54:23,760
+And we're gonna send the milli function, which basically just counts the number of milliseconds from the start of the program,
+
+640
+00:54:24,110 --> 00:54:26,080
+and we're going to divide it by
+
+641
+00:54:26,862 --> 00:54:30,212
+a large constant so that it doesn't move too fast.
+
+642
+00:54:30,862 --> 00:54:33,508
+So I'm going to do actually how about a thousand?
+
+643
+00:54:35,120 --> 00:54:38,980
+And we're going to go to the fragment shader.
+
+644
+00:54:39,662 --> 00:54:46,212
+And then here we're going to receive it as a uniform, and it is afloat called uTime.
+
+645
+00:54:47,022 --> 00:54:50,788
+And we're actually going to provide it inside the sign function here.
+
+646
+00:54:51,374 --> 00:54:53,520
+Let's do plus u time.
+
+647
+00:54:54,382 --> 00:54:57,070
+And I'm actually going to change this to 0.1.
+
+648
+00:55:01,102 --> 00:55:02,240
+All right.
+
+649
+00:55:03,406 --> 00:55:06,980
+And now we have this moving glowing rings.
+
+650
+00:55:07,790 --> 00:55:14,400
+So basically we provide this u time inside the sign function so that it changes the
+
+651
+00:55:15,470 --> 00:55:20,240
+value inside the wave, right? It basically shifts the sign function in time, right?
+
+652
+00:55:20,654 --> 00:55:23,140
+So if we add it, you can see that
+
+653
+00:55:23,950 --> 00:55:29,444
+it moves in one way, and then if we subtract it, then we get a different movement.
+
+654
+00:55:30,734 --> 00:55:35,840
+So it is the different ways that we shift that sign function, that sign
+
+655
+00:55:36,750 --> 00:55:37,732
+oscillating waves.
+
+656
+00:55:38,094 --> 00:55:44,100
+We have been working with the circles, and as exciting as that is, it is pretty exciting.
+
+657
+00:55:44,430 --> 00:55:46,320
+We're going to change to a different shape.
+
+658
+00:55:46,542 --> 00:55:50,240
+All we need to do is we just need to change this function here.
+
+659
+00:55:50,574 --> 00:56:00,676
+An indicator is basically any shape is just a function that returns a distance, and that's where the fun begins because when we swap out the function, we get a different shape.
+
+660
+00:56:00,942 --> 00:56:02,800
+So let's start simple.
+
+661
+00:56:02,960 --> 00:56:05,920
+Instead of circle, we're going to work with an oval.
+
+662
+00:56:06,640 --> 00:56:12,388
+So instead of length of UV, what if we multiply this by a vec 2
+
+663
+00:56:13,200 --> 00:56:17,520
+of let's do how about 1.0 and 1.5?
+
+664
+00:56:17,902 --> 00:56:20,932
+So we change the y-coordinate here.
+
+665
+00:56:21,742 --> 00:56:22,596
+What do you expect?
+
+666
+00:56:25,486 --> 00:56:27,140
+Alright, so we have this
+
+667
+00:56:28,654 --> 00:56:30,468
+more oval shape rings.
+
+668
+00:56:31,054 --> 00:56:34,720
+And what we want is actually a function that creates a shape of a heart.
+
+669
+00:56:34,960 --> 00:56:39,844
+I'm going to copy and paste this equation here.
+
+670
+00:56:40,160 --> 00:56:40,800
+And then
+
+671
+00:56:42,478 --> 00:56:43,556
+we're gonna come
+
+672
+00:56:44,238 --> 00:56:45,156
+to this line.
+
+673
+00:56:45,760 --> 00:56:51,840
+And instead of d equals to this, we're gonna do d equals to heart of uv.
+
+674
+00:56:56,814 --> 00:56:57,520
+And ta-da!
+
+675
+00:56:58,400 --> 00:57:03,520
+And you see all this equation, and you're like, Pat, how am I supposed to know these?
+
+676
+00:57:05,006 --> 00:57:08,480
+You're not supposed to know it, you're supposed to go and look them up.
+
+677
+00:57:08,640 --> 00:57:14,240
+So I'm going to provide some resources and then just try a few so that you can see how you can play around with it.
+
+678
+00:57:14,510 --> 00:57:24,196
+So if you come to this website here by the great Inico Killis, he has a bunch of the 2D distance functions, so we're going to look at a few of them.
+
+679
+00:57:25,006 --> 00:57:26,340
+Why don't we work with
+
+680
+00:57:26,990 --> 00:57:29,188
+let's just do a rounded box?
+
+681
+00:57:29,934 --> 00:57:31,588
+So I'm going to just copy this.
+
+682
+00:57:33,678 --> 00:57:40,416
+And come here, float of SD rounded box, and let's just copy here.
+
+683
+00:57:42,062 --> 00:57:44,196
+I'm going to comment out our heart
+
+684
+00:57:45,056 --> 00:57:48,004
+and float of D to be equals to this.
+
+685
+00:57:48,656 --> 00:57:49,296
+And then
+
+686
+00:57:50,350 --> 00:57:53,828
+the vector of P will just be our UV coordinate.
+
+687
+00:57:54,414 --> 00:57:55,616
+The vector of B.
+
+688
+00:57:57,614 --> 00:57:58,976
+I don't know what should it be.
+
+689
+00:57:59,136 --> 00:58:02,256
+How about we just do 0.1.0
+
+690
+00:58:03,136 --> 00:58:03,456
+and
+
+691
+00:58:04,526 --> 00:58:11,780
+vector of 4? Let's do 1.0 as well. And you can see that I only provided just one value.
+
+692
+00:58:12,416 --> 00:58:13,376
+And with
+
+693
+00:58:14,158 --> 00:58:18,724
+vectors within GLSL, this basically is going to populate it for me.
+
+694
+00:58:18,926 --> 00:58:25,456
+So it's going to be 1.0 for all four values for this vect four and then two values for this vector.
+
+695
+00:58:27,694 --> 00:58:29,124
+It just looks like a circle.
+
+696
+00:58:29,582 --> 00:58:32,016
+So what if I change this to two?
+
+697
+00:58:33,520 --> 00:58:33,680
+Oh.
+
+698
+00:58:35,406 --> 00:58:35,856
+Nice.
+
+699
+00:58:36,558 --> 00:58:37,536
+How about we do
+
+700
+00:58:38,286 --> 00:58:40,868
+1.0 and 2.0 here?
+
+701
+00:58:42,496 --> 00:58:43,136
+Alright.
+
+702
+00:58:43,790 --> 00:58:51,716
+So as you can see, you can play around with these equations, but I'm actually going to comment this and just end with our heart.
+
+703
+00:58:54,094 --> 00:59:05,696
+And that's it for this video. In the next video, I'm going to show you how to add some nice colors, and also we're gonna be using a for loop to wrap all of these shapes inside. Let's go.
+
+704
+00:59:05,856 --> 00:59:09,456
+Talking about colors, let me introduce you to this function called mix.
+
+705
+00:59:09,710 --> 00:59:13,136
+Mix takes in a total of three arguments: the two colors and the amount.
+
+706
+00:59:13,326 --> 00:59:15,136
+The amount ranges between zero and one.
+
+707
+00:59:15,502 --> 00:59:19,776
+So if you put in zero, you get the color A, if you put in one, you get the color B.
+
+708
+00:59:19,950 --> 00:59:23,364
+And if you put anything between, you get the mix between those two colors.
+
+709
+00:59:23,662 --> 00:59:26,416
+So here is where we left off in the last episode.
+
+710
+00:59:26,656 --> 00:59:29,856
+I'm going to define two colors as a VEC3.
+
+711
+00:59:30,510 --> 00:59:38,576
+So let's do VEC 3, name it color A equals to VEC 3 of how about we do a color red,
+
+712
+00:59:38,958 --> 00:59:42,016
+so 1.0, 0.0, and 0.0.
+
+713
+00:59:42,478 --> 00:59:48,256
+And then I'm going to do color B as the color how about blue?
+
+714
+00:59:48,576 --> 00:59:52,896
+RGB so 0.0, 0.0, and 1.0.
+
+715
+00:59:53,518 --> 00:59:57,936
+And then inside the main function here, we're going to define the amount.
+
+716
+00:59:58,096 --> 01:00:02,980
+So let's set it as a float. AMT equals to how about 0.5,
+
+717
+01:00:03,856 --> 01:00:10,096
+and we're going to set a new variable as a vector called color.
+
+718
+01:00:10,286 --> 01:00:13,284
+And color is going to be set to the function mix.
+
+719
+01:00:13,742 --> 01:00:19,044
+And we're going to put in color A, color B, and AMT.
+
+720
+01:00:20,496 --> 01:00:23,524
+And we're going to use this color
+
+721
+01:00:24,430 --> 01:00:26,256
+inside frac color here.
+
+722
+01:00:26,414 --> 01:00:29,476
+So we're going to replace D here with color.
+
+723
+01:00:29,488 --> 01:00:31,108
+all right.
+
+724
+01:00:31,918 --> 01:00:35,236
+What do you expect? So we're mixing red and blue.
+
+725
+01:00:37,166 --> 01:00:40,016
+And ta-da! We get this purple.
+
+726
+01:00:41,134 --> 01:00:46,372
+Okay, so we can now play around with the amount here, right?
+
+727
+01:00:46,670 --> 01:00:51,300
+So if I do 0.0, you should get the color red,
+
+728
+01:00:52,174 --> 01:01:02,256
+and if I do 1.0, you get blue, and anything between, let's try 0.3, you get something closer to the red side.
+
+729
+01:01:02,416 --> 01:01:10,020
+Why don't we actually use the sign function which outputs values between negative 1 and 1?
+
+730
+01:01:10,382 --> 01:01:15,396
+And then we're gonna pass in a variable uTime, which is our timer, right?
+
+731
+01:01:15,776 --> 01:01:19,268
+This will give us an amount between negative 1 and 1.
+
+732
+01:01:19,822 --> 01:01:21,508
+So let's click run.
+
+733
+01:01:23,136 --> 01:01:23,376
+Okay.
+
+734
+01:01:26,798 --> 01:01:30,912
+If you notice, you can see that the color red
+
+735
+01:01:31,726 --> 01:01:39,712
+is pausing a little bit longer than the blue, and that is because the amount actually only ranges between 0 and 1,
+
+736
+01:01:39,872 --> 01:01:49,668
+right? But this returns values between negative 1 and 1, and with the negative 1 value, it is capped as the color red.
+
+737
+01:01:50,030 --> 01:01:59,044
+So we're going to actually put in absolute to make sure that we just turn the negative value to positive.
+
+738
+01:02:00,494 --> 01:02:03,556
+So now it's within the range of 0 and 1.
+
+739
+01:02:04,654 --> 01:02:13,392
+But then now we can only get this one color each time, right? Each frame. So what if we want to get that nice gradient?
+
+740
+01:02:13,552 --> 01:02:18,032
+What we can do is we can actually map it to our UV coordinate.
+
+741
+01:02:18,254 --> 01:02:20,900
+How about we map it to the X coordinate?
+
+742
+01:02:21,230 --> 01:02:24,112
+What we're gonna do is that we're going to set AMT here.
+
+743
+01:02:24,334 --> 01:02:29,392
+I'm going to delete this, set it to how about UV of X.
+
+744
+01:02:31,502 --> 01:02:39,472
+And you get a nice gradient, but you can also see that we get a much larger part that is red, actually up into
+
+745
+01:02:39,632 --> 01:02:42,820
+half, right? And then the rest is this nice gradient.
+
+746
+01:02:42,992 --> 01:02:49,312
+Basically, this UV coordinate ranges between negative one and one, right? So it's the exact same thing.
+
+747
+01:02:49,472 --> 01:02:55,312
+I don't want to touch this line of code, so I'm going to do something that is redundant, which is to remap it.
+
+748
+01:02:55,470 --> 01:02:59,472
+So how about we do uv of x plus 1.0?
+
+749
+01:02:59,886 --> 01:03:01,572
+So now it will range between
+
+750
+01:03:03,182 --> 01:03:07,152
+0 and 2, and then we're going to divide it by 2.
+
+751
+01:03:07,470 --> 01:03:14,112
+So now it would range between 0 and 1. So now we have a nice gradient that is evenly distributed.
+
+752
+01:03:14,512 --> 01:03:19,872
+Now the mix function can also take in not just a float but a VEC3.
+
+753
+01:03:20,592 --> 01:03:20,912
+So
+
+754
+01:03:21,742 --> 01:03:27,268
+we're going to change AMT to a VEC3, and this will be a VEC3 as well.
+
+755
+01:03:27,790 --> 01:03:30,084
+And if we just change the type right now,
+
+756
+01:03:31,822 --> 01:03:34,244
+it would look exactly the same.
+
+757
+01:03:34,752 --> 01:03:42,912
+And that is because all of the channels, red, green, and blue, have the same blending ratio, which is based on the X
+
+758
+01:03:43,072 --> 01:03:44,100
+coordinate, right?
+
+759
+01:03:44,430 --> 01:03:46,912
+So what we can do is that we can actually change.
+
+760
+01:03:47,214 --> 01:03:49,924
+How about we change the R channel?
+
+761
+01:03:50,574 --> 01:03:54,020
+How about we set it to a decimal a number?
+
+762
+01:03:54,672 --> 01:03:56,132
+let's do 0.1
+
+763
+01:03:57,518 --> 01:03:58,532
+and we get
+
+764
+01:03:59,182 --> 01:04:00,592
+a different gradient, right?
+
+765
+01:04:00,910 --> 01:04:01,872
+Gradient color.
+
+766
+01:04:02,032 --> 01:04:09,956
+But this doesn't really show you the magic of how if we were to change the blending ratio of each channel,
+
+767
+01:04:10,352 --> 01:04:16,548
+what can we do, right? What if we bring back what we learned in the last episode, which are the shaping functions?
+
+768
+01:04:17,166 --> 01:04:20,196
+I'm going to add in how about step?
+
+769
+01:04:20,910 --> 01:04:27,312
+And step basically returns either zero and one based on the threshold value, right?
+
+770
+01:04:27,472 --> 01:04:34,180
+So if I set the threshold value at 0.5, and the values that we want to change is
+
+771
+01:04:34,926 --> 01:04:37,764
+the red channel of this amount,
+
+772
+01:04:39,182 --> 01:04:40,100
+and let's try it.
+
+773
+01:04:42,126 --> 01:04:42,512
+Ta-da!
+
+774
+01:04:43,406 --> 01:04:52,432
+So you get this nice clean cut, a really hard cutoff between the two colors, but you can still see that there is a bit of a gradient here,
+
+775
+01:04:52,592 --> 01:04:57,828
+right? From red to pink, and then like a blue, a darker blue to like a lighter blue here.
+
+776
+01:04:58,352 --> 01:05:08,228
+And that is because we're only changing the blending ratio of the red channel, but the green and the blue channels are still based on this amount that we have here.
+
+777
+01:05:08,686 --> 01:05:18,948
+So this is just to show you that you can bring in shaping functions to change the different amounts of each of the color channels and just play around with that,
+
+778
+01:05:19,232 --> 01:05:20,592
+which is kind of fun.
+
+779
+01:05:20,942 --> 01:05:32,272
+Now let's make it a little bit more interesting. What if we bring in the distance functions that we learned in the last episode as well, creating like a circle or a heart shape into manipulating these
+
+780
+01:05:32,846 --> 01:05:33,700
+color gradients?
+
+781
+01:05:33,966 --> 01:05:35,620
+So I'm going to delete this actually.
+
+782
+01:05:36,014 --> 01:05:37,732
+Instead of setting amount to this
+
+783
+01:05:38,670 --> 01:05:39,620
+X coordinate,
+
+784
+01:05:40,270 --> 01:05:43,792
+why don't we set it to how about length of
+
+785
+01:05:44,752 --> 01:05:45,312
+UV?
+
+786
+01:05:46,574 --> 01:05:48,868
+And then we need to set it as a float.
+
+787
+01:05:50,192 --> 01:05:51,620
+And let's run.
+
+788
+01:06:08,398 --> 01:06:09,792
+And we can change it to
+
+789
+01:06:11,598 --> 01:06:12,836
+A heart shape, also.
+
+790
+01:06:13,998 --> 01:06:25,088
+And this heart shape, what is interesting about this is that it actually is a sign distance function, meaning that anything that is inside the shape returns a negative value,
+
+791
+01:06:25,168 --> 01:06:36,448
+and anything outside the shape returns a positive value. So if you really notice, you can see a pretty hard cutoff of this heart shape here that is completely red.
+
+792
+01:06:36,750 --> 01:06:40,048
+So what if we actually bring back the step function?
+
+793
+01:06:40,398 --> 01:06:42,448
+So we do step of
+
+794
+01:06:43,248 --> 01:06:45,988
+0.0 and then heart here,
+
+795
+01:06:46,862 --> 01:06:48,004
+and you should see
+
+796
+01:06:48,942 --> 01:06:50,628
+a clean cut heart shape.
+
+797
+01:06:50,958 --> 01:06:54,288
+And we can change the step to something a little bit smoother, right?
+
+798
+01:06:54,414 --> 01:06:59,248
+So we can do smooth step and we can change it between how about
+
+799
+01:07:00,366 --> 01:07:04,772
+so if this is zero, what if we do it from here to like here?
+
+800
+01:07:05,102 --> 01:07:09,156
+So negative 0.3 to 0.3,
+
+801
+01:07:11,310 --> 01:07:17,808
+and now you get a nicer, smoother blend between the two colors, so you can play around with that.
+
+802
+01:07:18,062 --> 01:07:21,956
+So now let's bring back the grid of hearts that we created earlier.
+
+803
+01:07:22,158 --> 01:07:32,208
+To do that, basically, instead of just putting in color as the values inside the frack color here, what we want to do is that we want to multiply it by D,
+
+804
+01:07:32,288 --> 01:07:39,568
+and the reason that we want to multiply it by D is because D dictates the brightness of the color that is to be painted, right?
+
+805
+01:07:39,822 --> 01:07:44,836
+So where D is the highest here is where the shape of the heart is.
+
+806
+01:07:45,198 --> 01:07:48,548
+So what we're gonna do is we're going to just multiply it by D.
+
+807
+01:07:50,382 --> 01:07:56,448
+Now we get the shape that we created originally, and I'm going to actually change this a bit.
+
+808
+01:07:56,654 --> 01:08:04,768
+I'm going to change inside sign here. Let's do a nice heart shape, just one shape here, and yeah, that's it.
+
+809
+01:08:05,006 --> 01:08:15,088
+Up until this point, we experimented with a few ways to come up with the amount value, right? By passing in the time, the position, or using shaping functions.
+
+810
+01:08:15,168 --> 01:08:23,328
+But we're basically doing the same thing. We're picking a value or a color or creating a gradient that is between two colors, color A and color B.
+
+811
+01:08:23,488 --> 01:08:29,888
+But now I want to introduce you to this cosine-based equation, which creates a richer spectrum of colors.
+
+812
+01:08:30,048 --> 01:08:41,180
+This function takes in a float and returns a color, and the four vectors that you see here, A, B, C, and D, basically shape the base color, the contrast, the oscillation frequency, and phase
+
+813
+01:08:41,328 --> 01:08:50,404
+offset per channel. And I'll link the article and also a video describing how this works, as well as interactive tools that you can try to create your own palette.
+
+814
+01:08:50,766 --> 01:08:53,060
+So I've already played around with the palette.
+
+815
+01:08:53,248 --> 01:08:55,876
+So I'm going to just copy and paste here
+
+816
+01:08:56,750 --> 01:08:58,500
+outside of the main function
+
+817
+01:08:59,568 --> 01:09:02,820
+and inside the main function here.
+
+818
+01:09:03,408 --> 01:09:08,772
+Instead of all of this, we're going to set color to the palette.
+
+819
+01:09:09,408 --> 01:09:12,368
+And so, how about I delete them out here?
+
+820
+01:09:12,622 --> 01:09:17,380
+We don't need it anymore. We're not going to use the mix function, we're gonna use palette,
+
+821
+01:09:18,382 --> 01:09:19,940
+and then we're gonna put in
+
+822
+01:09:20,750 --> 01:09:22,020
+let's just start with
+
+823
+01:09:23,648 --> 01:09:25,808
+length of UV.
+
+824
+01:09:28,078 --> 01:09:32,868
+And I'm actually also going to change this back to color.
+
+825
+01:09:34,382 --> 01:09:36,928
+All right, this is nice.
+
+826
+01:09:37,294 --> 01:09:39,972
+Okay, so how about we change to heart?
+
+827
+01:09:42,638 --> 01:09:46,128
+And then what if we make it move by adding you time?
+
+828
+01:09:50,128 --> 01:09:53,728
+This reminds me of the intro to PowerPuff Girls.
+
+829
+01:09:54,128 --> 01:10:00,356
+And you can also, you know, if you want it to be slower, faster, you can multiply by a constant.
+
+830
+01:10:02,542 --> 01:10:05,888
+And now what if we bring back the
+
+831
+01:10:07,168 --> 01:10:07,652
+shape?
+
+832
+01:10:09,038 --> 01:10:10,692
+Just multiply this by D.
+
+833
+01:10:12,430 --> 01:10:13,808
+All right, and I want
+
+834
+01:10:17,408 --> 01:10:23,588
+the heart inside the grid here to be a little bit brighter, so I'm going to increase the enumerator here.
+
+835
+01:10:26,958 --> 01:10:31,140
+And as you can see, this is pretty much the final piece.
+
+836
+01:10:31,342 --> 01:10:33,632
+But these are actually the exact variables that I use.
+
+837
+01:10:33,712 --> 01:10:36,672
+So you can play around with that to get the one that you want.
+
+838
+01:10:36,942 --> 01:10:40,992
+But I'm not actually going to end here, I'm going to give you a little bit of a bonus.
+
+839
+01:10:41,152 --> 01:10:48,890
+So as I mentioned in the second episode, that this final piece is actually a direct remix of a piece by Kishimizu.
+
+840
+01:10:49,312 --> 01:10:55,232
+But as you can see from his piece, it looks like there's just a bunch of circles on top of each other.
+
+841
+01:10:55,502 --> 01:11:00,272
+So this is the last feature that I want to introduce you how to create a fractal.
+
+842
+01:11:00,718 --> 01:11:07,392
+So on the CPU, you might be building this using recursion, but on the GPU, you cannot actually do that.
+
+843
+01:11:07,662 --> 01:11:11,552
+So instead we would be remapping the UV coordinate using a for loop.
+
+844
+01:11:11,632 --> 01:11:12,932
+So I'm going to wrap
+
+845
+01:11:13,872 --> 01:11:15,392
+the for loop here.
+
+846
+01:11:15,552 --> 01:11:16,272
+So for
+
+847
+01:11:17,614 --> 01:11:18,752
+it's going to be a float.
+
+848
+01:11:18,894 --> 01:11:21,310
+So float i equals 0.0
+
+849
+01:11:22,254 --> 01:11:25,312
+i less than how about 2.0.
+
+850
+01:11:25,902 --> 01:11:26,832
+Let's start small.
+
+851
+01:11:27,072 --> 01:11:28,100
+I plus plus.
+
+852
+01:11:28,846 --> 01:11:32,772
+And then we're going to bring in everything here
+
+853
+01:11:34,574 --> 01:11:35,908
+inside the for loop.
+
+854
+01:11:39,726 --> 01:11:39,952
+Okay.
+
+855
+01:11:42,606 --> 01:11:43,492
+let's see what happens.
+
+856
+01:11:49,230 --> 01:11:54,752
+Okay, so now we have what? 1, 2, 3, 4, 5, 6, 7, 8.
+
+857
+01:11:55,054 --> 01:12:00,804
+We have eight by eight right? Because we are running just one set of, I mean two sets of for loop.
+
+858
+01:12:01,072 --> 01:12:07,232
+But we can only see just one set of scale, right? Which is the last set eight by eight here.
+
+859
+01:12:07,552 --> 01:12:17,700
+So what we want is actually we want to be able to see all the shapes on top of each other. We want to see the different scales.
+
+860
+01:12:17,792 --> 01:12:20,964
+So what we can do is that we can actually manipulate the colors.
+
+861
+01:12:21,518 --> 01:12:24,592
+So right now, fract is being set here.
+
+862
+01:12:24,832 --> 01:12:37,284
+What if we accumulate the colors? So what we're going to do is outside of the for loop here, I'm going to define a vec3 called final color and set it originally as
+
+863
+01:12:37,472 --> 01:12:38,020
+black.
+
+864
+01:12:38,542 --> 01:12:39,908
+So 0.0.
+
+865
+01:12:40,526 --> 01:12:43,876
+And then inside the for loop here, we're going to set
+
+866
+01:12:45,152 --> 01:12:45,472
+final
+
+867
+01:12:47,150 --> 01:12:47,712
+color
+
+868
+01:12:49,952 --> 01:12:50,272
+as
+
+869
+01:12:51,150 --> 01:12:53,570
+here, color times D
+
+870
+01:12:54,752 --> 01:13:01,792
+and we're going to set drag color outside of the for loop. So this will be the final final color.
+
+871
+01:13:02,062 --> 01:13:03,012
+If we just set it
+
+872
+01:13:03,822 --> 01:13:06,592
+as final color equals to color times D,
+
+873
+01:13:07,470 --> 01:13:08,832
+what you would expect is
+
+874
+01:13:09,952 --> 01:13:11,072
+oops, um
+
+875
+01:13:16,750 --> 01:13:18,970
+final color. is
+
+876
+01:13:18,970 --> 01:13:19,330
+effect
+
+877
+01:13:19,330 --> 01:13:20,490
+three
+
+878
+01:13:22,112 --> 01:13:22,432
+Okay.
+
+879
+01:13:24,238 --> 01:13:30,512
+It looks exactly the same because the color is being set to this each pass.
+
+880
+01:13:30,926 --> 01:13:33,924
+So what we want to do is that we actually want to accumulate it.
+
+881
+01:13:34,446 --> 01:13:38,752
+So we start off as black, and then each of the
+
+882
+01:13:39,758 --> 01:13:40,484
+fold, right?
+
+883
+01:13:40,672 --> 01:13:45,810
+Each of the remapping will have a different final color. it will be accumulating.
+
+884
+01:13:46,650 --> 01:13:47,364
+So let's try it.
+
+885
+01:13:52,238 --> 01:13:53,472
+Very cool.
+
+886
+01:13:53,712 --> 01:14:03,792
+I think I'm just going to end here, and as you can see, you can play around with the different variables, you can bring in the shaping functions, you can accumulate different colors together,
+
+887
+01:14:04,046 --> 01:14:10,436
+use the technique of remapping the UV coordinate, and create a pretty cool
+
+888
+01:14:11,630 --> 01:14:13,220
+final piece like this one.
+
+889
+01:14:13,774 --> 01:14:26,432
+This is so mesmerizing. Alright, so this is the end of this introductory series. I hope that you enjoyed it and learn a few things from a new beginner like myself as well.
+
+890
+01:14:26,638 --> 01:14:32,772
+There is still a lot that I want to learn, so please let me know what are some of the things that would be need to explore.
+
+891
+01:14:33,262 --> 01:14:34,116
+See you next time.
+
+892
+01:14:34,512 --> 01:14:35,108
+Bye.
+
