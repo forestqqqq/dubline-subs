@@ -6,6 +6,7 @@
 |---|---|---|
 | [NEW Claude Projects Changes Everything](medias/N0689/) | Riley Brown | 2026-10-06 |
 | [Opus 5.5: How Close Are We to Automated AI Research?](medias/KA52X/) | AI Explained | 2026-10-06 |
+| [Ultimate Claude Tutorial: How to Use Claude AI for Beginners (Become a PRO!)](medias/8JACV/) | AI Master | 2026-10-06 |
 | [Intro to Shaders – JavaScript & p5.js Course for Beginners](medias/VB1ZF/) | freeCodeCamp.org | 2026-10-05 |
 | [LangGraph Complete Course for Beginners – Complex AI Agents with Python](medias/SS5NF/) | freeCodeCamp.org | 2026-10-05 |
 | [React Native Full Stack Course – Clerk, Postgres, NativeWind](medias/NMHM3/) | freeCodeCamp.org | 2026-10-05 |
