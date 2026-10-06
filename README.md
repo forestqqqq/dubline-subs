@@ -8,6 +8,7 @@
 | [Opus 5.5: How Close Are We to Automated AI Research?](medias/KA52X/) | AI Explained | 2026-10-06 |
 | [How to Make Insane Motion Graphics With Opus 5.5](medias/DEVYD/) | Lukas Margerie | 2026-10-06 |
 | [Ultimate Claude Tutorial: How to Use Claude AI for Beginners (Become a PRO!)](medias/8JACV/) | AI Master | 2026-10-06 |
+| [Seedance 2.5 Tutorial: Cinematic AI Video From Start To Finish](medias/2Z2EE/) | Rourke Heath | 2026-10-06 |
 | [Intro to Shaders – JavaScript & p5.js Course for Beginners](medias/VB1ZF/) | freeCodeCamp.org | 2026-10-05 |
 | [LangGraph Complete Course for Beginners – Complex AI Agents with Python](medias/SS5NF/) | freeCodeCamp.org | 2026-10-05 |
 | [React Native Full Stack Course – Clerk, Postgres, NativeWind](medias/NMHM3/) | freeCodeCamp.org | 2026-10-05 |
