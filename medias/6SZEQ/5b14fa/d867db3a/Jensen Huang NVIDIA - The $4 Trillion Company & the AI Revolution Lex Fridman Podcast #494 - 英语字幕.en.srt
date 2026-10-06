@@ -1,0 +1,6128 @@
+1
+00:00:00,078 --> 00:00:10,372
+The following is a conversation with Jensen Huang, CEO of NVIDIA, one of the most important and influential companies in the history of human civilization.
+
+2
+00:00:10,990 --> 00:00:23,200
+Nvidia is the engine powering the AI revolution, and a lot of its success can be directly attributed to Jensen's sheer force of will and his many brilliant bets and decisions as a leader,
+
+3
+00:00:23,520 --> 00:00:25,348
+engineer, and innovator.
+
+4
+00:00:26,254 --> 00:00:32,159
+This is the Lex Friedman Podcast, and now, dear friends, here's Jensen Huang.
+
+5
+00:00:33,262 --> 00:00:42,080
+You've propelled NVIDIA into a new era in AI, moving beyond its focus on chipscale design to now rack scale design.
+
+6
+00:00:42,320 --> 00:00:53,600
+And I think it's fair to say that winning for NVIDIA for a long time used to be about building the best GPU possible, and you still do, but now you've expanded that to extreme co-design of GPU,
+
+7
+00:00:53,760 --> 00:01:01,840
+CPU, memory, networking, storage, power, cooling, software, the rack itself, the pod that you've announced, and even the data center.
+
+8
+00:01:02,158 --> 00:01:04,000
+So let's talk about extreme co-design.
+
+9
+00:01:04,160 --> 00:01:10,480
+What is the hardest part of co-designing a system with that many complex components and design variables?
+
+10
+00:01:10,926 --> 00:01:12,164
+Yeah, thanks for that question.
+
+11
+00:01:12,640 --> 00:01:23,044
+So, first of all, the reason why extreme codesign is necessary is because the problem no longer fits inside one computer to be accelerated by one GPU.
+
+12
+00:01:24,240 --> 00:01:31,360
+The problem that you're trying to solve is you would like to go faster than the number of computers that you add.
+
+13
+00:01:31,600 --> 00:01:37,188
+So you add it, you know, 10,000 computers, but you would like it to go a million times faster.
+
+14
+00:01:38,080 --> 00:01:45,956
+Then all of a sudden, you have to take the algorithm, you have to break up the algorithm, you have to refactor it,
+
+15
+00:01:46,480 --> 00:01:51,120
+you have to shard the pipeline, you have to shard the data, you have to shard the model.
+
+16
+00:01:51,840 --> 00:02:00,560
+Now, all of a sudden, when you distribute the problem this way, not just scaling up the problem, but you're distributing the problem, then
+
+17
+00:02:01,070 --> 00:02:02,720
+everything gets in the way.
+
+18
+00:02:03,118 --> 00:02:12,560
+This is the Amdahl's law problem, where the amount of speed up you have for something depends on how much of the total workload it is.
+
+19
+00:02:12,720 --> 00:02:20,800
+And so if computation represents 50% of the problem, and I sped up computation infinitely,
+
+20
+00:02:21,102 --> 00:02:25,988
+like a million times, you know, I only sped up the total workload by a factor of two.
+
+21
+00:02:26,720 --> 00:02:37,252
+Now all of a sudden, not only do you have to distribute the computation, you have to, you know, shard the pipeline somehow. you also have to solve the networking problem
+
+22
+00:02:38,254 --> 00:02:41,360
+because you've got all of these computers are all connected together.
+
+23
+00:02:42,158 --> 00:02:45,600
+And so distributed computing at the scale that we do,
+
+24
+00:02:47,182 --> 00:02:56,320
+the CPU is a problem, the GPU is a problem, the networking is a problem, the switching is a problem, and distributing the workload across all these computers are a problem.
+
+25
+00:02:56,960 --> 00:03:03,680
+It's just a massively complex computer science problem. And so we just got to bring every technology to bear.
+
+26
+00:03:03,920 --> 00:03:04,772
+Otherwise,
+
+27
+00:03:05,710 --> 00:03:16,240
+we scale up linearly, or we scale up based on the capabilities of Moore's law, which has largely slowed because Denard's scaling has slowed.
+
+28
+00:03:16,622 --> 00:03:18,160
+I'm sure there's trade-offs there.
+
+29
+00:03:18,400 --> 00:03:21,200
+Plus, you have a complete disparate disciplines here.
+
+30
+00:03:21,360 --> 00:03:30,480
+I'm sure you have specialists in each one of these, high bandwidth memory, the networking, the NV Link, the NYX, the optics and the copper that you're doing, the power delivery, the cooling, all
+
+31
+00:03:30,640 --> 00:03:35,120
+that. I mean, there's like world experts in each of those. How do you get them in a room together to figure out
+
+32
+00:03:35,120 --> 00:03:36,720
+why my staff is so large?
+
+33
+00:03:37,600 --> 00:03:42,080
+What's the pro can you take me through the process of the specialists and the generalists?
+
+34
+00:03:42,160 --> 00:03:51,040
+Like, how do you put together the rack when you know this the set of things you have to shove into a rack together? Yeah. Like what does that process look like of designing it all together?
+
+35
+00:03:51,360 --> 00:03:55,040
+There's the the first question, which is what is extreme co design?
+
+36
+00:03:55,280 --> 00:03:58,880
+You're you were optimizing across the entire stack of software.
+
+37
+00:03:59,392 --> 00:04:05,632
+From architectures to chips to systems to system software to the algorithms to the applications. That's one layer.
+
+38
+00:04:05,792 --> 00:04:14,832
+The second thing that you and I just talked about goes beyond CPUs and GPUs and networking chips and scale up switches and scale out switches.
+
+39
+00:04:15,072 --> 00:04:23,232
+And then of course you've got to include power and cooling and all of that because, you know, all these computers are extremely,
+
+40
+00:04:23,392 --> 00:04:34,192
+extremely power hungry. They do a lot of work and they're very energy efficient, but they in aggregate still consume a lot of power. And so that's one the first question is what is it?
+
+41
+00:04:34,432 --> 00:04:46,992
+The second question is why is it? And we just spoke about the reason, you know, you want to distribute the workload so that you can exceed the benefit of just increasing the number of computers.
+
+42
+00:04:47,232 --> 00:04:50,912
+And then the third question is, how is it? How do you do it?
+
+43
+00:04:51,872 --> 00:04:52,192
+And
+
+44
+00:04:53,838 --> 00:04:59,972
+that's kind of the miracle of this company. You know, when you're designing a computer, you have to have an operating system of computers.
+
+45
+00:05:00,430 --> 00:05:09,220
+When you're designing a company, you should first think about what is it that you want the company to produce. You know, I see a lot of companies' organization charts and they all look the same.
+
+46
+00:05:09,742 --> 00:05:17,700
+Hamburger organization charts, software organization charts, and car company organization charts, they all look the same. And it doesn't make any sense to me.
+
+47
+00:05:18,192 --> 00:05:29,124
+You know, the goal of a company is to be the machinery, the mechanism, the system that produces the output. And that output is the product that we'd like to create.
+
+48
+00:05:29,552 --> 00:05:35,632
+It is also designed, the architecture of the company should reflect the environment by which it exists.
+
+49
+00:05:35,950 --> 00:05:45,952
+It almost directly says what you should do with the organization. My direct staff is 60 people. You know, I don't have one-on-ones with them because it's impossible.
+
+50
+00:05:46,032 --> 00:05:51,032
+You can't have you can't have 60 people on your staff if you're, you know, gonna get work done and
+
+51
+00:05:51,032 --> 00:05:53,072
+so you still have 60 reports. You still have
+
+52
+00:05:54,192 --> 00:05:54,552
+more.
+
+53
+00:05:54,552 --> 00:05:55,152
+Yeah.
+
+54
+00:05:55,792 --> 00:05:59,312
+And most stars at least have a foot in engineering.
+
+55
+00:05:59,312 --> 00:06:05,872
+Almost all of them. There's experts in memory, there's experts in CPUs, there's experts in optical.
+
+56
+00:06:06,912 --> 00:06:11,512
+Yeah, GPUs and architecture, algorithms, design.
+
+57
+00:06:11,512 --> 00:06:14,672
+So you constantly have an eye on the entire stack. And you're having
+
+58
+00:06:15,472 --> 00:06:18,512
+intense discussions about the design of the entire stack.
+
+59
+00:06:18,512 --> 00:06:21,072
+And no conversation is ever one person.
+
+60
+00:06:21,294 --> 00:06:25,988
+That's why I don't do one on ones. We present a problem and all of us attack it.
+
+61
+00:06:27,246 --> 00:06:29,284
+You know, because we're doing extreme code design.
+
+62
+00:06:29,934 --> 00:06:32,992
+And literally the company is doing extreme code design all the time.
+
+63
+00:06:33,422 --> 00:06:40,592
+So even if you're talking about a particular component, like cooling, networking, everybody's listening in.
+
+64
+00:06:40,752 --> 00:06:40,992
+Yeah.
+
+65
+00:06:41,262 --> 00:06:45,232
+And they can contribute. Well, this doesn't work for the for the power distribution. This doesn't
+
+66
+00:06:46,112 --> 00:06:49,072
+this doesn't work for the for the memory. This doesn't work for this.
+
+67
+00:06:49,552 --> 00:06:49,952
+Exactly.
+
+68
+00:06:50,190 --> 00:06:51,472
+And whoever wants to tune out,
+
+69
+00:06:51,472 --> 00:06:54,032
+tune out. You know what I'm saying? Yeah.
+
+70
+00:06:54,032 --> 00:06:59,044
+And the reason for that is because the people who are on the staff, they they know when to pay attention.
+
+71
+00:06:59,630 --> 00:07:06,512
+They're supposed to, you know, if something they could have contributed to, they didn't contribute to, I'm going to call them out, you know, and so, hey, come on, let's get in here.
+
+72
+00:07:07,072 --> 00:07:20,432
+So as you mentioned, NVIDIA is this company that's adapting to the environment. So at which point can you say did the environment change and you began began adapting sort of secretly in the early days
+
+73
+00:07:20,672 --> 00:07:31,232
+from GPU for gaming, maybe the early deep learning revolution, to we're now going to start thinking of it as an AI factory. What does NVIDIA do? It produces AI. Let's build a factory that makes AI.
+
+74
+00:07:32,592 --> 00:07:42,820
+I could reason through it just systematically. Um we started out as an accelerator company, but the problem with accelerators is that the application domain is too narrow.
+
+75
+00:07:43,054 --> 00:07:47,364
+It has the benefit of being incredibly optimized for the job.
+
+76
+00:07:47,712 --> 00:07:49,792
+You know, any specialist has that benefit.
+
+77
+00:07:49,952 --> 00:07:56,068
+The problem with intense specialization is that, of course, your market reach is narrower,
+
+78
+00:07:56,878 --> 00:08:02,352
+but that's that's even fine. The problem is the market size also
+
+79
+00:08:03,246 --> 00:08:05,860
+dictates your RD capacity.
+
+80
+00:08:06,352 --> 00:08:13,952
+And your RD capacity ultimately dictates the influence and impact that you can possibly have in computing.
+
+81
+00:08:14,112 --> 00:08:15,632
+And so when we first started out
+
+82
+00:08:16,592 --> 00:08:25,792
+as an accelerator, very specific accelerator, we always we always knew that that had that was going to be our first step. We have to find a way to become accelerated computing.
+
+83
+00:08:26,032 --> 00:08:32,912
+But the problem is when you become a computing company, it's too general purpose and it takes away from your specialization.
+
+84
+00:08:33,792 --> 00:08:35,265
+I connected two words.
+
+85
+00:08:35,265 --> 00:08:39,332
+that actually have fundamental tension.
+
+86
+00:08:39,552 --> 00:08:48,432
+The better computing company we become, the worse we become as a specialist. The more of a specialist, the less capacity we have to do overall computing.
+
+87
+00:08:48,672 --> 00:08:57,392
+And so the that, and I connected those two words together on purpose, that the company has to find that really narrow
+
+88
+00:08:57,806 --> 00:09:06,432
+path, step by step by step, to expand our aperture of computing, but not give up on the most important specialization that we had.
+
+89
+00:09:06,638 --> 00:09:12,932
+Okay, so the first step that we took beyond acceleration was we invented the programmable pixel shader.
+
+90
+00:09:13,358 --> 00:09:16,192
+So that was the first step towards programmability.
+
+91
+00:09:20,672 --> 00:09:27,460
+The second thing that we did was we we uh uh created we put FP32 into our shaders.
+
+92
+00:09:27,854 --> 00:09:36,192
+That FP32 step, IEEE compatible FP32, was a huge step in the direction of computing.
+
+93
+00:09:36,462 --> 00:09:45,312
+It was the reason why all of the people who were working on on um stream processors and you know other types of data flow processors
+
+94
+00:09:45,472 --> 00:09:54,672
+discovered us. And they said, hey, all of a sudden, you know, we might be able to use this GPU that's incredibly computationally intensive. And it's now you know compliant with IEEE.
+
+95
+00:09:55,152 --> 00:10:03,472
+I can take my software that I was writing, you know, previously on CPUs, and I can you know see about about you know using the GPU for that.
+
+96
+00:10:04,622 --> 00:10:16,752
+And which led us to create, put C on top of FP32, what's it called, we call CG. That CG path took us to eventually CUDA, CUDA step by step by step.
+
+97
+00:10:16,992 --> 00:10:26,436
+Um uh with well, putting CUDA on GForce, that that was a strategic decision that was very, very hard to do because it cost the company
+
+98
+00:10:26,926 --> 00:10:37,712
+enormous amounts of our profits, and we couldn't afford it at the time. But we did it anyways because we wanted to be a computing company. A computing company has a computing architecture.
+
+99
+00:10:37,872 --> 00:10:42,352
+A computing architecture has to be compatible across all of the chips that we build. Aaron Powell
+
+100
+00:10:42,352 --> 00:10:46,272
+Can you can you take me to that decision? So putting CUDA on G-Force could not afford to do.
+
+101
+00:10:46,606 --> 00:10:48,592
+Can you explain that decision? Why
+
+102
+00:10:49,472 --> 00:10:51,712
+boldly choose to do that anyway?
+
+103
+00:10:52,192 --> 00:10:53,272
+Can you explain that decision?
+
+104
+00:10:53,272 --> 00:10:58,672
+Excellent. That was that was the first I would I would say that that was the first
+
+105
+00:11:02,192 --> 00:11:06,512
+strategic decision that is as close to an existential threat.
+
+106
+00:11:06,926 --> 00:11:15,232
+For people who don't know, it turned out to be, spoiler alert, one of the most incredibly brilliant decisions ever made by a company.
+
+107
+00:11:15,392 --> 00:11:22,980
+So CUDA turned out to be an incredible foundation for computation in this AI infrastructure world. So
+
+108
+00:11:24,112 --> 00:11:27,072
+setting the context, it turned out to be a good decision.
+
+109
+00:11:27,072 --> 00:11:28,672
+Yeah, it turned out to have been a good decision.
+
+110
+00:11:29,742 --> 00:11:34,192
+so here's the way it went. So we invented this thing called CUDA, and
+
+111
+00:11:35,232 --> 00:11:43,072
+it expanded the aperture of applications that we can accelerate with our accelerator. The question is,
+
+112
+00:11:44,622 --> 00:11:47,460
+how do we attract developers to CUDA?
+
+113
+00:11:48,272 --> 00:11:51,472
+Because a computing platform is all about developers.
+
+114
+00:11:51,790 --> 00:11:53,060
+And developers
+
+115
+00:11:54,350 --> 00:11:57,312
+don't come to a computing platform just because
+
+116
+00:11:58,112 --> 00:12:03,712
+it could perform something interesting. They come to a computing platform because the install base is large.
+
+117
+00:12:04,014 --> 00:12:08,752
+Because a developer like anybody else wants to develop software that reaches a lot of people.
+
+118
+00:12:08,942 --> 00:12:18,404
+So the install base is in fact the single most important part of an architecture. The architecture could attract enormous amounts of criticism.
+
+119
+00:12:18,672 --> 00:12:24,516
+For example, no architecture has ever attracted more criticism than the x86.
+
+120
+00:12:25,232 --> 00:12:27,392
+You know, as a less than
+
+121
+00:12:28,192 --> 00:12:30,032
+elegant architecture, but yet
+
+122
+00:12:31,118 --> 00:12:41,220
+It is the defining architecture of today. It gives you an example that, in fact, so many risk architectures, which were beautifully architected,
+
+123
+00:12:42,190 --> 00:12:47,972
+incredibly well designed by some of the brightest computer scientists in the world, largely failed.
+
+124
+00:12:48,352 --> 00:12:54,692
+And so I've given you two examples where one is, you know, one is elegant, the other one's barely aesthetic.
+
+125
+00:12:54,912 --> 00:12:55,472
+And so
+
+126
+00:12:56,590 --> 00:12:57,992
+yet x86 survived.
+
+127
+00:12:57,992 --> 00:12:59,232
+Install base is everything.
+
+128
+00:12:59,232 --> 00:13:01,668
+Install base defines an architecture.
+
+129
+00:13:01,952 --> 00:13:04,032
+Not everything else is secondary.
+
+130
+00:13:04,238 --> 00:13:12,272
+Okay. And so there were other architectures at the time. CUDA came out, OpenCL was here. There were, you know, there's several other competing architectures.
+
+131
+00:13:12,512 --> 00:13:18,561
+But the the thing that the decision that we made that was good was we said, hey, look, ultimately it's about
+
+132
+00:13:19,214 --> 00:13:29,632
+install base and what is the best way we could get a new computing architecture into the world. By that timeframe, GeForce had become successful.
+
+133
+00:13:29,792 --> 00:13:42,500
+We were already selling millions and millions of GeForce GPUs a year. And we said, you know, we we ought to put CUDA on GeForce and put it into every single PC, whether customers use it or not,
+
+134
+00:13:43,472 --> 00:13:56,752
+and use it as a starting point of cultivating our install base. Meanwhile, we'll go and attract developers and we went to universities and wrote books and taught classes
+
+135
+00:13:56,912 --> 00:14:04,592
+and put CUDA everywhere. And eventually people discover, and at the time the PC was the primary computing vehicle. There was no cloud.
+
+136
+00:14:04,752 --> 00:14:12,832
+And we could put a supercomputer in the hands of every researcher in school, every scientist you know, every engineering school, every or every student in school.
+
+137
+00:14:12,992 --> 00:14:23,620
+And eventually something amazing will happen. Well, the problem was CUDA increased our cost of that GPU, which is a consumer product, so tremendously it
+
+138
+00:14:24,672 --> 00:14:34,116
+completely consumed all of the company's gross profit dollars. And so at the time, the company was probably, you know, worth, I don't know, at the time, eight,
+
+139
+00:14:35,950 --> 00:14:41,828
+was it like eight billion dollars or something like that? Six, seven billion dollars or something like that. After we launched CUDA,
+
+140
+00:14:42,958 --> 00:14:53,232
+I recognized that it was going to add so much cost, but it was something we believed in. You know, our market cap went down to like one and a half billion dollars.
+
+141
+00:14:53,392 --> 00:15:03,152
+And so we were down, we were down there for a while, and and uh we clawed our way back slowly, but we carried CUDA on gForce.
+
+142
+00:15:03,312 --> 00:15:10,432
+I always say that NVIDIA is the house that gForce built because it was gForce that took CUDA out to everybody.
+
+143
+00:15:10,734 --> 00:15:14,756
+Researchers, scientists, they discovered CUDA
+
+144
+00:15:15,438 --> 00:15:19,552
+on GeForce because they were all, you know, many of them were gamers.
+
+145
+00:15:19,952 --> 00:15:31,232
+many of them built their own PCs anyways, in a university lab, many of them built clusters themselves, you know, using using PC components. And so that, you know, that's kind of how we got going.
+
+146
+00:15:31,552 --> 00:15:34,912
+And then that became the platform, the foundation for the deep learning revolution.
+
+147
+00:15:35,312 --> 00:15:37,712
+That was also another great, great observation. Yeah.
+
+148
+00:15:38,192 --> 00:15:42,512
+That existential moment, do you remember what were those meetings like?
+
+149
+00:15:42,752 --> 00:15:47,204
+What were those discussions like deciding as a company, risking everything?
+
+150
+00:15:48,432 --> 00:15:59,872
+Well, um, I had I had to make it clear to the board what we're trying to do. And and um uh the management team knew our gross margins were gonna get crushed.
+
+151
+00:16:00,432 --> 00:16:10,992
+So you could imagine a world where GeForce would carry the burden of CUDA and none of the gamers would appreciate it, and none of the gamers would pay for it.
+
+152
+00:16:11,152 --> 00:16:23,152
+You know, they only pay a certain price, and it doesn't matter what your cost is. And so that, you know, we we increased our cost by 50%, and that consumed, and we were a 35% gross margin company.
+
+153
+00:16:23,312 --> 00:16:23,712
+And so
+
+154
+00:16:24,942 --> 00:16:27,392
+it was quite a difficult decision to make.
+
+155
+00:16:27,632 --> 00:16:36,432
+But you could imagine that someday this would go into workstations and it would go into supercomputers, and in those segments maybe we can capture more margin.
+
+156
+00:16:37,710 --> 00:16:44,592
+so you could reason your way into being able to afford this, but it still took a decade.
+
+157
+00:16:44,992 --> 00:16:52,164
+But that's more of a conversation with the board convincing them, but you psychologically because Nvidia has continued to make
+
+158
+00:16:53,742 --> 00:16:54,992
+bold bets
+
+159
+00:16:56,366 --> 00:17:09,796
+that predict the future and in part especially now define the future. So I'm almost looking for wisdom about how you're able to make those decisions to make leaps like that as a company.
+
+160
+00:17:14,798 --> 00:17:16,384
+Well first of all, um
+
+161
+00:17:17,422 --> 00:17:21,184
+I'm informed by a by by a lot of curiosity.
+
+162
+00:17:21,710 --> 00:17:24,291
+at some point there's a reasoning system
+
+163
+00:17:26,574 --> 00:17:31,204
+that convinces me uh so clearly this outcome will happen.
+
+164
+00:17:32,558 --> 00:17:34,064
+That this will happen.
+
+165
+00:17:34,384 --> 00:17:43,744
+And so I believe I believe it in my mind, and when I believe it in my mind, you know, you know how it is, you manifest a future, and that future is so
+
+166
+00:17:43,904 --> 00:17:47,664
+convincing, there's no way it won't happen.
+
+167
+00:17:47,904 --> 00:17:52,784
+There's a lot of suffering in in between, but you've got to believe what you believe.
+
+168
+00:17:52,784 --> 00:17:55,264
+So you you envision the future.
+
+169
+00:17:55,984 --> 00:17:59,424
+And you essentially, from a sort of engineering perspective, manifest it.
+
+170
+00:17:59,744 --> 00:18:02,384
+Yeah, and you reason about how to get there.
+
+171
+00:18:02,544 --> 00:18:05,264
+You reason about why it must exist.
+
+172
+00:18:07,854 --> 00:18:08,464
+and you know,
+
+173
+00:18:09,424 --> 00:18:15,024
+we all reason it here, the management team will reason about it, all the people that like we spent a lot of time reasoning about it.
+
+174
+00:18:15,744 --> 00:18:20,544
+The thing that the next part of it is probably a skill thing, which is, you know.
+
+175
+00:18:20,704 --> 00:18:29,984
+oftentimes in leadership, the leadership stays quiet, or they learn about something, and then they do some manifesto, and it's a brand new year.
+
+176
+00:18:30,064 --> 00:18:33,904
+and somehow at the end of the year, next year, we're going to have a brand new plan.
+
+177
+00:18:34,318 --> 00:18:46,944
+big, huge layoff. this way. big, huge organization change this way. new mission statement, brand, new logos, um. you know, that kind of stuff. Um we've just never, I never do things that way.
+
+178
+00:18:47,104 --> 00:18:55,184
+When I learn about something and it's starting to influence how I think, I'll make it very clear to everybody near me that, you know, this
+
+179
+00:18:55,374 --> 00:18:56,292
+this is interesting.
+
+180
+00:18:57,264 --> 00:18:59,104
+this is going to make a difference.
+
+181
+00:18:59,664 --> 00:19:04,144
+this is going to impact that. And I reason about things step by step by step.
+
+182
+00:19:04,334 --> 00:19:13,024
+Oftentimes I've already made up my mind, but I'll take every possible opportunity, external information, new insights, new discoveries,
+
+183
+00:19:13,424 --> 00:19:25,424
+new engineering, you know, revelations, new milestones developed. I'll take those opportunities and I'll use it to shape everybody else's belief system.
+
+184
+00:19:25,584 --> 00:19:33,584
+And I'm doing that literally every single day. I'm doing that with my board, I'm doing that with my management team, I'm doing that with my employees.
+
+185
+00:19:33,806 --> 00:19:41,920
+I'm trying to shape their belief system such that when I come, the day I say, hey, let's buy Mellanox,
+
+186
+00:19:43,758 --> 00:19:54,304
+it's completely obvious to everybody that we absolutely should. On the day that, on the day that I that I said, hey guys, let's go all in on deep learning.
+
+187
+00:19:54,414 --> 00:20:01,264
+And let me tell you why. I've already been laying down the bricks to different organizations inside the company.
+
+188
+00:20:01,646 --> 00:20:04,452
+Every organization and every everybody,
+
+189
+00:20:05,166 --> 00:20:13,744
+many of the people might have heard everything. Most of the company heard hears, of course, pieces of it. And on the day that I announce it,
+
+190
+00:20:16,078 --> 00:20:18,340
+everybody's kind of bought into many pieces of it.
+
+191
+00:20:19,264 --> 00:20:22,628
+And in a lot of ways, I like to announce these things.
+
+192
+00:20:23,150 --> 00:20:24,304
+And I imagine
+
+193
+00:20:25,582 --> 00:20:30,304
+that the employees are kind of saying, you know, Jensen, what took you so long?
+
+194
+00:20:31,024 --> 00:20:38,788
+and in fact, I've been shaping their belief system for some time. And therefore, leadership, sometimes it looks like you're leading from behind.
+
+195
+00:20:39,344 --> 00:20:48,064
+But you've been shaping their, you know, to the point where on the day that I declared it, 100% buy-in. But that's what you want. You want to bring everybody along.
+
+196
+00:20:48,224 --> 00:20:56,144
+You know, otherwise we announce something about deep learning, and everybody goes, What are you talking about? You know, you announce something about let's go all in on this thing.
+
+197
+00:20:56,384 --> 00:21:02,624
+And and your your management team, your board, your employees, your customers, they're kind of like, where's this coming from?
+
+198
+00:21:02,798 --> 00:21:04,784
+You know, this is insane. And so,
+
+199
+00:21:05,966 --> 00:21:10,704
+GTC, in fact, if you go back in time, you look at the keynotes,
+
+200
+00:21:11,598 --> 00:21:20,544
+I'm also shaping the belief system of my partners and the industry, and I'm using that to shape, you know, the belief system of my own employees.
+
+201
+00:21:20,624 --> 00:21:25,184
+And and and so by the time that I announce something, like for example, we just
+
+202
+00:21:25,984 --> 00:21:26,704
+announced Grok.
+
+203
+00:21:29,102 --> 00:21:32,420
+I've been talking about the stepping stones for two and a half years.
+
+204
+00:21:33,264 --> 00:21:41,024
+You guys just go back and go, oh my gosh, they've been talking about it for two and a half years. And so I've been laying the foundation step by step by step.
+
+205
+00:21:41,104 --> 00:21:44,144
+So when the time comes, you announce it, everybody's, you know, what took you so long?
+
+206
+00:21:44,384 --> 00:21:52,704
+But it's not just inside the company, you're shaping the landscape, the broader global landscape of innovation. Like putting those ideas out there, you really are manifesting reality.
+
+207
+00:21:53,104 --> 00:21:54,304
+We don't build computers.
+
+208
+00:21:54,464 --> 00:22:05,572
+We actually don't build clouds, we don't, as it turns out, we're a computing platform company. And so nobody can buy anything from us. That's the weird thing. You know, we vertically
+
+209
+00:22:06,830 --> 00:22:09,904
+Design, vertically integrate to design and optimize.
+
+210
+00:22:10,158 --> 00:22:18,944
+But then we open up the entire platform at every single layer to be integrated into other companies' products and services and clouds
+
+211
+00:22:19,104 --> 00:22:28,260
+and supercomputers and OEM computers. And so the amazing thing is I can't do what I do without having convinced them first.
+
+212
+00:22:28,544 --> 00:22:36,784
+And so most of GTC is about manifesting a future that by the time that we my product is ready, they're going,
+
+213
+00:22:37,390 --> 00:22:39,944
+What took you so long? Yeah.
+
+214
+00:22:39,944 --> 00:22:49,424
+So one of the things you've been a believer for a long time is uh scaling laws broadly defined. So are you still a believer in the scaling laws?
+
+215
+00:22:49,664 --> 00:22:51,304
+Yeah, we have more scaling laws now.
+
+216
+00:22:51,304 --> 00:22:57,664
+So I think uh you've outlined four of them with pre-training, post-training, test time, and agentic scaling.
+
+217
+00:22:57,984 --> 00:23:08,864
+What do you think when you think about the future, deep future and the near-term future, what are the blockers that you're most concerned about that keep you up at night
+
+218
+00:23:09,102 --> 00:23:12,224
+that you have to overcome in order to keep scaling?
+
+219
+00:23:12,704 --> 00:23:21,024
+Well, we can go back and reflect on what people thought were blockers. So in the beginning, we were the first the pre-training scaling law.
+
+220
+00:23:21,390 --> 00:23:30,944
+You know, people thought well, rightfully so, that the amount of data that we have, high quality data that we have, will limit the intelligence that we achieve.
+
+221
+00:23:31,024 --> 00:23:41,264
+And that scaling law was an important, very important scaling law. The larger the model, the correspondingly more data uh results in a better with a results in a smarter AI.
+
+222
+00:23:41,504 --> 00:23:42,948
+And so that was pre-training.
+
+223
+00:23:43,184 --> 00:23:48,944
+And Ilias, Suskeffer, Ilias said, we're out of data or something like that. Pre-training is over or something like that.
+
+224
+00:23:49,504 --> 00:23:53,540
+the industry panicked, you know, that this is the end of AI.
+
+225
+00:23:53,984 --> 00:24:04,224
+And of course, of course, that's that's obviously not true. Um, we're going to keep on scaling the amount of data that we have to train with. A lot of that data is probably going to be synthetic.
+
+226
+00:24:04,464 --> 00:24:13,824
+And that also confused people, you know, and and what people don't realize is that they've kind of forgotten that most of the data that that we are training,
+
+227
+00:24:14,224 --> 00:24:17,744
+that we teach each other with, inform each other with, is synthetic.
+
+228
+00:24:17,904 --> 00:24:20,452
+You know, I you it's synthetic because
+
+229
+00:24:21,390 --> 00:24:23,024
+it didn't come out of nature.
+
+230
+00:24:23,438 --> 00:24:25,572
+You created it, I'm consuming it.
+
+231
+00:24:26,478 --> 00:24:32,624
+I modify it, augment it, I regenerate it, somebody else consumes it.
+
+232
+00:24:32,974 --> 00:24:38,148
+And so so we've now reached a level where AI is able to
+
+233
+00:24:39,534 --> 00:24:42,020
+take ground truth, augment it,
+
+234
+00:24:43,374 --> 00:24:51,104
+enhance it, synthetically generate an enormous amount of data, and that part of post-training continues to scale.
+
+235
+00:24:51,184 --> 00:25:00,996
+And so the amount of data that we could use that is human-generated will be smaller and smaller and smaller. The amount of data that we use to train model
+
+236
+00:25:02,670 --> 00:25:13,104
+is going to continue to scale to the point where we're no longer limited, training is no longer limited by data, it's now limited by compute. And the reason for that is most of the data is synthetic.
+
+237
+00:25:13,344 --> 00:25:14,596
+Then the next phase
+
+238
+00:25:15,566 --> 00:25:16,864
+is uh test time.
+
+239
+00:25:17,358 --> 00:25:18,144
+And um
+
+240
+00:25:18,798 --> 00:25:23,344
+I I still remember people people telling me that inference, oh yeah, that's easy.
+
+241
+00:25:23,598 --> 00:25:28,784
+Pre-pre-training, that's hard. These are giant systems that people are talking about. Inference must be easy.
+
+242
+00:25:28,944 --> 00:25:34,224
+And so inference chips are going to be little tiny chips, and you know, they're not they're not like NVIDIA's chips.
+
+243
+00:25:34,304 --> 00:25:42,500
+Oh, those are going to be complicated and expensive, and you know, we could make and this is and in the future, inference is going to be the biggest market and it's going to
+
+244
+00:25:42,624 --> 00:25:50,404
+be easy, and we're going to commoditize and you know, everybody can build their own chips, and and and that was always illogical to me because
+
+245
+00:25:51,406 --> 00:25:52,868
+inference is thinking.
+
+246
+00:25:53,504 --> 00:25:55,504
+And I think thinking is hard.
+
+247
+00:25:55,744 --> 00:25:58,436
+Thinking is way harder than reading.
+
+248
+00:25:59,344 --> 00:26:00,484
+You know, pre training is just
+
+249
+00:26:01,646 --> 00:26:12,384
+memorization and generalization, you know, and looking for patterns and relationships. You're, you're reading and reading versus thinking, reasoning, solving problems, taking
+
+250
+00:26:14,734 --> 00:26:27,520
+unexplored, experiences, new experiences, and breaking it down into decom, decomposing it into solvable pieces that we then go off either through first principle reasoning
+
+251
+00:26:27,680 --> 00:26:33,840
+or through previous examples, prior experiences, you know, or, or, or just
+
+252
+00:26:34,640 --> 00:26:40,932
+exploration and search, and you know, trying different things. And that whole process of
+
+253
+00:26:42,080 --> 00:26:53,920
+test time scaling, uh, inference is really about thinking and it's about reasoning, it's about planning, it's about search, and so how could that possibly be compute light?
+
+254
+00:26:54,160 --> 00:26:55,840
+And we were absolutely right about that.
+
+255
+00:26:56,640 --> 00:27:00,560
+so test time scaling is intensely compute intensive.
+
+256
+00:27:01,120 --> 00:27:12,080
+Then the question is, okay, now we're at inference and we're at test time scaling. What's beyond that? Well, obviously, we have now created, you know, one agentic person.
+
+257
+00:27:12,560 --> 00:27:18,400
+And that one agentic person has a large language model that we've now we've now you know developed.
+
+258
+00:27:18,640 --> 00:27:26,800
+But during test time, that agentic system goes off and does research and bangs on databases and it goes on and you know
+
+259
+00:27:26,960 --> 00:27:36,000
+uses tools. And one of the most important things it does is spins off and spawns off a whole bunch of subagents, which means we're now creating large teams.
+
+260
+00:27:36,590 --> 00:27:46,788
+It's so much easier to scale NVIDIA by hiring more employees than it is to scale myself. And so the next scaling law is the agentic scaling law.
+
+261
+00:27:47,040 --> 00:27:51,120
+It's kind of like multiplying AI.
+
+262
+00:27:51,630 --> 00:27:59,520
+Multiplying AI, we could spin off agents as fast as you want to spin off agents. And so, you know, I you and I have four scaling laws.
+
+263
+00:27:59,760 --> 00:28:09,360
+And and as we use the agentic systems, they're going to create a lot more data, they're going to create a lot of experiences. Some of it we're going to say, wow, this is really good.
+
+264
+00:28:09,838 --> 00:28:14,880
+We ought to memorize this. That data set then comes all the way back to pre-training.
+
+265
+00:28:15,120 --> 00:28:19,172
+We memorize and generalize it, we then refine it and fine-tune it
+
+266
+00:28:20,302 --> 00:28:30,240
+back into post-training. Then we enhance it even more with test time, you know, and the agents, agents, and agentic systems, you know, put it out into the industry.
+
+267
+00:28:30,400 --> 00:28:41,360
+And so this loop, the cycle is going to go on and on and on. It kind of comes down to basically intelligence is going to scale by one thing, and that's compute.
+
+268
+00:28:41,760 --> 00:28:53,200
+But there's a tricky thing there that you have to anticipate and predict, which is some of these components, it requires different kind of hardware to really do it optimally.
+
+269
+00:28:53,360 --> 00:28:59,120
+So you have to anticipate where the AI innovation is going to lead. For example, make sure of experts with sparsity.
+
+270
+00:28:59,520 --> 00:28:59,920
+Perfect.
+
+271
+00:29:00,240 --> 00:29:05,760
+With hardware, you can't just pivot on a week's notice. You have to anticipate what that's going to look like.
+
+272
+00:29:07,120 --> 00:29:09,360
+That's so scary and difficult to do, right?
+
+273
+00:29:09,680 --> 00:29:15,760
+For example, these AI model architectures are being invented about once every six months.
+
+274
+00:29:15,760 --> 00:29:16,560
+Yeah.
+
+275
+00:29:17,166 --> 00:29:17,680
+Right.
+
+276
+00:29:18,080 --> 00:29:22,180
+And uh system architectures and hardware architectures
+
+277
+00:29:22,990 --> 00:29:25,440
+kind of every three years.
+
+278
+00:29:25,920 --> 00:29:31,920
+And so you need to anticipate what likely is going to happen, you know, two, three years from now.
+
+279
+00:29:32,800 --> 00:29:34,560
+And there's a couple of ways that you could do that.
+
+280
+00:29:34,640 --> 00:29:41,280
+First of all, we could do research internally ourselves, and that's one of the reasons why we have basic research, we have applied research, we create our own models.
+
+281
+00:29:41,360 --> 00:29:47,680
+And so we have we have hands-on life experience right here. This is part of the co-design that I'm talking about.
+
+282
+00:29:47,920 --> 00:29:51,920
+We're also the only AI company in the world that works with literally every AI company in the world.
+
+283
+00:29:52,000 --> 00:29:58,560
+And to the extent that we can, um uh we try to get a sense of of what are the challenges that people are are experiencing.
+
+284
+00:29:58,958 --> 00:30:02,440
+So you're listening to the whispers across the industry, the alabs.
+
+285
+00:30:02,440 --> 00:30:02,880
+That's right.
+
+286
+00:30:02,960 --> 00:30:10,960
+You got to listen and and learn from everybody and have a have a and then the the last part is to have an architecture that's flexible,
+
+287
+00:30:11,214 --> 00:30:20,000
+that can adapt and move with the wind. And one of the benefits of CUDA is that it's, on the one hand, an incredible accelerator.
+
+288
+00:30:20,174 --> 00:30:30,720
+On the other hand, it's really flexible. And so that balance, incredible balance between specialization, otherwise we can't accelerate the CPU,
+
+289
+00:30:31,280 --> 00:30:36,560
+versus generalization so that we can adapt with changing algorithms, that's really, really important.
+
+290
+00:30:36,720 --> 00:30:45,840
+That's the reason why, why um uh CUDA has been so resilient on the one hand, and yet we continue to enhance it. We're at CUDA 13.2.
+
+291
+00:30:46,000 --> 00:30:54,000
+And so we're evolving the architecture so fast that we can stay with you know with with the with the modern art
+
+292
+00:30:54,160 --> 00:30:56,400
+alg algorithms. for example,
+
+293
+00:30:57,454 --> 00:31:03,664
+when Mixture Experts came out, that's the reason why we had NVLink 72 instead of NVLink 8.
+
+294
+00:31:03,982 --> 00:31:13,104
+We could now take an entire 4 trillion, 10 trillion parameter model and put it in one computing domain as if it's running on one GPU.
+
+295
+00:31:15,566 --> 00:31:21,732
+people probably didn't notice I said it, but if you look at the architecture of
+
+296
+00:31:22,382 --> 00:31:29,444
+the Grace Blackwall racks, it was completely focused on doing one thing, processing the LLM.
+
+297
+00:31:30,304 --> 00:31:34,624
+All of a sudden, one year later, you're looking at a Vera Rubin rack.
+
+298
+00:31:34,864 --> 00:31:45,904
+It has storage accelerators, it has this incredible new CPU called Vera, it has VeraRubin and MVLink72 to run the LLMs.
+
+299
+00:31:46,286 --> 00:31:48,680
+It also has this new additional rack called Grok.
+
+300
+00:31:49,678 --> 00:31:56,036
+And so this entire rack system is completely different than the previous one.
+
+301
+00:31:56,366 --> 00:31:58,224
+And it's got all these new components in it.
+
+302
+00:31:58,304 --> 00:32:09,664
+And the reason for that is because the last one was designed to run MoE large language models, inference, and this one is to run agents, and agents bang on tools.
+
+303
+00:32:10,784 --> 00:32:12,708
+Obviously, the design of the system
+
+304
+00:32:13,744 --> 00:32:19,344
+had to have been done before Claude Code, Codex, OpenClaw.
+
+305
+00:32:19,534 --> 00:32:26,384
+So you were anticipating the future, essentially. Yeah. And that that comes from what? From the whispers, from the understanding what all the state of the art is.
+
+306
+00:32:26,384 --> 00:32:27,904
+No, it's it's easier than that.
+
+307
+00:32:28,078 --> 00:32:30,464
+Uh you you just reason about it.
+
+308
+00:32:31,104 --> 00:32:33,924
+Uh first of all, you just reason. Uh
+
+309
+00:32:34,734 --> 00:32:42,864
+no matter, no matter what happens, at some point, in order for that large language model to be a digital worker, let's just
+
+310
+00:32:43,024 --> 00:32:51,024
+let's just use that metaphor. Let's say that we want the LLM to be a digital worker. What does it have to do? It has to access ground truth.
+
+311
+00:32:51,246 --> 00:32:55,428
+That's our file system. It has to be able to do research. It doesn't know everything.
+
+312
+00:32:55,982 --> 00:33:04,544
+We don't have, and I don't want to wait until this AI becomes, you know, universally smart about everything, past, present, and future,
+
+313
+00:33:04,704 --> 00:33:12,784
+before I make it useful. And so therefore, I might as well let it go do research. It's obviously, if it wants to help me, it's got to use my tools.
+
+314
+00:33:13,024 --> 00:33:21,984
+You know, a lot of people would say, you know, AI is going to completely destroy software. We don't need software anymore. We don't even need tools anymore. That's ridiculous. Let's
+
+315
+00:33:23,534 --> 00:33:24,864
+use a thought experiment.
+
+316
+00:33:25,344 --> 00:33:34,596
+and you could just sit there, enjoy a glass of whiskey, and think about all these things, and it would become completely obvious. Like if I were to create
+
+317
+00:33:35,726 --> 00:33:45,508
+the most amazing rope, the most amazing agent that we can imagine in the next 10 years, let's say be a humanoid robot. If that humanoid robot were to be created,
+
+318
+00:33:46,350 --> 00:33:54,224
+is it more likely that the humanoid robot comes into my house and uses the tools that I have to do the work that it needs to do?
+
+319
+00:33:54,464 --> 00:34:02,624
+Or does this hand turns into a 10-pound hammer in one instance, turns into a scalpel in another instance,
+
+320
+00:34:02,784 --> 00:34:07,744
+and in order to boil water, it beams, microwaves out of its fingers.
+
+321
+00:34:08,304 --> 00:34:14,947
+or is it more likely just to use a microwave, And the first time it goes up to the microwave, it probably doesn't know how to use it.
+
+322
+00:34:15,264 --> 00:34:16,196
+But that's okay.
+
+323
+00:34:16,464 --> 00:34:17,904
+It's connected to the internet.
+
+324
+00:34:18,384 --> 00:34:24,384
+It reads the manual of this microwave, reads it, instantly becomes an expert.
+
+325
+00:34:24,623 --> 00:34:34,052
+And so uses it. And so I I think the I just described, in fact, almost all of the properties of OpenClaw.
+
+326
+00:34:34,989 --> 00:34:41,583
+You know, that it's going to use tools, that it's going to access files, it's going to be able to do research, it has I.O. subsystem.
+
+327
+00:34:41,984 --> 00:34:46,020
+And when you're done reasoning through it, reasoning about it through through it in that way,
+
+328
+00:34:47,310 --> 00:34:49,184
+then you say, oh my gosh.
+
+329
+00:34:49,550 --> 00:34:50,464
+The impact
+
+330
+00:34:51,214 --> 00:34:56,996
+to the future computing is deeply profound. And the reason for that is I think we've just reinvented the computer.
+
+331
+00:34:57,664 --> 00:35:00,944
+And then now you say, okay, when did we reason about that?
+
+332
+00:35:01,198 --> 00:35:09,904
+When did we reason about open claw? If you take the OpenClaw schematic that I used at GTC, you will find it two years ago.
+
+333
+00:35:11,438 --> 00:35:20,352
+Literally two years ago at GTC, I was talking about agentic systems that exactly reflect open cloth
+
+334
+00:35:20,672 --> 00:35:33,632
+today. And of course, the confluence of of many things had to happen. First of all, we needed Claude and GPT and all of these models to reach a level of capability.
+
+335
+00:35:33,792 --> 00:35:38,352
+So their innovation and their breakthroughs and their continued advances was really important.
+
+336
+00:35:38,752 --> 00:35:48,100
+And then of course, somebody had to create a an open source, you know, um project that that uh was sufficiently robust,
+
+337
+00:35:48,398 --> 00:36:00,192
+you know, and sufficiently complete and that we can all we can all put to put to work. And and I think OpenClaw did for uh did for agentic systems what ChatGPT did for generative systems.
+
+338
+00:36:00,272 --> 00:36:01,952
+And and I just think it's a very big deal.
+
+339
+00:36:02,510 --> 00:36:03,792
+Yeah, it's a really special moment.
+
+340
+00:36:03,952 --> 00:36:11,872
+I'm not exactly sure why it captured so much of the world's attention, but it did more than Cloud Code and Codex and so on.
+
+341
+00:36:12,398 --> 00:36:13,632
+Because consumers could reach it.
+
+342
+00:36:13,872 --> 00:36:14,432
+Sure. Yeah.
+
+343
+00:36:14,606 --> 00:36:24,752
+But there's also so much of this is vibes. And and Peter, uh, I've had a podcast with him, a wonderful human being. So part of it is also the humans that represent the thing.
+
+344
+00:36:24,832 --> 00:36:28,592
+And part of it is memes and the because we're all trying to figure it out.
+
+345
+00:36:28,752 --> 00:36:37,072
+There's really serious and complicated security concerns about when you have such powerful technology, how do you hand over your data so they can do useful stuff,
+
+346
+00:36:37,152 --> 00:36:44,352
+but then there's scary things associated with that. And we as a civilization, as individual people, and as a civilization figuring out how to find that right balance.
+
+347
+00:36:44,672 --> 00:36:48,912
+Yeah, we jumped on it right away and we sent a bunch of security experts its way.
+
+348
+00:36:49,392 --> 00:36:51,392
+And we did this thing called Open Shell.
+
+349
+00:36:51,758 --> 00:36:55,312
+It's it's already been integrated into OpenClaw.
+
+350
+00:36:55,952 --> 00:36:58,792
+And Nvidia put forward NemoClaw. Yeah,
+
+351
+00:36:58,792 --> 00:36:59,392
+exactly.
+
+352
+00:36:59,392 --> 00:37:01,312
+The install is super easy.
+
+353
+00:37:01,486 --> 00:37:03,432
+It makes sure that it's secure.
+
+354
+00:37:03,432 --> 00:37:05,072
+We give you two out of three rights.
+
+355
+00:37:05,390 --> 00:37:11,332
+Agentic systems can access sensitive information, it can execute code, and it can communicate externally.
+
+356
+00:37:14,062 --> 00:37:20,672
+We could keep things safe if we give you two out of those three capabilities at any time, but not all three.
+
+357
+00:37:20,912 --> 00:37:28,752
+And out of those two out of three capabilities, we also give you access control based on based on um whatever rights that you're given by enterprise.
+
+358
+00:37:28,912 --> 00:37:40,112
+And then we connect it to a policy engine that all these enterprises already have. And so um we're going to try to do our best to to uh help open claw become a a better claw.
+
+359
+00:37:40,512 --> 00:37:46,992
+So you eloquently explained how we have a long history of blockers that we thought were going to be blockers and we overcame them.
+
+360
+00:37:47,152 --> 00:37:52,996
+But now looking into the future, what do you think might be the blockers now that it's clear that agents will be everywhere?
+
+361
+00:37:53,472 --> 00:37:55,684
+So it's obviously we're going to need compute.
+
+362
+00:37:55,886 --> 00:37:59,152
+So what is going to be the blocker for that scaling?
+
+363
+00:37:59,694 --> 00:38:12,324
+Power is a concern, but it's not the only concern. But that's the reason why we're pushing so hard on extreme co-design so that we can improve the tokens per second
+
+364
+00:38:12,878 --> 00:38:16,672
+per watt, orders of magnitude, every single year.
+
+365
+00:38:17,262 --> 00:38:28,912
+And so in the last 10 years, Moore's Law would have progressed computing about a hundred times in the last 10 years. We progressed and scaled up computing by a million times in the last 10 years.
+
+366
+00:38:29,072 --> 00:38:32,592
+And so we're gonna keep on we're gonna keep on doing that through extreme co-design.
+
+367
+00:38:32,912 --> 00:38:39,712
+Um, so energy efficiency perf per watt completely affects the revenues of a company.
+
+368
+00:38:39,886 --> 00:38:48,512
+It affects the revenues of a factory, and we're just we're just gonna push that to the limit so that we can keep on driving token costs down
+
+369
+00:38:49,198 --> 00:39:00,512
+as fast as we can. You know, the our computer price is going up, but our token generation effectiveness is going up so much faster. The token cost is coming down.
+
+370
+00:39:00,672 --> 00:39:04,112
+It's just it it's coming down an order of magnitude every year.
+
+371
+00:39:04,592 --> 00:39:13,712
+So power, that's an interesting one. So the way to try to get around the power blocker is to try to, with the tokens per second per watt, try to make it more and more efficient.
+
+372
+00:39:14,032 --> 00:39:16,032
+Of course, there's the question of how do we get more power.
+
+373
+00:39:16,032 --> 00:39:17,512
+We should also get more power.
+
+374
+00:39:17,512 --> 00:39:18,752
+That's a really complicated one.
+
+375
+00:39:18,832 --> 00:39:25,924
+You've talked about small module nuclear power plants, there's all kinds of ideas for energy. how much does it keep you up at night?
+
+376
+00:39:26,912 --> 00:39:34,992
+the bottlenecks in the supply chain of AI, like ASML with EUV lithography machines, TSMC with advanced packaging, like CoAs,
+
+377
+00:39:35,232 --> 00:39:38,592
+and SK Hennix with high bandwidth memory
+
+378
+00:39:38,592 --> 00:39:39,472
+all the time.
+
+379
+00:39:39,630 --> 00:39:48,912
+And we're working on it all the time. No company in history has ever grown at a scale that we're growing while accelerating that growth.
+
+380
+00:39:49,152 --> 00:39:49,952
+It's incredible.
+
+381
+00:39:50,032 --> 00:39:50,272
+Yeah.
+
+382
+00:39:50,574 --> 00:39:52,832
+And it's hard for people to even understand this.
+
+383
+00:39:53,072 --> 00:39:57,572
+In the overall world of AI computing, we're increasing share.
+
+384
+00:39:57,966 --> 00:40:03,152
+And so supply chain, upstream and downstream, are really important to us.
+
+385
+00:40:04,014 --> 00:40:05,488
+I spent a lot of time
+
+386
+00:40:06,448 --> 00:40:15,568
+informing all the CEOs that I work with. What are the dynamics that's going to cause the growth to continue or even accelerate?
+
+387
+00:40:15,808 --> 00:40:21,476
+It's part of the reasons why to the entire right-hand side of me were CEOs of
+
+388
+00:40:22,478 --> 00:40:27,808
+practically the entire IT industry upstream and practically the entire
+
+389
+00:40:29,134 --> 00:40:31,408
+infrastructure industry downstream.
+
+390
+00:40:32,288 --> 00:40:32,528
+And
+
+391
+00:40:33,710 --> 00:40:35,396
+there were several hundred CEOs.
+
+392
+00:40:36,014 --> 00:40:40,368
+And I don't think there's ever been keynotes where several hundred CEOs show up. And
+
+393
+00:40:41,678 --> 00:40:50,528
+part of it is I'm telling them about our business condition now. I'm telling them about the growth drivers in the very near future and what's happening.
+
+394
+00:40:50,688 --> 00:40:59,168
+And I'm also describing where are we going to go next so that they could use all of this information and all of the dynamics that are here to inform
+
+395
+00:40:59,328 --> 00:41:00,644
+how they want to invest.
+
+396
+00:41:01,248 --> 00:41:05,728
+And so I inform them that way, like I inform my own employees.
+
+397
+00:41:05,888 --> 00:41:14,768
+And then, of course, then I make trips out to them and make sure that, hey, listen, I want you to know this quarter, this coming year, this next year,
+
+398
+00:41:15,008 --> 00:41:16,848
+these things are going to happen.
+
+399
+00:41:17,198 --> 00:41:17,488
+And
+
+400
+00:41:18,382 --> 00:41:27,248
+if you look at the CEOs of the DRAM industry, the number one DRAM in the world was DDR memory for
+
+401
+00:41:27,502 --> 00:41:29,220
+CPUs and data centers.
+
+402
+00:41:30,768 --> 00:41:35,248
+About three years ago, I was able to convince several of the CEOs that
+
+403
+00:41:36,238 --> 00:41:45,008
+even though at the time HBM memory was used quite scarcely, you know, and barely by supercomputers, that this was going to be a mainstream
+
+404
+00:41:45,168 --> 00:41:55,008
+memory for data centers in the future. And at first it sounded ridiculous, but several of the CEOs believed me and decided to invest in building HBM memories.
+
+405
+00:41:55,470 --> 00:42:07,488
+Another memory was rather odd to put into a data center is the low power memories that we use for cell phones. And we wanted them to adapt them for supercomputers in the data center.
+
+406
+00:42:07,568 --> 00:42:12,740
+And they go, cell phone memory for supercomputers? And I explained to them why.
+
+407
+00:42:13,088 --> 00:42:17,088
+Well, look at these two memories, LPDDR5, HBM4.
+
+408
+00:42:17,568 --> 00:42:29,668
+The volumes are so incredible. All three of them had record years in history, and these are these are 45-year companies. And so, you know, that's part of my job is to
+
+409
+00:42:30,928 --> 00:42:32,484
+inform and shape,
+
+410
+00:42:33,808 --> 00:42:34,448
+inspire,
+
+411
+00:42:35,248 --> 00:42:35,648
+you know?
+
+412
+00:42:36,142 --> 00:42:43,328
+So you're not just manifesting the future and maybe inspiring NVIDIA, the the the different engineers of the company.
+
+413
+00:42:44,208 --> 00:42:49,808
+you're manifesting the supply chain of the future. So you're having conversations with TSMC, with ASML.
+
+414
+00:42:50,208 --> 00:42:51,248
+Upstream, downstream.
+
+415
+00:42:51,248 --> 00:42:52,448
+Upstream, downstream.
+
+416
+00:42:52,608 --> 00:42:53,488
+So that's the thing.
+
+417
+00:42:56,688 --> 00:42:58,128
+Yeah, that's downstream from us,
+
+418
+00:42:59,408 --> 00:43:08,208
+Yeah, the whole thing. I mean, but that's so there's so much incredibly difficult engineering that happens in the the entire semiconductor
+
+419
+00:43:08,368 --> 00:43:12,048
+industry. And it's just feels scary
+
+420
+00:43:12,848 --> 00:43:18,288
+how intricate the supply chain is, how many components there are, but it works somehow.
+
+421
+00:43:18,608 --> 00:43:26,128
+Exactly. The deep science, the deep engineering, the incredible manufacturing, and so much of the manufacturing is already robotics.
+
+422
+00:43:26,382 --> 00:43:35,648
+But we have a couple of hundred suppliers that contribute the technology that goes into our 1.3 million component rack.
+
+423
+00:43:36,048 --> 00:43:44,848
+Each rack is 1.3, one and a half million components. There are 200 suppliers across the Vera Rubin rack.
+
+424
+00:43:45,088 --> 00:43:49,248
+So it's interesting that you don't list that as the thing that keeps you up at night in the list of blockers.
+
+425
+00:43:49,582 --> 00:43:52,048
+But I'm doing I'm doing all the things necessary to
+
+426
+00:43:53,968 --> 00:44:00,608
+I can go to sleep because I checked it off. I said, okay, you know, I I go, I yeah, I can go to sleep and I go. Well, let's see.
+
+427
+00:44:01,568 --> 00:44:03,568
+let's reason about this. What's important for us?
+
+428
+00:44:04,462 --> 00:44:15,248
+because okay, let's reason about this. because we changed the system architecture from the original DGX1 that you remembered to uh MV Link 72 rack scale
+
+429
+00:44:15,408 --> 00:44:15,728
+computing.
+
+430
+00:44:17,614 --> 00:44:18,436
+what does that mean?
+
+431
+00:44:19,008 --> 00:44:29,092
+What does that mean to software? What does that mean to engineering? What does that mean to how we design and test? And what does that mean to the supply chain? Well, one of the things that it meant.
+
+432
+00:44:30,208 --> 00:44:31,488
+was we moved
+
+433
+00:44:33,408 --> 00:44:40,708
+supercomputer integration at the data center into supercomputer manufacturing in the supply chain.
+
+434
+00:44:42,638 --> 00:44:46,128
+If you're doing that, you also have to recognize you're going to move.
+
+435
+00:44:47,008 --> 00:44:56,448
+and if if if you're uh, if your, you know, total footprint of whatever data center you're going to build, let's say you would like to have,
+
+436
+00:44:56,688 --> 00:45:02,528
+you know, 50 gigawatts of supercomputers that are running simultaneously.
+
+437
+00:45:02,768 --> 00:45:13,728
+and it takes one week to manufacture that 50 gigawatts of supercomputers. then each week in the supply chain, the supercomputers are going to need a gigawatt of power.
+
+438
+00:45:13,808 --> 00:45:24,528
+And so so we're going to need the supply chain to increase the amount of power it has to build test, to build and test the supercomputers in the supply chain before I ship it.
+
+439
+00:45:24,768 --> 00:45:25,144
+Well
+
+440
+00:45:25,144 --> 00:45:32,368
+NVLink 72 literally built supercomputers in the supply chain and ships them two, three tons at a time per rack.
+
+441
+00:45:32,608 --> 00:45:40,768
+It used to be they used to come in parts and we used to assemble them inside the data center. But that's impossible now because NVLink 72 is so dense.
+
+442
+00:45:41,008 --> 00:45:49,328
+And so that's an example and I would have to go into you know I've fly into the supply chain go meet my partners and hey I said guess what?
+
+443
+00:45:49,568 --> 00:45:54,048
+So here's what I'm gonna do with this is the way we used to build our DGXs.
+
+444
+00:45:54,128 --> 00:45:55,168
+We're going to build them this way.
+
+445
+00:45:55,406 --> 00:46:00,836
+This is going to be so much better because we're going to need them for inference. The market for inference is you know
+
+446
+00:46:02,222 --> 00:46:05,168
+coming the inflection point for inference is coming it's going to be a big market.
+
+447
+00:46:05,328 --> 00:46:16,608
+And so, I first explain to them what's going on, why it's going to happen, and then I ask them to make several billion dollars of capital investments each;
+
+448
+00:46:17,518 --> 00:46:25,168
+and because they, you know, they trust me, and and I I I'm very respectful of them, and I I give them every opportunity to question me,
+
+449
+00:46:25,248 --> 00:46:31,888
+and I spend time to explain things to people, and I reason about it. I draw them pictures and I reason about it in first principles.
+
+450
+00:46:32,048 --> 00:46:35,328
+And by the by by the time I'm done with them, there's no what to do.
+
+451
+00:46:35,568 --> 00:46:44,608
+So it's a lot of it's about relationships and building a shared view of the future. Yeah uh but do you worry about certain bottlenecks?
+
+452
+00:46:44,848 --> 00:46:53,968
+I mean what are the biggest bottlenecks in the supply chain are you worried about ASMLs, EUV tooling are you worried about the packaging, co-op packaging of TSMC,
+
+453
+00:46:54,288 --> 00:47:00,448
+about how fast it could scale like you said, you're not only growing incredibly fast, you're accelerating in growth.
+
+454
+00:47:00,608 --> 00:47:07,168
+So it feels like everybody in the supply chain and those are certainly bottlenecks would have to scale up.
+
+455
+00:47:07,328 --> 00:47:13,088
+Are you having conversations with them like how can you scale up faster do you worry about it?
+
+456
+00:47:13,328 --> 00:47:13,648
+No.
+
+457
+00:47:13,888 --> 00:47:14,208
+Okay.
+
+458
+00:47:15,246 --> 00:47:21,888
+because I told them what I needed they understood what I need they told me what they're going to go do and I believe that what they're going to do.
+
+459
+00:47:22,048 --> 00:47:30,368
+Interesting. Yeah that's great to hear so maybe if we can just linger on the power for a little bit what are your hopes for how to solve the energy problem?
+
+460
+00:47:30,848 --> 00:47:38,916
+One of the areas Lex that I'm um that I would love I would love love us to talk about and just get the message out. You know
+
+461
+00:47:42,062 --> 00:47:47,652
+our power grid is designed for the worst case condition with some margin.
+
+462
+00:47:49,008 --> 00:47:57,808
+Well 99% of the time we're nowhere near the worst case condition because the worst case condition is a few days in the winter, a few days in the summer and
+
+463
+00:47:57,998 --> 00:48:06,768
+extreme weather most of the time we're nowhere near the worst case condition and we're probably running around call it 60% of
+
+464
+00:48:07,008 --> 00:48:10,660
+peak. And so 99% of the time
+
+465
+00:48:11,982 --> 00:48:13,028
+Our power grid
+
+466
+00:48:13,678 --> 00:48:16,356
+has excess power and they're just sitting idle.
+
+467
+00:48:16,576 --> 00:48:22,656
+But they have to be there sitting idle because just in case, when the time comes, hospitals have to be powered and you know,
+
+468
+00:48:22,816 --> 00:48:26,256
+infrastructure has to be powered and airports have to run and so on and so forth.
+
+469
+00:48:26,496 --> 00:48:37,296
+And so the question that I have is: whether we could go and help them understand and create contractual agreements and design computer architecture systems,
+
+470
+00:48:37,486 --> 00:48:41,296
+data centers, such that when they need
+
+471
+00:48:43,278 --> 00:48:48,740
+the maximum power for infrastructure in society, that the data centers would get less.
+
+472
+00:48:49,056 --> 00:48:51,268
+But that's in a very rare instance, anyways.
+
+473
+00:48:51,536 --> 00:49:00,708
+And during that time, we either have a backup generator for that little part of it, or we just have our computers shift a workload somewhere else, or we have the computers just run slower.
+
+474
+00:49:01,198 --> 00:49:12,096
+You know, we could degrade our performance, reduce our power consumption, and provide for a you know a slightly longer latency response, you know, when somebody asked for, you know,
+
+475
+00:49:12,336 --> 00:49:22,256
+asked for an answer. And so I think that that that way of using computers, of building data centers, instead of expecting 100% uptime
+
+476
+00:49:22,702 --> 00:49:32,580
+and these contracts that are really, really quite rigorous, it's putting a lot of pressure on the grid to be able to, now they're going to have to increase from their maximum.
+
+477
+00:49:32,976 --> 00:49:34,576
+I just want to use their excess.
+
+478
+00:49:35,438 --> 00:49:36,176
+It's just sitting there.
+
+479
+00:49:36,496 --> 00:49:42,976
+Yeah, that's not talked about enough. So what's what's this what's stopping there? Is it regulation? Is it bureaucracy?
+
+480
+00:49:43,376 --> 00:49:45,156
+I think it's it's a through-way problem.
+
+481
+00:49:45,936 --> 00:49:53,892
+it starts with the end customer. The end customer puts puts requirements on the data centers that they can never
+
+482
+00:49:55,214 --> 00:49:56,516
+not be available.
+
+483
+00:49:57,006 --> 00:50:09,700
+Okay, so that the end customer expects perfection. Now, in order to deliver that perfection, you need a combination of backup generators and your grid power supplier to deliver on perfection.
+
+484
+00:50:10,030 --> 00:50:11,876
+And so everybody's got to have six nines.
+
+485
+00:50:13,296 --> 00:50:19,748
+Well, I think first of all, right now we ought to have everybody understand that when the customer asks for these things,
+
+486
+00:50:20,016 --> 00:50:28,496
+you got somebody, you have somebody in your data center operations team disconnected from the CEO. I bet the CEO doesn't know this, I'm going to talk to all the CEOs.
+
+487
+00:50:28,656 --> 00:50:36,976
+Their CEOs are probably not paying any attention to the contracts that are being signed. And so everybody wants to sign the best contract, of course.
+
+488
+00:50:37,136 --> 00:50:45,856
+And they go down to the cloud service providers and the contract, the the two contract negotiators that are you I could just see them now,
+
+489
+00:50:46,176 --> 00:50:46,496
+you know,
+
+490
+00:50:46,496 --> 00:50:48,656
+negotiating these multi-year contracts.
+
+491
+00:50:48,896 --> 00:50:49,956
+Both sides want,
+
+492
+00:50:50,606 --> 00:50:53,124
+you know, the best contract. As a result,
+
+493
+00:50:55,022 --> 00:50:59,776
+the CSPs then have to go down to the utilities and they expect the nine, the six nines.
+
+494
+00:51:00,096 --> 00:51:08,496
+And so I think I think the first thing is just make sure that that all of the customers, the CEOs of the customers realize what they're asking for.
+
+495
+00:51:08,736 --> 00:51:12,900
+Now the second thing is we have to build data centers that gracefully degrade.
+
+496
+00:51:13,454 --> 00:51:21,296
+And so if the power, if the utility, if the grid tells us, listen, we're going to have to back you down to about 80%, we're going to say that's no problem at all.
+
+497
+00:51:21,870 --> 00:51:31,296
+We're just going to move our workload around, we're gonna make sure that data is never lost, but we can reduce the computing rate and use less energy,
+
+498
+00:51:31,456 --> 00:51:37,284
+the quality of service degrades a little bit. For the critical workloads, I shift that somewhere else right away.
+
+499
+00:51:38,016 --> 00:51:43,616
+So I don't have that problem. And so, you know, whoever, whichever data center still has a hundred percent uptime.
+
+500
+00:51:43,696 --> 00:51:44,216
+And so
+
+501
+00:51:44,216 --> 00:51:48,936
+how difficult of an engineering problem is that the smart dynamic allocation of power in the data center?
+
+502
+00:51:48,936 --> 00:51:52,016
+As soon as you could specify, you could engineer it.
+
+503
+00:51:52,016 --> 00:51:53,456
+Beautifully put.
+
+504
+00:51:54,416 --> 00:51:58,096
+So long as it obeys the laws of physics on first principles, I think we're good.
+
+505
+00:51:58,096 --> 00:52:00,496
+What was the third thing you were mentioning?
+
+506
+00:52:00,496 --> 00:52:02,980
+So the second thing is the data centers.
+
+507
+00:52:03,296 --> 00:52:10,496
+And the third thing is we need the utilities to also recognize that this is an opportunity. And
+
+508
+00:52:11,776 --> 00:52:17,936
+instead of saying, look, it's going to take me five years to increase my grid capability,
+
+509
+00:52:19,822 --> 00:52:23,856
+if you're willing to take power of this level of guarantee.
+
+510
+00:52:24,942 --> 00:52:38,628
+I can make them available for you next month and at this price. And so if utilities also offered more segments of power delivery promises, then I think everybody will figure out what to do with it.
+
+511
+00:52:39,472 --> 00:52:43,236
+but there's just way too much waste in the grid right now. We should go after it.
+
+512
+00:52:44,032 --> 00:52:52,672
+you've highly lauded Elon and XAI's accomplishment in Memphis in building Colossus supercomputer,
+
+513
+00:52:52,912 --> 00:52:58,992
+probably in record time in just four months. It's now at 200,000 GPUs and growing very quickly.
+
+514
+00:52:59,232 --> 00:53:06,912
+Is there something that you could speak to the uh understand about his approach that's instructive broadly to all the data center creators
+
+515
+00:53:08,432 --> 00:53:10,272
+that enable that kind of accomplishment?
+
+516
+00:53:10,574 --> 00:53:15,392
+His approach to engineering, his approach to the whole management of construction, everything?
+
+517
+00:53:15,822 --> 00:53:19,620
+First of all, Elon is deep in so many different topics,
+
+518
+00:53:20,752 --> 00:53:23,844
+yet he's also a really good systems thinker.
+
+519
+00:53:24,846 --> 00:53:33,552
+And so he's able to think through multiple disciplines. And and um uh he obviously uh pushes things
+
+520
+00:53:34,512 --> 00:53:38,432
+questions everything, whether number one, is it necessary?
+
+521
+00:53:38,912 --> 00:53:44,672
+Number two, does it have to be done this way? And in other words, you know, does it have does it have to take this long?
+
+522
+00:53:45,312 --> 00:53:53,312
+And and so uh so he he has he has the he has the ability uh to question everything uh
+
+523
+00:53:53,614 --> 00:53:58,032
+to the point where everything is down to its minimal amount that is necessary.
+
+524
+00:54:00,590 --> 00:54:11,872
+And and yet yet the the uh the the the the the necessary um capabilities of the product retains, you know, and so he's he is as minimalist as you could possibly imagine,
+
+525
+00:54:12,032 --> 00:54:14,592
+and he does it at a system system scale.
+
+526
+00:54:14,862 --> 00:54:24,484
+Um I I th I also love the fact that he he is um he is represented, he he is he is present at the point of action.
+
+527
+00:54:25,806 --> 00:54:27,204
+You know, he'll just go there.
+
+528
+00:54:27,502 --> 00:54:31,140
+And If there's a problem, he'll just go there and you show me the problem.
+
+529
+00:54:31,392 --> 00:54:41,872
+You know, when you do all of this in combination, you overcome a lot of previous, this is just the way we do it. Um, you know, I'm I'm waiting for them.
+
+530
+00:54:42,272 --> 00:54:45,632
+Uh, you know, I mean it's just everybody has a lot of excuses.
+
+531
+00:54:46,032 --> 00:54:54,148
+And so, and then and then the last thing is when when you act personally with so much urgency, it causes everybody else to act with urgency.
+
+532
+00:54:54,766 --> 00:55:00,512
+You know, and and every supplier has a lot of customers going on. Every supplier has a lot of projects going on.
+
+533
+00:55:00,782 --> 00:55:09,392
+And he he make it he made it he makes it his business that he's the top priority of everybody else's, you know, projects. And so he he does that by demonstrating it.
+
+534
+00:55:09,774 --> 00:55:16,112
+Yeah, I've been in a bunch of those meetings, it's it's fun to watch because really not enough people ask the question, like, okay, so
+
+535
+00:55:17,358 --> 00:55:19,556
+can this be done a lot faster and how?
+
+536
+00:55:20,192 --> 00:55:24,752
+Why does it have to take this long? Yeah, right. And then that becomes an engineering question often.
+
+537
+00:55:24,912 --> 00:55:31,632
+And yes, I think when you get the ground truth of actually, I remember one of the times I was hanging out with him,
+
+538
+00:55:31,712 --> 00:55:36,112
+he literally is going through the entire process of how to plug in cables into a rack.
+
+539
+00:55:36,752 --> 00:55:45,312
+he's working with an engineer on the ground that's doing that task, and he's just trying to understand what does that process look like so it can be less error-prone.
+
+540
+00:55:46,030 --> 00:55:55,472
+And just building up that intuition from every single task involved in putting together the data center, you start to immediately get a sense at the
+
+541
+00:55:55,792 --> 00:56:04,192
+detailed scale and at the broad system scale of where the inefficiencies are. And so you can make it more and more and more efficient.
+
+542
+00:56:04,432 --> 00:56:10,512
+Plus, you have the big hammer of being able to say, let's do it totally different and remove all possible blockers.
+
+543
+00:56:10,512 --> 00:56:11,152
+That's right.
+
+544
+00:56:11,472 --> 00:56:18,192
+Is there parallels in the NVIDIA extreme systems co-design approach that you see in the way Elon approaches systems engineering?
+
+545
+00:56:18,672 --> 00:56:22,112
+Well, first of all, the co-design is a ultimate systems engineering problem.
+
+546
+00:56:22,512 --> 00:56:34,384
+And so we approach we approach the work that we do um from that first from that principle. the other thing that we do, uh And this is this is a a philosophy that a thought
+
+547
+00:56:35,918 --> 00:56:45,824
+a state of mind, I guess, a method, that I started 30 years ago and it's called the speed of light. A speed of light is not just about the speed.
+
+548
+00:56:46,064 --> 00:56:57,584
+speed of light i is my my shorthand for uh what's what's the limit of what physics can do. And so every single everything everything that we do is compared against the speed of light.
+
+549
+00:56:57,984 --> 00:57:02,384
+Memory speed, math, speed, power, cost,
+
+550
+00:57:03,184 --> 00:57:03,504
+time,
+
+551
+00:57:04,304 --> 00:57:08,544
+effort, number of people, manufacturing cycle time.
+
+552
+00:57:09,104 --> 00:57:18,064
+and when you think about latency versus throughput, when you think about cost versus throughput, cost versus capacity,
+
+553
+00:57:18,544 --> 00:57:19,984
+all of these things,
+
+554
+00:57:21,038 --> 00:57:28,004
+you test against the speed of light to achieve all of these different constraints, separately.
+
+555
+00:57:28,624 --> 00:57:33,104
+and then when you consider it together, you know, you have to make compromises.
+
+556
+00:57:33,344 --> 00:57:41,664
+because a system that achieves extremely low latency versus a cheap, a system that achieves very high throughput are architected fundamentally differently.
+
+557
+00:57:41,966 --> 00:57:51,824
+But you want to know what's the speed of light of a system that achieves high throughput, what's the speed of light of a system that achieves low latency?
+
+558
+00:57:51,984 --> 00:58:02,404
+And then when you think about the total system, you could make trade-offs. And so I force everybody to think about what the first principles, the limits, the physical limits
+
+559
+00:58:03,904 --> 00:58:05,264
+for everything before we,
+
+560
+00:58:07,584 --> 00:58:10,864
+do anything. and we test everything against that.
+
+561
+00:58:10,990 --> 00:58:13,184
+And so that's a good frame of mind.
+
+562
+00:58:13,550 --> 00:58:18,116
+I don't love the other methods, which is continuous improvement.
+
+563
+00:58:19,662 --> 00:58:21,924
+the problem with continuous improvement, it it uh
+
+564
+00:58:23,054 --> 00:58:31,584
+first of all, you should engineer something from first principles at the speed, you know, with speed of light thinking, limited only by physical limits
+
+565
+00:58:31,984 --> 00:58:34,224
+and and physics limits.
+
+566
+00:58:34,510 --> 00:58:39,584
+And um after that, of course, you would improve it over time. Um
+
+567
+00:58:40,526 --> 00:58:49,424
+but I don't like going into a problem and somebody says, hey, you know, it takes 74 days to do this today, right now, and we can do it for you in 72 days.
+
+568
+00:58:49,664 --> 00:58:55,524
+You know, I'd rather strip it all back to zero and say, first of all, explain to me why it's 74 days in the first place.
+
+569
+00:58:56,334 --> 00:58:59,428
+And let's know, let's think about what's possible today.
+
+570
+00:58:59,982 --> 00:59:04,224
+And if I were to to build it completely from scratch, you know, how long would it take?
+
+571
+00:59:04,494 --> 00:59:16,704
+Oftentimes you'd be surprised and might come to six days. Now the rest of the six days to 74 could be very well reasoned and compromises and cost reductions
+
+572
+00:59:16,864 --> 00:59:23,108
+and all kinds of different things, but at least you know what they are. And now that you know that six days is possible,
+
+573
+00:59:24,366 --> 00:59:26,628
+then the conversation from 74 to 6,
+
+574
+00:59:28,078 --> 00:59:29,744
+surprisingly much more effective.
+
+575
+00:59:30,158 --> 00:59:38,864
+And uh such incredibly complex systems that you're working with. Is simplicity sometimes a good heuristic to reach for? I mean, if I can just
+
+576
+00:59:40,464 --> 00:59:44,464
+I mean, the pod, the Vera Rubin pod that you announced is just incredible.
+
+577
+00:59:44,784 --> 00:59:54,144
+we're talking about seven chips, seven chip types, five purpose built rack types, 40 racks, 1.2 quadrillion transistors, nearly 20,000 video
+
+578
+00:59:54,544 --> 00:59:54,704
+dies,
+
+579
+00:59:55,982 --> 01:00:02,944
+over 1,100 Rubin GPUs, 60 exaflops, 10 petabytes per second of scale bandwidth. that's all just one.
+
+580
+01:00:03,504 --> 01:00:07,424
+That's just one pod. That's just one pod. Yeah, that's just one pod.
+
+581
+01:00:07,664 --> 01:00:19,264
+I mean, so you have the and then even the the NVL72 rack alone is 1.3 million components, 1300 chips, 4,000 pounds crammed into a single 19-inch wide rack.
+
+582
+01:00:19,504 --> 01:00:25,264
+And Lex, we're probably kind of crank out about 200 of these pods a week, just to put in perspective.
+
+583
+01:00:25,744 --> 01:00:29,796
+The amount of different components, I suppose simplicity is impossible.
+
+584
+01:00:30,126 --> 01:00:35,024
+But is that a metric that you kind of reach for in trying to design things?
+
+585
+01:00:35,504 --> 01:00:35,824
+You know
+
+586
+01:00:36,784 --> 01:00:48,384
+the phrase that I use most often is we need things to be as complex as necessary, but as simple as possible. and so the question is, is all that complexity there necessary?
+
+587
+01:00:48,624 --> 01:00:56,036
+And we ought to test for that and we ought to challenge that. And then after that, everything else above it, you know, is gratuitous.
+
+588
+01:00:56,544 --> 01:01:01,504
+But some of the most incredible semiconductor industry broadly, but what NVIDIA is doing,
+
+589
+01:01:04,270 --> 01:01:10,000
+Some of the greatest engineering in history. So these systems are just truly, truly marvels of engineering.
+
+590
+01:01:10,446 --> 01:01:12,960
+It is the most complex computer the world has ever made.
+
+591
+01:01:13,294 --> 01:01:16,480
+Yeah, the engineering teams, I mean, I don't know, it's not a competition, but I don't know.
+
+592
+01:01:16,560 --> 01:01:25,040
+If it was like an Olympics of engineering teams, I mean TSMC does incredible engineering, like I said, ASML at every scale, but NVIDIA
+
+593
+01:01:25,280 --> 01:01:28,880
+is going to give them a run for their money. Just incredible, incredible teams.
+
+594
+01:01:28,880 --> 01:01:30,400
+Gold medalists
+
+595
+01:01:31,280 --> 01:01:33,640
+in every single sport all assembled right here.
+
+596
+01:01:33,640 --> 01:01:39,300
+And have to work together and report directly to you. This is wonderful. you've recently traveled to China.
+
+597
+01:01:41,520 --> 01:01:48,400
+so it's interesting to ask you. China has been incredibly successful in building up its technology sector.
+
+598
+01:01:48,640 --> 01:01:50,160
+What do you understand about
+
+599
+01:01:51,120 --> 01:02:00,880
+how China is able to, over the past 10 years, build so many incredible world-class companies, world-class engineering teams, and just this technology ecosystem
+
+600
+01:02:01,360 --> 01:02:04,960
+that produces so many incredible products?
+
+601
+01:02:05,640 --> 01:02:09,200
+A whole bunch of reasons. Well, first of all, let's start with some facts.
+
+602
+01:02:09,486 --> 01:02:12,228
+50% of the world's AI researchers are Chinese,
+
+603
+01:02:13,582 --> 01:02:14,308
+plus or minus.
+
+604
+01:02:14,960 --> 01:02:15,280
+And
+
+605
+01:02:16,174 --> 01:02:17,316
+they're mostly in China,
+
+606
+01:02:18,030 --> 01:02:18,468
+still.
+
+607
+01:02:19,086 --> 01:02:24,000
+We have many of them here, but there's amazing researchers still in China. Um
+
+608
+01:02:25,070 --> 01:02:29,124
+they their tech industry showed up at precisely the right time.
+
+609
+01:02:30,080 --> 01:02:38,180
+At the time of the mobile cloud era, their way of contributing was software. And so this is a country's incredible science and math.
+
+610
+01:02:39,440 --> 01:02:41,600
+really well-educated kids.
+
+611
+01:02:42,190 --> 01:02:46,724
+Um uh their tech industry was created during the era of software.
+
+612
+01:02:48,046 --> 01:02:50,276
+They're very comfortable with modern software.
+
+613
+01:02:52,398 --> 01:02:53,508
+China is not one
+
+614
+01:02:54,414 --> 01:03:00,964
+giant economic country. It's got many provinces and cities with mayors all competing with each other.
+
+615
+01:03:01,486 --> 01:03:09,760
+That's the reason why there's so many EV companies, that's the reason why there's so many AI companies, that's the reason why there's so many every company you could imagine,
+
+616
+01:03:09,920 --> 01:03:12,420
+um, they all create some of them.
+
+617
+01:03:13,200 --> 01:03:13,520
+And
+
+618
+01:03:14,734 --> 01:03:18,500
+as a result, they have insane competition internally.
+
+619
+01:03:19,200 --> 01:03:23,076
+And what remains is an incredible company.
+
+620
+01:03:24,480 --> 01:03:27,920
+they also have a social culture
+
+621
+01:03:29,440 --> 01:03:33,284
+where it's family first, friend second, and company third.
+
+622
+01:03:34,160 --> 01:03:34,800
+And so
+
+623
+01:03:35,760 --> 01:03:36,080
+um
+
+624
+01:03:39,022 --> 01:03:46,948
+the amount of conversation that goes back and forth between they're essentially open source all the time.
+
+625
+01:03:47,680 --> 01:03:54,080
+So the fact that they contribute more to open source is so sensible because they're probably what are we protecting, you know?
+
+626
+01:03:54,320 --> 01:04:01,920
+My engineers, their brothers are in that company, their friends are in that company, and they're all schoolmates, you know, the schoolmate concept.
+
+627
+01:04:02,080 --> 01:04:07,620
+It's a you know, one schoolmate, your brother for life, and um, and so they
+
+628
+01:04:08,494 --> 01:04:11,364
+they they share knowledge very, very quickly.
+
+629
+01:04:12,000 --> 01:04:22,560
+And so there's no sense keeping technology hidden. You might as well put it on open source. And so the open source community then amplifies, accelerates the the innovation process.
+
+630
+01:04:22,800 --> 01:04:31,760
+So you get this rapid, incredible great talent, rapid innovation because of open source and just the nature of friends,
+
+631
+01:04:32,000 --> 01:04:32,320
+and
+
+632
+01:04:33,520 --> 01:04:34,724
+insane competition
+
+633
+01:04:36,240 --> 01:04:43,460
+among the company, what emerges is incredible stuff. And so this is the fastest innovating
+
+634
+01:04:44,366 --> 01:04:54,080
+country in the world today. And this is something that has everything that I've just said is fundamental to just how the kids were grown, the fact that they have excellent education,
+
+635
+01:04:54,240 --> 01:05:03,440
+the fact that parents want them to do well in school, the fact that they their culture is that way. These are, you know, these are just the thing about their country.
+
+636
+01:05:03,680 --> 01:05:08,720
+And they showed up at precisely the time when technology is going through that exponential.
+
+637
+01:05:09,120 --> 01:05:16,400
+Plus, culturally, it's pretty cool to be an engineer. It connects to all the components that you're mentioning.
+
+638
+01:05:16,400 --> 01:05:17,840
+It's a builder nation.
+
+639
+01:05:18,158 --> 01:05:18,880
+It's a builder nation.
+
+640
+01:05:18,880 --> 01:05:24,800
+Yeah, it's a builder nation. our country's leaders, incredible, but they're mostly lawyers.
+
+641
+01:05:25,070 --> 01:05:35,280
+Their country's leaders, and because we're they're trying to keep us safe, uh, rule of law, uh governing, their country was built out of poverty.
+
+642
+01:05:35,520 --> 01:05:36,000
+And so
+
+643
+01:05:37,120 --> 01:05:42,080
+most of their leaders are incredible engineers, some of the brightest minds.
+
+644
+01:05:43,182 --> 01:05:50,784
+To take a small tangent because you mentioned open source, I have to go to Perplexity here, who you have been a fan of a long time.
+
+645
+01:05:51,182 --> 01:05:52,024
+I love it. Yeah.
+
+646
+01:05:52,024 --> 01:06:03,184
+And thank you for releasing open source Nematron 3 Super, which you can also use inside Perplexy to look stuff up, uh, which is uh 120 billion parameter open weight
+
+647
+01:06:03,664 --> 01:06:04,784
+MOE model.
+
+648
+01:06:05,664 --> 01:06:07,172
+what's your vision
+
+649
+01:06:07,982 --> 01:06:09,424
+with open source?
+
+650
+01:06:09,664 --> 01:06:18,544
+So you mentioned China with DeepSeek and Minimax with all these companies really pushing forward the open source
+
+651
+01:06:19,024 --> 01:06:28,356
+AI movement, and NVIDIA is really leading the way in um close to state-of-the-art open source LLMs. What's your vision there?
+
+652
+01:06:28,864 --> 01:06:29,348
+First,
+
+653
+01:06:30,766 --> 01:06:36,384
+if we're going to be a great AI computing company, we have to understand how AI models are evolving.
+
+654
+01:06:36,704 --> 01:06:44,944
+One of the things that I love about NemoTron 3 is it's not just a pure transformer model, it's transformer and SSMs.
+
+655
+01:06:45,264 --> 01:06:53,424
+And uh we were early in developing the conditional GANs, which that progressive GANs,
+
+656
+01:06:53,584 --> 01:07:05,504
+which led step by step to diffusion. And so the fact that we're doing basic research in model architecture and in different domains gives us visibility into
+
+657
+01:07:05,744 --> 01:07:13,824
+you know what kind of computing systems would do a good job for future models. And so it is part of our extreme co-design strategy. Second,
+
+658
+01:07:14,638 --> 01:07:14,944
+um
+
+659
+01:07:15,694 --> 01:07:26,436
+I think we we right rightfully recognize that on the one hand, we want world-class models as products and they should be proprietary.
+
+660
+01:07:27,822 --> 01:07:36,384
+on the other hand, we also want AI to diffuse into every industry and every country, every researcher, every student.
+
+661
+01:07:37,024 --> 01:07:45,412
+And if everything is proprietary, it's hard to do research and it's hard to innovate on top of, around with.
+
+662
+01:07:46,144 --> 01:07:46,784
+And so
+
+663
+01:07:47,822 --> 01:07:53,572
+open source is fundamentally necessary for many industries to join the AI revolution.
+
+664
+01:07:54,574 --> 01:07:57,796
+NVIDIA has the scale And we have the motives
+
+665
+01:07:58,704 --> 01:07:59,824
+to not only
+
+666
+01:08:00,864 --> 01:08:09,252
+skills, scale, and motivation to build and continue to build these AI models for as long as we shall live.
+
+667
+01:08:09,744 --> 01:08:11,264
+And so therefore, we ought to do that.
+
+668
+01:08:11,504 --> 01:08:20,196
+We can open up, we can activate every industry, every researcher, you know, every country to be able to join the AI revolution.
+
+669
+01:08:21,104 --> 01:08:23,184
+There's a third reason, which is
+
+670
+01:08:25,134 --> 01:08:28,384
+recognizing that AI is not just language.
+
+671
+01:08:28,782 --> 01:08:37,823
+These AIs will likely use tools and models and subagents that were trained on other
+
+672
+01:08:37,984 --> 01:08:39,344
+modalities of information.
+
+673
+01:08:39,566 --> 01:08:42,064
+Maybe it's biology or chemistry or
+
+674
+01:08:43,950 --> 01:08:49,663
+laws of physics or fluids and thermodynamics, and not all of it is in language structure.
+
+675
+01:08:49,984 --> 01:08:59,264
+And so somebody has to go make sure that weather prediction, biology, AI, AI for biology,
+
+676
+01:08:59,584 --> 01:09:09,904
+physical AI, all of that stuff can be pushed to the limits and pushed to the frontier. We don't build cars, but we want to make sure every car company has access to great models.
+
+677
+01:09:10,144 --> 01:09:19,264
+We don't, discover drugs, but I want to make sure that Lilly has the world's best biology AI systems so that they can go use it for discovering drugs.
+
+678
+01:09:19,663 --> 01:09:31,104
+so these three fundamental reasons, both in in recognizing that AI is not just language, that AI is really broad, that we want to engage everybody into the world of AI and then also
+
+679
+01:09:31,264 --> 01:09:32,224
+co-design of AI.
+
+680
+01:09:32,544 --> 01:09:38,863
+Well, I have to say once again, thank you for open sourcing, really truly open sourcing uh Nematron 3.
+
+681
+01:09:39,264 --> 01:09:46,144
+yeah, I appreciate you for saying that. We open source the models, we open source the weights, we open source the data, we open source how we created it.
+
+682
+01:09:46,573 --> 01:09:47,904
+Yeah. It's pretty amazing.
+
+683
+01:09:48,703 --> 01:09:50,544
+It's really, it's really incredible.
+
+684
+01:09:50,926 --> 01:09:55,652
+You're originally from Taiwan and have a close relationship with TSMC.
+
+685
+01:09:56,206 --> 01:10:05,824
+So I have to ask TSMC, I think, also is a legendary company in terms of the engineering teams, in terms of the incredible engineering work that they do.
+
+686
+01:10:07,904 --> 01:10:16,228
+what do you understand about TSMC culture and their approach that explains how they're able to achieve this singular unmatched success
+
+687
+01:10:16,704 --> 01:10:19,268
+in everything they're doing with semiconductors?
+
+688
+01:10:19,886 --> 01:10:25,892
+You know, first of all, the deepest misunderstanding about TSMC is that
+
+689
+01:10:29,262 --> 01:10:32,432
+Their technology is all they have.
+
+690
+01:10:33,152 --> 01:10:34,432
+That somehow
+
+691
+01:10:35,566 --> 01:10:40,512
+they have a really great transistor. And if somebody shows up another transistor, game over.
+
+692
+01:10:41,312 --> 01:10:49,872
+It's the technology, and of course, you know, I don't mean just the transistor and metallization systems, the packaging, the 3D packaging,
+
+693
+01:10:50,032 --> 01:10:58,564
+the silicon photonics, the, you know, all of the technology that they have. That technology is really what makes the company special. Their technology makes the company special.
+
+694
+01:10:59,872 --> 01:11:05,152
+But their ability to orchestrate the
+
+695
+01:11:05,952 --> 01:11:14,192
+demands, the dynamic demands of hundreds of companies in the world as they're moving up, shifting out, you know,
+
+696
+01:11:14,352 --> 01:11:18,512
+increasing, decreasing, push, pushing out, pulling in,
+
+697
+01:11:19,470 --> 01:11:22,272
+changing from customer to customer. uh,
+
+698
+01:11:23,312 --> 01:11:36,032
+way for starting, wafer stopping, emergency wafer starts. you know, all of this dynamics of the world's complexity as the world is shape, shifting all the time.
+
+699
+01:11:36,366 --> 01:11:46,032
+And somehow they're running a factory with high throughput, high yield, really great cost, excellent customer service.
+
+700
+01:11:46,510 --> 01:11:53,552
+They they take their work they take their promises seriously. Then when your wafer, because they know that you're helping, they're helping you run your company,
+
+701
+01:11:54,672 --> 01:12:00,512
+when the wafers were promised to show up, the wafers show up, you know, so that you could run your company appropriately.
+
+702
+01:12:00,846 --> 01:12:07,472
+And so their system, their manufacturing system is completely miraculous. I would say then the second thing is their culture.
+
+703
+01:12:07,632 --> 01:12:18,672
+This culture is simultaneously technology focused on one hand, advancing technology, simultaneously customer service oriented on the other hand. A lot of
+
+704
+01:12:19,534 --> 01:12:24,992
+companies are very customer service oriented, but they're not very technology excellent.
+
+705
+01:12:25,072 --> 01:12:32,112
+They're they're not at the bleeding edge of technology, or a lot of companies who are tech at the bleeding edge of technology, but they're not the best customer service-oriented company.
+
+706
+01:12:32,192 --> 01:12:38,912
+And so it just depends on somehow they've they've balanced these two and they're world-class of both.
+
+707
+01:12:39,214 --> 01:12:46,752
+Um and then probably the third thing is the technology that I most value in them, uh, that they created is, you know, this
+
+708
+01:12:47,952 --> 01:12:49,792
+intangible called trust.
+
+709
+01:12:50,126 --> 01:12:53,188
+I trust them to put my company on top of them.
+
+710
+01:12:54,030 --> 01:12:54,992
+That's a very big deal.
+
+711
+01:12:55,690 --> 01:13:02,032
+But they trust, I mean there's a really close relationship there that you have established, and that trust is established based on many years of performance,
+
+712
+01:13:02,192 --> 01:13:04,832
+but there's human relationships involved there as well.
+
+713
+01:13:04,832 --> 01:13:05,952
+Three decades.
+
+714
+01:13:06,190 --> 01:13:12,644
+I don't know how many tens, hundreds of billions of dollars of business we've done through them, and we don't have a contract.
+
+715
+01:13:14,222 --> 01:13:14,992
+That's pretty great.
+
+716
+01:13:15,472 --> 01:13:16,032
+Amazing.
+
+717
+01:13:16,272 --> 01:13:17,792
+Okay, there's a story
+
+718
+01:13:18,592 --> 01:13:29,124
+that in 2013 the founders of TSMC Morris Chang offered you the chance to become TSMC's chief executive. Uh and you said you already had a job. Is this story true?
+
+719
+01:13:30,062 --> 01:13:30,992
+Story is true.
+
+720
+01:13:31,232 --> 01:13:32,832
+I didn't dismiss it.
+
+721
+01:13:34,352 --> 01:13:37,712
+but I was deeply honored. And and of course,
+
+722
+01:13:39,392 --> 01:13:43,712
+I knew then, as I know now, TSMC is one of the most consequential companies in history.
+
+723
+01:13:45,872 --> 01:13:50,112
+and Morris is one of the highest regarded executive and
+
+724
+01:13:50,992 --> 01:13:56,032
+business and personal friend that I've had in my life. And
+
+725
+01:13:57,952 --> 01:13:59,392
+for him to ask is
+
+726
+01:14:01,232 --> 01:14:04,512
+I was humbled and really honored.
+
+727
+01:14:05,952 --> 01:14:08,032
+but the work that I'm doing here is really important.
+
+728
+01:14:08,270 --> 01:14:16,832
+And I've seen, you know, in my mind any ways, in my mind's eye, what NVIDIA was going to be and what the impact that we could have.
+
+729
+01:14:17,152 --> 01:14:17,472
+And
+
+730
+01:14:18,272 --> 01:14:19,812
+it was really important work.
+
+731
+01:14:21,152 --> 01:14:26,308
+and it's my responsibility, you know, my sole responsibility to make this happen. And so I
+
+732
+01:14:27,712 --> 01:14:36,432
+declined it uh uh you know uh not not because it wasn't an incredible offer, it's an unbelievable offer,
+
+733
+01:14:37,232 --> 01:14:38,352
+but I simply couldn't take it.
+
+734
+01:14:38,702 --> 01:14:45,632
+I think NVIDIA, both NVIDIA and TSMC are two of the greatest companies in the history of human civilization.
+
+735
+01:14:45,952 --> 01:14:52,068
+running either one, I'm sure, is incredibly complicated effort and takes you have to truly be all in.
+
+736
+01:14:52,992 --> 01:14:57,312
+everybody at every scale, not just at the CEO level, everybody is really truly all in.
+
+737
+01:14:58,192 --> 01:15:00,352
+to accomplish this kind of complexity.
+
+738
+01:15:00,352 --> 01:15:01,952
+See, now I can help both companies.
+
+739
+01:15:02,352 --> 01:15:02,912
+Exactly.
+
+740
+01:15:04,272 --> 01:15:07,872
+so NVIDIA is now the most valuable company in the world.
+
+741
+01:15:08,174 --> 01:15:15,072
+I have to ask, what is the NVIDIA's biggest moat, as the folks in the tech sector say?
+
+742
+01:15:15,792 --> 01:15:19,460
+The edge you have that protects you from the competition.
+
+743
+01:15:20,206 --> 01:15:21,392
+Our single
+
+744
+01:15:22,688 --> 01:15:23,648
+most important
+
+745
+01:15:25,614 --> 01:15:30,916
+property as a company is the install base of our computing platform.
+
+746
+01:15:31,886 --> 01:15:33,328
+Our single most important thing
+
+747
+01:15:34,288 --> 01:15:40,676
+today is the install base of CUDA. Now the reason why 20
+
+748
+01:15:42,768 --> 01:15:45,540
+years ago, of course, there was no install base.
+
+749
+01:15:46,288 --> 01:15:53,636
+But what makes and if somebody if somebody came up with with a GUDA or TUTA, uh, it wouldn't make any difference at all.
+
+750
+01:15:54,528 --> 01:16:02,528
+And the reason for that is because it's never been just about the technology. The technology, of course, was incredible visionary.
+
+751
+01:16:03,534 --> 01:16:09,728
+But it's the fact that the company was dedicated to it, stuck with it, expanded its reach.
+
+752
+01:16:10,926 --> 01:16:16,848
+It wasn't three people that made CUDA successful. It was 43,000 people that made CUDA successful.
+
+753
+01:16:17,088 --> 01:16:25,568
+And the several million developers that believed in us, that trusted that we were going to continue to make CUDA 1, 2, 3,
+
+754
+01:16:25,728 --> 01:16:37,888
+13, that they decided to port and dedicate their software on top of it, their mountain of software on top of it. And so the install base is the number one most important advantage.
+
+755
+01:16:38,208 --> 01:16:47,888
+That install base, when you amplify it with the velocity of our execution at the scale that we're talking about, no company in history had ever
+
+756
+01:16:48,078 --> 01:16:50,628
+built systems of this complexity period.
+
+757
+01:16:51,008 --> 01:16:54,724
+And then to build it once a year is impossible.
+
+758
+01:16:55,968 --> 01:16:57,088
+And and
+
+759
+01:16:58,062 --> 01:17:06,288
+that velocity combined with the install base in the developer's mind, you just can now take a developer's mind
+
+760
+01:17:06,448 --> 01:17:10,276
+from the developer's perspective if I support CUDA
+
+761
+01:17:11,168 --> 01:17:13,284
+tomorrow it will be 10 times better.
+
+762
+01:17:13,646 --> 01:17:15,876
+I just have to wait six months on average.
+
+763
+01:17:16,494 --> 01:17:23,648
+Not only that, if I develop it on CUDA, I reach a few hundred million people computers.
+
+764
+01:17:24,078 --> 01:17:29,668
+I'm in every cloud, I'm in every computer company, I'm in every single industry, I'm in every single country.
+
+765
+01:17:31,008 --> 01:17:34,724
+So, if I decreate an open source package and I put it on CUDA first,
+
+766
+01:17:35,790 --> 01:17:39,524
+I get these both attributes simultaneously.
+
+767
+01:17:40,528 --> 01:17:41,732
+And not only that,
+
+768
+01:17:43,310 --> 01:17:45,328
+I trust 100%
+
+769
+01:17:46,288 --> 01:17:55,044
+that NVIDIA is going to keep CUDA around and maintain it and improve it and keep optimizing the libraries for as long as they shall live.
+
+770
+01:17:56,878 --> 01:17:59,524
+You could take that to the bank. And that last part, trust,
+
+771
+01:18:00,814 --> 01:18:06,692
+you put all that stuff together: if I were a developer today, I would target CUDA first.
+
+772
+01:18:07,088 --> 01:18:15,876
+I would target CUDA most. And that's the reason that that I think in in the final analysis is our first that's even our first
+
+773
+01:18:17,454 --> 01:18:18,368
+core advantage.
+
+774
+01:18:18,528 --> 01:18:20,292
+Our second one is our ecosystem
+
+775
+01:18:21,262 --> 01:18:30,448
+the fact that we vertically integrated this incredibly complex system but we integrated horizontally into every single every single company's computers
+
+776
+01:18:30,608 --> 01:18:42,928
+we're in the Google cloud we're in Amazon we're in Azure we're ramping up AWS like crazy right now. We're in new companies like Core Weave and NScale we're in supercomputers at Lilly.
+
+777
+01:18:43,088 --> 01:18:47,328
+We're in enterprise computers we're at the edge in radio base stations.
+
+778
+01:18:48,368 --> 01:18:56,128
+it's just crazy one architecture is in all these different systems we're in cars we're in robots we're in satellites we're out in space and so
+
+779
+01:18:56,528 --> 01:19:03,008
+the fact that you have this one architecture and the ecosystem is so broad it basically covers every single industry in the world.
+
+780
+01:19:03,328 --> 01:19:11,088
+Well how does the how does the CUDA install base evolve into the future with AI factories as a moat?
+
+781
+01:19:12,048 --> 01:19:15,728
+do you think it's possible that Nvidia of the future is all about the AI factory?
+
+782
+01:19:16,128 --> 01:19:25,508
+Well the unit of computing used to be GPU to us then it became a computer then it became a cluster now it's an entire AI factory.
+
+783
+01:19:25,808 --> 01:19:31,568
+When I see a computer when I see what NVIDIA builds in the old days I would you know I visualize the chip
+
+784
+01:19:32,448 --> 01:19:39,588
+and then when I announced a new product you know new generation like ladies and gentlemen we're announcing Ampere today I pick up the chip.
+
+785
+01:19:39,808 --> 01:19:40,248
+Yeah
+
+786
+01:19:40,248 --> 01:19:43,408
+that was my mental model of what I was building today
+
+787
+01:19:45,262 --> 01:19:48,688
+picking up the chip is kind of still adorable but it's adorable.
+
+788
+01:19:50,208 --> 01:19:56,048
+It's not my mental model of what I'm doing. My mental model is this giant gigawatt
+
+789
+01:19:56,880 --> 01:20:08,640
+Thing that has power generation is connected to the grid. It's got cooling systems and networking of incredible monstrosity. You know, 10,000 people are in there trying to install it.
+
+790
+01:20:08,800 --> 01:20:13,680
+Hundreds of networking engineers in there, thousands of engineers behind it trying to power it up.
+
+791
+01:20:14,800 --> 01:20:19,280
+powering up one of those factories, as you know, it's not somebody going, it's on now.
+
+792
+01:20:20,560 --> 01:20:22,320
+Takes thousands of people to bring it up.
+
+793
+01:20:22,640 --> 01:20:31,360
+So mentally, you're actually when you're thinking about a single unit of compute, you're like literally when you go to bed at night, you're thinking now about collection of racks,
+
+794
+01:20:31,566 --> 01:20:33,400
+so pods, not individual chips.
+
+795
+01:20:33,400 --> 01:20:39,748
+Entire infrastructure. And I'm hoping my next click is when I'm thinking about building computers, it's you know, planetary scale.
+
+796
+01:20:40,462 --> 01:20:41,572
+That'll be the next click.
+
+797
+01:20:42,030 --> 01:20:50,240
+What do you think about the space angle that Elon has talked about doing compute in space for solving some of the
+
+798
+01:20:50,400 --> 01:20:56,160
+it makes some of the energy issues in terms of scaling energy easier?
+
+799
+01:20:56,750 --> 01:20:58,560
+Cooling issues is not easy. Yeah.
+
+800
+01:20:58,800 --> 01:21:08,680
+Cooling, well, there's a large number of engineering complexities involved with that. So what you know, NVIDIA has also announced that you're already thinking about that.
+
+801
+01:21:08,680 --> 01:21:10,080
+Yeah, we're already there.
+
+802
+01:21:10,560 --> 01:21:13,520
+NVIDIA GPUs are the first GPUs in space.
+
+803
+01:21:14,000 --> 01:21:14,320
+And
+
+804
+01:21:15,200 --> 01:21:25,600
+I didn't realize it it was it was so interesting to I would have declared it maybe we're in space. You know, little astronaut suit on one of our GPUs.
+
+805
+01:21:27,760 --> 01:21:28,880
+but we've been in space.
+
+806
+01:21:29,294 --> 01:21:37,920
+it's the right place to do a lot of imaging, you know, because those satellites have really high resolution imaging systems and they're sweeping the earth, you know,
+
+807
+01:21:38,080 --> 01:21:39,840
+continuously now. And
+
+808
+01:21:41,120 --> 01:21:51,760
+you want you know centimeter scale, you know, imaging that is done continuously for the world. So that you know, you'll basically have real-time telemetry of everything.
+
+809
+01:21:53,326 --> 01:21:55,440
+you don't want to beam that back down to Earth.
+
+810
+01:21:55,630 --> 01:21:56,400
+It's just you know
+
+811
+01:21:57,198 --> 01:22:06,560
+petabytes and petabytes of data. You gotta just do AI right there at the edge, throw away everything you don't need, you've seen before, didn't change, and then just keep the stuff that that you need.
+
+812
+01:22:06,640 --> 01:22:16,400
+And so AI ought to be done at the edge. Um obviously we have we have uh 24-7 solar if we put it at the polars. And um
+
+813
+01:22:17,294 --> 01:22:17,600
+uh
+
+814
+01:22:19,150 --> 01:22:26,080
+but you know, there's no conduction, no convection. And so, you know, you're pretty much just radiation.
+
+815
+01:22:26,510 --> 01:22:31,960
+And um uh but you know, space is big. I guess we know we're just going to put big giant radiators out there.
+
+816
+01:22:31,960 --> 01:22:33,600
+How crazy of an idea do you think it is?
+
+817
+01:22:33,760 --> 01:22:41,320
+Like, is this is this five years out, ten years out, 20 years out? So uh we're talking about blockers for AI scaling.
+
+818
+01:22:41,320 --> 01:22:42,960
+You know, I'm just so much more practical.
+
+819
+01:22:43,040 --> 01:22:50,240
+I I look for where where um uh my next next bucket of opportunities are first.
+
+820
+01:22:51,200 --> 01:23:01,840
+meanwhile, I'm cultivating space. And so I send I send engineers uh to go work on the problem. We're st we're starting to we're learning a lot about it. Um how do we do with radiation?
+
+821
+01:23:01,920 --> 01:23:13,760
+How do we do uh degrading performance? How do we deal with um uh continuous uh testing and attestation of of um defects and and um you know how do we deal with redundancy and
+
+822
+01:23:14,000 --> 01:23:24,480
+how do we degrade uh gracefully and things like that? And so we could we could do uh what what about software? How do you think about software and and redundancy and performance out in space?
+
+823
+01:23:24,718 --> 01:23:36,160
+Uh make it so that so that the computer never breaks, it just gets slower, you know. And um uh so we could start doing a lot of engineering exploration up front.
+
+824
+01:23:36,320 --> 01:23:46,160
+But in the meantime, my my favorite answer is eliminate waste. You know, we've we've got all that idle power. I want to evacuate it as fast as possible.
+
+825
+01:23:47,200 --> 01:23:55,460
+Yeah, there yeah, there's a lot of low-hanging fruit here on earth that we can utilize uh for the AI scaling. Uh quick pause.
+
+826
+01:23:56,078 --> 01:24:05,840
+Quick 30 second thank you to our sponsors. Check them out in the description. It really is the best way to support this podcast. Go to LexFriedman.com slash sponsors.
+
+827
+01:24:06,320 --> 01:24:14,800
+We got Perplexity for curiosity-driven knowledge exploration, Shopify for selling stuff online, Element for electrolytes,
+
+828
+01:24:15,256 --> 01:24:23,268
+Fin for customer service AI agents, and quo for a phone system like calls, texts, contacts for your business.
+
+829
+01:24:23,600 --> 01:24:25,156
+Choose wisely, my friends.
+
+830
+01:24:25,454 --> 01:24:29,520
+And now back to my conversation with Jensen Kuang.
+
+831
+01:24:30,158 --> 01:24:32,240
+Do you think Nvidia may be worth
+
+832
+01:24:33,742 --> 01:24:35,172
+10 trillion at some point.
+
+833
+01:24:36,136 --> 01:24:37,596
+Let's ask it this way.
+
+834
+01:24:38,062 --> 01:24:42,852
+What does the future of the world look like where that's true?
+
+835
+01:24:45,262 --> 01:24:48,416
+I think that NVIDIA's growth is
+
+836
+01:24:51,616 --> 01:24:54,788
+extremely likely and in my mind inevitable.
+
+837
+01:24:55,118 --> 01:24:58,916
+And let me explain why. We're the largest computer company in history.
+
+838
+01:25:00,110 --> 01:25:03,108
+That alone should beg the question why.
+
+839
+01:25:04,016 --> 01:25:10,096
+And the reason of course, two reasons. First, two foundational technical reasons.
+
+840
+01:25:10,576 --> 01:25:16,016
+The first reason is that computing went from being a retrieval-based file retrieval system.
+
+841
+01:25:17,070 --> 01:25:25,036
+Almost everything is a file, we pre-write something, we pre-record something, you know, we draw something, we put it on the web, we put it
+
+842
+01:25:25,136 --> 01:25:31,108
+in a file, and we use a recommender system, some smart filter, to figure out what to retrieve for you.
+
+843
+01:25:31,470 --> 01:25:36,336
+And so we were a pre-recording, human pre-recording and file retrieving system.
+
+844
+01:25:36,654 --> 01:25:38,656
+That's what a computer is, largely.
+
+845
+01:25:39,470 --> 01:25:47,140
+To now, AI computers are contextually aware, which means that it has to process and generate tokens in real time.
+
+846
+01:25:47,456 --> 01:25:52,324
+So we went from a retrieval-based computing system to a generative-based computing system.
+
+847
+01:25:53,806 --> 01:25:57,936
+We're going to need a lot more processing in this new world than in the old world.
+
+848
+01:25:58,030 --> 01:26:04,656
+We need a lot of storage in the old world. We need a lot of computation in this new world. And so
+
+849
+01:26:06,096 --> 01:26:11,856
+that's that's the first part of it. We fundamentally changed computing and the way how computing is done.
+
+850
+01:26:12,398 --> 01:26:21,936
+The only thing that would cause it to go back is if this way of computation, this way of computing, generating information, that's contextually relevant,
+
+851
+01:26:22,176 --> 01:26:32,548
+situationally aware, that is grounded on new insight before it generates information. this computation-intensive way of doing computing
+
+852
+01:26:33,262 --> 01:26:35,620
+would only go back if it's not effective.
+
+853
+01:26:36,176 --> 01:26:42,404
+So for the last 10, 15 years, while working on deep learning, if at any single moment
+
+854
+01:26:43,470 --> 01:26:48,420
+I would have come to the conclusion that that, you know what, this is not going to work out.
+
+855
+01:26:49,102 --> 01:26:57,056
+I think this is a dead end, or it's not going to scale, it's not going to solve this modality, It's not going to be used in this application, then of course I would feel very differently about it.
+
+856
+01:26:57,136 --> 01:27:04,612
+But I think the last five years has given me more confidence than the last 10 years, the previous 10 years.
+
+857
+01:27:04,896 --> 01:27:12,196
+The second idea is computers, because it was a storage system, it was largely a warehouse.
+
+858
+01:27:13,776 --> 01:27:15,460
+We're now building factories.
+
+859
+01:27:16,656 --> 01:27:18,692
+Warehouses don't make much money.
+
+860
+01:27:20,336 --> 01:27:24,356
+Factories directly correlates with a company's revenues.
+
+861
+01:27:25,456 --> 01:27:26,212
+And so
+
+862
+01:27:28,046 --> 01:27:30,176
+the computer did two things.
+
+863
+01:27:30,478 --> 01:27:35,780
+Not only did it change the way it did it, its purpose in the world changed.
+
+864
+01:27:36,398 --> 01:27:39,456
+It's no longer a computer, it's a factory.
+
+865
+01:27:39,696 --> 01:27:43,536
+It's a factory is used for generation of revenues.
+
+866
+01:27:45,262 --> 01:27:54,980
+We're now seeing not only is this factory generating products, commodities that people want to consume, we're seeing that the commodities are so
+
+867
+01:27:55,598 --> 01:28:02,736
+interesting, so valuable to so many different audiences that the tokens are starting to segment like iPhones.
+
+868
+01:28:04,078 --> 01:28:12,708
+You have a four-free tokens, you have premium tokens, and you have several tokens in the middle. And so intelligence, as it turns
+
+869
+01:28:13,454 --> 01:28:15,076
+out, you know, is a scalable product.
+
+870
+01:28:15,456 --> 01:28:20,336
+There's extremely high intelligence products, tokens that you could that are used for specialized things.
+
+871
+01:28:20,590 --> 01:28:31,696
+People be willing to pay, you know, the idea that somebody's willing to pay $1,000 per million tokens is just around the corner. It's not if, it's only when.
+
+872
+01:28:32,256 --> 01:28:41,856
+And so now we're seeing that the commodity that this factory makes is actually valuable and is revenue generating and profit generating.
+
+873
+01:28:42,670 --> 01:28:46,660
+now the question is how many of these factories does the world need?
+
+874
+01:28:48,496 --> 01:28:50,244
+how many tokens does the world need?
+
+875
+01:28:51,918 --> 01:28:52,656
+And um
+
+876
+01:28:54,208 --> 01:28:57,220
+How much is society willing to pay for these tokens?
+
+877
+01:28:58,528 --> 01:28:58,848
+And
+
+878
+01:29:00,302 --> 01:29:02,048
+what would happen to the world's economy
+
+879
+01:29:02,734 --> 01:29:04,036
+if the productivity were
+
+880
+01:29:04,814 --> 01:29:06,688
+to improve so substantially?
+
+881
+01:29:07,182 --> 01:29:08,048
+What would happen?
+
+882
+01:29:08,462 --> 01:29:12,208
+Are we are are we going to discover new drugs, new products, new services?
+
+883
+01:29:12,974 --> 01:29:17,648
+And so when you take these things in combination, I am absolutely certain
+
+884
+01:29:18,702 --> 01:29:21,808
+that the world's GDP is going to accelerate in growth.
+
+885
+01:29:22,542 --> 01:29:32,608
+I'm absolutely certain the percentage of that GDP that will be used for computation will be a hundred times more than the past
+
+886
+01:29:33,390 --> 01:29:47,168
+because it's no longer a storage unit. It's a product generation unit. And so when you look at it in that context, and then you back into what is NVIDIA's, what does NVIDIA what does NVIDIA
+
+887
+01:29:47,488 --> 01:29:49,508
+do? And how much of that
+
+888
+01:29:50,798 --> 01:29:57,796
+new economics, new industry would we have to benefit to address, I think we're going to be a lot, lot bigger.
+
+889
+01:29:58,448 --> 01:30:08,288
+And then the rest of it to me is um you go, is it possible for NVIDIA to be a, you know, $3 trillion revenues company in the near future?
+
+890
+01:30:08,878 --> 01:30:11,108
+The answer is of course yes. And the reason for that
+
+891
+01:30:12,014 --> 01:30:14,528
+is because it's not limited by any physical limits.
+
+892
+01:30:15,168 --> 01:30:21,808
+There's nothing that I see that says, you know, gosh, um, $3 trillion is not possible.
+
+893
+01:30:22,368 --> 01:30:22,688
+And
+
+894
+01:30:23,790 --> 01:30:30,404
+as it turns out, Nvidia supply chain is the burden is shared by 200 companies.
+
+895
+01:30:31,374 --> 01:30:41,408
+And the fact that we scale out on the backs of, with the partnership of this ecosystem, the question is, do we have the energy to do so?
+
+896
+01:30:41,728 --> 01:30:48,288
+And surely we will have the energy to do so. And so all of these things combined,
+
+897
+01:30:49,326 --> 01:30:56,836
+that number is just a number, you know. And I still remember NVIDIA was a NVIDIA was a the first time we crossed a billion dollars,
+
+898
+01:30:57,968 --> 01:31:07,168
+I was reminded of a CEO who told me, you know, Jensen, it's theoretically impossible for a fabulous semiconductor company to exceed a billion dollars.
+
+899
+01:31:07,488 --> 01:31:14,768
+And and um I won't bore you with why, but but the end, of course it's illogical and there's a lot of evidence we're not.
+
+900
+01:31:14,928 --> 01:31:22,448
+And then somebody told me, you know, Jensen, you'll never be more than $25 billion because of some other company.
+
+901
+01:31:22,688 --> 01:31:30,768
+Somebody told me that you'll never be, you know, because and then so so the the those those aren't principled first principle
+
+902
+01:31:31,022 --> 01:31:32,100
+reason thinking.
+
+903
+01:31:32,528 --> 01:31:40,528
+And the simple the simple way to think about that is what is it that we make and how large is the opportunity
+
+904
+01:31:40,688 --> 01:31:41,968
+that we can create?
+
+905
+01:31:42,318 --> 01:31:47,524
+Now, NVIDIA is not in the market share business. Almost everything that I just talked about don't exist.
+
+906
+01:31:48,686 --> 01:31:50,148
+That's the part that's hard.
+
+907
+01:31:51,246 --> 01:32:01,476
+You know, if NVIDIA was a was a was a $10 billion company trying to take NVIDIA share, then it's easy to see for shareholders that, oh yeah,
+
+908
+01:32:01,808 --> 01:32:06,276
+if they could just take 10% share, they could be this much larger.
+
+909
+01:32:07,022 --> 01:32:12,612
+But it's hard for people to imagine how large we could be because there's nobody I could take share from.
+
+910
+01:32:13,710 --> 01:32:20,688
+You know, and so so I think that that's one of the challenges for the world is is um the imagination of the future.
+
+911
+01:32:20,848 --> 01:32:29,568
+But I got plenty of time and I'll keep reasoning about it and I'll keep talking about it, and every single GTC will become more and more real, you know, and it and and then more and more people
+
+912
+01:32:29,728 --> 01:32:33,968
+talk about in one of these days, you know, we'll we'll get there. But I'm 100% we'll get there.
+
+913
+01:32:34,208 --> 01:32:42,768
+Yeah, this view of uh, you know, token factories essentially, this token per second per watt, and every token having value.
+
+914
+01:32:43,088 --> 01:32:49,728
+Like it's an actual thing that brings value and it brings different kinds of value, different amounts of value to different people's value.
+
+915
+01:32:49,808 --> 01:32:53,168
+That's the actual product is really can be loosely thought of as the token.
+
+916
+01:32:53,248 --> 01:33:00,528
+And so you have a bunch of token factories, and it's very easy, first principle is to imagine a future given all the potential things that AI can solve,
+
+917
+01:33:00,608 --> 01:33:05,368
+that you're going to need an exponential number more of token factories.
+
+918
+01:33:05,368 --> 01:33:11,328
+Yeah. And and what's really interesting, the reason why I was so excited about it, the iPhone of tokens arrived.
+
+919
+01:33:11,630 --> 01:33:13,808
+What do you call it? Wait, are you saying OpenClaw's iPhone?
+
+920
+01:33:13,968 --> 01:33:14,288
+Yeah.
+
+921
+01:33:14,528 --> 01:33:15,728
+That's interesting. Um
+
+922
+01:33:15,728 --> 01:33:16,356
+agents.
+
+923
+01:33:16,608 --> 01:33:17,968
+Yeah, agents. True.
+
+924
+01:33:18,208 --> 01:33:21,156
+Agents in general. The iPhone of Tokens arrived.
+
+925
+01:33:21,568 --> 01:33:23,888
+it is the fastest growing application in history.
+
+926
+01:33:24,048 --> 01:33:24,996
+It went straight up.
+
+927
+01:33:25,198 --> 01:33:25,488
+Yeah.
+
+928
+01:33:25,774 --> 01:33:26,568
+Went straight up.
+
+929
+01:33:26,568 --> 01:33:27,408
+That says something.
+
+930
+01:33:27,648 --> 01:33:27,940
+Yep.
+
+931
+01:33:28,142 --> 01:33:31,408
+There's no question, OpenClaw is the iPhone of tokens.
+
+932
+01:33:31,648 --> 01:33:33,572
+Yeah, there's something truly, as you know,
+
+933
+01:33:34,608 --> 01:33:43,652
+something truly special happening from about December. Where people really woke up to the power of clawed code, of codex, of open claw.
+
+934
+01:33:44,558 --> 01:33:49,348
+Um, I mean, I've embarrassed to admit that on the way here in the airport.
+
+935
+01:33:52,526 --> 01:34:03,120
+this first time I've done this in public. I was programming, quote unquote, by talking to my laptop. And I was embarrassed because I was pretending like I'm talking to a human colleague.
+
+936
+01:34:04,000 --> 01:34:12,720
+I'm not sure how I feel about the future where everybody is walking around talking to their AI, but it's such an efficient way to get stuff done.
+
+937
+01:34:13,040 --> 01:34:17,220
+And it's more likely that your AI is bothering you all the time.
+
+938
+01:34:17,840 --> 01:34:21,520
+And the reason for that is because it's getting stuff done so fast.
+
+939
+01:34:22,094 --> 01:34:24,080
+It's reporting back to you, I got that done.
+
+940
+01:34:24,480 --> 01:34:25,840
+what do you want me to do next?
+
+941
+01:34:27,120 --> 01:34:35,280
+that's the part that I think most people don't realize is that the person who's going to be chatting with them, texting them most is their is their claws
+
+942
+01:34:35,440 --> 01:34:36,320
+or lobster.
+
+943
+01:34:37,680 --> 01:34:39,332
+What an incredible future.
+
+944
+01:34:39,760 --> 01:34:45,764
+Uh I read that you attribute a lot of your success to your ability to work harder than anyone and withstand more suffering than anyone.
+
+945
+01:34:46,800 --> 01:34:58,880
+So we can list many of the things that entails. I mean, dealing with failure, the constant engineering problems we've talked about, the human problems, uncertainty,
+
+946
+01:34:59,040 --> 01:35:04,320
+responsibility, exhaustion, embarrassment, the near-death company moments that you've mentioned.
+
+947
+01:35:06,158 --> 01:35:09,412
+but also the pressure. Now, as the CEO of this
+
+948
+01:35:10,670 --> 01:35:13,440
+company that economies and nations
+
+949
+01:35:14,400 --> 01:35:15,840
+strategize around,
+
+950
+01:35:19,200 --> 01:35:25,200
+financial allocations around, plan their AI infrastructure around. How do you deal with this much pressure?
+
+951
+01:35:26,094 --> 01:35:33,764
+What gives you strength given how many nations and peoples depend on you?
+
+952
+01:35:37,934 --> 01:35:40,800
+I'm conscious about the fact that
+
+953
+01:35:41,756 --> 01:35:45,764
+NVIDIA's success is very important to the United States.
+
+954
+01:35:47,280 --> 01:35:50,480
+We generate enormous amounts of tax revenues.
+
+955
+01:35:51,280 --> 01:35:54,080
+we establish technology leadership for our nation.
+
+956
+01:35:54,320 --> 01:35:56,900
+Technology leadership is important for national security.
+
+957
+01:35:57,440 --> 01:36:02,880
+National security, not just in one aspect of national security, all aspects of national security.
+
+958
+01:36:03,120 --> 01:36:10,720
+When our country is more prosperous, we could do a better job with domestic policies and helping social benefits.
+
+959
+01:36:11,150 --> 01:36:20,480
+Because we're generating so much reindustrialization in the United States, we're creating mountains of jobs. We're helping shift um
+
+960
+01:36:23,120 --> 01:36:31,200
+how we how we build things back to the United States in so many different plants, chips, computers, and of course these AI
+
+961
+01:36:31,440 --> 01:36:32,160
+factories.
+
+962
+01:36:32,400 --> 01:36:46,160
+I'm completely aware that that, um, and I have, I have the benefit, and this is a real, real. um, a real gift with, with, uh, mainstream investors, teachers.
+
+963
+01:36:46,400 --> 01:36:47,172
+policemen
+
+964
+01:36:47,840 --> 01:36:57,280
+who have somehow, for whatever reason, invested in NVIDIA, or because they watched Jim Kramer. uh, bought some stock, and now are millionaires.
+
+965
+01:36:57,920 --> 01:37:06,800
+And um uh I am completely aware of that circumstance. I'm aware of the circumstance that that NVIDIA
+
+966
+01:37:07,680 --> 01:37:08,000
+uh
+
+967
+01:37:09,760 --> 01:37:20,640
+is central to a very large network of ecosystem partners behind us and downstream from us. And so the way the way I deal with that is exactly what I just did.
+
+968
+01:37:20,974 --> 01:37:24,960
+I reason about w what is it what is it that we're doing,
+
+969
+01:37:25,934 --> 01:37:32,708
+um what is it causing, what's the impact that has on other people benefit uh you know positively or even
+
+970
+01:37:33,646 --> 01:37:37,060
+even um uh through great burden, for example, the supply chain.
+
+971
+01:37:38,480 --> 01:37:40,240
+Uh and and the question is
+
+972
+01:37:42,112 --> 01:37:43,460
+therefore what are you going to do about it?
+
+973
+01:37:44,592 --> 01:37:54,192
+In almost everything that I feel, I break it down, I reason about, okay, what's the circumstance, what has changed, what's hard,
+
+974
+01:37:54,832 --> 01:37:56,192
+and what am I going to do about it?
+
+975
+01:37:56,352 --> 01:37:59,472
+And I break it down, decompose the problem.
+
+976
+01:38:00,206 --> 01:38:02,672
+And the decomposition
+
+977
+01:38:03,374 --> 01:38:03,908
+of these
+
+978
+01:38:05,312 --> 01:38:06,512
+circumstances
+
+979
+01:38:07,374 --> 01:38:13,604
+turns it into manageable things that I can do. And the only thing that I after that I could do is did you do it?
+
+980
+01:38:13,872 --> 01:38:16,832
+Did you either do it or did you get somebody else to do it?
+
+981
+01:38:17,072 --> 01:38:24,740
+And if you didn't do it, you you reasoned that you need to do it and you didn't do it, and you didn't get anybody else to do it, then stop crying about it.
+
+982
+01:38:25,262 --> 01:38:26,592
+You know? And so,
+
+983
+01:38:28,352 --> 01:38:29,152
+I'm fairly
+
+984
+01:38:31,232 --> 01:38:32,420
+tough on myself.
+
+985
+01:38:33,152 --> 01:38:35,232
+but I also break things down so that
+
+986
+01:38:36,912 --> 01:38:47,472
+I don't panic. I can go to sleep because I've made the list of things that needed to be done, and I've made sure that everything that could put our company in harm's way,
+
+987
+01:38:47,662 --> 01:38:52,832
+could put my partners in harm's way, put our industry in harm's way, I've told somebody.
+
+988
+01:38:54,158 --> 01:39:02,884
+Everything that I feel could put anybody in harm's way, I've told someone. And I've told that someone who could do something about it.
+
+989
+01:39:03,232 --> 01:39:06,724
+And so I've gotten it off my chest, or I'm doing something about it.
+
+990
+01:39:07,310 --> 01:39:10,552
+And so after that, Lex, what else can you do?
+
+991
+01:39:10,552 --> 01:39:18,308
+So given all the insane, intense amount of suffering on the journey of building up NVIDIA,
+
+992
+01:39:19,472 --> 01:39:22,232
+you have you hit low point psychologically?
+
+993
+01:39:22,232 --> 01:39:23,684
+Oh yeah. Oh yeah, sure.
+
+994
+01:39:26,126 --> 01:39:26,592
+All the time.
+
+995
+01:39:27,182 --> 01:39:31,152
+And there you just break down the problem into pieces.
+
+996
+01:39:31,312 --> 01:39:31,592
+Yeah.
+
+997
+01:39:31,592 --> 01:39:33,552
+See what you could do about it.
+
+998
+01:39:33,552 --> 01:39:38,592
+And and part of and you know, Lex, part of it, part of it is forgetting.
+
+999
+01:39:38,862 --> 01:39:47,392
+One of the most important attributes of AI learning, as you know, is right systematic forgetting. You you need to know when to forget some things.
+
+1000
+01:39:47,552 --> 01:39:53,392
+You can't memorize everything, you can't keep everything and you know, you want to you don't want to carry everything.
+
+1001
+01:39:53,552 --> 01:39:59,616
+One of the things that I do very quickly is I decompose the problem, I reason about the problem, and I I share the load with it.
+
+1002
+01:39:59,712 --> 01:40:05,380
+When I say I tell everybody, I'm essentially sharing that burden as quickly as possible.
+
+1003
+01:40:06,446 --> 01:40:12,592
+Whatever worries me, tell somebody else. Don't just keep it. You know, decompose, don't, don't freak them out.
+
+1004
+01:40:13,006 --> 01:40:22,980
+Decompose the problem into smaller parts and get people to so and and inspire them to be able to go do something about it. But part of it is just forgetting.
+
+1005
+01:40:23,246 --> 01:40:31,792
+You know, I a lot of it is you gotta be tough on yourself. You know, you just come on, stop crying about it. Let's get going, you know, and and then you get out of bed.
+
+1006
+01:40:31,952 --> 01:40:40,272
+And then the other part is is um you you you you're attracted to the next shiny light, the next future, you know, the next opportunity, the next,
+
+1007
+01:40:40,432 --> 01:40:49,284
+okay, that's behind us. Let what's next? And It's a lot, I think, you know, you watch this with great athletes, they they um just worry about the next point.
+
+1008
+01:40:50,158 --> 01:40:51,716
+The last point is behind them.
+
+1009
+01:40:52,032 --> 01:41:04,032
+The embarrassment, the, you know, the setback. Yeah, you know, and and then and because I do so much of my job publicly, you know, likes you do a fair amount of your job publicly too.
+
+1010
+01:41:04,112 --> 01:41:15,552
+And so so I do a lot of my job publicly. And so um, you know, I I say a lot of things that that seem sensible at the time or funny at the time, mostly it's just because it's funny to me at the time.
+
+1011
+01:41:15,712 --> 01:41:19,512
+And then you, you know, you reflect on it as less money. But but
+
+1012
+01:41:19,512 --> 01:41:26,352
+yeah, trust me, I know. But you basically allow yourself to be pulled by the light of the future.
+
+1013
+01:41:26,606 --> 01:41:39,072
+Forget the past and just keep keep keep working towards that. I mean, you did say there's this kind of famous thing you said that um if you knew how hard it would be to build NVIDIA,
+
+1014
+01:41:39,630 --> 01:41:46,468
+uh, it turned out to be, what is it, a million times more hard than you anticipated, uh that you wouldn't do it.
+
+1015
+01:41:46,766 --> 01:41:47,232
+Yeah.
+
+1016
+01:41:47,232 --> 01:41:48,324
+But is isn't
+
+1017
+01:41:49,072 --> 01:41:50,468
+you know, when I hear that,
+
+1018
+01:41:51,278 --> 01:41:53,672
+that's probably true about everything worth doing, right?
+
+1019
+01:41:53,672 --> 01:41:54,404
+Exactly.
+
+1020
+01:41:55,214 --> 01:42:03,312
+That is, by the way, what I was trying to explain is that there's a there's a incredible superpower of being um
+
+1021
+01:42:03,872 --> 01:42:14,192
+being being uh have a the mind of a child. Yeah. You know, and I say to myself, oftentimes when I look at something and and almost almost everything.
+
+1022
+01:42:15,246 --> 01:42:17,956
+Um my first thought is, how hard can it be?
+
+1023
+01:42:19,232 --> 01:42:26,756
+You know? And so, and so you get yourself into that mode. How hard could it be? And and nobody's ever done it.
+
+1024
+01:42:26,992 --> 01:42:35,472
+It looks gigantic. It's going to cost hundreds of billions of dollars. It's going to take, you know, all this. And you just go, yeah, but how hard could it be? You know?
+
+1025
+01:42:35,472 --> 01:42:35,632
+Yeah.
+
+1026
+01:42:35,886 --> 01:42:40,512
+How hard could it be? Yeah. And and so so you got to get yourself into that state of mind.
+
+1027
+01:42:40,750 --> 01:42:49,712
+You don't want to, you don't want to actually overstimulate everything and all the setbacks and all the trials and tribulations and all the disappointments.
+
+1028
+01:42:49,872 --> 01:42:56,548
+You don't want to simulate all that in advance. You don't want to know that. You don't, you don't, you want to go into a new experience thinking it's going to be perfect.
+
+1029
+01:42:56,752 --> 01:42:57,632
+It's going to be great.
+
+1030
+01:42:57,870 --> 01:43:02,692
+It's going to be incredibly fun. And then while you're there, you know, you need to have,
+
+1031
+01:43:03,438 --> 01:43:12,676
+you need to have endurance, you need to have grit so that when the setbacks actually happened, and those setbacks are going to surprise you, the disappointments aren't going to
+
+1032
+01:43:12,832 --> 01:43:17,552
+surprise you, you know, the embarrassments are going to surprise you, the humiliations are going to surprise you.
+
+1033
+01:43:17,838 --> 01:43:24,512
+Um, you you just can't let now you just got to turn on the other bit, which is just forget about it, move on, keep moving. And
+
+1034
+01:43:27,232 --> 01:43:28,292
+to the extent that
+
+1035
+01:43:29,232 --> 01:43:35,072
+my assumptions about the future and why the future is going to manifest,
+
+1036
+01:43:36,032 --> 01:43:39,152
+so long as those assumptions, and that input
+
+1037
+01:43:40,014 --> 01:43:52,272
+doesn't change or didn't change materially, then I should expect that the output won't change. And so my simulated output of the future is still going to happen. And if it's still going to happen,
+
+1038
+01:43:53,262 --> 01:44:00,512
+I'm still going to go after it. I believe it's going to, you know. and so there's a combination of two or three human characteristics:
+
+1039
+01:44:01,712 --> 01:44:07,524
+the ability to go into a into an experience, fresh-minded, the ability to forget the setbacks,
+
+1040
+01:44:08,512 --> 01:44:10,500
+the ability to believe in yourself,
+
+1041
+01:44:11,694 --> 01:44:15,872
+you know, to believe what you believe and stay stay true to that belief.
+
+1042
+01:44:16,430 --> 01:44:19,072
+Um, but you're constantly reevaluating.
+
+1043
+01:44:20,032 --> 01:44:26,912
+This combination of three, four, five things, I think is is really important for resilience.
+
+1044
+01:44:27,232 --> 01:44:28,512
+And and um,
+
+1045
+01:44:30,192 --> 01:44:37,028
+you know, I I'm I'm fortunate that that whatever whatever life experiences led to this, I've got kind of those four or five things.
+
+1046
+01:44:37,312 --> 01:44:45,392
+You know, I'm always curious, always learning, I'm always learning from everybody, you know, I'm always asking and because I'm humble
+
+1047
+01:44:45,792 --> 01:44:52,032
+about everything, I'm always thinking, gosh, they did that so nicely. They did that so wonderfully.
+
+1048
+01:44:52,206 --> 01:45:01,552
+You know, I I wonder what they're thinking through. How do they, you know, so I'm simulating everybody in a lot of ways, you know, I'm emulating almost everybody I watch, right?
+
+1049
+01:45:01,632 --> 01:45:06,912
+You're you're empathetic towards everything that they do that you're observing and respect.
+
+1050
+01:45:06,992 --> 01:45:10,672
+And so you're constantly learning and you know,
+
+1051
+01:45:10,672 --> 01:45:17,712
+you're now one of the wealthiest people on earth, one of the most successful humans on earth.
+
+1052
+01:45:18,158 --> 01:45:27,556
+Is it harder to be humble and to be able to do you feel the effect of money and power and fame in making it harder for you to
+
+1053
+01:45:28,750 --> 01:45:32,932
+sort of be wrong in your own head, enough to
+
+1054
+01:45:33,998 --> 01:45:38,948
+hear out an opinion of somebody else when it disagrees with you and learn from them, those kinds of things?
+
+1055
+01:45:42,606 --> 01:45:46,272
+Surprisingly, no. And I and I would I would actually go the other way.
+
+1056
+01:45:46,542 --> 01:45:48,836
+Because I do so much of my work publicly,
+
+1057
+01:45:50,222 --> 01:45:52,832
+when I'm wrong, pretty much everybody sees it.
+
+1058
+01:45:53,632 --> 01:45:54,672
+You get humbled.
+
+1059
+01:45:54,672 --> 01:46:02,212
+Yeah. And and uh and when I'm wrong, when I'm wrong, or it didn't turn out that way, or um, you know, I mean
+
+1060
+01:46:03,152 --> 01:46:07,872
+most of the things that that I say outside, um, I'm fairly certain about.
+
+1061
+01:46:08,142 --> 01:46:16,192
+And the reason for that is because because it's going to impact somebody else. And I want to be quite concerned about that and quite quite circumspect about that.
+
+1062
+01:46:16,432 --> 01:46:21,636
+Um for stuff that that I'm reasoning about inside a meeting, you know, uh a lot of things
+
+1063
+01:46:22,318 --> 01:46:23,300
+could turn out differently.
+
+1064
+01:46:23,472 --> 01:46:32,112
+And so, but it doesn't ever stop me from reasoning. The way that the the way that I manage and lead, uh, you know, I'm constantly reasoning in front of people.
+
+1065
+01:46:32,192 --> 01:46:39,392
+And even when I'm talking to you, you can kind of see me kind of reasoning through things. And I want to make sure that you understand what I'm saying, not because I told you,
+
+1066
+01:46:40,366 --> 01:46:48,672
+because I'm so humble about what I'm about to tell you. I kind of show you the steps that I got there, and then you could decide whether you believe what I said in the end.
+
+1067
+01:46:48,912 --> 01:46:58,352
+And so I'm doing that all day long in meetings with all of my employees. I'm constantly reasoning through. Let me tell you, let me tell you what how I see it. And I reason through it.
+
+1068
+01:46:58,512 --> 01:47:03,236
+It gives everybody the opportunity to intercept and say, I disagree with that part.
+
+1069
+01:47:04,334 --> 01:47:11,044
+The nice thing about reasoning through things and letting and letting people interact with it is that they don't have to disagree with your outcome.
+
+1070
+01:47:12,032 --> 01:47:14,432
+They can disagree with your reasoning steps.
+
+1071
+01:47:14,912 --> 01:47:19,152
+And they could pull me in different directions. And then we can reason forward.
+
+1072
+01:47:19,472 --> 01:47:21,156
+And so we're we're kind of,
+
+1073
+01:47:22,158 --> 01:47:26,752
+you know, collective path searching method.
+
+1074
+01:47:27,150 --> 01:47:28,672
+And it's really fantastic.
+
+1075
+01:47:28,992 --> 01:47:37,312
+Yeah, you have this way about you of when you're explaining stuff, I can feel you actually reasoning on the spot about
+
+1076
+01:47:37,552 --> 01:47:43,712
+it with a constant open-mindedness where you could I could feel like I could steer your thinking.
+
+1077
+01:47:43,712 --> 01:47:44,032
+Yeah.
+
+1078
+01:47:44,192 --> 01:47:55,152
+And that's a that's really beautiful that you've been able to maintain that after so many years of success and pain. I think sometimes pain makes you close closes you down a bit.
+
+1079
+01:47:55,152 --> 01:47:55,632
+Yeah.
+
+1080
+01:47:56,014 --> 01:47:57,432
+And I think to maintain
+
+1081
+01:47:57,432 --> 01:47:59,592
+tolerance for embarrassment, I think is
+
+1082
+01:47:59,592 --> 01:48:02,912
+that's that's the tolerance. I mean, that's a real thing.
+
+1083
+01:48:02,912 --> 01:48:03,312
+Yeah.
+
+1084
+01:48:03,552 --> 01:48:10,912
+There's many years of embarrassing yourself, even those meetings, knowing that there's people around you where you declared one idea
+
+1085
+01:48:11,072 --> 01:48:17,752
+and it was shown that that idea was wrong and be able to admit that and to grow from that. That's not that's very difficult on a human level.
+
+1086
+01:48:17,752 --> 01:48:18,912
+Yeah. Well, you know.
+
+1087
+01:48:19,152 --> 01:48:24,952
+They knew I was they knew that recently my first job was was, you know, cleaning toilets. So
+
+1088
+01:48:24,952 --> 01:48:31,312
+I'm glad you maintain that same spirit of Denny's um the the work. I mean that was beautiful.
+
+1089
+01:48:31,472 --> 01:48:36,228
+Your whole journey from starting from Denny's is a beautiful one. Uh let me ask you about
+
+1090
+01:48:37,312 --> 01:48:38,192
+video games.
+
+1091
+01:48:38,478 --> 01:48:40,272
+So I'm a big gaming fan.
+
+1092
+01:48:40,512 --> 01:48:40,900
+Yeah.
+
+1093
+01:48:41,390 --> 01:48:46,432
+So I have to say thank you to NVIDIA for many years of incredible graphics.
+
+1094
+01:48:46,766 --> 01:48:47,192
+Um
+
+1095
+01:48:47,192 --> 01:48:53,124
+by the way, it it is GeForce is our still, to this day, yeah, our number one marketing
+
+1096
+01:48:53,806 --> 01:48:55,552
+strategy. Right?
+
+1097
+01:48:55,758 --> 01:48:59,072
+People learn about NVIDIA while they're in their teenage years.
+
+1098
+01:48:59,982 --> 01:49:02,112
+And then they go to college and they know who NVIDIA is.
+
+1099
+01:49:02,752 --> 01:49:10,832
+And then in the beginning, it's just, you know, playing Call of Duty, you know, and you know, Fortnite, and then later they're using CUDA, and then later they're using NVIDIA
+
+1100
+01:49:11,072 --> 01:49:13,444
+and you know Blender and
+
+1101
+01:49:14,112 --> 01:49:16,272
+Dassault and Autodesk.
+
+1102
+01:49:16,272 --> 01:49:22,176
+I mean, I should say I I uh I mentioned to a friend that I'm uh talking with you. He said, Oh, they make
+
+1103
+01:49:23,312 --> 01:49:25,272
+great gaming GPUs.
+
+1104
+01:49:25,272 --> 01:49:27,112
+Yeah, exactly. Exactly.
+
+1105
+01:49:27,112 --> 01:49:34,672
+You know, there's there's more to it. But but yeah, yeah, people really love the it really brought a lot of joy to a lot of people.
+
+1106
+01:49:34,832 --> 01:49:46,112
+The the the hardware really brings these worlds to life. Uh there was some controversy around this uh with DLSS 5. Yeah can you explain to me the drama around this?
+
+1107
+01:49:46,272 --> 01:49:53,472
+Uh I guess people, the gamers online were concerned that it makes games look like AI Slop.
+
+1108
+01:49:53,792 --> 01:49:54,232
+Yeah
+
+1109
+01:49:54,232 --> 01:49:56,112
+uh what do you think of this drama?
+
+1110
+01:49:56,352 --> 01:49:56,912
+Yeah.
+
+1111
+01:49:57,552 --> 01:50:10,352
+I think their their perspective makes sense and I can see where they're coming from because I don't love AI Slop myself. You know, uh all of the AI generated content increasingly
+
+1112
+01:50:11,598 --> 01:50:23,792
+looks similar and they're all beautiful, and and I can so I can I I'm empathetic towards what they're thinking. that's just not what DLSS 5 is trying to do. I showed several examples of it.
+
+1113
+01:50:24,032 --> 01:50:29,952
+But DLSS 5 is 3D conditioned, 3D guided.
+
+1114
+01:50:30,446 --> 01:50:33,152
+It's ground truth structured data guided.
+
+1115
+01:50:33,232 --> 01:50:36,272
+And so the artist determined the geometry.
+
+1116
+01:50:36,592 --> 01:50:39,472
+We are completely truthful to
+
+1117
+01:50:40,398 --> 01:50:43,392
+the geometry, maintained so in every single frame.
+
+1118
+01:50:44,302 --> 01:50:49,152
+it's conditioned by the textures, the artistry of the artist.
+
+1119
+01:50:49,312 --> 01:50:57,952
+And so every single frame it enhances, but it doesn't change anything. Now, the question is the question about enhancing
+
+1120
+01:50:59,086 --> 01:51:01,312
+DLSS 5 also lets, because it's
+
+1121
+01:51:02,126 --> 01:51:03,072
+the system is open.
+
+1122
+01:51:03,552 --> 01:51:10,980
+you could train your own models to determine and you could, even in the future, prompt it, you know, "I, want it to be a tune shader.
+
+1123
+01:51:11,392 --> 01:51:20,512
+I want it to look like this kind of, you know ,". so you can give it even an example, and it would generate in the style of that, all consistent with
+
+1124
+01:51:20,910 --> 01:51:21,792
+the artistry.
+
+1125
+01:51:22,254 --> 01:51:28,112
+you know, the style, the intent of the artist. And so all of that is done.
+
+1126
+01:51:28,156 --> 01:51:36,452
+for the artist so that they can create something that is more beautiful but still in the style that they want.
+
+1127
+01:51:37,614 --> 01:51:40,708
+I think that they got the impression that
+
+1128
+01:51:41,518 --> 01:51:48,100
+the the games are going to come out the way the games are, shipped the way they do, and then we're going to post process it.
+
+1129
+01:51:48,704 --> 01:51:59,424
+That's not what DLSS is intended to do. DLSS is integrated with the artist. And so it's it's about giving the artist the tool of AI, the tool of generative AI.
+
+1130
+01:51:59,504 --> 01:52:00,864
+They could decide not to use it, you know.
+
+1131
+01:52:01,264 --> 01:52:03,504
+I think people are very sensitive to human faces.
+
+1132
+01:52:04,270 --> 01:52:11,344
+And we're now living in this moment, which I think is a beautiful one, which is people are sensitive to AI slop. Yeah.
+
+1133
+01:52:11,726 --> 01:52:19,744
+It it puts a mirror to ourselves to help us realize that what we seek is imperfections, what we seek is sometimes not perfect graphics.
+
+1134
+01:52:20,014 --> 01:52:24,704
+It helps us understand what we find compelling in the worlds we create.
+
+1135
+01:52:25,024 --> 01:52:28,024
+And that's beautiful. And as long as it's tools that help us create those worlds,
+
+1136
+01:52:28,024 --> 01:52:28,624
+yeah, that's right.
+
+1137
+01:52:29,904 --> 01:52:33,104
+That's right. It's yet yet another tool. And they want the generative
+
+1138
+01:52:34,510 --> 01:52:38,116
+models to generate the opposite of photoreal.
+
+1139
+01:52:38,926 --> 01:52:41,764
+Yeah, it'll do that too. And so it's just yet another tool.
+
+1140
+01:52:42,064 --> 01:52:42,624
+I think the
+
+1141
+01:52:43,824 --> 01:52:46,468
+gamers might also appreciate that
+
+1142
+01:52:47,664 --> 01:52:49,024
+in the last couple of years
+
+1143
+01:52:50,144 --> 01:52:50,464
+we
+
+1144
+01:52:51,598 --> 01:52:54,372
+introduced skin shaders
+
+1145
+01:52:55,344 --> 01:52:56,864
+to the game developers.
+
+1146
+01:52:57,134 --> 01:53:05,104
+And many of those games have skin shaders that include subsurface scattering that make skin look more skin-like.
+
+1147
+01:53:05,550 --> 01:53:13,504
+And so the industry's you know game developers are looking for more and more and more tools to express their art.
+
+1148
+01:53:13,710 --> 01:53:16,544
+And so this is just yet one more tool. They could decide what to use.
+
+1149
+01:53:16,864 --> 01:53:17,744
+Ridiculous question.
+
+1150
+01:53:18,144 --> 01:53:23,984
+what do you think is the greatest or most influential game ever made, maybe from NVIDIA's perspective?
+
+1151
+01:53:24,398 --> 01:53:24,804
+Doom.
+
+1152
+01:53:25,486 --> 01:53:28,424
+Doom, unquestionably. That was the start of the 3D
+
+1153
+01:53:28,424 --> 01:53:29,744
+I would say Doom from
+
+1154
+01:53:30,864 --> 01:53:38,212
+the intersection of the cultural implication as well as the industry, turning a PC into a gaming device.
+
+1155
+01:53:38,830 --> 01:53:43,504
+That was a very important moment. Now of course, flight simulation companies were before it.
+
+1156
+01:53:44,942 --> 01:53:57,104
+but they just didn't have the popularity that Doom did to have made the industry turn the PC from an office automation tool into a personal computer for families and gamers and things like that.
+
+1157
+01:53:57,184 --> 01:54:03,264
+And so Doom was really impactful there. From an actual game technology perspective, I would say Virtual Fighter.
+
+1158
+01:54:03,744 --> 01:54:06,944
+And so we're great friends with both of them, you know.
+
+1159
+01:54:07,344 --> 01:54:11,824
+And then there's games more recently. I mean, Cyberpunk 2077,
+
+1160
+01:54:12,624 --> 01:54:16,264
+really nice GPU accelerated graphics. Like
+
+1161
+01:54:16,264 --> 01:54:17,264
+fully ray traced.
+
+1162
+01:54:17,584 --> 01:54:27,836
+Fully ray traced. Um also I like at personally, I'm a huge fan of Skyrim, uh, Elder Scrolls, and the you know, it's it's been released a long, long time ago, but people have released
+
+1163
+01:54:28,064 --> 01:54:29,824
+mods and they create these
+
+1164
+01:54:31,104 --> 01:54:42,624
+great. I mean, it's like a different game, and it just allows me to replay the game over and over and get it it makes you realize that you can re-experience in a totally new way
+
+1165
+01:54:42,864 --> 01:54:48,424
+the world you already love. Yeah. So I do that all the time. One of my favorite things is just walk across the Skyrim.
+
+1166
+01:54:48,424 --> 01:54:50,744
+we created this thing called RTX mod.
+
+1167
+01:54:50,744 --> 01:54:51,184
+Uh-huh.
+
+1168
+01:54:51,264 --> 01:54:59,684
+Yeah. It's a modding tool. And it allows the community to inject the latest technology into an old game.
+
+1169
+01:55:00,064 --> 01:55:05,710
+Of course, like what makes a great video game is not just graphics, it's also story and character development. But
+
+1170
+01:55:05,710 --> 01:55:06,496
+That's right.
+
+1171
+01:55:06,624 --> 01:55:14,500
+beautiful graphics can add to the immersion, the the feeling like it's another place that you're transported to.
+
+1172
+01:55:15,664 --> 01:55:20,612
+Uh, what's uh you've said, I think accurately that the AGI timeline.
+
+1173
+01:55:22,510 --> 01:55:25,376
+Question rests on your definition of AGI.
+
+1174
+01:55:26,416 --> 01:55:27,056
+So let
+
+1175
+01:55:27,936 --> 01:55:30,404
+me ask you about possible timelines here.
+
+1176
+01:55:31,246 --> 01:55:40,644
+Let's this ridiculous definition perhaps of what AGI is, but an AI system that's able to essentially do your job.
+
+1177
+01:55:41,696 --> 01:55:42,016
+So
+
+1178
+01:55:42,830 --> 01:55:43,936
+run no
+
+1179
+01:55:44,816 --> 01:55:45,444
+start,
+
+1180
+01:55:46,416 --> 01:55:52,616
+grow, and run a successful technology company that's worth
+
+1181
+01:55:52,616 --> 01:55:54,016
+a good one or a one?
+
+1182
+01:55:54,256 --> 01:56:00,416
+No. It has to be worth more than a billion more more than a billion dollars.
+
+1183
+01:56:01,456 --> 01:56:01,536
+So
+
+1184
+01:56:02,798 --> 01:56:06,468
+you know, you know how hard it is to do all those components.
+
+1185
+01:56:06,736 --> 01:56:08,612
+So how far are we away from
+
+1186
+01:56:09,294 --> 01:56:09,536
+that?
+
+1187
+01:56:10,190 --> 01:56:12,096
+So we're we're talking about OpenClaw
+
+1188
+01:56:13,006 --> 01:56:17,892
+that does all the incredibly complex stuff that are required to
+
+1189
+01:56:18,976 --> 01:56:24,324
+first of all innovate, to find customers, to sell to them, to to manage, to build a team
+
+1190
+01:56:25,056 --> 01:56:31,216
+of some agents, some humans, all that kind of stuff. Is this five, ten, 15, 20 years away?
+
+1191
+01:56:31,598 --> 01:56:32,256
+I think it's now.
+
+1192
+01:56:32,416 --> 01:56:33,924
+I think we've achieved AGI.
+
+1193
+01:56:34,862 --> 01:56:37,416
+You think you can have a company run by an AI system like this?
+
+1194
+01:56:37,416 --> 01:56:38,016
+Possible.
+
+1195
+01:56:38,256 --> 01:56:42,496
+And the reason for that is this you said a billion, and you didn't say forever.
+
+1196
+01:56:42,816 --> 01:56:44,548
+And so, for example,
+
+1197
+01:56:46,510 --> 01:56:49,216
+it is not out of the question that
+
+1198
+01:56:50,336 --> 01:56:57,136
+a claw was able to create a web service, some interesting little app
+
+1199
+01:56:57,936 --> 01:56:58,212
+that
+
+1200
+01:56:59,214 --> 01:57:00,132
+all of a sudden,
+
+1201
+01:57:00,942 --> 01:57:01,412
+you know,
+
+1202
+01:57:02,638 --> 01:57:05,892
+a few billion people used for 50, cents.
+
+1203
+01:57:06,256 --> 01:57:18,016
+And then it went out of business again shortly after. Now we saw a whole bunch of those type of companies during the internet era, and most of those websites were not anything more sophisticated
+
+1204
+01:57:18,256 --> 01:57:20,536
+than what OpenClaw could generate today.
+
+1205
+01:57:20,536 --> 01:57:23,776
+Interesting. Achieve virality and monetize that virality.
+
+1206
+01:57:24,336 --> 01:57:29,856
+It's just that I don't know what it is, but I couldn't have predicted any of those companies at the time either. You know?
+
+1207
+01:57:29,856 --> 01:57:32,496
+You're going to get a lot of people excited with that statement.
+
+1208
+01:57:32,496 --> 01:57:32,816
+Yeah.
+
+1209
+01:57:33,036 --> 01:57:33,366
+I know.
+
+1210
+01:57:33,366 --> 01:57:38,536
+It's like, what do you mean? I could just launch an agent and make a lot of money.
+
+1211
+01:57:38,536 --> 01:57:40,416
+Well, by the way, it's happening right now, right?
+
+1212
+01:57:40,496 --> 01:57:49,936
+You know that when you go to China, you're going to see you're gonna see um a whole bunch of people uh teaching their getting their claws to try to go out and look for jobs
+
+1213
+01:57:50,096 --> 01:57:52,420
+and you know do work, make money.
+
+1214
+01:57:53,216 --> 01:58:04,016
+And and uh, I'm not. I'm not actually. I wouldn't be surprised if some social thing happened or somebody created a, a digital influencer, super, super cute,
+
+1215
+01:58:04,576 --> 01:58:14,816
+or some social application that, you know, feeds your little Tomagotchi or something like that. and it become an out of the blue and instant success.
+
+1216
+01:58:15,136 --> 01:58:21,296
+A lot of people use it for a couple of months and it kind of dies away. Now, the odds of of of
+
+1217
+01:58:22,286 --> 01:58:26,816
+you know a hundred thousand of those agents building NVIDIA is 0%.
+
+1218
+01:58:28,526 --> 01:58:32,896
+And and then the one part that I will I won't do, and
+
+1219
+01:58:33,776 --> 01:58:35,108
+I want to make sure we all do,
+
+1220
+01:58:35,918 --> 01:58:39,456
+is to recognize that people are really worried about their jobs.
+
+1221
+01:58:40,016 --> 01:58:40,336
+And
+
+1222
+01:58:41,456 --> 01:58:52,868
+I just want to remind them that the purpose of your job and the tasks and the tools that you use to do your job are related, not the same.
+
+1223
+01:58:53,376 --> 01:59:02,016
+I've been doing my job for 33 years. I'm the longest running tech CEO in the world. 34 years. And the tools that I've used to do my job has changed
+
+1224
+01:59:03,406 --> 01:59:11,696
+continuously in the last 34 years and sometimes quite dramatically, you know, over the course of a couple two, three years. And
+
+1225
+01:59:12,656 --> 01:59:21,216
+the one story that I really want to make sure that everybody hears is the story that the first job that computer scientists said,
+
+1226
+01:59:21,456 --> 01:59:24,612
+AI researchers said was going to go away was radiology.
+
+1227
+01:59:25,296 --> 01:59:29,668
+Because computer vision was going to achieve superhuman levels, and it did.
+
+1228
+01:59:31,136 --> 01:59:35,056
+computer vision was superhuman in 2019,
+
+1229
+01:59:36,416 --> 01:59:39,296
+maybe a little bit later, 2020. Okay.
+
+1230
+01:59:39,662 --> 01:59:50,724
+And so it's been a long time since computer vision has been superhuman. And so the prediction was radiologists would go away because studying radiology scans was a thing of the past. AI will do that.
+
+1231
+01:59:51,056 --> 01:59:51,536
+Well,
+
+1232
+01:59:52,014 --> 01:59:53,316
+they were absolutely right.
+
+1233
+01:59:54,926 --> 01:59:56,964
+Computer vision is completely superhuman.
+
+1234
+01:59:57,326 --> 02:00:01,696
+Every radiology platform and package today is driven by AI.
+
+1235
+02:00:02,574 --> 02:00:05,732
+And yet the number of radiologists grew.
+
+1236
+02:00:06,286 --> 02:00:07,696
+And so the question is why?
+
+1237
+02:00:07,886 --> 02:00:12,256
+And we now have a shortage of radiologists in the world. And so, one,
+
+1238
+02:00:13,198 --> 02:00:14,176
+the alarmist
+
+1239
+02:00:15,054 --> 02:00:18,896
+warning went too far and it scared people from
+
+1240
+02:00:20,174 --> 02:00:22,788
+Doing this profession that is so important to society.
+
+1241
+02:00:23,374 --> 02:00:24,560
+And so it did harm.
+
+1242
+02:00:25,120 --> 02:00:35,280
+Now, why was it wrong? The reason why is because the purpose of a radiologist, the purpose, is to diagnose disease and help patients and doctors
+
+1243
+02:00:36,398 --> 02:00:37,440
+diagnose disease.
+
+1244
+02:00:38,542 --> 02:00:45,760
+And because we're able to study scans so much faster now, you could study more scans, you could diagnose better,
+
+1245
+02:00:47,470 --> 02:00:49,636
+you could you could, um inpatient faster.
+
+1246
+02:00:50,146 --> 02:00:51,812
+We can see people more.
+
+1247
+02:00:52,142 --> 02:00:59,520
+The hospitals are making more money. You have more patients in the hospital, you need more radiologists. I mean, the amazing thing is
+
+1248
+02:01:00,334 --> 02:01:02,628
+it's so obvious this was going to happen.
+
+1249
+02:01:03,200 --> 02:01:06,692
+The number of software engineers at NVIDIA is going to grow, not decline.
+
+1250
+02:01:08,558 --> 02:01:18,800
+And the reason for that is because the purpose of a software engineer and the task of a software engineer of coding are related, not the same. I wanted my software engineers to solve problems.
+
+1251
+02:01:18,880 --> 02:01:21,092
+I didn't care how many lines of code they wrote.
+
+1252
+02:01:22,000 --> 02:01:33,760
+You know, but their job, their purpose of their job didn't change. Solving problems, working as a team, diagnosing problems, evaluating the result, looking for new problems to solve,
+
+1253
+02:01:34,000 --> 02:01:36,560
+innovation, connecting dots.
+
+1254
+02:01:36,720 --> 02:01:39,108
+You know, none of that stuff is going to go away.
+
+1255
+02:01:39,726 --> 02:01:45,988
+So you think it's possible that let's even take coding. You think the number of programmers in the world might increase, not decrease?
+
+1256
+02:01:47,438 --> 02:01:50,468
+And the reason for that is this what is the definition of coding?
+
+1257
+02:01:52,320 --> 02:02:03,360
+I believe that the definition of coding as of today is simply specifying, specification, and maybe if you want to be rather directive,
+
+1258
+02:02:03,534 --> 02:02:10,308
+you could even give it an architecture of the software the year you wanted to write. So the question is, how many people could do that?
+
+1259
+02:02:11,022 --> 02:02:16,100
+Describe a specification for a computer to go, telling the computer what to go build.
+
+1260
+02:02:16,494 --> 02:02:19,364
+How many people? I think we just went from 30 million
+
+1261
+02:02:20,046 --> 02:02:21,252
+to probably 1 billion.
+
+1262
+02:02:22,446 --> 02:02:22,960
+And so
+
+1263
+02:02:24,014 --> 02:02:27,280
+every carpenter in the future will be a coder.
+
+1264
+02:02:27,520 --> 02:02:32,292
+Except a carpenter with AI is also an architect.
+
+1265
+02:02:32,800 --> 02:02:36,560
+They just increased the value that they could deliver to the customer.
+
+1266
+02:02:37,520 --> 02:02:38,020
+Their
+
+1267
+02:02:38,990 --> 02:02:42,560
+artistry just elevated tremendously.
+
+1268
+02:02:42,800 --> 02:02:48,900
+I believe that every accountant is, you know, also your financial analyst, also your financial advisor.
+
+1269
+02:02:49,280 --> 02:02:52,516
+So all of these professions have just been elevated.
+
+1270
+02:02:52,880 --> 02:02:54,960
+And if I were a carpenter, I see
+
+1271
+02:02:55,760 --> 02:02:58,052
+AI, I would just completely go berserk.
+
+1272
+02:02:58,670 --> 02:03:04,240
+You know, the services I can bring to my clients, if I were a plumber, completely go berserk.
+
+1273
+02:03:04,640 --> 02:03:14,148
+And the the people that are currently programmers and software engineers, I think they're at the cutting edge of understanding intuitively how to communicate
+
+1274
+02:03:15,150 --> 02:03:20,040
+with uh agents using natural language in order to design the best kind of software.
+
+1275
+02:03:20,040 --> 02:03:20,480
+That's right.
+
+1276
+02:03:20,750 --> 02:03:23,520
+So over time they'll converge, but I think
+
+1277
+02:03:24,494 --> 02:03:31,120
+there's still value in getting, I think, learning how to program, like learning what programming languages are.
+
+1278
+02:03:32,000 --> 02:03:33,680
+the old kind of programming.
+
+1279
+02:03:35,246 --> 02:03:42,880
+what are good practices for programming languages, what are design principles for programming languages for large software systems.
+
+1280
+02:03:43,520 --> 02:03:47,780
+And the reason for that, Lex, and you know, that I was just saying for the audience, I think
+
+1281
+02:03:50,400 --> 02:03:56,480
+the goal of specification, the artistry of specification, the goal and the artistry of it,
+
+1282
+02:03:57,422 --> 02:04:01,120
+is going to depend on what problem you're trying to solve.
+
+1283
+02:04:01,646 --> 02:04:02,240
+When I'm thinking
+
+1284
+02:04:03,040 --> 02:04:05,200
+about giving the company strategies and
+
+1285
+02:04:06,000 --> 02:04:09,760
+formulating corporate directions and things that we should do,
+
+1286
+02:04:10,862 --> 02:04:16,004
+I describe it at a level that is sufficiently
+
+1287
+02:04:16,800 --> 02:04:22,340
+specific, that people generally understand the direction, and it's actionable.
+
+1288
+02:04:22,734 --> 02:04:30,720
+They it's so specific enough that they can take action on it, but I under specify it on purpose so that enable
+
+1289
+02:04:30,880 --> 02:04:34,820
+43,000 amazing people to make it even better than I imagined.
+
+1290
+02:04:36,814 --> 02:04:44,720
+And so when I'm working with engineers and when I'm working with people, I think about what problem am I trying to solve?
+
+1291
+02:04:45,102 --> 02:04:46,340
+Who am I working with?
+
+1292
+02:04:47,440 --> 02:04:47,760
+And
+
+1293
+02:04:48,750 --> 02:04:54,980
+the level of specification, the level of architecture definition relates to that.
+
+1294
+02:04:55,840 --> 02:04:57,200
+And and so
+
+1295
+02:04:59,182 --> 02:05:05,872
+Everybody's going to have to learn how where in the spectrum of coding they want to be. Writing a specification is coding.
+
+1296
+02:05:06,032 --> 02:05:12,032
+And so you might decide to be quite prescriptive because there's a very specific outcome you're looking for.
+
+1297
+02:05:12,398 --> 02:05:17,072
+You might just decide that, you know, this is an area you want to be much more exploratory.
+
+1298
+02:05:17,232 --> 02:05:25,312
+And so you might underspecify and enable you to go back and forth with the AI to even push your own boundaries of creativity.
+
+1299
+02:05:25,552 --> 02:05:30,372
+And so this artistry of where you are in the spectrum, this is the future of coding.
+
+1300
+02:05:30,912 --> 02:05:35,952
+But just to linger on it outside of coding, I think a lot of people, rightfully so,
+
+1301
+02:05:37,072 --> 02:05:42,272
+are worried about their jobs, have a lot of anxiety about their jobs, especially in the white-collar sector.
+
+1302
+02:05:44,352 --> 02:05:46,272
+I don't think any of us know
+
+1303
+02:05:47,438 --> 02:05:48,388
+what to do
+
+1304
+02:05:50,192 --> 02:05:54,992
+with tumultuous times that always come when automations and new technology arrives.
+
+1305
+02:05:55,246 --> 02:05:56,100
+And I just
+
+1306
+02:05:57,392 --> 02:05:58,512
+First of all, I think
+
+1307
+02:06:00,912 --> 02:06:10,820
+we all need to have compassion and the responsibility to feel sort of the burden of what the actual suffering feels like for individual people and families that lose their job.
+
+1308
+02:06:10,992 --> 02:06:21,152
+I think whenever you have transformative technology like that's coming with artificial intelligence, there's going to be a lot of pain. And I don't know what to do about that pain.
+
+1309
+02:06:21,312 --> 02:06:24,592
+Hopefully, it creates much more opportunities for those same people
+
+1310
+02:06:26,512 --> 02:06:28,832
+for the same kind of job as
+
+1311
+02:06:29,632 --> 02:06:36,112
+the tooling evolves and makes them more productive and makes them more fun. Hopefully, as it does in the programming,
+
+1312
+02:06:36,992 --> 02:06:40,352
+I've been having so much fun programming, I have to say. Like I've never had this much fun.
+
+1313
+02:06:40,592 --> 02:06:51,472
+So hopefully it makes their job automates the boring parts and makes the creative parts the ones that the human beings are responsible for. But still there's going to be a lot of pain and suffering.
+
+1314
+02:06:51,872 --> 02:06:58,352
+So my first recommendation before, and this is now how I deal with anxiety. In fact, we just talked about it earlier.
+
+1315
+02:06:59,312 --> 02:07:06,724
+Enormous anxiety about the future, enormous anxiety about the pressure, enormous anxiety about uncertainty. I first break it down,
+
+1316
+02:07:07,792 --> 02:07:09,476
+and then I'm going to tell myself,
+
+1317
+02:07:10,606 --> 02:07:16,992
+okay, there are some things you can do something about, there's some things you can't do anything about, but for the stuff that you can do something about,
+
+1318
+02:07:17,102 --> 02:07:19,552
+let's reason reason about it and let's go do it.
+
+1319
+02:07:20,142 --> 02:07:25,152
+If we were to hire a new college graduate today, and I have a choice between two,
+
+1320
+02:07:25,952 --> 02:07:28,772
+one that have that is no clue
+
+1321
+02:07:29,614 --> 02:07:33,700
+what AI is, and one that is expert in using AI,
+
+1322
+02:07:34,478 --> 02:07:36,964
+I would hire the one who's expert in using AI.
+
+1323
+02:07:37,872 --> 02:07:41,072
+If I had an accountant, a marketing person,
+
+1324
+02:07:41,966 --> 02:07:50,724
+the one that is expert in using AI, supply chain, customer service, a salesperson, business development, a lawyer,
+
+1325
+02:07:51,792 --> 02:07:54,756
+I would hire the one who is expert in using AI.
+
+1326
+02:07:55,632 --> 02:07:59,076
+And so I would advise that every college student,
+
+1327
+02:08:00,270 --> 02:08:14,660
+every teacher should encourage their student to go use AI. Every college student should graduate and be an expert in AI. And everybody, if you're a carpenter, if you're an electrician, go use AI.
+
+1328
+02:08:15,566 --> 02:08:19,300
+Go see what it can do to transform your current job.
+
+1329
+02:08:19,694 --> 02:08:20,752
+Elevate yourself.
+
+1330
+02:08:21,038 --> 02:08:23,556
+If I were a farmer, I would absolutely use AI.
+
+1331
+02:08:24,032 --> 02:08:25,152
+If I were a pharmacist,
+
+1332
+02:08:26,112 --> 02:08:26,992
+I would use AI.
+
+1333
+02:08:27,152 --> 02:08:31,472
+I want to see what it could do to elevate my job so that I could be the
+
+1334
+02:08:32,352 --> 02:08:39,312
+innovator to revolutionize this industry myself. And so that would be the first thing that I would do. And then
+
+1335
+02:08:40,878 --> 02:08:42,272
+I would also help them.
+
+1336
+02:08:43,872 --> 02:08:50,832
+it is the case that the technology will dislocate and will eliminate many tasks
+
+1337
+02:08:52,272 --> 02:08:53,712
+and because it will automate it.
+
+1338
+02:08:54,112 --> 02:08:56,432
+If your job is the task,
+
+1339
+02:08:57,232 --> 02:09:01,552
+if your job is the task, then you're very highly going to be disrupted.
+
+1340
+02:09:02,752 --> 02:09:03,428
+If your
+
+1341
+02:09:04,608 --> 02:09:14,340
+Job's purpose includes certain tasks, then it's vital that you go learn how to use AI to automate those tasks. And then there's the world of spectrum in between.
+
+1342
+02:09:14,830 --> 02:09:20,688
+And by the way, the beautiful thing about AI, so the chatbot versions,
+
+1343
+02:09:21,678 --> 02:09:27,328
+is you can break down, you have anxiety, and you can break down the problem by talking to it.
+
+1344
+02:09:27,808 --> 02:09:35,728
+Like I've recently, it's really just incredible how much you can think through your life's problems and through, and I don't mean like therapy problems.
+
+1345
+02:09:35,808 --> 02:09:43,968
+I mean like very practically, okay, I'm worried about my literally, I'm worried about my job. What are the skills? What are the steps I need to take? How do I get better at AI?
+
+1346
+02:09:44,048 --> 02:09:50,928
+Everything you just said, you can literally ask, and it's going to give you a point-by-point plan. I mean, it's just a great life coach.
+
+1347
+02:09:51,088 --> 02:09:51,688
+Period.
+
+1348
+02:09:51,688 --> 02:09:55,392
+I don't know how to use AI. And the I goes, Well, let me show you. Exactly,
+
+1349
+02:09:55,392 --> 02:09:58,768
+It's very meta, but it's kind of incredible.
+
+1350
+02:09:58,928 --> 02:10:00,008
+So people definitely should
+
+1351
+02:10:00,008 --> 02:10:03,008
+You can't walk up to Excel and say, I don't know how to use Excel. You're done.
+
+1352
+02:10:03,168 --> 02:10:11,488
+I mean, that's really what AI has done for me in all walks of life is that initial friction of being a beginner, of using a thing for the first time.
+
+1353
+02:10:11,808 --> 02:10:16,568
+I can literally ask about any single thing, what are the first steps I need to take?
+
+1354
+02:10:16,568 --> 02:10:17,088
+That's right.
+
+1355
+02:10:17,168 --> 02:10:25,408
+And that that hand holding that it does, removing the friction of all the experiences that the world offers is you know, like
+
+1356
+02:10:25,568 --> 02:10:30,048
+like I mentioned to you offline, you mentioned I'm going to China and Taiwan.
+
+1357
+02:10:30,528 --> 02:10:32,408
+So awesome. So excited for you.
+
+1358
+02:10:32,408 --> 02:10:37,328
+Where do I go? What are you know, where do I go? How do I all of those questions immediately answered? It's beautiful.
+
+1359
+02:10:37,568 --> 02:10:47,248
+Well, when you go to Taiwan, just ask AI, what are Jensen's favorite restaurants in Taiwan? Yeah. And it will actually. tell you. Oh, yeah, yeah. Is it accurate? Yeah, yeah.
+
+1360
+02:10:47,328 --> 02:10:47,688
+All right.
+
+1361
+02:10:47,688 --> 02:10:50,088
+It's all over all over Taiwan.
+
+1362
+02:10:50,088 --> 02:10:52,448
+Well, you're you're a rock star over there.
+
+1363
+02:10:52,608 --> 02:10:58,328
+And um, and like we also mentioned offline, maybe our paths will cross, which would be really wonderful in the Computex,
+
+1364
+02:10:58,328 --> 02:10:59,844
+NVIDIA GTC Taiwan.
+
+1365
+02:11:01,328 --> 02:11:08,928
+Uh do you think there's some things about human nature, about human consciousness that is
+
+1366
+02:11:10,414 --> 02:11:12,368
+fundamentally non-computational?
+
+1367
+02:11:12,814 --> 02:11:17,248
+Maybe something a chip, no matter how powerful, uh, can never replicate.
+
+1368
+02:11:17,808 --> 02:11:19,808
+I don't know if the chip will ever get nervous.
+
+1369
+02:11:20,128 --> 02:11:29,648
+And that's the, you know, of course, the conditions by which uh that causes anxiety or nervousness or whatever emotion.
+
+1370
+02:11:29,902 --> 02:11:30,208
+Um
+
+1371
+02:11:31,278 --> 02:11:37,488
+I believe that AI will be able to recognize those and understand those.
+
+1372
+02:11:38,222 --> 02:11:40,608
+I don't think my chips will feel those.
+
+1373
+02:11:41,390 --> 02:11:49,008
+And therefore the how how that anxiety, how that feeling, how that excitement, how that how that, you know,
+
+1374
+02:11:50,670 --> 02:12:00,848
+all of those feelings manifest in human performance. For example, extremely amazing human performance, athletic performance, you know, average or lesser than average.
+
+1375
+02:12:01,008 --> 02:12:10,128
+Um, that entire spectrum of human performance that comes out of exactly the same circumstances for different people
+
+1376
+02:12:10,382 --> 02:12:12,288
+manifesting in different outcome.
+
+1377
+02:12:13,248 --> 02:12:15,248
+Manifesting in different performance.
+
+1378
+02:12:15,502 --> 02:12:16,964
+I I don't think
+
+1379
+02:12:17,774 --> 02:12:27,648
+there's anything about anything that we're building that would suggest that two different computers being presented with all of exactly the same context
+
+1380
+02:12:27,888 --> 02:12:33,728
+would perfor of course it would produce statistically different outcomes, but it's not because it felt different.
+
+1381
+02:12:34,288 --> 02:12:35,488
+Yeah, the subjective
+
+1382
+02:12:36,448 --> 02:12:39,908
+boy, there's something truly special about the subjective experience
+
+1383
+02:12:41,248 --> 02:12:42,528
+that we humans feel.
+
+1384
+02:12:42,848 --> 02:12:44,356
+Like I mentioned to you, I was,
+
+1385
+02:12:45,262 --> 02:12:55,168
+I was, I was pretty nervous talking to you. like I mentioned to you, that the hope, the fear, the anxiety, and just life itself, the richness of life, how amazing everything is,
+
+1386
+02:12:55,328 --> 02:13:04,768
+how deeply we fall in love, how deeply our hearts get broken, how afraid we are of death, and how much pain we feel when our loved ones pass
+
+1387
+02:13:04,928 --> 02:13:07,012
+away. all of that, the whole thing.
+
+1388
+02:13:07,374 --> 02:13:18,048
+I know it's very hard to think AI being able to, a computational device being able to do that, but there's so many mysteries about this whole thing that we're yet to uncover
+
+1389
+02:13:18,288 --> 02:13:25,008
+that I am open to be surprised. I've been surprised a lot over the past few months and few years.
+
+1390
+02:13:25,328 --> 02:13:29,568
+Scaling can create some incredible miracles in the space of intelligence
+
+1391
+02:13:30,928 --> 02:13:34,088
+has been truly marvelous to watch. So I'm open to surprise.
+
+1392
+02:13:34,088 --> 02:13:41,328
+And and it's just really important to un to to break down what is intelligence. And the word, that word we use all the time.
+
+1393
+02:13:41,582 --> 02:13:43,088
+It's not a mysterious word.
+
+1394
+02:13:43,328 --> 02:13:44,644
+Intelligence has a meaning.
+
+1395
+02:13:45,646 --> 02:13:55,776
+You know? And it's a system that, you know, it's it it's something that we do that includes perception and understanding and reasoning and the ability to do
+
+1396
+02:13:55,936 --> 02:14:03,696
+plan. And, you know, that that loop, that loop is is um the fundamentally what intelligence is.
+
+1397
+02:14:04,078 --> 02:14:05,892
+Intelligence is not one word
+
+1398
+02:14:06,896 --> 02:14:10,404
+that is exactly equal to humanity.
+
+1399
+02:14:11,056 --> 02:14:14,884
+And that's I think it's really important to separate the two. We have two words for that.
+
+1400
+02:14:16,014 --> 02:14:28,580
+I'm not, I don't over-fantasize about and I don't over-romanticize about intelligence. Intelligence is, and people have heard me say it before, I actually think intelligence is a commodity.
+
+1401
+02:14:29,456 --> 02:14:31,876
+I'm surrounded by intelligent people.
+
+1402
+02:14:33,422 --> 02:14:38,340
+And I'm surrounded by intelligent people more intelligent than I am in each one of the spaces that they're in.
+
+1403
+02:14:39,136 --> 02:14:39,908
+And yet,
+
+1404
+02:14:40,622 --> 02:14:42,212
+I have a role in that circle.
+
+1405
+02:14:42,990 --> 02:14:44,484
+It's actually kind of interesting.
+
+1406
+02:14:45,230 --> 02:14:46,948
+They're more educated than I am.
+
+1407
+02:14:49,230 --> 02:14:55,332
+They went to better schools than I did, they're deeper than in any in the fields that they're in, all of them.
+
+1408
+02:14:55,886 --> 02:14:56,816
+I have 60 of them.
+
+1409
+02:14:57,102 --> 02:14:58,468
+They're all superhuman to me.
+
+1410
+02:14:59,150 --> 02:15:08,996
+And somehow I'm sitting in the middle, orchestrating all 60 of them. And so you got to ask yourself, what is what is it about a dishwasher
+
+1411
+02:15:09,678 --> 02:15:12,976
+that allows that dishwasher to sit in the middle of superhumans?
+
+1412
+02:15:13,696 --> 02:15:16,816
+Does that make sense? And so, but that's my point.
+
+1413
+02:15:17,056 --> 02:15:21,124
+My point is intelligence is a is a functional thing.
+
+1414
+02:15:22,190 --> 02:15:25,764
+Humanity is not a not specified functionally,
+
+1415
+02:15:26,766 --> 02:15:38,736
+it's a much, much bigger word. And and our life experience, our tolerance for pain, our determination, those are those are different words in intelligence.
+
+1416
+02:15:38,976 --> 02:15:45,216
+And so the the thing that I I want to help the audience understand, if I could give them one thing, is
+
+1417
+02:15:46,382 --> 02:15:50,416
+intelligence is a word that we've elevated to very high form over time.
+
+1418
+02:15:51,056 --> 02:15:53,616
+the word we should really elevate is humanity.
+
+1419
+02:15:53,936 --> 02:15:55,216
+Character, humanity,
+
+1420
+02:15:56,016 --> 02:16:06,256
+all of those things, compassion, generosity, all of the things that you say just now, I believe those are superhuman powers.
+
+1421
+02:16:06,416 --> 02:16:12,736
+And that now intelligence is going to be commoditized because we've spoken about it. The most important thing is your education.
+
+1422
+02:16:12,976 --> 02:16:21,412
+The most now, even when they said the most important thing is your education, when you went to school, there's more than just knowledge that you gained.
+
+1423
+02:16:22,126 --> 02:16:27,780
+And so, but unfortunately, our society had put everything into one single word.
+
+1424
+02:16:28,654 --> 02:16:30,576
+And life is more than one word.
+
+1425
+02:16:30,830 --> 02:16:35,907
+And I'm just telling you, my life would suggest that being lower
+
+1426
+02:16:36,814 --> 02:16:43,268
+on the intelligence curve than everybody around me doesn't change the fact I'm the most successful.
+
+1427
+02:16:43,456 --> 02:16:45,216
+And so, and and I think,
+
+1428
+02:16:46,096 --> 02:16:56,096
+that kind of is I'm trying, hopefully, to inspire everybody else that don't let this democratization of intelligence, this commoditization of intelligence,
+
+1429
+02:16:57,678 --> 02:17:00,056
+you know, cause you anxiety. You should be inspired by that.
+
+1430
+02:17:00,056 --> 02:17:04,255
+Yeah, I think AI will help us celebrate humans more.
+
+1431
+02:17:04,415 --> 02:17:06,575
+And I'm certainly
+
+1432
+02:17:07,696 --> 02:17:09,616
+humanity and human first.
+
+1433
+02:17:10,255 --> 02:17:17,936
+And I I think what makes this world incredible is humans forever will be so. And just AI is this incredible tool that makes us
+
+1434
+02:17:18,976 --> 02:17:19,776
+humans more powerful.
+
+1435
+02:17:20,016 --> 02:17:20,976
+That's exactly right.
+
+1436
+02:17:22,510 --> 02:17:24,335
+so much of the success of NVIDIA
+
+1437
+02:17:25,376 --> 02:17:30,175
+and the lives of millions of people that I mentioned depend on you.
+
+1438
+02:17:31,693 --> 02:17:36,495
+but you're just one human, like we mentioned, mortal like all of us.
+
+1439
+02:17:36,814 --> 02:17:38,371
+Do you think about your mortality?
+
+1440
+02:17:38,894 --> 02:17:40,420
+Are you afraid of death?
+
+1441
+02:17:42,382 --> 02:17:43,907
+I really don't want to die.
+
+1442
+02:17:44,976 --> 02:17:47,364
+I have a great life. I have a great family.
+
+1443
+02:17:49,046 --> 02:17:49,165
+I
+
+1444
+02:17:49,165 --> 02:17:51,428
+have really important work.
+
+1445
+02:17:54,528 --> 02:17:57,316
+This is this is not a once in a
+
+1446
+02:17:58,317 --> 02:18:10,980
+once in a lifetime experience suggests that it has been experienced by many people, just not one person. this is a once in a humanity experience, what I'm going through.
+
+1447
+02:18:11,888 --> 02:18:16,688
+Nvidia is one of the most consequential technology companies in history. We're doing very important work.
+
+1448
+02:18:16,910 --> 02:18:19,487
+I take it very seriously. Um
+
+1449
+02:18:20,654 --> 02:18:29,088
+and and so some of the some of the things that that of course are are practical things, like how do we think about succession planning?
+
+1450
+02:18:29,647 --> 02:18:35,168
+And and um uh I'm famous in saying that I don't believe in succession planning.
+
+1451
+02:18:36,368 --> 02:18:45,092
+And and the reason the reason for that, the reason for that isn't because I'm immortal. the reason for that is because if you're worried about
+
+1452
+02:18:48,397 --> 02:18:51,808
+if you're worried all that anxiety of succession planning, then what should you do about it?
+
+1453
+02:18:51,982 --> 02:19:02,288
+Then you break it all the way back down. The most important thing you should do today, if you care about the future of your company, post you, is to pass on knowledge,
+
+1454
+02:19:02,528 --> 02:19:12,580
+information, insight, skills, experience as often and continuously as you can, which is the reason why I continuously reason about everything in front of my team.
+
+1455
+02:19:13,248 --> 02:19:15,428
+Every single meeting is about a reasoning meeting.
+
+1456
+02:19:16,462 --> 02:19:29,487
+Every moment I spend inside a company, outside a company is about passing on knowledge to people as fast as I can. Nothing I learn ever sits on my desk longer than, you know, a fraction of a second.
+
+1457
+02:19:29,727 --> 02:19:32,848
+I'm passing that information, that knowledge. Oh my gosh, this is cool.
+
+1458
+02:19:33,008 --> 02:19:39,088
+Before I even finish learning all of it myself, I've already pointing it to somebody else. Get on this. This is so cool.
+
+1459
+02:19:39,248 --> 02:19:49,828
+You're going to, want to learn this. And so I'm constantly passing knowledge, empowering people, elevating the capability of everybody around me so that
+
+1460
+02:19:51,488 --> 02:20:02,208
+um, the outcome that I that I seek, that I hope for, is that I die on the job, you know, and and hopefully I die on the job instantaneously. you know.
+
+1461
+02:20:02,928 --> 02:20:05,248
+And there's no long periods of suffering, you know.
+
+1462
+02:20:06,128 --> 02:20:11,888
+Well, from a fan perspective, uh given your your uh uh extremely
+
+1463
+02:20:12,848 --> 02:20:13,168
+um
+
+1464
+02:20:14,318 --> 02:20:24,688
+your enormous positive impact on civilization, of course. I hope you keep going, but also it's just fun to watch what NVIDIA is doing in your keynote. It's just the rate of innovation.
+
+1465
+02:20:24,848 --> 02:20:31,808
+And I'm a huge fan of engineering. It's so much incredible engineering is continuously being done by NVIDIA. It's just fun to watch.
+
+1466
+02:20:31,968 --> 02:20:42,288
+It's a celebration of humanity, it's a celebration of great builders, It's a celebration of great engineering. So it represents something special. so I hope you and NVIDIA keep going.
+
+1467
+02:20:42,448 --> 02:20:45,968
+What gives you hope about this whole thing we got going on?
+
+1468
+02:20:46,128 --> 02:20:55,492
+About humanity, about the future of humanity. When you look out and you think about the future quite a bit, when you look out 10, 20, 50, 100 years from now, what gives you hope?
+
+1469
+02:20:56,288 --> 02:20:57,008
+I've always had
+
+1470
+02:20:59,168 --> 02:21:02,768
+great confidence in in the
+
+1471
+02:21:03,886 --> 02:21:09,328
+in the kindness uh the generosity uh
+
+1472
+02:21:10,478 --> 02:21:14,368
+um the compassion, the human capacity.
+
+1473
+02:21:14,766 --> 02:21:18,448
+I've always been extremely confident of that.
+
+1474
+02:21:18,688 --> 02:21:20,048
+Sometimes um
+
+1475
+02:21:23,248 --> 02:21:24,868
+more so than I should.
+
+1476
+02:21:25,454 --> 02:21:39,588
+And and I I get taken advantage of, but it doesn't it doesn't ever cause me not to. I start with always uh that that people want want to do good, people want to um uh
+
+1477
+02:21:40,208 --> 02:21:40,996
+help others.
+
+1478
+02:21:41,808 --> 02:21:43,248
+And it uh
+
+1479
+02:21:44,128 --> 02:21:46,276
+vastly I am proven right.
+
+1480
+02:21:48,224 --> 02:21:49,476
+constantly proven right.
+
+1481
+02:21:50,544 --> 02:21:50,864
+And
+
+1482
+02:21:51,664 --> 02:21:52,260
+often
+
+1483
+02:21:53,998 --> 02:21:55,424
+exceeds my expectations.
+
+1484
+02:21:57,262 --> 02:22:00,544
+and so I have complete confidence in the human capacity.
+
+1485
+02:22:01,744 --> 02:22:02,532
+I think the
+
+1486
+02:22:04,304 --> 02:22:13,024
+things that give me incredible hope is what I see as I extrapolate, as what I see now is
+
+1487
+02:22:13,504 --> 02:22:20,804
+possible and as I extrapolate based on the things that we're doing, what will very likely happen.
+
+1488
+02:22:22,144 --> 02:22:23,744
+And and um
+
+1489
+02:22:24,624 --> 02:22:27,344
+and that there's so many things that we want to solve.
+
+1490
+02:22:27,584 --> 02:22:37,348
+There's so many problems we want to solve there's so many things that we want to build there's so many good things that we want to do that are now within our reach
+
+1491
+02:22:37,742 --> 02:22:44,464
+and within the reach of my my lifetime you just can't possibly not be romantic about
+
+1492
+02:22:44,464 --> 02:22:44,904
+that.
+
+1493
+02:22:44,904 --> 02:22:45,944
+You know what I'm saying?
+
+1494
+02:22:45,944 --> 02:22:47,984
+Yeah what an exciting time to be alive.
+
+1495
+02:22:48,224 --> 02:22:48,584
+Yeah
+
+1496
+02:22:48,584 --> 02:22:50,384
+like truly truly so
+
+1497
+02:22:50,384 --> 02:22:52,224
+how can you not be romantic about
+
+1498
+02:22:53,264 --> 02:23:01,540
+that the the the fact that that there is a there it's a reasonable thing to expect the end of disease.
+
+1499
+02:23:01,998 --> 02:23:09,284
+It's a reasonable thing to expect it's a reasonable thing to expect that pollution will be drastically reduced.
+
+1500
+02:23:09,744 --> 02:23:13,828
+It's a reasonable thing to expect that traveling at the speed of light
+
+1501
+02:23:14,990 --> 02:23:17,744
+is actually in our future, and then, you know,
+
+1502
+02:23:18,624 --> 02:23:29,424
+not for long distances but short distances. You know, people ask me how well —first of all, very soon I'm going to put a humanoid on a spaceship, and it's going to be, you know, my humanoid,
+
+1503
+02:23:29,678 --> 02:23:36,304
+and we're going to send it out as soon, you know, as soon as possible. And it's going to keep improving and enhancing along the flight.
+
+1504
+02:23:36,878 --> 02:23:37,924
+And then when it's time,
+
+1505
+02:23:38,990 --> 02:23:39,264
+all of
+
+1506
+02:23:40,064 --> 02:23:44,704
+my consciousness has already been, you know, so much of my life has been uploaded in the internet.
+
+1507
+02:23:45,024 --> 02:23:53,584
+Take all my inbox, take everything that I've done, everything I've said, you know, it's been becoming my AI and I'm just, you know, when the time comes,
+
+1508
+02:23:53,934 --> 02:23:57,344
+you know, we'll just send that at the speed of light catch up with my robot.
+
+1509
+02:23:59,664 --> 02:24:03,536
+Oh, that's brilliant! I, I mean, but for me that's sort of application focused,
+
+1510
+02:24:04,624 --> 02:24:14,544
+but also for me the curiosity uh maxing perspective, I just all of those mysteries, it's so much fascinating scientific questions there.
+
+1511
+02:24:14,784 --> 02:24:17,828
+Understanding the biological machine is a is right around the corner.
+
+1512
+02:24:18,158 --> 02:24:20,304
+It's it's not 10 years it's five years probably
+
+1513
+02:24:20,304 --> 02:24:26,144
+and the neurobiological machine the human mind and cracking physics theoretical physics open it's so exciting.
+
+1514
+02:24:26,384 --> 02:24:28,784
+Explaining consciousness that one would be awesome.
+
+1515
+02:24:29,038 --> 02:24:34,144
+And it's all within our reach. Yeah Jensen thank you so much for everything you've done over the years.
+
+1516
+02:24:34,224 --> 02:24:41,824
+Thank you for everything you're doing for the world thank you for being who you are I can tell you're a great human being and
+
+1517
+02:24:42,624 --> 02:24:52,384
+I wish you incredible success this year. I can't wait. As a fan I can't wait to see what you do next and hopefully I'll see you in Taiwan and thank you so much for talking today.
+
+1518
+02:24:52,718 --> 02:24:56,624
+Thank you Lex I had a great time and also if I could just say one more thing.
+
+1519
+02:24:56,704 --> 02:24:57,024
+Yes,
+
+1520
+02:24:57,024 --> 02:25:05,904
+and thank you for all the interviews that you do, the depth, the the respect that you go through with, and the research that you do
+
+1521
+02:25:06,304 --> 02:25:09,104
+to reveal, you know, for all of us,
+
+1522
+02:25:10,144 --> 02:25:12,612
+the amazing people that you've interviewed over the years.
+
+1523
+02:25:13,984 --> 02:25:15,344
+I've enjoyed them immensely,
+
+1524
+02:25:16,144 --> 02:25:25,944
+and as an innovator to have created this long form, unbelievable and and yet, you know, it's just captivating. So anyways, thank you for everything you do;
+
+1525
+02:25:25,944 --> 02:25:26,704
+it means the world.
+
+1526
+02:25:26,784 --> 02:25:27,424
+Thank you Jensen,
+
+1527
+02:25:27,424 --> 02:25:28,164
+thank you Lex.
+
+1528
+02:25:29,262 --> 02:25:31,956
+Thank you for listening to this conversation with Jensen Huang.
+
+1529
+02:25:32,464 --> 02:25:42,224
+To support this podcast, please check out our sponsors in the description, where you can also find links to contact me, ask questions, give feedback, and so on.
+
+1530
+02:25:42,464 --> 02:25:45,744
+And now, let me leave you with some words from Alan Kay:
+
+1531
+02:25:46,958 --> 02:25:50,212
+"The best way to predict the future is to invent it
+
+1532
+02:25:51,406 --> 02:25:54,704
+." Thank you for listening, and I hope to see you next time.
+
