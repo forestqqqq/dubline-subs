@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [How Close Are We to True Artificial General Intelligence? \| OpenAI’s Greg Brockman Speaks to TIME](medias/RY6KM/) | TIME | 2026-10-07 |
 | [OpenAI Co-Founder: Start Building With AI Before You Feel Ready \| Greg Brockman](medias/EM6K5/) | Silicon Valley Girl | 2026-10-07 |
 | [NEW Claude Projects Changes Everything](medias/N0689/) | Riley Brown | 2026-10-06 |
 | [Opus 5.5: How Close Are We to Automated AI Research?](medias/KA52X/) | AI Explained | 2026-10-06 |
