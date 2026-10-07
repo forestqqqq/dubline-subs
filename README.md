@@ -7,6 +7,7 @@
 | [NEW Claude Projects Changes Everything](medias/N0689/) | Riley Brown | 2026-10-06 |
 | [Opus 5.5: How Close Are We to Automated AI Research?](medias/KA52X/) | AI Explained | 2026-10-06 |
 | [How to Make Insane Motion Graphics With Opus 5.5](medias/DEVYD/) | Lukas Margerie | 2026-10-06 |
+| [Sam Altman - How to Start a Startup](medias/BXFQ0/) | Relentless | 2026-10-06 |
 | [Ultimate Claude Tutorial: How to Use Claude AI for Beginners (Become a PRO!)](medias/8JACV/) | AI Master | 2026-10-06 |
 | [Jensen Huang: NVIDIA - The $4 Trillion Company & the AI Revolution \| Lex Fridman Podcast #494](medias/6SZEQ/) | Lex Fridman | 2026-10-06 |
 | [Seedance 2.5 Tutorial: Cinematic AI Video From Start To Finish](medias/2Z2EE/) | Rourke Heath | 2026-10-06 |
