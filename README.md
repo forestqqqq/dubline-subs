@@ -6,6 +6,7 @@
 |---|---|---|
 | [The 20 Minute Masterpiece: Dijkstra's Algorithm](medias/SCD24/) | freeCodeCamp.org | 2026-10-07 |
 | [How Close Are We to True Artificial General Intelligence? \| OpenAI’s Greg Brockman Speaks to TIME](medias/RY6KM/) | TIME | 2026-10-07 |
+| [The Paper That Created Modern AI](medias/RABT9/) | freeCodeCamp.org | 2026-10-07 |
 | [Learn Python for Beginners - Visually Explained](medias/QPPZ6/) | Visually Explained | 2026-10-07 |
 | [Claude Code Full Course – Autonomous Goals, MCP, and VS Code Setup](medias/N0SRH/) | freeCodeCamp.org | 2026-10-07 |
 | [OpenAI Co-Founder: Start Building With AI Before You Feel Ready \| Greg Brockman](medias/EM6K5/) | Silicon Valley Girl | 2026-10-07 |
