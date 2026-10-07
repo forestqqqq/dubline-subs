@@ -1,4 +1,4 @@
-<!-- dubline-subs {"title": "3D Printing & Additive Manufacturing – Full Course", "author": "freeCodeCamp.org", "files": 2, "updated": "2026-10-05"} -->
+<!-- dubline-subs {"title": "3D Printing & Additive Manufacturing – Full Course", "author": "freeCodeCamp.org", "files": 3, "updated": "2026-10-07"} -->
 # 3D Printing & Additive Manufacturing – Full Course
 
 <img src="ed9a31/7fbf4b22/3D%20Printing%20%26%20Additive%20Manufacturing%20%E2%80%93%20Full%20Course.webp" alt="封面" width="480">
@@ -86,6 +86,7 @@
 |---|---|---|---|
 | 3D Printing & Additive Manufacturing – Full Course - 英语字幕（转写）.en.srt | 原文字幕（转写） | [查看 / 下载](ed9a31/15d44692/3D%20Printing%20%26%20Additive%20Manufacturing%20%E2%80%93%20Full%20Course%20-%20%E8%8B%B1%E8%AF%AD%E5%AD%97%E5%B9%95%EF%BC%88%E8%BD%AC%E5%86%99%EF%BC%89.en.srt) | [直链](https://github.com/forestqqqq/dubline-subs/raw/main/medias/6B3QE/ed9a31/15d44692/3D%20Printing%20%26%20Additive%20Manufacturing%20%E2%80%93%20Full%20Course%20-%20%E8%8B%B1%E8%AF%AD%E5%AD%97%E5%B9%95%EF%BC%88%E8%BD%AC%E5%86%99%EF%BC%89.en.srt) |
 | 3D Printing & Additive Manufacturing – Full Course - 简体中文字幕（翻译）.zh.srt | 译文字幕 | [查看 / 下载](ed9a31/7e1592e6/3D%20Printing%20%26%20Additive%20Manufacturing%20%E2%80%93%20Full%20Course%20-%20%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87%E5%AD%97%E5%B9%95%EF%BC%88%E7%BF%BB%E8%AF%91%EF%BC%89.zh.srt) | [直链](https://github.com/forestqqqq/dubline-subs/raw/main/medias/6B3QE/ed9a31/7e1592e6/3D%20Printing%20%26%20Additive%20Manufacturing%20%E2%80%93%20Full%20Course%20-%20%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87%E5%AD%97%E5%B9%95%EF%BC%88%E7%BF%BB%E8%AF%91%EF%BC%89.zh.srt) |
+| 3D Printing & Additive Manufacturing – Full Course - 中英双语字幕.srt | 双语字幕 | [查看 / 下载](ed9a31/8b8c757f/3D%20Printing%20%26%20Additive%20Manufacturing%20%E2%80%93%20Full%20Course%20-%20%E4%B8%AD%E8%8B%B1%E5%8F%8C%E8%AF%AD%E5%AD%97%E5%B9%95.srt) | [直链](https://github.com/forestqqqq/dubline-subs/raw/main/medias/6B3QE/ed9a31/8b8c757f/3D%20Printing%20%26%20Additive%20Manufacturing%20%E2%80%93%20Full%20Course%20-%20%E4%B8%AD%E8%8B%B1%E5%8F%8C%E8%AF%AD%E5%AD%97%E5%B9%95.srt) |
 
 - 点「查看 / 下载」进入文件页面，再点右上角的下载按钮（↓）保存。
 - 点「直链」会在浏览器里直接打开文本，右键「另存为」即可。

@@ -10,6 +10,7 @@
 | [OpenAI Co-Founder: Start Building With AI Before You Feel Ready \| Greg Brockman](medias/EM6K5/) | Silicon Valley Girl | 2026-10-07 |
 | [Claude Certified Architect - Foundations – Prepare for and pass the exam!](medias/9D47F/) | freeCodeCamp.org | 2026-10-07 |
 | [AI-Assisted Development Tutorial – Multi-Agent Coding & Deployment with TRAE IDE](medias/8J4FG/) | freeCodeCamp.org | 2026-10-07 |
+| [3D Printing & Additive Manufacturing – Full Course](medias/6B3QE/) | freeCodeCamp.org | 2026-10-07 |
 | [NEW Claude Projects Changes Everything](medias/N0689/) | Riley Brown | 2026-10-06 |
 | [Opus 5.5: How Close Are We to Automated AI Research?](medias/KA52X/) | AI Explained | 2026-10-06 |
 | [How to Make Insane Motion Graphics With Opus 5.5](medias/DEVYD/) | Lukas Margerie | 2026-10-06 |
@@ -22,6 +23,5 @@
 | [React Native Full Stack Course – Clerk, Postgres, NativeWind](medias/NMHM3/) | freeCodeCamp.org | 2026-10-05 |
 | [Claude Code Full Course – Autonomous Goals, MCP, and VS Code Setup](medias/N0SRH/) | freeCodeCamp.org | 2026-10-05 |
 | [Kubernetes Operator Best Practices – Kubebuilder Deep Dive](medias/A1EGJ/) | freeCodeCamp.org | 2026-10-05 |
-| [3D Printing & Additive Manufacturing – Full Course](medias/6B3QE/) | freeCodeCamp.org | 2026-10-05 |
 
 视频内容版权归原作者所有。
