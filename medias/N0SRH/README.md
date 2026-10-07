@@ -1,4 +1,4 @@
-<!-- dubline-subs {"title": "Claude Code Full Course – Autonomous Goals, MCP, and VS Code Setup", "author": "freeCodeCamp.org", "files": 2, "updated": "2026-10-05"} -->
+<!-- dubline-subs {"title": "Claude Code Full Course – Autonomous Goals, MCP, and VS Code Setup", "author": "freeCodeCamp.org", "files": 3, "updated": "2026-10-07"} -->
 # Claude Code Full Course – Autonomous Goals, MCP, and VS Code Setup
 
 <img src="0d9051/8e9ff7c1/Claude%20Code%20Full%20Course%20%E2%80%93%20Autonomous%20Goals%2C%20MCP%2C%20and%20VS%20Code%20Setup.webp" alt="封面" width="480">
@@ -51,6 +51,7 @@
 
 | 文件 | 说明 | 页面 | 直链 |
 |---|---|---|---|
+| Claude Code Full Course – Autonomous Goals, MCP, and VS Code Setup - 中英双语字幕.srt | 双语字幕 | [查看 / 下载](0d9051/07c48d2e/Claude%20Code%20Full%20Course%20%E2%80%93%20Autonomous%20Goals%2C%20MCP%2C%20and%20VS%20Code%20Setup%20-%20%E4%B8%AD%E8%8B%B1%E5%8F%8C%E8%AF%AD%E5%AD%97%E5%B9%95.srt) | [直链](https://github.com/forestqqqq/dubline-subs/raw/main/medias/N0SRH/0d9051/07c48d2e/Claude%20Code%20Full%20Course%20%E2%80%93%20Autonomous%20Goals%2C%20MCP%2C%20and%20VS%20Code%20Setup%20-%20%E4%B8%AD%E8%8B%B1%E5%8F%8C%E8%AF%AD%E5%AD%97%E5%B9%95.srt) |
 | Claude Code Full Course – Autonomous Goals, MCP, and VS Code Setup - 英语字幕（转写）.en.srt | 原文字幕（转写） | [查看 / 下载](0d9051/0d1c085d/Claude%20Code%20Full%20Course%20%E2%80%93%20Autonomous%20Goals%2C%20MCP%2C%20and%20VS%20Code%20Setup%20-%20%E8%8B%B1%E8%AF%AD%E5%AD%97%E5%B9%95%EF%BC%88%E8%BD%AC%E5%86%99%EF%BC%89.en.srt) | [直链](https://github.com/forestqqqq/dubline-subs/raw/main/medias/N0SRH/0d9051/0d1c085d/Claude%20Code%20Full%20Course%20%E2%80%93%20Autonomous%20Goals%2C%20MCP%2C%20and%20VS%20Code%20Setup%20-%20%E8%8B%B1%E8%AF%AD%E5%AD%97%E5%B9%95%EF%BC%88%E8%BD%AC%E5%86%99%EF%BC%89.en.srt) |
 | Claude Code Full Course – Autonomous Goals, MCP, and VS Code Setup - 简体中文字幕（翻译）.zh.srt | 译文字幕 | [查看 / 下载](0d9051/8bd36809/Claude%20Code%20Full%20Course%20%E2%80%93%20Autonomous%20Goals%2C%20MCP%2C%20and%20VS%20Code%20Setup%20-%20%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87%E5%AD%97%E5%B9%95%EF%BC%88%E7%BF%BB%E8%AF%91%EF%BC%89.zh.srt) | [直链](https://github.com/forestqqqq/dubline-subs/raw/main/medias/N0SRH/0d9051/8bd36809/Claude%20Code%20Full%20Course%20%E2%80%93%20Autonomous%20Goals%2C%20MCP%2C%20and%20VS%20Code%20Setup%20-%20%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87%E5%AD%97%E5%B9%95%EF%BC%88%E7%BF%BB%E8%AF%91%EF%BC%89.zh.srt) |
 
