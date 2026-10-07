@@ -9,6 +9,7 @@
 | [The Paper That Created Modern AI](medias/RABT9/) | freeCodeCamp.org | 2026-10-07 |
 | [Learn Python for Beginners - Visually Explained](medias/QPPZ6/) | Visually Explained | 2026-10-07 |
 | [Claude Code Full Course – Autonomous Goals, MCP, and VS Code Setup](medias/N0SRH/) | freeCodeCamp.org | 2026-10-07 |
+| [Agentic AI – Complete Course for Beginners](medias/G6Q6Q/) | freeCodeCamp.org | 2026-10-07 |
 | [OpenAI Co-Founder: Start Building With AI Before You Feel Ready \| Greg Brockman](medias/EM6K5/) | Silicon Valley Girl | 2026-10-07 |
 | [Claude Certified Architect - Foundations – Prepare for and pass the exam!](medias/9D47F/) | freeCodeCamp.org | 2026-10-07 |
 | [AI-Assisted Development Tutorial – Multi-Agent Coding & Deployment with TRAE IDE](medias/8J4FG/) | freeCodeCamp.org | 2026-10-07 |
