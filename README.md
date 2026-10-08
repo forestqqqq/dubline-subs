@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [Build your own Mobile App with Codex GPT-6 Astra - Full iOS and Android Course](medias/Q9QT1/) | freeCodeCamp.org | 2026-10-08 |
 | [The 20 Minute Masterpiece: Dijkstra's Algorithm](medias/SCD24/) | freeCodeCamp.org | 2026-10-07 |
 | [How Close Are We to True Artificial General Intelligence? \| OpenAI’s Greg Brockman Speaks to TIME](medias/RY6KM/) | TIME | 2026-10-07 |
 | [The Paper That Created Modern AI](medias/RABT9/) | freeCodeCamp.org | 2026-10-07 |
