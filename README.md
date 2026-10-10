@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [Claude Certified Architect – Foundations (CCAR-F) Full Course [9+ Hours] - Pass on Your First Try](medias/5VVV1/) | sthithapragna | 2026-10-10 |
 | [AWS Certified Cloud Practitioner CLF-C02 Full Course [6.5 Hours] - Pass on Your First Try](medias/RXSCC/) | sthithapragna | 2026-10-09 |
 | [AI Engineer Full Course 2026 \| Python, Machine Learning, GenAI & MLOps \| Simplilearn](medias/9T9DA/) | Simplilearn | 2026-10-09 |
 | [Build your own Mobile App with Codex GPT-6 Astra - Full iOS and Android Course](medias/Q9QT1/) | freeCodeCamp.org | 2026-10-08 |
