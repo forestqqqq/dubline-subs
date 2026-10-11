@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [AWS Certified Data Engineer Associate DEA-C01 Full Course [14 Hours] - Pass on Your First Try](medias/PHGXN/) | sthithapragna | 2026-10-10 |
 | [Claude Certified Architect – Foundations (CCAR-F) Full Course [9+ Hours] - Pass on Your First Try](medias/5VVV1/) | sthithapragna | 2026-10-10 |
 | [2025 MATLAB Beginner Course with Example Project and Solution \| MATLAB Training](medias/0MXHZ/) | Phil Parisi | 2026-10-10 |
 | [AWS Certified Cloud Practitioner CLF-C02 Full Course [6.5 Hours] - Pass on Your First Try](medias/RXSCC/) | sthithapragna | 2026-10-09 |
