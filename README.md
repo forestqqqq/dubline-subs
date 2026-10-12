@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [Learn Docker – Full DevOps Course for Deploying Containerized Apps](medias/GMD06/) | freeCodeCamp.org | 2026-10-12 |
 | [I Tested Opus 5.5 vs. GPT-6 Astra on 12 Real Use Cases](medias/9B839/) | Nate Herk \| AI Automation | 2026-10-12 |
 | [AWS Certified Data Engineer Associate DEA-C01 Full Course [14 Hours] - Pass on Your First Try](medias/PHGXN/) | sthithapragna | 2026-10-10 |
 | [Claude Certified Architect – Foundations (CCAR-F) Full Course [9+ Hours] - Pass on Your First Try](medias/5VVV1/) | sthithapragna | 2026-10-10 |
