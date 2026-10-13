@@ -7,6 +7,7 @@
 | [FULL Claude Tutorial For Beginners in 2026! (FULL COURSE)](medias/XG3MN/) | Productive Dude | 2026-10-13 |
 | [I Tested ChatGPT Dot vs GrokBot (Not Even Close)](medias/V0XR8/) | Jack Roberts | 2026-10-13 |
 | [Claude's Creator Just Told Us How to Actually Use Claude in 2026](medias/P8WBA/) | AI Edge | 2026-10-13 |
+| [IT Fundamentals Course – Hardware, Cloud, DevOps, Networking, Security, Databases, DNS, Git, Linux](medias/HYRE1/) | freeCodeCamp.org | 2026-10-13 |
 | [Stanford CME295 Transformers & LLMs \| Autumn 2026 \| Lecture 1 - Transformers](medias/6EPBN/) | Stanford Online | 2026-10-13 |
 | [Learn Docker – Full DevOps Course for Deploying Containerized Apps](medias/GMD06/) | freeCodeCamp.org | 2026-10-12 |
 | [I Tested Opus 5.5 vs. GPT-6 Astra on 12 Real Use Cases](medias/9B839/) | Nate Herk \| AI Automation | 2026-10-12 |
