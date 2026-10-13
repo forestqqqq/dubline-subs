@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [FULL Claude Tutorial For Beginners in 2026! (FULL COURSE)](medias/XG3MN/) | Productive Dude | 2026-10-13 |
 | [Learn Docker – Full DevOps Course for Deploying Containerized Apps](medias/GMD06/) | freeCodeCamp.org | 2026-10-12 |
 | [I Tested Opus 5.5 vs. GPT-6 Astra on 12 Real Use Cases](medias/9B839/) | Nate Herk \| AI Automation | 2026-10-12 |
 | [Harvard CS50’s Artificial Intelligence with Python – Full University Course](medias/1FR40/) | freeCodeCamp.org | 2026-10-12 |
