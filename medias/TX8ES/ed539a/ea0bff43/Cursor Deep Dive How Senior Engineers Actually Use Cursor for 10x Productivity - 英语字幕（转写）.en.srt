@@ -1,0 +1,1556 @@
+1
+00:00:00,160 --> 00:00:06,320
+After my last video on how cursor works and why SpaceX is looking at it, many of you asked for a proper deep dive.
+
+2
+00:00:06,480 --> 00:00:17,680
+So in this video, I'll show you how engineers actually use cursor end to end, including workflows, mental models, and 25 practical tips you can apply immediately. Let's get into it.
+
+3
+00:00:23,438 --> 00:00:24,720
+Here is what we are covering today.
+
+4
+00:00:24,880 --> 00:00:27,748
+We start with what cursor actually is and how it thinks.
+
+5
+00:00:28,174 --> 00:00:30,340
+So you have the right mental model from the start.
+
+6
+00:00:30,798 --> 00:00:34,820
+Then we cover the three interaction models tab, command k, and chat.
+
+7
+00:00:35,120 --> 00:00:40,388
+Each one has a specific use case, and knowing when to reach for which one saves you a lot of time.
+
+8
+00:00:40,782 --> 00:00:48,132
+Then we go deep on plan mode and agent mode, the two-phase workflow that separates professional usage from just winging it with AI.
+
+9
+00:00:48,558 --> 00:00:56,740
+Then rules, commands, and memories, the most underused feature in cursor, and the ones that give you the biggest productivity gain, especially on a team.
+
+10
+00:00:57,070 --> 00:01:03,588
+And finally, the advanced workflows, parallel agents, background agents, bug bot, and MCP integrations.
+
+11
+00:01:04,014 --> 00:01:07,812
+Throughout each section, I will draw practical tips you can apply immediately.
+
+12
+00:01:08,270 --> 00:01:11,780
+By the end of this, you will have a completely different relationship with your IDE.
+
+13
+00:01:12,078 --> 00:01:18,400
+Now throughout the course, I will be working on a real project, a task management API built with Fast API and Next.js.
+
+14
+00:01:18,862 --> 00:01:20,964
+Think of it as a lightweight Jira backend.
+
+15
+00:01:21,200 --> 00:01:24,484
+It has users, tasks, projects, and notification service.
+
+16
+00:01:25,070 --> 00:01:31,556
+It is intentionally incomplete, about 30% built, and we are going to build it up together as we go through each section.
+
+17
+00:01:32,142 --> 00:01:34,948
+By the end of the course, it will be a fully functional API.
+
+18
+00:01:35,374 --> 00:01:39,044
+You can download the starting skeleton from the link in the description and follow along.
+
+19
+00:01:39,406 --> 00:01:40,560
+Let's start with the foundation.
+
+20
+00:01:40,878 --> 00:01:43,748
+Cursor is a code editor built on top of VS Code.
+
+21
+00:01:44,238 --> 00:01:46,692
+Same shortcuts, same extensions, same interface.
+
+22
+00:01:47,534 --> 00:01:51,972
+If you use VS Code today, switching takes about 5 minutes and you will feel right at home.
+
+23
+00:01:52,654 --> 00:01:57,380
+When you first open it, you will see two views, an agentic view and an editor view.
+
+24
+00:01:58,062 --> 00:02:00,960
+If you are coming from VS Code, switch to editor view.
+
+25
+00:02:01,262 --> 00:02:05,572
+It is identical to what you are used to and you can start being productive immediately.
+
+26
+00:02:06,254 --> 00:02:10,308
+Now here is the fundamental difference between cursor and every editor you have used before.
+
+27
+00:02:11,086 --> 00:02:13,252
+A normal editor sees the file you have opened.
+
+28
+00:02:13,520 --> 00:02:13,988
+That is it.
+
+29
+00:02:14,734 --> 00:02:20,228
+Cursor sees your entire code base, every function, every class, every relationship between files.
+
+30
+00:02:20,846 --> 00:02:25,060
+And it uses that full context to help you in ways a traditional editor simply cannot.
+
+31
+00:02:25,710 --> 00:02:28,356
+The mental model I want you to carry through the entire course is this.
+
+32
+00:02:29,134 --> 00:02:33,476
+Think of the AI Inside Cursor as a brilliant engineer who just joined your team.
+
+33
+00:02:34,126 --> 00:02:42,948
+They know every language, every framework, every design pattern, but they know nothing about your specific code base, your conventions, your legacy decisions, your folder structure.
+
+34
+00:02:43,566 --> 00:02:46,052
+Without that knowledge, they default to generic patterns.
+
+35
+00:02:46,606 --> 00:02:50,532
+Code that is syntactically correct but architecturally wrong for your project.
+
+36
+00:02:50,862 --> 00:02:52,708
+It compiles, but it does not fit.
+
+37
+00:02:53,454 --> 00:02:58,404
+Your job is to give them that context fast, and that is exactly what this course teaches you to do.
+
+38
+00:02:59,054 --> 00:03:02,436
+Now before we go further, two quick things you should know about this setup.
+
+39
+00:03:02,830 --> 00:03:08,964
+On model selection, if you are on the free plan, you get auto, which picks the right model for each task automatically.
+
+40
+00:03:09,550 --> 00:03:12,228
+That is good enough to follow along with everything in this course.
+
+41
+00:03:12,814 --> 00:03:18,400
+But if you are on the Pro Plan, at $20 a month you have access to models like Cloud, Sonnet, and Opus.
+
+42
+00:03:19,040 --> 00:03:20,548
+Use Sonnet for most tasks.
+
+43
+00:03:20,880 --> 00:03:22,320
+It is fast and accurate.
+
+44
+00:03:22,510 --> 00:03:28,580
+Use Opus when you are doing something complex like designing architecture or debugging a subtle multi-file issue.
+
+45
+00:03:29,198 --> 00:03:31,172
+For quick edits, auto is fine.
+
+46
+00:03:31,598 --> 00:03:37,920
+On voice input, Cursor has built-in voice mode, and there is also a free tool called WhisperFlow that works well.
+
+47
+00:03:38,222 --> 00:03:41,796
+So if you are writing long prompts, speaking them is significantly faster than typing.
+
+48
+00:03:42,440 --> 00:03:43,364
+Who was setting up early?
+
+49
+00:03:43,918 --> 00:03:49,860
+Now there are three ways to interact with the AI inside Cursor, and each one is suited to a different type of task.
+
+50
+00:03:50,446 --> 00:03:52,388
+Tab, Command K and Chat.
+
+51
+00:03:52,654 --> 00:03:55,236
+Think of these as three levels of AI involvement.
+
+52
+00:03:55,760 --> 00:03:58,276
+Tab is automatic and stays out of your way.
+
+53
+00:03:58,640 --> 00:04:00,004
+Command K is targeted.
+
+54
+00:04:00,240 --> 00:04:01,732
+You pick exactly what to change.
+
+55
+00:04:02,190 --> 00:04:04,740
+Chat is where you have a full conversation with your code base.
+
+56
+00:04:05,262 --> 00:04:09,796
+As you go through the course, you'll naturally develop a feel for which one to reach for and when.
+
+57
+00:04:10,478 --> 00:04:15,940
+Starting with tab, tab is cursor's autocomplete, but it works differently from what you are used to.
+
+58
+00:04:16,494 --> 00:04:19,972
+Most editors predict the next few characters based on what you are typing.
+
+59
+00:04:20,494 --> 00:04:30,980
+Cursor predicts your next edit based on what you are trying to do. It looks at the surrounding code, understands your intent, and suggests entire blocks, sometimes across multiple lines.
+
+60
+00:04:31,534 --> 00:04:33,412
+You'll notice this the first time you use it.
+
+61
+00:04:33,870 --> 00:04:37,860
+You finish one line, hit tab, and it writes the next three lines correctly.
+
+62
+00:04:38,350 --> 00:04:39,780
+Hit tab again, done.
+
+63
+00:04:40,238 --> 00:04:42,788
+It feels like the editor is reading your mind a little bit.
+
+64
+00:04:43,342 --> 00:04:46,756
+And you will build that muscle memory fast because tab is always on.
+
+65
+00:04:47,168 --> 00:04:48,996
+You do not have to activate anything.
+
+66
+00:04:49,582 --> 00:04:55,008
+Point worth noting if the suggestion is wrong, just hit escape and keep trying and keep typing.
+
+67
+00:04:55,278 --> 00:04:56,200
+Cursor will adjust.
+
+68
+00:04:56,590 --> 00:04:59,648
+After you accept a tab suggestion, immediately press tab again.
+
+69
+00:04:59,886 --> 00:05:03,524
+Cursor predicts the next logical change based on what you just accepted.
+
+70
+00:05:04,080 --> 00:05:07,328
+Change this together and you can move through repetitive code really fast.
+
+71
+00:05:07,694 --> 00:05:09,540
+Most developers stop at one time.
+
+72
+00:05:09,902 --> 00:05:15,428
+Don't. Now moving to Command K, and this is probably the one you'll use more than anything else day to day.
+
+73
+00:05:15,854 --> 00:05:18,084
+I have our task management project open here.
+
+74
+00:05:18,606 --> 00:05:20,740
+Let me show you exactly what Command K does.
+
+75
+00:05:21,230 --> 00:05:23,076
+I'm going to open the notification service.
+
+76
+00:05:23,694 --> 00:05:26,852
+You can see right away there is no error handling in any of these functions.
+
+77
+00:05:27,470 --> 00:05:30,020
+This is one of the intentional gaps in our skeleton.
+
+78
+00:05:30,574 --> 00:05:36,208
+I highlight this entire block, press Command K and type, add error handling to every function.
+
+79
+00:05:36,654 --> 00:05:41,412
+Cursor shows me a dev, green for what is being added, red for what is being removed.
+
+80
+00:05:41,806 --> 00:05:43,204
+I review it and accept.
+
+81
+00:05:43,502 --> 00:05:46,948
+The whole thing took about 10 seconds and I never left the file.
+
+82
+00:05:47,406 --> 00:05:48,228
+That is the pattern.
+
+83
+00:05:48,528 --> 00:05:50,340
+Highlight, instruct, review.
+
+84
+00:05:50,638 --> 00:05:53,252
+You can use it for anything targeted in a single file.
+
+85
+00:05:53,742 --> 00:05:55,172
+Convert this to asyncavin.
+
+86
+00:05:55,534 --> 00:05:57,252
+Add type annotations to this class.
+
+87
+00:05:57,870 --> 00:05:59,876
+Refactor this to use the strategy pattern.
+
+88
+00:06:00,238 --> 00:06:03,620
+Each time you get a precise diff on exactly what you are asked for.
+
+89
+00:06:03,982 --> 00:06:04,900
+Nothing else changes.
+
+90
+00:06:05,390 --> 00:06:07,460
+Now one thing most developers never discover.
+
+91
+00:06:07,950 --> 00:06:09,732
+Command K works in the terminal too.
+
+92
+00:06:10,222 --> 00:06:14,468
+Open the integrated terminal, press Command K and type in plain English.
+
+93
+00:06:14,830 --> 00:06:17,188
+Show me the last five commit messages for this project.
+
+94
+00:06:17,648 --> 00:06:20,452
+Or run all unit tests and lock the failures.
+
+95
+00:06:20,878 --> 00:06:22,404
+It writes the shell command for you.
+
+96
+00:06:22,734 --> 00:06:25,412
+Really useful when you cannot remember exact syntax.
+
+97
+00:06:25,934 --> 00:06:30,628
+And one important boundary to know use command k for targeted changes in a single file.
+
+98
+00:06:30,894 --> 00:06:34,308
+The moment your change involves more than one file, switch to chat.
+
+99
+00:06:34,702 --> 00:06:40,964
+You will get worse results if you push Command K beyond what it is designed for. So that covers tab and command-k.
+
+100
+00:06:41,518 --> 00:06:44,900
+Now let's talk about chat, which is where things get more powerful.
+
+101
+00:06:45,646 --> 00:06:47,492
+Command L opens the chat panel.
+
+102
+00:06:47,982 --> 00:06:54,180
+You'll use this whenever you need reasoning, multi-file changes, or want to ask questions about how your code works.
+
+103
+00:06:54,766 --> 00:06:58,372
+The key difference between this and something like ChatGPT is context.
+
+104
+00:06:58,734 --> 00:07:02,404
+When you ask cursor something here, it is not answering from general knowledge alone.
+
+105
+00:07:02,926 --> 00:07:08,228
+It has full awareness of your code base, the files, the structure, the relationships between things.
+
+106
+00:07:08,782 --> 00:07:10,500
+But here is something important to understand.
+
+107
+00:07:10,894 --> 00:07:15,364
+Cursor does not automatically know which part of your code base is relevant to your question.
+
+108
+00:07:15,790 --> 00:07:16,644
+You have to tell it.
+
+109
+00:07:16,878 --> 00:07:19,044
+And that is what the add system is for.
+
+110
+00:07:19,374 --> 00:07:25,764
+And getting good at this is honestly what separate developers who get great results from developers who get inconsistent results.
+
+111
+00:07:26,382 --> 00:07:34,084
+So type at the rate inside the chat and you can reference specific files, folders, official documentation, your git history, your terminal output,
+
+112
+00:07:34,478 --> 00:07:35,748
+even live web content.
+
+113
+00:07:36,014 --> 00:07:37,924
+Let me show you what this looks like in our project.
+
+114
+00:07:38,414 --> 00:07:40,132
+There is an error in the terminal right now.
+
+115
+00:07:40,494 --> 00:07:43,204
+The task management notification is failing silently.
+
+116
+00:07:43,790 --> 00:07:47,716
+So I open a new chat, type add terminal to pull in the error output.
+
+117
+00:07:48,270 --> 00:07:52,132
+Then add notification service.js to bring in the relevant file.
+
+118
+00:07:52,718 --> 00:07:53,764
+And I describe the problem.
+
+119
+00:07:54,350 --> 00:07:56,644
+Cursor has both the error and the code.
+
+120
+00:07:57,038 --> 00:07:58,820
+It identifies the issue immediately.
+
+121
+00:07:59,246 --> 00:08:04,804
+No copy pasting the error into separate window, no context switching, everything is right here.
+
+122
+00:08:05,454 --> 00:08:09,700
+Now, there is one principle I want you to remember, and it applies throughout the entire course.
+
+123
+00:08:10,094 --> 00:08:12,580
+Bigger context does not mean better answers.
+
+124
+00:08:13,230 --> 00:08:14,564
+Relevance beats volume.
+
+125
+00:08:14,894 --> 00:08:21,796
+If you dump your entire code base into context for simple bug fix, you'll get a worse answer than if you reference just the two files involved.
+
+126
+00:08:22,158 --> 00:08:25,540
+The model gets confused by noise the same way a human engineer would.
+
+127
+00:08:25,870 --> 00:08:36,036
+So if you want someone to fix a bug in the notification service, you do not hand them the entire codebase and say, hey, go figure it out. You say, here is the file, here is the error, fix it.
+
+128
+00:08:36,494 --> 00:08:41,124
+Always open a new chat for every new task. This is not just about saving tokens.
+
+129
+00:08:41,678 --> 00:08:42,980
+This is the shallow reason.
+
+130
+00:08:43,182 --> 00:08:49,284
+The real reason is that stale context from a previous task causes the agent to make assumptions based on the wrong problem.
+
+131
+00:08:49,678 --> 00:08:52,580
+It is the number one cause of a bad output in cursor.
+
+132
+00:08:53,006 --> 00:08:54,404
+One task, one chat.
+
+133
+00:08:54,672 --> 00:09:00,932
+Make it a habit from day one. When you are debugging, combine add terminal and add screenshot in the same message.
+
+134
+00:09:01,358 --> 00:09:05,028
+Give it the error output and a screenshot of what you are seeing in the browser.
+
+135
+00:09:05,392 --> 00:09:12,836
+That combination cuts the back and forth significantly because the model has both the technical signal and the visual context at the same time.
+
+136
+00:09:13,262 --> 00:09:16,644
+And here is a workflow we are going to use ourselves later in this course.
+
+137
+00:09:17,102 --> 00:09:25,072
+If you need to repeat a pattern across multiple services, say you add error handling to the notification service in the last commit and now want the same in
+
+138
+00:09:25,232 --> 00:09:34,752
+all the services, open a new chat and say, Look at what we did in a commit ABC123 and implement the same error handling pattern in email service.js.
+
+139
+00:09:35,310 --> 00:09:38,020
+Cursor reads the dev and mirrors the pattern exactly.
+
+140
+00:09:38,446 --> 00:09:41,156
+No copy paste, no re-explaining from scratch.
+
+141
+00:09:41,710 --> 00:09:46,308
+So to summarize, tab when you are in flow and want the AI to keep up with you.
+
+142
+00:09:46,894 --> 00:09:50,308
+Command K when you know exactly what needs to change in one place.
+
+143
+00:09:51,022 --> 00:09:54,500
+Chat when you need reasoning or changes across multiple files.
+
+144
+00:09:55,182 --> 00:10:00,196
+Get comfortable with these three and you'll already be more productive than most developers using cursor.
+
+145
+00:10:01,102 --> 00:10:05,412
+Alright, we have fixed the notification service error handling and debugged a terminal issue.
+
+146
+00:10:05,838 --> 00:10:07,044
+The project is coming along.
+
+147
+00:10:07,310 --> 00:10:10,512
+Now let's talk about how to build entire features end-to-end.
+
+148
+00:10:10,990 --> 00:10:12,612
+Plan mode and agent mode.
+
+149
+00:10:13,134 --> 00:10:19,684
+Now, most developers open cursor, switch straight to agent mode, describe what they want and let it run.
+
+150
+00:10:20,078 --> 00:10:22,628
+And most of the time they end up in a correction loop.
+
+151
+00:10:22,992 --> 00:10:25,700
+The agent did something reasonable but not quite right.
+
+152
+00:10:26,158 --> 00:10:31,460
+They correct it, it drifts again, they correct again, it gets frustrating fast.
+
+153
+00:10:32,014 --> 00:10:35,972
+The fix is plan mode, and once you use it properly, you will not go back.
+
+154
+00:10:36,366 --> 00:10:37,092
+Here is what I mean.
+
+155
+00:10:37,710 --> 00:10:40,356
+We need to add a task labels feature to our project.
+
+156
+00:10:40,878 --> 00:10:45,444
+The ability to tag tasks with labels like urgent, blocked, in review.
+
+157
+00:10:45,998 --> 00:10:49,956
+This involves front end changes, back end changes, and a database migration.
+
+158
+00:10:50,350 --> 00:10:58,180
+Exactly the kind of task where agent mode alone, without clear direction, will produce something that works but does not fit the rest of the code base.
+
+159
+00:10:58,958 --> 00:11:02,180
+So I switch the chat to plan mode and describe what I want.
+
+160
+00:11:02,798 --> 00:11:04,836
+Cursor does not write a single line of code yet.
+
+161
+00:11:05,358 --> 00:11:12,868
+Instead, it generates an architecture overview, the database schema changes, and a complete checklist of every step it plans to take.
+
+162
+00:11:13,550 --> 00:11:20,356
+I can read through this, edit it, add a to-do item, remove something that is out of scope and adjust the approach.
+
+163
+00:11:20,878 --> 00:11:24,740
+The plan is something I own and I can change before anything gets touched.
+
+164
+00:11:25,486 --> 00:11:27,716
+Once the plan looks right, I hit build.
+
+165
+00:11:28,142 --> 00:11:32,516
+That is the moment cursor switches automatically into agent mode and starts executing.
+
+166
+00:11:32,974 --> 00:11:42,788
+It works through the checklist, writes the database migration, updates the task model, adds the API endpoints, updates the front end, and checks off each item as it goes.
+
+167
+00:11:43,182 --> 00:11:46,308
+I'm not doing anything except watching and occasionally reviewing.
+
+168
+00:11:46,830 --> 00:11:49,284
+Now here is something important to understand about how this works.
+
+169
+00:11:49,838 --> 00:11:52,740
+The code is being written into your actual files as it goes.
+
+170
+00:11:53,134 --> 00:11:56,004
+It already exists on disk the moment the agent writes it.
+
+171
+00:11:56,846 --> 00:11:58,980
+So before you hit keep all, test first.
+
+172
+00:11:59,502 --> 00:12:03,012
+Run the app, check the behavior, make sure it is doing what you expected.
+
+173
+00:12:03,406 --> 00:12:04,132
+Then accept.
+
+174
+00:12:04,494 --> 00:12:06,948
+If something went wrong, you have the undo all button.
+
+175
+00:12:07,246 --> 00:12:09,572
+But that window closes as you keep building.
+
+176
+00:12:10,062 --> 00:12:13,028
+Which is why you test before accepting, not after.
+
+177
+00:12:13,550 --> 00:12:16,708
+For anything non trivial, always start with plan mode.
+
+178
+00:12:17,070 --> 00:12:21,028
+It forces you to think clearly about what you want before the agent touches your code.
+
+179
+00:12:21,614 --> 00:12:24,580
+Vague instructions in agent mode lead to vague output.
+
+180
+00:12:25,038 --> 00:12:28,100
+A clear plan upfront saves multiple correction cycles.
+
+181
+00:12:29,070 --> 00:12:34,756
+If you already have requirements document or a PRD, bring it with add file at the start of plan mode.
+
+182
+00:12:35,054 --> 00:12:38,180
+Cursor reads it and builds the plan directly from your requirements.
+
+183
+00:12:38,798 --> 00:12:40,388
+You skip all the clarifying questions.
+
+184
+00:12:41,294 --> 00:12:44,484
+And this is the single most important habit around agent mode.
+
+185
+00:12:44,686 --> 00:12:48,228
+Commit your code before you run the agent, not after, before.
+
+186
+00:12:48,526 --> 00:12:51,780
+Right now, before I hit build on this plan, I am making a git commit.
+
+187
+00:12:52,048 --> 00:12:57,348
+If the agent touches 15 files and goes in a direction I do not want, I have a clean revert point.
+
+188
+00:12:57,710 --> 00:12:59,332
+And this will save you at some point.
+
+189
+00:12:59,598 --> 00:13:00,516
+I can guarantee that.
+
+190
+00:13:00,942 --> 00:13:04,612
+Once the agent finishes, there is a built-in quality gate worth using.
+
+191
+00:13:05,006 --> 00:13:10,148
+One model wrote the code, you can ask a second model to review those changes before you accept them.
+
+192
+00:13:10,510 --> 00:13:12,292
+It catches things the first model missed.
+
+193
+00:13:12,688 --> 00:13:15,300
+No extra tools, it is right there in the interface.
+
+194
+00:13:16,046 --> 00:13:17,956
+The task label feature is done and tested.
+
+195
+00:13:18,382 --> 00:13:20,708
+The project is now about 55% complete.
+
+196
+00:13:21,102 --> 00:13:28,708
+We have auth, task card, error handling in the notification service, and now full task labels with front end and backend wired up.
+
+197
+00:13:29,088 --> 00:13:32,516
+Everything we have built so far, we did it through individual interactions.
+
+198
+00:13:32,974 --> 00:13:35,396
+One chat, one task, one developer.
+
+199
+00:13:35,950 --> 00:13:42,148
+But if you are on a team or even just working on the same project over several months, you run into a different problem.
+
+200
+00:13:42,702 --> 00:13:45,124
+The agent does not remember anything between sessions.
+
+201
+00:13:45,550 --> 00:13:47,204
+Every new chart is a blank slate.
+
+202
+00:13:47,566 --> 00:13:50,596
+It does not know your team uses async database calls everywhere.
+
+203
+00:13:50,990 --> 00:13:52,836
+It does not know your folder conventions.
+
+204
+00:13:53,166 --> 00:13:57,412
+It does not know there is a legacy auth module that should never be modified directly.
+
+205
+00:13:58,094 --> 00:14:02,788
+Rules, commands, and memories are how you fix that. Let's go through each one.
+
+206
+00:14:03,438 --> 00:14:04,676
+Starting with rules.
+
+207
+00:14:04,910 --> 00:14:10,180
+A rule is a persistent instruction that the agent reads automatically before every interaction in your project.
+
+208
+00:14:10,542 --> 00:14:15,236
+You write it once and it applies everywhere without you repeating yourself in every chat.
+
+209
+00:14:15,598 --> 00:14:19,088
+Think of it as the onboarding talk you would give a new engineer on day one.
+
+210
+00:14:19,374 --> 00:14:23,492
+Your coding standards, your architectural decisions, your do's and don'ts.
+
+211
+00:14:23,886 --> 00:14:26,884
+The fastest way to get started is to type generate in the chat.
+
+212
+00:14:27,182 --> 00:14:34,020
+Cursor scans your existing codebase, the patterns you are already using, the libraries you have imported, the way your files are structured,
+
+213
+00:14:34,318 --> 00:14:37,380
+and generates a rules file that matches your project automatically.
+
+214
+00:14:37,614 --> 00:14:39,300
+Let me do this on our project right now.
+
+215
+00:14:39,502 --> 00:14:40,900
+I type slash /generate.
+
+216
+00:14:41,198 --> 00:14:48,388
+Cursor analyzes the code base and in about 30 seconds it has produced a solid set of rules that reflect what we have already built.
+
+217
+00:14:48,688 --> 00:14:56,516
+I review them, make a few adjustments, and now every future agent interaction on this project follows these rules without me having to mention them.
+
+218
+00:14:56,782 --> 00:15:02,848
+Instead of writing rules from scratch, let cursor read your existing code and generate them. Then customize from there.
+
+219
+00:15:03,086 --> 00:15:07,908
+Now once you have a base, there is a community resource called cursor.directory worth bookmarking.
+
+220
+00:15:08,334 --> 00:15:16,068
+It has battle-tested rules for specific stacks Next.js, TypeScript, Python, React, UI, and UX patterns and more.
+
+221
+00:15:16,494 --> 00:15:21,412
+Instead of figuring out best practices from scratch, you find the rule set that matches your stack.
+
+222
+00:15:21,710 --> 00:15:23,300
+Bring it in and adjust it.
+
+223
+00:15:23,598 --> 00:15:26,340
+Someone has already done the hard work for your exact setup.
+
+224
+00:15:26,990 --> 00:15:31,236
+In the cursor directory, we can see some well-documented templates written by developers.
+
+225
+00:15:31,534 --> 00:15:33,188
+Like for the next JS project we have.
+
+226
+00:15:33,742 --> 00:15:37,636
+You are an expert in web development, include JS, TS and CSS.
+
+227
+00:15:38,158 --> 00:15:43,460
+Just have a look into it and try it out. You can also scope rules to specific parts of your project.
+
+228
+00:15:43,950 --> 00:15:50,608
+If I only want a rule to apply to Node.js backend files, I set the glob pattern to backend slash start.js.
+
+229
+00:15:51,086 --> 00:15:54,564
+Frontend rules stay on the front end, backend rules stay on the back end.
+
+230
+00:15:54,830 --> 00:15:58,852
+Irrelevant rules add noise and noise reduces our output quality.
+
+231
+00:15:59,214 --> 00:16:01,248
+There are three types of rules worth knowing about.
+
+232
+00:16:01,488 --> 00:16:06,884
+Project rules live in your git repo and apply to every developer on the team when they pull.
+
+233
+00:16:07,328 --> 00:16:12,036
+User rules are personal preferences that stay on your machine and never get committed.
+
+234
+00:16:12,398 --> 00:16:15,268
+For team conventions, always use project rules.
+
+235
+00:16:15,694 --> 00:16:20,868
+Now let's talk about commands because this is where individual productivity becomes team productivity.
+
+236
+00:16:21,326 --> 00:16:26,468
+A command is a reusable instruction you save as a markdown file and trigger it with a slash.
+
+237
+00:16:26,798 --> 00:16:30,244
+The best way to understand this is through a concrete example from our project.
+
+238
+00:16:30,702 --> 00:16:37,060
+I need to add structured logging to multiple services the task service, the notification service, and the email service.
+
+239
+00:16:37,582 --> 00:16:42,916
+I could write a detailed prompt every single time explaining exactly how I want the logging structured.
+
+240
+00:16:43,248 --> 00:16:51,172
+Or I can write that prompt once, save it as the command, and from then on type slash add logging and point it at any file.
+
+241
+00:16:51,534 --> 00:16:52,516
+Let me create this now.
+
+242
+00:16:52,782 --> 00:17:00,260
+I go to the commands folder inside.cursor, create a new file called addlogging.md and write out the exact instructions.
+
+243
+00:17:00,686 --> 00:17:11,088
+Import the login library, create a logger object, add a log line at the start of every function with relevant context, add error logging in every exception block, and I include a
+
+244
+00:17:11,200 --> 00:17:12,580
+simple snippet as a reference.
+
+245
+00:17:12,974 --> 00:17:14,148
+Command is ready.
+
+246
+00:17:14,542 --> 00:17:20,208
+Now I open a new chat, type slash add logging, reference the notification service, and hit enter.
+
+247
+00:17:20,526 --> 00:17:23,940
+Cursor reads the command file and implements the pattern consistently.
+
+248
+00:17:24,430 --> 00:17:25,604
+Same structure every time.
+
+249
+00:17:26,126 --> 00:17:29,028
+Now I do the same for the task service and email service.
+
+250
+00:17:29,486 --> 00:17:32,868
+Three services, same logging pattern, no repeated prompts.
+
+251
+00:17:33,326 --> 00:17:41,252
+If you find yourself writing the same type of prompt more than twice, adding logging, writing test, migrating an API version, save it as a command.
+
+252
+00:17:41,550 --> 00:17:45,412
+You write the detailed instructions once and reuse them indefinitely.
+
+253
+00:17:45,806 --> 00:17:49,092
+The commands folder lives inside.cursor in your repository.
+
+254
+00:17:49,518 --> 00:17:54,340
+Commit it to git and every developer who pulls the repo gets all your commands automatically.
+
+255
+00:17:54,830 --> 00:18:01,220
+A new developer joins, pulls a repo, and immediately has access to every reusable workflow your team has built.
+
+256
+00:18:01,550 --> 00:18:06,564
+So to bring this section together, rules encode your standards so the agent follows them automatically.
+
+257
+00:18:06,926 --> 00:18:10,052
+Commands make your best workflows reusable across the whole team.
+
+258
+00:18:10,670 --> 00:18:15,268
+Memories give the agent persistent context so you are not starting from scratch every session.
+
+259
+00:18:15,726 --> 00:18:17,824
+Set these up at the start of every project.
+
+260
+00:18:18,094 --> 00:18:24,164
+It takes about 30 minutes the first time and pays back across every single agent interaction from that point forward.
+
+261
+00:18:24,430 --> 00:18:26,224
+Our project is now at about 70%.
+
+262
+00:18:26,734 --> 00:18:34,884
+Error handling in place, task levels build, structured logging consistent across all services, and the agent now has the right rules to follow going forward.
+
+263
+00:18:35,118 --> 00:18:37,156
+Now let's get into the advanced workflows.
+
+264
+00:18:37,518 --> 00:18:40,676
+The stuff that will genuinely change how much you can shape in a day.
+
+265
+00:18:41,038 --> 00:18:44,612
+Everything up to this point has been one agent, one task, one developer.
+
+266
+00:18:44,864 --> 00:18:47,140
+That alone is a significantly productivity gain.
+
+267
+00:18:47,424 --> 00:18:50,372
+But there is another level, and that is what the section covers.
+
+268
+00:18:50,862 --> 00:18:55,172
+Let's start with the parallel agents because this changes how you think about your workday.
+
+269
+00:18:55,630 --> 00:19:02,564
+Cursor lets you run multiple agents at the same time, each one working on completely separate tasks in its own isolated workspace.
+
+270
+00:19:03,054 --> 00:19:04,964
+Under the hood, it uses Git work trees.
+
+271
+00:19:05,344 --> 00:19:09,700
+Each agent gets its own branch and cannot interfere with what the others are doing.
+
+272
+00:19:10,030 --> 00:19:12,324
+Here is what this looks like on our project right now.
+
+273
+00:19:12,544 --> 00:19:13,744
+I have three things to do.
+
+274
+00:19:14,030 --> 00:19:23,332
+Add pagination to the task list API, write unit test for the notification service, and fix the task counter bug that has been in the skeleton since the start.
+
+275
+00:19:23,584 --> 00:19:25,636
+Normally that is a sequential afternoon.
+
+276
+00:19:25,838 --> 00:19:28,068
+I kick off all three agents simultaneously.
+
+277
+00:19:28,462 --> 00:19:34,788
+While agent 1 is implementing pagination, agent 2 is writing test, agent 3 is tracking down the bug.
+
+278
+00:19:35,214 --> 00:19:37,412
+I review all three outputs when they are done.
+
+279
+00:19:37,838 --> 00:19:40,580
+That sequential afternoon just became about an hour.
+
+280
+00:19:41,166 --> 00:19:44,644
+Use parallel agents for tasks that are genuinely independent of each other.
+
+281
+00:19:45,038 --> 00:19:48,356
+A new feature, a bug fix, and a test suite are perfect candidates.
+
+282
+00:19:48,814 --> 00:19:52,324
+They touch different parts of the code base and do not need to coordinate.
+
+283
+00:19:52,622 --> 00:19:55,748
+Do not run parallel agents on tasks that depend on each other's output.
+
+284
+00:19:56,110 --> 00:19:59,140
+That creates merge conflicts that cost more time than you save.
+
+285
+00:19:59,406 --> 00:20:02,820
+Now let's talk about background agents, which takes it even further.
+
+286
+00:20:03,086 --> 00:20:05,988
+Background agents run in the cloud, not on your machine.
+
+287
+00:20:06,350 --> 00:20:15,344
+You describe a task, cursor spins up a remote, isolated environment, clones your repository, works on a separate branch, and when it is done, it produces a merge ready
+
+288
+00:20:15,504 --> 00:20:19,300
+pull request with screenshots, logs, and a recording of what it did.
+
+289
+00:20:19,630 --> 00:20:22,212
+You can trigger a background agent and close your laptop.
+
+290
+00:20:22,384 --> 00:20:23,268
+It keeps working.
+
+291
+00:20:23,534 --> 00:20:26,148
+You come back and there is a PR waiting for your review.
+
+292
+00:20:26,446 --> 00:20:30,692
+In our project, I can say implement error handling in all the APIs of the project.
+
+293
+00:20:31,086 --> 00:20:36,260
+The background agent picks that up, works through it, and produces a PR I review like any other.
+
+294
+00:20:36,654 --> 00:20:39,044
+The keyword with background agent is well defined.
+
+295
+00:20:39,374 --> 00:20:43,972
+A vague instruction produces a vague PR that takes longer to review than it's saved.
+
+296
+00:20:44,270 --> 00:20:46,532
+So treat it like writing a proper ticket.
+
+297
+00:20:46,798 --> 00:20:49,252
+Clear scope, clear acceptance criteria.
+
+298
+00:20:49,518 --> 00:20:51,716
+And you do not have to open cursor to trigger one.
+
+299
+00:20:51,984 --> 00:20:54,692
+You can do it directly from Slack, GitHub, and Linear.
+
+300
+00:20:54,894 --> 00:21:01,188
+If your team manages to work in Linear, assign a ticket to a background agent right from there and it starts working immediately.
+
+301
+00:21:01,646 --> 00:21:05,572
+So background agents are powerful, but I want you to notice what actually happened there.
+
+302
+00:21:06,126 --> 00:21:07,300
+Your code left your machine.
+
+303
+00:21:07,630 --> 00:21:10,500
+Cursor cloned your repository into its own cloud to do the work.
+
+304
+00:21:11,150 --> 00:21:16,260
+For most projects, you might not mind that your data runs in cursor servers under their control and visibility.
+
+305
+00:21:16,814 --> 00:21:20,324
+But there is a whole category of code where that single step is not allowed.
+
+306
+00:21:21,070 --> 00:21:29,028
+If you work on a banking system, a healthcare app, anything where the code itself is sensitive, your security team will not let you send it to an outside cloud.
+
+307
+00:21:29,678 --> 00:21:32,676
+I spent years on code bases like that at PayPal and Capital One.
+
+308
+00:21:33,134 --> 00:21:37,220
+On those repos, a tool that clones your code to the cloud gets blocked on day one.
+
+309
+00:21:37,870 --> 00:21:40,132
+That is exact problem today's sponsor is built for.
+
+310
+00:21:41,166 --> 00:21:46,116
+Origin enables agentic software development secured from third-party data retention and exploitation.
+
+311
+00:21:46,478 --> 00:21:47,396
+The idea is simple.
+
+312
+00:21:47,790 --> 00:21:51,428
+In the origin IDE, you can build locally or on the confidential cloud.
+
+313
+00:21:52,014 --> 00:21:56,228
+In confidential cloud mode, you get the same kind of cloud agent workflow you just saw.
+
+314
+00:21:56,750 --> 00:22:05,156
+But your code runs inside a sealed hardware isolated environment that you can actually verify is encrypted from them, the model providers, and the cloud providers.
+
+315
+00:22:05,934 --> 00:22:08,260
+It starts in Origin Studio, the web console.
+
+316
+00:22:08,686 --> 00:22:13,252
+I connect the repo and Origin reads the code base and turns it into a clean list of tasks.
+
+317
+00:22:14,030 --> 00:22:17,412
+I pick a task and launch a confidential session right from that list.
+
+318
+00:22:17,742 --> 00:22:21,060
+That session opens in Origin CD, the desktop ID.
+
+319
+00:22:21,614 --> 00:22:25,316
+Remember how Cursor uses work trees to isolate parallel agents on your machine?
+
+320
+00:22:25,838 --> 00:22:31,172
+Origin uses the same work tree idea, but each one runs inside a hardware sealed sandbox in the cloud.
+
+321
+00:22:31,598 --> 00:22:33,188
+Now I work exactly like before.
+
+322
+00:22:33,614 --> 00:22:36,452
+I give it the same task we gave the background agent earlier.
+
+323
+00:22:37,070 --> 00:22:38,980
+Add error handling to all the APIs.
+
+324
+00:22:39,758 --> 00:22:44,964
+The agent edits the files and runs the commands, but all of that is happening inside the sealed environment.
+
+325
+00:22:45,294 --> 00:22:48,356
+Your code, your prompts, and your secrets are never exposed.
+
+326
+00:22:48,974 --> 00:22:50,884
+And the model do not keep anything you send.
+
+327
+00:22:51,310 --> 00:22:55,076
+Nothing is stored and nothing is used for training by origin or by the model provider.
+
+328
+00:22:55,534 --> 00:22:58,500
+And here's the part that makes this different from a normal cloud agent.
+
+329
+00:22:58,864 --> 00:23:00,164
+You can ask for proof.
+
+330
+00:23:00,686 --> 00:23:04,644
+One click gives you a report that shows your code actually ran inside that sealed environment.
+
+331
+00:23:04,974 --> 00:23:08,836
+And once the work is done, the environment is torn down, so nothing is left behind.
+
+332
+00:23:09,422 --> 00:23:12,292
+And if you do not even want the cloud, there is a local mode.
+
+333
+00:23:12,782 --> 00:23:18,180
+You download Origin CDE on your Mac, open your local files, and the agent works fully on your laptop.
+
+334
+00:23:18,510 --> 00:23:20,260
+No cloud and no GitHub needed.
+
+335
+00:23:20,590 --> 00:23:25,604
+So if your team has ever blocked a cloud AI tool for security reasons, this is the one to look at.
+
+336
+00:23:25,870 --> 00:23:28,064
+The link is in the description and you can sign up there.
+
+337
+00:23:28,238 --> 00:23:31,268
+Moving on to Bugbot, which is one of my favorite features in Cursor.
+
+338
+00:23:31,598 --> 00:23:36,612
+Bugbot connects to your GitHub repository and automatically reviews every pull request you open.
+
+339
+00:23:36,784 --> 00:23:43,236
+It scans the changes, identifies potential bugs, and leaves comments directly on the PR, exactly like a human reviewer would.
+
+340
+00:23:43,504 --> 00:23:46,340
+When it finds an issue, it adds a fix-in cursor link.
+
+341
+00:23:46,766 --> 00:23:50,704
+You click it, cursor opens with a pre-filled prompt pointing directly to the problem.
+
+342
+00:23:50,958 --> 00:23:52,036
+You fix it and push.
+
+343
+00:23:52,750 --> 00:23:54,308
+Think about what this means at scale.
+
+344
+00:23:54,624 --> 00:23:56,868
+Every PR gets an immediate review pass.
+
+345
+00:23:57,230 --> 00:24:03,652
+Your human reviewers spend their time on architecture and logic rather than catching missing null checks and unhandled exceptions.
+
+346
+00:24:04,302 --> 00:24:06,624
+Set a bug bot on every active repository.
+
+347
+00:24:06,862 --> 00:24:10,436
+5 minutes to configure runs automatically from that point forward.
+
+348
+00:24:10,798 --> 00:24:13,508
+Now let's talk about MCP, Model Context Protocol.
+
+349
+00:24:13,678 --> 00:24:17,796
+And this is what turns cursor from a great editor into a connected development environment.
+
+350
+00:24:18,064 --> 00:24:20,292
+MCP is a plugin system for Cursor's agent.
+
+351
+00:24:20,464 --> 00:24:26,276
+It lets the agent connect to external tools and services like GitHub, Notion, Figma, Stripe, Playwright, Databases.
+
+352
+00:24:26,624 --> 00:24:29,220
+There are over 1800 MCP servers available.
+
+353
+00:24:29,486 --> 00:24:35,332
+When you add one, the agent can interact with that tool directly from within your workflow without you switching context.
+
+354
+00:24:35,598 --> 00:24:38,464
+The most immediately useful one to install is Context7.
+
+355
+00:24:38,766 --> 00:24:39,264
+Here is why.
+
+356
+00:24:39,534 --> 00:24:44,932
+When Cursor writes code using a framework like Fast API or Next.js, it draws on its training data.
+
+357
+00:24:45,230 --> 00:24:47,268
+But that training data has a cutoff date.
+
+358
+00:24:47,502 --> 00:24:53,316
+If a framework released a significant update 6 months ago, cursor might still be generating code against the old API.
+
+359
+00:24:53,614 --> 00:24:57,380
+That code compiles, it runs, but it uses deprecated patterns.
+
+360
+00:24:57,646 --> 00:24:59,620
+You find out when something breaks in production.
+
+361
+00:24:59,918 --> 00:25:06,180
+Context 7 is an MCV server that always has the latest documentation for major frameworks, updated daily.
+
+362
+00:25:06,510 --> 00:25:15,620
+When you add it and set a rule that says always use context 7 for API documentation, the agent fetches current docs before writing any framework-specific code.
+
+363
+00:25:16,046 --> 00:25:18,660
+You stop getting outdated patterns automatically.
+
+364
+00:25:19,022 --> 00:25:25,700
+So install context 7 as your first MCP server, one-click setup, then add that rule to your rules file and you are done.
+
+365
+00:25:26,126 --> 00:25:29,924
+After that, add MCP servers incrementally, not all at once.
+
+366
+00:25:30,350 --> 00:25:32,144
+Start with the tools you use every day.
+
+367
+00:25:32,558 --> 00:25:38,084
+GitHub for PR management, Notion if that is what your specs live, playwrite if you write end-to-end test.
+
+368
+00:25:38,384 --> 00:25:40,708
+Each one removes a context switch from your workflow.
+
+369
+00:25:41,070 --> 00:25:43,140
+The last thing I want to talk about is hooks.
+
+370
+00:25:43,470 --> 00:25:47,140
+A hook lets you run your own scripts at specific points in the agent loop.
+
+371
+00:25:47,424 --> 00:25:51,044
+After every file edit, before a command runs, and after a commit.
+
+372
+00:25:51,278 --> 00:25:53,024
+Our project is now at about 80%.
+
+373
+00:25:53,486 --> 00:25:56,868
+Pagination is in, tests are written, the counter bug is fixed.
+
+374
+00:25:57,198 --> 00:26:06,852
+Bugbot is catching issues on every PR, and the agent is pulling current documentation through context 7. That is a realistic end state for a real project using a real workflow.
+
+375
+00:26:07,104 --> 00:26:10,340
+Your job as a developer is no longer to write every line of code.
+
+376
+00:26:10,830 --> 00:26:16,100
+Your job is to give the right context, set the right constraints, and validate the output.
+
+377
+00:26:16,660 --> 00:26:20,280
+Intent, context, constraints, validate, repeat.
+
+378
+00:26:20,910 --> 00:26:22,244
+The agent executes.
+
+379
+00:26:22,592 --> 00:26:23,940
+You guide and review.
+
+380
+00:26:24,238 --> 00:26:28,676
+The developers who get 10x more productive with cursor are not the ones who know the most shortcuts.
+
+381
+00:26:29,152 --> 00:26:36,516
+They are the ones who give better context, write better rules, build better commands, and use plan mode before they let the agent run.
+
+382
+00:26:36,846 --> 00:26:40,356
+That skill gets more valuable as the model gets better, not less.
+
+383
+00:26:40,686 --> 00:26:43,012
+One last thing, do not go on full autopilot.
+
+384
+00:26:43,182 --> 00:26:46,820
+Review what the agent writes, understand the changes before you accept them.
+
+385
+00:26:47,022 --> 00:26:51,632
+The code that shifts to production is your responsibility regardless of who or what wrote it.
+
+386
+00:26:51,758 --> 00:26:54,660
+I have linked the project skeleton we use throughout the course in the description.
+
+387
+00:26:55,022 --> 00:26:59,780
+Download it, open it in cursor, and try these tips as you work through the project yourself.
+
+388
+00:26:59,952 --> 00:27:02,832
+That is really the best way to get comfortable with all of this.
+
+389
+00:27:03,086 --> 00:27:04,672
+I'll see you in the next one.
+

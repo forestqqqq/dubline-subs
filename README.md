@@ -7,6 +7,7 @@
 | [Claude Code — полный курс. От первого промпта до субагентов и скиллов](medias/ZYCK0/) | Владилен Минин | 2026-10-13 |
 | [FULL Claude Tutorial For Beginners in 2026! (FULL COURSE)](medias/XG3MN/) | Productive Dude | 2026-10-13 |
 | [I Tested ChatGPT Dot vs GrokBot (Not Even Close)](medias/V0XR8/) | Jack Roberts | 2026-10-13 |
+| [Cursor Deep Dive: How Senior Engineers Actually Use Cursor for 10x Productivity](medias/TX8ES/) | ByteMonk | 2026-10-13 |
 | [Claude Code: The Complete AI-Native SDLC Guide](medias/SCYDM/) | Eric Tech | 2026-10-13 |
 | [Claude's Creator Just Told Us How to Actually Use Claude in 2026](medias/P8WBA/) | AI Edge | 2026-10-13 |
 | [IT Fundamentals Course – Hardware, Cloud, DevOps, Networking, Security, Databases, DNS, Git, Linux](medias/HYRE1/) | freeCodeCamp.org | 2026-10-13 |
