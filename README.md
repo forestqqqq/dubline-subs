@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [Claude Code — полный курс. От первого промпта до субагентов и скиллов](medias/ZYCK0/) | Владилен Минин | 2026-10-13 |
 | [FULL Claude Tutorial For Beginners in 2026! (FULL COURSE)](medias/XG3MN/) | Productive Dude | 2026-10-13 |
 | [I Tested ChatGPT Dot vs GrokBot (Not Even Close)](medias/V0XR8/) | Jack Roberts | 2026-10-13 |
 | [Claude Code: The Complete AI-Native SDLC Guide](medias/SCYDM/) | Eric Tech | 2026-10-13 |
