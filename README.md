@@ -8,6 +8,7 @@
 | [Generative AI  With LLM Full Course \| Learn Generative AI from Scratch\| Simplilearn](medias/X1XHG/) | Simplilearn | 2026-10-14 |
 | [Master Claude Code in less than 1 Hour](medias/X16J5/) | Bad Decisions Studio | 2026-10-14 |
 | [Claude Design MASTERCLASS](medias/CKXWH/) | Bad Decisions Studio | 2026-10-14 |
+| [Nobody Can Read AI Code Anymore \| Build a Full Stack Codebase Intelligence App (with AI Agents)](medias/5BZJP/) | JavaScript Mastery | 2026-10-14 |
 | [Claude Code — полный курс. От первого промпта до субагентов и скиллов](medias/ZYCK0/) | Владилен Минин | 2026-10-13 |
 | [FULL Claude Tutorial For Beginners in 2026! (FULL COURSE)](medias/XG3MN/) | Productive Dude | 2026-10-13 |
 | [I Tested ChatGPT Dot vs GrokBot (Not Even Close)](medias/V0XR8/) | Jack Roberts | 2026-10-13 |
