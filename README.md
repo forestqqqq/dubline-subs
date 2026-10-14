@@ -8,6 +8,7 @@
 | [Generative AI  With LLM Full Course \| Learn Generative AI from Scratch\| Simplilearn](medias/X1XHG/) | Simplilearn | 2026-10-14 |
 | [Master Claude Code in less than 1 Hour](medias/X16J5/) | Bad Decisions Studio | 2026-10-14 |
 | [Claude Design MASTERCLASS](medias/CKXWH/) | Bad Decisions Studio | 2026-10-14 |
+| [OpenAI researcher on agent swarms & recursive self-improvement](medias/6K555/) | Dwarkesh Patel | 2026-10-14 |
 | [Nobody Can Read AI Code Anymore \| Build a Full Stack Codebase Intelligence App (with AI Agents)](medias/5BZJP/) | JavaScript Mastery | 2026-10-14 |
 | [AI Skills with Matt Pocock](medias/4EXFJ/) | The Pragmatic Engineer | 2026-10-14 |
 | [Masterclass: How FDEs make $1M/yr deploying AI agents](medias/0C487/) | Greg Isenberg | 2026-10-14 |

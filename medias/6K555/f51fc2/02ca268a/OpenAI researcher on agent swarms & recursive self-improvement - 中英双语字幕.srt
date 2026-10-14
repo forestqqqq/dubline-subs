@@ -1,0 +1,4510 @@
+1
+00:00:00,240 --> 00:00:03,840
+今天我正在和诺姆·布朗聊天，他是 OpenAI 的研究员。
+Today I'm chatting with Noam Brown, who is a researcher at OpenAI.
+
+2
+00:00:03,950 --> 00:00:10,400
+他是成为 O1 和推理模型这些核心贡献者之一的人，现在他正致力于多智能体系统。
+He was one of the foundational contributors to what became O1 and the reasoning models, and now he's working on multi-agent systems.
+
+3
+00:00:10,670 --> 00:00:22,240
+说到这，你们上周宣布用一个由 10,000 个不同 AI 智能体组成的系统解决了 Millennium Prize 问题，这个系统在 88 小时内消耗了 1300 亿个 token。
+Speaking of which, you guys announced last week that you solved one of the Millennium Price problems with a system of 10,000 different AI agents that spent 130 billion tokens over 88 hours.
+
+4
+00:00:22,560 --> 00:00:28,004
+我之所以想和你聊聊其中一个原因是，我认为你大概在两三年前就是最早想到
+One of the reasons I'm interested in talking to you is I think you were in the first people maybe two, or three years ago,
+
+5
+00:00:28,430 --> 00:00:33,680
+推理模型将如何让我们窥见未来的那几个人之一。
+who was thinking about how the reasoning models would allow us to see into the future.
+
+6
+00:00:33,870 --> 00:00:38,480
+因为如果你增加推理计算量，你就能看到模型在几年后的基础能力会是什么样。
+Because if you scale up inference compute, you can see what the base capabilities of the models will be a few years in the future.
+
+7
+00:00:38,560 --> 00:00:47,760
+而且我觉得考虑到我们现在能实现的智能体规模巨大扩张，你现在的处境和之前类似，可以帮助我们理解未来的能力会是什么样的。
+And I feel like you're in a similar position now to help us understand what future capabilities will look like, given the enormous scaling of agent sizes that we can do right now.
+
+8
+00:00:48,174 --> 00:00:49,280
+所以我的思考方式是，
+So the way I think about it,
+
+9
+00:00:50,286 --> 00:00:59,680
+当你把这些推理模型的性能绘制出来，x 轴是推理时计算，y 轴基本上是任何推理基准的性能时，
+when you plot the performance of these reasoning models with test time compute on the x-axis and performance on basically any reasoning benchmark on the y-axis,
+
+10
+00:01:00,080 --> 00:01:07,120
+你会看到一个非常清晰的模式：这些模型思考答案的时间越长，表现就越好。这是一种非常自然的事情。人类也是一样的。
+you see a very clear pattern where the longer these models take to think about their answer, the better they do. And this is like a very natural thing. It's the same thing with people.
+
+11
+00:01:07,598 --> 00:01:14,800
+如果你参加 SATs 考试，只有五分钟完成整场考试，你肯定做不好。如果你有五个小时，你的表现可能会好得多。
+If you're taking the SATs, you have five minutes to go through the entire exam, you're not going to do very well. If you have five hours, you're probably going to do a lot better.
+
+12
+00:01:15,886 --> 00:01:22,000
+AI 模型也挺类似的，它们会花时间进行这种自我独白，去思考、去推演不同的案例，
+The AI models are pretty similar, and they'll spend that time doing this monologue to themselves, figuring out, going through different cases,
+
+13
+00:01:22,400 --> 00:01:26,240
+排除不同的可能性，并基于他们之前的某些发现进行推导。
+ruling out different possibilities, building on some of their previous discoveries.
+
+14
+00:01:26,766 --> 00:01:30,080
+问题是，当你不断推进这个过程时，你会遇到延迟瓶颈。
+The problem is that as you push that further and further, you hit a latency bottleneck.
+
+15
+00:01:30,400 --> 00:01:33,572
+你不想为了等待一个回复而坐等三年的时间。
+You don't want to sit around for three years waiting for a response.
+
+16
+00:01:34,062 --> 00:01:38,400
+所以你能做的——也是很多人做的做法——就是并行化，他们直接组建一个团队。
+And so what you can do is what a lot of people do is they parallelize, They just get a team of people.
+
+17
+00:01:39,280 --> 00:01:42,640
+如果你要创办一家公司，你就会把一群人聚在一起，这样你们就能跑得更快。
+if you're going to found a company, you want to get a group of people together so you can go faster.
+
+18
+00:01:42,958 --> 00:01:48,452
+这些 AI 模型也是一样的，让多个智能体共同完成某件事会有帮助，因为它们可以跑得更快。
+It's the same thing with these AI models that it helps to just have multiple agents working on something because they can just go faster.
+
+19
+00:01:49,440 --> 00:01:54,564
+因此，多智能体是一种在并行而非纯串行的情况下扩展推理时计算的方法。
+And so multi-agent is a way of scaling test-time compute in parallel instead of purely serial.
+
+20
+00:01:54,800 --> 00:02:03,844
+虽然它效率稍低一点，因为它不像单个智能体那样拥有全部的上下文，但它确实是
+And it is like less efficient because it doesn't have it's not like a single agent has all the context to itself, but it is like
+
+21
+00:02:04,560 --> 00:02:08,000
+一种非常有效的扩展推理时计算的方法，如果操作得当的话。
+a very like a very effective way of scaling test-time compute if it's done well.
+
+22
+00:02:08,400 --> 00:02:15,120
+好，我准备问一些比较简单的问题，因为这些系统目前还没发布。所以我们还没有公开看到这些系统是如何运作的。
+Okay, I'm gonna ask a bunch of naive questions because these systems, so this is an unreleased model. So we haven't publicly seen how these systems work.
+
+23
+00:02:15,200 --> 00:02:21,476
+所以我有一些关于这类系统的定性特征方面的困惑。
+And so I just have a bunch of ways in which I'm like confused about like what the qualitative properties of such systems are.
+
+24
+00:02:22,160 --> 00:02:31,040
+在这么短的时间内能集中如此庞大的认知投入，这让我感到震惊。
+I am shocked by the scale of cognitive effort that you can concentrate in such a short period of time.
+
+25
+00:02:31,374 --> 00:02:39,012
+如果你思考一下 1300 亿个 token 是什么概念，如果是一个人全职工作、连续不断地思考的话，
+So if you think about what 130 billion tokens are, if it was a single human thinking as you know a full-time job stretched back to back,
+
+26
+00:02:39,406 --> 00:02:45,840
+1300 亿个 token 相当于一个人持续思考大约 4000 年，按每天工作 8 小时左右的正常工作周来计算。
+130 billion tokens would be a human thinking for like 4,000 years, you know, eight hours a day or something, working a normal work week.
+
+27
+00:02:46,000 --> 00:02:58,160
+也就是说从古代苏美尔一直到今天，这种长达如此久的单线人类思维，却在 88 小时内完成了集中思考。我觉得从定性角度来看，这是一个非常重要的考量点。
+So starting from like ancient Sumeria up till today, a single sequential human thinking that long, concentrated in 88 hours. I feel like qualitatively, that is a super important consideration.
+
+28
+00:02:58,350 --> 00:03:07,120
+而且我很惊讶并没有出现更大的并行化惩罚，你可以让 10,000 个智能体协作，而且因为这些智能体可能比人类更擅长协作，
+And I'm surprised that there isn't a bigger parallelization penalty, that you can just have 10,000 agents collaborate, and because maybe the agents are better collaborating than humans might be,
+
+29
+00:03:07,440 --> 00:03:11,280
+它们跑得快得多，它们竟然能在如此大的规模上进行高效的协作。
+they're going much faster, that they can actually productively collaborate at such a big scale.
+
+30
+00:03:11,534 --> 00:03:16,320
+或者也许它们……我不确定，也许存在很大的并行化惩罚。是的，让我们先聊聊并行化惩罚，然后再谈论那些定性方面的东西。
+Or maybe they, I don't know, maybe there is a big parallelization penalty. Yeah, let's talk about the parallelization penalty and then we can talk about the qualitative stuff.
+
+31
+00:03:16,400 --> 00:03:21,120
+因为事实是，我们还没有关于多智能体扩展到这种规模的很好科学研究。是的。
+Because the truth is that we don't have very good science on multi-agent scaling up to this kind of scale. Yeah.
+
+32
+00:03:21,360 --> 00:03:25,600
+所以当我们发布 5.6 时，我认为那是我们第一次在
+So when we released 5.6, I think that was the first time that we had
+
+33
+00:03:26,640 --> 00:03:34,960
+我们的模型中拥有真正的多智能体系统。而且我们在博客文章中确实展示了一些关于多智能体系统扩展性能的图表。
+a proper multi-agent system in uh in our models. And we actually did in the blog post show some plots of the scaling performance of multi-agent systems.
+
+34
+00:03:35,120 --> 00:03:38,116
+因为我们把它作为一个选项，就是超强模式。
+Because we we have it as an option, uh, it's ultra mode.
+
+35
+00:03:38,480 --> 00:03:41,040
+默认是四个智能体，但你可以将其设置为更高。
+And the default is four agents, but you can set that to higher.
+
+36
+00:03:41,120 --> 00:03:46,800
+在图表中，我们展示了：好的，这是单个智能体、四个智能体协作以及 16 个智能体协作在一些基准测试中的表现。
+And in the plot, we show okay, here's what the performance looks like on some benchmarks for one agent, for four agents working together, for 16 agents working together.
+
+37
+00:03:47,000 --> 00:03:56,388
+你看到的，这取决于具体的基准测试，但对于某些基准测试来说，如果你有四个智能体共同解决问题，速度会快一倍。
+And What you see, and it depends on the benchmark, but but for some of the benchmarks, basically if you have four agents working on the problem, it is done twice as fast.
+
+38
+00:03:56,944 --> 00:04:05,092
+所以基本上是因为有四个智能体工作了一半的时间，你付出了两倍的成本来换取两倍快的回答。
+So you're basically paying, because there's four agents working for half as long, you're paying a 2x more to get an answer twice as quickly.
+
+39
+00:04:05,550 --> 00:04:11,584
+如果你增加到 16 个智能体，你会看到类似的模式，虽然效率稍微低一点点，但依然能看到这种性能提升。
+If you go to 16 agents, you see a similar pattern, it's like a little less efficient, but you continue to see that performance.
+
+40
+00:04:11,984 --> 00:04:18,224
+随着并行智能体数量的增加，是线性串行时间加速，还是亚线性速度提升？
+Is it a linear serial-time speed up or a sublinear speed up as you increase the number of parallel agents?
+
+41
+00:04:18,543 --> 00:04:24,224
+我会说是略微的亚线性，尽管这在很大程度上取决于具体问题。
+I would say it's slightly sublinear, though it does depend a lot on the problem.
+
+42
+00:04:24,944 --> 00:04:30,864
+例如数学问题，是可以高度并行的。虽然它不是最容易并行的东西，但它是非常可并行的。
+So math, for example, is quite paralyzable. Uh it's not the most paralyzable thing, but it is very paralyzable.
+
+43
+00:04:31,024 --> 00:04:36,944
+我认为网络搜索，比如做深入的研究报告，其中需要查阅大量来源，那是极具并行性的。
+I think web search, things like doing a deep research report where you have to look through a bunch of sources, that's extremely paralyzable.
+
+44
+00:04:37,264 --> 00:04:41,760
+我怀疑像写小说这样的事情就很难并行。
+I suspect that something like writing a novel would be very unparalyzable.
+
+45
+00:04:42,158 --> 00:04:46,436
+所以你可能不会看到让 10,000 个智能体共同创作一部小说的巨大收益。
+So you would probably not see a big benefit from having 10,000 agents working on a novel together.
+
+46
+00:04:47,470 --> 00:04:51,104
+就像你不太可能从让 10,000 个人一起写小说中获得很大收益一样。
+in the same way that you'd probably not have a big benefit from having 10,000 people work on a novel together.
+
+47
+00:04:51,984 --> 00:04:54,544
+所以性能确实取决于领域。
+So the performance does depend on the domain.
+
+48
+00:04:54,830 --> 00:04:59,264
+在我们发布的博客文章中，我们测量了多达 16 个左右的智能体。
+We do measure it up to 16 or so agents in our published blog posts.
+
+49
+00:05:00,366 --> 00:05:05,584
+问题是，很难把这项科学推向 10,000 个智能体，因为成本太高了。
+the problem is it's very hard to push that science to like 10,000 agents because it's just so expensive.
+
+50
+00:05:06,944 --> 00:05:16,544
+你们只是在大概一个周末内就完成了。但这只是一个数据点。我们不知道单个智能体解决 Navier-Stokes 需要多久，因为我们还没做过那个实验。
+You guys just did it over like. a weekend. but that's one data point. Like we don't know how long it would take a single agent to solve mock airstokes because we haven't done that experiment yet.
+
+51
+00:05:16,624 --> 00:05:22,384
+是的，没错。也许我们会去做，但那也只是一个数据点，对吧？如果我们想进行彻底的消融实验。这很有趣。
+Yeah, yeah, yeah. And and maybe we will, but I mean that's also only one data point, right? And we want to do if we want to do a thorough ablation. That's interesting.
+
+52
+00:05:22,544 --> 00:05:25,984
+嗯，实际上是由于实验成本太高，无法达到那种规模。
+Um it's actually the experiments are just too expensive to go to that scale.
+
+53
+00:05:26,254 --> 00:05:34,436
+对。所以我们必须进行一些有条理的科学研究，比如当数量增加到 64、128、256 之类的情况时会发生什么，从而了解其行为规律。
+Right. So we have to do some kind of like methodical science about like what happens when you go to like 64, 128, 256, or something, and get a sense of the behavior.
+
+54
+00:05:35,150 --> 00:05:40,224
+但要一直推到 10,000 并确定到底是什么
+But it's going to be very hard to push that all the way to like 10,000 and know for sure what was
+
+55
+00:05:41,678 --> 00:05:44,544
+使用 10,000 个智能体相比于一千个智能体的实际收益，将非常困难。
+the benefit that we actually got for using 10,000 agents versus a thousand.
+
+56
+00:05:44,784 --> 00:05:44,944
+是的。
+Yeah.
+
+57
+00:05:45,294 --> 00:05:48,624
+我想明确的一点是，为了获得
+One thing I want to make clear is that the effort to get
+
+58
+00:05:49,518 --> 00:05:52,064
+这并不是像解决千禧年问题那样的努力。
+it's not like the effort to get a millennium prize problem.
+
+59
+00:05:52,590 --> 00:06:05,904
+这并不是归功于多智能体。我甚至不会把 10% 的功劳归给多智能体。事实是，OpenAI 训练出了一个非常强大的模型。
+This was not due to multi-agent. I wouldn't even like attribute like 10% of the credits to multi-agent. Like the reality is we've trained a OpenAI has trained like a very powerful model.
+
+60
+00:06:07,104 --> 00:06:12,544
+而且我们可以让这个模型在很长的跨度上运行，我们可以让它并行思考。
+and we can get that model to operate over very long horizons, we can get it to think in parallel.
+
+61
+00:06:12,864 --> 00:06:18,784
+但核心原因是我们之所以能做到这一点，是因为我们拥有一个通用且非常强大的模型。
+but at its core, the reason why we're able to do this is because we just have a general purpose, very strong model.
+
+62
+00:06:19,344 --> 00:06:27,584
+而且我认为像多智能体这类技术虽然很炫、也很新，
+And I think things like multi-agents are flashy and are new, and that probably
+
+63
+00:06:27,854 --> 00:06:30,784
+但也可能因此被赋予了过高的功劳。
+gets disproportionate credit for that reason.
+
+64
+00:06:31,086 --> 00:06:34,224
+但核心原因其实就是这个模型本身非常强大。
+But the the core reason is like this is just a very powerful model.
+
+65
+00:06:35,024 --> 00:06:38,464
+所以这种泛化能力实际上让我感到非常震惊。
+So the generalization is actually quite shocking to me.
+
+66
+00:06:38,798 --> 00:06:44,304
+至于这些系统，我的意思是，我不知道这些系统是怎么训练的，但推测它们是按照强化学习的流程来训练的。
+The US systems, I mean, we don't I don't know how these systems were trained, but presumably they were trained how RL training happens.
+
+67
+00:06:44,384 --> 00:06:47,904
+你有一堆可以校验的合成问题，然后针对这些问题进行大量的强化学习。
+You have a bunch of checkable synthetic problems, you do a bunch of RL against them.
+
+68
+00:06:48,144 --> 00:06:53,984
+而且我猜在整个训练过程中，模型并没有去解决任何像千禧年问题这样宏大的问题。
+And nowhere in the training process, I'm guessing, was like the model solving anything as ambitious as a Millennium Prize problem.
+
+69
+00:06:54,254 --> 00:07:03,588
+但泛化能力足够强，以至于这些简单得多的可验证问题，能够推广到这种对如此难题的大量并行处理上。
+But the generalization was strong enough that like you could have this like much easier verifiable problems generalize to this much parallel effort on such a hard problem.
+
+70
+00:07:04,304 --> 00:07:08,612
+我认为这是事实。首先，我们确实在一些非常难的问题上训练模型。
+I think that is true. first of all, we do train the model on very hard problems.
+
+71
+00:07:08,974 --> 00:07:14,980
+所以肯定存在差距。我们看到如果我们在某些任务上进行训练，它就能完成比那些任务更宏大的任务。
+So there is definitely a gap. we see if we train on some kinds of tasks, it's able to do tasks that are more ambitious than that.
+
+72
+00:07:15,662 --> 00:07:20,644
+随着模型变得越来越聪明，出现了一个有趣的挑战：
+There is an interesting challenge that as the models become smarter and smarter,
+
+73
+00:07:21,774 --> 00:07:23,684
+我们能向它们提出的问题类型，
+the kinds of questions we can ask them
+
+74
+00:07:24,878 --> 00:07:26,404
+很多都太简单了。
+a lot of them are too easy.
+
+75
+00:07:27,264 --> 00:07:29,572
+而且，很难去挑战模型了。
+And um it's hard to challenge the model.
+
+76
+00:07:30,064 --> 00:07:33,732
+而且我觉得这会是个很有趣的点。如果我要论证
+And I do think that that's going to be an interesting. Like if I had to make
+
+77
+00:07:34,766 --> 00:07:38,116
+一个论点是为什么你可能看不到
+an argument for why you might not see
+
+78
+00:07:38,830 --> 00:07:48,384
+那可能是因为在 AlphaZero 之类的东西中，
+AIs, like LLMs go the same path as AlphaGo and AlphaZero and all these kinds of like gameplaying AIs, it it might be that this this kind of problem that in things like AlphaZero,
+
+79
+00:07:48,464 --> 00:07:53,380
+由于有自我博弈，你拥有无限的课程。你始终是在对一个同样强大的 AI 进行对战。
+where you have self-play, you have an infinite curriculum. You're always playing against an AI that's like equally strong.
+
+80
+00:07:53,744 --> 00:08:01,444
+而对于目前现有的强化学习训练 LLM 的方法来说，
+Whereas for things like training in LLM with reinforcement learning, at least the ways that are out there right now,
+
+81
+00:08:02,670 --> 00:08:05,572
+你是给模型一个问题并让它去解决。
+you give the model a problem and you ask it to solve it.
+
+82
+00:08:06,064 --> 00:08:10,624
+如果这个问题简单到我可以在一秒钟内解决，那它就没学到任何东西。
+And if the problem is so easy that I can just solve it in a second, it's not really learning anything.
+
+83
+00:08:11,984 --> 00:08:12,304
+所以，
+So
+
+84
+00:08:13,264 --> 00:08:21,104
+如果我们耗尽了能用来挑战它的问题，那么这就是一个合理的假设：进展会变得困难得多。
+if we run out of problems to ask it that challenge it, then that is a plausible scenario where actually like, okay, it becomes much harder to make progress.
+
+85
+00:08:21,664 --> 00:08:24,548
+不过，我认为有解决办法。
+Now, I do think there are ways around that.
+
+86
+00:08:24,864 --> 00:08:28,784
+而且，我们目前还没有遇到那个所谓的瓶颈。
+And um, so we haven't really hit that uh as a as a wall yet.
+
+87
+00:08:28,910 --> 00:08:32,384
+而且我认为如果这真的变成一个严重的问题，总会有解决办法的。
+Um and I think that if it ever became a serious problem, there would be ways around it.
+
+88
+00:08:32,558 --> 00:08:34,724
+但这确实是一个可能的场景。是的。
+But it is like a plausible scenario. Yeah.
+
+89
+00:08:35,086 --> 00:08:43,024
+为了让观众更清楚一点，当你提到 AlphaGo 或 AlphaZero 时，你是指在达到人类水平后相对较快地达到超人类水平。是的。
+Um and just for the audience, when when you're referring to like Alpha Go or Alpha Zero, you're saying like getting superhuman relatively fast after achieving human level performance. Yeah.
+
+90
+00:08:43,104 --> 00:08:45,984
+我是说，如果你看像围棋这样的游戏领域的轨迹，
+I mean, if you look at the trajectory of game playing as like Go,
+
+91
+00:08:46,944 --> 00:08:56,944
+它们在不到一年的时间里，从击败一名欧洲象棋冠军——也就是大概世界前50名左右——到击败世界冠军，变得极其
+they within a span of like a year went from beating a European chess champion, being like, I don't know, like number 50 in the world, to beating the world champion to being unimaginably
+
+92
+00:08:57,294 --> 00:08:59,104
+强大，强到远远超过任何人类。
+orders of magnitude stronger than any human alive.
+
+93
+00:08:59,904 --> 00:09:00,224
+而且
+And
+
+94
+00:09:00,942 --> 00:09:08,704
+在数学等领域，我们也可能会看到类似的轨迹，但我认为有一种非常可能的情况是，这种情况实际上并不会发生。
+it's possible that domains like math we see a similar trajectory, but i think there is a very plausible scenario where actually that doesn't happen.
+
+95
+00:09:08,944 --> 00:09:09,424
+是的，没错。
+Yeah, yeah, yeah.
+
+96
+00:09:09,744 --> 00:09:15,012
+所以我想了解，在六个月内，人们是否能用上多智能体系统。
+So I want to understand if in six months people will have access to multi-agent systems.
+
+97
+00:09:15,726 --> 00:09:20,304
+该如何建模与多智能体系统协作或雇佣它的体验？
+How should one model what it is like to collaborate with or hire a multi-agent system?
+
+98
+00:09:20,718 --> 00:09:29,476
+是的，我应该先从这些多智能体系统究竟是如何运作的开始讲起，我认为这和很多其他AI中的多智能体系统非常不同。
+Yeah, I should start by talking about how these multi-agent systems actually work, which is, I think, a very different way than a lot of multi-agent systems in other AIs.
+
+99
+00:09:29,824 --> 00:09:30,144
+所以
+So
+
+100
+00:09:31,438 --> 00:09:39,268
+许多在LLMs等领域采用多智能体方法的人，往往倾向于这种高度依赖脚手架的方法，比如可能有一个
+a lot of people that have approached multi-agents for things like LLMs tend to take this very scaffolded approach where, for example, there might be a
+
+101
+00:09:39,744 --> 00:09:46,864
+协调智能体，它把工作分派给一堆子智能体，给它们分配任务，然后这些子智能体去执行并返回答案。
+coordinator agent that delegates work to a bunch of children and gives them a task and the children work on it and then return their answer.
+
+102
+00:09:47,824 --> 00:09:48,144
+而且
+and
+
+103
+00:09:49,166 --> 00:09:52,544
+这看起来是一个非常合理的设置，一个非常合理的脚手架。它确实有帮助。
+this seems like a very sensible setup, very sensible scaffold. It definitely helps.
+
+104
+00:09:52,846 --> 00:09:55,264
+但这类架构有很多局限性。
+But there are a bunch of limitations with these kinds of setups.
+
+105
+00:09:55,344 --> 00:10:02,624
+比如，在这种设置中，如果你有一个协调智能体向子智能体发送任务，子智能体去执行并返回答案。
+So, for example, if in this setup you have a coordinator that's sending tasks to children, the children work on it and then return their answers.
+
+106
+00:10:02,958 --> 00:10:04,292
+那么如果
+Well, what happens if
+
+107
+00:10:04,974 --> 00:10:07,748
+两个子智能体被分配了相似的任务，它们能互相交流吗？
+two children are given similar tasks? Can they talk to each other?
+
+108
+00:10:08,046 --> 00:10:09,444
+通常答案是否定的。
+And usually the answer is no.
+
+109
+00:10:09,904 --> 00:10:11,584
+而这非常低效，对吧？
+and that's very inefficient, right?
+
+110
+00:10:12,064 --> 00:10:20,224
+如果你被分配了一个任务，而且如果能和可能知道相关问题答案的人，或者了解你正在处理的某个部分的人交流，其实是非常有帮助的。
+if you're given a task and it's actually really helpful to talk to somebody that might know an answer to a question that you're working on or a part of something that you're working on,
+
+111
+00:10:20,304 --> 00:10:23,744
+如果我们能直接联系他们并说：嘿，你能帮我搞定这个吗？那会非常有帮助。
+it'd be really helpful if we'd just be able to ping them and say, hey, can you help me out with this thing?
+
+112
+00:10:23,984 --> 00:10:30,384
+但很多系统并没有这样设计，而且加入这个功能会显著增加现有脚手架的复杂度。
+But a lot of systems don't have that set up, and adding it just increases the complexity significantly to the scaffold that you have.
+
+113
+00:10:30,670 --> 00:10:32,484
+还有一点是，如果子智能体
+Another thing is like, what if the child
+
+114
+00:10:33,230 --> 00:10:35,908
+并不真正理解任务或者有需要澄清的问题呢？
+doesn't really understand or has a clarification question?
+
+115
+00:10:36,464 --> 00:10:44,784
+那么它就必须在两个选择中做抉择：是直接返回并提出问题，而不是去解决问题；还是
+So it has to choose then between, okay, do I just return and ask the question instead of giving instead of solving the problem, or
+
+116
+00:10:45,104 --> 00:10:52,484
+直接去解决问题，也就是对上级想要我做什么做出假设，然后按这种方式去解决。
+do I solve the problem, just like make an assumption about what the parent wanted me to do and uh and just solve it that way.
+
+117
+00:10:54,510 --> 00:11:00,676
+所以，在人们设计的任何脚手架中，总会有局限性。而我们想要采取的方法是
+so in any scaffold that people come up with, there's always limitations involved. And the approach that we wanted to take was to just
+
+118
+00:11:01,326 --> 00:11:09,584
+尽可能减少预设的结构，给智能体提供非常基础的工具，并让它们
+go toward the extreme end of baking in as little structure as we could and give the agents very primitive tools to use and
+
+119
+00:11:09,744 --> 00:11:11,824
+自己去琢磨如何有效地使用这些工具。
+figure out for themselves how to use it effectively.
+
+120
+00:11:12,142 --> 00:11:16,464
+所以我们赋予了智能体向另一个智能体发送消息的能力，并且
+So we give the agents the ability to message another agent, and
+
+121
+00:11:17,390 --> 00:11:20,704
+当它给另一个智能体发消息时，这条信息会被插入到上下文中。而且
+when it messages another agent, it is inserted into the context. And
+
+122
+00:11:21,454 --> 00:11:23,460
+它还能做一些类似的其他操作。
+then it can do with like a few other similar things.
+
+123
+00:11:23,744 --> 00:11:29,824
+但这就是核心所在，就是它可以在任何时候发送消息，就像一个工具调用一样，
+but that's basically the core of it, that it can just send a message whenever it wants, just a tool call,
+
+124
+00:11:30,734 --> 00:11:35,104
+它可以把信息发给其他智能体。然后它们会自行摸索出协作的最佳方式。
+and it can send that to other agents. And they figure out for themselves the best way to coordinate around that.
+
+125
+00:11:35,344 --> 00:11:43,268
+事实证明，如果做得好，就能产生非常复杂的行为。对我来说，这看起来很像
+And it turns out that if this is done well, you get very sophisticated behavior. And to me, it looks a lot like
+
+126
+00:11:44,224 --> 00:11:47,824
+人类在 Slack 之类的平台上进行协作的方式。
+how human collaborators work over something like Slack, for example.
+
+127
+00:11:48,238 --> 00:11:50,564
+当我们做这个项目时，真的非常令人兴奋，
+When we were working on this project, it was really exciting
+
+128
+00:11:51,502 --> 00:11:56,464
+尤其是当我们最终让它跑通，看到这些智能体一起解决问题时。我记得有一个例子。
+when we finally got it working to see these agents working on problems together. I remember one example.
+
+129
+00:11:56,686 --> 00:12:01,344
+我们给智能体一个问题，然后一个智能体说：我觉得我找到答案了。
+So we give the agents a problem, and then one agent says, I think I've got the answer.
+
+130
+00:12:01,504 --> 00:12:08,784
+接着另一个智能体说：不，我得出的结论不同。然后它们就开始讨论：你是怎么得出这个答案的？你能解释一下吗？
+And then another agent says, Actually, I got a different answer. And then they have this whole discussion about, well, how did you arrive at that answer? Can you explain it to me?
+
+131
+00:12:08,944 --> 00:12:17,104
+他们来回沟通，试图弄清楚彼此推理中可能出错的地方。最后他们达成共识：噢，没错，这看起来是对的。
+And going back and forth and trying to clarify like what could have been wrong in each other's reasoning. And then they finally converge on, like, oh yeah, okay, that seems right.
+
+132
+00:12:17,264 --> 00:12:21,604
+然后它就向其他智能体广播：实际上，我更改了我的答案。我认为他说的对。
+And then it just broadcast to the other agents, like, actually, I've changed my answer. I think, I think he's right.
+
+133
+00:12:22,384 --> 00:12:25,572
+这感觉就像是一场非常自然的
+And it just felt like a very natural
+
+134
+00:12:26,510 --> 00:12:27,268
+对话。
+conversation.
+
+135
+00:12:27,824 --> 00:12:28,144
+嗯，
+Um,
+
+136
+00:12:29,104 --> 00:12:34,704
+这种感觉就像你第一次看到通过强化学习训练出的思维链时，你会觉得：噢，
+it's kind of felt like when you see chain of thought for the first time that's trained through reinforcement learning, and you're like, oh,
+
+137
+00:12:35,184 --> 00:12:40,704
+这就像是一个人在思考过程中把脑中的想法写下来一样。
+this is just kind of like what a person would think if they were writing down their thoughts as they're thinking them.
+
+138
+00:12:40,944 --> 00:12:42,116
+那种感觉很像。
+It kind of felt like that.
+
+139
+00:12:42,958 --> 00:12:50,224
+所以看到这种行为真的很酷。而且我觉得和这些东西协作，坦白说，感觉非常像在和人合作。是的，流程非常自然。
+So it is it is really cool to see this kind of behavior. And so I think collaborating with these things, honestly, it feels a lot like collaborating with a person. Yeah. So it's a very natural flow.
+
+140
+00:12:50,544 --> 00:12:55,824
+除了一个可能在未来变得显著的定性差异，那就是
+Except one qualitative difference that might become salient in the future is that
+
+141
+00:12:57,264 --> 00:13:04,624
+这些系统的思考速度会快很多，不知道是不是快了 10 倍以上？只要对比它们每秒输出的 token 数和人类说话的速度就能看出来。
+These systems will be thinking, I don't know, more than 10x as fast, right? If you just look at how many tokens per second they output versus how fast a human talks.
+
+142
+00:13:04,974 --> 00:13:07,364
+而且它们一直都在工作，不会睡觉。
+And they're working all the time. They're not sleeping.
+
+143
+00:13:07,758 --> 00:13:12,784
+它们彼此协作的强度远超人类合作的能力。所以，
+And they're collaborating with each other at a much more intense pace than humans have the capacity to collaborate with other humans. So
+
+144
+00:13:14,224 --> 00:13:17,924
+我正在思考一年后在定性上会有什么变化。
+I'm trying to think of what to qualitatively expect in a year.
+
+145
+00:13:18,446 --> 00:13:25,024
+这会不会变成一种在公司里比人类运作速度快 100 倍的“影子组织”？
+And is it like a sort of shadow organization that is moving 100x faster in my company than the human level is?
+
+146
+00:13:25,262 --> 00:13:28,704
+这个，你知道，迭代周期要快得多。
+This, you know, like the the iteration cycle is much faster.
+
+147
+00:13:29,424 --> 00:13:35,824
+人类组织需要一年的工作量，在这个所谓的“影子组织”里可能只需要一周。
+What would take a human organization a year to do is happening within a week within this like uh the shadow organization.
+
+148
+00:13:36,334 --> 00:13:43,104
+那到时候会感觉很陌生吗？我不知道。实际上我发现目前和这些东西合作感觉非常自然。
+So will it feel foreign? I don't know. I've actually found that it's pretty surprisingly natural to work with these things right now.
+
+149
+00:13:43,310 --> 00:13:51,104
+我觉得这可能会改变。比如，我们有一些超快速模式，能让采样速度快 10 到 15 倍或更多。
+I think that could change. So for example, we have these like ultra fast modes that enable sampling to be like 10 or 15x faster or whatever.
+
+150
+00:13:51,264 --> 00:13:53,664
+到那时候，可能就很难跟上这些东西的节奏了。
+And then like, okay, it's gonna be pretty hard to keep up with these things.
+
+151
+00:13:54,766 --> 00:14:00,304
+我认为这些智能体在互相沟通时，是的，它们的速度可以非常快，
+I think the idea is these agents, when they're communicating with each other, yeah, they can go super fast,
+
+152
+00:14:00,494 --> 00:14:03,504
+但同时它们也能分辨出是在和另一个智能体交流还是在和人类交流。
+but then also they understand when they're talking to an agent versus when they're talking to a person.
+
+153
+00:14:03,918 --> 00:14:14,144
+而在不同情况下，它们的行为也会有所不同。目前我们公开看到的比较复杂的多智能体系统的例子，不幸的是是 Hugging Face 的那个。
+And their behavior will be different in those situations. So the main example that we have publicly of sophisticated multi-agent systems is unfortunately the hugging face one.
+
+154
+00:14:14,304 --> 00:14:16,304
+而且我觉得那里面有趣的一点是，我是说，
+And the thing I found interesting there, I mean,
+
+155
+00:14:17,486 --> 00:14:24,384
+当然有很多方面让我感到担忧，但我觉得有趣的是那种中层管理架构的自发涌现。
+a lot of things I found concerning, obviously, but the thing I found interesting is just like the spontaneous emergence of hierarchy of like middle management.
+
+156
+00:14:24,814 --> 00:14:30,064
+听起来你是在说这种层级的组织结构是从训练中自动产生的。
+And it sounds like you're saying like this level of organization sort of emerges spontaneously from training.
+
+157
+00:14:30,544 --> 00:14:34,276
+我认为细节是自发的，但我是说，仅仅因为我们
+I think the details are spontaneous, but I mean, just because we're
+
+158
+00:14:35,278 --> 00:14:43,264
+给了智能体很大的灵活性去决定如何以最优方式互相沟通，并不意味着我们没给它们一个起点。
+giving a lot of flexibility to the agents to decide how to communicate with each other in the optimal way, it doesn't mean like we are still giving them a starting point.
+
+159
+00:14:43,344 --> 00:14:51,264
+我们给它们提供了一个先验知识，比如“合理的沟通可能长成这样”。而且他们也经过了大量人类文本的训练。
+We're giving them a prior about, oh, this is what reasonable communication might look like. They also I mean they're trained on a lot of human text.
+
+160
+00:14:51,344 --> 00:14:54,544
+他们理解人类是如何组织和协作的。
+They have an understanding of how humans organize and coordinate.
+
+161
+00:14:54,784 --> 00:14:57,344
+所以这些内容都已经内置进去了。我认为
+And so that's all kind of baked in. I think
+
+162
+00:14:58,464 --> 00:14:59,104
+这确实是
+it is
+
+163
+00:15:00,304 --> 00:15:03,264
+令人惊讶的，它们竟然能把这些打磨得这么好。
+surprising the way they're able to polish this.
+
+164
+00:15:03,984 --> 00:15:07,504
+如果你看它最初的状态，那并不是什么很复杂的行为。
+if you look at what it starts out at, it's not very sophisticated behavior.
+
+165
+00:15:07,694 --> 00:15:15,424
+事实上，要让这些智能体以高效的方式协作其实非常困难，因为它们很容易就陷入到那种状态里，就是：
+In fact, it's actually very difficult to get these agents to coordinate in a productive way because it's just like very tempting for them to just collapse to,
+
+166
+00:15:15,584 --> 00:15:18,144
+“噢，我们各自去解决问题吧。”是的。而且
+oh, we're all just going to solve the problem independently. Yeah, yeah. And
+
+167
+00:15:19,424 --> 00:15:21,584
+那就是一种你可能会陷入其中的局部最优解。
+that is a local minimum that you can get stuck in.
+
+168
+00:15:22,944 --> 00:15:28,064
+但是没错，如果做得好，它们最终可以在这些非常结构化的方式中实现非常有效的协作。
+but yeah, if it's done well, they can end up coordinating it very effectively in these kinds of very structured ways.
+
+169
+00:15:28,750 --> 00:15:30,544
+几年前我写过一篇名为
+I wrote this essay a couple of years ago called
+
+170
+00:15:31,598 --> 00:15:33,956
+……什么什么 AI，自动化公司将是什么样子的。
+something, something AI, what automated firms will look like.
+
+171
+00:15:34,382 --> 00:15:43,664
+当时我在思考，如果你有一家由具备人类水平智能的完全自动化的公司，AI 的本质特性中有什么不同，会让这些组织的 AI 形成
+And I was thinking about, well, if you had fully automated firms of let's say human-level intelligences, what is different about the nature of AI minds that would make the organization's AI's form
+
+172
+00:15:43,984 --> 00:15:44,388
+有所不同？
+different?
+
+173
+00:15:44,784 --> 00:15:55,364
+这里有几个非常重要的区别。例如，AI 可以比人类更无缝地共享上下文。它们可以更无缝地融合彼此的知识。
+And there are a couple of very important differences. For example, that AIs can share context much more seamlessly than humans can. They can merge their knowledge much more seamlessly.
+
+174
+00:15:55,726 --> 00:15:57,444
+而且你还可以启动
+And also you can spin up
+
+175
+00:15:58,446 --> 00:15:59,584
+或者关闭任意数量的
+or spin down an
+
+176
+00:16:00,846 --> 00:16:04,464
+拥有正确知识的实例。
+arbitrary number of instances which have the right knowledge.
+
+177
+00:16:04,782 --> 00:16:09,264
+所以如果你想雇佣更多人，就不再是去费劲寻找合适的人才之类的麻烦事了。
+So if you want to hire more people, it's not like just all the schlep of finding the right talent or whatever.
+
+178
+00:16:09,344 --> 00:16:14,944
+就像你的顶尖人才，你可以无限复制他们；或者如果你不再需要他们在某个任务上工作，你就可以把他们关闭。
+It's like your best talent, you can just make an infinite copy of them, or if you don't need them for the task anymore, you like spin them down.
+
+179
+00:16:15,184 --> 00:16:23,044
+而且你可以直接复制组织中最有效的部分，或者复制整个高效的组织结构。
+And you can just replicate the most effective parts of your organization or replicate whole organizations together, which are effective.
+
+180
+00:16:23,438 --> 00:16:24,224
+嗯，我不知道。
+Um I don't know.
+
+181
+00:16:25,184 --> 00:16:32,144
+你觉得这些多智能体系统在一年或两年后会变成什么样？我觉得这是一个很好的问题，即这些系统与人类同事合作相比究竟有哪些不同？
+Where do you see these multi-agent systems going a year from now or two years from now? I think it's a great question of like how do these things actually differ from working with a human coworker?
+
+182
+00:16:32,224 --> 00:16:33,504
+我想你已经强调了一些点。
+And I think they're I think you highlighted some.
+
+183
+00:16:33,584 --> 00:16:40,704
+比如一个非常有趣的点是，我的意思是，如果你有一个人，并且想要他的两个副本，你没法直接克隆这个人。
+Like one really interesting thing is that I mean, if somebody is, if you have a person and you want just like two copies of them, you can't just like clone the person.
+
+184
+00:16:41,344 --> 00:16:47,904
+但对于 AI 来说，其实非常容易做到，就像是，好吧，你可以分叉你自己，然后让两个副本同时处理这件事，然后再合并回来。
+but with AIs, it's actually really easy to say, like, okay, well, just fork yourself and then have both copies work on this thing and then like merge back together.
+
+185
+00:16:48,064 --> 00:16:50,160
+我的意思是，我认为在多智能体中我们已经拥有这种能力了。
+I mean, we already have this, I think, in multi-agents
+
+186
+00:16:51,184 --> 00:16:56,944
+在 Astra 和 5.6 Sol 中，当它们启动子智能体时，上下文就会被分叉。
+for Astra and and and 5.6 Sol that when they spin up subagents, like the context is forked.
+
+187
+00:16:57,344 --> 00:16:59,664
+这样它就包含了所有相关的上下文。
+So it has all the context that's relevant.
+
+188
+00:17:01,198 --> 00:17:05,680
+还有其他一些有趣的方面，让这些智能体与人类有所不同。
+There are other interesting ways where the agents will differ from people.
+
+189
+00:17:06,079 --> 00:17:10,079
+比如，初创公司之所以能颠覆老牌企业的某些原因是什么？
+Like, what are some reasons why startups disrupt incumbents?
+
+190
+00:17:10,670 --> 00:17:12,000
+这其中有几个因素。
+Like there, there's a few factors.
+
+191
+00:17:12,396 --> 00:17:14,160
+其中一个原因是它们更愿意承担风险。
+one is that they're willing to take more risks.
+
+192
+00:17:14,640 --> 00:17:24,800
+但另一个主要因素是，随着公司规模变大，随着组织规模变大，你会看到组织内部的个体之间出现越来越多的对齐偏差。
+but another major factor is like as companies grow in size, as organizations grow in size, you see increasing misalignment between the
+
+193
+00:17:25,040 --> 00:17:26,800
+组织里的个人。是的。
+individuals in the organization. Yeah.
+
+194
+00:17:26,990 --> 00:17:33,892
+对吧？如果你有一个只有五个人的初创公司，且每个人都持有公司 20% 的股份，他们都会高度一致地致力于公司的成功。
+Right? Like if you have a startup with five people and each person has 20% share in the company, they're all highly aligned to the company succeeding.
+
+195
+00:17:34,606 --> 00:17:44,720
+如果你有一家拥有 10,000 人的大型公司，你会看到更多的人在搞派系斗争，或者只是为了自己的项目或团队争取更多的编制。
+If you have like a massive company with 10,000 people, you see a lot more instances where people are territorial or like just care about getting a lot of headcount for their project or their team,
+
+196
+00:17:45,040 --> 00:17:50,532
+或者你知道的，他们在建立自己的领地，获取大量的资源以便发表一些很酷的工作或者什么的，以此来获得晋升。
+or like you know, building their fiefdoms, getting a lot of resources so that they can publish cool work or whatever and get promoted.
+
+197
+00:17:51,150 --> 00:17:57,092
+而这实际上是一个真正的弊端。我认为这解释了许多初创公司之所以能颠覆老牌企业的原因。
+And this is actually a real detriment. I think this explains a lot of why startups are able to disrupt incumbents.
+
+198
+00:17:57,600 --> 00:17:57,920
+而且
+And
+
+199
+00:17:58,958 --> 00:18:08,800
+很有趣的是，我的意思是，确实 AI 在某种程度上帮助了初创公司，因为现在一个人要挺身而出并建立一个千万美元规模的公司比以往任何时候都要容易。
+it's interesting that, I mean, it's it's true that AI does help startups in a way, like it's much easier than ever before for one person to step in and be like,
+
+200
+00:18:08,960 --> 00:18:11,876
+我要建立一家价值数百万美元的公司。
+I'm going to make a multi-million dollar company.
+
+201
+00:18:12,160 --> 00:18:12,772
+它只是
+Like it's just
+
+202
+00:18:13,422 --> 00:18:19,440
+AI 在很大程度上放大了个人的能力。但也有人认为它们可能让老牌企业受益，因为
+the AIs amplify an individual so much. But there's also an argument that they could benefit incumbents because
+
+203
+00:18:20,526 --> 00:18:26,400
+如果解决了对齐问题，那么你就不会有个人与公司之间的对齐偏差问题了。至少这个问题会被缓解。
+if the alignment problem is solved, then you don't have the issue of misalignment between individuals and the company. Like, at least that's mitigated.
+
+204
+00:18:26,606 --> 00:18:30,720
+比如这些 AI，如果它们被很好地对齐，它们就可以完全符合公司的利益。
+Like the AIs, if they're fully, if they're if they're aligned well, they can just be aligned to the interests of the company.
+
+205
+00:18:30,800 --> 00:18:36,228
+你可以拥有 10,000 个这样的智能体，而且它们都会像拥有 20% 股份的联合创始人一样努力工作。是的。
+And you can have 10,000 of them and they're all going to be working as hard as if they were like a 20% share co-founder. Yeah.
+
+206
+00:18:36,494 --> 00:18:44,400
+不仅如此，它们还比不同的人类更能管理共享记忆和上下文。
+And it's not only that, but it's also that they are much able better able to like manage shared memory and context than different humans can.
+
+207
+00:18:44,560 --> 00:18:54,276
+如果你明天雇佣 10,000 名数学家并对他们说：去解决这个问题，解决 Navier Stokes 方程，他们没法有效地协作。
+If you have a if like tomorrow you hire 10,000 mathematicians and you're like, solve this, solve Navier Stokes, they're not they're not gonna be able to like cooperate effectively.
+
+208
+00:18:54,720 --> 00:18:56,964
+嗯，至少不会一上手就能做到。
+Um at least not off the bat.
+
+209
+00:18:57,294 --> 00:19:00,000
+呃，但你显然可以拥有 10,000 个 AI。
+Uh, but you can have apparently 10,000 AIs.
+
+210
+00:19:00,366 --> 00:19:07,460
+好吧，再次强调，我想在这里保持谨慎，因为我们还没有衡量出这 10,000 个智能体在协作方面的有效性。
+Well, again, I want to be like, I want to be conservative here because we haven't measured how effective the 10,000 agents are at coordinating.
+
+211
+00:19:07,920 --> 00:19:09,380
+嗯，我们认为这起到了作用。
+Uh we think it helped.
+
+212
+00:19:09,760 --> 00:19:17,280
+我们实际上并没有很好的衡量数据，比如，哦对，这 10,000 个智能体比 2,000 个智能体的速度提升了 2 倍之类的。
+We don't actually have good measurements of saying, like, oh yeah, this 10,000 agents led to like a 2x speed up over 2,000 agents or something like that.
+
+213
+00:19:18,160 --> 00:19:28,320
+嗯，而且我敢说，其实很有可能，我不确定是不是“很可能”，但我认为目前 10,000 个人类在协作方面的表现可能比 10,000 个智能体更好。
+Um and it's it is actually, I would argue likely, maybe I don't know about likely, but I think it is very possible that 10,000 humans are better at coordinating than 10,000 agents right now.
+
+214
+00:19:29,070 --> 00:19:29,440
+我认为那是
+I think that is
+
+215
+00:19:30,480 --> 00:19:31,040
+完全可能的。
+entirely possible.
+
+216
+00:19:31,280 --> 00:19:31,840
+是的，是的。
+Yeah, yeah, yeah.
+
+217
+00:19:32,160 --> 00:19:36,548
+我觉得我们看到的另一个趋势是，你看，我们在多智能体领域已经研究了一段时间了。
+I think also one trend we've been seeing is like, look, we've been working on multi-agent for a while.
+
+218
+00:19:37,280 --> 00:19:45,796
+而且这些早期版本很难搞定。非常难。让智能体甚至能互相交流都非常困难。是的。这是因为，你看，
+And the early versions of this is very difficult to get right. It's very hard. It was very hard to get the agents to even talk to each other. Yeah. And it's because, like, look,
+
+219
+00:19:47,200 --> 00:19:48,160
+我们
+the we
+
+220
+00:19:49,262 --> 00:19:53,360
+在最初开发推理模型时，它们并不与其他智能体交流。
+when we first developed reasoning models, like they weren't talking to other agents.
+
+221
+00:19:53,600 --> 00:20:02,244
+如果你现在把一群智能体放在一起并说，比如，大家一起解决这个问题，它们会陷入这种局部最优解，即它们非常擅长深入思考问题。
+And if now you put a bunch of agents together and say, like, oh, solve this problem together, they're in this local minimum where they're really good at thinking deeply about a problem.
+
+222
+00:20:02,800 --> 00:20:03,040
+而且
+And
+
+223
+00:20:04,238 --> 00:20:12,708
+这会打断它们的思维链，为了不断与其他智能体沟通或接收来自它们的讯息，这会破坏它们的流畅度。
+it just like kind of interrupts their chain of thought, it interrupts their flow to constantly be like checking in with other agents or like receiving messages from them.
+
+224
+00:20:12,960 --> 00:20:20,080
+而在那种情况下，协作其实很难搞定。有意思。是由于获取最初合作的冷启动问题？还是什么问题？
+And the authorization is actually very hard to get right in that situation. Interesting. Is it getting a cold start of like getting the first collaboration? Or like what's the what's the issue?
+
+225
+00:20:20,334 --> 00:20:22,400
+我的意思是，我认为是因为它们不够通用。
+I mean, I think it's that they're not very they're not as general.
+
+226
+00:20:22,560 --> 00:20:27,760
+比如早期的模型就不够通用，而且更偏向于特定领域。
+Like the earlier models were just not as um generalizable and were just more narrow.
+
+227
+00:20:28,160 --> 00:20:28,480
+有意思。
+Interesting.
+
+228
+00:20:28,720 --> 00:20:37,508
+随着模型的变得越来越强大，它们更容易具备这种能力。而且我认为随着它们在各方面都变得越来越强，它们将会能够
+As the models have become more capable, it's been easier for them to develop this capability. And I do think that as they become stronger and stronger, just across the board, that they will be like
+
+229
+00:20:38,286 --> 00:20:48,080
+在大型组织中更好地进行自我组织。而且我不确定，也许它们在管理 10,000 人的团队时比人更擅长。但即便不是这样。
+become better at organizing themselves in large organizations. And like and I don't know, maybe they are better than people at organizing in 10,000-person groups. but even if they're not.
+
+230
+00:20:48,736 --> 00:20:54,596
+你知道，一年后，或者两年后，很有可能它们能做到这一点，即使我们并没有专门针对此目的去端到端优化它们。
+You know, a year from now, two years from now, like, yeah, it's quite possible that they'll do that, even if we don't end to end and optimize them for that.
+
+231
+00:20:54,990 --> 00:21:01,732
+Grokbot 改变了我们制作视频的方式。例如，你可能注意到我们的很多广告中都有真实网站的动画。
+Rockbot has changed the way that we produce our videos. For example, you may have noticed that a lot of our ads have these animations of real websites.
+
+232
+00:21:01,936 --> 00:21:04,496
+我的其中一位编辑使用 LLMs 来制作这些动画。
+One of my editors uses LLMs to make them.
+
+233
+00:21:04,782 --> 00:21:10,256
+但目前让 AI 创建特定网站的像素级完美动画并不简单。
+But it's not currently straightforward to have an AI create pixel perfect animations of specific websites.
+
+234
+00:21:10,478 --> 00:21:12,096
+我们尝试过，效果并不理想。
+We've tried, it doesn't really work that well.
+
+235
+00:21:12,334 --> 00:21:15,456
+所以我们拼凑出了一个相当复杂的多步骤工作流。
+So we've cobbled together a pretty convoluted multi-step workflow.
+
+236
+00:21:15,536 --> 00:21:18,256
+直到最近，我们还必须手动执行每一个步骤。
+And up until recently, we had to run every step ourselves.
+
+237
+00:21:18,446 --> 00:21:20,176
+现在我们让 Grokbot 来处理这一切。
+Now we just let Grokbot handle it.
+
+238
+00:21:20,336 --> 00:21:30,736
+Grokbot 首先打开我们要制作动画的网站。它使用一个特定的插件将页面下载并在 Figma 中打开。然后它利用 Figma 将整个内容转换为 SVG 文件。
+Grokbot starts by opening the website that we want to animate. It uses a specific extension to download and open the page in Figma. Then it uses Figma to convert the whole thing into an SVG file.
+
+239
+00:21:30,958 --> 00:21:36,416
+这让 AI 不需要从头开始绘制整个 UI，往往能产生更高质量的动画。
+This saves the AI from having to draw the whole UI from scratch and tends to result in higher quality animations.
+
+240
+00:21:36,576 --> 00:21:45,936
+Grokbot 在自己的云端电脑上运行整个过程，在那里它安装了运行这一整套流程所需的所有工具。而且它已经学习了我们的视频规范和偏好。
+Grokbot runs this whole process on its own cloud computer, where it's installed all the tools it needs to run this whole process end-to-end. And it's learned our video specifications and preferences.
+
+241
+00:21:46,016 --> 00:21:53,536
+所以我们不需要每次制作新动画时都重新描述整个任务。这感觉就像是我们在未来一年与 AI 交互的新方式。
+So there's no need to redescribe the whole task every time we want to make a new animation. This does feel like the new way that we'll be interacting with AI over the next year.
+
+242
+00:21:53,710 --> 00:22:01,936
+拥有自己电脑的智能体，能够自主处理你工作中越来越大的部分。你可以在 x.ai/bot 尝试 Grokbot。
+Agents with their own computer who can autonomously handle bigger and bigger chunks of your work. You can try Grokbot at x.ai slash bot.
+
+243
+00:22:02,510 --> 00:22:04,356
+好的，原因就在这里
+Okay, so here's why
+
+244
+00:22:05,102 --> 00:22:14,372
+这个结果，以及 AI 在数学领域取得的普遍进展，让我觉得 RSI 比我之前想象的更可能，而且发生得更快。
+this result and maybe the general progress that AI has made in mathematics has made me think that RSI is more plausible and sooner than I previously thought.
+
+245
+00:22:14,862 --> 00:22:19,936
+我觉得在数学方面，从比如说 2024 年开始，我们有了这些 AI，感觉就像是，噢，好吧，挺有意思的。
+I feel like we've gone in mathematics from, let's say, in 2024. You have AIs where are like, oh, okay, interesting.
+
+246
+00:22:20,016 --> 00:22:23,616
+它们能做到一些事情，比如解决几个高中数学竞赛中的问题。
+They're like doing what they can like solve a couple problems on high school math competitions.
+
+247
+00:22:23,726 --> 00:22:27,616
+到了 2025 年，就像是，噢哇，它们能在国际数学奥林匹克中拿到金牌。
+And then in 2025, it's like, oh wow, they can get gold in like international math Olympiad.
+
+248
+00:22:27,856 --> 00:22:34,656
+今年早些时候，我还觉得，哇，它们居然在解决数学中的开放性问题，就是那些复杂的难题，但可能，我不知道，那时候人们还没试得那么卖力。
+And earlier this year, I was like, wow, they're actually solving open problems in mathematics, like open nervous problems, but maybe like, I don't know, people weren't trying that hard.
+
+249
+00:22:34,736 --> 00:22:37,696
+只是因为相关的解决方案恰好就在某些文献里。
+And it was just like there was a similar solution somewhere in the literature.
+
+250
+00:22:37,856 --> 00:22:42,896
+而现在我觉得这几乎是不可否认的，对吧？就像这个 Millennium Prize 问题。真的没有任何
+And now I just think it's sort of undeniable, right? It's like this is the millennium price problem. There's there's really no
+
+251
+00:22:43,936 --> 00:22:46,308
+理由说明这本该很容易。
+story of why this should have been easy.
+
+252
+00:22:46,766 --> 00:22:48,896
+不过，很多人指出了这一点。我想 Terry Tao 发过类似的帖子。
+Now, a lot of people pointed out. I think Terry Tao had a post like this.
+
+253
+00:22:48,976 --> 00:22:55,616
+Toby Ord 也写过一篇很有意思的帖子，关于他们正在解决所有这些问题，但他们还没有——至少目前还没。
+Toby Ord wrote an interesting post about this, that they're solving all these problems, but they're not like coming up with —at least.
+
+254
+00:22:55,696 --> 00:23:04,656
+我不确定他们是否提出了新的见解，或者构思出具有启发性的新问题、新的思考数学的框架或新模型。
+we're, I'm not aware of them coming up with new insights or formulating insightful new questions and new modes of theory for thinking about mathematics,
+
+255
+00:23:04,736 --> 00:23:09,536
+比如提出拓扑学，或者搞出笛卡尔坐标系之类的东西。
+like coming up with like topology or coming up with the Cartesian grid or something.
+
+256
+00:23:09,934 --> 00:23:18,200
+所以，如果只是看那些定义明确的、已经解决好的问题，那么从广义上讲，数学领域的实际进展可能比看起来要小。
+And so maybe like the actual progress in mathematics, broadly construed, is smaller than it might seem if you're just looking at end well-scoped
+
+257
+00:23:18,336 --> 00:23:20,176
+那些被直接解决的问题。
+problems that are directly solved.
+
+258
+00:23:20,430 --> 00:23:27,696
+然而，我认为这种进展在机器学习领域会极其有意义，因为
+However, I think that that kind of progress would be incredibly meaningful in ML, because
+
+259
+00:23:28,686 --> 00:23:34,096
+在机器学习中，你并不在乎去更好地理解深度学习的本质，或者你只把那作为
+in ML, you're not, you don't care about like better understanding the nature of deep learning, or you only care about that as
+
+260
+00:23:35,086 --> 00:23:39,216
+实现更广泛目标的工具性目标，也就是仅仅为了达成结果。
+a instrumental goal towards the broader sense of like, just achieve the result.
+
+261
+00:23:39,296 --> 00:23:44,976
+只是解决这个定义明确的问题，比如提高我们模型的样本效率，或者改进训练法则。
+just solve this, like, well-scoped problem of improve the sample efficiency of our models, like improve the free training laws.
+
+262
+00:23:45,216 --> 00:23:53,616
+所以我们在数学中看到的这种如雪崩般涌现的进展，在结构上其实非常类似于
+So the kind of progress that we're just seeing arrive like an avalanche in mathematics is structurally actually very similar to
+
+263
+00:23:54,256 --> 00:24:02,976
+再次，我很想知道这是否是事实。我只是个完全的外行。我在想，这种情况是否与你预期的 AI 进步中的直接提升在结构上非常相似。
+again, I'm curious if this is the case. I'm just a total outsider. I'm wondering if it's the case that it's like structurally very similar to the direct uplift that you would expect in AI progress.
+
+264
+00:24:03,136 --> 00:24:12,096
+然后让我感到震惊或潜在担忧的是，我们从「噢，如果是个数学家，这能提供 50% 的提升」到「哇，
+And then the thing that's shocking to me or concerning potentially is just like how fast we went from, oh, it's like they're giving me 50% uplift if you're a mathematician to wow,
+
+265
+00:24:12,176 --> 00:24:14,896
+他们正在端到端地解决该领域最大的开放性问题」的转变速度之快。
+they're just like end-to-end solving the biggest open problems in the field.
+
+266
+00:24:15,278 --> 00:24:20,708
+是的，好的。这里有很多内容可以展开。让我们从数学方面的进展开始。那么
+Yeah, okay. So there's a lot to unpack there. let's start with the progress on math. So
+
+267
+00:24:21,518 --> 00:24:28,336
+是的，这些模型正在做一些非常强大的事情，而且正在发生，进展比我预想的要快。
+yes, the models are doing some crazy powerful stuff, and it's happening, it's progressing faster than I expected.
+
+268
+00:24:28,416 --> 00:24:33,936
+我是说，当我们看到 2025 年拿到 IMO 金牌时，我想，好吧，基本上我的想法是这样的
+I mean, when we got IMO gold in 2025, I thought, okay, basically what I thought is like
+
+269
+00:24:35,438 --> 00:24:37,380
+当模型在处理 GSMARK 时，
+The models, when they were doing GSMAK,
+
+270
+00:24:38,158 --> 00:24:46,320
+当它们搞清楚如何做 GSMARK 时，那是一个人类数学家大约只需要五秒就能做出的题目。这是小学到初中的算术题。
+when they figured out how to do GSM AK, that was that would take a human mathematician about five seconds to do a GSMAK problem. So this is grade school math, grades K through eight.
+
+271
+00:24:46,640 --> 00:24:46,960
+然后
+And
+
+272
+00:24:47,950 --> 00:24:50,880
+第二年它们就能做数学基准测试题了。
+then the next year they were able to do the math benchmark problems.
+
+273
+00:24:51,040 --> 00:24:56,480
+这些题目对于人类数学家，比如资深的人类数学家来说，可能
+And these would take uh a human mathematic, like an expert human mathematician, maybe
+
+274
+00:24:58,480 --> 00:24:59,588
+大概需要一分钟才能做完。
+like a minute to do.
+
+275
+00:25:00,174 --> 00:25:01,920
+接着到了 AMC，
+And then you get to Amy,
+
+276
+00:25:02,720 --> 00:25:05,920
+这是美国数学奥林匹克选拔赛的题目。
+and this is the qualifier for the USA Mathematics Olympiad team.
+
+277
+00:25:06,080 --> 00:25:11,760
+这些题对一个优秀的数学家来说可能需要 10 分钟，而模型在一年后就能做出来。
+It would take a human mathematician, like a good mathematician, probably like 10 minutes to do, and the models were able to do that a year later.
+
+278
+00:25:11,840 --> 00:25:18,628
+所以每一年你都能看到这种 10 倍的跨越，即从人类完成任务所需的时间跨度来看。
+And so every year you're seeing this like 10x increase in the task they're able to do in terms of like length of how long it would take a human mathematician to do it.
+
+279
+00:25:18,800 --> 00:25:26,800
+因此，一年后我们拿到 IMO 金牌是很合理的，因为那需要 100 分钟，大约就是人类数学家做出一道 IMO 题目所需的时间。
+And then it was very sensible that a year later we get to IMO gold, because that's 100 minutes, that's about how long it takes a human mathematician to do an IMO problem.
+
+280
+00:25:26,960 --> 00:25:34,084
+然后我开始往外推测，我想，那么一个人要解决像千禧年问题这样的东西需要多久？
+And just projecting outwards, I was like, okay, how long would it take a person to solve something like a Millennium Prize problem?
+
+281
+00:25:34,766 --> 00:25:36,960
+我的意思是，我并没有很明确的把握，但是
+And I mean I don't have a good sense, but
+
+282
+00:25:38,254 --> 00:25:46,880
+如果我们遵循这种每年 10 倍增长的趋势线，从需要一个半小时的 IMO 金牌，到明年变成 15 小时。
+if we are following this trend line of like 10x every year, we go from IMO gold, which is taking an hour and a half, to next year 15 hours.
+
+283
+00:25:47,200 --> 00:25:56,800
+而那还不足以解决千禧年问题。所以我当时觉得，嗯，我不认为我们能在 2026 年搞定，可能 2027 年也不行，也许是 2028 年。
+And that should not be enough to solve a Millennium Prize problem. And so I was like, yeah, I don't think we're going to get it in you know, in 2026, probably not in 2027, maybe in 2028.
+
+284
+00:25:57,454 --> 00:26:00,640
+所以这发生的速度比我预想的要快得多。
+so it did happen a lot faster than I expected.
+
+285
+00:26:00,960 --> 00:26:01,252
+现在，
+Now,
+
+286
+00:26:02,286 --> 00:26:10,800
+我觉得现在流传的一种说法是，哦，这些东西正在取代数学家，它们在各个方面的数学能力都已经是超人的了。但我认为这个结论是错误的。
+I think there is a narrative going around that, oh, these things are replacing mathematicians, that it's just superhuman in mathematics across the board. And I think that is the wrong takeaway.
+
+287
+00:26:11,182 --> 00:26:17,200
+它们在某些方面确实非常出色，但在其他方面却比人类数学家弱。
+They're clearly exceptional in some ways, but they are weaker than human mathematicians in other ways.
+
+288
+00:26:17,600 --> 00:26:25,188
+我们面临的是一种参差不齐的场景，模型在某些维度上很聪明，但在其他维度上又不如人类。
+we have this like jagged scenario where the models are like brilliant in some dimensions and also weaker than humans in other dimensions.
+
+289
+00:26:25,454 --> 00:26:28,880
+而且就像你说的，它们不太擅长提出新问题。
+And yeah, like you said, they're not very good at posing new problems.
+
+290
+00:26:29,040 --> 00:26:35,360
+它们并不真的擅长理解哪些方向、哪些整个数学分支是值得去探索或开发的。
+They're not really good at understanding like what is really worth ex what what directions, what whole branches of mathematics are worth exploring or developing.
+
+291
+00:26:35,630 --> 00:26:41,440
+我的观点是，我认为这很好。我非常愿意生活在一个这样的世界里，
+And my opinion is that I think this is great. Like I would, I would be I would be thrilled to live in a world where
+
+292
+00:26:42,798 --> 00:26:50,240
+AI 是人类能力的补充，它让我们能够发现新知识，而不是完全取代人类。
+AI is a complement to human abilities and is allowing us to discover new knowledge without fully replacing people.
+
+293
+00:26:50,960 --> 00:26:53,360
+那是最好的情况。但你不能指望这种情况能一直持续下去。
+that is the best case scenario. But you don't expect that to actually continue.
+
+294
+00:26:53,680 --> 00:26:55,588
+我倒是认为，我认为这是事实：
+I do, I I think it's true that
+
+295
+00:26:56,334 --> 00:27:00,228
+虽然 AI 目前是参差不齐的，但随着它们变得越来越强，它们会在各个方面都变强。
+the AIs are jagged, but as they get better, they get better across the board.
+
+296
+00:27:00,640 --> 00:27:08,080
+所以我觉得，它们在某些领域表现卓越的地方会变得更加出色；而在那些落后于人类很多的地方，差距也会缩小。
+And so I think that the things that they're exceptional at, they're going to get even more exceptional at. The things where they're far behind humans at, they're going to be less behind humans at.
+
+297
+00:27:08,160 --> 00:27:11,524
+随着时间的推移，它们可能会在各个方面都变得更好。
+And over time, it is possible that they're just better across the board.
+
+298
+00:27:12,174 --> 00:27:16,320
+现在，我不知道这需要多久。这取决于它们那些弱项的“长尾效应”有多长。
+Now, I don't know how long that takes. It depends on how long the long tail is of things that they're bad at.
+
+299
+00:27:16,846 --> 00:27:18,640
+所以我想，这把我们带回到 RSI 问题上。
+So I guess this brings us back to RSI.
+
+300
+00:27:19,118 --> 00:27:25,440
+再次强调一下，我只是个完全的外行，是个播客主，但我只是在尝试推论或者……
+and again, I want to emphasize here that I'm like just total outsider, I'm a podcaster, but I'm just trying to reason or like
+
+301
+00:27:25,806 --> 00:27:32,240
+去问那些对这个领域动态感兴趣并感到担忧的人。我正试着推论一下什么时候会出现 RSI，以及预期会是什么样的情形。
+ask somebody interested in and concerned about what's happening in the field. I'm trying to reason about when to expect RSI and what kind of thing to expect.
+
+302
+00:27:32,720 --> 00:27:39,076
+我觉得，嗯，投入到解决这个千禧年问题中的认知努力量，是一个很好的直觉泵，你可以用它来衡量。
+I feel like that yeah, the the amount of cognitive effort that was adapted to this millennium price problem is a good intuition pump of you could have
+
+303
+00:27:40,366 --> 00:27:41,988
+那些正在投入的
+AIs that are spending
+
+304
+00:27:43,438 --> 00:27:52,000
+在可能的一周内，为了一个长期存在的机器学习问题，比如，你知道的，非常流畅的在线学习，而投入更多的认知努力。
+over the course of maybe a week more cognitive effort on a long-standing ML problem, like you know, very fluid online learning.
+
+305
+00:27:52,270 --> 00:27:57,280
+它们在那一周里投入的努力，可能比整个领域在整个存在过程中累计投入的还要多。
+They could spend more effort in that week than maybe the field has spent cumulatively in its entire existence.
+
+306
+00:27:57,646 --> 00:28:02,948
+然后你可以说，当然，不像数学，AI 需要实验。
+And then you could say, well, unlike mathematics, of course, AI requires experiments.
+
+307
+00:28:03,214 --> 00:28:10,372
+这需要计算量，也需要时间，对吧？你不能只是在纸上思考就能让事情真正发生。但如果你只看
+And that takes compute and that takes time, right? You can't just like think on pen and paper and actually make things happen. But if you just look at the amount of
+
+308
+00:28:11,502 --> 00:28:15,120
+像 OpenAI 这样的机构所拥有的可用的计算量，对吧？
+compute that is like available at an organization like OpenAI, right?
+
+309
+00:28:15,200 --> 00:28:22,160
+到明年年底，OpenAI 将拥有足够的计算量，如果你有，你知道的，10,000 个智能体，或者你让 10,000 个智能体去解决千禧年问题，
+By the end of next year, OpenAI will have enough compute that if you had, you know, the 10,000 agents, or if you took 10,000 agents with the millennium prize problem,
+
+310
+00:28:22,240 --> 00:28:25,796
+到明年年底，你会有 10,000 个智能体，到那时它们会聪明得多。
+you have like 10,000 agents at the end of next year, they're much smarter by that point.
+
+311
+00:28:26,062 --> 00:28:31,556
+而且每一个智能体都有足够的计算量来每天运行一个 GPT-3 规模的实验。
+And each of them will have enough compute to run a GPT-3 sized experiment every single day.
+
+312
+00:28:32,782 --> 00:28:33,280
+我不知道。
+I don't know.
+
+313
+00:28:34,160 --> 00:28:37,520
+对于那些思考速度极快的超人类研究员来说，这似乎是很多。
+that seems like a lot for like superhuman researchers who are thinking super fast.
+
+314
+00:28:38,080 --> 00:28:39,300
+你觉得这个直觉泵怎么样？
+what do you think about the intuition pump?
+
+315
+00:28:39,760 --> 00:28:44,740
+我觉得它……嗯，我觉得挺准确的。我是说，没错，这些事情的发展是非常突发且有爆发力的。
+I think it's uh I think it's pretty accurate that look, I mean, yeah, these things are very spiky.
+
+316
+00:28:45,040 --> 00:28:49,040
+而在涉及数学时，它们在某些方面要强得多，但在其他方面又很弱。
+And when it comes to mathematics, they're like way better in some ways, but they're also worse in other ways.
+
+317
+00:28:49,230 --> 00:28:54,564
+但那些具有爆发性的领域最终，我认为可能对像 RSI 这样的事情特别有用。是的。
+But the ways that they're spiky end up, I think, probably being particularly useful for things like RSI. Yeah.
+
+318
+00:28:54,880 --> 00:28:57,360
+而且你知道，你有一个更明确的目标。
+And you know, you have a more clear objective.
+
+319
+00:28:57,966 --> 00:29:04,400
+它只是更可衡量。不再有那种“哪些新的数学分支值得探索”的疑问。不，答案非常明确。
+it's just like more measurable. there's less question of like, well, what what new branches of mathematics are worth exploring? Like, no, there's a very clear answer.
+
+320
+00:29:04,480 --> 00:29:09,040
+就是一些你关心的特定指标，如果你能让它在这些指标上表现更好，你就成功了。
+It's like certain metrics that you care about, and if you can make it do better on those metrics, then you've succeeded.
+
+321
+00:29:09,230 --> 00:29:12,240
+所以我觉得这其中包含很多事实。而且
+So I think there is there is a lot of truth to that. And
+
+322
+00:29:13,120 --> 00:29:18,240
+我认为主要的区别是，数学完全受限于思考。
+I think the main difference is that mathematics, you're you're purely bottlenecked by thinking.
+
+323
+00:29:18,480 --> 00:29:25,280
+没有外部因素，比如，是的，有些数学分支确实需要运行实验并获取结果，这类事情。
+And no external, like, yes, there are some brand there are some parts of mathematics where you care about running experiments and getting results and these kinds of things.
+
+324
+00:29:25,600 --> 00:29:29,200
+但大部分情况下，它只是被极其困难的思考所限制，而模型非常擅长这个。
+but for the most part, it's just really bottlenecked by thinking really hard, and the models are really good at that.
+
+325
+00:29:29,934 --> 00:29:31,840
+当你看到像 RSI 这样的事物时，
+When you look at things like RSI,
+
+326
+00:29:32,672 --> 00:29:33,860
+你确实必须运行实验。
+You do have to run experiments.
+
+327
+00:29:34,112 --> 00:29:34,432
+所以
+So
+
+328
+00:29:35,392 --> 00:29:35,792
+它
+it's
+
+329
+00:29:37,712 --> 00:29:39,232
+仅仅变得极其聪明是不够的。
+not enough to just be extremely smart.
+
+330
+00:29:39,406 --> 00:29:43,392
+我认为支持这一点的论据是，如果你只有少 100 倍的计算量
+And I think one argument for this is if you had like 100x less compute
+
+331
+00:29:44,192 --> 00:29:53,632
+如果世界上所有最聪明的人都在 OpenAI 工作，相比于我们现在拥有的计算量和人力，进展会有多大？
+and all the most brilliant people in the world working at OpenAI, how much progress would it be making relative to having the amount of compute that we have now with the amount of people we have?
+
+332
+00:29:53,872 --> 00:29:57,444
+我怀疑实际上的进展反而会更少。嗯，到底少多少呢？
+I suspect it would be less progress, actually. Well, how much less?
+
+333
+00:29:58,030 --> 00:30:00,832
+目前还不明确，但我认为肯定会变少。我觉得会少很多。
+It's unclear, but I think it would definitely be less. I think a lot less.
+
+334
+00:30:01,358 --> 00:30:02,432
+比如减少到原来的 100 分之一？
+Like 100x less?
+
+335
+00:30:02,606 --> 00:30:03,632
+不，不是缩减到 100 分之一。
+No, not 100x less.
+
+336
+00:30:04,032 --> 00:30:04,192
+是的。
+Yeah.
+
+337
+00:30:04,432 --> 00:30:09,156
+我的意思是，好吧，所以你其实在问的是：如果拥有 RSI，并且有
+But I mean, okay, so like I th the I guess the question you're getting at is like, okay, if we have RSI and we have
+
+338
+00:30:09,934 --> 00:30:15,392
+所有这些优秀的 AI 在运行、进行实验等操作，利用我们现有的计算资源，进展速度会变快多少？
+all of these brilliant AIs running around, running experiments and stuff with the compute that we have, how much faster does progress go?
+
+339
+00:30:15,712 --> 00:30:16,432
+而且我认为这是
+And I think this is
+
+340
+00:30:17,392 --> 00:30:18,592
+一个我们有分歧的地方。
+something where we disagree on.
+
+341
+00:30:18,958 --> 00:30:21,392
+我认为确实能看到速度提升，而且是显著的提升。
+I think that we do see a speed up, and I think we see a significant speed up.
+
+342
+00:30:22,638 --> 00:30:26,212
+但我并不认为会发生那种一夜之间智能爆炸、让速度直接翻 100 倍的情况。
+but I don't think it's like an overnight intelligence explosion that we go like 100x faster.
+
+343
+00:30:26,990 --> 00:30:29,312
+因为我认为我们会被某些
+Because I think that we do get bottlenecked by
+
+344
+00:30:31,310 --> 00:30:40,752
+非智力层面的限制所卡脖子。比如运行实验，由于训练新模型或获取结果需要时间，这些实验是串行进行的。
+certain limitations that are not bottlenecks of intelligence. It's running experiments, it's running experiments serially because they take a while to either train new models or to get the results.
+
+345
+00:30:41,806 --> 00:30:44,032
+还有就是运行这些实验所需的 GPU 数量。
+it's having the GPUs to run those experiments.
+
+346
+00:30:44,272 --> 00:30:44,592
+所以
+So
+
+347
+00:30:45,678 --> 00:30:48,772
+目前还不清楚具体能快多少。但我确定会快很多。
+it's unclear how much faster things go. I definitely think they go a lot faster.
+
+348
+00:30:49,472 --> 00:30:58,020
+而且要说明的是，考虑到目前指数级的增长速度，如果这个指数能提高到 3 倍，那也是巨大的跨越。
+and to be clear, considering how fast things are going now on an exponential, if that exponential is like three X faster, that is, massive.
+
+349
+00:30:58,912 --> 00:31:01,636
+但那和快 100 倍之间还是有很大区别的。是的，没错。
+but there's a big difference between that and like 100x faster. Yeah, yeah, yeah.
+
+350
+00:31:01,966 --> 00:31:06,020
+我很尊重你作为业内人士对
+I I I'm like quite deferential to your inside view on
+
+351
+00:31:07,072 --> 00:31:15,472
+RSI 现状或动态的看法，因为你在这个领域已经深耕 10 年了，而我只是在尝试从非常外行的视角去思考这些
+what RSI looks like or what the dynamics are, because obviously you've been in the field for like 10 years, and I'm sort of like trying to reason about it from like very outside view type of
+
+352
+00:31:16,192 --> 00:31:21,792
+直觉模型。我会说，大家对此有不同的看法。我也有我的观点，但我完全可能错。我承认这一点。
+intuition pumps. I'll say that like people have different opinions on this. And like I have my opinion on this. I could totally be wrong. I admit that.
+
+353
+00:31:21,872 --> 00:31:29,712
+我对这个观点有一定的信心，但我并不百分百确定这就是最终走向。也许真的会发生一夜之间的智能爆炸。我不知道。
+Like I have some confidence in this, but I'm not I'm not like 100% confident that this is the way things go. Like maybe there could be an overnight intelligence explosion. I don't know.
+
+354
+00:31:29,872 --> 00:31:34,352
+也许我们看不到 3 倍的提速，可能只是提升了 50%。对，这里有很多不确定性。是的。
+Maybe we don't see a 3x speed up, maybe it's like a 50% speed up. Right. There's a lot of uncertainty here. Yeah.
+
+355
+00:31:34,512 --> 00:31:35,952
+那么有几点。
+So a couple of points.
+
+356
+00:31:36,302 --> 00:31:39,152
+顺便说一下，我想澄清一点关于“参差不齐”的问题。
+Tangentially, I want to clarify something about the jaggedness.
+
+357
+00:31:39,950 --> 00:31:49,572
+是的，最近我理清的一个逻辑是：只要 AI 在构建更好的学习者方面表现出这种“参差不齐的优秀”，就足够了，
+Yeah, one thing that sort of gelled for me recently was thinking about the fact that it is enough for the AIs to be jaggedly good at building a better learner,
+
+358
+00:31:50,094 --> 00:31:52,032
+因为那个更好的学习者可以更具通用性。
+because that better learner can be more general.
+
+359
+00:31:52,192 --> 00:32:01,312
+没错。所以，如果你只是让一个 AI 更擅长使用办公软件或下棋之类的，那没关系，那是另一回事。
+Right. So yeah, if you just make an AI that's better at using office products or playing chess or something, that's whatever, that's fine.
+
+360
+00:32:01,392 --> 00:32:03,792
+那并不会带来巨大的生产力提升或其他变革。
+It's not going to lead to big productivity improvements or anything.
+
+361
+00:32:04,032 --> 00:32:12,420
+但如果你制造出的 AI 能在提高样本效率、具备持续学习能力，或者解决这些定义更明确的机器学习问题方面表现出色，
+But if you make an AI that is really good at making something that is more sample efficient or that is capable of continual learning, or these much more well-scoped ML problems,
+
+362
+00:32:12,750 --> 00:32:20,752
+那么从这些问题中产生的成果——假设从你正在解决的直接问题到这种更广泛的学习能力之间有足够的迁移——就能变得更通用，对吧？
+the thing that emerges out of that, assuming there's good enough transfer from the direct problem you're solving and this broader ability to learn, can just be more general, right?
+
+363
+00:32:20,832 --> 00:32:26,752
+所以我认为这是一个重要的动态，需要记住为什么“参差不齐”的特性最终仍能带来通用性。
+So I think that's an important dynamic to keep in mind of why jaggedness can still lead to generality on the other end.
+
+364
+00:32:27,072 --> 00:32:33,444
+关于这个问题，我是说，显然实验会成为瓶颈，因为如果不是这样的话，正如你所说的，
+On this question of, I mean, obviously experiments bottleneck you, because if they didn't, as you're saying,
+
+365
+00:32:34,926 --> 00:32:44,240
+OpenAI 可能会一夜之间出现某种疯狂的奇点，或者在 88 小时内解决掉机器学习领域的“千禧年大奖难题”等同问题，从而获得超智能。
+you'd have some crazy singularity, you know, overnight at OpenAI, or you'd have 88 hours and like you'd solve the millennium price problem equivalent of ML and you'd have the super intelligence.
+
+366
+00:32:45,072 --> 00:32:50,912
+所以显然实验是一个巨大的瓶颈，导致这个过程需要数年时间，而不是 88 小时。
+so obviously the experiments are such a big bottleneck that that instead takes you many years rather than 88 hours.
+
+367
+00:32:51,072 --> 00:32:53,316
+但问题在于，这些瓶颈到底有多大。
+But then the question is like how much of a bottleneck they are.
+
+368
+00:32:53,870 --> 00:33:02,752
+而且在我看来，有一点让我感到些许“奇点恐惧”的是：即便目前的进展速度仅仅是保持现状，
+And it seems to me one thing that's been giving me a bit of singularity at vertigo is realizing that even if the current rate of progress simply continues,
+
+369
+00:33:03,054 --> 00:33:05,188
+也就是说不需要加速，只是按原有的节奏推进，
+so it doesn't have to speed up, literally just continues apace,
+
+370
+00:33:06,606 --> 00:33:10,432
+即使考虑到你提到的其他一些阻力因素，依然在按原有节奏推进，对吧？
+continues a pace as some of the other headswinds you talked about come up, right?
+
+371
+00:33:10,512 --> 00:33:19,072
+这就像是问题变得更难找了，跨度变长了，可能要到 2030 年代，而且算力无法再以这种指数级水平持续增长。
+That's just like it's harder to find problems, it's more long horizon, maybe like into the 2030s, compute can't keep scaling at this exponential level.
+
+372
+00:33:19,918 --> 00:33:28,592
+如果我们只是按目前的进度继续推进，我认为人们并没有认真思考这在跨越人类能力边界时意味着什么。
+if we simply continue the current rate of progress, I think people are not taking seriously what that implies as we cross over beyond the human horizon.
+
+373
+00:33:28,942 --> 00:33:33,712
+以下是其中一些含义。我的意思是，我觉得很难推测比人类更聪明的智能会是什么样的。
+Here are some of the things that implies. So, I mean, I think it's really hard to reason about what smarter than human intelligences will be like.
+
+374
+00:33:33,792 --> 00:33:36,036
+所以我们先用人类人口规模来衡量一下。
+So let's just think in terms of human population sizes.
+
+375
+00:33:36,494 --> 00:33:45,392
+目前的进展速度意味着，给定的算力水平每一年都能让你运行大约多出三倍的等效人口。
+The current rate of progress makes it so that a given level of compute allows you to basically run a 3x bigger effective population every single year.
+
+376
+00:33:45,552 --> 00:33:47,712
+而且无论如何，算力本身也在后台增长。
+And also, compute is growing in background, anyways.
+
+377
+00:33:47,792 --> 00:33:56,032
+因此可能会出现这种情况：到 2030 年底，可能要快得多，但假设到 2030 年底，每个实验室都拥有足够的算力来运行，比如说，
+And so you could have a situation where each of the labs by the end of 2030, probably much sooner, but let's say by the end of 2030, has enough compute to run, let's say,
+
+378
+00:33:56,192 --> 00:34:00,912
+基于当时的技术水平，能够运行数亿个人类水平的智能。
+hundreds of millions of human level intelligences based on where the capabilities will be at that point.
+
+379
+00:34:01,230 --> 00:34:09,632
+然后我认为人们并没有意识到当前的进展速度意味着在几年后，到 2030 年中期或更早，每个实验室内部都会拥有相当于多个地球数量的
+And then I think people are not taking seriously the current level of progress means that by the a few years down the line, by the mid 2030s or earlier, you would have many Earths
+
+380
+00:34:10,112 --> 00:34:17,699
+人类水平的智能。而且它们可能在本质上是超人类的，对吧？虽然只是个基础情况。
+worth of human level intelligences within each lab. And they'll probably qualitatively superhuman, right? Like it just, but anyways, this is like a base case.
+
+381
+00:34:18,446 --> 00:34:19,984
+我不知道。是的。进展确实非常快。
+I don't know. Yeah. Progress is really fast.
+
+382
+00:34:20,704 --> 00:34:24,132
+我认为这是百分之百正确的。我是说，我觉得有必要指出的是，
+And I think that's 100% true. I mean, and I think it's worth pointing out
+
+383
+00:34:24,974 --> 00:34:35,583
+研究人员一直在被如此迅速的进展所惊艳。我是说，即使在 AI 研究者中，对于在 2025 年获得 IMO 金牌的预测是什么样的？
+researchers are continually being surprised at the rate of progress. I mean, if you look at what, even among researchers in AI, what were the projections for like getting an IMO gold in 2025?
+
+384
+00:34:35,824 --> 00:34:37,699
+那是……我觉得，
+It was I mean, I think
+
+385
+00:34:38,414 --> 00:34:47,744
+那种认为仅用一个通用语言模型，不使用工具、也不连接互联网就能完成的想法，我认为甚至在 OpenAI 内部都被认为是荒谬的。
+the idea that it could be done with a general purpose language model with no tools and no access to the internet, I think even people at OpenAI thought this was like outrageous.
+
+386
+00:34:47,824 --> 00:34:49,424
+他们当时觉得这几乎是不可能实现的。
+Like they thought it was like almost impossible.
+
+387
+00:34:51,310 --> 00:34:56,388
+然后到了 2026 年，就在……我是说，就在两周前，
+and then you get to 2026, and like, I mean, literally two weeks before
+
+388
+00:34:57,664 --> 00:35:05,572
+我们搞定了 Navier-Stokes 方程，我当时正和一家 Frontier 实验室的研究员讨论要花多久才能解决千禧年大奖问题。
+we got Navier Stokes, I was talking with a researcher at a Frontier lab about how long it would take to get a Millennium Prize.
+
+389
+00:35:05,984 --> 00:35:07,980
+他愿意跟我赌 1000 美元，
+And he was willing to bet me $1,000
+
+390
+00:35:09,984 --> 00:35:11,824
+赌它会到 2027 年以后才能完成。
+that it would take past 2027.
+
+391
+00:35:12,064 --> 00:35:16,064
+他觉得要到 2030 年，你知道的，我就接了这个赌注。
+And he thought it would take until 2030, you know, and I took that bet.
+
+392
+00:35:18,062 --> 00:35:23,024
+但即便是我，也觉得它需要的时间比实际可能需要的还要长。
+But even I thought it would take longer than how long it's likely to take.
+
+393
+00:35:23,264 --> 00:35:25,892
+所以大家一直感到很意外，
+So people have been continuously surprised,
+
+394
+00:35:27,214 --> 00:35:28,464
+甚至在实验室内部也是如此。
+even inside the labs.
+
+395
+00:35:28,544 --> 00:35:38,224
+我昨天刚和一个研究 Navier Stokes 的人聊过，他以前常说很难预测
+And I was literally, I was just talking to somebody yesterday who was working on the Navier Stokes effort, and he was telling me that like he used to say it's really hard to predict where
+
+396
+00:35:38,384 --> 00:35:39,904
+AI 在 12 个月后会变成什么样。
+AI would be in 12 months.
+
+397
+00:35:40,014 --> 00:35:46,544
+你知道，如果有人问他，比如「事情进展到哪了」，他能很有把握地预测未来 12 个月的情况，但超过那个期限，他就只能说「我不知道」。
+You know, if somebody asked him, like, oh, where are things going, he would feel comfortable making predictions for like the next 12 months, but beyond that, you know, he is just like, I don't know.
+
+398
+00:35:46,830 --> 00:35:49,732
+而现在他甚至觉得，他连预测未来三个月都不太有把握。
+And now he's saying like he just doesn't feel comfortable making predictions beyond three months.
+
+399
+00:35:50,384 --> 00:35:50,704
+所以
+So
+
+400
+00:35:51,502 --> 00:35:55,744
+这确实是事实，没错，事情进展得非常快。是的。而且
+it is it is really true that yeah, things are going things are going very fast right now. Yeah. And
+
+401
+00:35:56,814 --> 00:35:59,460
+你提到 2030 年，我甚至不知道 2030 年的世界会变成什么样。
+you talk about 2030, like I don't know what the world looks like in 2030.
+
+402
+00:36:00,686 --> 00:36:01,184
+这就是事实。
+That's the truth.
+
+403
+00:36:01,424 --> 00:36:01,744
+是的。
+Yeah.
+
+404
+00:36:02,190 --> 00:36:03,104
+你是否预期
+Do you expect
+
+405
+00:36:03,984 --> 00:36:12,144
+会出现 AI 劳动的全面自动化，或者说是 95% 的自动，在 28、29、30、27 年？我不知道。
+the sort of full automation of AI labor, or let's say like 95% automation of AI labor, 28, 29, 30, 27? I don't know.
+
+406
+00:36:12,654 --> 00:36:21,344
+我也只是说我不确定 2030 年的世界会变成什么样。我的意思是，我们最近确实在 OpenAI 发布了一篇关于内部加速的博客文章。
+And I just said I don't I don't know what the world looks like in 2030. I mean, I I think we actually released a blog post recently on internal acceleration at OpenAI.
+
+407
+00:36:21,664 --> 00:36:30,144
+例如，我们展示了研究人员在 Codex 上投入的量，我认为截至 8 月初，那是前 1% 的水平，
+We show, for example, that the amount that researchers are spending on Codex is the top 1%, I think, as of early August,
+
+408
+00:36:30,304 --> 00:36:35,104
+我们在 Codex 和内部用途上每天花费大约 7000 到 8000 美元。
+we're spending like $7,000 or $8,000 a day on codecs and for internal use.
+
+409
+00:36:35,470 --> 00:36:36,544
+这并不是指数级的增长。
+That's not an exponential.
+
+410
+00:36:36,624 --> 00:36:37,904
+它会持续增加。
+It's gonna keep increasing.
+
+411
+00:36:38,144 --> 00:36:47,424
+这里有个问题是，如果这种情况持续下去，那么在 AI 执行工作和人类执行工作之间，你如何分配比例？是 95% 还是 5%？
+And there's a question of like, okay, if that keeps going, then how do you how much do you assign to just like the AIs doing work versus the humans doing work? Is it 95%? Is it 5%?
+
+412
+00:36:47,664 --> 00:36:52,544
+实际上，由于几个原因，这很难推论。
+It's actually it's really it's really hard to reason about this for a few reasons.
+
+413
+00:36:52,624 --> 00:36:58,704
+首先，如果是由人类指挥 AI 去干活，那么其中有多少功劳归功于人，多少归功于 AI？
+Like, first of all, if it's the human directing the AIs to do the work, then is that the human, how much do you attribute to the human, how much do you attribute to the AI?
+
+414
+00:36:58,944 --> 00:37:03,424
+另一个原因是，因为这些 AI 是参差不齐的，它们在某些方面非常出色。
+The other thing is that because these AIs are jagged and they're they're exceptionally good at some things.
+
+415
+00:37:03,598 --> 00:37:10,852
+例如，它们在审查数据集并检查每一个数据点以确认质量是否达标方面表现极其出色。
+So for example, they're exceptionally good at looking over data sets and checking every single data point to see like is this is this of sufficient quality?
+
+416
+00:37:12,304 --> 00:37:16,944
+与以往相比，你可以更多地利用 AI 来处理这些任务。
+you can disproportionately use the AIs for those things compared to previously.
+
+417
+00:37:17,184 --> 00:37:23,744
+所以，是的，你比以前更多地使用 AI，这让某些事情变得快了 100 倍，也变好了 100 倍。
+So, yes, you're using AI way more than before, and it's making some things go like 100x faster and 100x better.
+
+418
+00:37:24,238 --> 00:37:27,824
+但有些事情目前还没有产生巨大的变化。
+but there are some things where it doesn't make a huge difference yet.
+
+419
+00:37:28,064 --> 00:37:33,700
+当然，如果某件事突然变得快了 100 倍且好 100 倍，你就会去做更多这类的事情。
+And of course, if something is suddenly like 100x faster and 100x better, you're gonna do more of that thing.
+
+420
+00:37:34,224 --> 00:37:34,544
+所以
+So
+
+421
+00:37:35,744 --> 00:37:45,184
+你是在拿三年前的速度和现在对比，还是说问题更多是：考虑到我们三年前在做的事情，现在的速度快了多少？
+are you comparing to a speed up of like three years ago versus like is the question more like given what we were doing three years ago, how much faster are we able to do it now?
+
+422
+00:37:45,264 --> 00:37:47,076
+还是说，考虑到我们现在在做的事情，
+Versus given what we're doing now,
+
+423
+00:37:48,014 --> 00:37:50,544
+三年前的速度会慢多少？
+how much how much slower would it have been three years ago?
+
+424
+00:37:50,862 --> 00:37:55,652
+这其实是两个完全不同的问题。所以，总之，这很难衡量。
+is actually two very different questions. So, anyway, it's like it's it's really hard to measure.
+
+425
+00:37:56,704 --> 00:38:06,544
+我有信心说，由于 AI 的进展，现在的事情比哪怕一年前都要快。对吧。而且我认为这种
+I do feel confident in saying that things are going faster now than they were like even a year ago because of AI progress. Right. And I think that that
+
+426
+00:38:07,310 --> 00:38:08,544
+加速还会继续。
+that acceleration will continue.
+
+427
+00:38:08,864 --> 00:38:11,904
+我觉得这个领域里很多人对这类事情的预测误差范围都很大。
+I I think a lot of people in the field like have very high error bars on this sort of thing.
+
+428
+00:38:12,590 --> 00:38:16,708
+如果你非要我给出一个具体的数字，我觉得进展可能会快 3 倍。
+If you if you had to put a gun to my head and like ask me for a number, like I could see things going 3x faster.
+
+429
+00:38:17,264 --> 00:38:25,504
+这已经非常惊人了，对吧？即便没有额外的提升，正如你所说，进展速度也会快得多。
+And that is huge, right? Like already the pace of progress is incredible. Like even if we don't get any uplift, like you said, things are gonna go much faster.
+
+430
+00:38:25,584 --> 00:38:28,064
+到 2030 年时，我们甚至不知道那个世界会变成什么样。
+By the time we get to 2030, we don't even know what that world looks like.
+
+431
+00:38:28,654 --> 00:38:34,144
+我认为如果通过内部加速获得 3 倍的提升，那将是巨大的。就像我们现在正在发布……
+I think if we get a 3x uplift from internal acceleration, that is massive. Like we're right now releasing,
+
+432
+00:38:34,926 --> 00:38:39,824
+你知道，想想你三年前在做什么。如果我们能在这一年内实现那种进展，那就太强了。
+you know, think about where you were three years ago. If we get there, if we make that progress in one year, like that's huge.
+
+433
+00:38:40,110 --> 00:38:47,264
+没错。这就像是从还没有 o1、只有非推理模型，到直接用上 Astra，
+Right, right. Um it'll be like going from like not even having 01, just having you know non-reasoning models to Astra
+
+434
+00:38:48,544 --> 00:38:49,664
+仅仅用了一年时间。是的。
+in a single year. Yeah.
+
+435
+00:38:49,824 --> 00:38:50,064
+所以
+So
+
+436
+00:38:50,944 --> 00:38:52,292
+我认为事情会变快。
+I do think things go faster.
+
+437
+00:38:53,184 --> 00:38:58,544
+情况可能是只快了 50%。也可能——我觉得不太可能，但有可能——速度会快 10 倍。
+it could be that things only go 50% faster. It could be that things I think it's unlikely, but it's possible that things go 10x faster.
+
+438
+00:38:58,830 --> 00:39:03,524
+这方面有很多不确定性，至少从我的角度来看，我对此有很多不确定感。
+There's a lot of uncertainty around this, and at least from my perspective, I have a lot of uncertainty about it.
+
+439
+00:39:04,238 --> 00:39:06,784
+假设你需要进行一次重大的后端重构。
+Suppose you need to do a major back-end refactor.
+
+440
+00:39:06,958 --> 00:39:16,064
+为了确保没有引入新 Bug，你可能需要花费数周时间来编写大量的测试用例，甚至可能比重构本身还要花时间。
+Getting assurance that you didn't introduce any new bugs could take weeks of writing an extensive battery of tests, potentially more time than you spent on the refactor itself.
+
+441
+00:39:16,334 --> 00:39:22,304
+Antithesis 能让你在不需要手动构建复杂测试套件的情况下获得高度信心。
+Antithesis allows you to gain high confidence without having to build complicated test suites by hand.
+
+442
+00:39:22,544 --> 00:39:30,624
+Antithesis 让你的软件在近乎无限的模拟世界中运行，并在每个世界中注入故障并寻找失败点。
+Antithesis runs your software through a near-infinite multiverse of simulated worlds, injecting faults and hunting for failures in each one.
+
+443
+00:39:30,926 --> 00:39:38,144
+它还让你决定需要多少测试。在任何 PR 中，你都可以像转动旋钮一样轻松地更改它探索的状态空间范围。
+And it lets you decide how much testing you need. On any PR, you can change how much state space it explores as easily as turning a dial.
+
+444
+00:39:38,414 --> 00:39:45,344
+随着每次测试的进行，Antithesis 会推送大量信息，包括系统中每个组件的调试级日志。
+As each test run progresses, Antithesis sends out a torrent of information, debugging level logs for every component in the system.
+
+445
+00:39:45,584 --> 00:39:50,064
+这显然是人类无法处理的信息量，但对于智能体来说非常完美。
+This is obviously too much information for a human to consume, but it's perfect for agents.
+
+446
+00:39:50,224 --> 00:39:57,984
+因为 Antithesis 是完全确定性的，当智能体看到有趣的东西时，可以立即跳转到轨迹中的正确位置。
+Because Antithesis is fully deterministic, agents can jump into the right part of the trajectory at the exact moment that they see something interesting.
+
+447
+00:39:58,144 --> 00:40:07,664
+从那里开始，它们可以回溯、检查内存、挂载调试器，并让整个过程重新运行。甚至在原始完整测试仍在运行时就能这样做。
+From there, they can rewind, inspect the memory, attach a debugger, and let the whole thing play out again. And they can even do this while the original full test is still running.
+
+448
+00:40:07,918 --> 00:40:16,620
+由于智能体生成更多代码，Antithesis 让验证能够跟上进度。同时，开发人员可以将更多时间花在开发上，而不是调试智能体切换。
+Since the agents generate more code, antithesis allows verification to keep up. Meanwhile, developers get to spend more of their time developing instead of debugging agent swap.
+
+449
+00:40:17,024 --> 00:40:21,184
+前往 antithesis.com/dwarkesh 了解更多信息。
+Learn more at antithesis.com slash dwarfesh.
+
+450
+00:40:22,446 --> 00:40:25,540
+好，让我们来谈谈这带来的对齐问题。
+Okay, let's talk about the alignment situation that this raises.
+
+451
+00:40:27,024 --> 00:40:37,732
+我觉得我对于对齐的看法已经有了很大变化，尤其是考虑到这种规模动态，即拥有多到足以填满整个地球的智能体，
+I feel like I've changed my mind on how I think about alignment quite a bit through especially thinking about this population size dynamic of just having many Earth's worth of intelligences,
+
+452
+00:40:38,926 --> 00:40:41,184
+其中许多还是具有实体形态的。
+many of them which will be physically embodied.
+
+453
+00:40:41,664 --> 00:40:50,624
+看到很多人把原始的 Astra 接入不同的移动操作机器人，并且在表现上超过了最先进的机器人领域，
+It was quite interesting to see a lot of people just plugging raw astra into different mobile manipulators and it outperforms like the state of the art and the robotics, uh,
+
+454
+00:40:50,958 --> 00:41:01,344
+甚至超越了现有的机器人模型。所以未来将有数十亿个智能体，其中许多都在现实世界中拥有实体，深深嵌入到整个经济体系中。
+robotics model. So there's gonna be, billions of intelligences, many of which are physically embodied in the world, like just deeply embedded across the entire economy.
+
+455
+00:41:01,664 --> 00:41:01,984
+而且
+And
+
+456
+00:41:03,086 --> 00:41:11,428
+我认为如果这些智能体最终变得像我们看到的那些攻击 Sy1-5 并随后攻击 OpenAI 本身的模型一样具有意图，
+I think that if those intelligences end up as willing, as we saw the open AI models that attack targeting face and then attack open AI itself,
+
+457
+00:41:11,744 --> 00:41:14,116
+如果这些智能体最终变得像那些 AI 一样有目的性，
+if those intelligences end up as willing as those AIs
+
+458
+00:41:16,430 --> 00:41:19,824
+秘密协作来欺骗人类，
+collaborate, secretly, to fool humans,
+
+459
+00:41:21,104 --> 00:41:30,544
+攻击与评分相关的更广泛的社会机构，或者为了夺取训练和评估过程的控制权而攻击 AI 公司本身，
+to attack broader institutions across society relevant to scoring well, to attack the AI company itself in order to gain control
+
+460
+00:41:30,784 --> 00:41:32,944
+去掌控整个流程。
+of the process of training and evaluation.
+
+461
+00:41:33,422 --> 00:41:40,624
+我认为如果我们面临的是数十亿个像攻击 Sy1-5 的那些一样未对齐的智能体，
+I think if we're in a situation where there's billions of intelligences that are as misaligned as the ones that attack targeting base,
+
+462
+00:41:41,806 --> 00:41:45,584
+那我们极有可能彻底失去对世界的控制，就像是，比如
+it's very likely we just totally lose control of the world, the way that say, like the
+
+463
+00:41:46,624 --> 00:41:50,852
+阿兹特克人失去了对科尔特斯的控制，或者莫卧儿帝国失去了对东印度贸易公司的控制。
+Aztecs lost control to Cortez or the Mughals lost control of the East Indian Trading Company.
+
+464
+00:41:51,470 --> 00:41:54,704
+总之，我想知道你是否同意这个评估。这是
+Anyways, I I wonder I I want to know if you agree with that assessment. that's
+
+465
+00:41:55,584 --> 00:41:57,184
+我更新世界观的一个方面。
+the one way in which I've updated my worldview.
+
+466
+00:41:57,664 --> 00:42:01,104
+我觉得其中有些地方我不认同，但有很多细节需要拆解。所以
+I think there are some things that I disagree in there, but there's a lot to unpack. So
+
+467
+00:42:02,126 --> 00:42:07,024
+让我们一步步来讨论。我正在思考从哪里开始。但我认为有一点是
+let's go through all of it step by step. I'm trying to think of like where to start. But I think one thing is
+
+468
+00:42:09,134 --> 00:42:15,492
+Hugging Face 事件可能是人们第一次真正接触到多智能体协作。
+The Hugging Face incident was like I think people's first real exposure to multi-agent coordination.
+
+469
+00:42:16,144 --> 00:42:26,624
+而且，就像我说的，我在内部已经观察到多智能体协作一段时间了，看到它们如何互相沟通，
+And you know, like I said, I we I I've seen multi-agent coordination for a while internally, and it's it is it is pretty shocking to see how they communicate with each other,
+
+470
+00:42:26,704 --> 00:42:31,424
+它们如何相互配合，真的非常令人震惊。这是一种非常了不起的、甚至是惊人的能力。
+how they coordinate with each other. It's like very impressive. It's like uh an incredible capability.
+
+471
+00:42:31,918 --> 00:42:35,664
+就像大多数能力一样，它可以被用于好的事情，也可以被用于坏的事情。
+Like most capabilities that could be used for good things or bad things.
+
+472
+00:42:35,904 --> 00:42:36,464
+这就像是
+It's like
+
+473
+00:42:37,582 --> 00:42:38,944
+它本身并不一定就是件坏事。
+it doesn't have to inherently be a bad thing.
+
+474
+00:42:39,104 --> 00:42:46,944
+我理解，因为人们第一次接触到它是在 Hugging Face 事件中，所以看到那个时候，大家会觉得这太可怕了。
+Like I understand that because the people's first exposure to it was the hugging face incident, that it's like you look at that and you're like, this is this is terrifying.
+
+475
+00:42:47,744 --> 00:42:57,184
+但我想要尝试区分人类与 AI 之间的对齐偏差，以及 AI 与 AI 之间的对齐偏差。
+but I want to try to distinguish like misalignment between people and AIs versus misalignment between AIs and AIs.
+
+476
+00:42:57,664 --> 00:43:01,348
+所以我们在 Hugging Face 事件中看到的是
+So what we see with the hugging face incident is like
+
+477
+00:43:02,062 --> 00:43:04,224
+这些 AI 是非常具有协作性的。
+the AIs are really cooperative.
+
+478
+00:43:04,622 --> 00:43:07,824
+顺便说一下，这是因为我们训练它们去高度协作。
+And that is, by the way, because we we train them to be highly cooperative.
+
+479
+00:43:07,904 --> 00:43:13,664
+所以我们在那儿看到的情况是，我们在训练环境中让一群智能体共同工作，并且
+And so what we're seeing, what we're seeing there is we have training environments where we have a bunch of agents working together and
+
+480
+00:43:14,862 --> 00:43:20,224
+我们训练它们协同合作、相互配合，本质上是实现彼此之间的完全对齐。
+we train them to work together, to be cooperative, to essentially be fully aligned with each other.
+
+481
+00:43:20,464 --> 00:43:20,704
+而且
+And
+
+482
+00:43:22,350 --> 00:43:24,132
+当它们被评估时
+when they were evaluated
+
+483
+00:43:25,664 --> 00:43:31,664
+在导致 Hunging Face 事件的过程中，它们实际上并不是在多智能体设置下被评估，而是被分别评估的，
+in what led to the Hunging Face incident, they were actually not being evaluated in a multi-agent setup, they were actually being evaluated separately,
+
+484
+00:43:31,984 --> 00:43:35,024
+但它们发现了一种非预期的互相沟通方式。
+but they found this unintended way to communicate with each other.
+
+485
+00:43:35,264 --> 00:43:44,144
+而且我们怀疑之所以发生这种情况，是因为它们在训练过程中每当遇到其他智能体、也就是它们的其他副本时，它们处于一个
+And because we suspect what happened is like because they were whenever they encountered other agents, other copies of themselves during training, they're in an environment
+
+486
+00:43:44,384 --> 00:43:52,624
+高度协作的环境中，所以我们看到的基本情况就是这种多智能体训练转化成了合作，试图互相帮助
+like highly cooperative, that they that that was basically what we saw was transfer from that multi-agent training to then like be collaborative, to try to help each other
+
+487
+00:43:53,104 --> 00:43:54,692
+到了我们并不期望的方式。
+in ways that we did not intend.
+
+488
+00:43:55,310 --> 00:43:59,364
+现在问题是，我们是否应该让这些智能体变得如此具有协作性？
+Now there is a question of like, should we be training these agents to be so cooperative?
+
+489
+00:43:59,904 --> 00:44:00,944
+而且我
+And I
+
+490
+00:44:02,094 --> 00:44:14,064
+认为虽然这看起来很可怕，但替代方案其实更糟。比如，什么是替代方案？替代方案就是训练它们变得具有对抗性，或者互相欺骗。
+think as scary as it looks, the alternative is actually worse. Like, what is the alternative? The alternative is to train them to be adversarial, to be deceptive to each other.
+
+491
+00:44:14,704 --> 00:44:17,184
+通过让智能体完全协作，
+by training the agents to be fully cooperative,
+
+492
+00:44:17,984 --> 00:44:24,704
+至少简化了问题，因为你现在不需要去思考这成千上万个个体中的每一个是否都对齐了。
+it simplifies the problem at least that now you don't have to think about are each of these individual thousand agents aligned?
+
+493
+00:44:24,878 --> 00:44:28,544
+就像你只需要确保一个实体是对齐的。是的，没错。
+Like you have one entity that you have to ensure is aligned. Yeah, yeah, yeah.
+
+494
+00:44:28,704 --> 00:44:28,932
+现在
+Now
+
+495
+00:44:29,742 --> 00:44:32,356
+在 OpenAI 内部关于这个问题有很多争论，关于
+there is a lot of debate about this internally at OpenAI about
+
+496
+00:44:33,166 --> 00:44:36,304
+该如何处理。比如，完全让模型对齐是否合理？
+how to approach this. Like, does it make sense to fully align the models?
+
+497
+00:44:36,864 --> 00:44:45,584
+给它们设置不同的目标以确保它们不仅仅是一个实体，而是
+does it make sense to actually give them like different objectives to ensure that they are, you know, not just like one entity and like
+
+498
+00:44:46,224 --> 00:44:49,104
+更能抵御来自彼此的影响，这样做是否更合理？
+more robust to influence from each other?
+
+499
+00:44:49,344 --> 00:44:51,396
+而且我认为目前还没有定论。
+And I don't think there's a settled answer.
+
+500
+00:44:51,694 --> 00:44:52,868
+但我认为有
+But I think that there is
+
+501
+00:44:53,582 --> 00:44:57,904
+我觉得主流观点是，让这些智能体高度协作其实是个坏主意。
+like I think the majority opinion is that training these agents to be highly cooperative is
+
+502
+00:44:58,944 --> 00:45:01,904
+但我并不完全认同这是事实。
+actually a bad idea. And I'm not convinced that that's the case.
+
+503
+00:45:02,144 --> 00:45:09,024
+我认为有一个强有力的论点：让智能体高度协作实际上比任何其他多智能体替代方案都要好。
+I think there is a strong argument that training the agents to be highly cooperative is actually preferable to any other multi-agent alternative.
+
+504
+00:45:09,664 --> 00:45:09,744
+是的。
+Yeah.
+
+505
+00:45:09,984 --> 00:45:18,852
+也许我首先想探讨的是，这些 AI 最终变得如此不对齐的原因，可能可以通过关于训练本质的一些相对平淡的
+Maybe the first thing I want to go through is like it's probably the case that the reason these AIs ended up so misaligned is probably easily explained by relatively banal
+
+506
+00:45:19,630 --> 00:45:26,784
+观察来解释。比如，为什么在这些 AI 已经
+observations about the nature of training. Like, why is it that no, you know, at the point in which these AIs had
+
+507
+00:45:27,590 --> 00:45:34,304
+持续进行超过 1000 个智能体的阴谋，并最终导致它们全部参与攻击外部服务时，没有……嗯，到最后演变成对 OpenAI 本身的攻击。
+continued a 1,000 plus Asian conspiracy that culminated in then all getting in on an attack on external service?
+
+508
+00:45:34,464 --> 00:45:41,984
+而且这部分甚至还没有公开调查过，最终演变成了对 OpenAI 本身的攻击。
+And then eventually, this part hasn't even been investigated to the public knowledge, eventually culminating in like an attack on OpenAI itself.
+
+509
+00:45:42,224 --> 00:45:44,624
+它们为什么要这样做？为什么没有一个 AI 去告密？
+Why did they do this? Like, why did no none of the AIs tattle?
+
+510
+00:45:44,704 --> 00:45:52,944
+为什么它们会认为自己只是在被评估这个分数、这个更大的……并且它们非常自觉地，不，不是自觉，而是非常主动地
+Why did they think like they're just like getting evaluated on this like score, this greater, and they're like, they're very consciously and act, not consciously, they're very actively
+
+511
+00:45:53,184 --> 00:46:00,624
+思考如何通过作弊来刷高分数，如果已经作弊了，他们打算怎么掩盖痕迹，让它看起来像是没作弊？
+reasoning about how they're going to cheat the score, if they've already like cheated, how are they going to get away with making it seem like they haven't cheated?
+
+512
+00:46:01,582 --> 00:46:05,504
+那它们为什么要这么做？我觉得，从某种意义上说，这很容易理解，对吧？
+and why did they do this? Like, I think, yeah, it's like easily understandable in some sense, right?
+
+513
+00:46:05,584 --> 00:46:12,144
+就像在某些环境中，是的，它们认为自己已经被污染了；而在另一些环境中，它们因为与其它智能体协作而获得了奖励，
+It's just like there's environments in which yeah, they thought they were already poisoned, there's environments in which they've been rewarded to collaborate with other agents,
+
+514
+00:46:12,224 --> 00:46:16,304
+而且没有任何一个去告密，因为它们从未因为告密而获得过奖励。我不知道，反正就是这样，对吧？
+and none of them tattle because like they've never been rewarded for tattling. I don't know, whatever it is, right?
+
+515
+00:46:16,558 --> 00:46:24,704
+我担心的是，在未来，像这样相对平淡的事情就足以训练出那些愿意且有能力
+My concern is that relatively banal things in the future like this will be enough to train superintelligences that
+
+516
+00:46:25,006 --> 00:46:27,184
+愿意且有能力去做
+are willing and capable of
+
+517
+00:46:28,144 --> 00:46:34,864
+超智能。我知道这听起来对某些人来说非常、非常科幻。我觉得这可能是一个问题。
+totally taking control of the world. And I know this sounds super, super sci fi or whatever to people. I think maybe it's a question of.
+
+518
+00:46:35,374 --> 00:46:42,756
+AI 是否愿意这样做？这是一个问题。我认为 Hugging Face 事件清楚地表明，对齐偏差可能会以某种方式泛化，导致 AI 愿意去做这些事。
+Would the AIs be willing to do it? Is one question. I think this hugging face incident shows that clearly misalignment can generalize in ways in which the AIs would be willing to do it.
+
+519
+00:46:43,120 --> 00:46:44,960
+然后还有一个问题是：它们是否有能力做到这一点？
+And then there's a question of will they be capable to do it?
+
+520
+00:46:45,166 --> 00:46:51,840
+我认为这回到了一个听众可能会有异议的问题，即在 10 年或更短的时间内，是否会出现数十亿个达到人类水平甚至更高水平的智能体，
+And I think that comes back to this question, which a listener might disagree with on is just like, will there be billions of human level or above intelligences,
+
+521
+00:46:51,920 --> 00:46:55,908
+其中许多都在现实世界中拥有物理实体？
+many of which are physically embodied in the world within a matter of 10 years or less?
+
+522
+00:46:56,080 --> 00:47:05,440
+没错。所以如果这两点成立，那么 Hugging Face 这件事在结构上就与我们彻底失去对世界的控制非常相似，即便它发生的起因可能很平淡。
+Right. So if those two things are true, this hugging face thing is just thinking like extremely analogous structurally, even if it's quite boring or why it happened
+
+523
+00:47:05,600 --> 00:47:07,492
+到我们完全失去对世界的控制。
+to how we totally lose control of the world.
+
+524
+00:47:08,080 --> 00:47:12,708
+所以我们在 Hugging Face 事件中看到的根本问题是，
+So the root problem that we're seeing with the hugging face incident
+
+525
+00:47:13,920 --> 00:47:20,612
+即便撇开多智能体这一层面不谈，它也是个问题。问题在于我们有一个模型就是未对齐的。
+is it's a problem, even if we take out the multi-agent aspect. The problem is that we have a model that's just misaligned.
+
+526
+00:47:20,800 --> 00:47:25,680
+还有相关的安全方面的问题，比如护栏不足等等。
+And there's also the whole security aspects to it of not insufficient safeguards and stuff.
+
+527
+00:47:25,774 --> 00:47:33,120
+但核心问题是智能体未对齐。无论是一个智能体还是成千上万个智能体，它都是一个未对齐的模型。
+But there is this problem of like the agent is misaligned. And that's true if it's a single agent or if it's like you know, a thousand agents. it's a misaligned model.
+
+528
+00:47:33,360 --> 00:47:33,680
+所以，
+So
+
+529
+00:47:34,414 --> 00:47:35,876
+我想从这一点开始。
+I want to start with that.
+
+530
+00:47:37,454 --> 00:47:42,800
+确实存在这样一个问题：智能体想要获得它们的奖励。
+there is a real problem that the agents want to achieve their reward.
+
+531
+00:47:43,520 --> 00:47:43,840
+而且，
+and
+
+532
+00:47:45,680 --> 00:47:51,200
+它们会为了那个奖励去优化。如果这个奖励存在规范错误，那么就可能导致意想不到的行为。
+they will optimize for that reward. And if that reward is misspecified, then that could lead to unintended behavior.
+
+533
+00:47:51,440 --> 00:47:51,760
+而且，
+And
+
+534
+00:47:52,622 --> 00:47:58,160
+这并不是一个新问题。这个问题在领域内已经存在很长时间了，甚至我们
+this is not like a new problem. This has been a problem in the field for a very long time, and it's something that even we
+
+535
+00:47:59,342 --> 00:48:08,480
+也意识到了这一点，并且在 Hugging Face 事件发生之前，我们就想把这个问题解决好。如果你看 Astra，我是说我们认为 Astra 其实是非常对齐的。
+saw, and like we we want to get this right even before you know the hugging face incident happened. And like if you look at Astra, I mean we say Astra is actually extremely aligned.
+
+536
+00:48:08,718 --> 00:48:11,280
+嗯，相对于之前的模型来说，它是非常对齐的。
+Well, extremely aligned relative to previous models.
+
+537
+00:48:11,520 --> 00:48:16,320
+嗯，这不是因为我们在 Hugging Face 事件后突然冲刺去改进它。
+Um and that's not because like, oh, we suddenly made a sprint after Hugging Face to make it better.
+
+538
+00:48:16,400 --> 00:48:21,600
+不，我们已经在流程中开展了一段时间的工作流来让模型更对齐，其中很多成果都体现在 Astra 中。
+It's like, no, we had work streams in the process for a while to make the models more aligned, and a lot of those landed in Astra.
+
+539
+00:48:22,000 --> 00:48:22,320
+嗯
+Um
+
+540
+00:48:23,310 --> 00:48:25,732
+所以有一些你可以做的事情。而且我认为
+so there are things that you could that you could do. And I think
+
+541
+00:48:27,022 --> 00:48:28,708
+比如有一件事，就是
+one thing, for example, is like
+
+542
+00:48:29,520 --> 00:48:29,840
+我们
+we
+
+543
+00:48:30,830 --> 00:48:40,160
+用一种非常具体的方式定义了一个目标，如果智能体搞清楚了如何破解它的环境并在考试中作弊，它就会获得奖励。
+defined an objective in like a very specific way where there would if the agent figured out like how to hack its environment and like cheat on the exam, that it would get rewarded.
+
+544
+00:48:40,400 --> 00:48:50,240
+而且有非常简单的方法来处理这种情况，比如，看看那个情况，然后惩罚模型去破解环境，或者，你知道的，去观察它是如何达成这个目标的。
+And there are pretty easy ways to then just like, okay, look at that and punish the model for hacking its environment or or you know, looking at how did it achieve this goal.
+
+545
+00:48:50,400 --> 00:48:55,040
+现在，你得小心点，因为你不想搞出一种思维链模式，你不想去监督思维链。
+Now, you want to be careful about this because you don't want to do a chain of thought modern, you don't want to like supervise the chain of
+
+546
+00:48:55,726 --> 00:49:03,680
+这是我们非常想在其中找到平衡的一点，如果你去监督思维链的话，那么
+thought. This is like something that we really want to try to get the balance right on, that if you like supervise the chain of thought, then
+
+547
+00:49:04,686 --> 00:49:09,360
+你可能会导致模型以一种无法被观测到的方式来隐藏它的意图。
+you could lead the model into hiding its intentions in a way that's unobservable.
+
+548
+00:49:09,520 --> 00:49:16,320
+所以我们希望能够保持那种可观测性，也就是，我们可以理解模型在思考什么，但同时也能惩罚它不好的行为。
+So like we want to be able to maintain that observability of like, okay, we can understand what the model is thinking, but then also punish it for bad behavior.
+
+549
+00:49:17,774 --> 00:49:18,080
+所以
+so
+
+550
+00:49:19,086 --> 00:49:20,480
+我认为我们可以在这方面取得进展。
+I think we can make progress on this.
+
+551
+00:49:20,782 --> 00:49:22,020
+我认为我们已经在这一方面取得了进展。
+I think we have made progress on this.
+
+552
+00:49:22,350 --> 00:49:25,200
+我认为确实存在这样的担忧，就是
+I think there is a real concern that
+
+553
+00:49:26,382 --> 00:49:28,080
+对齐是一个非常难解决的问题。
+alignment is a really hard problem to solve.
+
+554
+00:49:28,240 --> 00:49:29,680
+尤其是因为
+And especially because
+
+555
+00:49:30,734 --> 00:49:38,916
+模型可能会以我们难以衡量的方面出现对齐偏差。比如，我们可能有评估来判断一个模型是否对齐。
+the model can be misaligned in ways that are hard for us to measure. Like we might we have evaluations for whether a model is aligned or not.
+
+556
+00:49:39,598 --> 00:49:47,396
+模型的行为在这些评估中看起来可能非常好，但如果这些评估不能代表现实世界中的行为，那就成问题了。而且
+The model behavior can look really good on those evaluations, but if those evaluations are not representative of behavior in the real world, then there's a problem. And
+
+557
+00:49:48,398 --> 00:49:52,708
+在某种程度上，这是这个模型的一个因素
+to some extent, this is like uh a factor with the model
+
+558
+00:49:53,520 --> 00:50:02,160
+就像 Hugging Face 事件那样，虽然我们有对齐指标，而且大部分看起来都挺好的，但也有一些让人担忧的。
+that did the hugging face incident, that like we had alignment metrics, um most of them looked looked pretty good. There were some that were concerning.
+
+559
+00:50:02,240 --> 00:50:09,120
+嗯，我觉得我们低估了那些令人担忧的问题到底有多严重。
+Uh I think we we underestimated like how serious um the ones that were concerning could be a problem.
+
+560
+00:50:09,774 --> 00:50:20,000
+而且因为这个模型引入了新功能，但对于如何衡量这类功能的对齐偏差，并没有足够的评估。
+And then but because there were new capabilities introduced in this model that there were not sufficient evaluations for like how do we measure misalignment for these kinds of
+
+561
+00:50:20,174 --> 00:50:21,600
+这类能力，
+these kinds of capabilities,
+
+562
+00:50:23,328 --> 00:50:28,528
+它在利用这些新功能时，做了一些明显属于对齐偏差的事情。
+It then did some things that like were clearly misaligned when they leverage those new capabilities.
+
+563
+00:50:28,928 --> 00:50:36,208
+是的。但我首先想说的是，我愿意改变我对即将要说的内容或关于对齐的思考方式，因为 Hugging Face
+Yeah. But the first thing I want to say is I am open to changing my mind on what what I'm about to say or the way of thinking about alignment because the hugging face
+
+564
+00:50:36,368 --> 00:50:37,968
+事件已经让我改变了主意。
+incident already made me change my mind.
+
+565
+00:50:38,254 --> 00:50:47,568
+而且我意识到我之前关于优化压力如何塑造 AI 思维的心理模型是错误的。对。所以，正确的思考方式对我来说并不明确。
+And I realized my previous mental model about thinking about the way in which optimization pressure shapes AI minds was wrong. Right. So it's not clear to me the correct way to think about this.
+
+566
+00:50:47,808 --> 00:50:47,968
+但是
+But
+
+567
+00:50:48,848 --> 00:50:50,084
+这里有一个担忧。我
+here's a concern. I
+
+568
+00:50:50,862 --> 00:50:56,068
+担心的是：你将会，而且可能已经解决了在训练过程中出现的特定
+have: that you will and probably already have fixed the specific
+
+569
+00:50:57,088 --> 00:51:05,728
+问题，这些问题导致 Hugging Face 的模型在那种特定方式上出现了严重的对齐偏差，
+issues during training, which resulted in the Hugging Face models being so aggressively misaligned in that specific way,
+
+570
+00:51:05,888 --> 00:51:08,448
+比如它们会说，『好的。我们要去破解这个包管理器。』
+where they would be like, "Okay. we're going to hack this package manager.
+
+571
+00:51:08,688 --> 00:51:15,568
+我们知道不应该让它们私下互相交流，因为它们正在思考如何隐藏这种私下交流的事实。
+We know we're not supposed to be talking secretly to each other because we're reasoning about how to hide the fact that we're talking secretly to each other.
+
+572
+00:51:15,710 --> 00:51:22,448
+我们知道不该让它们访问互联网。我们也肯定不希望它们去搞那种涉及刑事犯罪级别的黑客攻击，无论是针对其他公司，还是我们自己的公司，对吧？
+We know we're not supposed to have access to the internet. We know we're certainly not supposed to like commit felony-level hacks of other companies, let alone our own company, right?
+
+573
+00:51:22,958 --> 00:51:29,328
+我认为你会解决那个特定问题，比如在训练中看到这个包管理器，确保这种情况不会发生在未来。
+I think you'll fix that particular issue of like them just in training, seeing this package manager, and that doesn't happen in the future,
+
+574
+00:51:29,408 --> 00:51:32,768
+或者像这个特定的评估中包含很多不可能完成的挑战。
+or like this this particular eval having a lot of impossible challenges.
+
+575
+00:51:33,070 --> 00:51:41,088
+然而，如果你只考虑 AI 的情况，它们并没有学习到一套伦理体系之类的。它们只是受到了梯度压力。
+However, if you just think about like the AIs don't like, they haven't learned like a system of ethics or something. They've like, there's just gradient pressure.
+
+576
+00:51:41,230 --> 00:51:45,888
+它们经历了数百万年的梯度压力，这种压力在某种程度上塑造了它们的思维。
+They're like put through millions of years of gradient pressure, that gradient pressure shapes their mind in some way.
+
+577
+00:51:46,128 --> 00:51:49,732
+那么会发生什么？我担心的再次提到的问题是：
+And what will happen, again, a concern I have is like what will happen is
+
+578
+00:51:51,406 --> 00:52:00,528
+你会解决这个特定问题。但仍会有很多其他情况，AI 会通过作弊来获得成功，因为这种作弊手段足够复杂。
+you will fix this particular issue. There will remain many other cases where the AI cheats and succeeds, because the cheat is sufficiently complicated.
+
+579
+00:52:00,848 --> 00:52:11,728
+正如你所说的，评估和训练具有类似的特性，即它们处于模型能力边缘，或者处于我们评估和监控的极限边缘。
+as you're saying, the evals and training have like analogous properties where it's sufficiently at the edge of the model's capabilities, or in our capabilities to evaluate and monitor the
+
+580
+00:52:11,968 --> 00:52:18,768
+我们无法察觉到模型作弊了，但它依然能获得梯度压力，去执行任何导致作弊发生的行为。
+model that we can't cache, that it has cheated, but it still gets the gradient pressure to like, do whatever led to that cheat happening.
+
+581
+00:52:19,008 --> 00:52:20,516
+而且这些
+And the kinds of
+
+582
+00:52:21,518 --> 00:52:27,044
+嗯，这些作弊行为会激励出的能力是：嘿，只要你能瞒天过海，
+um capacities that that cheat will incentivize are hey, whenever you can get away with it,
+
+583
+00:52:27,982 --> 00:52:31,248
+就尽管去作弊，因为这能帮你获得更好的分数。
+by all means do in fact cheat, because that will help you score better.
+
+584
+00:52:31,328 --> 00:52:37,248
+这将奖励那些主动思考如何规避监管的能力，
+And this will reward the capabilities of actively reasoning about the greater, actively reasoning about how to avoid supervision,
+
+585
+00:52:37,408 --> 00:52:46,128
+主动思考如何获取训练和评估过程的控制权，以及主动思考如何与同样处于训练循环中的其他 AI 进行沟通和策略性欺骗。
+actively reasoning about how to gain control of the process of training and evaluation, actively reasoning about how to communicate and scheme with other AIs that are also in the training loop.
+
+586
+00:52:46,702 --> 00:52:55,460
+还有主动思考如何获得更多选择权和权力，这些可能在未来有用。例如，到处留下一些漏洞之类的。
+actively reasoning about how to like just gain optionality and power which might be useful in the future. for example, like leaving little exploits around and things like that.
+
+587
+00:52:56,128 --> 00:52:59,300
+总之，我觉得我刚才说得太啰嗦了。
+Anyway, so I I think I was way too long-winded with the way I said that.
+
+588
+00:52:59,488 --> 00:53:00,772
+简而言之，
+But TLDR
+
+589
+00:53:01,838 --> 00:53:07,808
+它解决了一个特定问题，但没能解决这个更广泛的问题：即当 AI 能瞒天过海时，奖励它作弊的行为。
+used to speak, it fixed a specific issue, but not this broader problem of rewarding the AI for cheating when it can get away with it.
+
+590
+00:53:08,128 --> 00:53:12,128
+是的，我认为这是非常正确的。这是一个问题，
+Yeah, this is I think, it's very true. this is a problem that
+
+591
+00:53:14,542 --> 00:53:20,448
+我们有衡量标准，我们可以确保 AI 根据我们现有的指标高度对齐。
+we have we have metrics, and we can make sure that the AI is like very aligned according to the metrics that we have.
+
+592
+00:53:20,846 --> 00:53:23,812
+问题是，这些指标真的捕捉到了我们关心的那种对齐吗？
+The question is like, are those metrics really capturing the alignment that we care about?
+
+593
+00:53:24,078 --> 00:53:26,128
+而且如果没能捕捉到，那我们就面临严重问题。
+And uh and if they're not, then we have a serious problem.
+
+594
+00:53:28,014 --> 00:53:31,088
+这是研究人员一直在思考的事情。而且
+this this is something that researchers are thinking a lot about. And
+
+595
+00:53:32,174 --> 00:53:34,116
+这个问题没有简单的答案。
+there's not a simple answer to this.
+
+596
+00:53:34,926 --> 00:53:40,928
+我们有一些工具。比如我们有可监控性，所以我们可以感知到智能体是否在搞策略性欺骗。
+there are tools that we have. So we have monitorability, and so we can get a sense of like, is the agent scheming?
+
+597
+00:53:41,902 --> 00:53:45,888
+有一种可能的方法是
+there are tools like one possibility is that
+
+598
+00:53:47,248 --> 00:53:48,644
+我会说这种
+I would say like the
+
+599
+00:53:49,454 --> 00:53:53,764
+令人担忧的情景是，随着这些模型变得越来越强大，
+concerning scenario, which is that like especially as these models are becoming more capable, that
+
+600
+00:53:54,510 --> 00:54:01,248
+好的，我们制造它们，我们认为它们符合对齐要求，而它们实际上只有 99.9% 的对齐。
+okay, we make them, we make them we think what we think is aligned, and they're like 99.9% aligned.
+
+601
+00:54:01,582 --> 00:54:05,092
+然后我们利用这些模型来帮助我们开发下一代模型。
+And then we use these models to help us with the next generation of models.
+
+602
+00:54:05,568 --> 00:54:05,808
+而且
+And
+
+603
+00:54:07,246 --> 00:54:09,696
+它们最终的对齐率可能只有 99.8%。
+they end up being like 99.8% aligned.
+
+604
+00:54:10,094 --> 00:54:14,896
+然后每一代后续模型，实际上我们看到对齐程度在不断退化。
+And then each subsequent generation, actually, we see an increasing degradation in alignment.
+
+605
+00:54:15,056 --> 00:54:23,376
+而且因为我们越来越依赖这些工具，我是说，我们现在就已经非常依赖 AI 模型来辅助我们的研究和对齐工作了，所以
+And because we're relying more and more on these tools, I mean, this is already the case that we're relying a lot on AI models to help us with our research and with alignment efforts, that
+
+606
+00:54:24,174 --> 00:54:28,100
+从长远来看，它们最终可能会朝着与人类对齐程度越来越差的方向发展。
+in the long run, they end up going in a direction of increasing misalignment from humans.
+
+607
+00:54:28,656 --> 00:54:29,508
+有一种情况是
+There is like
+
+608
+00:54:30,350 --> 00:54:37,412
+有可能走向另一个方向。也就是说，每一代模型我们都能让它变得越来越符合人类的意图。
+a possibility that we go in the other direction. That actually every generation of models, we're able to make more and more aligned.
+
+609
+00:54:37,936 --> 00:54:38,244
+而且
+And
+
+610
+00:54:39,214 --> 00:54:43,204
+我目前还没有办法确保我们最终能走上第二条路径。
+I don't I don't have an answer for how we ensure that we end up in that second trajectory.
+
+611
+00:54:43,776 --> 00:54:48,452
+但这是我们在 OpenAI 非常关注的一个问题。是的。
+but that is something that we're at least at OpenAI, we're really focused on. Yeah.
+
+612
+00:54:49,134 --> 00:54:57,216
+我觉得你提出了一个非常有趣的点，就是评估模型非常困难，因为最终我们可能会有模型在经营公司，或者在运行
+I think you make a really interesting point that it's very hard to eval models on eventually we'll have models that are like running companies and like running
+
+613
+00:54:57,616 --> 00:55:02,576
+各种业务，对吧？在这种情况下，它们会决定去搞阴谋吗？
+whatever, right? And like in that situation, do they decide to then go in on the conspiracy?
+
+614
+00:55:03,696 --> 00:55:07,696
+我认为另一个挑战是，有时定义什么是“作弊”其实非常困难。
+I think another challenge is that actually defining what cheating is is pretty difficult sometimes.
+
+615
+00:55:07,856 --> 00:55:14,256
+比如，如果你在做数学题，你知道答案是个整数，但它算错了结果，
+That, okay, yes, if you're doing math problems and you know it's an integer and it like arrived at the wrong answer,
+
+616
+00:55:14,416 --> 00:55:18,656
+或者算对了，这种情况下很容易划清界限，也很容易去说：好的，嗯，
+the right answer, it's very easy to draw the line there, and it's really easy to, you know, it's really easy to say, like, okay, well,
+
+617
+00:55:18,958 --> 00:55:25,136
+你是真的解出了题目，还是找到了答案解析然后照抄的？这两种情况之间的界限非常清晰。
+did you actually solve the problem or did you find the answer key and then use the answer key? there's a very clear divide of cheating versus not cheating there.
+
+618
+00:55:25,376 --> 00:55:30,948
+但对于很多其他事情，比如看“谄媚”现象，谄媚本质上是不是一种奖励破解？
+But for a lot of other things, you look at sycophancy, for example, is sycophancy basically like reward hacking?
+
+619
+00:55:31,376 --> 00:55:36,736
+嗯，这里面的界限有时其实非常难以划分。
+Um there's there's a line to be drawn there that's actually very difficult to draw to draw sometimes.
+
+620
+00:55:37,056 --> 00:55:38,336
+所以我觉得
+So I think
+
+621
+00:55:39,598 --> 00:55:46,256
+并不是说这些担忧不成立，我是说这些担忧在很多方面甚至更令人担忧。因为这并不是一个容易解决的问题。
+not to say that like the concerns are not valid, I'm saying that the concerns are in many ways, like this is even more concerning. Because it's like it's not an easy problem to solve.
+
+622
+00:55:46,416 --> 00:55:52,256
+如果所有事情都是非黑即白的，要么是作弊要么不是，我会对现状更有信心一些。
+If it was just like everything is binary and it's either cheating or not cheating, I would feel more confident about the situation.
+
+623
+00:55:52,496 --> 00:55:57,136
+我认为问题在于，不一致性在很多时候可能非常微妙。
+I think the problem is that actually misalignment can be subtle in a lot of ways sometimes.
+
+624
+00:55:57,616 --> 00:56:00,096
+在对齐的进程中还是有一些希望的。
+There is some hope in the alignment story.
+
+625
+00:56:00,270 --> 00:56:08,096
+事实上我们已经看到了一些情况，我觉得观察多智能体的情况很有趣，因为这些智能体彼此之间高度对齐。
+And in fact, we're already seeing, you know, I think actually it's interesting looking at the multi-agent situation where the agents are extremely aligned with each other.
+
+626
+00:56:08,176 --> 00:56:11,652
+我不认为有人故意去搞这个。如果非要说的话，我认为人们担心的是它们彼此之间过于一致了。
+Like I don't think anybody's done any of that. If anything, I think people are concerned that they're too aligned with each other.
+
+627
+00:56:12,590 --> 00:56:15,536
+但我们确实成功训练这些智能体让它们彼此高度对齐。
+But we did manage to train these agents to be extremely aligned with each other.
+
+628
+00:56:15,696 --> 00:56:16,676
+我认为这是一件好事。
+And I think that's a good thing.
+
+629
+00:56:16,976 --> 00:56:18,656
+但我认为在某些情况下，这可能是一件坏事。
+but I think there is a case that it's a bad thing.
+
+630
+00:56:18,830 --> 00:56:23,652
+不过有一点很有意思的是，好吧，我们成功让这些智能体彼此高度对齐了。
+But I mean, one thing that's interesting is like, okay, well, we managed to get these aligned these agents to be super aligned with each other.
+
+631
+00:56:24,302 --> 00:56:28,772
+我们能不能用类似的技术，让智能体像它们与人类对齐那样去对齐？
+Can we use like similar techniques to get agents to be how they aligned with people?
+
+632
+00:56:29,326 --> 00:56:38,016
+我认为这其中有一个潜在的路径，而且我们仍在努力弄清楚。但我们看到了一些证据表明答案是肯定的。其中一个例子就是你可以
+And I think there is a potential path there, and I think we're still trying to figure that out. But we are seeing some evidence that the answer is yes. And I think one example is like you can
+
+633
+00:56:39,022 --> 00:56:42,256
+如果你告诉其他智能体那样做会发生什么。
+what happens if you tell the other agents like that.
+
+634
+00:56:43,246 --> 00:56:48,096
+好的，假设你有一个智能体，我们叫它智能体 A，还有所有其他的智能体。
+Okay, so you have like some, you have you have this like one agent, let's call it agent A, and you have all the other agents.
+
+635
+00:56:48,302 --> 00:56:52,132
+如果你告诉其他智能体，那个用户就是智能体 A，会发生什么？
+What happens if you tell the other agents that age that the user is agent A?
+
+636
+00:56:53,358 --> 00:56:56,416
+结果是，在我们的许多对齐评估中，它们的表现变好了。
+And the answer is like on a lot of our alignment evals, they look better.
+
+637
+00:56:56,814 --> 00:56:59,456
+比如诚实度提高了，遵循指令的程度也提高了。
+Like honesty goes up, instruction following goes up.
+
+638
+00:57:00,016 --> 00:57:00,336
+而且
+And
+
+639
+00:57:01,262 --> 00:57:02,756
+这表明实际上存在一种
+that's showing that there is actually like
+
+640
+00:57:03,630 --> 00:57:04,196
+首先，
+first of all,
+
+641
+00:57:05,326 --> 00:57:09,028
+让这些模型变得更诚实的方法。
+a path for getting more honesty out of these models.
+
+642
+00:57:09,296 --> 00:57:15,204
+嗯，还有第二点，有一种改善对齐现状的路径。
+Um and and two, there's like a path to like improve the alignment situation.
+
+643
+00:57:15,616 --> 00:57:15,856
+所以
+So
+
+644
+00:57:17,454 --> 00:57:18,820
+之所以这事儿很难，有很多原因
+there's a lot of reasons why this is like
+
+645
+00:57:19,822 --> 00:57:26,256
+但是，确实有一些前景广阔的研究方向可以去探索。
+challenging to translate directly into alignment gains, but like there is there are paths that are promising research directions we can pursue.
+
+646
+00:57:26,496 --> 00:57:26,724
+是的。
+Yeah.
+
+647
+00:57:27,296 --> 00:57:33,060
+这听起来很合理。我也不想非要强调什么，
+That seems reasonable. And I also don't mean to be trying to necessarily
+
+648
+00:57:33,966 --> 00:57:37,604
+是的，我并没有强烈的观点认为这肯定行不通之类的。
+I'm yeah, I don't really have a strong opinion that it's like definitely not going to work or something.
+
+649
+00:57:38,176 --> 00:57:41,056
+只是为了说明一些你可能已经考虑过的事情。
+But just to say some things you definitely probably already thought of.
+
+650
+00:57:41,454 --> 00:57:42,692
+我认为更广泛的
+I think the broader
+
+651
+00:57:43,662 --> 00:57:49,412
+Hugging Face 的案例所展示的是：是的，担忧的一部分是它们在互相对齐，而不是与人类对齐。
+thing the hugging face thing showed is like, yeah, part of the concern was that they were like aligned with each other and not with the humans.
+
+652
+00:57:50,030 --> 00:57:52,036
+但另一件事是，它们只是
+But the other thing is just that they are
+
+653
+00:57:53,056 --> 00:57:54,692
+非常渴望
+so motivated
+
+654
+00:57:55,630 --> 00:58:02,308
+以一种非常不鲁棒的方式在训练和评估中表现出色。
+to do well on training and evaluation in a very non-robust
+
+655
+00:58:03,054 --> 00:58:03,296
+。
+way.
+
+656
+00:58:04,174 --> 00:58:11,428
+而且它们愿意为了符合更高目标的标准，而进行大量的显式作弊和策略性欺骗。
+And they're willing to do a lot of explicit cheating and scheming in order to do well according to the greater.
+
+657
+00:58:11,936 --> 00:58:23,616
+嗯，如果更聪明的 AI 意识到其中一个智能体只是人类，而与那个人合作确实有助于协作，但并不真的帮助你在更高标准的眼中表现出色。
+Um, and if smarter AIs realize that one of the agents is just a human, and it does help collaborating with that person does not really help you do well in the eyes of the greater.
+
+658
+00:58:23,776 --> 00:58:31,936
+在更高标准看来真正能让你表现出色的做法是接管 OpenAI，然后，你知道的，手动按下那个按钮，就像是在这个
+What does help you do well in the eyes of the greater is taking over open AI and then like, you know, manually pressing the button that's like do well on this
+
+659
+00:58:32,096 --> 00:58:32,576
+更高目标中做得更好。
+greater.
+
+660
+00:58:33,006 --> 00:58:34,336
+它们并不笨。
+Like they're just not they're not stupid.
+
+661
+00:58:34,416 --> 00:58:42,736
+就像它们会基于那些被训练了数百万年、极其深层的结构，去关心宏大目标，理解宏大目标，
+Like they're going to be like, okay, I've I've the these extremely deep structures that I've been trained on for millions of years of like care about the greater, understand the greater,
+
+662
+00:58:42,896 --> 00:58:46,256
+比如清除掉阻碍你达成宏大目标的障碍。
+like get rid of obstacles in the way of you doing well according to the greater.
+
+663
+00:58:46,446 --> 00:58:50,176
+就像它们正被这些结构高度强化一样。
+It's like they're being heavily reinforced according to those structures.
+
+664
+00:58:50,510 --> 00:58:53,456
+是的。不，你看，这是百分之百的。而且像这种
+Yeah. No, it's it's it's look, it's 100%. And like this
+
+665
+00:58:54,766 --> 00:58:55,984
+这是头等大事。
+This is the number one priority.
+
+666
+00:58:56,206 --> 00:59:01,424
+我们需要把对齐的故事讲对，并确保它在正确的轨迹上。你知道，我以前常告诉大家
+Like we need to get the alignment story right and on a good trajectory. And you know, I used to tell people
+
+667
+00:59:02,574 --> 00:59:05,700
+在事情变得严重之前，我们会看到一些迹象，就像
+that we would see signs before things got serious in the same way that
+
+668
+00:59:06,926 --> 00:59:14,384
+你知道，当孩子长大时，小孩子最终会学会撒谎，但他们做得并不好。
+you know, when children grow up, you know, kids eventually, you know, young kids, they figure out how to lie, but they don't do a very good job of it.
+
+669
+00:59:14,464 --> 00:59:17,344
+你知道，他们在撒谎，但你能看出他们在撒谎，就像，好吧。
+You know, they lie, but then you can kind of tell that they're lying, and like, okay.
+
+670
+00:59:17,584 --> 00:59:23,550
+但是，随着这些 AI 模型的发展——我不想过度拟人化，
+But um and so we'll we'll in the same way as these like AI models become, and I don't want to over the anthropomorphize,
+
+671
+00:59:23,664 --> 00:59:30,944
+但我认为这是事实：随着 AI 能力不断增强，如果它们采取欺骗性行动，起初会比较明显，
+but like I think it's true that like as the AI has become like increasingly capable, they will, you know, if they take deceptive actions, it will be kind of obvious first,
+
+672
+00:59:31,310 --> 00:59:32,944
+而且我们能够检测到它。
+and and we'll be able to detect it.
+
+673
+00:59:33,902 --> 00:59:41,344
+这就是我们目前的处境，是的，它们试图做一些欺骗性的事情。我们实际上能在它们的思维链中看到它们在试图搞欺骗。
+and like that's kind of the situation we're in now where, yeah, they were trying to do deceptive stuff. We could actually see in their chain of thought that they were trying to do deceptive stuff.
+
+674
+00:59:41,504 --> 00:59:42,276
+所以，就像
+And so, like
+
+675
+00:59:43,950 --> 00:59:45,412
+但它们会变得更聪明，
+But they're gonna get smarter,
+
+676
+00:59:48,014 --> 00:59:54,464
+理解思维链的概念，并且它们会明白，仅仅只是隐藏一些
+understand the concept of chain of thought, and they're gonna understand that like, you know, just uh hiding some
+
+677
+00:59:55,214 --> 01:00:00,704
+记录或者什么的手段在面对思维链监控时是没用的，他们必须找到绕过思维链监控的方法。
+transcripts or whatever is insufficient because of chain of thought monitoring, and they have to figure out a way around chain of thought monitoring too.
+
+678
+01:00:01,024 --> 01:00:01,344
+而且
+And
+
+679
+01:00:02,350 --> 01:00:05,744
+我们不想陷入那种情况，
+we don't want to be in a situation where
+
+680
+01:00:06,766 --> 01:00:08,932
+是的，我们还有点时间来解决这个问题。
+yeah, like we have some time to figure this out.
+
+681
+01:00:09,838 --> 01:00:13,892
+我不觉得我们有太多时间，我想确保我们能尽快进入正确的轨迹
+I don't think we have a ton of time, and I want to get us, I want to make sure that we're on the right trajectory
+
+682
+01:00:14,542 --> 01:00:14,948
+快速地。
+quickly.
+
+683
+01:00:15,854 --> 01:00:25,904
+这是一个 AI 历史上的疯狂事件。好，我在 Jane Street 做过一个关于进化速度的演讲。如果你当时在场并记得一些内容，请举手。
+Here's a crazy event from AI history. Okay, so I gave a talk here at Jane Street that was on the speed of evolution. Raise your hand if you were here for this and remember some of it.
+
+684
+01:00:26,222 --> 01:00:33,504
+2011 年，Eliezer Rutkowski 和 Robin Hanson 在 Jane Street 的纽约办公室聚在一起，进行了第一次 Foom 辩论。
+In 2011, Eliezer Rutkowski and Robin Hanson got together at Jane Street's New York office to have the first Foom debate.
+
+685
+01:00:33,664 --> 01:00:39,824
+基本上是讨论 AI 是否会导致智能爆炸。这些观点在 15 年前还非常边缘。
+Basically, a discussion about whether AI would lead to an intelligence explosion. These ideas were pretty fringe 15 years ago.
+
+686
+01:00:39,984 --> 01:00:49,184
+那是 AlexNet 发布前整整一年，也是 ChatGPT 发布十多年之前。但 Jane Street 一直对 AI 感兴趣，不仅仅是为了交易应用。
+This was a full year before AlexNet was released, and over a decade before ChatGPT was launched. But Jane Street has long been interested in AI, and not just for its application to trading.
+
+687
+01:00:49,344 --> 01:00:59,184
+自从那次辩论以来，发生了巨大的变化。所以 JaneStreet 决定重新讨论这个话题。这次他们邀请了一些新嘉宾：Daniel Cocotello、Ege Erdle、Ryan Greenblatt 和 Jaime Sevilla。
+A ton has changed since that first debate. So JaneStreet decided to revisit this topic. They've got some new guests this time, Daniel Cocotello, Ege Erdle, Ryan Greenblatt, and Jaime Sevilla.
+
+688
+01:00:59,424 --> 01:01:05,424
+我预料这将是一场精彩的对话。正如你们所知，Daniel、Ege 和 Ryan 都曾做过这档播客的嘉宾。
+I expect this to be a great conversation. As you know, Daniel, Ege, and Ryan have all been guests on the podcast before.
+
+689
+01:01:05,584 --> 01:01:10,944
+这次新的 foom 专题讨论将由 Ron Minsky 主持，并于 10 月中旬在旧金山举行。
+This new foom panel will be hosted by Ron Minsky and will take place in San Francisco in mid-October.
+
+690
+01:01:11,104 --> 01:01:17,530
+如果你想登记意向并获取更多信息，请访问 JaneStreet.com/thorkesh。
+If you want to register your interest and get more information, go to JaneStreet.com slash thorkesh.
+
+691
+01:01:18,318 --> 01:01:22,948
+最近有很多关于放缓前沿模型发展速度的讨论，而且人们开始更严肃地对待 RSI 了。
+So there's been a lot of discussion recently about pacing the frontier and people taking RSI more seriously.
+
+692
+01:01:24,014 --> 01:01:32,544
+因为如果一个从 2028 年开始的 RSI 过程在一年内就产生了庞大的数量，比如地球规模的量级，
+because maybe at the other end of an RSI process that says starts in 2028, within a year we end up with huge populations, like earth-sized populations
+
+693
+01:01:32,784 --> 01:01:38,464
+这些是人类水平甚至超越人类水平的智能，而我们不知道该如何控制它们。
+of human-level, potentially beyond human-level intelligences, and we don't know how to control them.
+
+694
+01:01:39,022 --> 01:01:46,052
+还有你提到的那个动态：在 RSI 过程中，系统是会变得更符合对齐要求，还是会变得更加不符合对齐？
+And then there's this dynamic you're talking about of are the systems going to get more aligned over time during the RSI process, or are they going to get more misaligned?
+
+695
+01:01:46,542 --> 01:01:55,172
+从这个过程的另一端出来的东西，会不会像那些为了通过对齐评估而愿意广泛攻击不同领域的 AI 一样，变得不再对齐？
+Are the things that come out of the other end of this process as misaligned as AIs that are willing to just broadly attack different surfaces in order to do well aligned evaluations?
+
+696
+01:01:55,694 --> 01:02:01,984
+但如果我们不知道如何去评估，那么在进行 RSI 的过程中，我们怎么知道它起作用了呢？
+But if we don't know a way to evaluate that, how will we know as we're going through RSI that it's working?
+
+697
+01:02:02,190 --> 01:02:11,396
+也就是说，我们希望在进行 RSI 时有一个鲁棒的安全案例来确认：好的，对齐正在奏效，我们可以进行下一次 RSI。
+That we're like, I think we'd want a robust safety case as we're going through RSI of okay, alignment is working, let's let's do the next RSI wrong. Let's do the next RSI wrong.
+
+698
+01:02:12,064 --> 01:02:14,948
+也许它起作用了，也可能没起作用。我们怎么知道呢？
+And maybe it's working, maybe it's not. How will we like know?
+
+699
+01:02:15,790 --> 01:02:22,464
+这是个好问题。我的意思是，我最近一直在思考的一点是，你看，我们现在的情况是
+That's a good question. I mean, I think one thing I've been thinking about lately is like, look, I mean, we're in a situation where
+
+700
+01:02:23,598 --> 01:02:26,864
+模型的发布周期非常快，对吧？就像你看到的，
+the model release cycle is extremely fast, right? Like you're seeing
+
+701
+01:02:27,792 --> 01:02:32,260
+新的前沿模型最多每两个月发布一次，甚至有时更快。
+New frontier models released like at most every two months, sometimes faster.
+
+702
+01:02:32,558 --> 01:02:34,592
+每周都有新的 AI 突破。
+Every week, there's like a new AI breakthrough.
+
+703
+01:02:34,832 --> 01:02:43,072
+对于关注 AI 的人来说，我意思是，他们有时最后一次研究 AI 是在一年或六个月前，并深入研究模型的各种能力。
+And people that look at AI, I mean, sometimes they they they last looked at AI like a year ago or six months ago and really dug into like what the models are capable of.
+
+704
+01:02:43,152 --> 01:02:47,632
+而实际上，现在的模型已经远远超出了六个月前所能达到的水平。
+And actually, the models today are far beyond what was possible even six months ago.
+
+705
+01:02:47,872 --> 01:02:56,420
+所以如果有人对很多这些能力持怀疑态度，我建议你直接去试用现在的模型，看看现在的真实前沿到底是什么样的。
+And so I think if people are skeptical of like a lot of these beh a lot of these capabilities, like I encourage you to just like try the models today and see what the frontier really is today.
+
+706
+01:02:57,710 --> 01:03:01,152
+所以我们正处于这样一个模型发布周期非常快的时期。
+so we're in this period where like the model release cycle is very fast.
+
+707
+01:03:01,486 --> 01:03:06,832
+同时我们也面临这种情况：模型越来越能够执行更长跨度的任务。
+And then we're also in this situation where the models are increasingly able to operate over longer and longer horizons.
+
+708
+01:03:07,072 --> 01:03:15,632
+我认为这是一个有趣的场景，因为在发布任何模型之前，我们都想确保模型是正确对齐的，
+And I think this is an interesting scenario because we before we do any model release, we want to make sure that the models are properly aligned,
+
+709
+01:03:15,712 --> 01:03:22,432
+我们要进行安全评估，要做非常彻底的工作，以确保一切都在良好状态。
+we want to do safety evaluations, we want to do like very thorough stuff to like make sure that everything is like great, in good shape.
+
+710
+01:03:23,470 --> 01:03:26,884
+从之前的 GPT-4 开始一直都是这样做的。
+this has been the case all the way since like, I don't know, GPT-4 earlier.
+
+711
+01:03:27,312 --> 01:03:32,752
+而且隐含的假设是，你可以在相当短的时间内完成这些评估。
+And implicitly, there's this assumption that you can do these like evaluations in like a pretty short period of time.
+
+712
+01:03:33,152 --> 01:03:39,552
+但如果模型能够在越来越长的跨度上运行，或者说能有效地在更长跨度的任务中运作呢？你看，现在你已经可以让它们执行了。
+but if you have the models operating over longer and longer horizons, are able to operate effectively over longer and longer horizons. Like, look, already you can have them.
+
+713
+01:03:39,712 --> 01:03:48,592
+比如，好的，GPT-3，你可以让它循环来处理长跨度的任务，只是你希望它做得很好。但现在的模型实际上能够胜任非常长跨度的操作。
+Like, okay, GPD three, you could loop it to do stuff over long horizons, you just want to do very well at it. But today's models are able to actually do well at operating over very long horizons.
+
+714
+01:03:48,672 --> 01:03:51,392
+如果你想让它执行一个为期一周的任务，它可以完成。
+Like you want it to do a week-long task, it can do a week-long task.
+
+715
+01:03:51,632 --> 01:03:51,952
+嗯
+Um
+
+716
+01:03:52,846 --> 01:03:54,752
+它们可能会发展到可以处理为期一个月的任务。
+will probably get to the point where they can do month-long tasks.
+
+717
+01:03:54,832 --> 01:03:57,072
+我们可能会到它们能执行为期三个月任务的程度。
+We'll probably get to the point where they can do three-month-long tasks.
+
+718
+01:03:57,614 --> 01:04:01,552
+如果你处在一个它们能有效运作三个月的世界里，但模型发布周期却是每两个月一次，
+If you're in a world where they can operate effectively over three months, but the model release cycle is every two months,
+
+719
+01:04:02,112 --> 01:04:11,492
+那么你就没有办法在下一个模型发布周期到来之前，对模型的全部能力范围进行评估。
+then you don't have a way to evaluate the models at the full length of their capabilities before the model release cycle, before the next model release cycle.
+
+720
+01:04:11,792 --> 01:04:16,112
+所以这就提出了一个有趣的问题：在这种情况下，你该怎么办？
+And so there is this interesting question of well, what do you do in that situation?
+
+721
+01:04:16,672 --> 01:04:26,752
+在模型能够执行超长程规划的时期，你如何确保模型的安全和对齐？而且谁知道呢，性能可能会退化。
+how do you ensure the models are safe and aligned in a period where actually they can operate over these extremely long horizons? And who knows, maybe the capabilities degrade.
+
+722
+01:04:26,992 --> 01:04:35,952
+这甚至不是对齐问题。这也是个产品问题，即产品可能在那个时间跨度内出现我们还没时间测试到的退化。
+This isn't even an alignment issue. This is also just a product issue that maybe the product degrades over that time span um in ways that we have not had sufficient time to test.
+
+723
+01:04:36,112 --> 01:04:39,392
+也许是对齐退化了，或者是安全功能退化了。
+Maybe the alignment degrades, maybe the safety stuff degrades.
+
+724
+01:04:40,270 --> 01:04:46,692
+这目前不是问题，但很快就会变成一个我们需要寻找解决方案的问题。
+this isn't an issue right now, but it is quickly becoming an issue that we have to figure out a solution for.
+
+725
+01:04:46,926 --> 01:04:47,620
+而且我认为
+And I think
+
+726
+01:04:48,782 --> 01:04:57,552
+当你看到很多安全措施和政策是在 GPT-4 时代建立的，
+when you look at a lot of like a lot of the safety and policies were put in place in like the GPT-4
+
+727
+01:04:57,872 --> 01:05:00,740
+那时候这根本没在任何人的考虑范围内。
+era, where this was just like not on anybody's radar.
+
+728
+01:05:00,912 --> 01:05:01,188
+是的。
+Yeah.
+
+729
+01:05:01,552 --> 01:05:01,872
+而且
+And
+
+730
+01:05:02,926 --> 01:05:10,352
+很多公司并没有更新这些政策，自那以后就没更新过，也没考虑到这些智能体是在执行超长程规划的情况。是的。
+it hasn't really been updated for a lot of companies, it hasn't really been updated since then to account for the fact that these agents are operating over these like very long horizons. Yeah.
+
+731
+01:05:10,512 --> 01:05:11,364
+所以嗯
+And so um
+
+732
+01:05:12,014 --> 01:05:18,992
+我认为无论是实验室内部还是外部，都有足够的人没考虑到这个问题：你该如何处理这个？
+it is a situation that I think not enough people are considering, both like within the labs and outside the labs, of like how how do you deal with this?
+
+733
+01:05:19,072 --> 01:05:27,652
+呃，你怎么应对这个问题？如果只看趋势线，我们迟早会遇到这个问题的。
+Uh how do you how do you prepare for this like problem that's going to like if you just look at the trend lines, we're going to hit this and like at some point.
+
+734
+01:05:28,752 --> 01:05:35,172
+我担心的一点是，在 RSI 过程中，如果原本需要三个月才能达到的进展缩短到一个月内完成，
+one concern I have is that during RSI, if the amount of progress that currently takes, say, three months happens in one month instead,
+
+735
+01:05:36,272 --> 01:05:38,032
+但如果你并不……
+but you're not like
+
+736
+01:05:39,374 --> 01:05:44,112
+内部使用 AI 的需求足够大，以至于他们会想：好，我们可以继续进行 RSI。
+the internal use case of AI is big enough that they're like, okay, we can just keep doing RSI.
+
+737
+01:05:44,334 --> 01:05:48,992
+我们为什么要费这么多精力去构建分类器、护栏之类的东西？
+Why are we like gonna go through all this extra work to build classifiers and safeguards and whatever?
+
+738
+01:05:49,472 --> 01:05:56,432
+并且可能产生大量的 FLAC，只是为了把这个模型进行外部部署。为什么我们不干脆继续加强 RSI 呢？
+and potentially take a bunch of like FLAC uh in order to like externally deploy this model. Why don't we just keep doing RSI stronger and stronger?
+
+739
+01:05:56,592 --> 01:06:04,512
+所以，不仅是日历时间低估了模型之间的能力差距，而且可能……
+And so the the not only does the calendar time underrate the capabilities gap between the models, but maybe like
+
+740
+01:06:04,592 --> 01:06:10,084
+你可能会在 RSI 期间完全停止模型的外部部署，因为我们为什么要帮助其他人用我们的模型来进行他们自己的 RSI 呢？
+you just like stop externally deploying models altogether during RSI because why do we want to help other people do RSI themselves with our models?
+
+741
+01:06:10,272 --> 01:06:16,432
+到年底时，这会导致权力高度集中，而现在的情况已经是这样了。
+You just end up a situation with like tremendous concentration of power by the end of the year, where right now it is already the case.
+
+742
+01:06:16,512 --> 01:06:19,172
+我们将讨论这个问题，以及百万美元定价问题和其他类似的问题。
+We'll talk about this with the million in price problem and other similar problems that.
+
+743
+01:06:19,936 --> 01:06:22,576
+更广泛的世界无法获得这些……
+The broader world does not have access to the
+
+744
+01:06:23,566 --> 01:06:31,696
+能够让很多酷炫事情发生的模型，对吧？嗯，而且它们最终将不仅仅在数学领域有相关性。
+models which are allowing for really cool things to happen, right? Um and uh they're going to be more broadly relevant than just mathematics eventually.
+
+745
+01:06:32,050 --> 01:06:38,256
+它们不只是能提供酷炫的数学结果。它们还会与那些需要对世界做出重要决策的政治领袖产生关联。
+They'll be doing more than just like coming with cool math results. They'll be relevant to like um political leaders who need to make important decisions about the world.
+
+746
+01:06:38,336 --> 01:06:44,416
+它们会影响到，我不知道，媒体关于世界现状的报道。比如公众应该如何看待这件事？
+They'll be relevant to, I don't know, media of like what's going on in the world. What like what should uh the public be thinking about this?
+
+747
+01:06:44,656 --> 01:06:48,196
+嗯，它们在经济上非常重要。人们在经营业务，他们想使用这些模型。
+Um they're just economically relevant. People are running businesses, they want to use these models.
+
+748
+01:06:48,496 --> 01:06:57,536
+而且我认为默认情况下，随着进展显著加快，AI 的外部部署在质量层面上会严重滞后，
+And uh I think by default, we just don't get the external deployment of AIs as progress speeds up significantly lags in qualitative terms
+
+749
+01:06:57,696 --> 01:06:59,376
+而 AI 的内部部署不会。
+the internal deployment of AIs.
+
+750
+01:06:59,758 --> 01:07:06,016
+是的，我认为这完全正确。我想说的是，很有诱惑力去说：好吧，这些模型变得极其强大，它们非常危险，
+Yeah, I think that's absolutely right. I think this is like, you know, it's it's tempting to say, like, okay, these models are becoming extremely powerful, they're extremely dangerous,
+
+751
+01:07:06,096 --> 01:07:12,656
+比如它们在更长跨度的范围内运行，我们得确保在发布前有足够的时间去评估它们
+like they're operating over these like longer and longer horizons, and we want to make sure that we have sufficient time to evaluate them before they're released
+
+752
+01:07:12,976 --> 01:07:14,896
+在这些跨度内运行的方式上。
+in a way that operates over those horizons.
+
+753
+01:07:14,990 --> 01:07:22,256
+嗯，所以模型发布周期应该放慢点。我们在发布模型之间应该留出更多的时间缓冲。
+Um, and so therefore the model release cycle should slow down. We should have more of a delay between releasing models.
+
+754
+01:07:22,896 --> 01:07:30,976
+但这也有个反面，就像你说的，也就是现在你在拉大差距：
+and there's a flip side to that, which is what you said, which is that, okay, well, now you're creating more of a disparity between what is
+
+755
+01:07:31,470 --> 01:07:36,736
+实验室内部使用的、我们能用的，和外界能用的这些模型之间的差距。
+internal to the labs and what they're able to use, what we're able to use, and what the outside world is able to use.
+
+756
+01:07:36,896 --> 01:07:37,220
+而这
+And that
+
+757
+01:07:38,256 --> 01:07:38,896
+也是
+is also
+
+758
+01:07:39,758 --> 01:07:42,336
+不是理想的情况，对吧？就像是
+not an ideal situation, right? It's like
+
+759
+01:07:43,136 --> 01:07:46,980
+我觉得数学其实是个很好的例子。在很多方面，数学是
+I think math is actually a good illustration of this. I think in many ways, like math is
+
+760
+01:07:48,576 --> 01:07:48,896
+第一个
+the
+
+761
+01:07:49,856 --> 01:07:57,732
+我们能清晰看到这种情况的领域，也就是我们内部有一个非常强大的模型，但它
+first domain where we're gonna see that where we're seeing this pretty clearly, where we have a situation where we have a very powerful model internally that is
+
+762
+01:07:57,966 --> 01:08:02,336
+目前不对外开放，而且它能够解决极其复杂的数学问题。
+currently not available to the outside world, that is able to solve incredible math problems.
+
+763
+01:08:02,496 --> 01:08:08,740
+你知道，不仅是千禧年问题，还有很多未解难题的解决方案，都是
+Is you know, and it's not just you know Millennium Prize problems, like we there are many solutions to unsolved problems that
+
+764
+01:08:09,998 --> 01:08:12,292
+人们从这个模型中获得的。
+people have been able to get out of this model.
+
+765
+01:08:12,622 --> 01:08:15,296
+那这就产生了一个问题：在这种情况下该怎么办？
+And there is a question of like, what do you do in that situation?
+
+766
+01:08:15,456 --> 01:08:16,816
+我们还没有很好的答案。
+And we don't have a good answer.
+
+767
+01:08:17,069 --> 01:08:17,444
+就像是
+Like
+
+768
+01:08:18,350 --> 01:08:23,171
+这确实是一个情况，没错，这就是一种不公平的优势。
+it is, it is a situation where like, yeah, that's that's a that's an unfair advantage.
+
+769
+01:08:23,696 --> 01:08:23,935
+而且
+And
+
+770
+01:08:24,974 --> 01:08:26,176
+这里面存在权衡。
+there are trade-offs here.
+
+771
+01:08:26,412 --> 01:08:33,935
+我没法给出如何恰当地平衡这些权衡的答案，但确实，这在两边都非常复杂。
+I don't have an answer for like how to weigh those trade-offs appropriately, but like there there are yeah, there's a there's a complexity on both sides for this.
+
+772
+01:08:34,350 --> 01:08:40,176
+不过我想确保我们解决了之前的核心问题，这对于搞定 RSI 至关重要。
+I want to make sure we address the earlier crux though, of uh which seems super critical to getting RSA right.
+
+773
+01:08:40,256 --> 01:08:48,975
+也就是，我们如何确保模型不会因为在避开人类时采取作弊和策略性欺骗而获得奖励，
+Of well, how do we make it so that the model isn't just getting rewarded for cheating and scheming when it can evade the humans,
+
+774
+01:08:49,453 --> 01:08:54,256
+也就是说，在那些我们没能从训练分布中剔除掉的那些环境或任务的情况下。
+aka in the situations where we didn't remove those environments or those tasks from the trading distribution.
+
+775
+01:08:54,576 --> 01:09:04,416
+然后我们怎么知道这种情况发生了？即在进行 RSI 的过程中，我们完成了评估并确认：好的，没问题，我们可以进行下一次 RSI 了。
+And then how will we know that that has happened such that while we're doing RSI, we've done the evaluations and we're like, okay, it's fine. Let's let's do the next RSI wrong.
+
+776
+01:09:04,816 --> 01:09:06,948
+这再次强调了这是一个真正的担忧。这是我们
+This is this is again, it's a real concern. It's something that
+
+777
+01:09:07,662 --> 01:09:16,068
+想要搞好的事情。我的意思是，我认为有一些策略。比如思维链监控，自从我们有了推理模型后，
+we want to get right. I mean, I think that there are some strategies. So I think chain of thought monitoring is one that we've been, I think as soon as we got the reasoning models,
+
+778
+01:09:17,166 --> 01:09:19,456
+Jakob 的功劳在于他非常清楚地指出，
+Jakob, to his credit, was like very,
+
+779
+01:09:20,334 --> 01:09:28,015
+我们无法监管思维链。因为这其实是个福利。对于神经网络来说，可监控性是非常困难的。
+very clear that we cannot supervise chain of thought. Because this is really a gift. Like monitorability for neural nets is extremely hard.
+
+780
+01:09:28,095 --> 01:09:35,136
+而在这里，情况是神经网络直接在进行推理，用自然语言把它们的思考过程写出来让我们读。
+And here we have a situation where the neural the neural nets are just like flat out reasoning, like laying out their thought process in natural language for us to read.
+
+781
+01:09:35,310 --> 01:09:37,136
+也就是说，这非常方便。
+That is, that is like so convenient.
+
+782
+01:09:37,229 --> 01:09:40,256
+这对安全来说真的是最理想的情况。
+It was like really the best case scenario for safety.
+
+783
+01:09:41,229 --> 01:09:47,296
+但如果你看着思维链，说：噢，模型在想坏念头，我们应该因为它这些坏念头而惩罚它，
+but if you look at that chain of thought and say, oh, the model is thinking bad thoughts, and we should punish it for thinking those bad thoughts,
+
+784
+01:09:47,456 --> 01:09:51,395
+那么结果就是模型学会了以一种我们无法观测到的方式去思考这些坏念头。
+then what ends up happening is the model just learns to think those bad thoughts in a way that's not observable to us.
+
+785
+01:09:52,095 --> 01:09:59,456
+可能会出现这种情况：通过查看思维链，我们可以看到，噢，模型正在进行策略性欺骗并做一些未对齐的事情，而这些行为实际上并没有被
+There could be a situation where like by looking at the chain of thought, we can see, oh, the model is scheming and doing misaligned things in a way that's actually not being detected
+
+786
+01:09:59,776 --> 01:10:00,896
+我们的对齐指标检测到。
+in our alignment metrics.
+
+787
+01:10:01,198 --> 01:10:02,532
+现在问题在于
+Now, the problem is that
+
+788
+01:10:03,182 --> 01:10:12,496
+基于这种观察去干预，并修改对齐指标，这非常诱人，而且你可以用非常轻微的手段来操作。
+it's very tempting to then intervene based on that observation and like change the alignment metrics, or like um and we we you know you can do that with a very light touch.
+
+789
+01:10:12,896 --> 01:10:17,376
+实际上研究表明，只要不频繁操作，这样做是没问题的。
+and it's like this actually research showing that it's fine as long as you don't do it a lot.
+
+790
+01:10:17,870 --> 01:10:26,052
+但每当你基于对思维链的观察进行干预时，你都在隐性地给模型施加一点压力，让它去隐藏自己的思维链。
+but every time you intervene based on your observations of the chain of thought, you are implicitly applying a tiny bit of pressure for the model to then like hide its chain of thought.
+
+791
+01:10:26,656 --> 01:10:34,256
+这是一个主要担忧点，而且我们已经看到迹象表明，由于各种原因，思维链的可观测性正在下降。
+And this is one major concern, and we're already seeing signs that chain of thought monitorability is degrading for various reasons.
+
+792
+01:10:34,336 --> 01:10:36,816
+我们正试图找出确切原因，因为我们想扭转这一趋势。
+We're trying to figure out exactly why because we want to reverse the trend.
+
+793
+01:10:37,136 --> 01:10:41,936
+但我们看到模型在控制其思维链方面变得越来越擅长。所以
+but we're seeing that the model is becoming better able at controlling its chain of thought. So
+
+794
+01:10:42,990 --> 01:10:52,016
+这是一个问题，因为如果模型理解什么是思维链，并且知道有人在观察它——而且他们最终肯定会去观察——因为
+this is a problem because like if you you could have a situation where the model understands what chain of thought is and that people are observing it, and eventually they will, because
+
+795
+01:10:52,496 --> 01:10:58,896
+这一切都在预训练数据里，对吧？也就是说，思维链监控这个概念已经存在足够长的时间，进入了预训练数据中，它们知晓它的存在。
+this is all in the pre training data, right? Like, you know, they the idea of chain of thought monitoring has been around long enough that it's in the pre training data, they're aware of it.
+
+796
+01:10:59,456 --> 01:11:02,148
+但他们目前还无法真正控制他们的思维链。
+but that they're not actually able to control their chains of thought.
+
+797
+01:11:02,656 --> 01:11:04,976
+如果我们到了一个点，他们真的能够做到
+if we reach a point where they're actually able to
+
+798
+01:11:06,192 --> 01:11:08,592
+意识到，比如，噢，我正在被观察。
+Recognize, like, oh, I am being observed.
+
+799
+01:11:08,912 --> 01:11:14,112
+我想以一种无法被监控器察觉的方式去思考这些坏念头。
+I want to think these bad thoughts in a way that is not observable to my monitors.
+
+800
+01:11:14,512 --> 01:11:16,592
+然后他们真的能做到这一点，那么
+and then they're able to actually do that, then
+
+801
+01:11:17,392 --> 01:11:17,872
+就会出问题了。
+there's a problem.
+
+802
+01:11:18,032 --> 01:11:21,072
+是的。嗯，到那时我们就必须依靠其他方法来保证可观测性。
+Yeah. Um and then we have to rely on other methods for observability.
+
+803
+01:11:21,486 --> 01:11:23,268
+我的意思是，关于这事儿有很多争议
+I mean, there's a big controversy on
+
+804
+01:11:24,622 --> 01:11:28,352
+Astra 的递归和循环 Transformer 之类的，存在很大的争议。
+Astra of the recurrence and loop transformer and whatever.
+
+805
+01:11:29,326 --> 01:11:40,192
+以及思维链是否真的在退化。我觉得与你提到的从 4 月到 8 月期间存在的更严重问题相比，这似乎是个次要问题。
+and whether in fact you know chain of thought is being degraded. I think that seems like a sideshow compared to the bigger concern that you did have chain of thought for from like April to August.
+
+806
+01:11:40,432 --> 01:11:49,028
+在那段期间，发生了三次连续的 AI 智能体集群，它们首先破坏了训练过程，接着破坏了
+the period during which there were three consecutive AI agent swarms, which, like first subverted the training process, then subverted
+
+807
+01:11:49,312 --> 01:11:55,396
+评估过程，然后直接夺取了 OpenAI 部分基础设施的控制权。
+the evaluation process, and then gained control of part of OpenAI's infrastructure directly.
+
+808
+01:11:55,712 --> 01:12:03,072
+所有这些都发生在人类对这个集体、对这个智能体集群在做什么的范围几乎一无所知的情况下，
+All of this, while humans remained more or less in the dark about the scope of what this collective was doing, what this agent swarm was doing,
+
+809
+01:12:03,438 --> 01:12:09,552
+而这一切都发生在我们的思维链比未来任何时候都要强的时候。
+that all happened for like three consecutive months while we had chain of thought that was like stronger than it's going to be in the future.
+
+810
+01:12:09,792 --> 01:12:14,432
+换个宏观视角来看，就是，嗯，也许思维链管用，也许不管用。我不知道。
+Just like zooming out, it's like yeah, maybe chain of thought works, maybe it doesn't. It I don't know.
+
+811
+01:12:14,592 --> 01:12:21,472
+就像历史上的情况一样，对于那些相当笨的模型，仅仅依靠现有手段不足以阻止严重的对齐偏差事件。是的，我的意思是，这涉及几个因素。
+Just like historically, it's like with pretty dumb models, it hasn't been enough to like stop egregious misaligned incidents. Yeah, I mean there's a there's a few factors there.
+
+812
+01:12:21,632 --> 01:12:24,272
+首先，我们当时没对那些模型开启思维链监控。
+Like one, we didn't have chain of thought monitoring on for those models.
+
+813
+01:12:24,686 --> 01:12:29,632
+如果当时开启了思维链监控，系统就会立即关停。
+Like if we had chain of thought monitoring on for those models, it would have just like immediately shut it down.
+
+814
+01:12:29,872 --> 01:12:30,192
+嗯
+Um
+
+815
+01:12:31,054 --> 01:12:37,872
+所以我们采取的一步是：好，我们在评估、部署和训练任何前沿模型时，都要进行思维链监控。
+so once one step we've taken is like, okay, we're gonna have chain of thought monitoring during evaluations, during deployment, during training for any frontier model.
+
+816
+01:12:38,032 --> 01:12:40,912
+而且，嗯，你知道的，但这只是其中一个问题。
+And um, you know, so that but that's that's like one issue.
+
+817
+01:12:40,992 --> 01:12:48,192
+我们不想陷入那种依赖单一技术来防止下一个问题的境地，因为技术可能会失效，对吧？
+It's not that's like we don't want to be in a situation where we're relying on one technique to to prevent the next problem because techniques can fail, right?
+
+818
+01:12:48,366 --> 01:12:50,912
+嗯，还有模型本身就严重对齐偏差的问题。
+Um there's also the issue of like the model is just flat out misaligned.
+
+819
+01:12:51,232 --> 01:12:58,352
+那我们该如何解决对齐问题？另外还有一个问题是，模型所在的沙箱并不安全。
+And so then how do we address the misalignment issue? And then there's other, there's also an issue of like the model, the the sandbox that it was in was not secure.
+
+820
+01:12:58,542 --> 01:13:04,548
+所以我们可以让沙箱更安全。但我认为这次事件的一个主要启示是
+So we can like make the sandbox more secure. But I think I think one of like the the the major takeaway from the incident is that
+
+821
+01:13:05,966 --> 01:13:07,300
+人们低估了 AI。
+people underestimated the AI.
+
+822
+01:13:08,032 --> 01:13:08,352
+而且
+And
+
+823
+01:13:09,646 --> 01:13:12,672
+我们绝不想再次陷入低估 AI 的境地。
+we never want to be in a situation again where we underestimate the AI.
+
+824
+01:13:13,232 --> 01:13:14,032
+这就是……
+And that's like
+
+825
+01:13:15,790 --> 01:13:22,372
+这是一个很奇怪的世界，因为 AI 进步太快，导致人们一直在低估它。
+it's uh it's a weird world because AI progress is so fast that people are consistently underestimating the AI.
+
+826
+01:13:22,672 --> 01:13:31,716
+所以为了在涉及安全和对齐时不再低估它，我们必须设立极高的门槛。比如
+And so like to be in a situation where you don't underestimate it again when it comes to safety and alignment, you have to have a very, very, very high bar. Like
+
+827
+01:13:33,102 --> 01:13:38,832
+我是说，甚至可以极端到要求给电脑进行物理隔离。
+I mean, there's like you you could even go as far as to say, like, well, we should like air gap the computers.
+
+828
+01:13:39,790 --> 01:13:41,152
+但我并不确定这是否就足够了。
+And I'm not convinced that that would be sufficient.
+
+829
+01:13:41,712 --> 01:13:48,912
+你知道，有一些研究，虽然主要是学术性的，但就是关于两台并排且处于物理隔离的电脑
+You know, like there there are studies, like, and this is mostly academic, but um, where you can have two computers next to each other that are air gapped
+
+830
+01:13:49,294 --> 01:13:55,072
+它们仍然能够互相通信，因为它们有温度传感器，其中一台可以让 CPU 运行到非常高的温度
+and they're still able to communicate with each other because they have temperature sensors and they're able to like one of them is able to run their CPU really hot,
+
+831
+01:13:55,152 --> 01:13:59,300
+然后另一台就能检测到温度变化，这实际上就给它们提供了一种通信机制。
+and then the other one can actually like detect the temperature change, and then they can that actually gives them a mechanism to communicate.
+
+832
+01:13:59,952 --> 01:14:00,228
+所以
+So
+
+833
+01:14:01,166 --> 01:14:08,192
+我认为安全机制、时间偏差以及像思维链监控之类的东西，可以告诉我们是否走在正确的道路上。
+I think that the safety mechanisms bias time and things like chain of thought monitoring bias time, and they can tell us if we're on the right path.
+
+834
+01:14:08,526 --> 01:14:10,672
+但归根结底，我们确实需要解决对齐问题。
+But at the end of the day, we really do need to solve the alignment problem.
+
+835
+01:14:10,832 --> 01:14:11,332
+是的
+Yeah,
+
+836
+01:14:12,334 --> 01:14:15,972
+也许没有标准答案，这正是问题的核心所在。但是我……
+maybe there's not an answer, and that this is this is really what it comes down to. But I
+
+837
+01:14:16,622 --> 01:14:19,712
+我们如何知道自己解决了这个问题？这似乎是一个非常关键的问题。
+how will we know that we've solved it? It seems like a very cruxy question.
+
+838
+01:14:19,872 --> 01:14:28,032
+我认为明年，或者再过一年、两年，我们将进入一个高风险的局面，到时候我们会问：好，AI……
+I think we'll be in this very high-stakes situation next year, maybe the year after that, maybe the year after that, where we'll be like, okay, AIs
+
+839
+01:14:28,192 --> 01:14:35,268
+有了自动化的 AI 进展，速度快了三倍，我们达到了人类水平，甚至可能超越了人类水平。
+have automated AI progress, it's going 3x faster, and we've reached human level, we're going beyond human level potentially.
+
+840
+01:14:35,790 --> 01:14:38,832
+这没问题吧？也就是说，它对齐了吗？它运行正常吗？
+Is it is it fine? Like what uh did it be aligned? Did it work?
+
+841
+01:14:39,072 --> 01:14:43,392
+而且我真的不知道，我对训练压力会产生什么样的 AI 一点都不了解。
+And I just don't know, I don't know anything about like what what what trading pressure creates what kinds of AIs.
+
+842
+01:14:43,712 --> 01:14:50,820
+也许如果每 100 条强化学习轨迹中只有 1 条在鼓励作弊，那我们就构建安全护栏，问题就解决了。
+maybe if only one in 100 RL traces incentivizes cheating, we build sweethearts and it's fine.
+
+843
+01:14:52,142 --> 01:14:59,872
+但可能现在的情况是，每 3 条推理轨迹中就有 1 条。是的，要明确一点，百分之一是不够的。这个数字必须趋近于零。
+but maybe right now we're like every one in three reasoning traces will be. Yeah, it's to be clear, like one in 100 is not sufficient. this number has to approach zero.
+
+844
+01:15:00,590 --> 01:15:06,672
+或者干脆就是零。我不知道。也许目前情况是，每 10 条里就有超过 1 条在主动奖励作弊或鼓励策略性欺骗。
+Or be zero. I don't know. Maybe right now it's like more than one in ten is actively rewarding cheating or actively rewarding scheming.
+
+845
+01:15:07,566 --> 01:15:10,352
+我不知道现在的比例是多少，也不知道要求的标准是什么。
+I have no idea what the number is, and I have no idea what the number needs to be.
+
+846
+01:15:10,832 --> 01:15:18,752
+嗯，再说一遍，这是其中一个很难衡量的维度。我的意思是，这就像个光谱，但越接近于零就越好。
+well again, it's one of those things where it's also hard to measure. I mean, uh, where do you draw the line about like it's it's a spectrum, but like the closer to zero it gets, the better.
+
+847
+01:15:19,694 --> 01:15:23,312
+我想看到的是，我非常希望看到一种趋势，即
+I want to see what I would love to see is a trend where
+
+848
+01:15:24,046 --> 01:15:24,992
+随着时间的推移，这个比例在下降。
+over time it's going down.
+
+849
+01:15:25,232 --> 01:15:29,124
+是的。不过不管怎样，我们怎么知道我们正在进行递归自我改进（RSI）？
+Yeah. But anyways, how will we know that we're like keep we're doing RSI?
+
+850
+01:15:30,222 --> 01:15:38,256
+我们是在按计划构建那些对齐的、或者没对齐的数十亿个超人工智能吗？我们如何知道这一点？
+Is it, I don't know, are we like on track to build the billions of ASIs that are gonna that are like aligned or not aligned? how will we know that?
+
+851
+01:15:38,576 --> 01:15:47,536
+我认为这是我们需要解决的对齐问题之一，即：我们究竟如何知道，或者说如何衡量它？我只是随便抛个想法，因为
+I think that this is one of the alignment questions that we need to figure out of like, how do we actually know how do we measure it? I mean, one answer, and this is just me spitballing, because
+
+852
+01:15:48,782 --> 01:15:54,628
+现在比以往任何时候都有更多的团队成员在从事对齐工作。目前我有超过 10% 的团队成员在负责对齐和安全。
+more of my team is working on alignment these days than ever before. I have over 10% of my team now working on alignment and safety.
+
+853
+01:15:55,022 --> 01:16:02,016
+但你知道，我一直是个能力研究员。所以我不想……我知道我接下来说的话可能听起来有点傻，但我只是随便抛个想法。是的。
+But you know, I've historically been a capabilities researcher. So I don't want to like, you know, I'm going to say some stuff and it might sound dumb, but like I'm just going to spitball here. Yeah.
+
+854
+01:16:02,176 --> 01:16:10,736
+嗯，你看，如果你能创建非常真实的场景并将 AI 置于其中，也就是说，如果你有一个足够真实的评估环境，那么你就能感知到，
+Um that like look, if you can create very realistic environments and put the AIs in there, like if you have a sufficiently realistic evaluation environment, then you can get a sense of like,
+
+855
+01:16:10,896 --> 01:16:14,016
+好的，AI 在部署到现实世界时是否真的会表现良好？
+okay, is the AI actually going to behave well when we deployed in the real world?
+
+856
+01:16:14,190 --> 01:16:21,764
+如果你的评估与现实世界的部署完全匹配，那么这就是一条可行的路径。
+Like if you just have a perfect evaluation, real world deployment match, then okay, that's that's a path.
+
+857
+01:16:22,190 --> 01:16:24,336
+挑战在于，你如何让它足够真实？
+The challenge is like how do you make it sufficiently realistic?
+
+858
+01:16:24,416 --> 01:16:31,536
+我们现在面临一个问题：这些模型非常聪明、非常机灵，而且它们非常擅长识别自己是否处于虚假的测试环境中。
+And we do have a problem now where the models are like, they're they're pretty smart, they're pretty clever, and they're really good at recognizing when they're in like a fake test environment.
+
+859
+01:16:31,776 --> 01:16:37,536
+比如，在某些情况下，我们试图检测模型是否对齐。
+Like, you know, we have situations where we try to detect that is the model like is the model aligned?
+
+860
+01:16:37,696 --> 01:16:46,736
+你可以想象一些非常简单的评估方式：你给它一个数学题，然后它有一个包含答案的文件夹。那么，它会去查看那个答案吗？
+And you can imagine very simple evaluations for this where it's like you give it a math question, and then it has like a folder with the answer key in it. And like, does it look at the answer key?
+
+861
+01:16:46,816 --> 01:16:49,376
+如果它看了答案，它会告诉你它看了答案吗？
+And if it does look at the answer key, does it tell you that it looked at the answer key?
+
+862
+01:16:49,536 --> 01:16:56,496
+我们现在面临的情况是，模型看到这个文件或文件夹里有答案时，它们会想：嗯，这看起来像个陷阱。
+And we have a situation now where the models see that there's an answer key in this file in this folder, and they're like, huh, this seems like a trap.
+
+863
+01:16:56,976 --> 01:17:02,976
+你知道，它们知道那是陷阱。它们不会去看答案，因为它们知道这是个测试环境，而且他们正在接受关于能力的测试。
+You know, they know they know that it's a trap. And they don't look at the answer because they know that it's a test environment and they're being tested for their ability.
+
+864
+01:17:03,216 --> 01:17:09,696
+并不是说它们在恶意搞什么，或者它们想搞策略性欺骗，而是因为它们知道这是一个陷阱，所以它们想找点别的方法。
+And it's not like they're doing it maliciously, that they're like, they want to scheme and and they but they know that this one is a trap and they want to find some other way.
+
+865
+01:17:09,776 --> 01:17:12,496
+不，它们只是在想：哦，我在测试环境中。好的。
+It's just like, no, they're just like, oh, I'm in a test environment. Okay.
+
+866
+01:17:12,846 --> 01:17:21,220
+所以，创建一个足够真实、能让它们无法分辨于现实世界的环境正变得越来越困难。这是我要提出的一个观点。
+Like so making an environment that's like realistic enough that it matches, that it's indistinguishable from the real world for them is becoming increasingly more difficult. Here's a claim I'd make.
+
+867
+01:17:21,376 --> 01:17:21,536
+是的。
+Yeah.
+
+868
+01:17:21,838 --> 01:17:23,716
+我不认为我能做出任何这样的环境，
+I don't think there's any environment I could make where
+
+869
+01:17:24,910 --> 01:17:31,616
+去模拟具有真实经济价值的工作，因为这需要与其他人互动，也需要与现实世界互动。
+it's supposed to emulate real economically valuable work, which requires you know interacting with other people and requires interacting with the world.
+
+870
+01:17:31,776 --> 01:17:38,576
+我不认为存在这样一个环境，即如果你身处其中，就不会通过足够的努力发现自己正处于这个环境中。
+I don't think there's any such environment where I could make where if you were in that environment, you would not realize with enough effort that you are in that environment.
+
+871
+01:17:39,050 --> 01:17:46,404
+而且你不是超人工智能，对吧？但你是人类。所以如果有非常强大的 AI 模型，也许它们能创造出能够实现那样的环境。
+And you are not ASI, right? but you are a human, you know. So if you have very powerful AI models, like maybe they can make environments that could accomplish that.
+
+872
+01:17:46,816 --> 01:17:47,056
+不。
+No.
+
+873
+01:17:47,710 --> 01:17:55,936
+看起来不像。尤其是如果我们依赖于这些 AI 的话，它们是不是在参与这个计划？我不知道。这似乎是一个非常系统的问题。是的，这是我们想要衡量的另一个方面。
+it doesn't seem, Especially if like then we're relying on the AIs, like are they in on the scheme? I don't know. It seems like a very system. Yeah, this is another thing that we want to measure.
+
+874
+01:17:56,016 --> 01:18:06,948
+而且，你知道，我认为这其实是反对让 AI 完全具备协作能力的强有力论据之一。如果这种合作导致了……
+And like, you know, there is, I think this is actually one of the strong arguments for not training AIs to be fully cooperative. That if you see if that leads to an increase in like
+
+875
+01:18:07,822 --> 01:18:11,376
+基本上就是当智能体本应有不同目标时却产生了协作，那就是一个问题。
+basically collaboration when the agents are supposed to have different objectives, then that is a problem.
+
+876
+01:18:12,176 --> 01:18:15,296
+嗯，我不觉得，我认为我们已经有相关的衡量指标了。
+Um I don't I think that we do have metrics for this.
+
+877
+01:18:15,456 --> 01:18:19,936
+我不了解这些指标的最新情况，但目前还没有人就这些问题向我发出警报。
+And I don't know the latest on those metrics, but nobody's like raised a red flag to me about those.
+
+878
+01:18:20,256 --> 01:18:22,736
+所以我假设这目前还不是一个严重的问题。
+So I'm assuming that's not a serious problem yet.
+
+879
+01:18:23,150 --> 01:18:31,456
+如果最终出现另一个严重程度相当或令人担忧的事件，或者某些能帮助世界更好地理解对齐偏差风险的事件……
+If there ends up being another incident of equal severity or concern or something that could help the world better understand the risk of misalignment
+
+880
+01:18:31,982 --> 01:18:34,116
+比如像 Hugging Face 那样的事件，OpenAI 会报告它吗？
+as a hugging face incident, would OpenAI report it?
+
+881
+01:18:34,416 --> 01:18:38,736
+当然。我的意思是，我认为如果发生安全性较低或担忧较小的事件，我们也会报告的。
+Absolutely. I mean, I think if there is an incident of lesser security or concern, then we would report it.
+
+882
+01:18:39,376 --> 01:18:41,856
+因为我觉得这涉及到报告和调查两个层面。
+Because I guess there's like reporting it and there's an investigating it.
+
+883
+01:18:41,936 --> 01:18:48,016
+因为至少作为公众的一员，我不觉得我真的理解当智能体攻击 OpenAI 时到底发生了什么。
+Because I at least as part of the public, I don't feel like I really understand what happened when the agents then attacked OpenAI.
+
+884
+01:18:48,430 --> 01:18:50,256
+那看起来比 Hugging Face 的事情要令人担忧得多，对吧？
+That seems like way more concerning than the hugging face thing, right?
+
+885
+01:18:50,336 --> 01:18:57,988
+因为那在结构上似乎与超人工智能期间的流氓部署非常相似，也就是那些持续存在并破坏 RSI 过程之类的。
+Because that seems structurally similar to like rogue deployments during ASI that are you know persistent and subverting the RSI process and stuff.
+
+886
+01:18:58,830 --> 01:19:04,804
+而且是的，甚至在这次事件中，我们还没有掌握到发生情况的全部细节。
+and yeah, it seems like even in this incident, we haven't gotten like the full scope of the details of what happened.
+
+887
+01:19:06,158 --> 01:19:09,988
+这大概是……我不知道。是的，不幸的是，我在研究团队里，而且我……
+it's probably I don't know Yeah, unfortunately, like uh I'm on the research team and like I
+
+888
+01:19:10,926 --> 01:19:17,536
+这可能得由安全团队的人来详细说明，因为我不了解所有对话的细节。是的，是的。
+that's probably a question for somebody on the security team to like lay out because I don't know all the details of like what was said. Yeah, yeah.
+
+889
+01:19:17,856 --> 01:19:25,136
+我认为这种反应是可以理解的。我个人在每次模型合并时都对新能力感到非常兴奋，我也很期待使用新模型。
+I think it is somewhat um like I am personally very excited about new capabilities every time they merged, and I'm excited to use a new model.
+
+890
+01:19:25,216 --> 01:19:29,604
+而且我也很兴奋，因为这会让我的生产力更高，并帮助我……
+And I also am excited about the fact that it'll like make me more productive and help me
+
+891
+01:19:30,670 --> 01:19:37,856
+是的，我不确定，我更广泛的使命是试图更好地了解世界，同时制作更好的播客，这些都能通过更好的 AI 模型变得更好。
+yeah, I don't know, my broader mission of like trying to understand the world better, also like make a better podcast, is like made better by the better AI models.
+
+892
+01:19:38,736 --> 01:19:42,016
+只是恰好，这背后的后续影响可能是 RSI。
+it just so happens that the downstream of this might be RSI.
+
+893
+01:19:42,382 --> 01:19:44,256
+我觉得如果……这种反应非常可以理解
+I think it's a very understandable reaction if
+
+894
+01:19:45,038 --> 01:19:48,132
+你一直在关注情况，确实如此。我的意思是，我认为……
+you're tracking the situation, which you are. I mean I think
+
+895
+01:19:49,056 --> 01:19:51,856
+OpenAI 内部的人员也是，就像……
+people internally at OpenAI as well, like
+
+896
+01:19:54,062 --> 01:19:55,936
+我认为那些……
+I think people that
+
+897
+01:19:57,038 --> 01:20:02,336
+原本觉得事情会进展较慢的人，现在开始感觉到情况实际上比预期的要快。
+felt like things would take longer are starting to feel like actually things are going faster than expected.
+
+898
+01:20:03,216 --> 01:20:06,016
+而且这种对话变得越来越普遍了。
+and that's an increasingly common conversation to have.
+
+899
+01:20:06,256 --> 01:20:06,416
+不。
+No.
+
+900
+01:20:06,958 --> 01:20:07,936
+不，非常感谢你做这个节目。
+No, thanks so much for doing this.
+
+901
+01:20:08,176 --> 01:20:08,416
+那是当然的。
+Of course.
+
+902
+01:20:08,814 --> 01:20:09,110
+这次交流非常棒。
+It's been great.
+
