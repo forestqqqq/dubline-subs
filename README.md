@@ -12,6 +12,7 @@
 | [Generative AI Course 2026 \| Gen AI Full Course for Beginners \| ChatGPT, Claude & Gemini](medias/ANTA9/) | Great Learning | 2026-10-17 |
 | [Microsoft Copilot Agent Builder Just Got WAY Better](medias/44C0K/) | Shane Young | 2026-10-17 |
 | [Build, Evaluate & Scale Your First Production AI Agent \| AI Agent Tutorial \|  Edureka](medias/2EM7B/) | edureka! | 2026-10-17 |
+| [Claude Agent SDK Tutorial – Build AI Agents with Claude Code](medias/1RNVT/) | ExamPro | 2026-10-17 |
 | [How to Build Quality Gates into Agentic Coding Workflows — Nnenna Ndukwe, Qodo AI](medias/Y0BPM/) | AI Engineer | 2026-10-14 |
 | [Generative AI  With LLM Full Course \| Learn Generative AI from Scratch\| Simplilearn](medias/X1XHG/) | Simplilearn | 2026-10-14 |
 | [Master Claude Code in less than 1 Hour](medias/X16J5/) | Bad Decisions Studio | 2026-10-14 |
