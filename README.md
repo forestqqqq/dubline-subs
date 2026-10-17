@@ -9,6 +9,7 @@
 | [Build Your First AI Agent in 90 Minutes 🚀 \| Real-World E-Commerce AI Agent Project \| Agentic AI](medias/P380K/) | Ashok IT | 2026-10-17 |
 | [How to Use Claude Design Better Than 99% of People](medias/G60T0/) | Jack Roberts | 2026-10-17 |
 | [Ultimate Guide to ChatGPT in 2026 (Updated for ChatGPT 6 Astra)](medias/FWYV4/) | Skill Leap AI | 2026-10-17 |
+| [Staffing an Entire Agency With AI Agents (Agent-Native Agency Workshop, Session 2)](medias/DAC19/) | Eugene Vyborov | 2026-10-17 |
 | [Generative AI Course 2026 \| Gen AI Full Course for Beginners \| ChatGPT, Claude & Gemini](medias/ANTA9/) | Great Learning | 2026-10-17 |
 | [Microsoft Copilot Agent Builder Just Got WAY Better](medias/44C0K/) | Shane Young | 2026-10-17 |
 | [Build, Evaluate & Scale Your First Production AI Agent \| AI Agent Tutorial \|  Edureka](medias/2EM7B/) | edureka! | 2026-10-17 |
