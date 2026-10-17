@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [Generative AI Course 2026 \| Gen AI Full Course for Beginners \| ChatGPT, Claude & Gemini](medias/ANTA9/) | Great Learning | 2026-10-17 |
 | [How to Build Quality Gates into Agentic Coding Workflows — Nnenna Ndukwe, Qodo AI](medias/Y0BPM/) | AI Engineer | 2026-10-14 |
 | [Generative AI  With LLM Full Course \| Learn Generative AI from Scratch\| Simplilearn](medias/X1XHG/) | Simplilearn | 2026-10-14 |
 | [Master Claude Code in less than 1 Hour](medias/X16J5/) | Bad Decisions Studio | 2026-10-14 |
