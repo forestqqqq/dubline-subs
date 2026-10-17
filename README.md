@@ -11,6 +11,7 @@
 | [Build Your Own AI Software Factory with Claude Code](medias/QWCQ0/) | ZazenCodes | 2026-10-17 |
 | [Build Your First AI Agent in 90 Minutes 🚀 \| Real-World E-Commerce AI Agent Project \| Agentic AI](medias/P380K/) | Ashok IT | 2026-10-17 |
 | [🚀 LangChain4j Explained \| Build Your First AI Agent in Java](medias/MXWBZ/) | Java Techie | 2026-10-17 |
+| [ChatGPT Just Changed A LOT (Here’s What’s New)](medias/M682X/) | Riley Brown | 2026-10-17 |
 | [How to Use Claude Design Better Than 99% of People](medias/G60T0/) | Jack Roberts | 2026-10-17 |
 | [Ultimate Guide to ChatGPT in 2026 (Updated for ChatGPT 6 Astra)](medias/FWYV4/) | Skill Leap AI | 2026-10-17 |
 | [Staffing an Entire Agency With AI Agents (Agent-Native Agency Workshop, Session 2)](medias/DAC19/) | Eugene Vyborov | 2026-10-17 |
