@@ -5,6 +5,7 @@
 | 视频 | 原作者 | 更新 |
 |---|---|---|
 | [ChatGPT Dots Is WAY More Powerful Than You Think](medias/WPAZW/) | Riley Brown | 2026-10-17 |
+| [How to Choose Your Personal Agent](medias/W7H9Y/) | The AI Daily Brief: Artificial Intelligence News | 2026-10-17 |
 | [I Built an INSANE AI Trading Bot to Trade My $1,000 (Full Guide)](medias/W0F4R/) | Trading with DaviddTech | 2026-10-17 |
 | [AI System Design Tutorial](medias/T5YW2/) | codebasics | 2026-10-17 |
 | [Build Your First AI Agent in 90 Minutes 🚀 \| Real-World E-Commerce AI Agent Project \| Agentic AI](medias/P380K/) | Ashok IT | 2026-10-17 |
