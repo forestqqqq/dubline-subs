@@ -1,0 +1,1468 @@
+1
+00:00:00,080 --> 00:00:07,440
+Today we're building a software factory with Claude Code. Thank you to Anthropic for sponsoring today's video. I love using Claude Code.
+
+2
+00:00:07,600 --> 00:00:10,960
+Of course, we're going to be building Claude into our software factory.
+
+3
+00:00:11,182 --> 00:00:19,280
+We'll be using a mix of Opus and Sonnet, and we're on 5.5 as time of filming. Everybody agrees that these models are incredible. So I want to show you what these can do.
+
+4
+00:00:19,360 --> 00:00:24,240
+This is going to be a very simple factory, but as you'll see, it will still be very effective.
+
+5
+00:00:24,400 --> 00:00:32,000
+The idea is that you can build one for yourself inside of an existing project. So I'd encourage you to follow along with the video. This video will be very hands-on.
+
+6
+00:00:32,320 --> 00:00:41,040
+I'm going to explain exactly what we're building with our software factory, what our approach is going to be, and we'll do a quick introduction of what software factories actually are.
+
+7
+00:00:41,200 --> 00:00:50,340
+Here's the mind map for today's video. So over here on the right is the demo. And I'm going to explain this diagram first for anybody who already knows what a software factory is.
+
+8
+00:00:50,670 --> 00:00:54,948
+Then we'll go through this left side and I'll sort of explain a little bit of a history on these things.
+
+9
+00:00:55,182 --> 00:01:02,160
+But if you want to review this, you can get this full thing as a high-quality image if you subscribe to my newsletter. I'll just send it right to your inbox right away.
+
+10
+00:01:02,240 --> 00:01:03,588
+You can look through it with me.
+
+11
+00:01:03,790 --> 00:01:06,240
+Let's actually jump over here. This is what we're going to build.
+
+12
+00:01:06,400 --> 00:01:15,012
+It's a simple agentic software factory where a team of agents take a feature and pull that into the main code base by the end of our factory.
+
+13
+00:01:15,246 --> 00:01:23,360
+So we input some feature request, and then the rest is handled autonomously, except for this last step, this human approval step.
+
+14
+00:01:23,440 --> 00:01:24,292
+Let's walk through this.
+
+15
+00:01:24,622 --> 00:01:27,844
+First thing we do is write a spec, and I'm going to use Opus for that.
+
+16
+00:01:28,206 --> 00:01:34,116
+Then we're going to go to a building agent, which is actually going to build our feature. This will build the full working feature for us.
+
+17
+00:01:34,414 --> 00:01:37,280
+Then we're going to hand this feature off to various review agents.
+
+18
+00:01:37,390 --> 00:01:44,548
+We're going to do a security review, a UX review, a UI design review, and a code review. And these are all done with separate agents.
+
+19
+00:01:44,910 --> 00:01:49,440
+Some of them are Opus, there's Sonnet in here, and then this gets fed back into the builder agent.
+
+20
+00:01:49,520 --> 00:01:52,996
+And this happens in a loop until we're happy, satisfied with the code.
+
+21
+00:01:53,262 --> 00:01:54,948
+And then we go to an approval step.
+
+22
+00:01:55,246 --> 00:02:04,228
+This runs with another agent, which is Opus, and then Opus decides this agent says either we merge to main automatically or we hand it off for human review.
+
+23
+00:02:04,558 --> 00:02:13,520
+And this is all managed through our factory that I'm going to build today. So if you're ready to go, you can use the timestamps in the video description to skip right to where we start building this.
+
+24
+00:02:13,680 --> 00:02:16,880
+Otherwise, stick with me and I'm going to walk through the rest of this mind map.
+
+25
+00:02:17,040 --> 00:02:22,560
+Software factories were first described by Bob Beamer at GE in 1968.
+
+26
+00:02:22,798 --> 00:02:32,132
+Essentially, they're a computer-controlled programming environment containing standardized development tools along with historical information for management and measurement.
+
+27
+00:02:32,880 --> 00:02:37,520
+And the short history of that is from there we saw a lot of stuff going on in Japan.
+
+28
+00:02:37,600 --> 00:02:44,640
+And I'm sure this was happening in Europe and America as well to some extent, but that's what was characterized the early stage of software factories.
+
+29
+00:02:44,800 --> 00:02:52,560
+Then in the 2000s, we didn't quite have the CI CD stuff going on, but it was like, how can we have reusable patterns, models, and frameworks to be building software?
+
+30
+00:02:52,814 --> 00:03:01,920
+Then in the 2010s, 2020s, this is where we got CI CD. So proper continuous integration pipelines, GitHub actions. And now we have agentic factories.
+
+31
+00:03:02,030 --> 00:03:06,320
+So here's what a software factory looks like in the age of AI. And I love this quote.
+
+32
+00:03:06,560 --> 00:03:15,040
+What's new is the automation of relatively unstructured cognitive work between the deterministic stages, including, of course, writing the entire code,
+
+33
+00:03:15,680 --> 00:03:16,160
+itself.
+
+34
+00:03:16,400 --> 00:03:23,600
+So this is the basic loop. We have a trigger which goes to an agent, which submits a PR, which is merged by a human.
+
+35
+00:03:23,694 --> 00:03:28,720
+And inside of here, we have all sorts of clever stuff going on with the agent, pulling in information.
+
+36
+00:03:28,974 --> 00:03:32,880
+And this is where the interesting graphs come about with software factories.
+
+37
+00:03:33,040 --> 00:03:41,120
+There's a lot more details I skimmed over in here. I'm gonna cover this in my school community on my weekly calls, and I record all of these and post them back to the community.
+
+38
+00:03:41,486 --> 00:03:46,080
+So if you want to keep hearing me discuss software factories, you can join my school community and check that out.
+
+39
+00:03:46,446 --> 00:03:52,320
+Now let me get onto the build with Claude Code. And we're gonna start here and I'm gonna paste this prompt into Claude to start building things.
+
+40
+00:03:52,480 --> 00:03:54,596
+And this is the whole prompt we're gonna use.
+
+41
+00:03:54,800 --> 00:04:01,520
+So I've got this prompt in the source code for this video. You can find that in the video description and you can reference that if you want.
+
+42
+00:04:01,680 --> 00:04:06,500
+At this point, if you're following along with me, you want to start working in an existing project that you have.
+
+43
+00:04:06,960 --> 00:04:09,200
+This is the source code for my website.
+
+44
+00:04:09,360 --> 00:04:11,200
+It's a real ugly project.
+
+45
+00:04:11,360 --> 00:04:13,680
+There is a lot of stuff going on in here.
+
+46
+00:04:13,934 --> 00:04:19,680
+We're gonna build a software factory right inside of my website, and I'm gonna start by spinning up Claude code.
+
+47
+00:04:19,790 --> 00:04:22,400
+And you'll notice that I've got bypass permissions on.
+
+48
+00:04:22,542 --> 00:04:27,120
+So this is gonna let Claude do whatever it wants, but you can set this to your level of comfort.
+
+49
+00:04:27,280 --> 00:04:31,588
+And the first thing I'm gonna do is change my model, and I want to use Opus 5.5.
+
+50
+00:04:31,790 --> 00:04:33,348
+I'm also gonna set the effort.
+
+51
+00:04:33,454 --> 00:04:38,080
+And for this task, I want to use high effort because I want it to produce a very high quality result.
+
+52
+00:04:38,670 --> 00:04:41,568
+And I want it to follow all of the details in this prompt.
+
+53
+00:04:41,678 --> 00:04:48,164
+Let me paste the prompt in and I'm going to press control G and I can open this prompt up in my sort of default editor.
+
+54
+00:04:48,430 --> 00:04:51,008
+And so I can also get out of this and see it in Claude.
+
+55
+00:04:51,248 --> 00:04:54,128
+Here's the sort of one sentence description of our spec.
+
+56
+00:04:54,288 --> 00:05:04,100
+We want to build a simple visual software factory in this repo using Claude skills, subagents, and markdown files. The markdown files are going to control the state of our application.
+
+57
+00:05:04,238 --> 00:05:07,488
+Now the orchestrator is very important for my software factory.
+
+58
+00:05:07,648 --> 00:05:15,728
+My orchestrator is going to be Claude code using whatever model I choose at the time, and then I'll run this factory skill in order to spin it up.
+
+59
+00:05:15,918 --> 00:05:20,048
+Now from there, the factory works in this loop, which I described earlier.
+
+60
+00:05:20,302 --> 00:05:27,364
+A feature comes through the spec writer, which goes into the builder, which then gets verified by various review agents.
+
+61
+00:05:27,728 --> 00:05:31,408
+And once those are done, if we need changes, this happens in a loop.
+
+62
+00:05:31,566 --> 00:05:37,156
+And then we go to the approver, which either merges to main the feature, or we get a human review.
+
+63
+00:05:37,518 --> 00:05:42,820
+And this is a system we can use repeatedly every time we want to build a new feature for our project.
+
+64
+00:05:43,406 --> 00:05:45,412
+That's the power of a software factory.
+
+65
+00:05:45,742 --> 00:05:48,528
+And this is why everybody's so excited about these things right now.
+
+66
+00:05:48,622 --> 00:05:54,688
+And we could imagine in the future we want, you know, we can bring in data sources from the outside world, and we can also have other things,
+
+67
+00:05:54,768 --> 00:06:02,928
+like we can have stuff that triggers this instead of a feature. So this is still my prompt, by the way. Let me come down and continue talking through this.
+
+68
+00:06:03,088 --> 00:06:08,208
+You can see we're setting this up as a skill, and this is the convention for how agent skills should look.
+
+69
+00:06:08,398 --> 00:06:10,288
+And we've also got this factory folder.
+
+70
+00:06:10,574 --> 00:06:12,740
+This will live right inside of the app that I'm working in.
+
+71
+00:06:13,134 --> 00:06:18,596
+And then we have some example files just to give the right style. So this is how Cloud Subagent syntax should look.
+
+72
+00:06:18,862 --> 00:06:26,048
+So I have some examples of what this should look like, but we're mostly gonna leave this up to the agent to build all of these things. And then here's the commands that I want to have.
+
+73
+00:06:26,128 --> 00:06:28,580
+I want to be able to start a new job through the loop.
+
+74
+00:06:28,910 --> 00:06:32,688
+That's done here, like just using factory and then describing my feature.
+
+75
+00:06:32,848 --> 00:06:40,388
+And then lastly, I've got a dashboard, and this is gonna give us some visibility into this whole system so we can kind of tell what's happening while everything's running.
+
+76
+00:06:40,974 --> 00:06:42,340
+So let's kick this off.
+
+77
+00:06:42,798 --> 00:06:43,408
+Check out this.
+
+78
+00:06:43,568 --> 00:06:46,148
+The orchestrator skill looks like this.
+
+79
+00:06:46,414 --> 00:06:52,676
+I feel confident that with a long-running agentic task like this, we can really nail all of the little details in this.
+
+80
+00:06:53,248 --> 00:06:56,048
+and if you've used Opus, you know exactly what I'm talking about.
+
+81
+00:06:56,208 --> 00:07:03,728
+You can throw any little small detail, and it's extremely good at picking these up and propagating them through the code as it builds everything out.
+
+82
+00:07:03,968 --> 00:07:06,020
+now it's building out the reviewer agents.
+
+83
+00:07:06,286 --> 00:07:12,208
+So these all live as Claude subagents, and these are gonna be the guys in our software factory doing all of our work.
+
+84
+00:07:12,398 --> 00:07:19,044
+Here's the reviewer UI agent. Claude has just finished up. The last thing it was working on was the dashboard for our factory.
+
+85
+00:07:19,342 --> 00:07:22,448
+That's what it created right here. So let's look at these decisions.
+
+86
+00:07:22,688 --> 00:07:23,808
+Max two rounds.
+
+87
+00:07:23,888 --> 00:07:24,836
+That works for me.
+
+88
+00:07:25,166 --> 00:07:31,968
+Your checkout, the builder works on factory. Okay, so this is the branch that we check out to build our feature.
+
+89
+00:07:32,128 --> 00:07:33,316
+That's cool, that works.
+
+90
+00:07:33,710 --> 00:07:40,448
+And then we have this rework method. If it didn't work, we can just like spin it through again. So there's some discussion about what the approver should escalate.
+
+91
+00:07:40,622 --> 00:07:48,448
+If we're doing anything with billing, let's make sure we escalate that. Anything with course access, this is stuff that's specific to my own repo.
+
+92
+00:07:48,686 --> 00:07:51,204
+So, you know, the agent will be specific to yours too.
+
+93
+00:07:51,502 --> 00:07:55,728
+That's another cool point. Like this prompt that I wrote, this will be general for anybody anything.
+
+94
+00:07:55,808 --> 00:08:01,328
+This will work for your project just as well as it did for mine, because it's not at all adapted to my project.
+
+95
+00:08:01,488 --> 00:08:07,620
+Uh, really cool. So let's restart Claude Code so it loads the new agents and then run factory next.
+
+96
+00:08:08,270 --> 00:08:10,244
+Um, all right. Now I have a question though.
+
+97
+00:08:10,830 --> 00:08:17,828
+Um, when I run factory next, what would that do? I don't think I have anything next yet, right?
+
+98
+00:08:19,342 --> 00:08:24,320
+In other words, like I don't have any features that I'm expecting to build, so I don't think that would work.
+
+99
+00:08:24,480 --> 00:08:28,240
+What I want to do is run factory and then describe the feature that I want to build.
+
+100
+00:08:28,400 --> 00:08:30,980
+Also, go ahead and spin up the dashboard.
+
+101
+00:08:31,918 --> 00:08:32,480
+Oh what?
+
+102
+00:08:32,686 --> 00:08:35,200
+The backlog actually has some stuff in it.
+
+103
+00:08:35,360 --> 00:08:36,800
+I put three starter items.
+
+104
+00:08:36,974 --> 00:08:39,492
+So Opus just figured out what I should be building next.
+
+105
+00:08:39,840 --> 00:08:40,900
+That is hilarious.
+
+106
+00:08:41,262 --> 00:08:42,720
+And here's where the dashboard's running.
+
+107
+00:08:42,830 --> 00:08:45,120
+So there's nothing going on yet, everything's empty.
+
+108
+00:08:45,280 --> 00:08:47,040
+Let's spin up our first job.
+
+109
+00:08:47,200 --> 00:08:50,240
+Before we test it though, let me show you exactly what we just built.
+
+110
+00:08:50,414 --> 00:08:54,800
+So let me go to my project and I'm going to open up this tool I have called lazy get.
+
+111
+00:08:54,960 --> 00:08:56,548
+And this way we can see all the changes.
+
+112
+00:08:56,942 --> 00:08:58,480
+So we built out a bunch of agents.
+
+113
+00:08:58,640 --> 00:09:02,480
+These are all of our sub-agents, the things that are doing the work inside of our factory.
+
+114
+00:09:02,640 --> 00:09:05,760
+This is our approval agent, builder agent, reviewer agent.
+
+115
+00:09:06,254 --> 00:09:06,916
+Let's go back down.
+
+116
+00:09:07,150 --> 00:09:08,080
+Here's the skill.
+
+117
+00:09:08,270 --> 00:09:11,680
+This to me is like the main thing that's controlling the factory.
+
+118
+00:09:11,760 --> 00:09:14,560
+It's the agent skill that we're gonna use to like spin it up.
+
+119
+00:09:14,640 --> 00:09:18,084
+It's the orchestrator skill, effectively. That's how we can think of this one.
+
+120
+00:09:18,510 --> 00:09:22,240
+And then we've got a bit of code in the factory itself, but very little.
+
+121
+00:09:22,320 --> 00:09:30,180
+We have this backlog markdown file, and this is just going to track our jobs, like the stuff that we haven't built yet that we want to build out later.
+
+122
+00:09:30,510 --> 00:09:38,244
+And then we have a dashboard, and this will be give us observability. I showed you that already, and then just a few modifications to the agents file, get ignoring some stuff.
+
+123
+00:09:38,574 --> 00:09:39,040
+That's it.
+
+124
+00:09:39,246 --> 00:09:43,280
+That's it, you guys. I can also show you this in Vim, and let's just look.
+
+125
+00:09:43,360 --> 00:09:51,364
+So this is kind of basically our factory. This is the orchestration scale, and it just documents like different ways that we can use this.
+
+126
+00:09:51,920 --> 00:10:02,160
+so this is what I'm talking about right here. We have factory slash feature. So now inside of Claude, if I was to type backslash and start typing factory, here it is.
+
+127
+00:10:02,320 --> 00:10:06,756
+This is my skill, which has been indexed by Claude Code, and I can call it directly.
+
+128
+00:10:07,150 --> 00:10:12,560
+I can also look at skills, and I'll see this in the list of skills. If I just search factory, and this is it.
+
+129
+00:10:12,720 --> 00:10:18,948
+You can see it's a project skill just for this project available because it's in that dot claud slash skills.
+
+130
+00:10:19,054 --> 00:10:22,880
+So let me just quickly hop back. We're on this step right now, running the factory.
+
+131
+00:10:23,118 --> 00:10:34,052
+We're gonna watch how this actually proceeds. And I've got this kind of feature that I wanna build. So my obsidian agent setup course pages should not be paywalled, only the videos are paywalled.
+
+132
+00:10:34,160 --> 00:10:38,000
+Let's see if our factory can handle this feature inside my actual website.
+
+133
+00:10:38,190 --> 00:10:40,240
+This is my production site that we're working in right now.
+
+134
+00:10:40,494 --> 00:10:45,028
+So it didn't start the job. The factory's first precondition, a clean working tree, isn't met.
+
+135
+00:10:45,422 --> 00:10:47,040
+I never committed any of this code.
+
+136
+00:10:47,214 --> 00:10:49,956
+I'm actually gonna commit this myself, like old school.
+
+137
+00:10:50,702 --> 00:10:54,340
+Add Claude Code Software Factory.
+
+138
+00:10:55,758 --> 00:10:56,388
+Push that.
+
+139
+00:10:56,974 --> 00:11:03,520
+All right, now I'm gonna start this again, but I want to clear it. And from here I can run factory and submit my feature.
+
+140
+00:11:03,630 --> 00:11:04,720
+It's creating the job.
+
+141
+00:11:04,880 --> 00:11:07,236
+Obsidian course unpaywall.
+
+142
+00:11:07,630 --> 00:11:10,160
+And now we can see we're starting to use our subagents.
+
+143
+00:11:10,240 --> 00:11:14,160
+Here's the first one. We're creating a spec using the spec writer background agent.
+
+144
+00:11:14,320 --> 00:11:17,120
+Let me hop over and now I'm in the agent itself.
+
+145
+00:11:17,262 --> 00:11:20,068
+So I'm looking at the subagent and I'm seeing what it's doing.
+
+146
+00:11:20,366 --> 00:11:21,600
+It's creating a spec for me.
+
+147
+00:11:21,774 --> 00:11:28,800
+So now the spec is done, we can see here we've written to a spec file, and I can see our builder has just started working on this.
+
+148
+00:11:29,166 --> 00:11:31,812
+So let me go back to the orchestrator and check out what happened.
+
+149
+00:11:32,078 --> 00:11:38,080
+It was like, okay, we, you know, our our sub agent finished, it kind of picked this up and then it opened the builder.
+
+150
+00:11:38,240 --> 00:11:46,880
+And the builder down here is now down here. And this is a this is now our sub agent that's building this out. And by the way, I want to look at this in a dashboard.
+
+151
+00:11:46,960 --> 00:11:50,880
+So let me go over here and spin up the software factory dashboard.
+
+152
+00:11:50,990 --> 00:11:53,412
+Yeah, it's it's making edits to the code.
+
+153
+00:11:54,350 --> 00:11:56,048
+Alright, so this is where we're at.
+
+154
+00:11:56,366 --> 00:12:04,580
+So this is really neat because you could actually imagine we could be doing other stuff like at the same time. I'll also note up here we have a needs human phase.
+
+155
+00:12:04,688 --> 00:12:09,008
+So anything that gets like stuck in here, we know that we would need human review at this point.
+
+156
+00:12:09,134 --> 00:12:12,608
+So this is a like a real functional way that we could be using the dashboard.
+
+157
+00:12:12,814 --> 00:12:13,408
+Oh nice.
+
+158
+00:12:13,518 --> 00:12:16,688
+Check this out. It just wrote a build file right here.
+
+159
+00:12:16,942 --> 00:12:21,808
+It wrote this file to our factory. Okay, now we're back in main and our agent.
+
+160
+00:12:21,968 --> 00:12:26,848
+Okay, sweet. We just went to review and we just kicked off all of our review subagents.
+
+161
+00:12:27,008 --> 00:12:34,692
+So these guys are representing our review. They're doing it. Okay, the UX round finished, the UI round finished, and they passed.
+
+162
+00:12:34,990 --> 00:12:41,700
+So both of those passed, but we're doing the security over here, considering okay. That's done. Code review. This is this is epic.
+
+163
+00:12:41,998 --> 00:12:47,248
+Oh, look at this, you guys. We can even see the little icons. Oh my god, that is so cool.
+
+164
+00:12:47,438 --> 00:12:54,688
+It's deciding if this feature should be pulled in or not. I'm actually blown away. This is uh this is how I want to develop features now.
+
+165
+00:12:55,534 --> 00:12:56,688
+why have I not done this yet?
+
+166
+00:12:56,974 --> 00:12:58,608
+So, what's Opus deciding?
+
+167
+00:12:58,768 --> 00:12:59,492
+Escalating.
+
+168
+00:12:59,918 --> 00:13:00,688
+It's escalating.
+
+169
+00:13:00,848 --> 00:13:02,768
+So I think it'll go to the human review.
+
+170
+00:13:03,054 --> 00:13:03,408
+There it is.
+
+171
+00:13:03,534 --> 00:13:07,524
+So it's sitting in the human review phase, and now I need to approve this.
+
+172
+00:13:08,110 --> 00:13:09,604
+What happens if I click on this?
+
+173
+00:13:10,288 --> 00:13:10,608
+Okay,
+
+174
+00:13:11,568 --> 00:13:14,628
+I can get all sorts of information from the dashboard.
+
+175
+00:13:14,862 --> 00:13:16,100
+That is very cool.
+
+176
+00:13:16,942 --> 00:13:21,572
+Escalate. Why? The build is clean, every acceptance criteria for the human.
+
+177
+00:13:22,158 --> 00:13:22,608
+If both
+
+178
+00:13:24,238 --> 00:13:25,088
+for the human.
+
+179
+00:13:25,358 --> 00:13:31,940
+So here's how I would approve it. I would need to know the ID of this feature, and then I could run factory approve.
+
+180
+00:13:32,208 --> 00:13:33,728
+Let me do that in a new session.
+
+181
+00:13:33,902 --> 00:13:39,492
+So I'm gonna clear this and I'm gonna say factory approve, and then this.
+
+182
+00:13:40,208 --> 00:13:41,328
+And we're done.
+
+183
+00:13:41,488 --> 00:13:44,208
+It has merged it into my actual code.
+
+184
+00:13:44,366 --> 00:13:45,648
+Now I can have a look at that.
+
+185
+00:13:45,808 --> 00:13:50,980
+So down here, this Claude guy was just running my okay. I'm gonna come down here.
+
+186
+00:13:52,288 --> 00:13:57,156
+okay, this is my source code, and if I look at the git status, I'm ahead by four commits.
+
+187
+00:13:57,408 --> 00:13:58,208
+That's because
+
+188
+00:13:59,310 --> 00:14:03,460
+I've just committed this. Merge factory one obsidian course on paywall.
+
+189
+00:14:03,728 --> 00:14:05,700
+This is the thing that was done by the agent.
+
+190
+00:14:05,838 --> 00:14:09,648
+And I can look at that guy. If I look at the previous commits, this is what it did.
+
+191
+00:14:09,806 --> 00:14:16,288
+So it went off onto a branch, it did a few different commits, it kind of built out our feature, and then it merged it back.
+
+192
+00:14:16,462 --> 00:14:18,368
+And that merge was done when I approved it.
+
+193
+00:14:18,528 --> 00:14:19,008
+Very cool.
+
+194
+00:14:19,168 --> 00:14:21,028
+Now I want to stress one thing.
+
+195
+00:14:21,248 --> 00:14:30,436
+If I come up here, when I said factory approve, what's actually happening here is I have a skill, an agent skill called factory. And when I run that, we trigger the agent skill.
+
+196
+00:14:30,768 --> 00:14:34,756
+Then all of this other stuff in here, this is just free form.
+
+197
+00:14:35,118 --> 00:14:43,400
+So this is not actually like a strict like schema or a strict spec for you know saying approved.
+
+198
+00:14:43,488 --> 00:14:46,688
+Now let me show you where the metadata for this system lives.
+
+199
+00:14:46,768 --> 00:14:51,620
+And this metadata is responsible for populating all of the information we're seeing down here.
+
+200
+00:14:51,918 --> 00:14:54,660
+These just live as markdown files in our project.
+
+201
+00:14:54,990 --> 00:15:06,048
+If I go into factory and then I look at all the files inside of here, this was the feature we just built, and all of these files are the metadata that we're populating inside of our dashboard
+
+202
+00:15:06,208 --> 00:15:06,848
+down here.
+
+203
+00:15:07,310 --> 00:15:09,008
+I love how simple this is.
+
+204
+00:15:09,294 --> 00:15:12,996
+I can just like look at this stuff in Vim myself and review this.
+
+205
+00:15:13,422 --> 00:15:16,208
+Agents can use this, future agents, other systems.
+
+206
+00:15:16,368 --> 00:15:18,048
+This is so cool for me.
+
+207
+00:15:18,350 --> 00:15:24,928
+The one thing I'll say is we probably don't want all of this stuff committed to git. Of course, they're just text files.
+
+208
+00:15:25,008 --> 00:15:32,644
+There's nothing wrong with committing them all to git, but it just kind of might mess up your fuzzy searching as you start doing file searching and stuff like that.
+
+209
+00:15:32,974 --> 00:15:37,604
+It's something you can decide what you want to do. For my part, I don't think I would want these committed to git.
+
+210
+00:15:37,902 --> 00:15:43,568
+So if I look in my git ignore at the factory, you can see we're not committing any of this.
+
+211
+00:15:43,694 --> 00:15:46,660
+So Claude already decided we shouldn't commit this stuff.
+
+212
+00:15:46,958 --> 00:15:54,788
+So these things are transient and they'll be deleted if you were to reclone the repo elsewhere, unless you were to back them up with like some custom process,
+
+213
+00:15:55,118 --> 00:15:56,768
+which by the way is exactly what I would do.
+
+214
+00:15:56,928 --> 00:16:00,644
+I would just throw them into cloud storage somewhere and I would get the agent to manage that.
+
+215
+00:16:00,974 --> 00:16:04,608
+If you want to learn more about what I'm talking about there, you should join my school community.
+
+216
+00:16:04,768 --> 00:16:12,208
+You can ask me or just join my weekly calls. I talk about these types of things all the time. This is how developers are building with coding agents now.
+
+217
+00:16:12,368 --> 00:16:16,676
+And speaking of building with coding agents, let's keep developing this with Claude Code.
+
+218
+00:16:17,070 --> 00:16:22,532
+What I want to do is be able to support running multiple things through the software factory at once.
+
+219
+00:16:22,894 --> 00:16:27,652
+Right now, that won't work too well because we're not using git work trees.
+
+220
+00:16:27,886 --> 00:16:29,168
+So let's build this in right now.
+
+221
+00:16:29,408 --> 00:16:31,876
+Have a look at my software factory.
+
+222
+00:16:32,206 --> 00:16:36,196
+I want to be able to run multiple features through the factory at once.
+
+223
+00:16:36,590 --> 00:16:40,708
+And in order to do that, I think we'll need some sort of git work tree integration.
+
+224
+00:16:41,742 --> 00:16:47,040
+You know, I just realized I could have used the software factory to build itself.
+
+225
+00:16:47,278 --> 00:16:49,840
+That would have been awesome. Anyway, we got this done.
+
+226
+00:16:50,000 --> 00:16:53,348
+Now let me start a new session. So, what features should we build?
+
+227
+00:16:53,902 --> 00:16:57,040
+Let's go into our factory and I've got this backlog here.
+
+228
+00:16:57,198 --> 00:17:01,316
+Let's have a look at that. Estimated reading time next to the date on the blog post.
+
+229
+00:17:02,190 --> 00:17:04,996
+Okay, let's do that. Add a copy button to code blocks.
+
+230
+00:17:05,422 --> 00:17:08,320
+Sure, let's do that. Add a four or four for this is great.
+
+231
+00:17:08,480 --> 00:17:10,560
+These are all things I should have on my site.
+
+232
+00:17:10,958 --> 00:17:16,932
+That's nuts that Opus just came up with those on the fly as it built like the dude.
+
+233
+00:17:17,518 --> 00:17:19,172
+These things always just blow my mind.
+
+234
+00:17:19,502 --> 00:17:21,124
+Alright, let's go factory next.
+
+235
+00:17:22,158 --> 00:17:22,852
+Are we ready?
+
+236
+00:17:23,534 --> 00:17:24,068
+Let's go.
+
+237
+00:17:24,430 --> 00:17:29,060
+Um now the point the point of this is to do multiple of these in parallel.
+
+238
+00:17:29,774 --> 00:17:34,560
+And we just ticked this off, so we picked that one up. Um let's let's do it.
+
+239
+00:17:34,640 --> 00:17:42,080
+I'm gonna start a new session down here, and I want to start these in separate TMUX areas just so that I can watch all of these go.
+
+240
+00:17:42,414 --> 00:17:43,620
+Let's start up Claude
+
+241
+00:17:44,302 --> 00:17:46,788
+and let's say factory next.
+
+242
+00:17:48,398 --> 00:17:53,284
+Alright, now we've established in our top agent, we've started doing some spec writing and stuff.
+
+243
+00:17:54,446 --> 00:17:59,492
+what's going on down here? Oh, here they are. So they've just two of them have entered.
+
+244
+00:17:59,822 --> 00:18:02,980
+We have two new features that have entered the factory.
+
+245
+00:18:03,440 --> 00:18:04,868
+And let's do a third one.
+
+246
+00:18:05,614 --> 00:18:06,276
+Why not?
+
+247
+00:18:06,894 --> 00:18:07,600
+Um, all right.
+
+248
+00:18:07,726 --> 00:18:15,520
+Now one thing I should show you is you know, the orchestrator will be whatever agent we've spun up here. So I've got Claude Opus 5.5.
+
+249
+00:18:16,014 --> 00:18:18,308
+Just for fun, let's use Sonnet here.
+
+250
+00:18:18,574 --> 00:18:24,772
+I'm gonna say model and we're gonna go to Sonnet 5.5 and let's see what happens if I put it on low effort.
+
+251
+00:18:25,440 --> 00:18:26,640
+Why not? Let's try it.
+
+252
+00:18:26,800 --> 00:18:27,940
+Factory next.
+
+253
+00:18:28,686 --> 00:18:29,920
+What feature is this one?
+
+254
+00:18:30,080 --> 00:18:34,724
+This is my last remaining feature, which will be the 404 page.
+
+255
+00:18:35,470 --> 00:18:37,700
+So Sonnet should be very fast.
+
+256
+00:18:38,062 --> 00:18:45,668
+So I would expect that this feature might finish fast, but on the other hand, the orchestrator is not necessarily the limiting agent, right?
+
+257
+00:18:45,840 --> 00:18:48,644
+What's gonna limit this are the subagents.
+
+258
+00:18:49,120 --> 00:18:57,760
+And right now we're in the spec writer phase, and you know, this sonnet session is still going to be limited by the speed of the subagents, which we're still using Opus
+
+259
+00:18:58,160 --> 00:18:58,400
+for.
+
+260
+00:18:58,606 --> 00:19:04,004
+And in fact, we might want to use a small model to actually do the orchestration.
+
+261
+00:19:04,430 --> 00:19:13,796
+I don't think so though. My intuition is that we want a really smart model to be the orchestrator, and then some of the subagents can use lower models, faster models
+
+262
+00:19:14,094 --> 00:19:15,364
+that are you know aren't as good.
+
+263
+00:19:15,920 --> 00:19:20,080
+and that's been the approach for my software factory. That's how I that's how I approach this.
+
+264
+00:19:20,206 --> 00:19:29,828
+sonnet is flying though. We're already on the builder phase for that. Oh, this is like a race, dude. And this is all just this is just working with um with Git work trees,
+
+265
+00:19:30,670 --> 00:19:30,880
+right?
+
+266
+00:19:31,120 --> 00:19:31,524
+Like it's
+
+267
+00:19:32,238 --> 00:19:33,476
+it's just working.
+
+268
+00:19:33,710 --> 00:19:39,040
+Like I don't really need to worry about it. I don't need to be messing around and switching work trees.
+
+269
+00:19:39,520 --> 00:19:41,956
+Also, we just built this ourselves.
+
+270
+00:19:42,638 --> 00:19:44,160
+Like, this is your own thing.
+
+271
+00:19:44,270 --> 00:19:46,960
+You you just built it, you can change it, you can do whatever you want.
+
+272
+00:19:47,040 --> 00:19:54,560
+You're not relying on like some dude's um you know, factory skill that is all hyped and you found it and it does like a million things.
+
+273
+00:19:54,720 --> 00:20:02,640
+This is your own very simple skill for your own software factory, and you know exactly how it works, right? And when you want to change it, you know how you can change it.
+
+274
+00:20:02,800 --> 00:20:12,240
+I think this is so important, and I think people are just totally missing the point um right now with just you know following big things and starring everything on on
+
+275
+00:20:12,480 --> 00:20:15,524
+GitHub and thinking they have to keep up and be trying everything.
+
+276
+00:20:15,854 --> 00:20:24,960
+Really, what you have to do is understand the core concepts and how we can use coding agents to be doing the things that everyone's so excited about, and then just making it work for you
+
+277
+00:20:25,134 --> 00:20:26,800
+to give you actual productivity.
+
+278
+00:20:27,022 --> 00:20:30,852
+And I will argue that what I've done here is actual productivity.
+
+279
+00:20:31,214 --> 00:20:37,860
+Like I'm watching three agents crush through features on my website working in their software factory.
+
+280
+00:20:39,310 --> 00:20:39,748
+Damn.
+
+281
+00:20:40,718 --> 00:20:41,680
+What a world we live in.
+
+282
+00:20:41,840 --> 00:20:46,404
+Okay, our sonnet agent is in review and it just kicked off all of the reviews.
+
+283
+00:20:46,734 --> 00:20:52,772
+And I think this is probably my favorite part of the UI how we can actually watch these results come in.
+
+284
+00:20:53,806 --> 00:20:54,080
+Oh
+
+285
+00:20:55,022 --> 00:20:58,404
+okay, our blog reading time features but getting pushed through as well.
+
+286
+00:21:00,334 --> 00:21:10,500
+Now, the blog reading feature actually does have a UI and a UX component to it, whereas these other features didn't so much. So I'm curious if maybe it will get rejected.
+
+287
+00:21:11,086 --> 00:21:13,412
+I doubt it. I mean, we'd used Opus to build it.
+
+288
+00:21:13,582 --> 00:21:21,344
+What would be kind of crazy is if we tested out like a really dumb agent as the builder and then got Opus to keep like fixing and judging the dumb agent.
+
+289
+00:21:21,424 --> 00:21:22,340
+That would be pretty fun.
+
+290
+00:21:22,734 --> 00:21:29,104
+Uh oh, okay, needs human. The 404 one needs human. I have a feeling we're gonna need to lax the guardrails.
+
+291
+00:21:29,358 --> 00:21:33,732
+I think like all of these things, Claude is gonna figure out some reason to get me to look at them.
+
+292
+00:21:34,158 --> 00:21:35,264
+So that's something we could work on.
+
+293
+00:21:35,406 --> 00:21:38,064
+That would be a way to work on our factory, make it more efficient.
+
+294
+00:21:38,224 --> 00:21:40,304
+The approver agent's taking a long time.
+
+295
+00:21:40,624 --> 00:21:43,876
+Okay, it needs human as well for that one. This is actually legit.
+
+296
+00:21:44,384 --> 00:21:47,424
+Claude doesn't want to invalidate my blog render cache.
+
+297
+00:21:47,534 --> 00:21:53,184
+That'll take a little while to run when it when we merge this feature, so that's fair.
+
+298
+00:21:53,550 --> 00:21:55,524
+As for the 404 reading block,
+
+299
+00:21:57,486 --> 00:22:06,384
+I'm a little confused. We seem to have approved this, but there says there's nothing for the human, but it still needs a human call.
+
+300
+00:22:06,606 --> 00:22:08,384
+So I'm gonna investigate that.
+
+301
+00:22:08,686 --> 00:22:11,904
+Why did this not get automatically approved and merged?
+
+302
+00:22:12,270 --> 00:22:19,184
+Merge only runs when the main checkout is clean, and on main here we have some stuff, so that failed.
+
+303
+00:22:19,374 --> 00:22:21,860
+Okay, so the software factory is kind of being dumb.
+
+304
+00:22:22,414 --> 00:22:26,788
+Um, we we have changes to the backlog, so it couldn't commit that.
+
+305
+00:22:27,310 --> 00:22:33,504
+Those changes are inevitable whenever we're using the software factory, therefore they should not be blockers.
+
+306
+00:22:33,744 --> 00:22:37,344
+Now, of course, it's unfortunate that I'm talking to Sonnet to do this.
+
+307
+00:22:37,486 --> 00:22:46,064
+I mean, Sonnet's certainly quite capable, but I would want to use my best agent to be working on my factory. It's like the most important thing in my code base, right?
+
+308
+00:22:46,286 --> 00:22:50,820
+Yeah, so it's specifically saying this file is okay if there's changes in it.
+
+309
+00:22:51,246 --> 00:22:51,620
+So that's cool.
+
+310
+00:22:51,744 --> 00:22:53,892
+So hopefully that would work properly next time.
+
+311
+00:22:55,264 --> 00:22:56,944
+but let me bring these in.
+
+312
+00:22:57,102 --> 00:23:04,484
+So I've got two things to approve, and I can do that now. There's this factory approve command, but I could just be like, okay, merge it in now.
+
+313
+00:23:05,038 --> 00:23:09,316
+So, you know, if I'm being real, like that's how I would, you know, that's how I would do this.
+
+314
+00:23:09,678 --> 00:23:18,304
+But in the idea of the factory is that we've actually got inputs coming from things I don't control. Like I'm not necessarily spinning up an agent in a software factory.
+
+315
+00:23:18,464 --> 00:23:20,388
+Maybe it's starting from other triggers.
+
+316
+00:23:20,814 --> 00:23:23,716
+I'm gonna talk about that in just a moment in my closing thought.
+
+317
+00:23:24,224 --> 00:23:28,624
+but let me finish this up. So I've I've merged this in. So we actually updated the metadata.
+
+318
+00:23:28,718 --> 00:23:31,104
+So I can I can see that that was merged in over here.
+
+319
+00:23:31,470 --> 00:23:34,544
+and meanwhile, this other guy is is actually still working.
+
+320
+00:23:34,766 --> 00:23:39,748
+So adding a copy button in code blocks yeah, that's a little bit maybe a bit of a tricky feature.
+
+321
+00:23:40,302 --> 00:23:40,624
+Clearly.
+
+322
+00:23:40,814 --> 00:23:45,604
+Oh, this is hilarious. So this one won't merge because of the changes that I just got Sonnet to make.
+
+323
+00:23:46,222 --> 00:23:51,428
+Um, okay, yeah, update and commit, like add those separately and then merge this in.
+
+324
+00:23:51,664 --> 00:23:54,704
+Oh my god, I can barely speak. Opus got me.
+
+325
+00:23:54,864 --> 00:23:55,504
+There we go.
+
+326
+00:23:55,694 --> 00:23:56,384
+That one's done.
+
+327
+00:23:56,590 --> 00:24:05,264
+What a beautiful thing. Now let me go back to the mind map, and I'm just gonna finish everything up by having sort of a look at what we would want to do in the future going forward for this.
+
+328
+00:24:05,424 --> 00:24:12,004
+Here's four things that we could do now to get our basic software factory running better for us to be more effective.
+
+329
+00:24:12,302 --> 00:24:19,268
+And the first thing we already did, we added Git work tree support so that we can run several jobs in parallel, and we just demoed that.
+
+330
+00:24:19,790 --> 00:24:20,464
+Sick, right?
+
+331
+00:24:20,686 --> 00:24:24,544
+Next thing we can do is GitHub issues as the intake or other things.
+
+332
+00:24:24,704 --> 00:24:27,396
+For example, maybe we can trigger this from Slack.
+
+333
+00:24:28,064 --> 00:24:36,548
+GitHub issues are a really great sort of way to do this because the issue could be submitted by many different people, it's tracked inside of GitHub,
+
+334
+00:24:36,846 --> 00:24:43,844
+and we can sort of integrate naturally with GitHub in this way. So we see you see a lot of people doing this. There's a lot of videos on YouTube to do that.
+
+335
+00:24:44,110 --> 00:24:49,184
+We could easily extend our system to use that as an input source for our system.
+
+336
+00:24:49,344 --> 00:24:51,984
+Next would be to connect to application metrics.
+
+337
+00:24:52,144 --> 00:25:00,772
+For example, we could connect to Sentry. This is like a monitoring platform for applications, and then we can pull direct bugs like from our app in production
+
+338
+00:25:01,006 --> 00:25:06,436
+and just pull these into the software factory to get the relevant context about what feature we're trying to push through it.
+
+339
+00:25:06,734 --> 00:25:15,984
+This is like really critical for software factories, and it sort of reminds it sort of brings to mind these original ideas of software factories that were proposed like all the way back in the 60s,
+
+340
+00:25:16,064 --> 00:25:20,868
+like I talked about earlier in the video, how we want access to like monitoring and metrics.
+
+341
+00:25:21,262 --> 00:25:30,304
+And other metrics that we might want are infrastructure metrics like CPU and memory. And the reason we might want those is so we can keep an eye on things after the deployment.
+
+342
+00:25:30,478 --> 00:25:35,744
+The software factory can actually handle the post-deployment as well and keep watching things.
+
+343
+00:25:35,824 --> 00:25:45,344
+Because if we build a feature that wrecks our software, we can undo it as part of the software factory. It can be still in the loop even after it's published, right?
+
+344
+00:25:45,454 --> 00:25:48,100
+It's not done once it's been pushed to production.
+
+345
+00:25:48,494 --> 00:25:50,704
+This is the future we're going to.
+
+346
+00:25:51,406 --> 00:25:53,348
+This is the future we're already in.
+
+347
+00:25:54,542 --> 00:25:54,980
+Wow.
+
+348
+00:25:55,982 --> 00:25:58,528
+I kind of got goosebumps, like actually saying that right now.
+
+349
+00:25:58,702 --> 00:26:08,368
+Thank you to Anthropic for sponsoring today's video. If you aren't using Claude Code, then you can click the link in the video description to sign up now. I hope you followed along with me though.
+
+350
+00:26:08,448 --> 00:26:15,648
+I hope you were doing this as we went, and I hope you have your own software factory now for your own project. Now, here's a few things that I think we should consider.
+
+351
+00:26:15,886 --> 00:26:17,860
+Stuff I haven't talked about yet in the video.
+
+352
+00:26:18,126 --> 00:26:21,968
+The first one is I guess the elephant in the room, and that's around cost.
+
+353
+00:26:22,128 --> 00:26:27,364
+Like, yes, I think this system is probably building out really effective features for me.
+
+354
+00:26:27,598 --> 00:26:31,968
+I've got good observability. I can go into the subagents, I can see the logs.
+
+355
+00:26:32,238 --> 00:26:36,804
+From a data and quality perspective, I think it's really good. I think it's top-notch.
+
+356
+00:26:37,408 --> 00:26:39,332
+But it's gonna cost more money.
+
+357
+00:26:39,758 --> 00:26:47,968
+There's no way around it. Anytime we're using subagents, that's could incur extra costs because the agent has to pass contacts back and forth.
+
+358
+00:26:48,110 --> 00:26:51,780
+So the question is, is this token cost worth it for quality?
+
+359
+00:26:52,046 --> 00:26:54,128
+Now, all of this was on my plan.
+
+360
+00:26:54,288 --> 00:26:58,180
+This is all part of my Clawed plan. I'm not using API tokens for any of this.
+
+361
+00:26:58,606 --> 00:27:02,084
+That's something to consider. I think that's hugely beneficial, right?
+
+362
+00:27:02,510 --> 00:27:05,408
+So yeah, so these are like just a couple considerations.
+
+363
+00:27:06,222 --> 00:27:12,368
+despite these things, this is absolutely what I'm gonna do. Like, I'm gonna be building a lot more of these.
+
+364
+00:27:12,462 --> 00:27:15,488
+And so that brings me finally back around to the channel.
+
+365
+00:27:15,726 --> 00:27:25,408
+I'm gonna end this video now, but I want to keep building stuff like this, and I've got a few more videos about Claude Code coming your way, so I'll link these here when I'm finished.
+
+366
+00:27:25,568 --> 00:27:29,008
+If there's anything you'd like to see, leave me a comment to let me know.
+
+367
+00:27:29,168 --> 00:27:30,528
+Thanks for watching.
+
