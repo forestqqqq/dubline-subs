@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [I Built an INSANE AI Trading Bot to Trade My $1,000 (Full Guide)](medias/W0F4R/) | Trading with DaviddTech | 2026-10-17 |
 | [Build Your First AI Agent in 90 Minutes 🚀 \| Real-World E-Commerce AI Agent Project \| Agentic AI](medias/P380K/) | Ashok IT | 2026-10-17 |
 | [How to Use Claude Design Better Than 99% of People](medias/G60T0/) | Jack Roberts | 2026-10-17 |
 | [Ultimate Guide to ChatGPT in 2026 (Updated for ChatGPT 6 Astra)](medias/FWYV4/) | Skill Leap AI | 2026-10-17 |
