@@ -9,6 +9,7 @@
 | [I Built an INSANE AI Trading Bot to Trade My $1,000 (Full Guide)](medias/W0F4R/) | Trading with DaviddTech | 2026-10-17 |
 | [AI System Design Tutorial](medias/T5YW2/) | codebasics | 2026-10-17 |
 | [Build Your Own AI Software Factory with Claude Code](medias/QWCQ0/) | ZazenCodes | 2026-10-17 |
+| [I Built AI Agents & Workflows I Don't Have to Babysit (Replaced Hermes for My Whole Team) \| Tutorial](medias/Q9K76/) | Sonny Sangha | 2026-10-17 |
 | [Build Your First AI Agent in 90 Minutes 🚀 \| Real-World E-Commerce AI Agent Project \| Agentic AI](medias/P380K/) | Ashok IT | 2026-10-17 |
 | [🚀 LangChain4j Explained \| Build Your First AI Agent in Java](medias/MXWBZ/) | Java Techie | 2026-10-17 |
 | [ChatGPT Just Changed A LOT (Here’s What’s New)](medias/M682X/) | Riley Brown | 2026-10-17 |
