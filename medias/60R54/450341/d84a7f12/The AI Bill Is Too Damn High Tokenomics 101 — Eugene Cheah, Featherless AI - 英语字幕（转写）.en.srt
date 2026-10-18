@@ -1,0 +1,2748 @@
+1
+00:00:12,880 --> 00:00:18,372
+Thank you everyone for coming here. Not too sure whether you'll be happy or sad that so many people are suffering from their token bill.
+
+2
+00:00:18,640 --> 00:00:19,780
+It's a full workshop.
+
+3
+00:00:21,294 --> 00:00:23,940
+Yeah, we are going to talk about tokenomics.
+
+4
+00:00:24,480 --> 00:00:30,640
+So a little bit of background, kickstarting it, right? I'm Eugene from Featherless AI. I'm CEO and founder of it.
+
+5
+00:00:30,960 --> 00:00:36,320
+And I'm part of the team behind the RWKV Open Source Project, the first AI model under the Linux Foundation.
+
+6
+00:00:36,800 --> 00:00:41,120
+And we work on next generation AI architecture. That's a little bit of my academic background.
+
+7
+00:00:41,200 --> 00:00:43,108
+And my Twitter handle is PicoCreator.
+
+8
+00:00:44,480 --> 00:00:45,920
+But more importantly, right,
+
+9
+00:00:47,280 --> 00:00:51,652
+a little bit of background for Featherless AI is that our mission is to make AI accessible for everyone.
+
+10
+00:00:51,920 --> 00:00:54,180
+Every language, every dialect, every country.
+
+11
+00:00:54,720 --> 00:01:00,932
+And we do this, we do this by creating the world's largest platform of open models, of over 40,000 open models.
+
+12
+00:01:01,360 --> 00:01:09,040
+This includes specialized fine-tuned, like the Sunflower model, which is Uganda's first language model, specifically for their language, and a lot of other specialized models.
+
+13
+00:01:09,120 --> 00:01:13,924
+So we're just not talking about the biggest open source model, but specialized language models or specialized use cases.
+
+14
+00:01:14,350 --> 00:01:15,760
+Some of it, which I'll touch as well.
+
+15
+00:01:17,520 --> 00:01:21,680
+And when we well, we can go on scale in terms of variety of models.
+
+16
+00:01:22,350 --> 00:01:24,640
+Feathers AI also we serve customers at scale.
+
+17
+00:01:24,750 --> 00:01:28,740
+So some of our largest customers are literally serving 2 trillion tokens a day.
+
+18
+00:01:30,400 --> 00:01:34,660
+And they're serving it at around 0.3 per million tokens or 60k a day.
+
+19
+00:01:35,214 --> 00:01:39,332
+And they're doing it on around 512 AMD GPUs, MI325.
+
+20
+00:01:40,238 --> 00:01:44,400
+And for this customer in particular, it's a private 400 to 800B MOE model.
+
+21
+00:01:44,720 --> 00:01:48,100
+And they are serving at around Opus 4.8 class performance.
+
+22
+00:01:48,560 --> 00:01:53,060
+So it's lots of concurrent requests, lots of token volume.
+
+23
+00:01:53,390 --> 00:01:54,916
+That's what we mean by scale.
+
+24
+00:01:55,280 --> 00:02:00,068
+And if you look at it, 0.03 per million token at Opus 4.8 class
+
+25
+00:02:01,614 --> 00:02:04,240
+is not something that you can get off the public cloud market.
+
+26
+00:02:04,430 --> 00:02:08,996
+This is specially very specialized setups that is meant to run at the scale that we are talking about.
+
+27
+00:02:09,600 --> 00:02:15,076
+So that kind of leads into two major disclaimers that I'm going to start off.
+
+28
+00:02:15,520 --> 00:02:17,156
+One, we sell inference.
+
+29
+00:02:17,614 --> 00:02:22,080
+So everything I cover here will cover to we'll will touch on any provider.
+
+30
+00:02:22,240 --> 00:02:27,748
+Nothing here is specific to featherless, but for clarity, we sell inference.
+
+31
+00:02:27,854 --> 00:02:32,292
+So this is from our data points, from our experience, respectively as well.
+
+32
+00:02:32,814 --> 00:02:33,040
+Okay?
+
+33
+00:02:33,998 --> 00:02:34,948
+The other thing is that
+
+34
+00:02:35,758 --> 00:02:44,164
+this workshop is going to cover a lot of optimization at scale, and it probably will not fit you if you're like spending less than 10k a month in your organization.
+
+35
+00:02:44,880 --> 00:02:52,292
+my word of advice for those who are below this this uh metric mark, and this is an arbitrary metric, is that if you're spending less than this,
+
+36
+00:02:52,480 --> 00:03:00,388
+you're probably better off focusing on like trying to get strong use cases within your organization rather than trying to optimize the token spending bill.
+
+37
+00:03:00,800 --> 00:03:04,868
+Because a strong use case can bring your organization way more than 10k a month.
+
+38
+00:03:06,158 --> 00:03:10,276
+And that should be your main area of focus, and that's not my area of focus for this talk.
+
+39
+00:03:12,174 --> 00:03:17,860
+So, what we're going to cover in this workshop uh is four moves in in four major order.
+
+40
+00:03:18,240 --> 00:03:24,324
+Measuring, right sizing, uh how do you buy your capacity, and how you check your process.
+
+41
+00:03:26,318 --> 00:03:27,652
+So, measuring.
+
+42
+00:03:28,974 --> 00:03:31,044
+You'll be surprised at how essential this is.
+
+43
+00:03:31,970 --> 00:03:35,780
+Like, how many of you know your total token spend? Can I have a raise of hands?
+
+44
+00:03:37,422 --> 00:03:39,936
+Wow, only half the room raised hand. Okay.
+
+45
+00:03:40,110 --> 00:03:45,060
+How many of you can measure at the department level? Those who have their hands raised up, leap you up.
+
+46
+00:03:46,176 --> 00:03:48,772
+And so I see about another half went down.
+
+47
+00:03:48,896 --> 00:03:49,124
+Yeah.
+
+48
+00:03:49,696 --> 00:03:53,476
+And it gets lower and lower down to the team level to the use case level.
+
+49
+00:03:54,336 --> 00:04:03,332
+We like easily, 30, 40% of our customers that reach out to us, the first thing they had was a single shared key that everyone in the organization used.
+
+50
+00:04:03,758 --> 00:04:04,580
+And that was like
+
+51
+00:04:06,256 --> 00:04:08,708
+how do we even measure that? How do we start from there?
+
+52
+00:04:08,976 --> 00:04:09,136
+So
+
+53
+00:04:10,016 --> 00:04:12,484
+this is not an Aventor specific.
+
+54
+00:04:12,896 --> 00:04:20,612
+you need to start splitting up your keys, start splitting it by departments, start splitting up by major use cases so that you know where all your token spends are.
+
+55
+00:04:21,678 --> 00:04:24,772
+And this is then from then on it can inform your workload.
+
+56
+00:04:25,646 --> 00:04:27,972
+So yeah, API keys shouldn't be that hard to issue.
+
+57
+00:04:29,358 --> 00:04:39,172
+Once you know that, you can start right sizing things respectively. Like which team is uh and workloads spent on it, what was the person waiting for? Like some teams deserve the tokens per second.
+
+58
+00:04:39,566 --> 00:04:44,900
+Some background agent running at midnight probably don't deserve the tokens per second speed that you're paying for it.
+
+59
+00:04:45,296 --> 00:04:49,776
+Uh yeah, don't pay for ultra on a background agent. That's just dumb.
+
+60
+00:04:50,976 --> 00:04:59,428
+and from there you can also look at your usage to better advise dedicated capacity that you may purchase, be it for open models or even closed models.
+
+61
+00:05:00,430 --> 00:05:00,740
+Yeah.
+
+62
+00:05:01,518 --> 00:05:05,988
+And also you can also check which team spend the most token and whether they are productive.
+
+63
+00:05:06,416 --> 00:05:08,016
+I'll touch on that as well.
+
+64
+00:05:09,710 --> 00:05:17,796
+One of the things that you should know in AI workloads, right, uh, and you all may already experience, right, is there are two major tracks with very opposite economics
+
+65
+00:05:18,336 --> 00:05:19,056
+respectively.
+
+66
+00:05:19,342 --> 00:05:24,644
+So there is the agentic workload, and obviously there's things in between, where it tends to be like long-running multi-ton agents.
+
+67
+00:05:24,816 --> 00:05:27,140
+Coding agents are a particular example of this.
+
+68
+00:05:27,470 --> 00:05:35,780
+Some some some may have some devs like run coding agents like literally overnight over a long period of time with multiple compaction,
+
+69
+00:05:36,718 --> 00:05:39,908
+and these things maximize the context usage.
+
+70
+00:05:40,846 --> 00:05:43,456
+Process automation is the other extreme.
+
+71
+00:05:43,936 --> 00:05:48,676
+think call centers, think email routing, things your meeting notes, transcribing, and things like that.
+
+72
+00:05:49,646 --> 00:05:54,820
+it's much shorter in context in general, though there are a lot of examples that defy this statement.
+
+73
+00:05:55,616 --> 00:05:59,300
+but it's very process-driven, very task-isolated.
+
+74
+00:05:59,694 --> 00:06:02,276
+And it's a volume game, essentially.
+
+75
+00:06:04,366 --> 00:06:10,692
+So, what do I mean by more usage? and this is probably one of the first major explosions a lot of organizations face.
+
+76
+00:06:11,456 --> 00:06:14,884
+In particular, when they jump onto the open claw hype or one of the claw clones.
+
+77
+00:06:15,982 --> 00:06:23,876
+so you like like from from uh from various developer teams that we support, like we, for example, we sampled one of the team, and it was only five devs,
+
+78
+00:06:24,016 --> 00:06:28,868
+and they were averaging around continuously eight running agents for one of the companies we work with.
+
+79
+00:06:29,296 --> 00:06:37,636
+And so they were previously running Opus 4.8 of the API, and they were essentially spending 150k a month continuously running these agents.
+
+80
+00:06:38,318 --> 00:06:41,696
+some of it is the agents that they use to code, some of it is the agents that kicked in at night.
+
+81
+00:06:41,776 --> 00:06:47,364
+They were slightly more advanced, they already knew that they should kick things off at night when no one's working.
+
+82
+00:06:47,662 --> 00:06:50,308
+But essentially they were spending 116 billion tokens a month.
+
+83
+00:06:50,816 --> 00:06:54,884
+And we literally helped them switch to a GRM 5.3 instance.
+
+84
+00:06:55,296 --> 00:07:03,076
+previously it was 5.2, they already upgraded 5.3, and that was like a single node that was less than 10k a month. And they didn't see any disruption in your impact.
+
+85
+00:07:03,536 --> 00:07:08,484
+So knowing your team workload allows you to make these decisions respectively.
+
+86
+00:07:08,816 --> 00:07:13,924
+And like I highlighted, like knowing these processes workload also allows you to split things off.
+
+87
+00:07:14,222 --> 00:07:22,532
+So, like, for example, previously they were running everything throughout the day, but they they started scheduling some of the background agents when the team was asleep
+
+88
+00:07:22,734 --> 00:07:26,564
+and it runs through the night. So this allows you to utilize their hardware respectively.
+
+89
+00:07:30,944 --> 00:07:34,660
+The other side of process automation is purely a volume game.
+
+90
+00:07:35,758 --> 00:07:37,028
+Extremely predefined.
+
+91
+00:07:38,510 --> 00:07:46,784
+I can give you more specific examples of the record, but you think of it as like millions per day, or even tens of millions per day, decisions in call centers,
+
+92
+00:07:46,944 --> 00:07:49,764
+lines of code scan, emails and text messages filtered.
+
+93
+00:07:49,984 --> 00:07:56,324
+Like one of the telcos we work with, they easily hit peak 10 million messages in a single minute.
+
+94
+00:07:56,750 --> 00:07:58,144
+And this shouldn't come as a surprise.
+
+95
+00:07:58,350 --> 00:07:59,984
+Happy New Year is the worst. Yeah.
+
+96
+00:08:00,144 --> 00:08:03,424
+So so these and they and they help.
+
+97
+00:08:03,504 --> 00:08:07,844
+And the reason why they filter messages is because they provide a feature about like providing safe phone for kids.
+
+98
+00:08:08,174 --> 00:08:14,144
+So they needed an AI to scan, like basically, is it profanity, sexual content, etc. etc.
+
+99
+00:08:14,464 --> 00:08:19,556
+So this this is really not a long context, but a volume game.
+
+100
+00:08:21,070 --> 00:08:28,384
+Other things like maker-checker processes, approval processes, document processing, these are all volume game for multiple organizations.
+
+101
+00:08:28,464 --> 00:08:38,212
+So I suspect for the financial institutes here, since we are in New York, a lot of OCRs, a lot of documents, a lot of approval, a lot of transaction risk is under this category.
+
+102
+00:08:39,264 --> 00:08:39,584
+Okay.
+
+103
+00:08:40,238 --> 00:08:41,028
+So yeah.
+
+104
+00:08:41,518 --> 00:08:45,220
+If you're not yet tracking your token, token span and token view split, right?
+
+105
+00:08:45,504 --> 00:08:54,116
+We are open sourcing a tokenomics tracking tool, which is just a very fancy way of like splitting up your API key and tracking which API key spends how much,
+
+106
+00:08:55,264 --> 00:08:56,944
+which is separate from this talk. Yeah.
+
+107
+00:08:57,166 --> 00:09:01,584
+So if you want to get an update on it, feel free to scan this QR code and respectively.
+
+108
+00:09:01,998 --> 00:09:10,064
+Also, if you want the slides for this talk and when the recording is released from AI Engineering to be notified about this talk, you can also fill up the form there.
+
+109
+00:09:13,006 --> 00:09:13,380
+So yeah,
+
+110
+00:09:14,286 --> 00:09:15,588
+that was about measuring.
+
+111
+00:09:17,024 --> 00:09:25,252
+If you are not measuring, you can pretty much ignore everything else I say and start with measuring first because all your biggest ROI is just by measuring.
+
+112
+00:09:25,550 --> 00:09:28,420
+But once you have things measured right, the question is
+
+113
+00:09:29,134 --> 00:09:33,252
+how do you right size it? And this is where things get more complicated.
+
+114
+00:09:34,158 --> 00:09:35,620
+in general, right,
+
+115
+00:09:36,494 --> 00:09:47,076
+one of the things that we start to observe as as AI gets deployed at scale within organizations is that there tends to be a pattern of like, because AI is the shiny new hammer,
+
+116
+00:09:47,344 --> 00:09:49,184
+we try to apply it to everything.
+
+117
+00:09:49,486 --> 00:09:53,188
+Especially within the innovation labs, we just try to apply to every damn thing.
+
+118
+00:09:53,584 --> 00:09:53,904
+And
+
+119
+00:09:55,264 --> 00:10:00,740
+I have seen organizations literally apply Fable to really the silliest of things.
+
+120
+00:10:01,184 --> 00:10:01,424
+So
+
+121
+00:10:02,862 --> 00:10:06,704
+there's a lot of models, and a lot of models are really expensive. And
+
+122
+00:10:08,224 --> 00:10:12,624
+figuring out what to do and where it fits, it's it's it's an important
+
+123
+00:10:13,824 --> 00:10:14,596
+step of the process.
+
+124
+00:10:17,262 --> 00:10:21,412
+I know open models, I mean a lot of you probably heard about open models, and that's our line of business.
+
+125
+00:10:21,584 --> 00:10:22,244
+Uh yeah.
+
+126
+00:10:22,944 --> 00:10:30,628
+And and so when a lot of companies come to us, for example, to like find open models that fit their use cases uh and drop-in replacements,
+
+127
+00:10:31,104 --> 00:10:34,144
+this is uh we generally guide them along their use cases.
+
+128
+00:10:34,224 --> 00:10:41,764
+So these are this is a general rule of thumb that is probably going to be outdated next month because open models release every few months, and and same thing with closed source models.
+
+129
+00:10:42,350 --> 00:10:43,620
+Things change rapidly.
+
+130
+00:10:43,984 --> 00:10:49,828
+But but there are but the things what we find very exciting actually within this year is things have started to change.
+
+131
+00:10:50,144 --> 00:10:54,276
+Like in the previous year, the best closed source model is without
+
+132
+00:10:54,958 --> 00:10:56,228
+better than the best open source model.
+
+133
+00:10:57,038 --> 00:10:57,424
+Almost
+
+134
+00:10:58,670 --> 00:11:02,756
+But as this year approached, right, we are starting to see the gap close.
+
+135
+00:11:02,990 --> 00:11:08,804
+We are starting to see situations where some of the open models are even on par or even surpassing.
+
+136
+00:11:09,008 --> 00:11:18,116
+So, like for example, before the Opus 5.5 update came out, Kimi K3 was beating Opus in UI design in some of the UI benchmarks.
+
+137
+00:11:18,848 --> 00:11:19,168
+And
+
+138
+00:11:20,142 --> 00:11:22,372
+this is like very specific public benchmarks.
+
+139
+00:11:22,670 --> 00:11:29,124
+Within customer benchmarks, we were already starting to see open source models beat very specialized benchmarks in specialized use cases.
+
+140
+00:11:29,550 --> 00:11:40,164
+So like a particular one to highlight is like, for example, StepFun 5 model, it was able to achieve near opus and extra quality despite being like a 10x smaller model
+
+141
+00:11:40,558 --> 00:11:43,012
+in financial benchmarks, financial use cases.
+
+142
+00:11:43,488 --> 00:11:46,288
+And this is it the best coding model? No.
+
+143
+00:11:46,448 --> 00:11:49,188
+But in that use case, it's actually extremely strong and competent.
+
+144
+00:11:49,870 --> 00:11:50,128
+So
+
+145
+00:11:51,008 --> 00:11:59,568
+the landscape is slowly changing where you can have drop-in replacement for a lot of use cases that are sometimes even just 10x cheaper, respectively,
+
+146
+00:12:00,688 --> 00:12:03,620
+if you know your workload and you can drop it in respectively.
+
+147
+00:12:04,398 --> 00:12:06,788
+Special Shao is also DeepSig V41 Flash.
+
+148
+00:12:07,406 --> 00:12:15,648
+For some reason, and this model is extremely popular across all workloads, respectively, because it's easy to prompt steer uh
+
+149
+00:12:15,808 --> 00:12:16,836
+for a lot of companies.
+
+150
+00:12:17,230 --> 00:12:22,368
+So while the rest of the models I have listed there, they're they're like default for good in their categories.
+
+151
+00:12:22,830 --> 00:12:26,948
+DeepSig41 Flash seems to be quite popular regardless the case.
+
+152
+00:12:27,968 --> 00:12:31,140
+Though benchmark score doesn't seem to justify why is it so popular.
+
+153
+00:12:33,486 --> 00:12:38,180
+Another thing to highlight, right, is that recently, and this is just like for a few weeks ago,
+
+154
+00:12:40,608 --> 00:12:48,208
+a new class of AI models have been introduced called classifiers, one-shot classifiers, most popularly known as JAF.
+
+155
+00:12:48,494 --> 00:12:51,460
+Open source projects have already started taking off, like SimpleJAF.
+
+156
+00:12:51,888 --> 00:12:57,956
+And these are models that are entirely focused on just making decisions and classification on tasks.
+
+157
+00:12:58,528 --> 00:13:07,492
+the main advantage is that because on the technical level they are preview only, they are commonly 10x cheaper than existing models or even faster at the same time.
+
+158
+00:13:08,366 --> 00:13:10,724
+the downside is it cannot give a chat response.
+
+159
+00:13:11,488 --> 00:13:19,568
+so these are things that are changing and happening that you all may want to start looking into unlike segments of how you want to improve your
+
+160
+00:13:19,728 --> 00:13:20,356
+token economy.
+
+161
+00:13:23,886 --> 00:13:25,008
+but back to the
+
+162
+00:13:27,278 --> 00:13:30,052
+token economy part, there is two major tracks.
+
+163
+00:13:30,448 --> 00:13:33,156
+And it is important to separate out and track
+
+164
+00:13:34,288 --> 00:13:35,168
+them respectively.
+
+165
+00:13:35,648 --> 00:13:38,884
+On the agentic side, we're talking about long-running long context, as I said earlier.
+
+166
+00:13:40,848 --> 00:13:51,168
+and you have to understand this workload tends to be extremely cash heavy, extremely input-preview heavy and cash heavy, and there's only a small percentage of output.
+
+167
+00:13:51,328 --> 00:13:57,188
+We see across agentic use use cases in deployment, only 1% of the request is to the output tokens.
+
+168
+00:13:57,808 --> 00:13:58,128
+And
+
+169
+00:13:59,822 --> 00:14:02,500
+this is very logical because it takes multiple turns, rinse and repeat.
+
+170
+00:14:03,408 --> 00:14:03,620
+But
+
+171
+00:14:04,846 --> 00:14:08,520
+this also decides your token cost, because if you've seen token cost,
+
+172
+00:14:09,488 --> 00:14:19,088
+deployment cost, Output may have the biggest number, but even your input is much smaller or the cache is much smaller, it gets repeated heavily in
+
+173
+00:14:19,248 --> 00:14:19,844
+this use case.
+
+174
+00:14:23,022 --> 00:14:30,768
+This is not a coding agent workshop, but one of the most common patterns that we we see in a lot of organizations, right, is that
+
+175
+00:14:32,128 --> 00:14:36,128
+typically in terms of trying to scale up their AI agent deployments
+
+176
+00:14:37,134 --> 00:14:41,488
+within the coding teams, they tend to have the best agent. do the planning and
+
+177
+00:14:42,848 --> 00:14:48,292
+a faster, cheaper agent, do the implementation? and then maybe the best agent do the review? again.
+
+178
+00:14:48,768 --> 00:14:57,248
+there's a good reason why this split is very common across all the agent frameworks, is that you get the best of both worlds because the implementation phase
+
+179
+00:14:58,382 --> 00:15:00,208
+tends to be very token heavy in process.
+
+180
+00:15:00,368 --> 00:15:06,404
+A lot of processes repeated back and forth, like modifying the file, testing, checking for results, rinse and repeating.
+
+181
+00:15:07,008 --> 00:15:07,328
+And
+
+182
+00:15:09,728 --> 00:15:10,768
+most of these agents
+
+183
+00:15:12,718 --> 00:15:21,168
+especially like JRM 5.3 Flash, is more than capable of doing a task at the same quality level as a much more stronger agent, like let's say
+
+184
+00:15:21,328 --> 00:15:22,208
+Astra or Opus,
+
+185
+00:15:23,328 --> 00:15:25,668
+respectively, assuming those agents do the planning.
+
+186
+00:15:25,934 --> 00:15:31,556
+We have worked with some of the organizations where literally the planning and review agent is the best frontier closed source model,
+
+187
+00:15:31,968 --> 00:15:37,700
+and then the workers that implement it is the GRM 5.3 flash, as an example, or deep six v 4.1 flash.
+
+188
+00:15:40,846 --> 00:15:42,704
+One of the observations that we made
+
+189
+00:15:44,064 --> 00:15:53,380
+from this kind of split pattern, is that unfortunately, as much as we wish everyone does so, nobody really switches their model to save the company money.
+
+190
+00:15:54,880 --> 00:16:02,020
+People are lazy to switch the models In general, you want to give an incentive to switch.
+
+191
+00:16:03,022 --> 00:16:09,156
+Or alternatively, if your agent harness is good enough, so for example, some harness like M, they automate the process.
+
+192
+00:16:10,064 --> 00:16:17,924
+It uses the weaker model as a baseline, and then it uses the smarter model to automate switching when it needs a smarter consultation.
+
+193
+00:16:19,184 --> 00:16:19,504
+this
+
+194
+00:16:20,704 --> 00:16:27,204
+helps reduce the friction respectively and helps improve your token economics like you use a scale.
+
+195
+00:16:27,630 --> 00:16:37,380
+Like a major rule of thumb that we now give our clients after going through a few times is that you want the smarter model, and since it's already so expensive
+
+196
+00:16:37,904 --> 00:16:43,652
+as a baseline, but you want the faster model the cheaper model to be faster.
+
+197
+00:16:44,334 --> 00:16:46,628
+And that naturally sets the incentive.
+
+198
+00:16:46,864 --> 00:16:48,292
+People want to get their work done fast.
+
+199
+00:16:48,750 --> 00:16:54,564
+If the model is smart enough to get it done and it's cheaper, they will just use it because it's faster, not because it's cheaper.
+
+200
+00:16:55,344 --> 00:16:56,420
+We had teams where
+
+201
+00:16:57,424 --> 00:17:06,140
+both models the smarter one and the cheaper one, was maintained at the same tokens per second speed, and as long as they had the token budget in excess,
+
+202
+00:17:06,944 --> 00:17:07,972
+No one switched.
+
+203
+00:17:09,486 --> 00:17:17,860
+and on the flip side, we have seen teams, which is the other extreme where they set an extremely low budget, and so that if they use a smarter model, right, they just burn it in one day.
+
+204
+00:17:18,286 --> 00:17:19,664
+Yeah, then everyone just switched to the
+
+205
+00:17:21,504 --> 00:17:27,204
+faster model, a dumber and faster model because that's their budget. It's like almost as if the smarter model didn't exist.
+
+206
+00:17:27,584 --> 00:17:31,172
+So like be aware about your team dynamics on how they switch.
+
+207
+00:17:31,824 --> 00:17:37,092
+The best trade-off is still speed because people are naturally incentivized for it.
+
+208
+00:17:37,184 --> 00:17:41,316
+So faster, cheaper, they'll just switch to it respectively.
+
+209
+00:17:41,774 --> 00:17:42,020
+Yeah.
+
+210
+00:17:44,206 --> 00:17:48,228
+Once again, reminder measure, and you measure through separate token keys.
+
+211
+00:17:49,838 --> 00:17:57,252
+but this also goes beyond just measuring. For example, CI CD is a very common use case right now of things running in the background.
+
+212
+00:17:58,350 --> 00:18:01,604
+we have helped set up for teams like faster tokens per second
+
+213
+00:18:03,054 --> 00:18:13,316
+that is running for the users, like the humans, but much slower tokens per second speed, but much cheaper at scale for the CI CD pipeline.
+
+214
+00:18:13,744 --> 00:18:13,904
+And
+
+215
+00:18:14,784 --> 00:18:19,876
+this is just the nature of what's your priority respectively, uh respectively across the task.
+
+216
+00:18:20,942 --> 00:18:21,220
+Yeah.
+
+217
+00:18:22,126 --> 00:18:23,524
+And you can control that at a key level.
+
+218
+00:18:25,006 --> 00:18:25,264
+So
+
+219
+00:18:26,574 --> 00:18:35,108
+another major finding is that we had experience with deploying for teams, right? Uh uh so for example for some companies,
+
+220
+00:18:36,590 --> 00:18:45,764
+how many of you had the fortunate or unfortunate experience of the CEO saying everyone must implement AI now and everyone must have a second brain now?
+
+221
+00:18:46,798 --> 00:18:47,332
+Yeah.
+
+222
+00:18:47,744 --> 00:18:56,676
+Multiple organizations have started this. in some cases, like even in the UAE, it became literally mandated by the law of the country.
+
+223
+00:18:57,024 --> 00:18:57,316
+So
+
+224
+00:18:58,224 --> 00:18:58,544
+like
+
+225
+00:18:59,406 --> 00:19:02,276
+a lot of departments are not prepared
+
+226
+00:19:03,406 --> 00:19:05,700
+to know what is the trade-offs, respectively.
+
+227
+00:19:06,318 --> 00:19:15,972
+So, a good rule of thumb, right? Well, developers tend to know okay, all these smart models, what's the trade-off between DeepSeek Flash and GM 5x3, for example.
+
+228
+00:19:16,624 --> 00:19:17,156
+Most
+
+229
+00:19:17,984 --> 00:19:26,692
+your finance department have absolutely no idea. Your support department has absolutely no idea. They'll just pick whatever's the first model and probably just go with it.
+
+230
+00:19:27,054 --> 00:19:31,780
+So our general rule of thumb is that give department models labels, but not the model names.
+
+231
+00:19:32,078 --> 00:19:35,492
+And this also gives you a lot more control as you switch it out.
+
+232
+00:19:36,384 --> 00:19:42,212
+like I advised earlier, fast versus smart, but in some cases also like finance agent or Excel spreadsheet agents.
+
+233
+00:19:42,864 --> 00:19:46,532
+these are hyper-specialized agents that will fine-tune to those tasks respectively.
+
+234
+00:19:47,854 --> 00:19:50,224
+and this also gives you a lot more control.
+
+235
+00:19:50,606 --> 00:19:55,940
+It allows you to swap out the model, it allows you to split the traffic and test in between
+
+236
+00:19:57,838 --> 00:20:00,164
+without telling, hey users, please try this.
+
+237
+00:20:00,750 --> 00:20:05,380
+The downside is also users may sometimes complain when you do that and you screw that up.
+
+238
+00:20:05,744 --> 00:20:07,664
+But having that control is a good thing.
+
+239
+00:20:08,238 --> 00:20:12,100
+another pattern that we see, even though you do this, is maybe someone will add a dash preview version.
+
+240
+00:20:12,304 --> 00:20:13,584
+So that's a variant of it.
+
+241
+00:20:13,774 --> 00:20:18,596
+But it gives you control without taxing the communication burden across the organization.
+
+242
+00:20:19,184 --> 00:20:22,624
+And this is extremely important because like
+
+243
+00:20:24,416 --> 00:20:32,816
+Like some of the teams that we work with, We literally saw members running Lama 2 models when we are talking when
+
+244
+00:20:33,136 --> 00:20:36,740
+we're talking about like in this year, because no one switched the option.
+
+245
+00:20:37,198 --> 00:20:37,456
+Yeah.
+
+246
+00:20:37,616 --> 00:20:42,116
+So you really, really need to need to uh need to set this in place.
+
+247
+00:20:43,054 --> 00:20:43,300
+Yeah.
+
+248
+00:20:44,576 --> 00:20:44,896
+Okay.
+
+249
+00:20:45,422 --> 00:20:46,176
+Process track.
+
+250
+00:20:46,336 --> 00:20:46,948
+Process track,
+
+251
+00:20:47,598 --> 00:20:51,332
+a lot of things that I mentioned earlier don't really apply as much to process track.
+
+252
+00:20:51,534 --> 00:20:57,156
+Because process track tends to be a lot integrated into the applications, into the workflows, uh, respectively.
+
+253
+00:20:57,536 --> 00:21:00,772
+And and that's just by the sheer volume of the traffic.
+
+254
+00:21:01,296 --> 00:21:02,148
+Um yeah.
+
+255
+00:21:02,670 --> 00:21:10,724
+And and for a lot of teams in the process track, right, uh they tend to be a lot more focused on focused on the right sizing already by default.
+
+256
+00:21:11,982 --> 00:21:14,660
+Because if you are running like trillions of tokens,
+
+257
+00:21:16,016 --> 00:21:18,016
+most departments will not approve
+
+258
+00:21:19,118 --> 00:21:20,896
+$10 per token, a million token.
+
+259
+00:21:21,056 --> 00:21:22,308
+It's just not possible.
+
+260
+00:21:22,736 --> 00:21:23,616
+And so
+
+261
+00:21:24,736 --> 00:21:30,180
+they start early with the evals, the benchmark, and then subsequently finding the model that right size fits it.
+
+262
+00:21:33,678 --> 00:21:37,444
+so the thing is like the common question is how do I know the smaller model is good enough?
+
+263
+00:21:37,902 --> 00:21:40,416
+You don't need to, that's the wrong question to say.
+
+264
+00:21:40,736 --> 00:21:44,260
+You just need to make sure you set up your test cases, your evals, and your examples.
+
+265
+00:21:44,718 --> 00:21:47,204
+And then subsequently just do the search process from there.
+
+266
+00:21:48,238 --> 00:21:51,940
+companies like us will be more than happy to help you because we have over 40,000 models.
+
+267
+00:21:52,176 --> 00:21:52,496
+But then
+
+268
+00:21:54,222 --> 00:21:58,180
+it's also not that hard to just download 10 models from Hugging Face and just try.
+
+269
+00:21:59,776 --> 00:22:07,268
+so from that you just do the search, find the cheapest model that kind of like pass most of it, and then you just see how you iterate from there, find team from there.
+
+270
+00:22:07,856 --> 00:22:12,576
+we also have a more specific process that I don't think is unique to us that we'll cover as well.
+
+271
+00:22:13,774 --> 00:22:21,092
+So, for example, like in for one of the major telcos that we work with, right, uh, we actually help their team lower their inference cost to
+
+272
+00:22:22,300 --> 00:22:24,976
+7.6k a month, switching from an existing closed source model.
+
+273
+00:22:25,262 --> 00:22:29,216
+just by going through this process of like, okay, you're running the best model first.
+
+274
+00:22:29,326 --> 00:22:35,136
+let's see what workloads. we can split off, and then subsequently, what's the models that we can fit in? and then what can we? fine-tune.
+
+275
+00:22:35,296 --> 00:22:39,588
+And this was this was like to be their customer support use cases and so on and so forth.
+
+276
+00:22:40,462 --> 00:22:40,740
+Yeah.
+
+277
+00:22:41,456 --> 00:22:41,776
+And
+
+278
+00:22:43,022 --> 00:22:49,988
+to re-highlight back Jeff and Simple Jeff, which is an open source project that we did that replicates it,
+
+279
+00:22:50,926 --> 00:22:57,124
+you'll be surprised at how many percentage of your AI traffic is classification traffic.
+
+280
+00:22:59,086 --> 00:23:02,820
+at the end of the day, right, like, yeah, sure, answering the customer support is text.
+
+281
+00:23:03,406 --> 00:23:14,500
+But even then, right, even then, right, a lot of teams, right, already have predefined text output that they put into the context for the model to output for most cases.
+
+282
+00:23:14,830 --> 00:23:18,256
+And you could use a classifier there. And there's a lot this is a
+
+283
+00:23:19,246 --> 00:23:27,136
+new shift within AI workloads, and this is one of the big levers for these kind of processes in lowering your token mill.
+
+284
+00:23:27,950 --> 00:23:28,196
+Yeah.
+
+285
+00:23:30,416 --> 00:23:30,736
+So
+
+286
+00:23:32,096 --> 00:23:42,244
+one example of such a model, when it comes to fine-tuning, so a lot of models in processes, right, uh do benefit at this scale where you start to fine-tune your own model.
+
+287
+00:23:43,182 --> 00:23:50,564
+on the flip side, for coding models, well, there are organizations that will fine-tune models for you, like Devin, for example.
+
+288
+00:23:50,976 --> 00:24:02,020
+Um a lot of developers generally just want the best model. So it's kind of unless you are in this AI space, it's kind of hard to keep pace in fine-tuning the best coding model.
+
+289
+00:24:02,576 --> 00:24:03,748
+But on the flip side,
+
+290
+00:24:04,526 --> 00:24:05,764
+for your domain,
+
+291
+00:24:06,414 --> 00:24:12,356
+it might be worth it to fine-tune a domain model for your use case, especially if the model is much smaller.
+
+292
+00:24:12,846 --> 00:24:21,444
+So for AT ⁇ T, for example, when they fine-tune your models, they went from being opus class to like 27B to even 7B models.
+
+293
+00:24:21,678 --> 00:24:22,656
+And they have published this.
+
+294
+00:24:22,766 --> 00:24:28,836
+So we all want your launch partners, and you can actually try their hotel line of models, respectively.
+
+295
+00:24:29,696 --> 00:24:32,292
+and this is basically what they use behind the scene.
+
+296
+00:24:33,518 --> 00:24:35,296
+and it's all about volume here.
+
+297
+00:24:36,590 --> 00:24:39,908
+I think most of you understand the scale of ATT and the call centers and things like that.
+
+298
+00:24:40,256 --> 00:24:47,456
+Um, yeah, but it's a good example of how you fine tune models to specialized use cases. And once you reach that.
+
+299
+00:24:48,238 --> 00:24:51,524
+Other organizations that are major example, like Shopify, have started doing this.
+
+300
+00:24:51,856 --> 00:24:57,360
+And and things and and it doesn't necessarily need to be a large scale fine tune.
+
+301
+00:24:57,456 --> 00:25:00,896
+So, for example, in the Shopify use case, they did it because Shopify
+
+302
+00:25:02,350 --> 00:25:07,748
+Web store had a proprietary programming language for how to configure the web store.
+
+303
+00:25:08,270 --> 00:25:11,940
+And the existing models just weren't that great at it, so they went to fine-tune it.
+
+304
+00:25:13,454 --> 00:25:15,588
+and AT ⁇ T also they had examples of that.
+
+305
+00:25:16,366 --> 00:25:19,920
+In particular, how to arrange the telco towers and things like that.
+
+306
+00:25:20,000 --> 00:25:20,240
+Yeah.
+
+307
+00:25:20,560 --> 00:25:22,052
+Very telco-specific tasks.
+
+308
+00:25:22,240 --> 00:25:26,720
+I might not be the right expert to answer that question. But they had those use cases.
+
+309
+00:25:26,862 --> 00:25:28,260
+So they fine-tune respectively.
+
+310
+00:25:28,880 --> 00:25:30,788
+You too may have those use cases.
+
+311
+00:25:31,758 --> 00:25:34,084
+And how do you bootstrap such a model, right?
+
+312
+00:25:34,400 --> 00:25:42,640
+Is that the good news is that you can easily bootstrap things these days because if let's say you're willing, if the best model
+
+313
+00:25:43,310 --> 00:25:47,204
+that is too expensive to run at scale can do the task,
+
+314
+00:25:47,982 --> 00:25:49,316
+you can already get started.
+
+315
+00:25:49,760 --> 00:25:50,080
+So
+
+316
+00:25:51,438 --> 00:25:58,116
+an easy way to do this, right, uh that we see very commonly is like either you generate your own data or prepare your own data, which is hard.
+
+317
+00:25:58,798 --> 00:26:00,740
+No one likes to do that for some reason.
+
+318
+00:26:01,200 --> 00:26:09,348
+But that but another common path is that they start with an expensive model and then they deploy it in a small scale and then they generate
+
+319
+00:26:09,998 --> 00:26:11,588
+their data set.
+
+320
+00:26:11,950 --> 00:26:20,160
+I understand that some labs it's against their terms of service to do that, so you may want to check with your lawyers, but there are labs that openly embrace it.
+
+321
+00:26:20,302 --> 00:26:26,340
+So for example, Google Gemini, uh their frontier models, they literally have a dedicated API service for this.
+
+322
+00:26:27,598 --> 00:26:35,840
+so this allows you to build data sets respectively on your use case on a strong model, which you can then which
+
+323
+00:26:36,160 --> 00:26:39,812
+which you can then reduce dramatically to let's say a 7B scale.
+
+324
+00:26:40,974 --> 00:26:43,920
+alternatively, open source models are more than happy for you to
+
+325
+00:26:44,880 --> 00:26:49,284
+run and distill on, so you can run the best open source models respectively as well.
+
+326
+00:26:49,934 --> 00:26:56,996
+Once you collect them, you can then fine-tune the data, and then you can fine-tune and respectively like different sizes to see what fits best.
+
+327
+00:26:57,280 --> 00:27:02,340
+So once again, like in the 8080 example, they have the 27B and 7B for different levels of the call center.
+
+328
+00:27:02,720 --> 00:27:09,120
+Um like your routing, your routing cost may come in at a, wait, I don't think I can say which size goes where,
+
+329
+00:27:09,280 --> 00:27:16,164
+but your routing cost can come in for the much smaller model, and then it escalates up due to some classifier triggers, as an example.
+
+330
+00:27:16,846 --> 00:27:24,004
+Then so so that's how you get the traffic to flow, get the traffic split, and then you get it at that efficient level.
+
+331
+00:27:24,560 --> 00:27:34,240
+One of the things that we also tend to work with teams on when doing this, is that even when they go through the stages and they completely split over their traffic to a fine-tune
+
+332
+00:27:34,766 --> 00:27:35,172
+model, because
+
+333
+00:27:36,430 --> 00:27:38,020
+the best models still progress,
+
+334
+00:27:40,080 --> 00:27:41,440
+we typically advise them to
+
+335
+00:27:42,446 --> 00:27:47,044
+cut a part of their traffic as a shadow traffic to the best model to keep building the data set.
+
+336
+00:27:47,760 --> 00:27:48,080
+And
+
+337
+00:27:49,120 --> 00:27:54,308
+this allows you to ride the wave and progress of the best open models, respectively.
+
+338
+00:27:55,534 --> 00:27:58,756
+and the uni economics is actually very important here because like
+
+339
+00:27:59,598 --> 00:28:04,228
+one thing that I would like to remind people is people severely underestimate the
+
+340
+00:28:05,390 --> 00:28:10,692
+speed that AI is going, especially for models that you can run much cheaper at scale.
+
+341
+00:28:11,150 --> 00:28:12,804
+Like you take this laptop as an example.
+
+342
+00:28:13,614 --> 00:28:19,012
+I like to measure what is the best model that I can buy in the most expensive MacBook Pro.
+
+343
+00:28:19,950 --> 00:28:20,260
+Period.
+
+344
+00:28:20,720 --> 00:28:23,108
+And today's best models, be it
+
+345
+00:28:23,790 --> 00:28:26,884
+MOE models at 31B, 32B, 27B size,
+
+346
+00:28:27,760 --> 00:28:30,080
+is already much better than GPT-4.
+
+347
+00:28:31,040 --> 00:28:31,300
+So
+
+348
+00:28:31,982 --> 00:28:38,468
+essentially, this model that can run on a laptop, is already better than the best model that you have last year.
+
+349
+00:28:38,894 --> 00:28:39,428
+Give and take.
+
+350
+00:28:39,520 --> 00:28:41,988
+People like to argue on the specifics, but let's just say broadly.
+
+351
+00:28:42,478 --> 00:28:50,880
+And when you fine-tune it to your task, that means if you can run that model on a laptop respectively, you can run it on
+
+352
+00:28:51,310 --> 00:28:54,180
+your GPU servers at scale much more efficiently.
+
+353
+00:28:58,720 --> 00:29:01,760
+so that brings in to the next topic: buying GPUs, which
+
+354
+00:29:02,880 --> 00:29:04,932
+is apparently increasingly a challenge.
+
+355
+00:29:05,262 --> 00:29:07,684
+So, that's where companies like us come in.
+
+356
+00:29:08,654 --> 00:29:09,444
+One of the things that
+
+357
+00:29:10,670 --> 00:29:17,924
+we we realize through a lot of customer conversations, people are rather surprised that things don't scale linearly.
+
+358
+00:29:18,480 --> 00:29:19,716
+what I mean by that is like
+
+359
+00:29:20,398 --> 00:29:25,360
+there is a huge trade-off between tokens per second on an individual request to
+
+360
+00:29:27,600 --> 00:29:28,868
+the cost of the request itself.
+
+361
+00:29:29,070 --> 00:29:31,680
+So, for example, if you do not care about
+
+362
+00:29:32,480 --> 00:29:38,692
+the cost, you could run the best, the model, let's say a fixed model, on the best hardware
+
+363
+00:29:39,470 --> 00:29:41,200
+on all eight GPUs, batch size one.
+
+364
+00:29:41,360 --> 00:29:43,780
+And you could get, let's say, 100 tokens per second, 200 tokens per second.
+
+365
+00:29:44,160 --> 00:29:45,840
+If you really want,
+
+366
+00:29:46,880 --> 00:29:53,828
+and this is not our specialization, like you really want like thousands of tokens per second, that's why companies like Cerebrus is more than happy to offer that as well.
+
+367
+00:29:54,094 --> 00:29:55,140
+And it costs even more.
+
+368
+00:29:55,662 --> 00:29:58,532
+So there are definitely use cases where this makes sense.
+
+369
+00:29:59,200 --> 00:29:59,492
+But
+
+370
+00:30:01,262 --> 00:30:05,412
+a lot of people fall into the trap of thinking, hey, so if I have the speed, maybe it's half the cost.
+
+371
+00:30:05,520 --> 00:30:06,660
+It's not even close.
+
+372
+00:30:07,054 --> 00:30:13,316
+Like, a rule of thumb that I sometimes say, for every 2x of speed, it's 3x cost and it compounds.
+
+373
+00:30:14,000 --> 00:30:23,492
+In this specific example for GM 5.3, it's like one agent on the node, is like you can see the same server, 112 tokens per second for running individual requests.
+
+374
+00:30:23,680 --> 00:30:31,716
+But if you run 16 requests in parallel, you get about half the speed for all the requests, but you literally 10x the output, total output.
+
+375
+00:30:32,800 --> 00:30:36,996
+And that gives you like literally around 9 to 10x lower in cost.
+
+376
+00:30:37,806 --> 00:30:38,532
+In just like
+
+377
+00:30:39,534 --> 00:30:40,964
+changing your target speed profile.
+
+378
+00:30:41,582 --> 00:30:50,916
+And so when a lot of customers ask us how do we deploy things at scale, sometimes the first question is what's the model quality you want, and what's the tokens per second speed that you want?
+
+379
+00:30:51,246 --> 00:30:54,372
+And then we start recommending the amount of GPUs, the amount of deployment.
+
+380
+00:30:54,880 --> 00:30:55,492
+And this
+
+381
+00:30:56,560 --> 00:31:00,900
+target tokens per second is an important trade-off, essentially.
+
+382
+00:31:02,382 --> 00:31:09,924
+In more extreme cases, if you really, really can run things at 10 tokens per second, rarely anyone does, but there are some weird use cases that allows it,
+
+383
+00:31:10,400 --> 00:31:14,724
+you can get even more incredible total throughput volumes, respectively.
+
+384
+00:31:15,086 --> 00:31:23,840
+Typically, we see customers choosing between 20 to 30, which is kind of like uh your chat GPT speed without without too much thinking, all the way until like 60,
+
+385
+00:31:24,000 --> 00:31:29,120
+which is like the fastest speed, and if they want 120 tokens, like it tends to be this this range.
+
+386
+00:31:29,422 --> 00:31:33,988
+Most stick between 20-30 to 60, depending on how long the chain of task is.
+
+387
+00:31:37,070 --> 00:31:37,280
+So
+
+388
+00:31:38,446 --> 00:31:43,332
+yeah, I kind of mentioned earlier you generally only want to pay for the tokens per second speed
+
+389
+00:31:44,782 --> 00:31:46,180
+when it's in front of someone.
+
+390
+00:31:46,880 --> 00:31:50,468
+whether it's in front of your developers or whether it's in front of your customers.
+
+391
+00:31:50,894 --> 00:31:52,356
+Those are the trade-offs that you want to make.
+
+392
+00:31:52,654 --> 00:32:02,560
+And even within then, right, we have seen cases where even just a slight tweak down right can easily save two times the cost, but has near minimal impact for the
+
+393
+00:32:03,534 --> 00:32:04,516
+customer, respectively.
+
+394
+00:32:07,182 --> 00:32:10,240
+And once again, background drops, please don't run it at 120 basically.
+
+395
+00:32:10,400 --> 00:32:11,460
+It makes no sense when you do that.
+
+396
+00:32:14,638 --> 00:32:14,880
+So
+
+397
+00:32:15,840 --> 00:32:18,372
+once you have previously I said measure, right?
+
+398
+00:32:18,480 --> 00:32:20,400
+You're able to see your
+
+399
+00:32:21,520 --> 00:32:22,320
+traffic pattern.
+
+400
+00:32:22,414 --> 00:32:30,148
+So a lot of traffic patterns tend to be bursty in some nature, with some baseload, because someone's always running something at some time, especially background agents.
+
+401
+00:32:30,640 --> 00:32:35,876
+And this is where you can also plan your deployments respectively.
+
+402
+00:32:36,560 --> 00:32:44,068
+I know since we are dealing with financial institute, a lot of financial institute may not have this as an option, because they are only in dedicated instance deployment.
+
+403
+00:32:44,334 --> 00:32:53,280
+But if for some cases where people allow mix, where they have dedicated instances with some burst to the public cloud, this is where you have some flexibility respectively.
+
+404
+00:32:53,360 --> 00:32:59,332
+So, the biggest cost savings you have right now in the market is deploying a dedicated instance if you know your base workload.
+
+405
+00:32:59,822 --> 00:33:03,364
+So as long as you fully use it, you kind of have a savings there.
+
+406
+00:33:03,760 --> 00:33:06,948
+But it's it's a bit more complicated depending on your traffic pattern.
+
+407
+00:33:07,120 --> 00:33:13,188
+And a lot of these things can be tested and validated respectively. And this is like essentially what any inference company will work with you.
+
+408
+00:33:13,280 --> 00:33:14,148
+It's not unique to us.
+
+409
+00:33:14,414 --> 00:33:17,668
+We'll be like, hey, do you know your traffic workload? Can you share some data?
+
+410
+00:33:18,062 --> 00:33:22,320
+And then subsequently we'll be like, okay, we propose this much, you can try switching to this, and then
+
+411
+00:33:23,360 --> 00:33:26,020
+we can generally show you your savings respectively.
+
+412
+00:33:26,400 --> 00:33:35,640
+And in some extreme cases where you have a lot of spikes, you may want to have limit your dedicated capacity to a certain amount and let the spikes spill
+
+413
+00:33:35,840 --> 00:33:37,348
+over to the public cloud, respectively.
+
+414
+00:33:38,638 --> 00:33:49,444
+Different use cases have different right sizing, but this is something that by measuring your token workload, once again, at the beginning, you can start exploring these options.
+
+415
+00:33:49,840 --> 00:33:58,084
+And the savings can be huge. Like, once again, for the customer that is a two trillion tokens, and that was like uh 4.8 opus class model,
+
+416
+00:33:58,830 --> 00:34:02,980
+they are paying less than $0.03 per million token.
+
+417
+00:34:03,214 --> 00:34:05,920
+Like, you can't get that price anywhere.
+
+418
+00:34:08,110 --> 00:34:08,836
+So, yeah,
+
+419
+00:34:09,582 --> 00:34:12,324
+simple disclaimer is the spikes really matter.
+
+420
+00:34:12,974 --> 00:34:22,596
+It's very rare that someone has a short spike at the extreme end where they like run a workload every month at that scale and then nothing else matters.
+
+421
+00:34:22,976 --> 00:34:23,296
+So
+
+422
+00:34:24,096 --> 00:34:26,096
+usually some base workload exists.
+
+423
+00:34:26,350 --> 00:34:28,196
+It's just how big of a base workload.
+
+424
+00:34:31,246 --> 00:34:34,340
+So then the last one is check your processes.
+
+425
+00:34:35,296 --> 00:34:38,020
+This has nothing to do with inference optimization from here onwards.
+
+426
+00:34:40,270 --> 00:34:45,028
+Some slides may sound very critical of AI, but I'm generally an optimist.
+
+427
+00:34:46,542 --> 00:34:49,444
+I just want to lay that out because things can be quoted out of context.
+
+428
+00:34:51,118 --> 00:34:51,376
+So
+
+429
+00:34:52,302 --> 00:34:53,188
+one of the
+
+430
+00:34:54,446 --> 00:35:01,252
+Pandora's box question or problematic question that we are starting to see is that a lot of organizations are starting to ask, hey, I'm
+
+431
+00:35:01,998 --> 00:35:07,844
+10x or 100x in my token spend, but I'm not seeing results at that same scale.
+
+432
+00:35:08,416 --> 00:35:08,736
+Um
+
+433
+00:35:10,416 --> 00:35:18,736
+we are starting to see reports from various organizations like uh where AI has limited productivity, only has 6% productivity or 7%,
+
+434
+00:35:19,056 --> 00:35:22,852
+which is not the scale that a lot of us were promised or we envisioned.
+
+435
+00:35:24,910 --> 00:35:33,060
+and unfortunately, this is the case because we are at a stage where everyone is just taking a giant hammer and hammering everything.
+
+436
+00:35:34,096 --> 00:35:39,108
+it's not that AI is not useful, it's just that we tend to just spam it everywhere.
+
+437
+00:35:39,696 --> 00:35:40,576
+And yeah,
+
+438
+00:35:42,416 --> 00:35:48,196
+there are times where I just want to like, can you please not do this as another co-pilot? Because it's just too much of it.
+
+439
+00:35:48,576 --> 00:35:51,588
+You need to think of how you use it respectively.
+
+440
+00:35:56,142 --> 00:36:03,716
+and another major issue that we start to realize is that while AIs are being deployed at a larger scale and more frequently,
+
+441
+00:36:04,814 --> 00:36:11,300
+and people get faster in creating stuff, the organization processes may not go as fast.
+
+442
+00:36:11,918 --> 00:36:18,628
+The first bottleneck for coding environments would be the CI CDs, and you all may have heard that CPU becomes a bottleneck, respectively.
+
+443
+00:36:20,816 --> 00:36:26,336
+another thing is like it's just the processes in place, respectively. How do you trust, how do you review?
+
+444
+00:36:26,542 --> 00:36:28,740
+I think the previous speaker spoke at length at trust.
+
+445
+00:36:29,230 --> 00:36:32,100
+Yeah, the lack of trust is what slows things down.
+
+446
+00:36:32,496 --> 00:36:38,148
+And this could be rightfully so. Maybe the agent, the that AI agent was badly designed and shouldn't be trusted.
+
+447
+00:36:38,542 --> 00:36:39,876
+But it also flipped in inverse.
+
+448
+00:36:40,096 --> 00:36:46,896
+What if hypothetically that agent was doing everything perfectly, but people weren't trusting it because it didn't have the test in place,
+
+449
+00:36:47,150 --> 00:36:49,828
+it didn't have the validation, and it didn't build that trust.
+
+450
+00:36:50,256 --> 00:36:52,708
+That slows things down, and these things
+
+451
+00:36:54,576 --> 00:36:56,004
+have a much bigger impact.
+
+452
+00:36:59,022 --> 00:36:59,296
+So,
+
+453
+00:37:00,750 --> 00:37:06,180
+once again, be very wary about how the hammer is being used because you need to make your adjustments accordingly.
+
+454
+00:37:07,216 --> 00:37:07,524
+So,
+
+455
+00:37:08,654 --> 00:37:11,876
+and this goes back into saying that tokens are not work done.
+
+456
+00:37:12,416 --> 00:37:20,996
+You have uh um and and one major example that I will highlight, right, is is this happens more often than than I would like,
+
+457
+00:37:21,536 --> 00:37:27,812
+is that sometimes spamming more agents and more tokens sometimes means you get the same task done multiple times.
+
+458
+00:37:28,302 --> 00:37:31,776
+So one of the anti-patterns that we started seeing, right, uh, yeah.
+
+459
+00:37:31,856 --> 00:37:40,016
+well, in overall, the engineering organizations improve productivity by clearing more issues, quickly, automating, clearing of issues, for example,
+
+460
+00:37:40,238 --> 00:37:48,260
+like when someone like, when a QA and things like QA teams reporting an issue and an agent automatically fixing it without even an engineer, those are great.
+
+461
+00:37:48,896 --> 00:37:49,216
+But
+
+462
+00:37:49,870 --> 00:37:53,924
+one of the issue one of the common issues that we start facing is that people get ambitious
+
+463
+00:37:54,736 --> 00:37:55,588
+really fast.
+
+464
+00:37:56,046 --> 00:38:03,524
+And they instead of doing small changes, they start doing huge changes, like changing like half the code basis or one quarter of the code bases.
+
+465
+00:38:03,950 --> 00:38:06,532
+Sometimes when this is planned with proper testing, it's great.
+
+466
+00:38:06,830 --> 00:38:08,036
+But a lot of times, right,
+
+467
+00:38:08,686 --> 00:38:14,820
+the change is happening at such a large scale, right? The bottleneck becomes the on the reviewer to merge the code.
+
+468
+00:38:15,630 --> 00:38:16,256
+And because
+
+469
+00:38:17,198 --> 00:38:26,416
+everything is done on such a large scale where a human cannot process it, one of the common anti-patterns that we start seeing is that okay, someone has implemented the the
+
+470
+00:38:26,656 --> 00:38:27,940
+there's issues being done.
+
+471
+00:38:28,270 --> 00:38:36,132
+And because there's so much code being generated, issues that do not have code generated do not get reviewed, did not get picked up by the reviewer.
+
+472
+00:38:36,622 --> 00:38:38,724
+So someone needs to generate the code using an agent.
+
+473
+00:38:39,118 --> 00:38:48,176
+And then when the agent generates that giant pile of code, which should be a lot less if they were to like properly review prompt it and stuff, the reviewer will look at it and it's like,
+
+474
+00:38:48,398 --> 00:38:49,636
+huh, this is too many code.
+
+475
+00:38:50,670 --> 00:38:55,232
+Can I ask my agent to highlight what changes are relevant and then re-implement it?
+
+476
+00:38:55,632 --> 00:39:00,836
+And and and in the end, they started rebuilding hand by hand with their agent.
+
+477
+00:39:01,134 --> 00:39:03,620
+So they literally discard the first agent's job.
+
+478
+00:39:04,174 --> 00:39:05,872
+There's multiple good reasons why this happened.
+
+479
+00:39:06,032 --> 00:39:10,500
+For example, reviewers want to maintain control and quality of the main code base.
+
+480
+00:39:10,912 --> 00:39:19,140
+But this is a very common example of a bottleneck where you where if you didn't think the process through, you're just throwing more and more things
+
+481
+00:39:19,552 --> 00:39:22,692
+respectively, and the speed is not increasing.
+
+482
+00:39:23,152 --> 00:39:23,428
+So
+
+483
+00:39:24,142 --> 00:39:25,444
+review your processes.
+
+484
+00:39:25,902 --> 00:39:32,996
+A good way around this is naturally to instill better testing practices and so that it can automate that and filter out.
+
+485
+00:39:33,552 --> 00:39:41,828
+Also, reminding teams to like, hey, split up your merge or make it more modular to make it easier for the review process.
+
+486
+00:39:42,158 --> 00:39:42,820
+Like things like that.
+
+487
+00:39:42,992 --> 00:39:44,352
+These are human processes.
+
+488
+00:39:44,432 --> 00:39:45,764
+It has nothing to do with the AI.
+
+489
+00:39:45,952 --> 00:39:48,708
+And yeah, we tend to get too excited about AI sometimes. So
+
+490
+00:39:50,734 --> 00:39:52,964
+this is not just a code problem.
+
+491
+00:39:53,632 --> 00:40:00,068
+We are starting to see like because AI agents are being deployed to make decks, this deck was entirely
+
+492
+00:40:01,710 --> 00:40:03,524
+design-wise, was generated by AI.
+
+493
+00:40:04,032 --> 00:40:07,076
+I went through multiple iterations, it's not a zero shot.
+
+494
+00:40:07,312 --> 00:40:09,872
+I went, through every page at least 30
+
+495
+00:40:09,872 --> 00:40:13,764
+times to change the text, but the design was done by agents.
+
+496
+00:40:14,926 --> 00:40:21,860
+And and sometimes within your organization, you're starting to notice people that just one shot prompt the entire slides, things like that.
+
+497
+00:40:22,352 --> 00:40:28,592
+And they start passing it around, they start doing meetings, and then it's on everyone else to filter what's the inconsistency,
+
+498
+00:40:29,552 --> 00:40:33,572
+what's the misalignment, why is these two data points completely different?
+
+499
+00:40:34,062 --> 00:40:41,350
+This is also another example of like same as the previous example: people generating code, or people generating slides, or people generating report,
+
+500
+00:40:41,806 --> 00:40:45,156
+and the burden shifts onto some human down the road to verify things.
+
+501
+00:40:45,632 --> 00:40:48,420
+So be very aware about this organization change.
+
+502
+00:40:50,478 --> 00:40:51,472
+why am I still an optimist
+
+503
+00:40:52,366 --> 00:40:57,796
+I don't think this is necessarily a bad thing in itself because the problem is everyone needs to learn.
+
+504
+00:40:58,286 --> 00:41:01,540
+And this is where we just start adapting our processes accordingly.
+
+505
+00:41:02,702 --> 00:41:07,460
+and the other major thing is that well, there are a lot of common examples on how to use AI,
+
+506
+00:41:08,622 --> 00:41:11,972
+you all know your subject domain for your organization better.
+
+507
+00:41:12,654 --> 00:41:23,472
+And there will be use cases where an AI could be used in place to automate a process, for example, that could save your organization millions of dollars or increase your productivity at a grand
+
+508
+00:41:23,632 --> 00:41:24,676
+scale that
+
+509
+00:41:26,272 --> 00:41:29,892
+only you will know, and not me as an AI expert will come in.
+
+510
+00:41:30,352 --> 00:41:36,512
+I like to point to the most famous example that Walmart had, where was it Walmart?
+
+511
+00:41:36,622 --> 00:41:42,276
+I believe it was Walmart, where they literally started putting a stool, a stepping stool, inside every single truck.
+
+512
+00:41:42,926 --> 00:41:50,500
+And that was like the simplest change, but it lowered their medical bill by the millions because it lowered back injuries across for heavy goods.
+
+513
+00:41:51,230 --> 00:41:51,490
+respectively.
+
+514
+00:41:52,206 --> 00:42:00,868
+it's something specific like that, with the use of AI, and it may not even necessarily be the best AI model, that actually can have the biggest impact.
+
+515
+00:42:03,342 --> 00:42:03,632
+Yeah.
+
+516
+00:42:03,792 --> 00:42:11,972
+So uh doubling down on my previous point, uh, one of the terms that that was coined by uh that that's been trending is called the slop grenade.
+
+517
+00:42:12,238 --> 00:42:15,876
+So generating lots of things with AI and then leaving it to someone else.
+
+518
+00:42:16,686 --> 00:42:18,436
+Do not let slop grenades happen.
+
+519
+00:42:19,152 --> 00:42:21,796
+and this is a culture thing and a processing.
+
+520
+00:42:22,990 --> 00:42:23,268
+Yep.
+
+521
+00:42:24,270 --> 00:42:29,152
+So the some guideline rules that I would set, and this is more subjective,
+
+522
+00:42:29,966 --> 00:42:30,724
+people disagree.
+
+523
+00:42:32,046 --> 00:42:37,220
+to prevent the stop grenade from happening, enforce that people should own what they hand over or generate.
+
+524
+00:42:37,742 --> 00:42:41,988
+So, for example, these slides, I own every text that is generated.
+
+525
+00:42:42,510 --> 00:42:44,352
+If there's an issue, that's on me.
+
+526
+00:42:44,558 --> 00:42:47,684
+It's not my AI agent who has an issue.
+
+527
+00:42:48,206 --> 00:42:50,212
+I do not get to hand it off to an agent.
+
+528
+00:42:50,352 --> 00:42:51,552
+I must own the responsibility.
+
+529
+00:42:51,790 --> 00:42:54,148
+Same thing for code, same thing for anything that is generated.
+
+530
+00:42:54,894 --> 00:42:58,244
+And you also have to measure outcomes, not usage.
+
+531
+00:42:59,982 --> 00:43:09,392
+so this gets more complicated because I I don't want to expand too long into this, but like there is like this simple formula
+
+532
+00:43:09,712 --> 00:43:15,012
+that I think people take as a rule of thumb: tokens times price divided by outcomes someone actually used.
+
+533
+00:43:15,632 --> 00:43:18,432
+Um and and this helps guides a lot of things.
+
+534
+00:43:18,512 --> 00:43:21,476
+Smaller, more efficient models, faster model, bigger model, yeah, yeah, yeah.
+
+535
+00:43:22,192 --> 00:43:22,512
+But
+
+536
+00:43:23,118 --> 00:43:25,444
+what I don't like about this is that
+
+537
+00:43:26,094 --> 00:43:33,604
+another analogy that I'll use about AI is think of it more as like supplements or steroids that enhances the team.
+
+538
+00:43:34,126 --> 00:43:41,604
+Think of it as uh like if let's say I use construction work as an example, let's say I can use it to increase the muscle mass for the workers.
+
+539
+00:43:42,478 --> 00:43:47,428
+Not that it's ethically to do so, I know that's not the case, but let's just say, as an example, the train of thought.
+
+540
+00:43:47,758 --> 00:43:51,472
+Some teams will have it and they improve productivity, some teams don't.
+
+541
+00:43:51,792 --> 00:43:57,284
+But even without that, it's quite clear some teams are much better than others.
+
+542
+00:43:58,112 --> 00:44:04,032
+And so the AI being a supplement here, right, doesn't necessarily change everything.
+
+543
+00:44:04,334 --> 00:44:05,636
+So you need to be aware that
+
+544
+00:44:06,830 --> 00:44:08,484
+outcomes are hard to measure,
+
+545
+00:44:09,152 --> 00:44:09,828
+respectively.
+
+546
+00:44:10,192 --> 00:44:13,924
+But it's something that you can start measuring and observing.
+
+547
+00:44:14,478 --> 00:44:16,932
+Most importantly, back to the first step. Measure.
+
+548
+00:44:17,422 --> 00:44:24,932
+You know the token spend per department, per team, and you can start seeing which team is performing better, and you start seeing how much tokens they use, you can start seeing what works.
+
+549
+00:44:26,286 --> 00:44:26,596
+Yeah.
+
+550
+00:44:27,392 --> 00:44:28,832
+as I said, this is flawed measurement.
+
+551
+00:44:28,912 --> 00:44:29,316
+So yeah,
+
+552
+00:44:30,432 --> 00:44:33,508
+that's the high-level overview respectively.
+
+553
+00:44:33,872 --> 00:44:42,884
+And if you want to kickstart your process internally within your organization, you can either talk to me or my team, or you have six questions for you to start asking, like:
+
+554
+00:44:43,662 --> 00:44:44,912
+Who team spends what?
+
+555
+00:44:45,134 --> 00:44:48,964
+What's the what what must you test to use a cheaper model? What's your base load?
+
+556
+00:44:49,358 --> 00:44:50,884
+What's the default model for each team?
+
+557
+00:44:51,152 --> 00:44:54,272
+And which workload has a person waiting that you need something faster?
+
+558
+00:44:54,352 --> 00:44:54,564
+Yeah.
+
+559
+00:44:54,992 --> 00:44:57,472
+And how much of what we generate is useful?
+
+560
+00:44:57,632 --> 00:45:02,052
+These are like guideline questions for you to start asking to refine your tokenomics.
+
+561
+00:45:02,702 --> 00:45:02,912
+Yep.
+
+562
+00:45:03,310 --> 00:45:04,272
+So QA.
+
+563
+00:45:07,118 --> 00:45:07,396
+Yes.
+
+564
+00:45:08,558 --> 00:45:08,772
+So when you mentioned uh
+
+565
+00:45:09,934 --> 00:45:10,432
+fine-tuning models.
+
+566
+00:45:12,592 --> 00:45:12,752
+Um
+
+567
+00:45:14,992 --> 00:45:22,468
+fine-tuning, or is there like other sort of uh fine-tuning methods that you have depending on what specific use case there is or what data there is?
+
+568
+00:45:22,992 --> 00:45:27,552
+Uh okay, so in general it tends to be SFT, but I don't think
+
+569
+00:45:32,590 --> 00:45:35,428
+well we do provide fine-tuning services and it tends to be SFT.
+
+570
+00:45:36,352 --> 00:45:40,516
+there is a lot of methods that are happening right now, currently.
+
+571
+00:45:40,912 --> 00:45:47,716
+I know RIL is very sexy right now, especially in the coding environment, because it's easy to generate the data in the loop.
+
+572
+00:45:48,110 --> 00:45:54,532
+But what we realize for a lot of organizations, especially like in New York, for example, financial institute, things like that,
+
+573
+00:45:55,598 --> 00:45:59,780
+there's not really an RL environment for financial tasks, for example.
+
+574
+00:46:00,432 --> 00:46:03,300
+And so it tends to be more SFT based.
+
+575
+00:46:06,798 --> 00:46:10,272
+and there are also other organizations like adaption AI,
+
+576
+00:46:11,872 --> 00:46:19,908
+where they are starting to also automate the refinement of your data sets for you to train the model, be it SFT based or
+
+577
+00:46:20,750 --> 00:46:21,700
+thinker machine based.
+
+578
+00:46:23,616 --> 00:46:25,856
+Focusing on this might be the wrong question.
+
+579
+00:46:26,256 --> 00:46:31,716
+To me, generally, what people should focus on is the evals respectively.
+
+580
+00:46:32,206 --> 00:46:33,348
+So here's a good example.
+
+581
+00:46:33,856 --> 00:46:42,176
+For Jeff that came when the Jeff model came out, and then we did the open source project called Simple Jeff, which replicates the Jeff API for
+
+582
+00:46:42,416 --> 00:46:43,456
+existing open source model.
+
+583
+00:46:43,982 --> 00:46:47,972
+A lot of people quickly realized that the Queen 27B was really good at this task.
+
+584
+00:46:48,686 --> 00:46:52,100
+And there were multiple teams that went to fine-tune the Quen 27B.
+
+585
+00:46:54,496 --> 00:46:59,780
+Because we were trying to take the approach, like our company, like we want to accept any model, and then we just built the API on top of it.
+
+586
+00:47:00,416 --> 00:47:05,604
+We started taking an approach of like, hey, we see the benchmark, we see the existing model. Why don't we prompt tune it instead?
+
+587
+00:47:05,838 --> 00:47:06,788
+It's not even fine-tuned.
+
+588
+00:47:07,406 --> 00:47:07,776
+And then
+
+589
+00:47:08,576 --> 00:47:13,892
+two weeks later, as Hugging Face went to do all the benchmarks at scale, like over 10,000 questions and things like that.
+
+590
+00:47:14,478 --> 00:47:19,460
+Somehow my promptune 2027 beam beat most of the 27B fine-tune.
+
+591
+00:47:20,256 --> 00:47:29,732
+So yeah, this is not a flex because I'm quite sure now my model is beat by the recent Cloudflare fine-tune model that was done on a more proper basis.
+
+592
+00:47:30,336 --> 00:47:30,656
+But
+
+593
+00:47:31,086 --> 00:47:33,936
+it's more of like the tuning method might
+
+594
+00:47:35,856 --> 00:47:39,972
+not be the right question. It's more like what's your e-valves and what's the results that lead to it.
+
+595
+00:47:43,566 --> 00:47:51,456
+do you need to collect golden traces for the set of data you need if you're doing SFT or whatever it is? Or can you do let's just say
+
+596
+00:47:52,496 --> 00:47:58,256
+for your task, the frontier models get like 80% accurate, right? So maybe 20% of the time it makes some sort of mistake.
+
+597
+00:47:58,542 --> 00:48:02,896
+If you fine-tune on that, won't the fine-tuned model also get like 20% of it wrong?
+
+598
+00:48:03,150 --> 00:48:10,788
+Are you supposed to filter that out somehow and get only the golden traces for training? Or can you just throw all the traces in and train?
+
+599
+00:48:11,438 --> 00:48:19,456
+So this is more a personal opinion technique because uh so um the generally I try to split the data set because people are crazy
+
+600
+00:48:19,776 --> 00:48:20,068
+filter.
+
+601
+00:48:20,976 --> 00:48:24,100
+so I try to at least get a golden trace data set.
+
+602
+00:48:24,910 --> 00:48:29,536
+And the golden trace data set may be much smaller, respectively, and
+
+603
+00:48:30,576 --> 00:48:32,836
+then we fine-tune that with a much heavier weightage
+
+604
+00:48:34,926 --> 00:48:35,364
+as well.
+
+605
+00:48:35,776 --> 00:48:39,216
+But there have been multiple papers, especially
+
+606
+00:48:43,726 --> 00:48:46,980
+with thinking tokens, that even the
+
+607
+00:48:49,646 --> 00:48:50,724
+failed tasks, right?
+
+608
+00:48:50,896 --> 00:48:59,236
+The more a much smaller model when you fine-tune tends to benefit from the training because it actually improves the thinking process, even if it got the wrong answer.
+
+609
+00:48:59,536 --> 00:49:06,244
+Um this is something this is really a good case of like try and then measure, and it works 70% of the time.
+
+610
+00:49:06,606 --> 00:49:10,788
+Sometimes you need to increase the golden trace ratio, but it's a general rule of thumb.
+
+611
+00:49:11,310 --> 00:49:21,456
+I think for a lot of customers when they're trying to do SFT down a smaller model, the general rule of thumb they're trying to keep is can I keep to the near same level of performance?
+
+612
+00:49:21,806 --> 00:49:27,610
+And maybe the eval is down 1%, or even in some cases, it improved by 10% because the base model wasn't specialized by these tasks.
+
+613
+00:49:28,736 --> 00:49:29,056
+And
+
+614
+00:49:30,030 --> 00:49:32,644
+more importantly, does it 100x reduce my bill?
+
+615
+00:49:33,230 --> 00:49:36,228
+So that's usually the motivation, respectively.
+
+616
+00:49:37,136 --> 00:49:46,052
+yeah, golden samples are critical if you want to do beyond the baseline, and sometimes that requires humans to actually look at the data,
+
+617
+00:49:46,286 --> 00:49:50,596
+which, as much as I love my customers to look at the data more, people don't like to do that.
+
+618
+00:49:55,680 --> 00:49:56,000
+Hi.
+
+619
+00:49:57,040 --> 00:50:03,108
+how would you deal with code spend that would mostly come from cloud code and all the integrations there?
+
+620
+00:50:03,438 --> 00:50:08,740
+Because then your model is fully locked into the cloud ecosystem, I suppose.
+
+621
+00:50:09,134 --> 00:50:13,092
+Do you have any advice on how to deal with those type of situations?
+
+622
+00:50:14,240 --> 00:50:18,320
+yeah, unfortunately, cloud code is the example of fully locked in. So
+
+623
+00:50:19,280 --> 00:50:24,420
+sometimes the first movement is actually getting um developers to switch
+
+624
+00:50:25,102 --> 00:50:25,700
+the harness.
+
+625
+00:50:26,766 --> 00:50:36,160
+harness it seems to be a lot more flexible thing right now. Like we have seen organizations that are like fully locked in, like I'm only going to use Devin only or AMP only.
+
+626
+00:50:36,400 --> 00:50:44,400
+We have seen organizations that um that are more flexible, like literally they are running your they are creating your own agent harness, and
+
+627
+00:50:44,640 --> 00:50:48,708
+my response is like, why? Why are you creating your own agent harness from scratch? but
+
+628
+00:50:49,678 --> 00:50:52,452
+like a common one that we see people switching to is for example Pi.
+
+629
+00:50:52,800 --> 00:50:54,880
+And this is also because there's a lot of excitement around it.
+
+630
+00:50:55,040 --> 00:50:55,876
+People have shown
+
+631
+00:50:56,590 --> 00:51:02,116
+that even with the same model, it gets a much cheaper cost per token because of the way it's simple and efficient.
+
+632
+00:51:02,880 --> 00:51:09,040
+and from there on the I think the beauty for the Pi coding agent harness is that it's easy to adapt because it's so
+
+633
+00:51:09,920 --> 00:51:10,560
+lightweight.
+
+634
+00:51:10,894 --> 00:51:14,340
+We've seen a lot of teams like just start prompting their agents to make modifications.
+
+635
+00:51:15,200 --> 00:51:21,188
+And once they have that, then they start getting the cycle of experimenting and changing.
+
+636
+00:51:22,702 --> 00:51:28,772
+a common way to get them to be very incentivized to change is to actually introduce a
+
+637
+00:51:29,920 --> 00:51:35,600
+good enough model that is really fast, like 100 tokens per second, and then suddenly they start giving that a try.
+
+638
+00:51:35,822 --> 00:51:44,000
+And some people start like some of the first shift would be they still use their clock code as their planner, and then they instruct the clock code, use this pie agent with this model
+
+639
+00:51:44,302 --> 00:51:47,044
+to do the implementation, hence the planner implementation split.
+
+640
+00:51:47,840 --> 00:51:51,364
+It's more yeah, and that's where the transition starts to happen.
+
+641
+00:51:51,758 --> 00:51:54,500
+It's not easy to change people's agents, but yeah.
+
+642
+00:51:56,974 --> 00:52:04,720
+yeah, so an example of this could be perhaps to expose this smaller agent as an MCP in inside cloud, or
+
+643
+00:52:04,960 --> 00:52:07,840
+having these tools where you can offload i
+
+644
+00:52:08,800 --> 00:52:08,960
+suppose.
+
+645
+00:52:09,294 --> 00:52:10,468
+Is that something that you would
+
+646
+00:52:11,342 --> 00:52:11,972
+say could work?
+
+647
+00:52:12,942 --> 00:52:15,876
+MCP is more tricky because MCP agents,
+
+648
+00:52:16,686 --> 00:52:19,236
+unless done right, don't have access to your file system.
+
+649
+00:52:19,790 --> 00:52:24,530
+So typically it's just something way simpler, like PI is installed and they run the bash command, Pi this.
+
+650
+00:52:25,102 --> 00:52:26,372
+Yeah, that's usually the case.
+
+651
+00:52:27,360 --> 00:52:27,760
+Thanks.
+
+652
+00:52:36,942 --> 00:52:40,132
+Can you share, if possible, any case studies about
+
+653
+00:52:41,040 --> 00:52:50,020
+caching solutions, being very thoughtful about caching and the outcomes that have been generated for specific customers, even if it's anonymized?
+
+654
+00:52:52,750 --> 00:52:56,560
+What's the specific challenge you're talking about? You do one caching, you okay.
+
+655
+00:52:56,800 --> 00:53:03,440
+Is your question more like you want anonymous you do wait, you do not want customer private information to save in the cache.
+
+656
+00:53:03,760 --> 00:53:12,676
+No, so so so like with customers that you've worked with, have you got any case studies you can share about the outcomes that they've been able to generate
+
+657
+00:53:13,120 --> 00:53:19,204
+because of being thoughtful about how they cache and different sort of caching methodologies?
+
+658
+00:53:20,880 --> 00:53:26,916
+I think this one we can take offline, but in general for our larger scale customers, we deploy them with dedicated cache.
+
+659
+00:53:27,342 --> 00:53:32,932
+So it kind of solves a lot of PI issues because it's the the cache is only for that customer.
+
+660
+00:53:33,520 --> 00:53:40,292
+Um yeah, and obviously there's prompt formatting, but I may need to dig in more specifically like what you're trying to ask here.
+
+661
+00:53:40,480 --> 00:53:43,652
+The short answer is yes, but there's a lot of ways to interpret this.
+
+662
+00:53:44,000 --> 00:53:44,240
+Yeah.
+
+663
+00:53:45,486 --> 00:53:46,116
+Sorry about that.
+
+664
+00:53:49,102 --> 00:53:53,092
+Uh thoughts on turn or task based auto routing.
+
+665
+00:53:55,152 --> 00:54:05,312
+Oh, um I'm uh I'm generally more towards task-based, um, mostly because it's much easier to control expectation at a department
+
+666
+00:54:05,552 --> 00:54:06,372
+organization level.
+
+667
+00:54:06,992 --> 00:54:14,340
+So this this back to like, hey, a department may have a labeled model, and I kind of auto-routed that model for them.
+
+668
+00:54:15,598 --> 00:54:19,556
+I know there's a lot of hype right now for turn-based auto routing.
+
+669
+00:54:19,822 --> 00:54:26,884
+One of the issues with turn-based auto routing is that you need to lock down your turn-based auto routing to, let's say, at most two to three models.
+
+670
+00:54:27,406 --> 00:54:30,500
+If not, your cache will be extremely inefficient to be used.
+
+671
+00:54:30,912 --> 00:54:31,232
+So
+
+672
+00:54:32,112 --> 00:54:35,748
+for example, we have seen turn-based for JRM 5.3 and JRM 5.3 flash.
+
+673
+00:54:35,952 --> 00:54:36,512
+Makes sense.
+
+674
+00:54:36,752 --> 00:54:42,032
+But if you put in 30 models and it keeps changing your model every turn, your
+
+675
+00:54:42,912 --> 00:54:45,988
+low cache heat rate will start to wreck your optimization.
+
+676
+00:54:46,702 --> 00:54:47,684
+Yeah, that's what I've seen before.
+
+677
+00:54:47,982 --> 00:54:48,192
+I was saying
+
+678
+00:54:49,326 --> 00:54:50,992
+like request level and it just didn't make sense.
+
+679
+00:54:51,552 --> 00:54:51,712
+Yeah.
+
+680
+00:54:51,886 --> 00:54:53,700
+But two models tends to be okay.
+
+681
+00:54:54,192 --> 00:54:57,028
+Uh, task and organization make the most sense.
+
+682
+00:54:57,486 --> 00:54:58,372
+Yeah. Yeah, yeah, I agree.
+
+683
+00:55:01,550 --> 00:55:01,924
+Alright.
+
+684
+00:55:05,232 --> 00:55:05,552
+Okay.
+
+685
+00:55:06,382 --> 00:55:15,236
+Uh thank you very much. And if anyone wants to find me specifically for more questions, feel free to just come up front and ask me or find me by the side once the next speaker's here.
+
+686
+00:55:15,552 --> 00:55:15,872
+Yeah.
+
+687
+00:55:16,592 --> 00:55:17,552
+Thank you very much.
+
