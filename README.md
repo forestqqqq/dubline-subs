@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [Memory-Aware Agent Harnesses for Anti-Money Laundering — Nacho Martinez, Oracle](medias/ZTEJ3/) | AI Engineer | 2026-10-17 |
 | [ChatGPT Dots Is WAY More Powerful Than You Think](medias/WPAZW/) | Riley Brown | 2026-10-17 |
 | [How to Choose Your Personal Agent](medias/W7H9Y/) | The AI Daily Brief: Artificial Intelligence News | 2026-10-17 |
 | [I Built an INSANE AI Trading Bot to Trade My $1,000 (Full Guide)](medias/W0F4R/) | Trading with DaviddTech | 2026-10-17 |
