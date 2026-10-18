@@ -1,0 +1,764 @@
+1
+00:00:00,160 --> 00:00:00,804
+Hello everyone.
+
+2
+00:00:01,200 --> 00:00:02,308
+Welcome to my talk.
+
+3
+00:00:02,720 --> 00:00:08,388
+Today we're going to be talking about how we are rebuilding CI for AI scale commit volume.
+
+4
+00:00:08,960 --> 00:00:16,740
+And this comes from a lot of experience from build and merge infrastructure that I have been working on for a decade plus at this point.
+
+5
+00:00:17,440 --> 00:00:26,372
+And kind of want to walk you through all the new bottlenecks we're seeing in software factories and also specifically for highly regulated industries and banks.
+
+6
+00:00:26,734 --> 00:00:31,524
+How does that translate? How do we keep things more compliant and auditable while being able to move fast?
+
+7
+00:00:32,142 --> 00:00:33,060
+So let's dive in.
+
+8
+00:00:34,254 --> 00:00:35,020
+My name is Gautam.
+
+9
+00:00:35,440 --> 00:00:41,828
+I am a co-founder at CTO and Kitar and recently joined Sonar as a principal engineer after the acquisition.
+
+10
+00:00:42,400 --> 00:00:48,720
+Previous to Qitar, I was at Uber for almost a decade working on build and merge infrastructure for monorepos.
+
+11
+00:00:48,960 --> 00:00:55,172
+So everything from build, CICD, IDEs, you name it, to make sure telepost are productive.
+
+12
+00:00:55,502 --> 00:01:06,052
+And now at Qitar, as part of Sonar, I'm trying to make sure that code that's been checked in is verified and all the code written by agents is of high quality before it goes in.
+
+13
+00:01:08,046 --> 00:01:12,996
+So before I get started, I want to just paint a bit of history picture.
+
+14
+00:01:13,360 --> 00:01:16,932
+At Uber, we had agent scale commit volume before they were agents.
+
+15
+00:01:17,120 --> 00:01:25,668
+So what I mean by this is we had one giant monorepo and we were doing like thousands of changes a day and with very long-running builds.
+
+16
+00:01:25,920 --> 00:01:34,560
+This meant that if you just kept everything serialized and merged them one at a time so as not to break your main branch, you would take a
+
+17
+00:01:34,720 --> 00:01:39,620
+really long time, up to days, 20 days in this case, to make sure that everything was green.
+
+18
+00:01:40,160 --> 00:01:47,812
+And if we skipped everything and just let everyone merge to main, we would see red main all the time because changes would conflict with each other.
+
+19
+00:01:48,240 --> 00:01:53,040
+And even though the CI would be green on one of them combined, they might actually break.
+
+20
+00:01:53,166 --> 00:01:58,500
+So we would see like our iOS monitor would be like red all the time, and that was not productive for our developers.
+
+21
+00:01:59,246 --> 00:02:08,964
+To fix this, what we did was we made a system called Summit queue, which we have a paper on, and we tested all the likely possibilities of commits that are coming in
+
+22
+00:02:09,280 --> 00:02:14,084
+and making sure that we can like reduce the wait time so we can test these things in parallel.
+
+23
+00:02:14,670 --> 00:02:18,400
+We could also predict what could break by testing all the combinations.
+
+24
+00:02:18,574 --> 00:02:27,524
+So once we know that the PR might break, we might remote it back from the queue and let the author know that they have to go fix it before they can push it back up after repasing.
+
+25
+00:02:28,400 --> 00:02:31,300
+And finally, like to keep the trunk green,
+
+26
+00:02:32,014 --> 00:02:38,000
+only if it passes with all the combination of commits coming in, it would be let in to go directly onto the trunk.
+
+27
+00:02:38,190 --> 00:02:44,400
+So you'd want to make sure that the overhead was worth it for keeping our trunk green. And this is still running today at Uber.
+
+28
+00:02:44,560 --> 00:02:52,196
+I'm sure now we have like merge queues that GitHub came up with and all the other code hosts, but back then there was not a system, so we developed this.
+
+29
+00:02:53,774 --> 00:03:02,400
+So the problem with this approach is currently all these queues that we have, so that's either CI or review, are a centralized bottleneck in the SDLC.
+
+30
+00:03:02,958 --> 00:03:10,276
+So all these queues were built for human speed, and once you build it from human speed, what happens is they are not able to keep up once you go to agents.
+
+31
+00:03:10,830 --> 00:03:15,108
+Because humans generate changes, used to generate changes like a few times an hour.
+
+32
+00:03:15,470 --> 00:03:18,468
+So we could do testing and review one at a time.
+
+33
+00:03:19,054 --> 00:03:27,520
+Now with agents, developers are writing like several PRs in many in a day, and they won't always wait for the queue.
+
+34
+00:03:27,600 --> 00:03:33,572
+They all want to like come in at the same time, which means your CI and review queues are piling up and having pressure.
+
+35
+00:03:34,318 --> 00:03:44,480
+And after that, like the patterns of software factories and background agents triggering on like various workflows, suddenly you see like everything slowing down to a crawl because your bottlenecks
+
+36
+00:03:44,640 --> 00:03:48,260
+are still gonna be CI in review and they are over capacity in this case.
+
+37
+00:03:50,830 --> 00:03:53,600
+So, what does this mean for teams today?
+
+38
+00:03:54,080 --> 00:04:03,044
+So, just to put things into perspective, our own rate of commits has almost like 10x since we started guitar about three years ago.
+
+39
+00:04:03,520 --> 00:04:10,308
+And it's just like unbelievable with the same size team, we're still very small, we're able to like uh push so much more code.
+
+40
+00:04:10,702 --> 00:04:18,800
+Uh and we even see this in the industry trends on guitar. So this graph shows you the number of PRs that we see that guitar reviews over time.
+
+41
+00:04:18,926 --> 00:04:22,308
+And if you look at the code trajectory, it's pretty exponential.
+
+42
+00:04:22,480 --> 00:04:29,892
+Every month almost we're growing 25% month over month of just the amount of PRs that we have to review, fix CI and other things.
+
+43
+00:04:30,382 --> 00:04:39,172
+So this is also, I think, like corroborated by evidence that uh industry players like GitHub have been putting out where they're seeing like staggering growth in PRs.
+
+44
+00:04:39,680 --> 00:04:42,160
+And this is now coming for every single team.
+
+45
+00:04:42,830 --> 00:04:51,812
+if our small team is seeing this, I'm sure like the larger teams and banks are seeing it like at a much higher degree as they are going through their AI adoption journeys.
+
+46
+00:04:52,686 --> 00:04:54,560
+So the problem I was talking about, right?
+
+47
+00:04:54,734 --> 00:05:04,790
+So if agents are opening PRs and if you make them check everything through the CI system, individually they might pass, but once you kind of merge them back on domain,
+
+48
+00:05:05,294 --> 00:05:06,560
+your trunk might still be broken.
+
+49
+00:05:06,766 --> 00:05:08,000
+So how do you like solve for this?
+
+50
+00:05:08,080 --> 00:05:11,716
+Like how do you keep things green uh at this high rate of pace?
+
+51
+00:05:12,366 --> 00:05:15,524
+Right? So this is very important, kind of like how we solve Summit queue.
+
+52
+00:05:16,000 --> 00:05:19,840
+The changes themselves are not testing against each other.
+
+53
+00:05:20,142 --> 00:05:27,076
+So there needs to be some sort of change in either the CI system as well as how your architecture code and in the queues to be smarter to be able to solve this.
+
+54
+00:05:28,750 --> 00:05:37,124
+And the problem, we're also seeing with everyone trying to adopt like software factories, which is having agents, write all the code from the spec,
+
+55
+00:05:37,280 --> 00:05:45,280
+and then just having humans be responsible for the spec and review, is that the factory line that exists today was built for human speed.
+
+56
+00:05:45,360 --> 00:05:51,908
+as I mentioned, which means that, as agents push more changes, every part of the factory line is going to be slowing down.
+
+57
+00:05:52,366 --> 00:06:00,160
+So, for example, with build and test, you might have lots of rebuilds whenever computation breaks, or you might have integration tests,
+
+58
+00:06:00,462 --> 00:06:09,764
+you might have flaky tests that are not reproducible locally, and that just slows everything down because you have to retry them, and it could take hours in many cases with a complex build.
+
+59
+00:06:10,606 --> 00:06:13,828
+Add to the fact that now you have review and approval.
+
+60
+00:06:14,094 --> 00:06:17,680
+So a lot of you probably already use like AI to review your code.
+
+61
+00:06:17,760 --> 00:06:21,440
+Hopefully, you're not doing every single review with humans.
+
+62
+00:06:21,680 --> 00:06:24,196
+You ideally are reviewing with AI as a first pass.
+
+63
+00:06:24,686 --> 00:06:34,692
+Now the reviewers become the queue if you don't have that system in place. And even after you review, there might be some criteria you might want additionally to make sure that it's approved fully.
+
+64
+00:06:34,800 --> 00:06:41,188
+Because what's happening now in the industry is a lot of folks are just rubber stamping them because they cannot keep up with the high rate of PRs.
+
+65
+00:06:41,360 --> 00:06:44,100
+They are relying on other signals now to be able to just get through.
+
+66
+00:06:44,398 --> 00:06:45,444
+So the process has to change.
+
+67
+00:06:46,734 --> 00:06:50,468
+And the other problem right now we're having is like a lot of these checks are running.
+
+68
+00:06:50,560 --> 00:06:54,400
+There's a lot of records that we keep that are expiring.
+
+69
+00:06:54,606 --> 00:06:57,476
+So like your old logs don't exist as they expire out.
+
+70
+00:06:57,902 --> 00:07:03,172
+There is no stamp of like what was actually checked because there is just an approval stamp.
+
+71
+00:07:03,438 --> 00:07:08,960
+So there needs to be some record of these things for auditability and compliance checks to happen.
+
+72
+00:07:10,542 --> 00:07:18,404
+The other issue we're seeing is that as the code volume increases, the time taken for repair also is adding a ton of overhead.
+
+73
+00:07:19,040 --> 00:07:24,160
+what we see on our platform, at least 13% of PRs had a recorded CI failure.
+
+74
+00:07:24,240 --> 00:07:34,560
+This is just one or more CI failures, which means in all these cases, there is a separate round trip to go either back to the developer machine or for an agent to understand the logs,
+
+75
+00:07:34,720 --> 00:07:40,720
+root cause failure, fix it, push another commit, and then keep iterating till it's green.
+
+76
+00:07:40,942 --> 00:07:42,596
+And this is just CI.
+
+77
+00:07:42,960 --> 00:07:49,988
+Because most of the time, if a human reviewer wants to look at a PR, they're not going to take a look unless CI is green, because that's the first line of defense.
+
+78
+00:07:50,606 --> 00:07:57,380
+So that also like slows the review process because they can go in parallel, because usually we want to look at something once it's finalized.
+
+79
+00:07:58,702 --> 00:08:01,060
+And every lap is now paying for CI and review.
+
+80
+00:08:01,294 --> 00:08:07,972
+So if your review comments come in and you're doing another pass, same at break again, and it kind of like repeats the cycle.
+
+81
+00:08:09,648 --> 00:08:11,168
+So, how do we make this better?
+
+82
+00:08:11,248 --> 00:08:16,100
+Like, what do we do to make this problem more manageable as agents are pushing down more code?
+
+83
+00:08:16,608 --> 00:08:23,044
+So, we have discovered this obviously back and too, but also in guitar stream right now.
+
+84
+00:08:23,438 --> 00:08:32,528
+But The most obvious thing is of course like make your CI really quick and fast, which means that you may want to like remove a lot of the expensive checks, try to offload them to like post
+
+85
+00:08:33,088 --> 00:08:39,300
+merge even, and try to make the CI step itself really quick because your repairs will be much more efficient.
+
+86
+00:08:39,758 --> 00:08:46,020
+So you can parallelize things, you can chart, you can do like uh caching. We'll talk about some of the techniques that we have used as well.
+
+87
+00:08:46,608 --> 00:08:48,548
+You also want to make sure the review is fast.
+
+88
+00:08:49,008 --> 00:08:55,888
+So not just like a deep review, but you also want to have maybe multiple passes that are like giving quicker signal to your developers
+
+89
+00:08:56,110 --> 00:09:04,608
+so they're able to like use them as a way to understand in what scenarios they may want to go deeper for higher risk changes, or maybe for like lower risk ones,
+
+90
+00:09:04,688 --> 00:09:06,468
+even like let the AI approve and merge them.
+
+91
+00:09:07,310 --> 00:09:13,604
+And for the checks that are already running in CI, if you can move them to the left, it's way cheaper to catch them.
+
+92
+00:09:13,902 --> 00:09:18,148
+And this actually is very relevant to checks that happen even past CI.
+
+93
+00:09:18,368 --> 00:09:23,780
+For example, you might have expensive regression tests or things that might fail in production.
+
+94
+00:09:24,368 --> 00:09:31,140
+not every time it's possible to move things to the left, but as much as possible, if you can move them, it means you have less bottlenecks down the line.
+
+95
+00:09:31,534 --> 00:09:35,172
+And locally, agents have done more context anyway to fix the issue that they're facing.
+
+96
+00:09:36,366 --> 00:09:40,004
+And you also want to have policies. This is very important for regulated industries.
+
+97
+00:09:40,208 --> 00:09:51,588
+So a story we have at Back at Uber is we lost the license to operate in London because there was a glitch in the software that allowed drivers to get on the platform without all the proper checks.
+
+98
+00:09:52,078 --> 00:10:02,436
+And that was because of a feature flag change. So we had to put in a process in place so that every change affecting London that was going through the STLC would need some sort of like a
+
+99
+00:10:02,688 --> 00:10:08,644
+lineage of okay, this is a change affect London? If so, what are the controls in place? And we were able to win our license back.
+
+100
+00:10:09,038 --> 00:10:16,288
+Now, a lot of you might be facing these kind of like challenges where agents just make it much harder to understand what's happening in your code base.
+
+101
+00:10:16,368 --> 00:10:19,408
+So, how do you ensure your policies are actually being respected?
+
+102
+00:10:19,648 --> 00:10:28,448
+So you need to have a way to like enforce these rules beyond CI. Like just because the code compiles doesn't mean that it's following particular specifications.
+
+103
+00:10:28,528 --> 00:10:38,276
+It could be like HIPAA, it could be like DORA. There's so many other policies that these agents are not going to be aware of unless your agents are enforcing it on the other
+
+104
+00:10:38,926 --> 00:10:42,564
+end. And also you want to make sure that you record that it was enforced for auditability.
+
+105
+00:10:44,430 --> 00:10:47,748
+So just a quick story about how we made our CI faster as well.
+
+106
+00:10:48,048 --> 00:10:55,172
+So we were at a baseline, where I would say like still fast, but like very annoying when you're trying to like push more code.
+
+107
+00:10:55,568 --> 00:11:00,100
+we were around like 10 minutes for our CI and we wanted to like bring that down significantly.
+
+108
+00:11:00,494 --> 00:11:03,088
+So we started looking at how can we cache outputs.
+
+109
+00:11:03,408 --> 00:11:08,516
+we used Rust for our build system, so we started caching as much as possible and reusing them.
+
+110
+00:11:08,910 --> 00:11:12,196
+And we also looked at ways to reduce churn in the compiler.
+
+111
+00:11:12,526 --> 00:11:18,788
+So we added some more fixes to ensure that the compilation part is more cacheable and is invalidated less often.
+
+112
+00:11:19,310 --> 00:11:30,928
+And by adding more fixes on top of this by sharding and by removing these overheads, we were able to bring the time of CI almost to like less than a minute for incremental steps,
+
+113
+00:11:31,008 --> 00:11:37,540
+which means once the cold CI is warmed up, incremental builds are way, way quick, quicker, and we can push a ton more code.
+
+114
+00:11:37,966 --> 00:11:39,328
+The other issue is also review.
+
+115
+00:11:39,470 --> 00:11:47,364
+So just because the CI is green, what's so funny was when we were measuring our P90 time of like PRs making into production,
+
+116
+00:11:47,968 --> 00:11:51,968
+the vast majority of time was spent in review, packet rubber.
+
+117
+00:11:52,128 --> 00:12:00,848
+And even today, to be honest, like most teams spend more time reviewing code and doing other kinds of testing before they are comfortable merging the code into
+
+118
+00:12:01,088 --> 00:12:01,328
+main.
+
+119
+00:12:01,870 --> 00:12:05,764
+So this is something that needs to be at this on top of CI as well.
+
+120
+00:12:06,254 --> 00:12:12,288
+Because right now, what's happening is agents are, of course, like generating code at the same time.
+
+121
+00:12:12,622 --> 00:12:17,508
+The AI agents are also like finding issues on your code review system.
+
+122
+00:12:17,902 --> 00:12:21,636
+And these automated reviews are also findings that you would have to now go back and address.
+
+123
+00:12:22,158 --> 00:12:27,652
+So either you have to pull context locally for your agent or have an agent on CI hydrate and fix.
+
+124
+00:12:28,206 --> 00:12:32,580
+And humans are able to review whatever is left after the AI took its first pass.
+
+125
+00:12:32,878 --> 00:12:40,196
+And this needs to be part of the equation so you're not wasting precious human cycles on more and more agent generated PRs.
+
+126
+00:12:42,094 --> 00:12:47,364
+Here's an example for us. We were refactoring our code base to have faster CI.
+
+127
+00:12:47,662 --> 00:12:59,652
+So we were using NextText to parallelize our tests, and we had this shared database that we were spinning up to make sure that we could set it up once and all our database tests would reuse it.
+
+128
+00:13:00,142 --> 00:13:09,728
+But the problem was that there were some guards we didn't put in place, which meant that when CI gets very busy, there is like cross-contamination and tests might become
+
+129
+00:13:09,968 --> 00:13:10,368
+freaky.
+
+130
+00:13:10,638 --> 00:13:16,068
+Guitar actually is a code reviewer, it caught it on our PR before we merged it, so we didn't have to waste time after.
+
+131
+00:13:16,430 --> 00:13:22,852
+And Qitar also fixed the issue for us because it suggested the fix, committed it, and added the engineer as a co-author.
+
+132
+00:13:23,246 --> 00:13:28,388
+By doing this, we were able to like prevent expensive mistakes before the code made it all the way into main.
+
+133
+00:13:29,198 --> 00:13:34,948
+The other thing that we do at Qitar, interestingly, and as we see more and more of our customers start doing,
+
+134
+00:13:35,408 --> 00:13:42,596
+is we are using policies and criteria to decide when is it appropriate to actually even like approve changes.
+
+135
+00:13:43,086 --> 00:13:51,524
+There's a lot of changes that are like routine, lower risk documentation, dependency bumps, of course, if they're not breaking any APIs, or security patches,
+
+136
+00:13:52,448 --> 00:13:57,140
+even things like lower risk changes for internal tooling that can potentially be auto-approved.
+
+137
+00:13:57,888 --> 00:14:07,268
+so guitar supports these things out of the box, and you can also add additional custom rules which are plain English that you can use to like get the approval and merge on.
+
+138
+00:14:07,630 --> 00:14:12,208
+And we are seeing like teams who are like very AI native starting to adopt these more and more.
+
+139
+00:14:12,368 --> 00:14:23,100
+We see, I think, on our platform the rate at which folks are adopting like the auto approval and auto merge grow really quickly across teams, even from large teams to like 100 plus 2,000
+
+140
+00:14:23,342 --> 00:14:23,812
+plus developers.
+
+141
+00:14:24,654 --> 00:14:26,608
+So here's an example of approval policies.
+
+142
+00:14:26,688 --> 00:14:30,608
+So if it's a dependency bump and dock changes, we should be approving them.
+
+143
+00:14:30,798 --> 00:14:35,908
+Any changes under sensitive stuff like payments or auth might need a human approver on top.
+
+144
+00:14:36,398 --> 00:14:43,300
+And then, of course, you don't want to have the agent who made the change approve its change because that would not be zero trust.
+
+145
+00:14:44,110 --> 00:14:55,556
+So in this case, as agents are generating PRs, the PRs are getting approved. When there is a new change that doesn't meet the criteria, then we would have to escalate to another approver.
+
+146
+00:14:55,854 --> 00:15:01,028
+And this can be done with your own agents, of course, but also GitHub supposed is out of the box if you want to try
+
+147
+00:15:03,086 --> 00:15:11,204
+And the other problem with just relying on CI today is that just because CI is green, as I mentioned, doesn't mean the code is compliant in many cases.
+
+148
+00:15:11,726 --> 00:15:17,444
+So in this case, the CI is passing and there is some metadata that we have about
+
+149
+00:15:18,446 --> 00:15:27,620
+it. On the rerun, a flaky test is going to fail, which means that when you force push to fix that thing, now the branch is pointing at another piece of code.
+
+150
+00:15:28,206 --> 00:15:33,568
+So the problem with this is that over time, most CI data is going to be expired.
+
+151
+00:15:33,774 --> 00:15:40,768
+So unless you have a record of what happened and what was fixed, you will not be able to be compliant or be able to audit what actually
+
+152
+00:15:40,768 --> 00:15:45,124
+happened. Which is why I think things like agent trajectories and like your
+
+153
+00:15:46,350 --> 00:15:49,088
+outcomes after each push are very, very important.
+
+154
+00:15:49,358 --> 00:15:56,612
+So whatever information you can record on the PR or any other system of record is going to be a source of truth as your artifacts expire.
+
+155
+00:15:58,062 --> 00:16:03,780
+So the control here is making sure that the change was approved and tested by someone who did not write it.
+
+156
+00:16:04,110 --> 00:16:06,084
+If you don't have that information, it could be a problem.
+
+157
+00:16:07,342 --> 00:16:11,780
+So here's an example. We have a pipeline that failed in the left and the pipeline that passed.
+
+158
+00:16:12,238 --> 00:16:21,220
+But the difference here is that if you record properly why the failure occurred and someone else was able to approve it, because it was a known failure mode,
+
+159
+00:16:21,710 --> 00:16:24,132
+and it was saved with the change that made it in.
+
+160
+00:16:24,528 --> 00:16:29,568
+this thing actually passes your checks versus something where you don't have a record of what happened.
+
+161
+00:16:29,648 --> 00:16:39,524
+but you just blindly trust the agent pushing code because it could be a test that was actually not high quality. There was no record of all the compliance checks that were like recorded.
+
+162
+00:16:39,822 --> 00:16:41,956
+So you want to make sure that on the
+
+163
+00:16:43,310 --> 00:16:51,236
+more sensitive industries, you want to have all of these decisions recorded as rules or compliance checks on top of your PR in addition to code review.
+
+164
+00:16:53,678 --> 00:16:57,088
+So, what are some of the kinds of records that we want to keep?
+
+165
+00:16:57,294 --> 00:17:01,248
+So, here's a few that we keep on Nokitar, which I think are just examples.
+
+166
+00:17:01,614 --> 00:17:02,660
+It could be different for folks.
+
+167
+00:17:03,086 --> 00:17:07,168
+So, for example, which coding agent made the PR?
+
+168
+00:17:07,374 --> 00:17:09,248
+Where did the PR originate from?
+
+169
+00:17:09,518 --> 00:17:11,204
+What was the session that originated it?
+
+170
+00:17:11,648 --> 00:17:13,568
+And who actually started it?
+
+171
+00:17:13,728 --> 00:17:18,916
+Could it be a trigger from an automated workflow or could it be just an engineer doing prompting?
+
+172
+00:17:19,470 --> 00:17:29,968
+And for each of these like CIs that run, what is the commit where CI was trusted and the same test report, not just the status, and making sure that each finding has a
+
+173
+00:17:30,288 --> 00:17:35,684
+record of how it was resolved, was it dismissed, was it followed up, was it like fixed on the PR?
+
+174
+00:17:36,206 --> 00:17:44,516
+And then making sure the approval is someone apart from the bot that was prompted by the same person, and making sure that any overrides are explicitly named.
+
+175
+00:17:44,608 --> 00:17:53,988
+So if there is a red build or like a controlled code coverage script, you want to make sure there's a reason for when, why that check failed and why we're okay with that in that scenario.
+
+176
+00:17:54,702 --> 00:18:01,728
+And making sure that the code that merges actually has all this and it's not like a small change on top that was merged.
+
+177
+00:18:01,808 --> 00:18:03,332
+So all the checks are on every single time.
+
+178
+00:18:04,654 --> 00:18:07,968
+So in this case, we want to make sure that agents cannot approve their own changes.
+
+179
+00:18:08,206 --> 00:18:10,916
+Engineer who prompted it is also not an author.
+
+180
+00:18:11,728 --> 00:18:14,372
+And if you have these practices in place,
+
+181
+00:18:15,246 --> 00:18:21,828
+now we can actually start removing some of these bottlenecks because the CI being faster will unblock your pills.
+
+182
+00:18:22,208 --> 00:18:24,356
+So your flow is much nicer.
+
+183
+00:18:24,622 --> 00:18:31,588
+And making sure you can like move some checks left will also make sure that your test load is going to be reduced quite a bit on the CI side.
+
+184
+00:18:32,174 --> 00:18:40,208
+If you can automate review for the most part and only escalate to humans for exceptional cases and potentially even auto-approve
+
+185
+00:18:40,528 --> 00:18:50,688
+low risk or internal changes, then you remove further bottlenecks and then you have less data just reaching humans for a software factory to perform to its
+
+186
+00:18:50,958 --> 00:18:51,332
+potential.
+
+187
+00:18:52,142 --> 00:19:01,124
+And of course, after every single approval and merge, you want to record what happened because as factories are going to ramp up, if you don't have an idea of what happened in the past,
+
+188
+00:19:01,582 --> 00:19:06,948
+that context is going to be very useful on how to like iterate and make your software better over time.
+
+189
+00:19:08,048 --> 00:19:09,328
+That's it for me.
+
+190
+00:19:09,568 --> 00:19:14,628
+I would love for you folks to also try our guitar and see how you can improve your software factories.
+
+191
+00:19:15,150 --> 00:19:17,988
+And with that, thank you so much for your time.
+

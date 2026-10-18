@@ -17,6 +17,7 @@
 | [Ultimate Guide to ChatGPT in 2026 (Updated for ChatGPT 6 Astra)](medias/FWYV4/) | Skill Leap AI | 2026-10-17 |
 | [Staffing an Entire Agency With AI Agents (Agent-Native Agency Workshop, Session 2)](medias/DAC19/) | Eugene Vyborov | 2026-10-17 |
 | [Generative AI Course 2026 \| Gen AI Full Course for Beginners \| ChatGPT, Claude & Gemini](medias/ANTA9/) | Great Learning | 2026-10-17 |
+| [Rebuilding CI for AI-Scale Commit Volume — Gautam Korlam, Sonar](medias/ACV6K/) | AI Engineer | 2026-10-17 |
 | [Grok Bot Just Got 4 HUGE Upgrades (It’s WAY Better Now)](medias/8JNA3/) | Riley Brown | 2026-10-17 |
 | [Harness Engineering: Building the Production Cage for Powerful Domain Agents — Mike Chambers, AWS](medias/6JJX8/) | AI Engineer | 2026-10-17 |
 | [How I Build AI Teammates With Claude Code - Grok Bot Clone](medias/5WZEZ/) | Code With Antonio | 2026-10-17 |
