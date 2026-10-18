@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [Do these 7 Things Immediately When Building Apps with AI](medias/4RZJA/) | Mikey No Code | 2026-10-18 |
 | [Memory-Aware Agent Harnesses for Anti-Money Laundering — Nacho Martinez, Oracle](medias/ZTEJ3/) | AI Engineer | 2026-10-17 |
 | [ChatGPT Dots Is WAY More Powerful Than You Think](medias/WPAZW/) | Riley Brown | 2026-10-17 |
 | [How to Choose Your Personal Agent](medias/W7H9Y/) | The AI Daily Brief: Artificial Intelligence News | 2026-10-17 |
