@@ -20,6 +20,7 @@
 | [Rebuilding CI for AI-Scale Commit Volume — Gautam Korlam, Sonar](medias/ACV6K/) | AI Engineer | 2026-10-17 |
 | [Grok Bot Just Got 4 HUGE Upgrades (It’s WAY Better Now)](medias/8JNA3/) | Riley Brown | 2026-10-17 |
 | [Harness Engineering: Building the Production Cage for Powerful Domain Agents — Mike Chambers, AWS](medias/6JJX8/) | AI Engineer | 2026-10-17 |
+| [AI Agents Cut 3-Day Portfolio Builds to Minutes — Jack McDonald, Apollo & Michael Manapat, Rowspace](medias/61PTS/) | AI Engineer | 2026-10-17 |
 | [How I Build AI Teammates With Claude Code - Grok Bot Clone](medias/5WZEZ/) | Code With Antonio | 2026-10-17 |
 | [Microsoft Copilot Agent Builder Just Got WAY Better](medias/44C0K/) | Shane Young | 2026-10-17 |
 | [Visiting Taiwan w/ Jensen Huang \| Lex Fridman](medias/3Q1VN/) | Lex Fridman | 2026-10-17 |
