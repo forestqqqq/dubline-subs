@@ -28,6 +28,7 @@
 | [How I Build AI Teammates With Claude Code - Grok Bot Clone](medias/5WZEZ/) | Code With Antonio | 2026-10-17 |
 | [Microsoft Copilot Agent Builder Just Got WAY Better](medias/44C0K/) | Shane Young | 2026-10-17 |
 | [Visiting Taiwan w/ Jensen Huang \| Lex Fridman](medias/3Q1VN/) | Lex Fridman | 2026-10-17 |
+| [Your AI Isn’t the Problem. Your Infrastructure Is. — Jiachen Jiang, Coder](medias/346RY/) | AI Engineer | 2026-10-17 |
 | [Build, Evaluate & Scale Your First Production AI Agent \| AI Agent Tutorial \|  Edureka](medias/2EM7B/) | edureka! | 2026-10-17 |
 | [Claude's New Updates Are Insane… But Grok Bot Is EVEN Bigger](medias/22XQA/) | Riley Brown | 2026-10-17 |
 | [Claude Agent SDK Tutorial – Build AI Agents with Claude Code](medias/1RNVT/) | ExamPro | 2026-10-17 |
