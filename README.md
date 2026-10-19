@@ -9,6 +9,7 @@
 | [Why Your AI Agent Fails in Production (And How to Catch It)](medias/9CYYJ/) | Google Cloud Tech | 2026-10-19 |
 | [Using Jev In Your Agent Harness](medias/7EJ13/) | Sam Witteveen | 2026-10-19 |
 | [GPT-7 'Bel' First Preview, Mythos 5.1 Access, Mistral Large 4, Claude Code Update, & More! AI NEWS](medias/5PX6R/) | WorldofAI | 2026-10-19 |
+| [I moved off of Next.js](medias/1ZV7G/) | Theo - t3․gg | 2026-10-19 |
 | [Do these 7 Things Immediately When Building Apps with AI](medias/4RZJA/) | Mikey No Code | 2026-10-18 |
 | [Memory-Aware Agent Harnesses for Anti-Money Laundering — Nacho Martinez, Oracle](medias/ZTEJ3/) | AI Engineer | 2026-10-17 |
 | [ChatGPT Dots Is WAY More Powerful Than You Think](medias/WPAZW/) | Riley Brown | 2026-10-17 |

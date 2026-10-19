@@ -1,0 +1,2444 @@
+1
+00:00:00,000 --> 00:00:01,520
+No, the title isn't clickbait.
+
+2
+00:00:01,600 --> 00:00:04,240
+We did actually move T3 chat off of Next.js.
+
+3
+00:00:04,640 --> 00:00:08,400
+There's a lot of reasons for this, and man, it's been a wild journey.
+
+4
+00:00:08,622 --> 00:00:10,960
+I know your first question, what did you move to?
+
+5
+00:00:11,310 --> 00:00:12,036
+Tan stack.
+
+6
+00:00:12,398 --> 00:00:24,960
+This was quite a PR. Shout out to Julius for all of the work to make this happen, as well as the rest of the team for the 478 comments on his 14,000 lines added and 10,000 lines removed
+
+7
+00:00:25,120 --> 00:00:25,476
+PR.
+
+8
+00:00:25,920 --> 00:00:28,196
+Yeah, this one was a doozy.
+
+9
+00:00:28,560 --> 00:00:33,120
+There has been a lot for us to do and even more to learn as a result of this migration.
+
+10
+00:00:33,486 --> 00:00:41,760
+And as much as I'm loving Tanstack Start, and believe me, we are loving it, it's a very, very good framework that is a solution to a lot of problems that we and many other developers have.
+
+11
+00:00:42,030 --> 00:00:43,920
+There are plenty of catches as well.
+
+12
+00:00:44,238 --> 00:00:50,084
+This was not an easy migration, and the reasons it was hard were not ones any of us would have predicted or expected.
+
+13
+00:00:50,670 --> 00:00:58,724
+We're at the point where we're patching Tanstack Start in order to add things we need to be exported so we can actually make this work at our size and scale.
+
+14
+00:00:59,278 --> 00:01:00,324
+It was worth it though.
+
+15
+00:01:00,846 --> 00:01:03,040
+The reasons why are not the usual.
+
+16
+00:01:03,342 --> 00:01:09,200
+If you're watching this video, so you can hear me complain about NextJS a whole bunch, you're in the wrong video. This is not going to be that.
+
+17
+00:01:09,454 --> 00:01:18,692
+If you think we made this move because we are scared of the exploit that I just covered recently, you're probably too bad of a developer to watch my channel, and I would recommend finding another.
+
+18
+00:01:19,054 --> 00:01:26,720
+But if you're interested in a deep dive on how a company shipping to millions of users thinks about their technology stack and makes changes in order to make the best
+
+19
+00:01:26,720 --> 00:01:32,240
+possible product and have the best experience for its developers, stay tuned because we have a lot to dive into here.
+
+20
+00:01:32,494 --> 00:01:40,036
+As you guys know, Vercel is not paying me anymore. And after this, I sincerely doubt they would want to. So let's hear a quick word from today's sponsor and then we'll dive in.
+
+21
+00:01:40,270 --> 00:01:41,120
+We all know the meme.
+
+22
+00:01:41,200 --> 00:01:42,500
+Have you checked if it's DNS?
+
+23
+00:01:42,720 --> 00:01:45,760
+It's so common that DNS problems result in things going down.
+
+24
+00:01:45,934 --> 00:01:47,360
+But I have a theory about this.
+
+25
+00:01:47,598 --> 00:01:49,680
+I don't think the problem with DNS is DNS.
+
+26
+00:01:49,902 --> 00:01:52,320
+I think the problem with DNS is how we interact with it.
+
+27
+00:01:52,494 --> 00:01:59,280
+These crappy old ancient web interfaces that have a bunch of weird hidden fields trying to make things work is not the way we should be doing things.
+
+28
+00:01:59,502 --> 00:02:07,840
+In an ideal world, we're programmers. We should be able to program against our DNS. We should be able to write code that takes control of how our domain servers work.
+
+29
+00:02:08,142 --> 00:02:10,400
+And that's why DN Simple is blowing me away.
+
+30
+00:02:10,606 --> 00:02:12,080
+They're not yet another registry.
+
+31
+00:02:12,462 --> 00:02:13,360
+There's so much more than that.
+
+32
+00:02:13,582 --> 00:02:18,660
+They're focused on being the best possible developer experience for deploying and managing your domains.
+
+33
+00:02:18,880 --> 00:02:22,000
+Everything from support to the SDKs they provide really shows that.
+
+34
+00:02:22,222 --> 00:02:26,960
+They have an SDK for every major language, even Elixir, which obviously is something close to my heart.
+
+35
+00:02:27,120 --> 00:02:29,520
+And the things you can do with them are so cool.
+
+36
+00:02:29,838 --> 00:02:37,520
+We're talking like four lines of code to create records on your domains. You're trying to set up some vibe coding platform where people can deploy things on a subdomain.
+
+37
+00:02:37,680 --> 00:02:40,080
+I cannot imagine an easier way to do that than DNSimple.
+
+38
+00:02:40,366 --> 00:02:46,880
+Whether it's a side project or a big thing, like, you know, the Linux Foundation or the RubyGems ecosystem, all of which run on DNS simple, by the way.
+
+39
+00:02:47,086 --> 00:02:47,920
+They have you handled.
+
+40
+00:02:48,080 --> 00:02:51,200
+They even have Terraform configurations. Like, what?
+
+41
+00:02:51,470 --> 00:02:56,740
+I couldn't fathom having my domains managed through Terraform until now. And it just makes sense.
+
+42
+00:02:57,200 --> 00:03:02,800
+Like, duh, that's where we should be putting this information. It oh, the amount of like, what?
+
+43
+00:03:02,960 --> 00:03:08,080
+This is how we should always have been doing it moments. I have had the more I've looked into DN Simple is genuinely hilarious.
+
+44
+00:03:08,366 --> 00:03:15,120
+And a lot of that's because the team is all engineers. Everybody in marketing and support writes real code and relates to us as developers.
+
+45
+00:03:15,438 --> 00:03:20,240
+If DNS is causing you problems or holding you back, you really should give them a shot at soydev.link slash dn simple.
+
+46
+00:03:20,560 --> 00:03:29,860
+In order to answer the question, why are we moving off of next? We first have to answer a more interesting question Why did we use it in the first place?
+
+47
+00:03:30,702 --> 00:03:37,956
+And this question is actually, in my opinion, more interesting and more complex than the bigger one of why we moved off.
+
+48
+00:03:38,478 --> 00:03:45,888
+When I was building T3 chat, I had a couple specific goals in mind. I wanted it to be as fast as possible as an application you would use.
+
+49
+00:03:45,968 --> 00:03:49,728
+Like you click things, they happen immediately, you send a message, you get a response as quickly as possible.
+
+50
+00:03:49,968 --> 00:03:56,036
+We really wanted it to feel and be as fast as reasonably achievable by us as a small team.
+
+51
+00:03:56,430 --> 00:04:03,492
+I also wanted it to be scalable in more senses than just it will deploy across as many servers as we need it to for as many users as we have.
+
+52
+00:04:03,790 --> 00:04:10,448
+I also wanted the code base itself to be written in a scalable way where we could add new functionality, we could extend portions, we could add features,
+
+53
+00:04:10,608 --> 00:04:16,420
+we could keep building on it without feeling like we're drowning under the weight of what we had built into.
+
+54
+00:04:16,718 --> 00:04:25,808
+I also didn't want to waste a ton of time trying to build the relationship between the server side and client side, especially because I knew we would be changing the server side a lot throughout.
+
+55
+00:04:25,998 --> 00:04:33,968
+So I wanted to make sure everything would stay in sync relatively well because our client side logic initially was all about syncing our like data,
+
+56
+00:04:34,048 --> 00:04:41,408
+because I put so much effort into our custom sync engine that if the back end and front end ever disagreed, you'd be at risk of losing all of your data.
+
+57
+00:04:41,806 --> 00:04:47,248
+So the key pieces that we wanted were scalable design, server client in sync.
+
+58
+00:04:47,758 --> 00:04:53,700
+And when I say in sync, I don't mean our CDN deploys within 30 seconds to two minutes of our servers changing.
+
+59
+00:04:54,094 --> 00:05:03,204
+I mean it's really hard for those things to be out of sync. That whenever you're on our site and you do a thing, the back end and front end are the same version and understand each other.
+
+60
+00:05:03,502 --> 00:05:09,568
+Alongside that, I wanted an easy way to deploy TS in sync specifically.
+
+61
+00:05:09,774 --> 00:05:16,368
+I wanted to make sure the server and client were all TypeScript, everything was agreed from the front to the back, and it was easy for us to keep those parts attached.
+
+62
+00:05:16,750 --> 00:05:17,892
+Obviously, I wanted React.
+
+63
+00:05:18,542 --> 00:05:19,044
+Duh.
+
+64
+00:05:19,438 --> 00:05:23,428
+I didn't want server components though, because I wanted everything to be client-side focused.
+
+65
+00:05:24,014 --> 00:05:25,252
+And most importantly,
+
+66
+00:05:26,062 --> 00:05:34,528
+I wanted to bet on boring tech. I know this doesn't seem very much like me, but the core library that powered most of T3
+
+67
+00:05:34,688 --> 00:05:38,768
+chat in its initial version was a beautiful library.
+
+68
+00:05:38,990 --> 00:05:41,060
+I still miss all of the time.
+
+69
+00:05:41,390 --> 00:05:48,048
+We were building on top of IndexedDB, which is a browser standard for storing more data than you can store in local storage.
+
+70
+00:05:48,334 --> 00:05:56,290
+It was meant to replace WebSQL, which sucks because WebSQL is a much better standard, and IndexedDB is it's a standard, roughly, but index DB
+
+71
+00:05:56,654 --> 00:06:04,964
+is so unreliable, especially across different browsers, that back in the IE7 days, Dexy was created in order to
+
+72
+00:06:05,390 --> 00:06:06,724
+make it all viable. Dexy
+
+73
+00:06:07,968 --> 00:06:12,676
+is ancient, even if the website doesn't look like it. It's actually we have never seen the website in this state.
+
+74
+00:06:13,248 --> 00:06:14,980
+They redid it recently.
+
+75
+00:06:15,918 --> 00:06:19,940
+And if we go back to when I adopted it, which would have been in January of this year,
+
+76
+00:06:22,766 --> 00:06:23,812
+this is what it looked like.
+
+77
+00:06:25,838 --> 00:06:27,204
+And you can kind of tell
+
+78
+00:06:28,910 --> 00:06:29,568
+it's older.
+
+79
+00:06:29,934 --> 00:06:32,688
+That doesn't mean it's bad, it just means it's old.
+
+80
+00:06:32,768 --> 00:06:39,556
+And in fact, its age was one of the factors that made me really excited to use it because it was super reliable.
+
+81
+00:06:40,078 --> 00:06:47,780
+The only issues I had with Dexy were things that lived underneath it because indexed DB is a shit standard.
+
+82
+00:06:48,288 --> 00:06:51,888
+I really enjoyed using Dexy. This is the library that powered everything.
+
+83
+00:06:52,110 --> 00:06:54,608
+It was boring, it was old, it was great.
+
+84
+00:06:54,926 --> 00:06:59,488
+All of that said, building my own sync engine was rough. So that ended up being one of the first things we removed.
+
+85
+00:06:59,726 --> 00:07:02,276
+Not Dexy, but the whole concept of us running our own sync.
+
+86
+00:07:02,766 --> 00:07:07,396
+But I was really thinking about all of this when I made the choices I made for T3 chat.
+
+87
+00:07:07,790 --> 00:07:09,764
+So, how does Next play into these?
+
+88
+00:07:10,254 --> 00:07:18,180
+Well, believe it or not, there are a lot of companies that are deploying gigantic Next.js apps without too many issues, especially now with TurboPack finally happening.
+
+89
+00:07:18,606 --> 00:07:26,404
+On top of that, the Next.js way of building and deploying, especially when you use products like Vercel, Netlify, or Cloudflare, tends to scale very well.
+
+90
+00:07:26,830 --> 00:07:28,496
+So it was a pretty easy choice for that.
+
+91
+00:07:28,942 --> 00:07:35,056
+Server client in sync, this is one of the biggest things that Next.js gave us, alongside things like SKU protection on Vercel,
+
+92
+00:07:35,296 --> 00:07:38,308
+where you can make sure the front and the back end are the same at all times.
+
+93
+00:07:38,670 --> 00:07:45,136
+And our little hacks we did to let you know on client that your version's out of date and you have to refresh made it really easy to keep things in sync.
+
+94
+00:07:45,358 --> 00:07:52,576
+What I actually wanted to deploy though, if we were to host the servers one place and the client another, keeping those in sync in time and making the code base
+
+95
+00:07:52,656 --> 00:07:56,932
+easy to work with between the two was non-trivial, unless we used a framework like Next.
+
+96
+00:07:57,262 --> 00:08:05,136
+Even though the backend and front end were very much separate, having them in the same project in the same package JSON made it way easier to deploy, revert,
+
+97
+00:08:05,358 --> 00:08:06,980
+fall back, and keep everything in sync.
+
+98
+00:08:07,406 --> 00:08:12,452
+I have done the thing where you split your backend and front end up, even though they could theoretically be together.
+
+99
+00:08:12,718 --> 00:08:15,936
+And it just makes a lot of random shit way, way harder.
+
+100
+00:08:16,270 --> 00:08:21,796
+Like the amount of times we had to freeze an old deployment or roll back as a result of a migration like this.
+
+101
+00:08:22,286 --> 00:08:31,844
+If you have to go do that in multiple places and hope to keep things in sync, especially if you have a local DB that people are using that you did a migration on, good luck migrating it backwards.
+
+102
+00:08:32,366 --> 00:08:35,056
+It seems like there's some confusion about keeping the front end and back end in sync.
+
+103
+00:08:35,136 --> 00:08:36,016
+I'll make this simple.
+
+104
+00:08:36,206 --> 00:08:38,256
+Let's say you have a front end and a backend.
+
+105
+00:08:38,766 --> 00:08:40,004
+You have a version for each.
+
+106
+00:08:40,334 --> 00:08:44,164
+You are on version 1.0.0 for the front end and for the backend.
+
+107
+00:08:44,686 --> 00:08:50,336
+Now you make a change, and that change affects the signature of data. So you do a minor bump.
+
+108
+00:08:50,416 --> 00:08:51,844
+You make it 1.1.0.
+
+109
+00:08:52,270 --> 00:08:56,676
+In sync means that a user on the old version isn't hitting the new version.
+
+110
+00:08:57,006 --> 00:09:04,260
+In sync means if I have to revert the back end deployment because something went wrong, that a user on the new version isn't hitting the old version.
+
+111
+00:09:04,846 --> 00:09:12,496
+In sync effectively means in an ideal world, these things are compartmentalized and boxed and tied tightly together.
+
+112
+00:09:12,846 --> 00:09:15,376
+If your front end's on version 1.0.0, your back end is.
+
+113
+00:09:15,456 --> 00:09:17,764
+If your front end's on 1.1, your backend is.
+
+114
+00:09:18,416 --> 00:09:25,636
+You want these to stay in sync because the amount of bugs that occur when your front end and back end are out of sync is absurd.
+
+115
+00:09:26,094 --> 00:09:28,416
+And it is a lot easier if they are served together.
+
+116
+00:09:28,814 --> 00:09:36,976
+Hopefully you can now understand why these two things are very important to me. I want to have a thing running on my machine, see everything is fine, hit deploy, and have everything still be fine.
+
+117
+00:09:37,166 --> 00:09:42,020
+Especially if we have to worry about regressions, migrations, reverts, and all of those types of things.
+
+118
+00:09:42,350 --> 00:09:44,356
+Having stuff in sync makes life much easier.
+
+119
+00:09:44,736 --> 00:09:45,188
+Period. We
+
+120
+00:09:45,856 --> 00:09:48,932
+also wanted to use React. I should not have to justify that one.
+
+121
+00:09:49,358 --> 00:09:51,056
+We use React, our whole team knows React.
+
+122
+00:09:51,182 --> 00:09:53,936
+The tech that we're building around is all built in and for React.
+
+123
+00:09:54,030 --> 00:09:55,216
+It is a good ecosystem.
+
+124
+00:09:55,406 --> 00:09:56,452
+The performance is fine.
+
+125
+00:09:56,736 --> 00:10:00,132
+The worst performing AI chat up I ever used was written in Svelte.
+
+126
+00:10:00,576 --> 00:10:01,536
+So yeah.
+
+127
+00:10:01,966 --> 00:10:04,096
+Framework is not what makes your site slow.
+
+128
+00:10:04,256 --> 00:10:12,100
+If your framework is actually what's making your site slow, you're either God to your dev and shouldn't be talking about it, or you're a terrible dev and also shouldn't be talking about it.
+
+129
+00:10:12,686 --> 00:10:15,364
+And then this bottom piece here, I wanted to bet on boring tech.
+
+130
+00:10:16,046 --> 00:10:22,820
+Whether or not you love Next.js or all the cool things that have shipped in it, if you don't use any of those new things, Next is very boring.
+
+131
+00:10:23,214 --> 00:10:25,056
+And we were not using any of those new things.
+
+132
+00:10:25,296 --> 00:10:25,924
+In fact,
+
+133
+00:10:26,574 --> 00:10:31,748
+one of the better but also worse decisions I made was how we abuse the Next.js router.
+
+134
+00:10:32,174 --> 00:10:41,216
+Since the Next router kind of assumes server and client, where when you navigate to a page, you might have to load the page from the server, trigger some other functions,
+
+135
+00:10:41,376 --> 00:10:42,756
+and then get it on client.
+
+136
+00:10:43,150 --> 00:10:49,696
+The type of snappy you click in your there navigation that I was aiming for wasn't super viable with the Next.js router.
+
+137
+00:10:50,030 --> 00:10:57,956
+The NextJS router was super focused on server render, client render hybrid apps, or full server rendered apps, not on client focused apps.
+
+138
+00:10:58,350 --> 00:10:59,776
+I really wanted our app to fly.
+
+139
+00:10:59,936 --> 00:11:03,012
+Once you load the JS, you click a thing, you're there immediately.
+
+140
+00:11:03,534 --> 00:11:05,540
+So our stack ended up being interesting.
+
+141
+00:11:06,414 --> 00:11:08,324
+Our stack at launch was Next.js,
+
+142
+00:11:09,102 --> 00:11:10,948
+but it also wasn't using the next router.
+
+143
+00:11:11,406 --> 00:11:13,092
+I hacked in React router.
+
+144
+00:11:13,646 --> 00:11:24,100
+I did some nasty things to make that work. In particular, I set up a rewrite rule that would redirect all URLs that weren't bound to go to the index HTML effective file
+
+145
+00:11:24,590 --> 00:11:34,144
+because that would allow you to reroute the traffic. And if you go to a URL that doesn't exist, because it doesn't exist in the project, like let me switch to an old version of D3 chat code base.
+
+146
+00:11:34,304 --> 00:11:35,396
+Give me one sec to do that.
+
+147
+00:11:35,904 --> 00:11:41,184
+Here is all of the routes that we had in our app back when it was still on Next.js.
+
+148
+00:11:41,710 --> 00:11:46,212
+If you've seen the source app directory in a Next project, it's probably full of a lot of different things.
+
+149
+00:11:46,574 --> 00:11:47,204
+Ours isn't.
+
+150
+00:11:47,470 --> 00:11:51,424
+We have API, which has a couple API endpoints because that's again what we were using Next for.
+
+151
+00:11:51,504 --> 00:12:00,420
+We were effectively using it as an easy way to bundle a React client-side app and a TypeScript server-side app together so they would deploy together, be served together, and stay in sync.
+
+152
+00:12:00,686 --> 00:12:09,316
+So we have our APIs for things like TRPC upload thing, status server version, and some internal stuff that we were using for migrations for data. That's all been deprecated long ago.
+
+153
+00:12:09,646 --> 00:12:12,624
+And then we had our chat endpoint, which was our main chat.
+
+154
+00:12:12,846 --> 00:12:16,864
+This is what would serve the request that will actually generate the text for your app.
+
+155
+00:12:17,230 --> 00:12:19,940
+We also have this max duration thing, which I'm sure we'll get to in a little bit.
+
+156
+00:12:20,398 --> 00:12:20,900
+Fun hack.
+
+157
+00:12:21,134 --> 00:12:22,788
+But the pages was pretty boring.
+
+158
+00:12:23,310 --> 00:12:24,452
+We have the status page.
+
+159
+00:12:24,814 --> 00:12:28,932
+We have our docs pages for like terms of service, privacy policy, FAQ, security, all that.
+
+160
+00:12:29,294 --> 00:12:30,756
+And then we had the app shell.
+
+161
+00:12:31,104 --> 00:12:33,380
+This is where all of our app was served from.
+
+162
+00:12:34,062 --> 00:12:35,492
+Yes, the whole thing.
+
+163
+00:12:35,886 --> 00:12:38,532
+This is the cursed file that defines the entire client-side app.
+
+164
+00:12:38,766 --> 00:12:41,796
+I'm using React Router because I want a great client first experience.
+
+165
+00:12:42,144 --> 00:12:44,068
+This commit was 11 months ago.
+
+166
+00:12:45,102 --> 00:12:45,732
+Beautiful.
+
+167
+00:12:46,414 --> 00:12:54,384
+We also had this four statics, just brute forcing Next.js to always render this as a static page and not server render it ever, as well as this SSR false,
+
+168
+00:12:54,624 --> 00:12:58,756
+which specifically tells Next during both build and when serving this,
+
+169
+00:12:59,504 --> 00:13:01,904
+do not render this on this page.
+
+170
+00:13:02,094 --> 00:13:05,380
+Do not mount this and render whatever HTML comes out.
+
+171
+00:13:05,902 --> 00:13:09,264
+Just render an empty div and we'll put this in at client later.
+
+172
+00:13:09,518 --> 00:13:14,544
+This file was how I brute forced Next.js to allow me to use React Router, but that's not all.
+
+173
+00:13:14,784 --> 00:13:17,508
+Because now we have this static app shell route.
+
+174
+00:13:17,774 --> 00:13:23,844
+But what about the main route? What about like the core page? What about index? What about the chat routes?
+
+175
+00:13:24,206 --> 00:13:26,864
+This doesn't handle the other routes. In fact, it doesn't handle any route.
+
+176
+00:13:27,086 --> 00:13:29,124
+And nobody's going to slash static app shell on our app.
+
+177
+00:13:29,710 --> 00:13:31,424
+So how did we handle all of that?
+
+178
+00:13:31,822 --> 00:13:35,524
+Here's where we get into my more hardcore abuse of next.
+
+179
+00:13:36,014 --> 00:13:38,464
+We hop into the rewrite section here.
+
+180
+00:13:38,830 --> 00:13:42,020
+Routes that aren't in our file-based routing should be handled by React Router.
+
+181
+00:13:42,144 --> 00:13:44,804
+This is the only way to make all of those routes static.
+
+182
+00:13:45,198 --> 00:13:53,824
+Because if we were to dynamically reroute traffic based on what route you're on, that would become server-side. And now we're not getting those client-side benefits I'm aiming for.
+
+183
+00:13:54,094 --> 00:14:03,024
+So we wanted to make sure all traffic that doesn't go to an existing URL, because like if it goes to slash API slash event, or if it goes to slash API slash chat,
+
+184
+00:14:03,104 --> 00:14:05,476
+we want it to be rendered with other things.
+
+185
+00:14:05,934 --> 00:14:12,612
+But we also want to make sure all fallback URLs, so like the 404s and everything, go to our static app shell.
+
+186
+00:14:12,942 --> 00:14:22,852
+So here is the hack we have this app shell redirect where all sources will be sent to the static app shell unless they have this XTRPC key.
+
+187
+00:14:22,958 --> 00:14:25,924
+Because TRPC also has a glob pattern.
+
+188
+00:14:26,384 --> 00:14:28,484
+I tried putting in here originally, didn't work.
+
+189
+00:14:28,750 --> 00:14:36,704
+Since TRPC's endpoint can have additional like sub paths, it was impossible for us to get that to work without using custom headers
+
+190
+00:14:36,704 --> 00:14:44,068
+in order to identify which traffic was supposed to be handled by TRPC because otherwise the TRPC traffic would be routed to static app shell and wouldn't work.
+
+191
+00:14:44,494 --> 00:14:45,024
+Not fun.
+
+192
+00:14:45,454 --> 00:14:46,784
+See, static means static.
+
+193
+00:14:47,022 --> 00:14:51,172
+And then this was 10 months ago we moved to TRPC, fixed TRPC queries getting eaten by the rewrites.
+
+194
+00:14:51,790 --> 00:14:52,132
+Yeah.
+
+195
+00:14:52,544 --> 00:14:59,024
+I cannot properly explain how many random bullshit things were caused by this.
+
+196
+00:14:59,630 --> 00:15:02,544
+On one hand, it was less than expected. I'm surprised this worked at all.
+
+197
+00:15:02,704 --> 00:15:05,584
+On the other hand, this was hellish and nobody should do it.
+
+198
+00:15:05,902 --> 00:15:11,744
+If the Next.js router is not the right router for your app, the NextJS is not the right framework for your app, move out of it.
+
+199
+00:15:11,950 --> 00:15:18,852
+As soon as I added this to the code base, I understood that Next.js was not the long term solution for T3 chat.
+
+200
+00:15:19,118 --> 00:15:22,916
+It was a temp solution until we had a better path that made more sense to us.
+
+201
+00:15:23,406 --> 00:15:26,404
+At that exact time, I started exploring other options.
+
+202
+00:15:26,990 --> 00:15:30,624
+So your next React Router, indexDB with Dexie.
+
+203
+00:15:31,342 --> 00:15:35,972
+Redis as our DB, mostly just to back up whatever we were doing.
+
+204
+00:15:36,560 --> 00:15:39,972
+And Vercel with Fluid for our runtime.
+
+205
+00:15:40,238 --> 00:15:45,988
+I don't feel like going really deep on Fluid Compute right now. Go watch any of my other videos about it if you want to know more.
+
+206
+00:15:46,542 --> 00:15:54,160
+By March, we were hitting the limits of how I could abuse Redis for this, so we moved this out and replaced it with Planet Scale and left pretty much everything else the same.
+
+207
+00:15:54,574 --> 00:15:56,484
+Then in May and June, we did the convex move.
+
+208
+00:15:56,750 --> 00:16:00,240
+In July, Julia started working on the effect rewrite for the back end.
+
+209
+00:16:00,622 --> 00:16:11,920
+But this whole time, I was thinking in the back of my head, we put ourselves in a weird place using next for this. Around the same time in March, I was exploring what a rewrite would look like here.
+
+210
+00:16:12,142 --> 00:16:15,396
+Also, Vercel hadn't really put up Fluid yet, so I should remove that.
+
+211
+00:16:15,680 --> 00:16:21,040
+I was looking at how crazy our inference time was because we were doing really long requests for these generations.
+
+212
+00:16:21,262 --> 00:16:27,876
+And the way Vercel was scaling that with their existing compute methods was not great because every user got a dedicated lambda for every chat.
+
+213
+00:16:28,142 --> 00:16:35,876
+Fluid made that a lot cheaper, but before Fluid dropped, I wanted to make sure we had an exit plan that we can move to Cloudflare if needed, which should be way cheaper,
+
+214
+00:16:36,110 --> 00:16:43,556
+and that we didn't need to be so reliant on Next, because Next wasn't really benefiting us beyond being an easy way to deploy our TypeScript backend and front end together.
+
+215
+00:16:43,726 --> 00:16:48,900
+and alongside that was causing us problems like these hacks I was doing to force, React Router to work.
+
+216
+00:16:49,294 --> 00:16:52,196
+Since we were on React Router, I wanted to stick with React Router.
+
+217
+00:16:52,334 --> 00:16:56,580
+So my next attempt was Remix, which, if I'm being honest, kind of failed.
+
+218
+00:16:57,070 --> 00:17:05,540
+There were a lot of weird things with how Remix deploys on different platforms that made it kind of hard for us to get it working properly on Cloudflare.
+
+219
+00:17:05,774 --> 00:17:09,444
+Around the same time, React Router server version became more of a thing.
+
+220
+00:17:10,030 --> 00:17:16,480
+So the React Router server friendly edition was something I did explore a lot more and got pretty far with that as well.
+
+221
+00:17:16,814 --> 00:17:18,720
+But I also didn't trust some of the primitives.
+
+222
+00:17:18,800 --> 00:17:28,160
+They hadn't really figured out what they wanted to have for like posts and gets and all of these different solutions for fetching data from a server, defining endpoints, etc.
+
+223
+00:17:28,686 --> 00:17:34,080
+It wasn't quite standard. It was dancing around the standards, and it was really, really poorly documented at the time.
+
+224
+00:17:34,414 --> 00:17:38,852
+And I specifically didn't want to bet on an under-documented, under-explored technology.
+
+225
+00:17:39,438 --> 00:17:45,280
+So the bet I was making was that a VET plus Hano app would be our path forward.
+
+226
+00:17:45,518 --> 00:17:51,040
+I ended up independently in March and April rewriting all of T3 chat to be a VT HANO
+
+227
+00:17:51,040 --> 00:17:54,240
+app and went through hell getting it to deploy on Cloudflare.
+
+228
+00:17:54,798 --> 00:18:00,004
+This was around the time that Cloudflare was trying to kill pages and move it into part of workers.
+
+229
+00:18:00,654 --> 00:18:09,040
+And man, talk about under documented just trying to find a way to have it so the slash API endpoint would be served by Hano
+
+230
+00:18:09,440 --> 00:18:21,440
+and everything else would be served by the static V bundle required me to reverse engineer shit. I was deep in like output bundles that were generated by worker D and by um fucking what's it called?
+
+231
+00:18:21,520 --> 00:18:27,460
+Wrangler to try and figure out how assets were being tagged so I could manually redirect traffic to the right place.
+
+232
+00:18:27,854 --> 00:18:28,960
+It was miserable.
+
+233
+00:18:29,230 --> 00:18:35,520
+Trying to get Cloudflare to point to the right traffic at the right place through a single worker definition was so hellish that when I complained,
+
+234
+00:18:35,600 --> 00:18:42,160
+they ended up going out and putting out a bunch of reference material on how to do it right, as well as public repos that, as far as I know, they do actually maintain now.
+
+235
+00:18:42,350 --> 00:18:50,340
+But also, as far as I know, I was one of the first people to get Vlushano for static deployment for your assets, dynamic deployment for your endpoints
+
+236
+00:18:50,880 --> 00:18:52,640
+working on Cloudflare ever.
+
+237
+00:18:52,942 --> 00:18:53,760
+So I am proud of that.
+
+238
+00:18:54,062 --> 00:19:01,920
+I know I'm the Versailles guy, but I put my time in on Cloudflare and ultimately decided against it because the point of these moves was to get
+
+239
+00:19:01,920 --> 00:19:04,868
+away from these types of hacks and these underdocumented things.
+
+240
+00:19:05,134 --> 00:19:16,800
+And believe it or not, my React router in next thing felt less uncertain than all these other paths that I explored because all of these paths were super underexplored by others.
+
+241
+00:19:16,974 --> 00:19:24,292
+And I really did not want to give up my synchronization piece where the front end and back end deploy together and stay in sync together.
+
+242
+00:19:25,040 --> 00:19:25,360
+So
+
+243
+00:19:26,286 --> 00:19:29,840
+yeah, I didn't like the uncharted territory I was getting into.
+
+244
+00:19:30,158 --> 00:19:35,556
+And then I tried moving a few more things over, and we hit the bundle size limits for Cloudflare functions.
+
+245
+00:19:35,854 --> 00:19:44,080
+Apparently, it's a very common problem in bigger server side rendered frameworks when you're building on Cloudflare. It is very easy to hit limits on how big the bundles can be.
+
+246
+00:19:44,320 --> 00:19:47,588
+Some of our routes are like 20 megs plus in size.
+
+247
+00:19:48,238 --> 00:19:49,796
+And I think Cloudflare's limits two.
+
+248
+00:19:50,414 --> 00:19:55,332
+Yeah, the worker size is limited to three megs for the free tier and 10 megs for the paid tier.
+
+249
+00:19:56,622 --> 00:20:01,600
+Static assets can be much bigger. So the actual assets that you're serving, using, screwing with is fine.
+
+250
+00:20:01,870 --> 00:20:06,340
+But the JS that executes has a relatively low cap in how big it can get.
+
+251
+00:20:06,830 --> 00:20:13,124
+And these caps are easy to hit with the type of stuff that we're doing, especially once we started doing like image compression on the server side and stuff.
+
+252
+00:20:14,158 --> 00:20:18,084
+Even if Cloudflare supported proper node with native bindings, we would hit these limits.
+
+253
+00:20:18,510 --> 00:20:21,828
+People are asking why serve the static assets from the worker and not the CDN.
+
+254
+00:20:22,286 --> 00:20:27,556
+Not that simple. We were serving static assets from the CDN, but our problem wasn't the static assets.
+
+255
+00:20:27,680 --> 00:20:31,684
+Our problem was the server side code and the packages we were using on the server side.
+
+256
+00:20:32,078 --> 00:20:35,840
+So it was relatively easy for us to hit this. Any big app is going to hit this eventually.
+
+257
+00:20:36,046 --> 00:20:38,628
+And we hit it as soon as we started moving over.
+
+258
+00:20:38,958 --> 00:20:42,916
+So once again, decided it's not worth the fighting here to get all of this working.
+
+259
+00:20:43,438 --> 00:20:51,460
+I would have to make our deployment system way more complex and create many different workers for many different routes and find some way to manage this all at a higher level.
+
+260
+00:20:51,758 --> 00:20:58,916
+Not only would the front end and back end not necessarily be in sync, the front end and various different endpoints on the back end would no longer necessarily be in sync.
+
+261
+00:20:59,246 --> 00:21:04,880
+I did look at things like Porter and CloudFront and again concluded more work, little gain.
+
+262
+00:21:05,198 --> 00:21:16,740
+And on top of that, we'd either have to run our own dedicated servers and manage breaking traffic across between them during generations, or build our own equivalent of fluid compute on Lambda,
+
+263
+00:21:17,102 --> 00:21:20,932
+or we can just use Vercel and have the fluid compute on Lambda benefits, which is what we wanted to do.
+
+264
+00:21:21,422 --> 00:21:28,420
+Again, around this time was when Fluid happened, and it made it a lot harder to justify moving to something like Cloudflare or our own servers.
+
+265
+00:21:29,134 --> 00:21:33,988
+Fluid is really good for these types of things. Watch any of my videos about it if you don't understand.
+
+266
+00:21:34,478 --> 00:21:38,596
+Really like this message from chat. Unless you have dedicated system admins, Vercel sounds like a good choice.
+
+267
+00:21:38,926 --> 00:21:39,268
+Yes.
+
+268
+00:21:39,662 --> 00:21:42,720
+At the time, we had two employees, me and Mark.
+
+269
+00:21:42,958 --> 00:21:45,028
+And I'm barely an employee. I have so much other shit to do.
+
+270
+00:21:45,486 --> 00:21:50,660
+Julius was part-time, still finishing up school, but we got him to move here full-time, which was a huge help as well.
+
+271
+00:21:50,990 --> 00:22:00,548
+But our options were limited because we did not have dedicated people running our infrastructure for us. And even if we did, that would slow down our inertia meaningfully.
+
+272
+00:22:01,742 --> 00:22:03,680
+But these were not the only options I explored.
+
+273
+00:22:03,950 --> 00:22:06,532
+I did actually start exploring Tanstack Start at this time.
+
+274
+00:22:06,798 --> 00:22:10,800
+Funny enough, the Tanstack Start port wasn't really started by me.
+
+275
+00:22:11,150 --> 00:22:14,276
+Here was the first attempt at the Tanstack Start PR for T3 chat.
+
+276
+00:22:14,990 --> 00:22:16,320
+Oh shit, I was around the timelines.
+
+277
+00:22:16,400 --> 00:22:17,360
+This was in February.
+
+278
+00:22:17,550 --> 00:22:19,908
+I was exploring other options that early.
+
+279
+00:22:20,526 --> 00:22:22,980
+This one was opened by Tanner himself.
+
+280
+00:22:23,520 --> 00:22:28,388
+He started from my attempt to get React Router working, which you can see here.
+
+281
+00:22:28,718 --> 00:22:30,948
+I was very pumped I finally got it working.
+
+282
+00:22:31,982 --> 00:22:35,588
+And he used that as a starting point to start moving us over to Tannstack.
+
+283
+00:22:35,680 --> 00:22:44,240
+He got pretty far, but concluded that the single-page app stuff wasn't quite where we would want it yet, without even asking. He's just like, I want to get this better first.
+
+284
+00:22:44,320 --> 00:22:53,188
+We can talk about this later, and went off and kept improving things on his side. And Tanstack Start kept getting better and better until it got where it is today, which is honestly incredible.
+
+285
+00:22:53,486 --> 00:23:02,628
+This PR ultimately died because the code base moved way too fast and it was just an experiment. Like he was building an experimental PR on top of my experimental PR.
+
+286
+00:23:02,926 --> 00:23:11,076
+So anybody saying that we moved right now because of some exploit or whatever, no, we've been exploring this since February, and we went live in January.
+
+287
+00:23:11,440 --> 00:23:21,200
+For the vast majority of our time working on T3 chat, we have been exploring other options to figure out how we get out of the next JS Plus React router
+
+288
+00:23:21,360 --> 00:23:23,600
+mess that I used to get us to our first launch.
+
+289
+00:23:23,886 --> 00:23:32,160
+And even at this point, it felt like Tanzdax Start was the closest to what we were looking for. It had good concepts of the primitives between the back end and the front end.
+
+290
+00:23:32,366 --> 00:23:37,840
+It had routing that made sense, that gave us the nice file system stuff that I'm 50-50 on.
+
+291
+00:23:38,000 --> 00:23:43,492
+In a lot of ways, I miss traditional routing in a like JavaScript file where you define the routes yourself.
+
+292
+00:23:43,822 --> 00:23:51,876
+But in other ways, file-based routing is really, really nice and useful. It makes things way clearer when you're trying to just find the place that the thing's being rendered from.
+
+293
+00:23:52,206 --> 00:23:54,372
+Also makes bundle splitting significantly easier too.
+
+294
+00:23:54,862 --> 00:23:57,600
+Tanstack Start had the right combo of things.
+
+295
+00:23:57,934 --> 00:24:04,676
+And when you go back to what we wanted, which was an easy way to deploy our front end and our back end together with good primitives that stay in sync,
+
+296
+00:24:05,102 --> 00:24:10,980
+Tanstack Start is a heavy solution, to be clear, because there's a lot of things in there that we weren't necessarily interested in.
+
+297
+00:24:11,310 --> 00:24:19,600
+But it was also a complete solution built by somebody working really hard on rethinking things from the ground up that wasn't full of all of the tech debt
+
+298
+00:24:19,760 --> 00:24:23,588
+and years of legacy things to maintain compatibility with that Next.js is.
+
+299
+00:24:24,014 --> 00:24:27,120
+On that note, I do need to glaze next a little bit.
+
+300
+00:24:27,598 --> 00:24:34,756
+I don't think we take enough time to appreciate how incredible it is that Next.js is as backwards compatible as it is.
+
+301
+00:24:35,022 --> 00:24:40,900
+You could upgrade a Next 10 app to Next 16 and have almost no issues.
+
+302
+00:24:41,262 --> 00:24:46,564
+And the few you might have, they write code mods for that you can execute and do that port with.
+
+303
+00:24:46,830 --> 00:24:53,828
+It is a little bit absurd how good the backcompat is with both Next.js and with React as a whole.
+
+304
+00:24:54,208 --> 00:25:00,196
+And the work that the Next team does to maintain that backwards compatibility is incredible and they should be commended for it.
+
+305
+00:25:00,494 --> 00:25:06,852
+They work really, really hard and they build a stable framework that I do not regret betting on for every other project I've built.
+
+306
+00:25:07,182 --> 00:25:16,164
+They continue to improve it, they continue to maintain it, they continue to give us paths to make our code bases, make our user experiences, and make our lives better by building on top of Next.
+
+307
+00:25:16,528 --> 00:25:23,808
+In fact, I honestly believe if we waited a few more months and I had pushed the next team a little bit harder on the client side SPA stuff,
+
+308
+00:25:24,078 --> 00:25:28,100
+we would have gotten to a point where I could have removed React Router, removed a bunch of these hacks, and been happy.
+
+309
+00:25:28,558 --> 00:25:30,980
+But I also really like Tanner and wanted a fresh start.
+
+310
+00:25:31,598 --> 00:25:39,728
+I was briefly considering building my own framework at this point in time, taking minimal pieces from Hano and Fastify, combining that with Veet for rendering
+
+311
+00:25:39,888 --> 00:25:42,948
+the client-side stuff, and trying to build this
+
+312
+00:25:43,694 --> 00:25:52,164
+better, simple, minimal client-side app with server-side TypeScript bound in a way that deploys together thing. And Tanstext Start does that all for me.
+
+313
+00:25:52,590 --> 00:25:57,808
+we evaluated all these options, got distracted with problems that didn't exist here. Like our app is layers.
+
+314
+00:25:57,888 --> 00:26:04,996
+We have the infrastructure, we have the server side code, the client side code, the components themselves, the data, all of these pieces.
+
+315
+00:26:05,488 --> 00:26:14,208
+The problems that we were encountering at this point were lots of things breaking in my sync engine because I built my own way to keep data in sync, and it was not good.
+
+316
+00:26:14,414 --> 00:26:15,972
+It was actually quite bad.
+
+317
+00:26:16,528 --> 00:26:20,612
+The yeah, the amount of issues from the sync engine were crazy.
+
+318
+00:26:21,038 --> 00:26:25,168
+Switching to TanStack or V or whatever else would not have fixed any of those problems.
+
+319
+00:26:25,454 --> 00:26:32,928
+So that was what I know life. And I spent all of May and a good chunk of June rewriting all of our data layer, sync engine, and everything, with Convex.
+
+320
+00:26:33,166 --> 00:26:36,768
+That video is already live if you want to deep dive on what it looks like to do this type of migration.
+
+321
+00:26:37,006 --> 00:26:37,728
+It was hellish.
+
+322
+00:26:37,888 --> 00:26:47,524
+We pulled it off. Then my custom auth layer that was on a forked and abused version of openoth was having some problems, and we really wanted to start adding new auth providers.
+
+323
+00:26:47,822 --> 00:26:50,208
+So the next move was to switch to an auth provider.
+
+324
+00:26:50,288 --> 00:26:59,140
+We went with WorkOS, questionable migration overall for the better, and enables a lot of things that we're excited about, but it was a non-trivial migration to say the least.
+
+325
+00:26:59,502 --> 00:27:05,444
+And then finally, we went and did the effect rewrite on the back end because we wanted better observability.
+
+326
+00:27:05,966 --> 00:27:14,340
+All of those things reduced a significant portion of the bugs that users were experiencing and the issues that we were having trying to debug the things users were seeing.
+
+327
+00:27:14,830 --> 00:27:20,484
+But what was left, once we had our traces from effect on the server, once we had a better sync engine all through Convex,
+
+328
+00:27:20,878 --> 00:27:28,740
+the bugs that were left were largely around the weird relationship between our React router client side app and our Next.js server side app
+
+329
+00:27:29,198 --> 00:27:31,524
+that were not ever built to work together well.
+
+330
+00:27:31,918 --> 00:27:37,604
+So without even really asking me, Julius just started the Tan Stack rewrite.
+
+331
+00:27:38,126 --> 00:27:39,364
+And I want to be very clear about this.
+
+332
+00:27:40,398 --> 00:27:46,308
+Julius didn't take all the research and effort I put in, ask me what the best option was and go with it.
+
+333
+00:27:46,958 --> 00:27:48,928
+I didn't hire Julius to listen to me.
+
+334
+00:27:49,358 --> 00:27:53,028
+I hired Julius to make good changes to our code base and maintain things for us.
+
+335
+00:27:53,550 --> 00:27:57,220
+I hired him to be a good developer pushing the quality of the project and the app forward.
+
+336
+00:27:57,806 --> 00:28:01,284
+And he independently chose Tanstack Start as the correct solution.
+
+337
+00:28:01,774 --> 00:28:03,876
+And I almost entirely agree.
+
+338
+00:28:04,430 --> 00:28:12,708
+There are parts of me that wish we more deeply explored the VT Plus HANA or a VT Plus Fastify solution because I really do want this to be a client side, client side app.
+
+339
+00:28:13,998 --> 00:28:18,724
+But Tan Stack Start does have a lot to offer us, and I am happy with the move.
+
+340
+00:28:19,086 --> 00:28:21,572
+Which I guess leads us to talking about said move.
+
+341
+00:28:21,998 --> 00:28:22,980
+Here's the PR.
+
+342
+00:28:23,278 --> 00:28:29,540
+14,000 lines added, 10,000 removed. doesn't even include the patch we had to do after in order to get it like actually working reliably.
+
+343
+00:28:29,710 --> 00:28:34,032
+But this was the core main rewrite that we shipped to beta so that we and a few others could test it.
+
+344
+00:28:34,318 --> 00:28:35,172
+Fix a bunch of bugs.
+
+345
+00:28:35,662 --> 00:28:39,140
+And do a large number of changes in the pull request, only one file is being shown at a time.
+
+346
+00:28:39,952 --> 00:28:41,284
+Let me go to graphite.
+
+347
+00:28:41,998 --> 00:28:53,392
+Unintentional graphite add their GitHub review view, because they're a GitHub wrapper, makes these giant PRs actually reviewable, which is essential when you're doing these types of huge migrations.
+
+348
+00:28:53,472 --> 00:28:54,628
+GitHub won't even open them.
+
+349
+00:28:55,406 --> 00:29:02,468
+So here we have that actual PR. Thank you for actually working Graphite, unlike GitHub, for looking at something like this.
+
+350
+00:29:02,926 --> 00:29:08,068
+And we have our pile of patches that made certain things work because nothing works how we expect it to.
+
+351
+00:29:08,494 --> 00:29:12,228
+But the more important parts here are how the new routing works.
+
+352
+00:29:12,686 --> 00:29:15,076
+We got rid of my hacky app TSX.
+
+353
+00:29:15,566 --> 00:29:18,852
+We got rid of that whole front-end folder, I believe, for the most part.
+
+354
+00:29:19,470 --> 00:29:21,316
+Let me just pull the latest version here.
+
+355
+00:29:27,232 --> 00:29:27,552
+One
+
+356
+00:29:27,598 --> 00:29:36,100
+of the interesting things about Tanstack Start is the way it's a hybrid between generation for files and more traditional inference through TypeScript.
+
+357
+00:29:36,654 --> 00:29:44,512
+You do have to have your route files defined in a specific way in order for the type safety to work, but it will automatically do that for you when the dev client is running.
+
+358
+00:29:44,592 --> 00:29:48,592
+And if you change something that's incorrect, it will update it for you in the background.
+
+359
+00:29:48,910 --> 00:30:00,032
+So when you create a new route, just the creation of the new route file will result in it making all of these other sub files for you, making sure that it exports the route here with the right name.
+
+360
+00:30:00,334 --> 00:30:07,236
+And if I go to new, for example, and I change this to slash news, it will create a new route for that for me.
+
+361
+00:30:07,662 --> 00:30:11,396
+Or here it just it uses the file name by default. So I change this to news.
+
+362
+00:30:11,662 --> 00:30:21,792
+I'm saving now, and it got auto-rewritten by the dev server from Tanner stuff from TanStack in order to make sure that this is correct because TypeScript
+
+363
+00:30:21,952 --> 00:30:23,552
+has no concept of what file you're in.
+
+364
+00:30:23,758 --> 00:30:27,632
+So in order for the routing to be type safe, you have to pass the route you're on.
+
+365
+00:30:27,950 --> 00:30:33,796
+So if you name this file differently, and this is where it gets really fun, if I rename this to news, see that the file got updated automatically.
+
+366
+00:30:34,126 --> 00:30:40,164
+These are the things that Tanner had to do in order to make sure the full stack type safety worked as expected, and he succeeded.
+
+367
+00:30:40,782 --> 00:30:41,476
+Pretty incredible.
+
+368
+00:30:41,952 --> 00:30:43,236
+let's go back to our router.
+
+369
+00:30:43,758 --> 00:30:48,612
+We have the getRouter function. We introduced the convex client so that we can hydrate it because
+
+370
+00:30:49,326 --> 00:30:55,620
+Julius wanted to have the server side stuff work too, so that we could serve a render it and client render it with access to the same data.
+
+371
+00:30:56,110 --> 00:30:59,364
+Also sets off on convex client based on your work OS auth state.
+
+372
+00:30:59,566 --> 00:31:06,272
+Create a query client that will work on server and on client, connect it with the convex query client, make a tRPC client as well,
+
+373
+00:31:06,432 --> 00:31:13,476
+because we still use TRPC for a bunch of random data on the server side, and then our create router function here, where we have our route tree, our scroll restoration,
+
+374
+00:31:13,872 --> 00:31:22,432
+context for all the things that the router needs, and then the things that wrap it. These are like our providers for convex, for what is even the client runtime provider?
+
+375
+00:31:22,512 --> 00:31:23,712
+Is that something from Tanner, I'm assuming?
+
+376
+00:31:24,014 --> 00:31:27,588
+No, so manage runtime. That is for effect stuff, almost certainly.
+
+377
+00:31:28,078 --> 00:31:29,508
+Yep, that's for effect stuff.
+
+378
+00:31:30,062 --> 00:31:35,940
+And then the TRPC provider that allows our TRPC functions to work, and then props to children, which is where it will render everything else.
+
+379
+00:31:36,238 --> 00:31:42,592
+Then we have our route tree. This file is generated, which is why it's.gen.ts and it has this comment at the top. This file should automatically be generated.
+
+380
+00:31:42,672 --> 00:31:44,708
+You should not make changes to the files that will be overridden.
+
+381
+00:31:45,230 --> 00:31:45,668
+Awesome.
+
+382
+00:31:46,446 --> 00:31:55,364
+Again, that hybrid of code gen and actual files where the files in your code base. It's not a rewrite of things on your npm package like something like Prisma does.
+
+383
+00:31:55,758 --> 00:32:03,140
+And a lot of the people who are building these big complex apps, like our friends over at Axiom, Gabriel and Crew, the way routes are declared is so good.
+
+384
+00:32:03,374 --> 00:32:03,940
+I agree.
+
+385
+00:32:04,238 --> 00:32:10,020
+One of the things that makes the way routes are declared so cool is how well it handles parameters being passed.
+
+386
+00:32:10,574 --> 00:32:15,428
+So of course we have our chat endpoint, which is where the chat messages are.
+
+387
+00:32:15,790 --> 00:32:19,940
+We also have chat share, chat index, and chat thread ID.
+
+388
+00:32:20,238 --> 00:32:23,044
+Here's the important piece here chat dot thread ID.
+
+389
+00:32:23,312 --> 00:32:24,484
+So what's going on here?
+
+390
+00:32:24,942 --> 00:32:25,712
+We have our loader.
+
+391
+00:32:25,902 --> 00:32:36,580
+The loader ensures that we have certain query data. In this case, it ensures that we have for the get threadby ID query the data for this specific thread ID.
+
+392
+00:32:36,974 --> 00:32:43,396
+And the thread ID is defined as part of the params, which it gets typed safely through this name here.
+
+393
+00:32:43,854 --> 00:32:49,152
+It knows that thread ID exists because it is inferring it off of the string that we defined here.
+
+394
+00:32:49,454 --> 00:32:54,992
+And again, if I rename this to thread IDL, it'll rename that accordingly.
+
+395
+00:32:55,118 --> 00:32:59,364
+And now I get a type error here because params does not have this specific field on it.
+
+396
+00:33:00,270 --> 00:33:07,524
+If I rename it back, we're good with some type safety stuff because I'm using the new TypeScript Go thing, which doesn't recover from these things as well.
+
+397
+00:33:08,238 --> 00:33:09,700
+Reset the language server and we're good to go.
+
+398
+00:33:10,190 --> 00:33:18,352
+And then the actual route component, which is the thing that is returned here, which now knows that thread ID exists because it knows this route, which we defined here,
+
+399
+00:33:18,592 --> 00:33:19,472
+has that on it.
+
+400
+00:33:19,758 --> 00:33:21,956
+And it's again the magic of Tanstack stuff.
+
+401
+00:33:22,350 --> 00:33:28,804
+The Tanstack router plus Tanstack start combo lets you define a route as a thing that resolves this URL.
+
+402
+00:33:29,152 --> 00:33:32,432
+Has these it has this ID in the params.
+
+403
+00:33:32,992 --> 00:33:37,060
+We have this data, we know it exists, and we have this component that gets rendered.
+
+404
+00:33:37,326 --> 00:33:45,152
+Now we know for a fact, whenever we are calling a route component that is defined as this route, that the thread ID will exist.
+
+405
+00:33:45,392 --> 00:33:48,992
+This convex query has been loaded, otherwise, this will not render.
+
+406
+00:33:49,166 --> 00:33:54,308
+We could even return data here and know it'll be there if we call route.use data or something along those lines.
+
+407
+00:33:54,734 --> 00:34:05,156
+We then render our background prefetcher to keep the other threads in sync, the chat, and render the message widget, well, a mock of it that we show when we don't have the rest of the data just yet.
+
+408
+00:34:05,614 --> 00:34:06,112
+Awesome.
+
+409
+00:34:06,478 --> 00:34:14,948
+But what about those backend functions? You know, the slash chat endpoints of the world that we relied on so heavily that was the reason that we were using next in the first place.
+
+410
+00:34:15,886 --> 00:34:20,772
+as you see, our app folder is now empty. It just got left behind by a bad git pull.
+
+411
+00:34:21,038 --> 00:34:21,796
+Happens a lot.
+
+412
+00:34:22,414 --> 00:34:25,028
+We hop into backend slash API slash chat.
+
+413
+00:34:25,326 --> 00:34:31,300
+You'll see we have this index.post.ts, this resume.get.ts, and abort postts.
+
+414
+00:34:32,942 --> 00:34:41,156
+If you're deep in Tanstack stuff, you might be a little surprised because that's not the format that you usually use for exporting functions in Tanstack.
+
+415
+00:34:41,806 --> 00:34:45,604
+You'll also see a lot of effect code here, which you might assume is the thing that we're doing,
+
+416
+00:34:46,734 --> 00:34:47,460
+it is not.
+
+417
+00:34:48,110 --> 00:34:51,908
+Here is where we start getting into the problems that we have with Tanstack.
+
+418
+00:34:52,142 --> 00:34:58,564
+I don't know how many of these are Tanstack specific. I am not smart enough to go too deep into what caused these things because I did not do this port.
+
+419
+00:34:59,022 --> 00:35:00,804
+We had a lot of problems trying to deploy this.
+
+420
+00:35:01,454 --> 00:35:03,012
+The main one was this error.
+
+421
+00:35:03,438 --> 00:35:10,272
+Error in root route, type error, fetch failed on the internal N DC fetch instance in Node itself.
+
+422
+00:35:10,382 --> 00:35:13,028
+Yes, Node's fetch implementation is just in DC.
+
+423
+00:35:13,326 --> 00:35:22,404
+We were constantly hitting this once we rolled out far enough. We'd hit about 60% rollout, and then this would start being seen in our servers, and clients weren't rendering.
+
+424
+00:35:22,830 --> 00:35:24,592
+We had a lot of theories about this.
+
+425
+00:35:24,942 --> 00:35:30,564
+I insisted that we turn off server rendering entirely because I didn't think we benefited from it, and this was terrifying.
+
+426
+00:35:31,054 --> 00:35:38,500
+Apparently, a lot of people who have ported big apps over to Tanstack Start on Vercel have run into things like this. Gabriel said they've had the issue quite a bit for Axiom as well.
+
+427
+00:35:38,752 --> 00:35:42,596
+We had it so bad that our deployments were crashing as soon as we hit like 60% rollout.
+
+428
+00:35:42,912 --> 00:35:43,632
+It was not good.
+
+429
+00:35:43,792 --> 00:35:53,284
+It was looking real, real bad. I bugged a lot of people at Vercel. I believe Julius and crew bug Tanner and a few other people working on the actual bundling side for Tanstack.
+
+430
+00:35:53,632 --> 00:35:54,372
+It was rough.
+
+431
+00:35:54,926 --> 00:35:57,668
+The solution ended up honestly being even rougher.
+
+432
+00:35:58,158 --> 00:36:10,084
+The problem, is, I understand it, is that the way Tanstack was handling lazy bundling of routes was pulling in the JS for the route when the route was hit,
+
+433
+00:36:10,446 --> 00:36:16,900
+but it would keep all of the JS there for all of the routes to be served. So every URL points to the same place.
+
+434
+00:36:17,422 --> 00:36:23,108
+That place has as little JavaScript loaded as possible, but knows where the other bundles are.
+
+435
+00:36:23,342 --> 00:36:31,012
+Once it sees the URL that you're requesting for, it would then go grab the right.js for that URL and then use that to serve the user.
+
+436
+00:36:31,392 --> 00:36:37,124
+Now do that tens of thousands of times for every different route where different routes have different JS.
+
+437
+00:36:37,518 --> 00:36:41,956
+And now add any bug to the cleanup logic or even a bug for how it dedupes.
+
+438
+00:36:42,158 --> 00:36:46,672
+If five people make a request to the same endpoint at the same time and they're all served by this at the same time,
+
+439
+00:36:46,832 --> 00:36:51,172
+I can see how easy it'd be to write the code that then goes and loads the same JS five times.
+
+440
+00:36:51,632 --> 00:37:01,348
+We don't know the deep details just yet. Uh Puya and a few others are doing a call tomorrow to try and figure this out. I might even re-record this whole video once we get more info to be determined.
+
+441
+00:37:01,838 --> 00:37:11,716
+The result was that we don't trust the Tan stack route resolvers for things other than like resolving the experience users are downloading HTML for.
+
+442
+00:37:12,078 --> 00:37:16,272
+We could easily handle all the different routes people load and go to in the browser.
+
+443
+00:37:16,494 --> 00:37:22,340
+But once we had all of these endpoints that we're trying to resolve on the same fluid compute instance at the same time,
+
+444
+00:37:22,702 --> 00:37:30,192
+they would often hit problems where they were overloaded by pulling too many files in. We were getting this too many files error constantly.
+
+445
+00:37:30,478 --> 00:37:32,196
+Yeah, the EM file code.
+
+446
+00:37:32,750 --> 00:37:33,472
+It was rough.
+
+447
+00:37:34,222 --> 00:37:36,896
+We tried a lot of different things to try and resolve this.
+
+448
+00:37:37,230 --> 00:37:43,780
+After talking to Puya and a few others at Vercel, Puya suggested that we look more deeply into how Nitro handles routes.
+
+449
+00:37:44,096 --> 00:37:50,896
+Nitro is an optional dependency for Tanstack, but it is a common one because it's how you deploy Tanstack on things like Vercel.
+
+450
+00:37:51,374 --> 00:37:55,776
+Nitro is a set of tools for building server rendered toolkits primarily.
+
+451
+00:37:55,936 --> 00:38:03,524
+If you want to make an app that works on server and on client and have one TypeScript code base that handles it all, Nitro is a set of primitives that make it possible.
+
+452
+00:38:03,886 --> 00:38:10,468
+It was originally built as a deep part of the chaos that is the Nuxt ecosystem, you know, the Vue Nux world.
+
+453
+00:38:10,734 --> 00:38:19,108
+But Nitro, along with the Nuxt team, got acquired by Vercel, and there's been a lot of work in standardizing Nitro so that it's way better, more reliable for giant apps.
+
+454
+00:38:19,566 --> 00:38:24,336
+Ideally, you'll never have to know anything about Nitro because it lives a layer deeper than we should as application developers.
+
+455
+00:38:24,416 --> 00:38:30,736
+But if you're trying to build your own alternative to Next.js or Nuxt or viewers felt kit or whatever, Nitro is a really important building block.
+
+456
+00:38:30,862 --> 00:38:36,336
+And having Puya, who is the lead maintainer and creator of Nitro, helping us out has been essential.
+
+457
+00:38:36,526 --> 00:38:43,056
+It was his belief that the way lazy loading works for routes in Nitro should handle all the problems that we were having.
+
+458
+00:38:43,342 --> 00:38:51,456
+So Julius filed quite the pull request to run API routes as separate functions, which included patching the Tan Stack Start
+
+459
+00:38:51,616 --> 00:39:03,856
+Server Core to export. this get H3 event binding, which is part of how Nitro handles events internally, so that we would have access to that, so we could bind our own nitro
+
+460
+00:39:04,016 --> 00:39:04,260
+events.
+
+461
+00:39:04,496 --> 00:39:05,124
+directly.
+
+462
+00:39:05,454 --> 00:39:12,103
+So here's a simple example. We have this TRPC endpoint that was tRPC dot dollar sign tRPC dot tS.
+
+463
+00:39:12,103 --> 00:39:18,276
+That's again how in TanStack we would get the data for that route, like the parameters, and pass things over.
+
+464
+00:39:18,606 --> 00:39:27,524
+Now we are moving to the nitrous index because we're moving to nitro as the thing that resolves these routes, which means we need our own way to get the event that is
+
+465
+00:39:27,918 --> 00:39:30,820
+the thing that happened on that route, so we can pass that to our handler.
+
+466
+00:39:31,278 --> 00:39:42,016
+So we have this H3 event helper that we ripped out of TanStack and out of Nitro and re-exported. So we could use it for our mix of nitro routes and Tanstack
+
+467
+00:39:42,016 --> 00:39:52,176
+routes. So you'll see here the route tree, which again, I actually like having it be code gened and committed because you can look at the output of this and know what changed.
+
+468
+00:39:52,256 --> 00:39:55,856
+And here you see all of our API endpoints got removed.
+
+469
+00:39:56,206 --> 00:40:05,936
+Routes, API uploading routes, API stripe, status, server version, checkout sync, chat, all of our API routes were removed from TanStack entirely.
+
+470
+00:40:06,158 --> 00:40:12,496
+And then here in the VT config where we actually configure Nitro, we pass a server dir now.
+
+471
+00:40:12,736 --> 00:40:13,456
+Very important.
+
+472
+00:40:13,710 --> 00:40:20,016
+The server directory is us specifying where the server functions to find the way Nitro likes are.
+
+473
+00:40:20,366 --> 00:40:30,244
+And by putting this here, we are able to define our own nitro functions outside of defining them in Tanstack, which is kind of funny because if we go back to what my previous plan was,
+
+474
+00:40:30,574 --> 00:40:36,260
+we've almost recreated the V plus Hano setup that I was talking about wanting way, way back.
+
+475
+00:40:36,656 --> 00:40:39,856
+But instead, it's all being done inside of Tanstack Start.
+
+476
+00:40:40,016 --> 00:40:45,892
+Instead of doing this on the outside of the framework, we're doing it inside of the framework, which does admittedly require quite a few hacks.
+
+477
+00:40:46,254 --> 00:40:54,564
+The fact that we had to patch package Tanstack Start in order to expose the event helper so we'd have access to that is a little annoying.
+
+478
+00:40:54,926 --> 00:40:57,412
+Ideally, nobody would need this get H3 event thing,
+
+479
+00:40:58,158 --> 00:41:02,916
+but we do, because we couldn't use the Tanstack routes at the scale we're shipping.
+
+480
+00:41:04,230 --> 00:41:12,736
+And I didn't realize how many other random hellish things we had to do for handling our analytics proxy because it would use the wrong content encoding when we proxy.
+
+481
+00:41:12,816 --> 00:41:19,936
+God, there's so many of these little things. Like anybody telling you that our next JS solution was a bunch of hacks and we could just move off it and get rid of the hacks.
+
+482
+00:41:20,622 --> 00:41:25,508
+Now, Any large enough application will have hacks in every direction always.
+
+483
+00:41:25,838 --> 00:41:30,276
+We traded one set that were scarier for a set that is overall less scary.
+
+484
+00:41:30,670 --> 00:41:38,564
+But there are still things like this, where we have to serve this file from our public directory instead of serving it through this redirect because of the way the content encoding would break.
+
+485
+00:41:39,278 --> 00:41:42,596
+And now we get to this max duration 799 thing.
+
+486
+00:41:43,022 --> 00:41:44,900
+There's a good chance you're looking at that and thinking,
+
+487
+00:41:45,550 --> 00:41:46,436
+what the fuck is that?
+
+488
+00:41:47,022 --> 00:41:48,016
+That's a really good question.
+
+489
+00:41:48,366 --> 00:41:56,416
+At the time we built most of T3 chat, the maximum duration for how long a request could be in flight for on a VerseL server before it is killed was 800 seconds.
+
+490
+00:41:56,750 --> 00:42:01,252
+So if you have an AI generation that takes 900 seconds, it's going to get cut off before then.
+
+491
+00:42:01,582 --> 00:42:04,772
+The default is 300, but the actual hard max is 800.
+
+492
+00:42:05,262 --> 00:42:06,724
+So why do we pick 799?
+
+493
+00:42:07,296 --> 00:42:09,988
+Not as simple to answer as you might hope.
+
+494
+00:42:10,416 --> 00:42:17,536
+Going back to the next JS version, you will notice that I put this on the API chat route.
+
+495
+00:42:18,222 --> 00:42:19,684
+The max duration 799.
+
+496
+00:42:20,462 --> 00:42:22,032
+The reason I describe here.
+
+497
+00:42:22,286 --> 00:42:26,032
+This breaks out the API chat route from being bundled in fluid compute.
+
+498
+00:42:26,286 --> 00:42:29,552
+Other functions resolve faster and get in the way of paralyzing this particular route.
+
+499
+00:42:29,774 --> 00:42:31,632
+This is a hack that was suggested by Malta.
+
+500
+00:42:31,952 --> 00:42:42,432
+One of the important pieces of how fluid compute works is it is a strategy to allow for many requests to be resolved by one node or one instance of Lambda running node at the same time.
+
+501
+00:42:42,670 --> 00:42:50,820
+Normally the way Lambda works is a request comes in, it gets resolved, and then that Lambda takes the next request once it's done with the previous one, but it only does one at a time.
+
+502
+00:42:51,278 --> 00:42:59,792
+So if your request logic is spending a lot of time waiting, that node is just sitting there doing nothing until the next like
+
+503
+00:43:00,270 --> 00:43:02,112
+piece of whatever it's supposed to do comes in.
+
+504
+00:43:02,350 --> 00:43:09,952
+So if you're doing an AI generation and you're hitting the open AI API for Chat GPT, whenever you're not getting a new token, you're sitting there doing nothing.
+
+505
+00:43:10,318 --> 00:43:18,832
+This is why fluid compute is awesome, because it lets you reuse that less used compute that would just be sitting there doing nothing, waiting for the next like chunk to come from the API.
+
+506
+00:43:19,054 --> 00:43:21,188
+And you can use that compute to resolve other requests.
+
+507
+00:43:21,550 --> 00:43:27,712
+So five people can be requesting at the same time, and all of that is going through at once.
+
+508
+00:43:28,078 --> 00:43:33,540
+Super nice. Let's you pay way less money and take much more advantage of your servers.
+
+509
+00:43:33,902 --> 00:43:36,672
+When your request only took like 100 milliseconds, this didn't matter.
+
+510
+00:43:36,942 --> 00:43:40,036
+Now that the request can take 800 seconds, it matters a lot more.
+
+511
+00:43:40,430 --> 00:43:42,532
+So why did I pick 799 here?
+
+512
+00:43:42,912 --> 00:43:45,572
+Because every other route was set to 800.
+
+513
+00:43:45,902 --> 00:43:53,632
+If you have two different routes that have different max durations, the way that Fluid Compute is provisioned and deployed would
+
+514
+00:43:53,632 --> 00:44:02,756
+allow for all of the ones that share a max duration to be served together and the ones that don't have a shared max duration to be broken off on their own.
+
+515
+00:44:03,118 --> 00:44:13,188
+So effectively, this guarantees all API slash chat requests go to the same set of lambdas and all other requests go to a different set.
+
+516
+00:44:13,518 --> 00:44:21,220
+The setting of this one second difference breaks out the bundles so that they are separate and different routes are hitting different boxes.
+
+517
+00:44:21,454 --> 00:44:28,900
+This was great because it meant that the chat deduping and handling all of the chat requests on one lambda could scale way better.
+
+518
+00:44:29,166 --> 00:44:33,508
+Because now, like let's say hypothetically, one of these boxes can handle a thousand requests.
+
+519
+00:44:34,112 --> 00:44:44,484
+If a third of them are chat requests that take 800 seconds up to, and the rest are all TRPC calls that take 50 milliseconds, that is not an optimal use of fluid compute.
+
+520
+00:44:44,752 --> 00:44:54,352
+Ideally, the box that can handle long requests is handling a lot of them, and its slots for how many requests it can handle aren't being wasted by something that does more I.O.
+
+521
+00:44:54,512 --> 00:44:57,188
+per second and is going for way fewer seconds.
+
+522
+00:44:57,550 --> 00:45:04,452
+It's way easier for the fluid compute like routing layer to know how to route things with this little hint.
+
+523
+00:45:05,358 --> 00:45:13,712
+And we have basically lost that here because as far as I understand, putting this max duration here is making all of our APIs bundled under that.
+
+524
+00:45:13,838 --> 00:45:22,912
+So we no longer have the chat endpoint split off from the other API endpoints, but we do have the API endpoints split off separately from the TanStack start ones,
+
+525
+00:45:22,992 --> 00:45:30,948
+which is a good enough solution for now because we've really reduced the number of those API calls that happened. Most of everything now goes through convex and the chat endpoint.
+
+526
+00:45:31,152 --> 00:45:38,912
+That said, it would be nice if we could still change the duration on just chat so it would be bundled separately and maximize our fluid compute usage.
+
+527
+00:45:39,150 --> 00:45:41,924
+Let me actually go check how our fluid compute use is right now.
+
+528
+00:45:42,414 --> 00:45:50,660
+I wanted to see how this change affected our fluid compute utilization, but uh they got rid of the dashboard that I would normally check that in in Verse L, so I can't show you.
+
+529
+00:45:51,374 --> 00:45:51,972
+Annoying.
+
+530
+00:45:52,430 --> 00:45:54,020
+So now for the last piece
+
+531
+00:45:54,766 --> 00:45:55,524
+SSR.
+
+532
+00:45:56,366 --> 00:46:02,564
+The easiest way to know that we have SSR now is when you go to an INCOG tab and load, you'll see the skeleton
+
+533
+00:46:03,662 --> 00:46:04,832
+that I don't like very much.
+
+534
+00:46:06,542 --> 00:46:11,172
+See the bottom there where it shows the login state and then it vanishes and becomes the login button.
+
+535
+00:46:11,790 --> 00:46:14,372
+See the sidebar here where it has the fake empty chats.
+
+536
+00:46:15,374 --> 00:46:22,788
+That's all because we are now rendering a template and then filling in the pieces once the server finishes them or the client does for different routes.
+
+537
+00:46:23,118 --> 00:46:31,812
+And for certain things, like when you load a specific chat for the first time, we render it on the server to get as much of the data there as possible before you start loading the page on your side.
+
+538
+00:46:32,142 --> 00:46:34,352
+Hypothetically, this should be really good.
+
+539
+00:46:34,670 --> 00:46:35,684
+And in a lot of ways, it is.
+
+540
+00:46:36,078 --> 00:46:44,964
+Like when I'm navigating around here, it feels good. And when I refresh, it loads pretty much instantly, and you get a better state for your chat history when it happens.
+
+541
+00:46:45,550 --> 00:46:52,068
+It is in a lot of ways good, but I am still skeptical of how much we benefit from server rendering at all.
+
+542
+00:46:52,494 --> 00:46:54,592
+I am the most skeptical one on the team.
+
+543
+00:46:54,752 --> 00:46:56,644
+I don't think this is necessary.
+
+544
+00:46:57,232 --> 00:47:04,004
+I am highly considering pulling us off of it. But it is cool that the first load has like a better state overall.
+
+545
+00:47:04,558 --> 00:47:09,952
+It has its catches. Like the way that the names load in was not right originally. We've fixed it for the most part.
+
+546
+00:47:10,158 --> 00:47:14,820
+It is really cool that we're sending down a better payload from the server than we previously were.
+
+547
+00:47:15,118 --> 00:47:23,108
+But at the same time, I think I would prefer if we had one HTML file serving the majority of our site and just did everything on client side where it made sense to.
+
+548
+00:47:23,312 --> 00:47:26,532
+But again, I'm not the one who made these decisions.
+
+549
+00:47:26,894 --> 00:47:29,924
+I'm not really the tech lead for T3 chat anymore.
+
+550
+00:47:30,112 --> 00:47:35,872
+I have to run the company and do this channel and do everything else that I have to do in a given day.
+
+551
+00:47:36,110 --> 00:47:39,392
+My team made these decisions because I hired my team to make good decisions.
+
+552
+00:47:39,632 --> 00:47:43,012
+This is the decision that they wanted, and I have argued it plenty.
+
+553
+00:47:43,342 --> 00:47:48,740
+They are still confident it was the right one. And I will continue to back them until we as a team decide otherwise.
+
+554
+00:47:49,102 --> 00:47:58,084
+And at least we're more stable than Twitch chat. It's funny because I've previously bragged that Twitch chat is proof that we know how to do quickly updating, complex chat UIs.
+
+555
+00:47:58,414 --> 00:48:00,612
+And now Twitch chat is down literally as I am filming.
+
+556
+00:48:02,030 --> 00:48:05,472
+Our move off of Next.js isn't because Next.js is bad.
+
+557
+00:48:05,552 --> 00:48:08,676
+It's not because we are super excited about Tanstack start.
+
+558
+00:48:08,992 --> 00:48:17,232
+It is for the same reasons that it was when we were first planning it back in February, which is that the way I'm hacking Next.js to behave how we want isn't ideal.
+
+559
+00:48:17,486 --> 00:48:20,512
+We don't want to wait for the next team to make the single page app experience better.
+
+560
+00:48:20,750 --> 00:48:23,748
+So we want to move to something that has a better single page app experience.
+
+561
+00:48:24,032 --> 00:48:32,452
+We still want to maintain the cohesion of the front end back end deploying together. So a framework that allows us to have one package JSON that pulls the two together is very enticing to us.
+
+562
+00:48:32,974 --> 00:48:35,364
+And we really like Tanner in the way that he builds.
+
+563
+00:48:35,726 --> 00:48:39,748
+We have found TanSec Dart to be, for the most part, flexible enough for our use case.
+
+564
+00:48:40,110 --> 00:48:42,912
+It is still very early, which scares the shit out of me.
+
+565
+00:48:43,054 --> 00:48:49,572
+And a lot of the problems that we've had are us going headfirst into the fire and bringing out the solutions for everybody else.
+
+566
+00:48:49,872 --> 00:48:56,672
+Like having to move all of our routes off of TanStack to Nitro is the type of thing that would have kept me from making the move in the first place.
+
+567
+00:48:56,752 --> 00:49:00,612
+If I was told that that's something we'd have to do, I would have blocked the Tanstack start move.
+
+568
+00:49:01,102 --> 00:49:02,032
+But now that it's
+
+569
+00:49:02,032 --> 00:49:04,836
+done, we have a code base that we understand much better.
+
+570
+00:49:05,262 --> 00:49:10,432
+A lot of the bugs we were dealing with before around off-state stuff are much clearer and easier for us to find.
+
+571
+00:49:10,670 --> 00:49:19,908
+We get to leave behind all the backwards compat and monolithic chaos that was Next.js with something that's quite a bit more minimal and newer and a little bit more flexible for the things we need.
+
+572
+00:49:20,112 --> 00:49:22,352
+We love the new routing stuff in Tanstack Router.
+
+573
+00:49:22,574 --> 00:49:23,684
+It's significantly better.
+
+574
+00:49:23,918 --> 00:49:29,860
+And now my team, the people who actually run this every day, are the ones who own the implementation details, not me.
+
+575
+00:49:30,286 --> 00:49:35,952
+That's arguably the biggest win here is that the code is no longer Theo's code being fixed by the team.
+
+576
+00:49:36,174 --> 00:49:37,952
+The code is now the team's code.
+
+577
+00:49:38,254 --> 00:49:43,552
+Mark and Julius worked really hard on these changes. Julius in particular went crazy pulling this all off.
+
+578
+00:49:43,758 --> 00:49:45,444
+I get to wipe my hands clean now.
+
+579
+00:49:45,646 --> 00:49:46,352
+I'm out.
+
+580
+00:49:46,670 --> 00:49:50,272
+This isn't moving next to Tanstack, as many of you guys are going to brand it.
+
+581
+00:49:50,446 --> 00:49:54,628
+This isn't Theo getting excited about the shiny new thing. In fact, I probably wouldn't have even chosen Tanstack.
+
+582
+00:49:55,072 --> 00:50:03,952
+This is the move away from Theo's hacky pile of solutions, forcing Next.js to behave how I wanted towards something that the team better understands
+
+583
+00:50:04,032 --> 00:50:08,228
+and controls that gets us closer to our long-term vision of how we want T3 chat.
+
+584
+00:50:08,512 --> 00:50:15,012
+We traded one set of hacks for another, we traded one framework for another, but in the end, the majority of the code in the repo didn't change.
+
+585
+00:50:15,342 --> 00:50:20,004
+We are still deep in it, trying to make the best possible chat experience.
+
+586
+00:50:20,590 --> 00:50:22,192
+My team can now debug more easily.
+
+587
+00:50:22,414 --> 00:50:25,188
+The tech we're building on feels a little better overall.
+
+588
+00:50:25,486 --> 00:50:32,612
+But in the end, this honestly kind of deepened my appreciation for Next and the fact that I could abuse it the ways I did, and it worked for the most part.
+
+589
+00:50:32,942 --> 00:50:34,592
+It also, like, man.
+
+590
+00:50:35,552 --> 00:50:44,516
+The scaling and large code base size issues we've been hitting with Tan Stack, like the Nitro stuff, just it shows how early these things are.
+
+591
+00:50:45,070 --> 00:50:46,468
+And they really are.
+
+592
+00:50:46,894 --> 00:50:52,452
+If you're here looking for advice on what stack to build your next project with, I got nothing for you.
+
+593
+00:50:52,974 --> 00:50:57,700
+I've had enough problems with all of these stacks that there's no easy, obvious recommendation.
+
+594
+00:50:58,158 --> 00:50:58,628
+Yeah.
+
+595
+00:50:59,054 --> 00:51:03,632
+There's no real lesson to take from this other than the inner workings are interesting.
+
+596
+00:51:03,950 --> 00:51:13,152
+And once you ship at a certain size and scale, your team and their needs are way more important in the real world than any particular framework will tell you.
+
+597
+00:51:13,454 --> 00:51:20,164
+If anybody thinks our problems can be solved with a simple move to Laravel or a simple move to TanStack Start or some other thing,
+
+598
+00:51:20,686 --> 00:51:24,388
+they're either lying to you because they don't know what they're talking about or they have something to sell you.
+
+599
+00:51:24,686 --> 00:51:25,540
+Don't trust them.
+
+600
+00:51:25,838 --> 00:51:29,764
+I'm not here to sell you anything other than a really good AI chat app that you should definitely check out.
+
+601
+00:51:30,254 --> 00:51:38,352
+And if you're thinking that this is something to do with like the Vercel exploit or any drama on that side, and you ignored the fact that we have been building all of this on Vercel
+
+602
+00:51:38,512 --> 00:51:46,724
+the whole time, I don't know what to tell you. I hope you start listening a little more closely because obviously this is not us disliking Vercel.
+
+603
+00:51:47,356 --> 00:51:53,152
+This is us having very specific technical requirements that no framework serves properly.
+
+604
+00:51:53,358 --> 00:51:58,180
+So we're trying to find the one that we can bastardize the best to give us the experience we want to have.
+
+605
+00:51:58,830 --> 00:52:07,472
+Right now, it seems like Tanztech Start probably will get there, both because it has a lot of really good pieces, and I feel like we can influence the developers building it most
+
+606
+00:52:07,662 --> 00:52:09,284
+to get it where we need it to be.
+
+607
+00:52:09,774 --> 00:52:14,788
+But man, nothing works how we want it to, and this has been a hell of a move.
+
+608
+00:52:15,152 --> 00:52:21,220
+Hopefully, the next video will be about how exciting our new features are that we get to ship because we're now unblocked and all the tech stuff.
+
+609
+00:52:21,422 --> 00:52:23,780
+But I have a bad feeling we're going to hit more edges on the way there.
+
+610
+00:52:24,142 --> 00:52:26,112
+Wish us luck. It's gonna be hellish.
+
+611
+00:52:26,414 --> 00:52:28,580
+And until next time, peace nerds.
+
