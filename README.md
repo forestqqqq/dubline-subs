@@ -6,6 +6,7 @@
 |---|---|---|
 | [From Vibes to Production: Evaluating and Shipping AI Agents That Work 101 — Laurie Voss, Arize AI](medias/WES05/) | AI Engineer | 2026-10-19 |
 | [I Built a Personal AI Agent on a Raspberry Pi — Jeremy Adams, Neo4j](medias/D01GK/) | AI Engineer | 2026-10-19 |
+| [Why Your AI Agent Fails in Production (And How to Catch It)](medias/9CYYJ/) | Google Cloud Tech | 2026-10-19 |
 | [Do these 7 Things Immediately When Building Apps with AI](medias/4RZJA/) | Mikey No Code | 2026-10-18 |
 | [Memory-Aware Agent Harnesses for Anti-Money Laundering — Nacho Martinez, Oracle](medias/ZTEJ3/) | AI Engineer | 2026-10-17 |
 | [ChatGPT Dots Is WAY More Powerful Than You Think](medias/WPAZW/) | Riley Brown | 2026-10-17 |
