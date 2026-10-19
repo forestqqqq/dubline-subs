@@ -6,6 +6,7 @@
 |---|---|---|
 | [From Vibes to Production: Evaluating and Shipping AI Agents That Work 101 — Laurie Voss, Arize AI](medias/WES05/) | AI Engineer | 2026-10-19 |
 | [I Built a Personal AI Agent on a Raspberry Pi — Jeremy Adams, Neo4j](medias/D01GK/) | AI Engineer | 2026-10-19 |
+| [AI Agents Full Course \| From Beginner to Advanced (Complete Guide)](medias/9VZAV/) | The iScale | 2026-10-19 |
 | [Why Your AI Agent Fails in Production (And How to Catch It)](medias/9CYYJ/) | Google Cloud Tech | 2026-10-19 |
 | [Using Jev In Your Agent Harness](medias/7EJ13/) | Sam Witteveen | 2026-10-19 |
 | [GPT-7 'Bel' First Preview, Mythos 5.1 Access, Mistral Large 4, Claude Code Update, & More! AI NEWS](medias/5PX6R/) | WorldofAI | 2026-10-19 |
