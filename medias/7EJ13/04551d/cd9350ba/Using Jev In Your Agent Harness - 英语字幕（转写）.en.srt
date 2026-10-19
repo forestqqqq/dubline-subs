@@ -1,0 +1,796 @@
+1
+00:00:00,160 --> 00:00:06,160
+Okay, so most of the model calls in an agent harness aren't actually writing anything.
+
+2
+00:00:06,320 --> 00:00:07,680
+They're making decisions.
+
+3
+00:00:07,840 --> 00:00:16,960
+They're making decisions like which tool should I use here, what skill should I load, is this command safe to run, and even decisions for things like RAG,
+
+4
+00:00:17,120 --> 00:00:21,840
+where it's asking which of these 20 search results actually answers the question.
+
+5
+00:00:22,240 --> 00:00:28,320
+Up until recently, everybody has approached those decisions pretty much in the same way.
+
+6
+00:00:28,480 --> 00:00:31,920
+They've used a full LLM call to get the answer back.
+
+7
+00:00:32,206 --> 00:00:40,720
+So in this video, I want to show how you could use JEV and the other open decision models to actually improve an agent harness from the inside.
+
+8
+00:00:41,070 --> 00:00:43,440
+I'm going to talk about some of the things that you can actually do with it.
+
+9
+00:00:43,630 --> 00:00:51,204
+I'll show you a couple of cool examples that I've been playing with for doing progressive disclosure on lots of skills and for doing re-ranking of RAG results.
+
+10
+00:00:51,758 --> 00:00:58,340
+But I'll also talk about some general principles and perhaps more importantly, what are the use cases that you don't want to use a model like this?
+
+11
+00:00:58,780 --> 00:01:02,560
+All right, so let's start with the loop that every agent runs.
+
+12
+00:01:02,894 --> 00:01:05,120
+A request comes in and it goes to an LLM.
+
+13
+00:01:05,280 --> 00:01:14,800
+Along with that, you basically have some kind of tool registry going in there, a system prompt, perhaps a set of skills, some guidelines of how the agent's going to work, etc.
+
+14
+00:01:15,120 --> 00:01:20,240
+And the LLM decides straight away what action should it take, whether it needs to use a tool.
+
+15
+00:01:20,400 --> 00:01:26,240
+And if it does, it writes out a function call, giving us the tool name plus the arguments as JSON.
+
+16
+00:01:26,606 --> 00:01:30,640
+Your scaffold in your agent harness then runs that code as a function.
+
+17
+00:01:30,958 --> 00:01:33,920
+It gets the results and it appends that to the conversation.
+
+18
+00:01:34,094 --> 00:01:36,400
+And the whole thing goes back to the LLM.
+
+19
+00:01:36,560 --> 00:01:43,620
+And then round and round this goes until eventually your LLM's decided it's done and it writes its final answer.
+
+20
+00:01:43,982 --> 00:01:53,360
+Along that road, it's probably going to use many tools, it's basically going to get information to expand its context, and it's going to make a lot of decisions along the way.
+
+21
+00:01:53,678 --> 00:02:01,680
+Now, if you look at those LLM steps to see what's actually going on at each step, the whole sort of thing of asking itself which tool it should use,
+
+22
+00:02:01,934 --> 00:02:03,588
+is it safe to actually run that?
+
+23
+00:02:03,950 --> 00:02:13,200
+And often because it's making those decisions itself, it never really stops to ask any sort of verification step or any kind of safety step in there to ask,
+
+24
+00:02:13,360 --> 00:02:14,720
+is this safe to run?
+
+25
+00:02:14,958 --> 00:02:25,280
+And for most agents, if they don't have any sort of reflective step in there, they're really never even asking themselves, is this result good enough or should I go around again and try again?
+
+26
+00:02:25,582 --> 00:02:35,268
+Each of those things are clear decisions that you can use a decision model like JEV or one of the open GEVs to actually improve the quality of the agent harness.
+
+27
+00:02:35,694 --> 00:02:42,400
+On top of that, a lot of the times the decisions that the LLM is actually making are just a small set of options.
+
+28
+00:02:42,640 --> 00:02:48,772
+Do I go to this node next or this node? Which skill looks like the best one to use in this situation?
+
+29
+00:02:49,166 --> 00:02:52,720
+Which skill do I ask for more information in this situation?
+
+30
+00:02:53,038 --> 00:02:57,360
+And each time you're paying for a full call to a large LLM there.
+
+31
+00:02:57,646 --> 00:03:01,600
+And that's costing you both in money for tokens, but often even more.
+
+32
+00:03:01,774 --> 00:03:05,860
+It's costing you in time of you actually having to go through and do these things.
+
+33
+00:03:06,350 --> 00:03:14,640
+And that's why a lot of the time when people are building custom agents, they often don't put anywhere near as many verification steps in there as they should
+
+34
+00:03:14,990 --> 00:03:17,828
+simply because that's just going to slow everything down.
+
+35
+00:03:18,190 --> 00:03:26,276
+So if you've watched any of my other JEV videos, you know that I've basically talked about the whole concept of JEV as being like a smart if statement.
+
+36
+00:03:26,734 --> 00:03:37,280
+You give it a state which is just the thing that you're evaluating, and then you give it a set of typed questions about that state, and it gives you back typed answers with probabilities.
+
+37
+00:03:37,520 --> 00:03:38,400
+No text at all.
+
+38
+00:03:38,976 --> 00:03:41,252
+Choice will pick one option from a list.
+
+39
+00:03:41,710 --> 00:03:44,772
+Score rates the state on a scale that you define.
+
+40
+00:03:45,038 --> 00:03:49,696
+A null is a yes or no or a true or false that's returned back as a probability.
+
+41
+00:03:50,094 --> 00:04:00,176
+And the cool thing is you're not limited to one question at a time. You can ask many questions about the one state all in a single call and get answers back in parallel.
+
+42
+00:04:00,302 --> 00:04:03,456
+And it almost doesn't change the response time at all.
+
+43
+00:04:03,726 --> 00:04:11,776
+So if you're looking at how to improve your agent harness, one of the key things you can do is look at that loop of where it's full
+
+44
+00:04:11,776 --> 00:04:19,396
+of a bunch of if statements that are dressed up as function tools or dressed up as asking the model for structured JSON responses back.
+
+45
+00:04:19,790 --> 00:04:24,016
+And you can convert those kind of calls to something that's much quicker, like a decision model.
+
+46
+00:04:24,302 --> 00:04:27,044
+All right, so where does this actually belong in your agent harness?
+
+47
+00:04:27,502 --> 00:04:30,884
+I'd say that there's six main places that you want to be thinking about here.
+
+48
+00:04:31,278 --> 00:04:36,256
+So the first one is model routing. I did a whole video about how you can look at this.
+
+49
+00:04:36,416 --> 00:04:44,336
+You've got a request coming in, Jev decides whether it goes to a cheap, fast model, or expensive model that's going to do much better reasoning, etc.
+
+50
+00:04:44,782 --> 00:04:49,572
+If you haven't watched the video that I made about that, you can see the whole thinking process for actually putting that together.
+
+51
+00:04:49,838 --> 00:04:52,036
+The second use is risk gating.
+
+52
+00:04:52,334 --> 00:05:01,412
+So before a tool call actually runs, Jev can actually check whether it's going to be something destructive like deleting a database or wiping a folder,
+
+53
+00:05:01,646 --> 00:05:04,496
+or whether what it's actually going to be doing is quite benign.
+
+54
+00:05:04,750 --> 00:05:11,056
+Now we know that a lot of the coding agents have had this kind of check for a while, but it's been hidden generally in their harness.
+
+55
+00:05:11,502 --> 00:05:17,296
+And when you were using it, you were basically paying for a full tool call with the amount of tokens that it actually gets used there.
+
+56
+00:05:17,550 --> 00:05:24,016
+So being able to configure your harness so that when certain tools get called, perhaps like a bash tool,
+
+57
+00:05:24,270 --> 00:05:32,896
+you actually look at what the arguments are going to be going into that and you send that to Jev to basically ask it, hey, is this going to be malicious or benign?
+
+58
+00:05:33,296 --> 00:05:36,416
+Very quickly, you've got a safety check that can take milliseconds.
+
+59
+00:05:36,718 --> 00:05:40,576
+And of course, with the open decision models, that can be running fully locally as well.
+
+60
+00:05:40,942 --> 00:05:43,376
+Third up, you've got tool and skill selection.
+
+61
+00:05:43,662 --> 00:05:51,044
+So generally, what people have done is they inject their entire tool registry that they're going to be using into the system prompt.
+
+62
+00:05:51,374 --> 00:05:53,540
+And that can chew up thousands of different tokens.
+
+63
+00:05:53,902 --> 00:05:58,816
+So the whole idea of skills has reduced that a lot by using progressive disclosure.
+
+64
+00:05:59,056 --> 00:06:05,892
+This is one of the key things that I'm going to show you in the demos a bit, that you can actually have lots of skills going on, categorize them,
+
+65
+00:06:06,176 --> 00:06:14,256
+have your decision model decide which kind of category it's going to need, and then just load the appropriate skills into a system prompt at that point.
+
+66
+00:06:14,574 --> 00:06:17,284
+Fourth up, you've got things like ranking and judging.
+
+67
+00:06:17,614 --> 00:06:19,616
+So this is another one that I want to sort of demo here.
+
+68
+00:06:19,918 --> 00:06:30,736
+I think the whole idea of scoring retrieved chunks and grading on answers against a rubric, this can be a huge win for anything that you're doing with RAG or anything you're doing
+
+69
+00:06:30,926 --> 00:06:33,696
+where you're injecting context into the context window.
+
+70
+00:06:34,030 --> 00:06:44,656
+Fifth up, we've got things like triage. So this is all your things like support tickets, email issues, and one call here can give a proper probability of how urgent something is
+
+71
+00:06:44,942 --> 00:06:48,496
+and start to help giving things an actual probability of priority here.
+
+72
+00:06:48,750 --> 00:06:55,216
+And this one can be really useful for when to basically get the model to go back to the human for things like human in the loop as well.
+
+73
+00:06:55,598 --> 00:07:00,336
+And the sixth use that I'm not going to go into too much here is the whole idea of just real-time filtering.
+
+74
+00:07:00,558 --> 00:07:08,416
+This can be really useful for any time you're basically dealing with APIs, polling requests, anything where it's good to just filter what
+
+75
+00:07:08,416 --> 00:07:12,416
+comes back from that before you inject that into the context window.
+
+76
+00:07:12,686 --> 00:07:17,060
+So the rule of thumb that I use for all of these actually comes from TypeSafe themselves.
+
+77
+00:07:17,456 --> 00:07:26,336
+If a panel of smart people could answer the question in just a few seconds, then it's the kind of question that you probably should be using a decision model for.
+
+78
+00:07:26,606 --> 00:07:33,252
+If they need to go away and formulate an answer and then write a complicated answer back, that's when you should be sticking with the LLMs.
+
+79
+00:07:33,614 --> 00:07:39,044
+In a little bit, I'll actually go through the use cases of where you shouldn't be using these decision models at all.
+
+80
+00:07:39,310 --> 00:07:41,412
+So how do you actually wire this in?
+
+81
+00:07:41,902 --> 00:07:47,140
+So if we go back to that loop that we had there, there are four places to hook a decision in.
+
+82
+00:07:47,534 --> 00:07:52,736
+And really they're going to be the same in any framework, whether you're talking about Langchain, whether you're talking about ADK,
+
+83
+00:07:52,816 --> 00:07:56,656
+whether you're just using custom Python code to write your own loop here.
+
+84
+00:07:56,942 --> 00:08:01,636
+You've got before the prompt is built, so decide which skills or tools to load.
+
+85
+00:08:02,094 --> 00:08:05,796
+Before the model call, decide which actual model you're going to call.
+
+86
+00:08:06,350 --> 00:08:09,296
+Before a tool runs, decide whether it's safe.
+
+87
+00:08:09,966 --> 00:08:16,816
+And then after a result comes back, decide whether it's good enough to use or whether you should go back and actually go through the loop again.
+
+88
+00:08:17,134 --> 00:08:19,776
+So each hook here is the same small piece of code.
+
+89
+00:08:20,174 --> 00:08:31,296
+Build a state from what the loop already has, ask your questions, and then read the probabilities and answers that come back, and then branch or make your decision for the path going forward
+
+90
+00:08:31,502 --> 00:08:32,388
+based on those.
+
+91
+00:08:32,718 --> 00:08:38,564
+Now there's also a second pattern that you can use where JEV is the loop's decider and the LLM is the fallback.
+
+92
+00:08:38,736 --> 00:08:45,700
+So JEV picks the tool or the answer and only hands it to the LLM when it's unsure or when something needs text to be written.
+
+93
+00:08:46,190 --> 00:08:51,056
+Now this pattern can actually cut more LLM calls, but it's definitely a much bigger change to your agent.
+
+94
+00:08:51,342 --> 00:08:56,976
+And so far I found with this one it just doesn't seem to work as well when you've got a lot more sort of complicated things going on in there.
+
+95
+00:08:57,230 --> 00:09:00,324
+Anyway, for either of these patterns, you don't need a framework.
+
+96
+00:09:00,590 --> 00:09:08,736
+That said, the first pattern that I talked about here, Langchain has already shipped that as middleware, and Pydantic has shipped their own version by making the TypeSafe
+
+97
+00:09:08,896 --> 00:09:12,336
+models something that you can just plug in and use in the agent loop.
+
+98
+00:09:12,526 --> 00:09:17,060
+All right, so before I show you the demos, let me just go through quickly where I think this doesn't fit.
+
+99
+00:09:17,376 --> 00:09:29,220
+Clearly, anything where you need text back, anything that needs any sort of multi-step reasoning, and anything where you're going to need to connect several things together to generate an answer out,
+
+100
+00:09:29,616 --> 00:09:32,096
+all of those are still an LLM's job.
+
+101
+00:09:32,302 --> 00:09:41,604
+And in many ways, a lot of that multi-hop stuff is still going to be the stuff that you're going to use the LLM for and then have your harness process that and keep passing it back to the large LLM.
+
+102
+00:09:41,902 --> 00:09:44,708
+The second thing you want to think about here is size.
+
+103
+00:09:45,166 --> 00:09:55,216
+So if your state is just getting too big and that you're trying to pass in a hundred thousand tokens to get some kind of response back from that context window,
+
+104
+00:09:55,376 --> 00:09:57,296
+then JEV is not going to be a good fit here.
+
+105
+00:09:57,550 --> 00:10:01,956
+TypeSafe's own docs say that accuracy drops a lot on long inputs.
+
+106
+00:10:02,446 --> 00:10:09,376
+And so it generally seems to fit whether you're using the TypeSafe JEV decision model or one of the open decision models.
+
+107
+00:10:09,582 --> 00:10:18,496
+On top of that, another thing obviously is that JEV itself doesn't use images. Now, some of the open models actually do use images and use images really well.
+
+108
+00:10:18,702 --> 00:10:23,300
+So at the moment, that's definitely a win for the open decision models over the proprietary models.
+
+109
+00:10:23,694 --> 00:10:26,372
+All right, another thing that doesn't work well are compound questions.
+
+110
+00:10:26,926 --> 00:10:30,724
+So compound questions are often something that the decision models don't handle that well.
+
+111
+00:10:31,118 --> 00:10:33,536
+If you've got a yes-no question, okay, that's fine.
+
+112
+00:10:33,616 --> 00:10:41,476
+But if you've got something that requires multiple questions in there to be answered, then often the LLM is going to do better for that kind of thing.
+
+113
+00:10:41,806 --> 00:10:51,056
+Another thing you want to be wary about in here is while the decision models can be really good at spotting sort of weak spots, you want to be careful about how you always rely on them.
+
+114
+00:10:51,342 --> 00:10:59,536
+It does seem currently that a lot of these models can be prompt injected to basically have instructions that actually move the results out of that.
+
+115
+00:10:59,822 --> 00:11:08,896
+So often the way to get around that is to basically have a question first that asks, are there any prompt injections in here before you actually pass it on to the real question that you want
+
+116
+00:11:09,056 --> 00:11:09,668
+to actually ask?
+
+117
+00:11:10,126 --> 00:11:15,172
+The other thing I find too is that you really want to think about criteria for making the decisions.
+
+118
+00:11:15,598 --> 00:11:26,016
+So if you've got very clear decision spots where you're asking the same questions, you can control the actual criteria very well in situations like that.
+
+119
+00:11:26,256 --> 00:11:33,216
+If you're just asking some vague question about the output from the LLM and you haven't got a nice clear criteria in there,
+
+120
+00:11:33,582 --> 00:11:38,736
+I wouldn't necessarily be trusting the LLM to write that in a way that's going to make the whole system a lot better.
+
+121
+00:11:38,958 --> 00:11:46,736
+You kind of want to define the instructions and the criteria yourself and then benchmark any changes that you make to that over time.
+
+122
+00:11:47,054 --> 00:11:55,748
+And then, of course, lastly, if you're actually running your agent locally, but then you're using JEV in the cloud, you've got to think about the whole fact that it's a hosted API.
+
+123
+00:11:55,950 --> 00:11:59,696
+And do you really trust it for every state that you're going to send to the cloud?
+
+124
+00:11:59,918 --> 00:12:01,828
+Is it okay that that leaves your machine?
+
+125
+00:12:02,094 --> 00:12:06,016
+And I think this is where the open decision models have really come along so far now.
+
+126
+00:12:06,318 --> 00:12:14,916
+So let's jump into the demos and actually look at some examples of how you could do this for a couple of these key tasks and some of the challenges that you might face along the way.
+
+127
+00:12:15,630 --> 00:12:21,648
+All right, so in the demo here, I've basically made a UI just so you can see what's going on a lot easier.
+
+128
+00:12:21,808 --> 00:12:25,888
+But these are exactly the kind of decisions that are going on in your agent.
+
+129
+00:12:26,048 --> 00:12:32,388
+So if we've got a bunch of skills, more and more now people are starting to use large amounts of skills files.
+
+130
+00:12:32,622 --> 00:12:38,448
+And remember, the whole thing that's really cool about skills is that you've got progressive disclosure in there.
+
+131
+00:12:38,702 --> 00:12:46,928
+So the idea here is that if this is the actual skill file, and it might actually be a lot longer going through this, you only give the model
+
+132
+00:12:47,168 --> 00:12:55,568
+this after it's decided that okay, it needs to basically use a coding write tests skill for this.
+
+133
+00:12:55,758 --> 00:12:59,168
+Then you would actually go and give it this in the context window.
+
+134
+00:12:59,328 --> 00:13:11,728
+So the different thing that we're doing here is that rather than just give it 50 skills in one shot, we can see for each of these 10 different categories, we've got five different skills in here.
+
+135
+00:13:11,982 --> 00:13:18,372
+And if we're injecting that in the system prompt for every time we call the LLM, that's going to burn a lot of tokens.
+
+136
+00:13:18,894 --> 00:13:26,692
+So the idea is that the thing that we inject into the LLM is just the categories of skills.
+
+137
+00:13:27,214 --> 00:13:36,448
+And then the JEV model itself will basically take the task that we've got, it will then decide which category to pick from,
+
+138
+00:13:36,814 --> 00:13:44,548
+then it will be given the list of skills for that category, and it will then choose the most appropriate one to actually do this.
+
+139
+00:13:45,006 --> 00:13:45,728
+So let's look at this.
+
+140
+00:13:45,888 --> 00:13:53,764
+So if the task is basically someone saying, someone got an email pretending to be our CEO asking for gift cards, is this a hacking attack?
+
+141
+00:13:54,222 --> 00:14:00,740
+And you can see I'm running this through one of the bigger JEV models in here, but actually you can try it out on a lot of the different JEV models.
+
+142
+00:14:01,102 --> 00:14:10,116
+You can see if I run this and route it, it goes through and it basically first decides that the category here is security and access.
+
+143
+00:14:10,606 --> 00:14:14,208
+So it's done that as a choice. It's basically returned this back.
+
+144
+00:14:14,446 --> 00:14:22,916
+And then in this category, it has a bunch of these in here. And we can see it decided investigate a security alert in here.
+
+145
+00:14:23,214 --> 00:14:29,808
+And sure enough, the description for that is triage of suspicious login, phishing report, or security alert in there.
+
+146
+00:14:30,126 --> 00:14:40,036
+So you can see in this case, what we've actually done is a sort of cascade classifier where we've done one sort of classifier first to basically pick out the class of the category,
+
+147
+00:14:40,128 --> 00:14:43,968
+and then we've done a second one to actually pick out the skill in this case.
+
+148
+00:14:44,128 --> 00:14:47,908
+Because we're running this locally, it's done it super quick going through this.
+
+149
+00:14:48,302 --> 00:14:56,528
+All right, you can see that if I give it a sort of general question here, we've got certain things that we can actually do. Let's route it through.
+
+150
+00:14:56,974 --> 00:15:02,288
+Sure enough, in this case, it's basically saying do web research, fact check a claim, right?
+
+151
+00:15:02,640 --> 00:15:11,396
+It probably could have also gone for search the web, although I guess this does actually make more sense in that it's actually stating a fact and then asking if it's true here.
+
+152
+00:15:11,694 --> 00:15:17,568
+And from there we could load the skill file or use any sort of API, etc., that we actually wanted to there.
+
+153
+00:15:17,806 --> 00:15:23,888
+All right, one more in here you can see, okay, make me a short voiceover of this product description for a launch video.
+
+154
+00:15:24,142 --> 00:15:30,208
+Now it's deciding that, okay, that relates to images, audio, and video, and it needs to be a text-to-speech skill in there.
+
+155
+00:15:30,510 --> 00:15:37,764
+So this is a way of using JEV for sort of progressive disclosure with skills, especially if you've got lots of skills.
+
+156
+00:15:38,286 --> 00:15:47,008
+By classifying them first into categories and then putting them into actually which skill is being chosen, you're able to get a very fast result
+
+157
+00:15:47,248 --> 00:15:47,488
+here.
+
+158
+00:15:47,694 --> 00:15:56,004
+And then the skill itself can actually be sent to the large language model to work out any arguments that need to go into that skill, those kinds of things.
+
+159
+00:15:56,398 --> 00:16:02,116
+But this is able to help us reduce on token spend, but also just speed things up like this.
+
+160
+00:16:02,446 --> 00:16:06,628
+Another one that you can use in the same sort of vein of this is doing sort of verification.
+
+161
+00:16:06,688 --> 00:16:16,368
+steps of things that come back from APIs, to basically have the whole thing, make a decision of whether whatever's coming back from the API is really good and can just go
+
+162
+00:16:16,528 --> 00:16:25,408
+straight through as a result, whether you need to change the arguments that you gave to the API, or whether you just need to call it again. because you got a certain type of error, etc.
+
+163
+00:16:25,838 --> 00:16:28,208
+The next demo is combining this with RAG.
+
+164
+00:16:28,814 --> 00:16:35,632
+So, one of the patterns in RAG that works really well is go and get a lot of information and then re-rank that information.
+
+165
+00:16:35,950 --> 00:16:41,712
+And generally, there are ways to do that where you've got a separate re-ranker model. And that can work really nice as a pattern.
+
+166
+00:16:41,966 --> 00:16:49,632
+The only challenge is that for certain projects, you just can't do that because of time. You can't do that because you're going to need more models.
+
+167
+00:16:49,934 --> 00:16:58,916
+And especially if you're already using an embedding model on an API, you probably don't want to have lots of calls to the API for re-ranking for that kind of thing.
+
+168
+00:16:59,374 --> 00:17:02,112
+So the idea here is that we can ask it a question.
+
+169
+00:17:02,352 --> 00:17:11,312
+It will then go off, get a lot of different passages, then give those to the actual JEV model, which can decide,
+
+170
+00:17:11,472 --> 00:17:16,004
+okay, these are the top five passages that I'm going to send to the full size LLM.
+
+171
+00:17:16,112 --> 00:17:23,152
+And there are different ways you could do this. You could basically do it on a sort of yes-no thing. You could do it via sort of scoring kind of things.
+
+172
+00:17:23,312 --> 00:17:30,432
+Or if you really wanted to just sort of pick one, you could actually just have a choice of one to see, okay, what's actually going to go through in there.
+
+173
+00:17:30,798 --> 00:17:35,044
+Now for me playing around with this, I find the scoring one seems to work quite nicely here.
+
+174
+00:17:35,278 --> 00:17:40,752
+We then basically get a score. So in our question here is why are my webhook requests failing with an error?
+
+175
+00:17:41,006 --> 00:17:50,432
+And then we can see sure enough, we're getting back webhooks, verifying signatures, second up webhooks raw bodies, third up was proxies, fourth up was webhooks
+
+176
+00:17:50,592 --> 00:17:51,364
+signing secrets.
+
+177
+00:17:51,472 --> 00:17:55,812
+And you can see that we've got the five things now that we can basically send back.
+
+178
+00:17:56,238 --> 00:17:59,792
+And this is something that you could even use if you weren't using an embedding model.
+
+179
+00:17:59,982 --> 00:18:07,908
+If you're just using something like BM25 to basically get different sections out, you can kind of get a bit of the best of both worlds
+
+180
+00:18:07,982 --> 00:18:12,592
+by having sort of a broad sweep that gets you 25 different passages back.
+
+181
+00:18:12,752 --> 00:18:24,164
+And then using the JEV model, again, in this case, using one of the open local ones here, to actually go through and pick out the top five that you then send to your LLM.
+
+182
+00:18:24,526 --> 00:18:33,792
+You can see if I try it with one of the other ones, that it's then able to basically go through, get out different parts of the context, pick out stuff that's most relevant,
+
+183
+00:18:33,952 --> 00:18:40,832
+and then pass that through. Now, these are certainly larger chunks of text than what I had with the skills before.
+
+184
+00:18:40,912 --> 00:18:50,192
+So it's perhaps not quite as fast as the cascading system that we had for the last one, but still fundamentally the same idea of where you're doing scoring and classification
+
+185
+00:18:50,432 --> 00:18:58,672
+using the world knowledge that's in that particular decision model to help it make simple but useful decisions for you.
+
+186
+00:18:58,958 --> 00:19:10,884
+All right, so just to finish up, you can see that there are lots of uses of where you can use either the JEV model itself or the many open versions of this in building any sort of custom harness.
+
+187
+00:19:11,310 --> 00:19:16,832
+I can if you're interested to basically think of these things more, come through and read some of the JEV tutorials.
+
+188
+00:19:16,992 --> 00:19:19,232
+This open router has got one up here.
+
+189
+00:19:19,566 --> 00:19:22,912
+And when I'm actually using the JEV model, I'm going through OpenRouter.
+
+190
+00:19:22,992 --> 00:19:31,952
+So for those of you who are asking, if you haven't been whitelisted for the actual TypeSafe API on their site, anyone can just come and use the Open Router one here.
+
+191
+00:19:32,142 --> 00:19:40,832
+Another useful resource that's worth checking out is Langchain has got a nice article about using JEV in Langchain, about different uses and stuff like that.
+
+192
+00:19:40,992 --> 00:19:45,872
+They've actually made some middleware for doing this, but overall I would say just try it out.
+
+193
+00:19:46,062 --> 00:19:53,232
+If you're doing any sort of custom harness or any sort of modifications to unharness, it's definitely worth it looking at
+
+194
+00:19:53,312 --> 00:20:01,952
+putting this in your pipeline to be able to get these really fast and really cheap decisions made for improving the results that your harness gets overall.
+
+195
+00:20:02,318 --> 00:20:08,272
+Anyway, as always, let me know in the comments what you've tried out. I'm sure there are plenty of examples that I haven't put into this video.
+
+196
+00:20:08,432 --> 00:20:16,352
+So if you've got some interesting use cases, please share them because that would be really interesting to check out and see what other interesting ideas people have got for how
+
+197
+00:20:16,352 --> 00:20:17,952
+to actually use this kind of thing.
+
+198
+00:20:18,192 --> 00:20:22,912
+And as always, if you found the video useful, please click like and subscribe. And I will talk to you in the next video.
+
+199
+00:20:23,214 --> 00:20:23,908
+Bye for now.
+
