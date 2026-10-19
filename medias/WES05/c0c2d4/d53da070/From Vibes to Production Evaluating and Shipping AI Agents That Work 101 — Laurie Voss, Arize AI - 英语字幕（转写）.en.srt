@@ -1,0 +1,4752 @@
+1
+00:00:12,878 --> 00:00:14,532
+Hello everyone.
+
+2
+00:00:16,622 --> 00:00:26,436
+I have a packed room for a two-hour workshop, which is amazing. Welcome to AI Engineer. I know no one's officially welcomed you, but welcome to AI Engineer.
+
+3
+00:00:27,200 --> 00:00:29,284
+this venue is amazing, this crowd is
+
+4
+00:00:30,094 --> 00:00:34,660
+really quite surprising, and I have a ton of content for you today.
+
+5
+00:00:35,440 --> 00:00:39,492
+my name is Laurie Voss, I'm head of developer relations at Arise AI.
+
+6
+00:00:40,000 --> 00:00:46,788
+Uh some of you may remember me from when I used to co-found NPM Inc., so you may remember me from like JavaScript days.
+
+7
+00:00:47,360 --> 00:00:52,292
+but these days I talk about AI and how to test it and how to make it work.
+
+8
+00:00:53,390 --> 00:00:55,556
+So, what are we going to be covering today?
+
+9
+00:00:56,160 --> 00:01:02,400
+we've got a really good stretch of time together, so we're going to cover a lot of ground, and I'm going to start with fundamentals.
+
+10
+00:01:02,480 --> 00:01:04,356
+That's why this is called a 101 session.
+
+11
+00:01:05,280 --> 00:01:13,476
+we're going to start with what evals are, why you need them, and why agents make evaluation harder than simple LLM applications.
+
+12
+00:01:14,160 --> 00:01:20,932
+then we're going to set up tracing in Arise AX, which is how you capture the raw data you need to run evals in the first place.
+
+13
+00:01:22,222 --> 00:01:29,828
+we're going to build a simple AI agent with the Cloud Agent SDK. We're going to run it and we're going to look at the traces it produces.
+
+14
+00:01:30,254 --> 00:01:33,860
+Can I get a show of hands if you've already built an agent?
+
+15
+00:01:35,118 --> 00:01:36,260
+All right, great.
+
+16
+00:01:36,686 --> 00:01:43,620
+I'm going to spend no time at all on how the agent works because I assume everybody knows how an agent works, and you're here to learn how to evaluate them.
+
+17
+00:01:44,800 --> 00:01:50,500
+once we've got some data, we're gonna do something that a lot of tutorials skip, which is we're gonna actually look at the data.
+
+18
+00:01:51,040 --> 00:01:54,148
+we're gonna read our traces, we're gonna categorize what went wrong,
+
+19
+00:01:55,566 --> 00:02:00,452
+and we're gonna figure out what to measure before we write a single eval. Then we're going to write three kinds of evals.
+
+20
+00:02:00,910 --> 00:02:06,596
+There are code evals, which are simple deterministic checks very similar to unit tests.
+
+21
+00:02:07,022 --> 00:02:16,640
+Then we're going to use built-in LLM evals like faithfulness, where a second LLM judges the output of your first one,
+
+22
+00:02:16,880 --> 00:02:21,572
+and we're going to do a custom eval, LLM as a judge from scratch.
+
+23
+00:02:22,000 --> 00:02:27,108
+and we're also going to test whether our judges are judging correctly a process called meta-evaluation.
+
+24
+00:02:28,526 --> 00:02:37,340
+Then we're going to finish with data sets and experiments, which is how you iterate on your agent and actually measure whether it's getting better, including we're going to use Cloud
+
+25
+00:02:37,600 --> 00:02:42,340
+code to automatically improve our app in response to feedback from our evals.
+
+26
+00:02:43,662 --> 00:02:45,156
+So, first things first,
+
+27
+00:02:46,574 --> 00:02:47,876
+get your notebook.
+
+28
+00:02:49,294 --> 00:02:55,364
+I messed up earlier and didn't have permission set correctly, so if you scanned this earlier and it didn't work, it works now.
+
+29
+00:02:57,390 --> 00:03:01,764
+Grab this notebook and make a copy for yourself. That is where we're going to be living all day.
+
+30
+00:03:04,910 --> 00:03:06,788
+And I'm going to wait for that to happen because
+
+31
+00:03:07,630 --> 00:03:10,020
+otherwise I'm going to have to keep swapping back to this slide.
+
+32
+00:03:11,438 --> 00:03:11,908
+All right.
+
+33
+00:03:14,000 --> 00:03:15,040
+Most of those are down.
+
+34
+00:03:15,310 --> 00:03:17,348
+No, no, I'm still seeing people taking pictures.
+
+35
+00:03:19,822 --> 00:03:20,804
+All right, cool.
+
+36
+00:03:22,734 --> 00:03:29,604
+We're also going to need a certain amount of AI infrastructure. I'm going to be using anthropic and claude code today.
+
+37
+00:03:31,310 --> 00:03:38,628
+Arise AX works with OpenAI, it works with every other lab provider, but I had to pick one in order to do a workshop about it, so I've used Claude.
+
+38
+00:03:38,720 --> 00:03:50,180
+So this notebook's going to expect you to have an anthropic API key, which you can get from console.anthropic.com. If not, you can, if you are very clever, do a fast swap to open AI.
+
+39
+00:03:51,822 --> 00:03:53,360
+You're also going to need an Arise account.
+
+40
+00:03:53,582 --> 00:03:56,036
+Go to Arise.com and start a free trial.
+
+41
+00:03:58,190 --> 00:04:04,804
+From there, you will need an Arise space ID and an Arise API key, both of which you can get from the settings page.
+
+42
+00:04:06,240 --> 00:04:08,800
+My lovely assistant Dat is here.
+
+43
+00:04:09,120 --> 00:04:10,560
+That's him in the corner.
+
+44
+00:04:10,880 --> 00:04:20,560
+If you run into any problems getting your API keys or anything like that, just flag him down and he will run over to you and help you figure it out,
+
+45
+00:04:20,720 --> 00:04:23,748
+which is incredibly nice of him. Thank you, Dad.
+
+46
+00:04:28,750 --> 00:04:29,360
+Yes.
+
+47
+00:04:30,190 --> 00:04:30,400
+So
+
+48
+00:04:31,920 --> 00:04:32,240
+who
+
+49
+00:04:33,280 --> 00:04:36,644
+had all that stuff already? Anybody already got an Arise X account?
+
+50
+00:04:38,766 --> 00:04:39,280
+All right.
+
+51
+00:04:39,520 --> 00:04:43,268
+I'm going to let you hang out for this, I'm going to let you set that one up for a little while.
+
+52
+00:04:48,782 --> 00:04:51,040
+The way you do it is you go to Arise.com.
+
+53
+00:04:57,744 --> 00:04:57,984
+And
+
+54
+00:04:57,984 --> 00:04:58,464
+you hit
+
+55
+00:04:59,982 --> 00:05:02,052
+send me to the docs because I always live in the docs.
+
+56
+00:05:02,638 --> 00:05:04,644
+You go to Arise.com, thank you.
+
+57
+00:05:05,504 --> 00:05:07,972
+and you hit the big pink get started button.
+
+58
+00:05:12,464 --> 00:05:12,784
+And
+
+59
+00:05:12,846 --> 00:05:14,052
+then you sign up from here.
+
+60
+00:05:16,110 --> 00:05:23,556
+Do not accidentally sign up for Phoenix. Phoenix is our lovely open source project, which also has a hosted service underneath Phoenix.
+
+61
+00:05:24,064 --> 00:05:26,864
+sometimes when you Google a rise, you get sent to Phoenix instead.
+
+62
+00:05:26,990 --> 00:05:29,540
+Don't sign up for Phoenix. You're doing AX today.
+
+63
+00:05:34,702 --> 00:05:42,624
+All right. While you are signing up, I'm going to say a little bit more about what AX is. It is an observability and evaluations platform.
+
+64
+00:05:42,784 --> 00:05:50,820
+It captures traces from your AI application, it stores and runs your evaluations, and it watches your app in production and alerts you when something goes wrong.
+
+65
+00:05:51,504 --> 00:05:53,344
+by default, we host it for you.
+
+66
+00:05:53,504 --> 00:05:58,464
+That is why we're using it today, because you don't have to like run some software to make it run.
+
+67
+00:05:58,864 --> 00:06:00,740
+so there's no infrastructure to manage.
+
+68
+00:06:01,344 --> 00:06:08,708
+though, if you are from an enterprise that is super precious about your data and you're like, no, we need to run it ourselves, you can absolutely do that if you want to.
+
+69
+00:06:10,734 --> 00:06:16,356
+and like I said, if you've used Arise Phoenix, which is our open source tool, a lot of this will feel familiar.
+
+70
+00:06:17,424 --> 00:06:19,876
+they have the same core ideas. One is
+
+71
+00:06:21,198 --> 00:06:27,844
+built for open source accessibility, and the other one is built for enterprise with production and teams and things like that.
+
+72
+00:06:30,638 --> 00:06:33,252
+So, how are we doing on signing up for keys right now?
+
+73
+00:06:36,846 --> 00:06:38,116
+The Wi-Fi sucks.
+
+74
+00:06:38,464 --> 00:06:39,424
+That is
+
+75
+00:06:40,494 --> 00:06:42,180
+predictable, really, isn't it?
+
+76
+00:06:50,702 --> 00:06:54,532
+Is anybody like desperately in need of assistance right now?
+
+77
+00:07:04,974 --> 00:07:05,444
+All right.
+
+78
+00:07:12,206 --> 00:07:16,292
+Okay, well the advice is to switch to your phones as a hotspot. I apologize for the Wi-Fi.
+
+79
+00:07:18,734 --> 00:07:26,384
+I'm really worried about my 2 p.m. workshop where I have a Git repo that I know is 200 megabytes large, and I'm like, no one is going to get the repo
+
+80
+00:07:26,544 --> 00:07:27,344
+because it's too big.
+
+81
+00:07:29,422 --> 00:07:31,268
+Yeah, start cloning that repo now.
+
+82
+00:07:31,982 --> 00:07:39,204
+Anyway, let's talk about these fundamentals. There's a lot of theory in this workshop which gives you time to catch up.
+
+83
+00:07:39,824 --> 00:07:50,468
+Um here's the mental model. Evals are testing for AI, and traces are logs for AI. Why we had to come up with two completely new names for those things, I don't really know.
+
+84
+00:07:52,014 --> 00:07:53,424
+you write tests for your code.
+
+85
+00:07:53,710 --> 00:07:55,664
+Given this input, I expect this output.
+
+86
+00:07:55,984 --> 00:08:02,020
+evals do the same thing, but for AI outputs where the outputs are never exactly the same twice.
+
+87
+00:08:02,510 --> 00:08:14,084
+Just as logs record what your server did at runtime, traces record what your AI did. So every agent call, every tool call, every LLM invocation with the inputs and outputs at each step.
+
+88
+00:08:15,342 --> 00:08:18,532
+The building blocks of a trace are called spans.
+
+89
+00:08:20,206 --> 00:08:25,348
+in this little screenshot, you can see a trace in a rise AX. It's made up of a bunch of spans, it's got this tree structure.
+
+90
+00:08:26,544 --> 00:08:34,724
+and each span represents one step in the execution. An LLM call is a span, a tool call is a span, a full agent turn is a span that contains other spans inside of it.
+
+91
+00:08:35,406 --> 00:08:40,784
+Each span records its input, its output, timing, token counts, and a whole bunch of metadata.
+
+92
+00:08:41,184 --> 00:08:43,664
+everything that you need to understand what happened at that step.
+
+93
+00:08:43,984 --> 00:08:47,584
+Traces tell you what happened, evals tell you whether it was any good.
+
+94
+00:08:47,790 --> 00:08:48,224
+That is the
+
+95
+00:08:49,024 --> 00:08:50,304
+mental model for today.
+
+96
+00:08:50,544 --> 00:08:52,004
+This is not rocket science.
+
+97
+00:08:54,126 --> 00:08:59,108
+But let me talk about why we even need evals, and that is the vibes problem.
+
+98
+00:09:01,486 --> 00:09:07,184
+AI features usually get shipped by building an AI feature, running a few queries, saying, does this look right?
+
+99
+00:09:07,470 --> 00:09:13,796
+Yeah, it looks good, and then you ship it. That is by far the most popular method of shipping AI applications today.
+
+100
+00:09:14,958 --> 00:09:18,212
+And the problem is that then it fails on inputs that you didn't test.
+
+101
+00:09:18,864 --> 00:09:25,220
+And the thing is, it probably looks good on your test queries, but the problem is that you ran it three times. Three times is not a test suite.
+
+102
+00:09:26,670 --> 00:09:33,344
+The usual fix for flaky software is unit tests, and they don't work here because the output is non-deterministic.
+
+103
+00:09:33,824 --> 00:09:41,184
+The same prompt produces different text every run, so two different responses might both be correct, so there's no expected string that you can assert
+
+104
+00:09:41,184 --> 00:09:46,372
+against. So teams fall back on human review. They watch it run, it looks fine, and they ship it.
+
+105
+00:09:47,344 --> 00:09:51,972
+That doesn't scale, it doesn't catch regressions, and most importantly, it doesn't run in CI.
+
+106
+00:09:54,286 --> 00:10:00,196
+Here's some things you can't do without evals. if you change your system prompt to fix a tone issue, then the tone would get better.
+
+107
+00:10:00,464 --> 00:10:03,344
+But now your bot is hallucinating product features.
+
+108
+00:10:03,424 --> 00:10:07,396
+Without evals, you wouldn't catch that until a user reports it.
+
+109
+00:10:08,110 --> 00:10:11,716
+With a faithfulness eval, you would have seen the spike before it shipped.
+
+110
+00:10:12,624 --> 00:10:17,264
+And every prompt potentially affects every kind of input that users send.
+
+111
+00:10:17,358 --> 00:10:25,344
+So you can be changing the prompt for one thing and have a completely unexpected effect at some totally different part of your application because the prompt is just a huge block
+
+112
+00:10:25,344 --> 00:10:26,980
+of text that you're sending to your AI.
+
+113
+00:10:28,224 --> 00:10:32,864
+You can't manually test every combination. So without evals, you're playing whack-a-mole.
+
+114
+00:10:32,974 --> 00:10:35,332
+You fix one problem and you break something somewhere else.
+
+115
+00:10:36,014 --> 00:10:40,100
+Evals instead give you a number that you can track and compare and act on.
+
+116
+00:10:41,838 --> 00:10:46,692
+You also can't switch models without evals, and this matters more and more because this field moves so fast.
+
+117
+00:10:47,344 --> 00:10:49,284
+new models drop every few months.
+
+118
+00:10:51,086 --> 00:10:57,344
+without eval, switching models means weeks of manual testing. Is it better? Is it worse? Did something get did something break? You don't know.
+
+119
+00:10:57,742 --> 00:11:06,532
+With evals, you run the suite, you compare the scores, and you know within hours, and that is the difference between flying by the seat of your pants and flying by instruments.
+
+120
+00:11:08,270 --> 00:11:09,796
+And this is not theoretical.
+
+121
+00:11:10,224 --> 00:11:19,044
+real teams, Descript, bolt, anthropic's own clawed code all follow the same arc of shipping on vibes and then discovering that vibes don't scale,
+
+122
+00:11:19,664 --> 00:11:25,344
+and then building evals. And that is the same arc that we're going to follow in today's workshop.
+
+123
+00:11:27,214 --> 00:11:30,064
+As I mentioned earlier, there are two broad types of evals.
+
+124
+00:11:30,382 --> 00:11:32,384
+Code evals are deterministic functions.
+
+125
+00:11:32,558 --> 00:11:38,944
+They run in milliseconds and they cost nothing, and they give you an immediate unambiguous answer, like did the output parses JSON?
+
+126
+00:11:39,184 --> 00:11:41,264
+Is the output less than 500 tokens?
+
+127
+00:11:41,486 --> 00:11:43,332
+Did it mention the thing that I asked about?
+
+128
+00:11:43,854 --> 00:11:48,624
+The big advantage of code evals is that they are fast and cheap and totally reproducible.
+
+129
+00:11:49,550 --> 00:11:52,164
+They get the same input and they give the same answer every time.
+
+130
+00:11:52,462 --> 00:11:54,916
+That makes them very similar to old style unit tests.
+
+131
+00:11:55,438 --> 00:11:58,724
+The downside is that, like old style unit tests, they can be brittle.
+
+132
+00:11:59,344 --> 00:12:03,012
+We have some strategies that can help avoid that, and I'm going to be covering those later.
+
+133
+00:12:05,038 --> 00:12:12,548
+Because two perfectly correct answers might be worded completely differently, and you have to adjust your expectations of unit tests to be able to handle that.
+
+134
+00:12:14,190 --> 00:12:25,104
+The second type of eval is an LLM as a judge eval. These use a second LLM to grade your outputs against a rubric, rubric being yet another word that we made up that just means rules.
+
+135
+00:12:25,390 --> 00:12:29,092
+It is your set of rules that you put in your prompt about what counts as good.
+
+136
+00:12:30,478 --> 00:12:32,292
+LLM evals are much more flexible.
+
+137
+00:12:32,784 --> 00:12:35,812
+They can handle the kinds of questions that code evals can't answer.
+
+138
+00:12:36,464 --> 00:12:38,944
+Is this response factually accurate?
+
+139
+00:12:39,278 --> 00:12:42,116
+Did it stay faithful to the source material? Is the tone right?
+
+140
+00:12:42,544 --> 00:12:50,404
+For a customer service context, the strength of LLM judges is that they understand the meaning, not just the strings that are in your output.
+
+141
+00:12:51,566 --> 00:12:53,744
+But LLM judges have trade offs.
+
+142
+00:12:53,904 --> 00:12:58,116
+The weakness is that they cost money to run and they are non deterministic themselves.
+
+143
+00:12:59,264 --> 00:13:04,548
+So they can be wrong, which means that you need to calibrate them against human judgment, and we're going to do that later today.
+
+144
+00:13:06,350 --> 00:13:09,700
+There's also a third type of eval, which is human evaluation.
+
+145
+00:13:10,432 --> 00:13:15,460
+A domain expert can read your output and grade it, and that is the gold standard for quality.
+
+146
+00:13:16,112 --> 00:13:21,028
+But it is slow and expensive, and humans get tired, which is why we can't use it all the time.
+
+147
+00:13:22,382 --> 00:13:27,552
+Fun fact that's not very fun: human annotators miss up to 50% of defects due to fatigue.
+
+148
+00:13:27,632 --> 00:13:29,060
+So they're not perfect either.
+
+149
+00:13:29,312 --> 00:13:38,592
+So when you build an LLM as a judge and you're like, well, it doesn't always catch my errors. Remember that if you were judging with a human, the human would also not always catch your errors.
+
+150
+00:13:39,472 --> 00:13:41,312
+But these are complementary approaches.
+
+151
+00:13:41,472 --> 00:13:43,632
+Most real applications are going to use a
+
+152
+00:13:44,654 --> 00:13:48,292
+collection of code evals, LLM as a judge, and human evaluation.
+
+153
+00:13:49,358 --> 00:13:50,912
+So when do you use which?
+
+154
+00:13:51,406 --> 00:13:54,180
+Use code evals when the answer is deterministic.
+
+155
+00:13:54,512 --> 00:13:59,152
+So format validation, length limits, forbidden phrases, required fields.
+
+156
+00:13:59,312 --> 00:14:06,272
+Use LLM judges when you need semantic understanding. A correctness eval asks, did it answer the question accurately?
+
+157
+00:14:06,542 --> 00:14:10,564
+A faithfulness eval asks, did it stick to the source documents without hallucinating?
+
+158
+00:14:11,822 --> 00:14:15,588
+And you should keep humans in the loop for failure modes that you haven't seen before.
+
+159
+00:14:16,192 --> 00:14:19,300
+And to verify that your LLM judges are actually judging correctly.
+
+160
+00:14:19,472 --> 00:14:21,028
+LLM judges can be wrong.
+
+161
+00:14:21,792 --> 00:14:25,220
+Judging them against human judgment is how you know whether or not you can trust them.
+
+162
+00:14:27,552 --> 00:14:35,524
+All of that is true of any application that uses LLMs, but agents make things even harder in some ways that are worth calling out.
+
+163
+00:14:35,790 --> 00:14:37,924
+You can think of it as a ladder of complexity.
+
+164
+00:14:38,318 --> 00:14:42,272
+A single LLM call is relatively simple. You get an input, you get an output.
+
+165
+00:14:42,510 --> 00:14:51,312
+When you are talking about an agent, an agent is making a series of tool calls and a series of decisions, which means that at every single step in the chain,
+
+166
+00:14:52,270 --> 00:14:59,392
+the chances that it has made a mistake are getting higher, and so the chances that it will go off the rails are going to get greater.
+
+167
+00:14:59,950 --> 00:15:09,472
+So you have to judge the intermediate steps as well. You have to check whether your agent is using the right tool, did it pass the right arguments, did it know when to stop?
+
+168
+00:15:09,806 --> 00:15:13,152
+Getting stuck in loops is a real failure case for agents.
+
+169
+00:15:13,792 --> 00:15:18,468
+And then multi-agent systems, if you are building those, add yet another level of complexity.
+
+170
+00:15:18,672 --> 00:15:24,032
+They add handoffs. One agent decides to pass work to another. Did the triage agent route correctly?
+
+171
+00:15:24,238 --> 00:15:27,472
+Did the specialist agent handle the handoff gracefully?
+
+172
+00:15:27,632 --> 00:15:34,148
+Each layer adds new ways that things go wrong, and non-determinism means that you need to have more evals
+
+173
+00:15:34,862 --> 00:15:36,548
+because errors can cascade.
+
+174
+00:15:38,272 --> 00:15:41,572
+Here's what an example of a cascading failure looks like.
+
+175
+00:15:41,872 --> 00:15:50,272
+If you ask a query about Tesla, meaning the car company, your agent searches the web, finds a whole bunch of information about an 18th-century inventor,
+
+176
+00:15:50,432 --> 00:15:57,124
+passes that back to your agent, which writes a beautiful, well-formatted report about an 18th-century inventor, and passes that to your boss.
+
+177
+00:15:58,190 --> 00:15:59,952
+Nothing that it did there was wrong.
+
+178
+00:16:00,352 --> 00:16:07,588
+You told it to search the web for Tesla, it searched the web for Tesla, it got information about Tesla, and it wrote a report about Tesla. Where did it go wrong?
+
+179
+00:16:09,774 --> 00:16:14,512
+This is worse than an obvious failure because you have to be reading your inputs and outputs for that to work.
+
+180
+00:16:14,672 --> 00:16:17,092
+You can't, there was no unit test that would have caught that.
+
+181
+00:16:20,032 --> 00:16:26,512
+But agents can also do the opposite. They can get things right in a way that your tests weren't expecting and get graded wrong as a result.
+
+182
+00:16:26,672 --> 00:16:33,764
+This happened to Anthropic when they ran a benchmark called Tau Squared Bench, which simulates multi-turn customer service tasks.
+
+183
+00:16:35,246 --> 00:16:44,516
+They asked the agent to book flights and asked it to do something that they thought was impossible, which was reschedule an economy class flight.
+
+184
+00:16:45,072 --> 00:16:56,964
+But it turned out that the policies that they gave the agent allowed the agent to first upgrade the flight to first class. First class flights can be rescheduled, which economy flights cannot.
+
+185
+00:16:57,166 --> 00:17:00,592
+So the agent found a way to reschedule an economy flight
+
+186
+00:17:02,574 --> 00:17:06,436
+failed the test because it was supposed to be not able to do that, and it was able to do that.
+
+187
+00:17:06,992 --> 00:17:14,244
+So this is an example of how agents being flexible, agents finding things that you didn't think of need to be accounted for in your tests.
+
+188
+00:17:16,462 --> 00:17:22,276
+There is a difference between creatively correct and wrong, and we're going to come back to that when we talk about grading your agents later.
+
+189
+00:17:23,086 --> 00:17:24,976
+Or rather, grading your evals.
+
+190
+00:17:25,856 --> 00:17:38,852
+There's also a second way of categorizing your evals into two categories, which is capability evals and regression evals. A capability eval asks, can my agent do this thing at all?
+
+191
+00:17:40,334 --> 00:17:47,456
+Capability evals are expected to mostly fail. Your agent is expected to get a very low score on them because they give you a hill to climb.
+
+192
+00:17:47,536 --> 00:17:49,956
+It gives you something for your agent to try and get better at.
+
+193
+00:17:50,736 --> 00:18:01,764
+Once you've climbed that hill, your capability eval turns into a regression eval. A regression eval is an eval that you expect your agent to pass completely or nearly completely every single time.
+
+194
+00:18:02,256 --> 00:18:12,736
+So as your agent matures, you will be giving it capability eval after capability eval and slowly turning them into a suite of regression evals that you run all the time to make sure that
+
+195
+00:18:13,390 --> 00:18:15,012
+previous behavior has not regressed.
+
+196
+00:18:17,550 --> 00:18:19,856
+This is what an eval result looks like.
+
+197
+00:18:20,176 --> 00:18:29,124
+Every eval produces a score and a label. In this case, it's a numeric score, just often just zero or one. Binary scores are very easy for LLMs to do.
+
+198
+00:18:30,766 --> 00:18:34,308
+And it comes with a human readable label like correct or incorrect or valid or invalid.
+
+199
+00:18:35,406 --> 00:18:38,212
+LLM judges add a third thing, which is the explanation.
+
+200
+00:18:39,598 --> 00:18:42,564
+Code evals don't produce explanations because they are just code.
+
+201
+00:18:43,758 --> 00:18:50,896
+But LLM, an LLM as a judge, will say not just that something is incorrect, but it will say why it decided that something is correct.
+
+202
+00:18:50,976 --> 00:19:01,668
+And this is incredibly valuable because if you are living in a world of coding agents, you can take a whole bunch of explanations from a bunch of evals and pass them back to your coding agent and say,
+
+203
+00:19:02,030 --> 00:19:04,804
+here is all the reasons that you messed up in the last test.
+
+204
+00:19:05,454 --> 00:19:07,536
+What could you do that would make you better at this?
+
+205
+00:19:07,758 --> 00:19:17,536
+And your coding agent will just go, cool, thank you for the feedback, improve your application, and it will get better at it next time. This is something I'm going to show you in today's workshop.
+
+206
+00:19:17,774 --> 00:19:20,868
+It is how you turn a failing eval into a prompt improvement.
+
+207
+00:19:22,478 --> 00:19:24,452
+This is a real judge explanation.
+
+208
+00:19:25,710 --> 00:19:28,976
+In this example, it's a travel planning agent
+
+209
+00:19:30,062 --> 00:19:36,816
+and you're running a correctness eval. The judge doesn't just say incorrect, it tells you exactly what's missing. You asked for a budget flight, it didn't give a budget breakdown.
+
+210
+00:19:37,102 --> 00:19:38,532
+It says the agent gave destination
+
+211
+00:19:39,376 --> 00:19:44,004
+info and recommendations, but the user asked about budget travel and there were no cost
+
+212
+00:19:44,016 --> 00:19:51,332
+estimates. That explanation makes the eval actionable because you now have a concrete failure, you know what to fix in the prompt,
+
+213
+00:19:51,776 --> 00:19:57,252
+and the explanation is what makes evals into a useful debugging tool and not just a scoreboard.
+
+214
+00:19:57,696 --> 00:20:06,852
+And if you're seeing the same explanation across 50 different traces, you know you have a systematic problem and not a one-off edge case, which makes it the first thing you should fix.
+
+215
+00:20:07,406 --> 00:20:09,348
+So you have to take your eval explanations
+
+216
+00:20:10,016 --> 00:20:20,676
+and categorize them into types of failures and count up the categories. This is called coding. Again, we can make up words from the L from the ML word from the ML world.
+
+217
+00:20:22,190 --> 00:20:24,196
+But categorizing things is known as coding.
+
+218
+00:20:26,254 --> 00:20:34,816
+And of course, each explanation is natural language, so it is hard to do this coding unless you use yet another LLM to do the categorization for you.
+
+219
+00:20:34,926 --> 00:20:38,244
+We'll be seeing how that works towards the end of today.
+
+220
+00:20:39,886 --> 00:20:44,580
+And like I said, you can hand a whole pile of these explanations to a coding agent and let the app fix it for
+
+221
+00:20:44,896 --> 00:20:45,216
+you.
+
+222
+00:20:46,736 --> 00:20:52,816
+This is the full loop that we're going to build today. We're going to instrument, trace, eval, and iterate.
+
+223
+00:20:53,006 --> 00:20:54,148
+Each step feeds the next.
+
+224
+00:20:54,336 --> 00:20:56,196
+You define what you want,
+
+225
+00:20:57,518 --> 00:21:02,980
+you build it, you measure how well it works, you ship it, you monitor it in production, and you iterate based on what you see.
+
+226
+00:21:03,534 --> 00:21:12,096
+Every traditional software product goes through a loop like this, but for AI, the measurement step is where most teams fall down, and evals are how you measure.
+
+227
+00:21:12,430 --> 00:21:16,036
+Evals are the connective tissue across this whole life cycle.
+
+228
+00:21:17,376 --> 00:21:17,696
+So
+
+229
+00:21:18,702 --> 00:21:23,748
+let's get started building it. Step one is setting up tracing with Arise AX before we can run evals.
+
+230
+00:21:23,936 --> 00:21:27,140
+We need something, uh some data to run our evals on.
+
+231
+00:21:27,776 --> 00:21:31,460
+and you can't evaluate what you can't observe, so observation comes first.
+
+232
+00:21:33,678 --> 00:21:38,756
+So hopefully you've conquered the Wi Fi and you have our notebook at this point.
+
+233
+00:21:41,454 --> 00:21:44,516
+And dat is running around to make sure that you do.
+
+234
+00:21:48,910 --> 00:21:52,356
+Let's go to our very first code cell, which is where I install our dependencies.
+
+235
+00:21:54,320 --> 00:21:57,924
+Claude Agent SDK is self-explanatory, that is the Claude Agent SDK.
+
+236
+00:21:59,470 --> 00:22:05,200
+OpenInference Instrumentation Claude Agent SDK is the auto instrumentation package for the Cloud Agent SDK.
+
+237
+00:22:05,440 --> 00:22:11,460
+This is how it knows to capture traces from Cloud Agents without you changing your application code.
+
+238
+00:22:12,320 --> 00:22:17,284
+As I mentioned earlier, you can use OpenAI instead if you want to, or some framework.
+
+239
+00:22:17,840 --> 00:22:21,092
+We have packages for all of those as well. You just need to swap them in.
+
+240
+00:22:22,670 --> 00:22:27,556
+Arise and AriseOtel are the packages that send your traces to AX and let you read them back.
+
+241
+00:22:29,422 --> 00:22:33,412
+And there's a Phoenix package in there that we use as a utility package, don't worry about it.
+
+242
+00:22:36,718 --> 00:22:41,444
+The Anthropic package lets you use Claude both to power our agent and to judge its output later.
+
+243
+00:22:42,510 --> 00:22:49,124
+So go ahead and run this cell if you haven't already. And while it's installing, I'm going to talk about what it is that we're going to actually build.
+
+244
+00:22:50,400 --> 00:22:55,748
+The Claude Agent SDK, if you haven't already used it, is Anthropic's framework for building agents.
+
+245
+00:22:55,886 --> 00:23:03,652
+So Anthropic's answer to Langchain and things like that. It can use tools, it can search the web, it can maintain conversation context across turns.
+
+246
+00:23:04,240 --> 00:23:11,012
+OpenAI has their own agent SDK, and of course there are whole agent frameworks like CrewAA, AlignChain, and Mastra.
+
+247
+00:23:11,120 --> 00:23:13,668
+And AX is compatible with all of those.
+
+248
+00:23:13,870 --> 00:23:23,108
+So no matter what framework you've built your agent in, it is already instrumented, and you can just turn on logging and all of your traces will light up.
+
+249
+00:23:26,222 --> 00:23:28,804
+Hopefully your install is done by now, which is
+
+250
+00:23:30,190 --> 00:23:31,588
+optimistic timing on my part.
+
+251
+00:23:33,742 --> 00:23:35,204
+Next, set your keys.
+
+252
+00:23:36,398 --> 00:23:40,080
+In this case, I have stolen my keys from Colab.
+
+253
+00:23:40,400 --> 00:23:44,480
+If you are feeling naughty, you can just paste them in directly to your cell and put them there.
+
+254
+00:23:46,670 --> 00:23:54,880
+Three things go in here. Like I said earlier, you need an anthropic API key, which is going to power our agent's LLM calls, and it's also going to power the judge later.
+
+255
+00:23:55,040 --> 00:24:03,360
+You need an Arise API key, which you get from your settings, which authenticates your traffic to the AX service, and you need an Arise Space ID which tells AX which
+
+256
+00:24:03,600 --> 00:24:05,348
+workspace to put all of your data in.
+
+257
+00:24:06,990 --> 00:24:10,116
+If your keys aren't working, the usual culprit is a copy-paste error.
+
+258
+00:24:10,560 --> 00:24:14,980
+And of course, DAT is still running around to help you if your keys aren't working.
+
+259
+00:24:16,398 --> 00:24:23,940
+DAT has been described as a walking security hole, So he will definitely give you a key if you can't figure out how to get your keys to work.
+
+260
+00:24:25,486 --> 00:24:28,548
+So now we scroll to the register section.
+
+261
+00:25:13,166 --> 00:25:14,564
+Hopefully I can do that.
+
+262
+00:25:24,940 --> 00:25:25,540
+All right.
+
+263
+00:25:27,392 --> 00:25:27,712
+So
+
+264
+00:25:29,294 --> 00:25:32,548
+we've installed dependencies, we've talked about the SDK, we've talked about the secrets.
+
+265
+00:25:33,646 --> 00:25:35,204
+And now we're at the register.
+
+266
+00:25:36,878 --> 00:25:37,952
+So this is the magic.
+
+267
+00:25:38,734 --> 00:25:46,148
+Anybody who works for Arise will tell you that you only have to add two lines of code to your application in order to instrument your call, and these are the two lines of code.
+
+268
+00:25:47,152 --> 00:25:51,300
+What we're doing here is we're passing in our Arise space ID, our API key,
+
+269
+00:25:52,432 --> 00:25:55,716
+and a name for it to trace everything to.
+
+270
+00:26:22,190 --> 00:26:31,072
+In this case, we're also passing batch equals false because when you run in a notebook, you want to send your telemetry as soon as it happens and not batch stuff up,
+
+271
+00:26:31,152 --> 00:26:32,996
+which it does for efficiency in production.
+
+272
+00:26:35,566 --> 00:26:43,204
+That one line at the bottom, the Claude Agent SDK instrumenter, tells the Claude SDK to send a span to AX every time it makes an LLM call or invokes a tool.
+
+273
+00:26:44,032 --> 00:26:45,156
+And that is
+
+274
+00:26:46,382 --> 00:26:47,332
+now instrumented.
+
+275
+00:26:48,366 --> 00:26:53,220
+The reason this works with so little code is because OpenTelemetry is an open standard that nearly everybody uses.
+
+276
+00:26:53,678 --> 00:26:54,280
+So the Cloud
+
+277
+00:26:55,152 --> 00:27:02,592
+SDK authors, the OpenAI SDK authors, the Langchain authors, all of them have already written the code inside of their SDKs that
+
+278
+00:27:03,566 --> 00:27:05,952
+calls open inference and sends data back.
+
+279
+00:27:06,158 --> 00:27:09,284
+So all you have to do is say, hey, I'm an open inference collector.
+
+280
+00:27:09,552 --> 00:27:11,236
+I live here, send it to me.
+
+281
+00:27:13,518 --> 00:27:21,124
+One more bit of setup is that the register call sends data to AX and the Arise client reads data back out of AX.
+
+282
+00:27:21,552 --> 00:27:24,580
+So we'll use it to pull our spans back into the notebook.
+
+283
+00:27:25,072 --> 00:27:26,512
+That is what this line is about.
+
+284
+00:27:26,672 --> 00:27:30,852
+So you need to make sure that you've put in the same keys there or copied them across.
+
+285
+00:27:55,470 --> 00:27:55,952
+Cool.
+
+286
+00:27:59,086 --> 00:28:02,912
+All right, so if you've run those cells, then we are ready to build.
+
+287
+00:28:03,232 --> 00:28:10,112
+Before we build, one thing worth knowing about everything we're going to do by hand today, you can also get your coding agent to do for you.
+
+288
+00:28:10,192 --> 00:28:16,292
+The reason we are doing it by hand is so that you have a fundamental understanding of what it is that you're doing and you're not just vibing your way to success.
+
+289
+00:28:17,710 --> 00:28:24,432
+But we publish a set of skills called the Arise Skills, which know how to do all of this for you at the skill level.
+
+290
+00:28:24,512 --> 00:28:26,660
+So you can install your Arise skills
+
+291
+00:28:27,872 --> 00:28:28,192
+and
+
+292
+00:28:29,230 --> 00:28:33,572
+run evaluations, create data sets, instrument your app in the first place.
+
+293
+00:28:34,286 --> 00:28:43,684
+They all use AX's recommended patterns, and you install them once with a single NPX command. They work in cloud code, they work in cursor, they work in Codex and dozens of other coding agents.
+
+294
+00:28:45,518 --> 00:28:52,032
+So we're gonna do stuff manually today, but in production, in a real life environment, we are using our own skills every day to do this
+
+295
+00:28:52,032 --> 00:28:52,912
+stuff.
+
+296
+00:28:54,624 --> 00:28:56,356
+So now let's build our agents.
+
+297
+00:28:57,504 --> 00:29:03,504
+When I asked if everybody had built an agent before, everybody put their hand up, so I'm not gonna spend a lot of time explaining how this agent works.
+
+298
+00:29:03,664 --> 00:29:08,260
+I'm going to assume that you already have an agent somewhere and you're just trying to instrument it and make it work for you.
+
+299
+00:29:10,544 --> 00:29:16,384
+The fake agent that I'm using today is a financial analysis chatbot using the Cloud Agent SDK.
+
+300
+00:29:16,464 --> 00:29:25,668
+You give it a stock ticker and a focus area, and it searches the web for the latest information about that stock ticker, researches real current financial data, and writes a report for you.
+
+301
+00:29:26,624 --> 00:29:32,420
+This is a real use case that whole startups are built around, although my agent version is extremely simple.
+
+302
+00:29:33,998 --> 00:29:36,864
+I'm assuming that you built an agent already.
+
+303
+00:29:37,070 --> 00:29:38,820
+Our agent works in two turns.
+
+304
+00:29:40,174 --> 00:29:47,940
+There's first a research turn that uses tools to search the web and gather data, then there is a writing turn that compiles the research into a readable report.
+
+305
+00:29:49,422 --> 00:29:51,396
+So let me walk you through that.
+
+306
+00:29:51,984 --> 00:30:00,132
+Here is my research prompts and my write prompts. These are deliberately extremely simple. They are going to cause errors later, and those are the things that we are going to use our evals to debug.
+
+307
+00:30:00,944 --> 00:30:03,664
+And then I'm setting up my Claude Agent options.
+
+308
+00:30:03,824 --> 00:30:05,584
+I'm using Claude Haiku
+
+309
+00:30:06,544 --> 00:30:13,124
+as the agent underneath because Haiku is, you know, capable, but it will make mistakes, and we want some mistakes so that we can fix them.
+
+310
+00:30:13,824 --> 00:30:18,884
+And it's also fast and cheap, so I don't burn a lot of money of your money as we do this.
+
+311
+00:30:22,574 --> 00:30:27,744
+The permission mode controls what the agent is allowed to do autonomously.
+
+312
+00:30:27,824 --> 00:30:36,612
+There is a catch hiding in the in the specific choices that I have made and the specific allowed tools that I am giving this agent right now, as we're going to find out later.
+
+313
+00:30:38,224 --> 00:30:40,036
+And now let's look at our two turns.
+
+314
+00:30:43,310 --> 00:30:44,624
+Turn number one is research.
+
+315
+00:30:44,814 --> 00:30:51,344
+There is a bunch of boilerplate in here that I'm not going to explain, which is just about outputting the output so that we can see what it's doing as it's going.
+
+316
+00:30:52,366 --> 00:30:56,292
+Turn two is writing the report with again a pile of boilerplate.
+
+317
+00:30:59,022 --> 00:31:00,132
+The prompts are critical.
+
+318
+00:31:00,224 --> 00:31:06,624
+So this is where I want you to start doing your own changes in your own notebook. I've given it extremely basic prompts at the top.
+
+319
+00:31:06,766 --> 00:31:14,436
+If you can see if you can think of a better prompt just off the top of your head that is going to do a better job than the prompts that I put in
+
+320
+00:31:15,470 --> 00:31:25,824
+at solving this problem. What would be better than what I put in to do the research in the first place? What would be better than what I put in to do the report writing?
+
+321
+00:31:28,206 --> 00:31:31,940
+And if you one shot it, then you're going to have less stuff to do later on.
+
+322
+00:31:35,086 --> 00:31:39,524
+One of the things we do here is we wrap the whole thing in an open telemetry span.
+
+323
+00:31:41,134 --> 00:31:43,504
+This is because if I don't do that, then
+
+324
+00:31:44,704 --> 00:31:50,756
+Claude sends this as two the two turns as two separate spans, and we wanted them to be grouped together in the UI.
+
+325
+00:31:51,264 --> 00:31:54,756
+So I've wrapped them in a span together so that they come out as a single agent turn.
+
+326
+00:31:56,686 --> 00:32:02,148
+This is just saving us some time later. I wanted to be clear about why I'm doing this bit of code.
+
+327
+00:32:04,654 --> 00:32:06,064
+And now we can run our agents.
+
+328
+00:32:06,464 --> 00:32:10,084
+I have run my agent in advance because I wanted to know exactly what it was going to do.
+
+329
+00:32:12,462 --> 00:32:15,396
+But now is the time to kick off your own agent.
+
+330
+00:32:16,622 --> 00:32:20,900
+I've asked it to analyze Tesla, specifically its financial performance and growth outlook.
+
+331
+00:32:22,702 --> 00:32:29,412
+You should go ahead and run this cell. It'll take a minute or two because the agent will actually search the web and the LLM is doing multiple rounds of reasoning.
+
+332
+00:32:31,502 --> 00:32:40,384
+The agent receives our research prompt, it decides it needs to search the web, which is a tool call, it reads the search results, it decides if it has enough information, and maybe searches again.
+
+333
+00:32:40,544 --> 00:32:47,300
+That is the agentic part. You didn't say, do a web search, take the web information from the web search and write a report about it.
+
+334
+00:32:47,566 --> 00:32:53,024
+The agent is deciding is this web search enough information? And if not, I will run more web searches.
+
+335
+00:32:53,104 --> 00:33:01,508
+It will run an indeterminate number of web searches to get enough information until it has decided what enough means, and then it will write the report.
+
+336
+00:33:02,894 --> 00:33:07,140
+This execution path is non-deterministic by design, and that is the key here to understand.
+
+337
+00:33:07,872 --> 00:33:16,644
+If you run this again with the same input, your agent might search for different things, it might find different results, it might write a different report, and both reports might be good.
+
+338
+00:33:17,152 --> 00:33:20,612
+Or one might be good and one might be bad, and that is exactly why we need evals.
+
+339
+00:33:21,038 --> 00:33:27,268
+We can't predict the output from the input alone, and every single one of those decisions is being captured as a trace.
+
+340
+00:33:29,710 --> 00:33:32,132
+So I'm just gonna pop open
+
+341
+00:33:33,454 --> 00:33:37,252
+my last 12 hours or my last 24 hours, I guess.
+
+342
+00:33:38,094 --> 00:33:38,532
+Cool.
+
+343
+00:33:39,150 --> 00:33:47,044
+This is a pile of traces. You're going to understand what all of this is later, but here you can see the Tesla one that I ran earlier. This is what it looks like when I go through.
+
+344
+00:33:47,342 --> 00:33:54,212
+You can see every single turn it's calling a skill, it's doing a tool search, it's doing a web search.
+
+345
+00:33:55,726 --> 00:33:57,380
+You can see every single thing that it does.
+
+346
+00:33:57,646 --> 00:34:01,632
+You can see that it ran four web searches before finally deciding that was enough information.
+
+347
+00:34:01,902 --> 00:34:05,188
+Then it did the second call in the step and it wrote the report.
+
+348
+00:34:09,198 --> 00:34:15,396
+One of the things that it does that we're going to see later is I told you there was a catch in the tools that I gave it.
+
+349
+00:34:16,558 --> 00:34:20,580
+here's this step that was unexpected when we were putting this demo together.
+
+350
+00:34:20,832 --> 00:34:25,952
+It tried to write the report. I told it to write a report. It tried to write the report as a markdown file to disk.
+
+351
+00:34:26,272 --> 00:34:31,300
+It is living in a Colab notebook, so there is no uh there's no file system for it to write to.
+
+352
+00:34:31,632 --> 00:34:33,316
+so the write step would fail.
+
+353
+00:34:33,872 --> 00:34:40,772
+and this is something that you need evals for. You need evals to detect when your agent is doing something helpful but incorrect.
+
+354
+00:34:41,870 --> 00:34:43,312
+because this fails silently.
+
+355
+00:34:43,472 --> 00:34:50,884
+It gives you output anyway, but it's doing this unnecessary extra step of trying to write to disk without you knowing that it was there.
+
+356
+00:34:54,350 --> 00:34:55,490
+So back to the Colab.
+
+357
+00:34:57,422 --> 00:34:59,012
+This is a pretty good report.
+
+358
+00:35:00,942 --> 00:35:06,628
+it's a financial performance table with real numbers, growth drivers, risk factors, analysts, price targets, and a conclusion.
+
+359
+00:35:07,822 --> 00:35:13,380
+it's not bad for a first pass, but not bad as a vibe, and we are here to replace vibes with actual numbers.
+
+360
+00:35:14,192 --> 00:35:14,512
+Um,
+
+361
+00:35:17,552 --> 00:35:18,992
+like I said, uh
+
+362
+00:35:19,886 --> 00:35:21,796
+you can see all of that stuff in the
+
+363
+00:35:22,510 --> 00:35:23,952
+uh traces.
+
+364
+00:35:25,230 --> 00:35:32,192
+We didn't have to do anything to get all of that information. We didn't have to like instrument every single line to get the LLM call and get the tool call and all of that stuff.
+
+365
+00:35:32,272 --> 00:35:36,676
+All of that is built into Cloud Agent SDK, just it is like it's built into OpenAI SDK.
+
+366
+00:35:37,614 --> 00:35:41,412
+Uh and each one of these rows in this table is a span.
+
+367
+00:35:43,438 --> 00:35:45,732
+traces reveal every decision the agent made.
+
+368
+00:35:46,062 --> 00:35:51,076
+Without them, all you see is I gave it a prompt and I got a report. With traces, you see every step.
+
+369
+00:35:51,712 --> 00:35:57,572
+if you click into any span, like I said, you'll see exactly what the model received as input and exactly what it returned.
+
+370
+00:36:01,902 --> 00:36:08,832
+And that is what observability means in practice. Not just did it work, but how did it work and where exactly did it go wrong?
+
+371
+00:36:09,232 --> 00:36:16,192
+when we run our evals in a few minutes, we're going to pull the input and attribute output attributes out of these spans and feed them to our evaluators.
+
+372
+00:36:16,352 --> 00:36:21,540
+The input becomes the evaluator's input, the output becomes what gets graded.
+
+373
+00:36:26,512 --> 00:36:34,180
+now we need to generate some test data. To run meaningful evals, we need more than the one trace that you've generated so far. We need a body of data.
+
+374
+00:36:34,592 --> 00:36:39,300
+in the notebook, there are 12 test queries covering different tickers and analysis types.
+
+375
+00:36:39,872 --> 00:36:45,764
+you should kick those off now. They take about five to ten minutes to run, assuming that you've got Wi Fi and everything's working for you.
+
+376
+00:36:48,974 --> 00:36:50,532
+I'm going to show you what they look like.
+
+377
+00:36:52,192 --> 00:36:52,512
+and
+
+378
+00:36:56,334 --> 00:36:57,380
+this is them here.
+
+379
+00:37:01,070 --> 00:37:04,484
+So the key thing here is diversity.
+
+380
+00:37:04,846 --> 00:37:09,776
+I've given it a bunch of obvious queries that should work. I've also given it some edge cases.
+
+381
+00:37:09,936 --> 00:37:18,756
+For instance, I've given it one where I gave it two tickers, Apple and Microsoft, and told it to run a comparison, which is something it could theoretically do.
+
+382
+00:37:19,376 --> 00:37:27,204
+I've also given it the same tickers multiple times in places so that we can see the non-deterministic output
+
+383
+00:37:27,776 --> 00:37:34,564
+when we say Amazon profitability trends and outlook versus Amazon AWS performance and profitability.
+
+384
+00:37:37,454 --> 00:37:45,376
+Different tickers and different questions, different levels of complexity are important to generate test data that's going to cover the range of things that users will actually ask.
+
+385
+00:37:45,550 --> 00:37:54,016
+Although, spoiler alert, in reality, your users are going to ask really weird things that you're not going to be able to predict in advance, and that is another one of the reasons that evals
+
+386
+00:37:54,176 --> 00:37:54,500
+are important.
+
+387
+00:38:11,598 --> 00:38:13,828
+Again, this is diversity that is important.
+
+388
+00:38:14,926 --> 00:38:20,036
+Diversity in your test set is how you catch things that your agent is going to be not good at.
+
+389
+00:38:24,220 --> 00:38:28,640
+So while yours are running, mine have already loaded so I can show you all of my data.
+
+390
+00:38:30,894 --> 00:38:33,092
+These are all of my spans from all of those runs.
+
+391
+00:38:34,670 --> 00:38:41,776
+You can see at the bottom there are 13, which is the initial Tesla run, and 12 test queries.
+
+392
+00:38:41,936 --> 00:38:45,092
+Each one is a complete execution of the Claude Financial Analyst.
+
+393
+00:38:45,646 --> 00:38:52,164
+So now we have the data, but before we write any evals, we need to actually look at the data.
+
+394
+00:38:54,990 --> 00:39:01,056
+This is error analysis, and the whole step is one instruction. Read your traces before you write evals.
+
+395
+00:39:01,198 --> 00:39:04,292
+Before you write a single evaluator, start with your data.
+
+396
+00:39:04,976 --> 00:39:10,372
+Read a dozen or more of your traces end to end. This is the most important practice in this entire workshop.
+
+397
+00:39:11,136 --> 00:39:13,456
+Focus on the ones where something went wrong.
+
+398
+00:39:13,646 --> 00:39:15,364
+What was the input? What was the output?
+
+399
+00:39:15,616 --> 00:39:17,188
+What specifically is broken?
+
+400
+00:39:17,806 --> 00:39:20,900
+This sounds extremely old-fashioned, just read the input.
+
+401
+00:39:21,870 --> 00:39:25,060
+But it is one of the highest value activities in agent development.
+
+402
+00:39:25,456 --> 00:39:33,380
+Anthropic, for instance, invested in tooling specifically for viewing eval transcripts, and their team spends a whole lot of time just looking at eval transcripts every day.
+
+403
+00:39:35,374 --> 00:39:40,388
+A trace tells you whether the agent made a genuine mistake or whether your graders rejected a valid solution.
+
+404
+00:39:41,358 --> 00:39:49,696
+If you automate before you understand your failures, then you're going to create an eval that measures what's easy to measure instead of what actually matters.
+
+405
+00:39:53,934 --> 00:39:55,456
+You need requirements first.
+
+406
+00:39:55,616 --> 00:40:02,788
+Before you can categorize failures, you need to know what success looks like. You can't say it doesn't work if you haven't defined what it works means.
+
+407
+00:40:03,616 --> 00:40:06,916
+For our financial analyst, what does a good report look like?
+
+408
+00:40:07,616 --> 00:40:15,616
+It should reference the correct ticker, it should include some real, recent, actionable financial data and include actionable recommendations.
+
+409
+00:40:15,696 --> 00:40:25,444
+It should distinguish between forward-looking analysis and historical summary. Those are our success criteria, and they seem obvious when you write them down, but lots of teams never do.
+
+410
+00:40:26,176 --> 00:40:29,956
+They ship an agent and then react to complaints instead of defining the bar up front.
+
+411
+00:40:31,950 --> 00:40:39,044
+Writing requirements down turns vague disappointment into specific testable criteria, and those criteria are what turn into your evals.
+
+412
+00:40:40,558 --> 00:40:48,656
+Here's the thing about defining success that it's important to note though, which is that it is not something that your engineers can do, or not something your engineers can do alone.
+
+413
+00:40:48,846 --> 00:40:56,932
+The definition of good usually lives in the domain knowledge, and the domain knowledge lives in the people that your company will often laughably refer to as non-technical.
+
+414
+00:40:57,550 --> 00:41:03,776
+So your products managers, your QA, your support team, those are the people who know what the definition of good really is.
+
+415
+00:41:03,936 --> 00:41:06,016
+They know what the failures are going to look like.
+
+416
+00:41:06,254 --> 00:41:08,772
+Those are the people who should be helping you write your evals.
+
+417
+00:41:10,478 --> 00:41:14,532
+OpenAI put it really nicely. They said that people management skills are AI skills.
+
+418
+00:41:14,656 --> 00:41:23,044
+So clear goals, direct feedback, knowing what your value proposition is, those skills matter more than ever when the system is probabilistic.
+
+419
+00:41:23,936 --> 00:41:26,176
+And this is one of the things that AX is built around.
+
+420
+00:41:26,256 --> 00:41:33,456
+Anyone on your team can read traces or add annotations and contribute to your criteria. This is not just an engineering surface.
+
+421
+00:41:33,616 --> 00:41:36,260
+You're expected to have other members of your team in here.
+
+422
+00:41:38,350 --> 00:41:40,452
+A quick note on where to get this test data.
+
+423
+00:41:41,710 --> 00:41:47,812
+We have these traces because we already ran the agent ourselves, but what if you're building something new and you don't have real traffic yet?
+
+424
+00:41:48,224 --> 00:41:50,944
+You can do what we just did, which is you can use synthetic data.
+
+425
+00:41:51,150 --> 00:41:55,236
+You can have an LLM generate diverse queries across your expected categories.
+
+426
+00:41:55,950 --> 00:41:59,584
+So research Tesla financial report performance is one phrasing.
+
+427
+00:41:59,824 --> 00:42:03,344
+What's going on with Tesla stock is another query that's asking the same thing.
+
+428
+00:42:03,630 --> 00:42:07,972
+Yo, is Tesla a buy right now? Is a third way of expressing the same query.
+
+429
+00:42:08,464 --> 00:42:10,784
+They're all the same intent, but they look very different.
+
+430
+00:42:10,894 --> 00:42:14,564
+So vary the phrasing, the complexity, the level of specificity.
+
+431
+00:42:15,184 --> 00:42:24,544
+A domain expert should review your set of queries because LLM-generated queries tend to cluster around obvious phrasings and miss the weird stuff that real users
+
+432
+00:42:24,544 --> 00:42:28,304
+write. You also need to include edge cases in your test data.
+
+433
+00:42:28,398 --> 00:42:32,036
+So things like non-existent tickers, multi-part questions, jailbreak attempts.
+
+434
+00:42:33,518 --> 00:42:39,204
+Those might be 1% of your traffic, but they are the 1% of your traffic that ends up being a PR disaster in the press.
+
+435
+00:42:39,598 --> 00:42:43,844
+Your test data should look like production data, not what you wish production looked like.
+
+436
+00:42:44,544 --> 00:42:50,052
+So synthetic data can get you started, but as soon as you have production data, production data should be what you're running on.
+
+437
+00:42:52,046 --> 00:42:54,244
+So let's actually examine our traces.
+
+438
+00:42:57,998 --> 00:43:01,584
+Like I said, the first 13 traces are the first 13 traces that I wrote.
+
+439
+00:43:03,374 --> 00:43:05,880
+Most of them produced long structured reports in line.
+
+440
+00:43:06,064 --> 00:43:08,944
+So Tesla, Apple, NVIDIA, stuff like that.
+
+441
+00:43:09,870 --> 00:43:18,304
+Three to seven,000 characters of reports right there in the trace output with executive summaries, valuation tables, explicit buy or hold recommendations.
+
+442
+00:43:18,702 --> 00:43:24,464
+On the surface, most of these look fine, but like I said, three of the 13 were doing something weird, which was
+
+443
+00:43:25,742 --> 00:43:32,356
+they were uh the output in them is much shorter because it just says, Oh, I wrote this to disk for you
+
+444
+00:43:33,664 --> 00:43:33,984
+and
+
+445
+00:43:34,926 --> 00:43:35,984
+the output went to disk.
+
+446
+00:43:36,864 --> 00:43:45,060
+so instead of having a full report, it has a summary of the report, and the the actual body of the report went to the non-existent disk.
+
+447
+00:43:45,422 --> 00:43:47,396
+This is what the eval is designed to find.
+
+448
+00:43:50,286 --> 00:43:54,980
+the agent decided to write a file with no permission, the write silently failed, and it told us the report was saved.
+
+449
+00:43:55,424 --> 00:43:59,140
+and that is the kind of pattern that you only see if you actually read the trace.
+
+450
+00:44:01,934 --> 00:44:06,628
+So this is, I believe, one of the three resources. No, that one it worked.
+
+451
+00:44:09,518 --> 00:44:10,624
+Oh no, the Wi-Fi.
+
+452
+00:44:10,784 --> 00:44:11,268
+Here we go.
+
+453
+00:44:24,704 --> 00:44:24,944
+So
+
+454
+00:44:25,038 --> 00:44:28,144
+this one is showing another kind of failure where it just got stuck in a loop forever.
+
+455
+00:44:28,224 --> 00:44:36,068
+It was trying to find information about who was it trying to find information about Microsoft, and it just did an endless series of web searches and took forever.
+
+456
+00:44:39,086 --> 00:44:40,624
+This is what it tried to write to disk.
+
+457
+00:44:41,904 --> 00:44:44,036
+and this is what it actually wrote to output.
+
+458
+00:44:45,344 --> 00:44:46,384
+right, here we go.
+
+459
+00:44:46,638 --> 00:44:50,532
+This is the report is saved as Microsoft Cloud Segment Financial Report.md.
+
+460
+00:44:50,734 --> 00:44:53,476
+This report is useless because it's referring to a report that doesn't exist.
+
+461
+00:44:57,902 --> 00:45:07,744
+There's also an example of a confidently wrong. If we go to the Rivian report, uh which is R I V N, where did it go?
+
+462
+00:45:08,302 --> 00:45:08,836
+There we go.
+
+463
+00:45:11,758 --> 00:45:17,792
+Rivian has the same problem that the Microsoft one does, but even inside of the full report that it tried to write to disk,
+
+464
+00:45:18,192 --> 00:45:23,812
+there's a whole bunch of really confident information about a private company that you can't possibly verify.
+
+465
+00:45:24,910 --> 00:45:33,060
+These might be hallucinations, they might not be hallucinations, but we haven't done anything to check whether or not this report is really grounded in reality.
+
+466
+00:45:33,792 --> 00:45:35,812
+So we're going to do an eval about that later.
+
+467
+00:45:37,710 --> 00:45:42,980
+There is a structured way to do this reading, which as I mentioned earlier is called coding.
+
+468
+00:45:43,246 --> 00:45:45,540
+There's open coding and axial coding.
+
+469
+00:45:46,606 --> 00:45:51,872
+And it comes from qualitative research. Open coding means you read each trace and you write down what you see.
+
+470
+00:45:51,952 --> 00:45:56,516
+So stuff like vague recommendation, made up a number, talked about the wrong ticker.
+
+471
+00:45:57,614 --> 00:45:58,912
+You're not trying to be neat.
+
+472
+00:45:58,992 --> 00:46:07,236
+As a programmer, it is very tempting to try and come up with categories in advance and say, oh, this is a retrieval failure or whatever.
+
+473
+00:46:07,872 --> 00:46:10,020
+Don't do that when you're doing open coding.
+
+474
+00:46:10,192 --> 00:46:13,508
+Just write down what the problem was in as natural language as possible.
+
+475
+00:46:15,472 --> 00:46:15,792
+And
+
+476
+00:46:17,072 --> 00:46:23,152
+then when you find the failure, sorry, and then you want to do Axial coding afterwards.
+
+477
+00:46:23,438 --> 00:46:29,472
+Axial coding is when you look at all of the open codes that you've put together and then you do the categorization.
+
+478
+00:46:29,646 --> 00:46:37,152
+You say, okay, now there are five things that look similar. I'm going to give them all a single category and turn them into categories.
+
+479
+00:46:39,822 --> 00:46:43,844
+The second pass, the axial coding pass is structural.
+
+480
+00:46:44,432 --> 00:46:45,232
+and like I said,
+
+481
+00:46:46,032 --> 00:46:50,852
+the tendency, the temptation is to try and go straight to Axial coding, and you should resist that.
+
+482
+00:46:51,662 --> 00:46:54,592
+When you find a failure, you should ask why it failed.
+
+483
+00:46:54,734 --> 00:46:56,752
+So the response was wrong, is a symptom.
+
+484
+00:46:56,912 --> 00:46:58,436
+Did it get bad search results?
+
+485
+00:46:58,702 --> 00:47:04,512
+That is a retrieval failure. Did it get the right data but the wrong conclusion? Then that is a reasoning error.
+
+486
+00:47:04,878 --> 00:47:07,312
+Did it make up a stock price? That's obviously hallucination.
+
+487
+00:47:07,534 --> 00:47:10,592
+Did it answer outside of its domain? That is a scope violation.
+
+488
+00:47:10,752 --> 00:47:13,712
+Did it do something that you didn't tell it that it should be able to do?
+
+489
+00:47:13,952 --> 00:47:18,276
+Each root cause, each Axial code, points to a different fix.
+
+490
+00:47:20,142 --> 00:47:22,180
+if you don't know the cause, you can't pick the right remedy.
+
+491
+00:47:23,534 --> 00:47:24,868
+Once you've categorized,
+
+492
+00:47:26,990 --> 00:47:28,112
+which I did here,
+
+493
+00:47:30,382 --> 00:47:32,512
+you can sum them up into
+
+494
+00:47:35,406 --> 00:47:36,004
+a table.
+
+495
+00:47:37,742 --> 00:47:38,032
+So
+
+496
+00:47:41,312 --> 00:47:46,244
+confession time, I didn't actually read all of those traces and code them, I just gave them random Axial codes.
+
+497
+00:47:46,912 --> 00:47:50,832
+but what you end up with is this table of root cause frequency.
+
+498
+00:47:50,912 --> 00:47:55,908
+Things like looks good, possible hallucination, reasoning gap, unverifiable data, missing recommendation.
+
+499
+00:47:56,334 --> 00:48:02,372
+It's tempting to look at the top one, the possible hallucination, and decide that that is the most important one to fix.
+
+500
+00:48:02,912 --> 00:48:04,192
+But in reality,
+
+501
+00:48:05,262 --> 00:48:06,672
+you're going to want to
+
+502
+00:48:08,654 --> 00:48:11,972
+balance between frequency and severity.
+
+503
+00:48:12,494 --> 00:48:20,164
+So if one time in 100, instead of doing a financial report, it gives the user instructions on how to make a bomb, you fix that one first,
+
+504
+00:48:20,782 --> 00:48:23,300
+because that is the most severe possible failure.
+
+505
+00:48:24,032 --> 00:48:29,956
+so you have to multiply the severity by the frequency to get to which ones you decide to fix first.
+
+506
+00:48:31,630 --> 00:48:34,180
+and that is why you look at the data before you write your evals.
+
+507
+00:48:36,910 --> 00:48:40,292
+one more concept before we get started on that is the Swiss cheese model,
+
+508
+00:48:41,232 --> 00:48:43,232
+which is a concept from safety engineering.
+
+509
+00:48:43,632 --> 00:48:47,472
+Imagine each layer of defense as a slice of Swiss cheese.
+
+510
+00:48:47,552 --> 00:48:51,076
+Each slice has holes, gaps where problems can slip through.
+
+511
+00:48:51,472 --> 00:48:54,112
+But if you stack enough slices, the holes don't line up.
+
+512
+00:48:54,318 --> 00:48:56,612
+So one gets through one layer gets caught by the next.
+
+513
+00:48:56,992 --> 00:49:00,112
+your code eval catches format issues but misses semantic problems.
+
+514
+00:49:00,192 --> 00:49:08,132
+Your LLM judge catches reasoning gaps but misses subtle hallucinations, and your human review catches the subtle stuff, but it can't scale to every trace.
+
+515
+00:49:08,512 --> 00:49:14,340
+No single eval in that set catches everything, and the combination is what gives you coverage.
+
+516
+00:49:16,398 --> 00:49:17,924
+so stack the cheese.
+
+517
+00:49:19,022 --> 00:49:21,892
+Now that we know what's wrong, let's automate the checking.
+
+518
+00:49:24,686 --> 00:49:30,752
+the next step is code evals. This is no model configuration, no API calls, just Python.
+
+519
+00:49:30,832 --> 00:49:34,564
+We're going to write the simplest useful eval that I can think of.
+
+520
+00:49:35,152 --> 00:49:38,112
+our agent is supposed to analyze a specific stock ticker.
+
+521
+00:49:38,192 --> 00:49:46,352
+What I'm going to do is write a code eval that checks whether that stock ticker actually showed up in the report, which is a test that my initial demos
+
+522
+00:49:46,512 --> 00:49:48,260
+absolutely failed a number of times.
+
+523
+00:49:48,912 --> 00:49:50,992
+an LLM judge would be overkill for this.
+
+524
+00:49:51,072 --> 00:49:53,472
+You're looking for a specific string, it's somewhere in the report.
+
+525
+00:49:53,632 --> 00:49:56,516
+You don't need an LLM to judge whether or not you mentioned the ticker.
+
+526
+00:49:58,766 --> 00:49:59,008
+So
+
+527
+00:50:00,270 --> 00:50:03,408
+there's two ways to do this. There's two ways to do everything in AX.
+
+528
+00:50:03,568 --> 00:50:06,596
+One is programmatically, and one is via the UI.
+
+529
+00:50:07,822 --> 00:50:15,268
+In the notebook, you can see the programmatic way. What I'm going to show you on screen is how you do it in the UI.
+
+530
+00:50:19,088 --> 00:50:19,408
+So
+
+531
+00:50:20,334 --> 00:50:26,532
+this big button in the top right is what you want. You want to add an evaluator. In this case, I've already added my mentions evaluator.
+
+532
+00:50:29,806 --> 00:50:33,088
+But you will want to add an evaluator which will give you this screen.
+
+533
+00:50:35,342 --> 00:50:37,988
+Here you're going to see basically some Python.
+
+534
+00:50:39,086 --> 00:50:47,140
+In the notebook, I've given you the Python that you can use to either do your programmatic version or your version in the UI.
+
+535
+00:50:48,558 --> 00:50:51,968
+This is a very simple Python function which returns
+
+536
+00:50:54,510 --> 00:50:59,556
+an evaluation result, which looks exactly like those evaluation results that I showed you earlier.
+
+537
+00:51:00,208 --> 00:51:02,116
+It has a label, it has a score.
+
+538
+00:51:06,848 --> 00:51:07,168
+So
+
+539
+00:51:09,806 --> 00:51:14,688
+once you've written what your code evaluator does, you're going to have
+
+540
+00:51:15,854 --> 00:51:21,764
+parameters to your code evaluator. In this case, I've called them query and report, and you're going to have to tell AX
+
+541
+00:51:23,022 --> 00:51:26,340
+which variables in your trace are those variables.
+
+542
+00:51:26,926 --> 00:51:34,820
+So there's this extremely fun UI, the single trace UI, where you look at a single trace and you can literally just click
+
+543
+00:51:35,408 --> 00:51:44,004
+the specific thing in your output that you want to be that variable, and you tell it, okay, that one should be the query, and that one should be the report, and then it's mapped.
+
+544
+00:51:49,774 --> 00:51:59,076
+You should also be changing your evaluator to work on a trace as opposed to a span. That is what gives you that UI.
+
+545
+00:52:01,614 --> 00:52:09,956
+Once you've done that, you need to save your code evaluator to our evaluator hub, and then you hit save to save the evaluation.
+
+546
+00:52:17,168 --> 00:52:19,332
+So assuming you've done that.
+
+547
+00:52:20,208 --> 00:52:20,580
+Yep.
+
+548
+00:52:28,368 --> 00:52:28,868
+Sure.
+
+549
+00:52:30,448 --> 00:52:33,648
+So he asked for more detail on how code evaluators work.
+
+550
+00:52:34,128 --> 00:52:37,568
+so code evaluators are they're completely deterministic functions.
+
+551
+00:52:37,648 --> 00:52:42,820
+You're just taking input and output and saying, was this output good according to some definition of good?
+
+552
+00:52:43,328 --> 00:52:48,324
+So in this code, I'm doing very, very simple Python. I'm just saying
+
+553
+00:52:49,870 --> 00:52:59,236
+look for all of the words that are in capital letters, strip out the ones that are obvious acronyms that I already know, and of the remaining words, are any of them the
+
+554
+00:52:59,470 --> 00:53:02,564
+uh the acronym which is the stock ticker that I'm looking for?
+
+555
+00:53:02,768 --> 00:53:03,780
+That's all it's doing.
+
+556
+00:53:05,102 --> 00:53:10,628
+lots of code evaluators are even shorter than that. There's something like, is this output 500 characters long or less?
+
+557
+00:53:11,822 --> 00:53:13,828
+is this output parsable JSON?
+
+558
+00:53:14,128 --> 00:53:21,508
+You're doing something very simple, very deterministic, for the purposes of having that first line of defense in your Swiss cheese.
+
+559
+00:53:29,006 --> 00:53:31,012
+So I talked about how to add stuff already.
+
+560
+00:53:33,390 --> 00:53:36,548
+in the notebook, you can run the eval programmatically.
+
+561
+00:53:37,968 --> 00:53:43,408
+Uh this is how to do this is these are the instructions on how to do it via the UI if you followed that.
+
+562
+00:53:43,568 --> 00:53:50,500
+The alternative is to do it in the code where you can just run it directly, which is easier to do if you're following along in a notebook.
+
+563
+00:53:53,038 --> 00:53:58,436
+a code evaluator returns a label and a score, like I said, there's no LLM needed, there's no API call, it's instant.
+
+564
+00:53:59,088 --> 00:54:07,408
+Uh and if you're wondering why we're wrapping it in suppressed tracing, it's because the evaluation is itself
+
+565
+00:54:07,968 --> 00:54:11,780
+a call to the agent SDK, which would then get
+
+566
+00:54:12,494 --> 00:54:13,316
+stored as traces.
+
+567
+00:54:13,614 --> 00:54:17,248
+And I didn't want traces of my tracing happening because that gets too meta.
+
+568
+00:54:17,648 --> 00:54:20,548
+so I told it to suppress tracing when I'm running an evaluation.
+
+569
+00:54:21,568 --> 00:54:28,132
+Uh if you look at this programmatic run, you will see that 12 passed and one failed.
+
+570
+00:54:28,848 --> 00:54:30,928
+there was a missing ticker for Amazon.
+
+571
+00:54:31,408 --> 00:54:41,968
+the specific trace that went wrong is when I asked, I you'll note you'll notice I told you earlier that I made two queries to Amazon, one where I asked about its profitability and one I asked
+
+572
+00:54:42,128 --> 00:54:44,676
+where about AWS's profitability.
+
+573
+00:54:45,488 --> 00:54:49,860
+if you click into the traces, which I could attempt now,
+
+574
+00:54:51,246 --> 00:54:52,688
+you'll see that the
+
+575
+00:54:54,606 --> 00:55:03,780
+Report that asked about AWS wrote a report that was entirely about AWS, only about the AWS branch of Amazon rather than
+
+576
+00:55:04,080 --> 00:55:05,252
+all of Amazon.
+
+577
+00:55:05,840 --> 00:55:10,468
+And so it failed to mention the Amazon stock ticker entirely. It talked only about AWS.
+
+578
+00:55:10,894 --> 00:55:13,360
+So it's a really subtle failure because it did a bunch of research.
+
+579
+00:55:13,454 --> 00:55:16,080
+It found out a whole bunch of stuff about what was happening at Amazon.
+
+580
+00:55:16,240 --> 00:55:23,108
+It just didn't think about what was happening about Amazon as a company, only about AWS, because I gave it that extra prompt.
+
+581
+00:55:23,200 --> 00:55:25,540
+Like I also want to know about AWS profitability.
+
+582
+00:55:29,280 --> 00:55:29,600
+So
+
+583
+00:55:32,622 --> 00:55:37,380
+looking at those results back in AX, they show up as annotations next to our traces.
+
+584
+00:55:38,000 --> 00:55:42,756
+So you can click into any one of these traces and you'll see evaluations.
+
+585
+00:55:43,278 --> 00:55:50,884
+I've run a lot more evaluations than you have so far, but you can see my mention sticker evaluation has run with a span.
+
+586
+00:55:51,374 --> 00:55:55,236
+It's run at the span level, it has hit a pass and it's given a score of one.
+
+587
+00:55:57,742 --> 00:56:07,716
+The notebook has a little helper called log eval to AX, which is doing that work for you. It takes the spans that it ran offline and the tests that it ran offline and pushes them back to AX for you.
+
+588
+00:56:11,118 --> 00:56:19,840
+So now every score, now every eval has a mentions ticker evaluation that you can look at and filter by and look for the failing
+
+589
+00:56:20,110 --> 00:56:21,440
+failing ones.
+
+590
+00:56:22,286 --> 00:56:25,440
+So why does this matter? Because it is your first line of defense.
+
+591
+00:56:26,126 --> 00:56:34,468
+if your financial analyst agent writes a beautiful report about Microsoft when the user asked about Tesla, which is a thing that actually happened to me when I was building this,
+
+592
+00:56:35,280 --> 00:56:40,132
+then no amount of answer of eloquence from your agent matters because the answer is wrong.
+
+593
+00:56:40,800 --> 00:56:43,268
+so you can catch this with five lines of Python.
+
+594
+00:56:46,350 --> 00:56:51,520
+the ticker check catches really basic failures, but it catches them really cheaply.
+
+595
+00:56:51,600 --> 00:56:52,772
+That is why it is important.
+
+596
+00:56:53,600 --> 00:56:55,840
+code evals aren't just toy examples.
+
+597
+00:56:56,080 --> 00:57:05,348
+Often you're going to want to know that your output is JSON or that it has a certain length, or you're going to want to avoid forbidden phrases like as an AI language model,
+
+598
+00:57:05,680 --> 00:57:07,524
+and those are production critical checks.
+
+599
+00:57:07,950 --> 00:57:15,680
+A code eval doesn't have to be a simple string operation. Code eval means the grading logic is deterministic, but it can do complicated things.
+
+600
+00:57:15,760 --> 00:57:21,796
+It can query a database for you, it could hit an API and get the actual stock price to make sure that it wasn't hallucinating a stock price.
+
+601
+00:57:22,958 --> 00:57:27,908
+Anything with a grading always gives the same answer for the same input, can be a code evaluator.
+
+602
+00:57:29,486 --> 00:57:33,828
+One important principle is to grade what the agent produced and not the path that it took.
+
+603
+00:57:34,320 --> 00:57:35,760
+I referred to this earlier.
+
+604
+00:57:36,046 --> 00:57:39,652
+There's a common instinct to check that the agent followed a specific sequence of steps.
+
+605
+00:57:40,046 --> 00:57:43,428
+Did it call this tool first and then that tool in that order?
+
+606
+00:57:44,400 --> 00:57:48,484
+And practitioners have found this to be, in practice, too rigid.
+
+607
+00:57:48,960 --> 00:57:54,180
+agents regularly find valid approaches that the eval designer didn't anticipate.
+
+608
+00:57:55,040 --> 00:57:55,360
+so
+
+609
+00:57:56,462 --> 00:57:57,924
+if you grade the path,
+
+610
+00:57:59,214 --> 00:58:00,388
+you punish creativity.
+
+611
+00:58:00,590 --> 00:58:02,372
+Instead, grade what the agent produced.
+
+612
+00:58:02,560 --> 00:58:04,160
+Did the output have the right information?
+
+613
+00:58:04,494 --> 00:58:06,640
+Did the final state match what you wanted?
+
+614
+00:58:07,040 --> 00:58:12,004
+our ticker check doesn't care how the agent found the data, it just checks is the ticker in the output?
+
+615
+00:58:12,640 --> 00:58:15,524
+That is the right level of abstraction for most code evals.
+
+616
+00:58:17,550 --> 00:58:22,500
+So now let's get to built-in evals, LLM evals. This is where it begins to get more interesting.
+
+617
+00:58:23,680 --> 00:58:27,920
+code can check whether the ticker appears, but it can't check whether the analysis is good.
+
+618
+00:58:28,110 --> 00:58:30,720
+Is the financial data accurate? Is the report complete?
+
+619
+00:58:30,880 --> 00:58:32,548
+Are the recommendations well reasoned?
+
+620
+00:58:33,120 --> 00:58:36,740
+These are semantic questions, and for semantic questions you need a judge.
+
+621
+00:58:37,518 --> 00:58:40,484
+Every LLM as a judge has three parts.
+
+622
+00:58:40,910 --> 00:58:44,676
+It has a judge model, which is the LLM that is doing the grading for you.
+
+623
+00:58:45,070 --> 00:58:53,220
+It has a prompt template, which, as I mentioned, is also called a rubric, which is the criteria that the judge applies, the rules of what defines good.
+
+624
+00:58:53,760 --> 00:58:56,560
+And it has the data, which is the examples being evaluated.
+
+625
+00:58:56,814 --> 00:58:59,908
+AX keeps these three things separate, which means that you can mix and match.
+
+626
+00:59:00,014 --> 00:59:04,516
+You can try the same criteria with different judge models, the same judge model with different criteria.
+
+627
+00:59:04,960 --> 00:59:06,500
+It is modular by design.
+
+628
+00:59:07,200 --> 00:59:13,316
+The good news is that AX ships with a bunch of built-in evals, so you don't have to write your own.
+
+629
+00:59:13,710 --> 00:59:15,360
+There are a bunch of types of evals
+
+630
+00:59:17,678 --> 00:59:25,604
+that are often going to apply to most AI applications, so we've already written the prompts for those, and you don't have to write them yourself.
+
+631
+00:59:26,670 --> 00:59:29,840
+Correctness, for instance, checks whether a response is factually accurate.
+
+632
+00:59:30,126 --> 00:59:39,840
+Faithfulness checks whether the response stays grounded in the source material, and there are evals for tool selection. Did the agent pick the right tool and tool invocation?
+
+633
+00:59:40,110 --> 00:59:42,080
+Did it pass the right arguments to that tool?
+
+634
+00:59:42,478 --> 00:59:49,444
+Stuff like document relevance, refusal detection, many of the things that you'd want to check in an agentic application come out of the box.
+
+635
+00:59:51,694 --> 00:59:57,152
+So the first eval that we're going to run is a correctness eval.
+
+636
+01:00:00,686 --> 01:00:02,436
+And spoiler alert, it's not going to work.
+
+637
+01:00:05,006 --> 01:00:06,272
+Setting it up is very easy.
+
+638
+01:00:06,432 --> 01:00:16,352
+We give it an LLM. In this case, I've chosen the anthropic LLM, Sonnet 4.6, because it is better than Haiku, which is the thing that is doing the work.
+
+639
+01:00:16,622 --> 01:00:19,460
+You often want to pick a bigger, slower model to be your judge.
+
+640
+01:00:20,558 --> 01:00:25,892
+And then I've just given correctness evaluated the LLM and
+
+641
+01:00:26,830 --> 01:00:28,068
+run it right here.
+
+642
+01:00:35,214 --> 01:00:35,787
+Like I said,
+
+643
+01:00:37,422 --> 01:00:46,592
+Once we've run the evaluation with evaluate data frame, we've also turned on suppress tracing here so that our evaluation doesn't send a bunch of extra traces to
+
+644
+01:00:46,832 --> 01:00:47,460
+AX.
+
+645
+01:00:49,518 --> 01:00:52,484
+It gives us this output, which is a bunch of evaluation rows.
+
+646
+01:00:55,182 --> 01:00:58,272
+These are not very readable. This is why you need AX to look at them.
+
+647
+01:00:59,982 --> 01:01:03,396
+The judge reads the input and output from each span and grades it against the rubric.
+
+648
+01:01:07,086 --> 01:01:11,652
+And we can see that every score is zero. If I scroll across
+
+649
+01:01:15,854 --> 01:01:19,076
+status completed, name correctness, score zero.
+
+650
+01:01:19,502 --> 01:01:29,312
+The reason it's doing this is because correctness is judging against the LLM's definition of what is correct and what is true,
+
+651
+01:01:29,632 --> 01:01:33,572
+which means that it is relying on the LLM's training data.
+
+652
+01:01:34,126 --> 01:01:42,112
+What we're doing in this agent is a whole bunch of live web search to get current stock prices and up-to-date financial information,
+
+653
+01:01:42,272 --> 01:01:45,892
+which means the agent is talking about things that happened in 2026,
+
+654
+01:01:46,766 --> 01:01:50,788
+but the LLM that's doing the judging only has information that stops in January.
+
+655
+01:01:51,054 --> 01:01:54,432
+So if you read the explanations of our correctness eval
+
+656
+01:01:57,486 --> 01:02:02,052
+inside of AX, you can scroll to evaluations, you can look at correctness, you can say that it is incorrect.
+
+657
+01:02:03,310 --> 01:02:10,660
+I will save you a bunch of reading of a very densely packed column. What it's doing is complaining that there's a bunch of stuff that comes from the future that it couldn't possibly know.
+
+658
+01:02:11,950 --> 01:02:18,756
+So our correctness eval here has completely failed. This is not what you wanted to do. So instead, we are going to use a faithfulness eval.
+
+659
+01:02:20,590 --> 01:02:25,552
+Faithfulness is a better eval for our use case because the judge actually has context.
+
+660
+01:02:25,646 --> 01:02:33,712
+In faithfulness, you give the LLM as a judge the information that it is being based on, and then say,
+
+661
+01:02:33,872 --> 01:02:39,684
+based on the same information that the judge that my agent collected, did it do a good job of writing the report?
+
+662
+01:02:39,952 --> 01:02:50,832
+This is this way they are on a level playing field. They both have the same amount of information, and your slow, complicated judge agent can judge whether your quick, fast worker agent
+
+663
+01:02:51,854 --> 01:02:52,112
+was
+
+664
+01:02:52,992 --> 01:02:54,116
+doing a good job.
+
+665
+01:02:56,782 --> 01:02:58,212
+so let's look at the faithfulness
+
+666
+01:02:58,926 --> 01:02:59,268
+cells.
+
+667
+01:03:00,526 --> 01:03:01,764
+just like everything else,
+
+668
+01:03:02,512 --> 01:03:04,068
+these can be done
+
+669
+01:03:05,486 --> 01:03:07,076
+online as well as offline.
+
+670
+01:03:07,472 --> 01:03:11,076
+So there is a faithfulness built-in evaluator,
+
+671
+01:03:13,262 --> 01:03:14,192
+which isn't in this view.
+
+672
+01:03:14,414 --> 01:03:21,604
+There is a faithfulness built-in evaluator which you can pull up and you can give your input, output, and your context to it.
+
+673
+01:03:23,054 --> 01:03:27,632
+again, you can do this in code as well, and if you're using the skills, this is probably what's going to happen.
+
+674
+01:03:27,792 --> 01:03:33,956
+Your skills will say, Oh, I'm not going to use the UI, I'm going to use the code, which is why I show it here.
+
+675
+01:03:35,630 --> 01:03:39,312
+so the first thing we do is we extract the research context from the traces.
+
+676
+01:03:39,598 --> 01:03:48,996
+As you'll remember, we do a two-step process. So I take the output from the first step where it does the research, and I attach that to all of my spans
+
+677
+01:03:50,574 --> 01:03:50,832
+as
+
+678
+01:03:51,712 --> 01:03:55,012
+the context for the judge to work on.
+
+679
+01:03:55,792 --> 01:03:57,860
+and then I run the faithfulness evaluator.
+
+680
+01:03:58,592 --> 01:03:58,912
+So
+
+681
+01:04:01,070 --> 01:04:09,312
+here you can see spans with context. These are the same spans that I just pulled out of AX. I attached at the column level all of my context, and then
+
+682
+01:04:10,510 --> 01:04:20,772
+I called evaluate data frame with those spans and I gave it my faithfulness evaluator, which I instantiated here just like I instantiated the correctness evaluator.
+
+683
+01:04:21,712 --> 01:04:25,252
+This gives us much more interesting data.
+
+684
+01:04:25,582 --> 01:04:28,772
+This gives us unfaithful seven and faithful six.
+
+685
+01:04:31,392 --> 01:04:31,712
+so
+
+686
+01:04:33,550 --> 01:04:38,592
+roughly half the time, my very simple report is hallucinating.
+
+687
+01:04:38,734 --> 01:04:42,788
+It is coming up with things that were not in the source data according to Sonnet.
+
+688
+01:04:45,582 --> 01:04:48,000
+And that is, this is a useful eval.
+
+689
+01:04:48,270 --> 01:04:56,484
+This is an eval where we're failing half the time. This is a capability eval where we can climb the hill, modify our prompt, and get it better at writing a grounded report.
+
+690
+01:04:56,846 --> 01:04:58,884
+This is exactly the kind of eval that you want.
+
+691
+01:05:04,238 --> 01:05:10,720
+So that's two built-in evals and two very different signals, and there's a really important lesson here, which is correctness gave us zero out of 13,
+
+692
+01:05:10,800 --> 01:05:15,840
+and faithfulness told us that reports aren't grounded in their sources roughly half the time.
+
+693
+01:05:16,110 --> 01:05:20,560
+The difference isn't that one eval is better than the other, the difference is the use case.
+
+694
+01:05:20,654 --> 01:05:26,212
+There are lots of use cases where that correctness eval that I showed you earlier works just fine for some use cases.
+
+695
+01:05:27,278 --> 01:05:31,364
+it's just not in this specific use case where we're doing live real-time research.
+
+696
+01:05:33,006 --> 01:05:35,492
+So it's important to know the question that you're actually asking.
+
+697
+01:05:38,926 --> 01:05:40,400
+Built-in evals are your starting point.
+
+698
+01:05:40,480 --> 01:05:48,452
+They give you an immediate signal without any prompt engineering, but even with a good built-in like faithfulness, there are a bunch of things that it can't check.
+
+699
+01:05:50,542 --> 01:05:56,004
+our financial analyst should produce actionable recommendations, it shouldn't just summarize data.
+
+700
+01:05:57,742 --> 01:06:04,160
+So not just you know give you a financial report, but tell you what to do with the financial report. Should I buy, sell, or hold?
+
+701
+01:06:05,582 --> 01:06:13,540
+no built-in template checks for that. This AX does not cover every single use case, so you have to build a specific eval that checks for actionability.
+
+702
+01:06:13,774 --> 01:06:17,348
+You have to build a custom eval that is about your domain.
+
+703
+01:06:17,614 --> 01:06:24,100
+If you are writing real evals, you're absolutely going to have to write a custom eval with a definition of good that we didn't think of.
+
+704
+01:06:25,422 --> 01:06:28,708
+So that brings us to the next step, which is writing a custom eval rubric.
+
+705
+01:06:28,800 --> 01:06:32,228
+This is where you make evals truly specific to your application.
+
+706
+01:06:32,720 --> 01:06:38,884
+And writing a good eval is complicated, so I'm going to spend a little time talking about what makes a good eval rubric.
+
+707
+01:06:41,230 --> 01:06:43,360
+We recommend four parts of a custom rubric.
+
+708
+01:06:43,534 --> 01:06:45,636
+The first is to define the judge's role.
+
+709
+01:06:46,862 --> 01:06:55,280
+you should spell out explicit pass and fail criteria, you should label the data with XML tags, and you should define the output choices outside the prompt
+
+710
+01:06:55,440 --> 01:06:55,684
+itself.
+
+711
+01:06:56,320 --> 01:07:06,180
+I'm going to add one more thing on top of those, which is actually kind of controversial amongst practitioners, which is I tend to include examples of good and bad output.
+
+712
+01:07:06,560 --> 01:07:13,188
+Uh some practitioners believe that including examples will make your eval overfit.
+
+713
+01:07:14,062 --> 01:07:15,716
+but let's walk through all of those.
+
+714
+01:07:16,430 --> 01:07:18,468
+So the first part is defining the role.
+
+715
+01:07:20,302 --> 01:07:27,440
+you'll notice this what is by now a tired trope, which is you are an expert financial analyst evaluator. That is not the important part.
+
+716
+01:07:27,918 --> 01:07:34,180
+Tests show it makes some very small difference to whether or not your eval works.
+
+717
+01:07:34,480 --> 01:07:37,760
+The important thing is to give it the context of what it is looking at.
+
+718
+01:07:37,920 --> 01:07:41,700
+You are looking at a financial report, and what I am expecting is financial analysis.
+
+719
+01:07:42,000 --> 01:07:45,092
+Those are the important pieces of context that you are giving the LLM there.
+
+720
+01:07:46,766 --> 01:07:50,948
+you're also telling it that it should be that what you want is something actionable.
+
+721
+01:07:51,630 --> 01:07:53,092
+So that brings us to part two.
+
+722
+01:07:53,680 --> 01:07:54,000
+So
+
+723
+01:07:55,534 --> 01:07:57,440
+this is where most people underinvest.
+
+724
+01:07:57,600 --> 01:08:02,148
+Don't say a good response because that is an aspiration, that is not a criterion.
+
+725
+01:08:02,400 --> 01:08:04,240
+A good response is helpful and accurate.
+
+726
+01:08:04,590 --> 01:08:11,364
+Sounds like you're adding more detail, but you're still being just as vague because helpful and accurate don't have any meaning as far as the LLM is concerned.
+
+727
+01:08:12,320 --> 01:08:15,600
+instead, you should be listing exactly what makes a report actionable.
+
+728
+01:08:15,758 --> 01:08:18,692
+So list exactly what makes it actionable and not actionable.
+
+729
+01:08:19,182 --> 01:08:28,100
+Every criterion should be specific and observable, something that if you were a human looking at this report, you'd be able to know whether or not it was there and you'd be able to say yes or
+
+730
+01:08:29,870 --> 01:08:34,240
+So contains specific recommendations, that's something you can definitely say yes or no.
+
+731
+01:08:34,480 --> 01:08:40,100
+Includes forward-looking analysis, not just historical data, that's a clear distinction that you can say yes or no to.
+
+732
+01:08:42,254 --> 01:08:47,840
+And the important thing here is that each of these criteria maps to something we saw in our analysis.
+
+733
+01:08:47,920 --> 01:08:54,532
+If we when we were reading the reports, we saw, we actually observed when we read our traces, or at least when I read our traces,
+
+734
+01:08:55,600 --> 01:09:00,560
+that these are ways that these reports are going wrong specifically. That is not a coincidence.
+
+735
+01:09:00,720 --> 01:09:03,940
+Your error analysis is what tells you what criteria to write.
+
+736
+01:09:04,238 --> 01:09:07,360
+You don't come up with them from whole cloth because it's not going to occur to you.
+
+737
+01:09:07,630 --> 01:09:14,372
+Where you get that data from is from reading your traces and going, oh, it didn't do that. My Axial coding said it does this specific wrong thing.
+
+738
+01:09:15,982 --> 01:09:21,156
+So specific criteria produce consistent judgments, while vague criteria produce coin flips.
+
+739
+01:09:22,382 --> 01:09:30,916
+The third thing you should do in your rubric is you should label the data with XML tags, especially if you are using Anthropic. Anthropic loves XML and finds it very easy to understand.
+
+740
+01:09:32,846 --> 01:09:40,944
+Your rubric has variables, the input and the output, and you want to make sure that it can tell the difference between your instructions and the input and the output,
+
+741
+01:09:41,070 --> 01:09:43,332
+and XML tags are an excellent way to do that.
+
+742
+01:09:44,398 --> 01:09:48,304
+So put a user query tag around the input, a financial report tag around the output.
+
+743
+01:09:48,624 --> 01:09:52,864
+Clear boundaries reduce the chance that the judge confuses the question with the answer.
+
+744
+01:09:52,944 --> 01:10:01,024
+It is especially important if you are including examples to label the examples with XML tags, because otherwise it will go, oh, this is exactly what I'm supposed to write,
+
+745
+01:10:01,104 --> 01:10:02,788
+and just spit out the example back to you.
+
+746
+01:10:05,934 --> 01:10:09,540
+Which brings us to the examples. This is a part a lot of people skip.
+
+747
+01:10:09,904 --> 01:10:15,984
+In my opinion, it is the part that most improves quality. LLMs are okay at following instructions.
+
+748
+01:10:16,064 --> 01:10:23,984
+They are increasingly good at following instructions, but what they are really good at is copying an example that you've already given them and replacing the things
+
+749
+01:10:24,046 --> 01:10:26,144
+that are relevant to the current situation.
+
+750
+01:10:26,510 --> 01:10:32,228
+So if you give it an example of exactly the kind of report that you're looking for, it's going to follow that format exactly.
+
+751
+01:10:32,544 --> 01:10:36,260
+That might or might not, depending on your domain, be a good idea.
+
+752
+01:10:37,070 --> 01:10:43,716
+If your example is too rigid, then the LLM will always give the same report and you have reduced its scope for creativity.
+
+753
+01:10:44,384 --> 01:10:53,572
+But on the other hand, if it is being too non-deterministic and your report is being crazy, then giving it an example will ground it in what exactly you are expecting.
+
+754
+01:10:55,824 --> 01:10:58,724
+Here's what an actionable example looks like in the template.
+
+755
+01:10:59,104 --> 01:11:07,460
+It has everything, it has percentage revenue growth, a PE ratio, it identifies a concrete risk with a number to back it up, and it gives a specific recommendation.
+
+756
+01:11:08,144 --> 01:11:09,744
+That is what actionable looks like.
+
+757
+01:11:10,126 --> 01:11:11,744
+Here is a non-actionable result.
+
+758
+01:11:12,144 --> 01:11:13,344
+it's not wrong.
+
+759
+01:11:13,664 --> 01:11:19,556
+everything it says is correct, but it doesn't say anything useful. It doesn't have any specific data, it doesn't have any specific risks.
+
+760
+01:11:19,854 --> 01:11:22,704
+It just says investors should consider various factors.
+
+761
+01:11:23,024 --> 01:11:24,356
+That's not a recommendation.
+
+762
+01:11:25,184 --> 01:11:31,104
+so the judge now has a concrete reference for what you actually mean by the labels that you are giving it.
+
+763
+01:11:31,424 --> 01:11:39,264
+and this can dramatically improve consistency, especially on the edge cases where the report would have otherwise been somewhere in between.
+
+764
+01:11:41,710 --> 01:11:51,104
+and this is an important part. It is very tempting if you're writing this rubric to say, and now spit out the word correct or incorrect because that is what you want it to do.
+
+765
+01:11:51,264 --> 01:11:52,868
+You do not need to do that anymore.
+
+766
+01:11:54,702 --> 01:12:03,824
+the way that actually works under the hood is we have given the LLM a tool that says you call this tool when you are done, and it will call that tool with correct or incorrect when you're done.
+
+767
+01:12:03,918 --> 01:12:11,780
+So you don't need to tell it what output, and in fact, telling it to spit out a specific string as output is more likely to confuse it and make your eval fail.
+
+768
+01:12:12,304 --> 01:12:18,384
+So just in the UI set your choices or
+
+769
+01:12:19,598 --> 01:12:23,844
+when you're creating it programmatically, set the choices and let the LLM do its thing.
+
+770
+01:12:25,504 --> 01:12:29,220
+when you are coming up with these choices, it is best to keep those choices simple.
+
+771
+01:12:29,744 --> 01:12:31,844
+binary is best, two clear labels.
+
+772
+01:12:32,544 --> 01:12:35,940
+numeric scales, like a scale of one to five,
+
+773
+01:12:37,198 --> 01:12:42,144
+they are tempting, but the LLMs are bad at them. What is the difference between a three and a four?
+
+774
+01:12:42,414 --> 01:12:45,316
+You would have to write a whole bunch of rules for the LLM to know that.
+
+775
+01:12:45,664 --> 01:12:47,364
+it doesn't know that automatically.
+
+776
+01:12:47,904 --> 01:12:53,188
+whereas you can give it a pass fail and it will be pretty good at deciding what is a pass and what is a fail.
+
+777
+01:12:54,350 --> 01:12:57,984
+so if you really need more categories, you can do like a partial result.
+
+778
+01:12:58,064 --> 01:13:02,628
+You can say a 0.5 score is where it did a half assed job.
+
+779
+01:13:03,904 --> 01:13:06,500
+but by default, go for a zero or one.
+
+780
+01:13:08,320 --> 01:13:11,200
+One more practical tip is chain of thought for judges.
+
+781
+01:13:11,360 --> 01:13:15,972
+Ask the judge to reason before it scores and have it explain its thinking first.
+
+782
+01:13:17,102 --> 01:13:19,780
+This measurably improves accuracy.
+
+783
+01:13:20,240 --> 01:13:29,732
+When the judge has to articulate why something is actionable or not, or why it is correct or not, it makes fewer mistakes than when it just picks a label without thinking first.
+
+784
+01:13:30,640 --> 01:13:35,520
+This explanation is also very helpful for you, but it also helps the judge think better.
+
+785
+01:13:35,680 --> 01:13:37,700
+Just one of those weird things about LLMs.
+
+786
+01:13:40,142 --> 01:13:45,380
+So if you are coding along, now is the time to find your actionability template.
+
+787
+01:13:46,606 --> 01:13:51,524
+This contains all of the example, all of the instructions that I was just talking about.
+
+788
+01:13:52,080 --> 01:13:58,692
+Can you do better than me? Can you one shot your way to a perfect eval by modifying this eval template?
+
+789
+01:14:01,102 --> 01:14:05,220
+As with all things in AX, you can do this via the UI as well.
+
+790
+01:14:05,742 --> 01:14:10,628
+So you can create an online evaluator and you can create a new LLM as a judge.
+
+791
+01:14:10,958 --> 01:14:14,500
+In this case, I've already got it, my actionability evaluator,
+
+792
+01:14:17,070 --> 01:14:21,348
+which has literally exactly the same text that I just showed you in the notebook.
+
+793
+01:14:22,638 --> 01:14:26,308
+And as before, I had to pick a trace scope.
+
+794
+01:14:27,520 --> 01:14:35,428
+And because it's an LLM as a judge, I had to set up a template, sorry, I had to set up an LLM for it to use in the UI,
+
+795
+01:14:35,840 --> 01:14:38,560
+which means that you need to give it your anthropic key again.
+
+796
+01:14:39,600 --> 01:14:44,676
+And I picked my inputs and outputs via the single trace method, and then I saved it.
+
+797
+01:14:45,070 --> 01:14:55,044
+One of the things that you can do with online evals is you can set them to run continuously against new incoming traces. This is something you will almost certainly do in production.
+
+798
+01:14:55,680 --> 01:15:04,356
+And if your evals are expensive or you have a whole lot of traffic, you won't want to do it on all of your traffic, you can set it to serve
+
+799
+01:15:04,560 --> 01:15:06,372
+to rate only a percentage.
+
+800
+01:15:06,670 --> 01:15:07,680
+That's the sampling rate.
+
+801
+01:15:07,790 --> 01:15:14,596
+So you can say, you know, just look at 1% of my traffic, and that will still give you a whole bunch of eval data without breaking your budget.
+
+802
+01:15:20,558 --> 01:15:23,204
+so back to the code version.
+
+803
+01:15:23,950 --> 01:15:26,640
+Wiring it up is just like wiring up the other
+
+804
+01:15:28,080 --> 01:15:29,700
+evaluators that we've given.
+
+805
+01:15:30,080 --> 01:15:39,236
+we've created a classification evaluator, we've given it a name, actionability, we've given it an LLM, we've given it that template that I just showed you, and we've given it those choices.
+
+806
+01:15:39,534 --> 01:15:44,516
+This is us programmatically doing what we would have done in the UI where we said your choices are correct or incorrect.
+
+807
+01:15:45,646 --> 01:15:48,068
+actionable or not actionable scores one or zero.
+
+808
+01:15:48,720 --> 01:15:51,364
+and then we ran evaluate data frame.
+
+809
+01:15:52,494 --> 01:15:53,316
+That gives us
+
+810
+01:15:56,174 --> 01:15:59,300
+the data that I was skipping over because it was already run earlier.
+
+811
+01:16:02,446 --> 01:16:04,900
+So you can see actionability, actionable.
+
+812
+01:16:05,134 --> 01:16:14,372
+If we look at our evaluations tab, we can scroll down to our actionability and we get this really great explanation about why the report is actionable or not actionable.
+
+813
+01:16:21,454 --> 01:16:29,520
+lots of our reports scored actionable, but several are not, which is awesome because it means that we have again we have a capability eval
+
+814
+01:16:30,080 --> 01:16:31,556
+and a hill that we can climb.
+
+815
+01:16:34,158 --> 01:16:40,640
+So in the notebook, this is where you log your results back to AX, or if you've run it online in the UI, your
+
+816
+01:16:41,520 --> 01:16:44,068
+eval results are already in the UI as you've seen.
+
+817
+01:16:45,966 --> 01:16:53,508
+so you can see now in AX that every span has multiple eval scores, it has mention sticker, it has correctness, it has faithfulness, it has actionability.
+
+818
+01:16:54,320 --> 01:16:57,220
+and you can filter and select
+
+819
+01:16:58,510 --> 01:17:00,196
+for specific
+
+820
+01:17:02,350 --> 01:17:03,140
+eval results.
+
+821
+01:17:03,600 --> 01:17:03,920
+So
+
+822
+01:17:10,318 --> 01:17:13,440
+Eval.actionability.label equals
+
+823
+01:17:15,374 --> 01:17:16,560
+not actionable.
+
+824
+01:17:21,838 --> 01:17:23,600
+That finds you the failing set.
+
+825
+01:17:23,920 --> 01:17:25,717
+This is the set that you're like, OK,
+
+826
+01:17:26,560 --> 01:17:33,636
+my eval says that my code messed up here. I can turn this into a data set and I can start running new prompts against this.
+
+827
+01:17:33,934 --> 01:17:36,324
+I can run experiments against this, as we're going to see.
+
+828
+01:17:40,942 --> 01:17:48,548
+Before we move on, I want to flag a few common anti-patterns that turn evals from a useful tool into noise.
+
+829
+01:17:49,200 --> 01:17:54,884
+The first one is to treat your eval prompts like code, and I mean that literally. They're very sensitive to wording.
+
+830
+01:17:55,246 --> 01:18:00,612
+Small shifts in your eval prompt can lead to dramatic changes in your eval results.
+
+831
+01:18:01,280 --> 01:18:04,772
+So you should version them, you should test them on examples where you know the right answer.
+
+832
+01:18:05,262 --> 01:18:13,280
+If the judge, if the LLM as a judge disagrees with your human labels on 40% of examples, then your eval is probably wrong.
+
+833
+01:18:13,360 --> 01:18:16,836
+It's not that your results are wrong, it is that you have written the eval incorrectly.
+
+834
+01:18:17,520 --> 01:18:25,920
+AX has a prompt playground where you can iterate on rubrics without touching your code, and it's very useful for doing this kind of iteration of your eval.
+
+835
+01:18:27,840 --> 01:18:31,140
+The second anti-pattern is the God evaluator.
+
+836
+01:18:32,622 --> 01:18:41,280
+It is tempting to build one big mega evaluator that checks everything at once. It'll look for accuracy and tone and completeness and policy compliance and formatting all in a single prompt.
+
+837
+01:18:41,710 --> 01:18:44,036
+Don't do this because it is a nightmare to calibrate.
+
+838
+01:18:44,800 --> 01:18:49,680
+When your God evaluator says fail, which of those five dimensions failed? You don't know.
+
+839
+01:18:49,840 --> 01:18:55,120
+So suddenly you're like, oh, well, I'll have it spit out labels, and then you're like, oh, it's spitting out 15 different labels.
+
+840
+01:18:55,438 --> 01:18:56,996
+Suddenly it's way too complicated.
+
+841
+01:18:58,254 --> 01:19:01,040
+You can't tell, you can't judge by it, you can't score by it.
+
+842
+01:19:01,230 --> 01:19:07,332
+It is much, much simpler and easier to split this up into one evaluator per dimension.
+
+843
+01:19:07,694 --> 01:19:15,460
+I've already done this today. I have a ticker check, I have faithfulness, I have actionability, three separate focused evals, and each one tells you something specific.
+
+844
+01:19:16,878 --> 01:19:26,560
+The combination gives you a richer picture than any single eval ever could. If you find yourself writing a rubric that lists six different things that the response should do, then stop.
+
+845
+01:19:26,670 --> 01:19:28,324
+That is six evaluators, not one.
+
+846
+01:19:30,320 --> 01:19:33,600
+The third one is know your guardrails and your north star metrics.
+
+847
+01:19:33,806 --> 01:19:39,268
+Some evals are guardrails, they're ship blockers. If an agent hallucinates a stock price, that is a hard fail.
+
+848
+01:19:39,534 --> 01:19:40,452
+Don't ship on that.
+
+849
+01:19:40,960 --> 01:19:43,620
+Others are North Star metrics, they are aspirational.
+
+850
+01:19:43,982 --> 01:19:48,964
+So always recommend complementary investments, is a nice to have in this case. It is not a deal breaker.
+
+851
+01:19:50,000 --> 01:19:52,160
+So know which of your evals is which.
+
+852
+01:19:52,334 --> 01:19:56,612
+It changes how you act on the results, and later it changes how you set up your production monitors.
+
+853
+01:19:56,910 --> 01:20:03,524
+A guardrail regression should page someone in the middle of the night. A North Star dip is something that you look at in a weekly report.
+
+854
+01:20:06,414 --> 01:20:12,960
+Which brings us to the next section, which is can you trust your judges? This is a question we've been dancing around. I've mentioned it a couple of times.
+
+855
+01:20:13,440 --> 01:20:20,484
+It's time to evaluate your evaluator. We built an LLM judge and it told us that some reports are not actionable.
+
+856
+01:20:21,040 --> 01:20:24,900
+But can we trust it? How do we know that the judge is correct?
+
+857
+01:20:27,246 --> 01:20:31,440
+The key mental model here is that your judge is a classifier, so you can treat it as a classifier.
+
+858
+01:20:31,566 --> 01:20:36,804
+It takes an input, in this case a financial report, and it makes a prediction, actionable or not actionable.
+
+859
+01:20:37,102 --> 01:20:44,452
+That prediction can be right or wrong, so just like any classifier, you can measure its performance by comparing its predictions against ground truth.
+
+860
+01:20:44,846 --> 01:20:49,636
+In this case, a human's judgment, you can check the judge's homework.
+
+861
+01:20:50,800 --> 01:20:54,148
+the thing about applying human judgment is that it is a ton of work.
+
+862
+01:20:54,320 --> 01:20:56,708
+You have to read actually every single output.
+
+863
+01:20:57,200 --> 01:20:59,204
+you have to think hard and apply a label.
+
+864
+01:20:59,662 --> 01:21:06,372
+Uh AX does what it can to help by letting you define annotations and attaching them to spans right in the UI.
+
+865
+01:21:06,830 --> 01:21:08,420
+So let me show you what that looks like.
+
+866
+01:21:11,214 --> 01:21:17,216
+When you are looking at a span, you can click annotate span and you can add and remove annotation configs.
+
+867
+01:21:17,376 --> 01:21:23,536
+In this case, I've already created one called Human Actionable, and you can set this span as being actionable or not actionable,
+
+868
+01:21:23,630 --> 01:21:30,884
+and then you can just use these little arrows to flip through all of your traces and set them as actionable or not actionable, which I have conveniently already
+
+869
+01:21:30,976 --> 01:21:31,536
+done.
+
+870
+01:21:33,102 --> 01:21:42,176
+This is the kind of work that you can give to a non-technical member of staff. That is why the UI looks like this. They can just click in, read the report, and click a checkbox.
+
+871
+01:21:42,256 --> 01:21:49,764
+They don't have to write any code, they don't need to know anything other than their domain expertise of whether or not this report should be considered actionable or not actionable.
+
+872
+01:21:52,238 --> 01:21:56,256
+What we're doing here when we add human annotations is building a golden data set.
+
+873
+01:21:56,558 --> 01:22:03,172
+Building golden data sets is incredibly helpful because it's how you measure whether your evaluator is actually doing its job.
+
+874
+01:22:04,366 --> 01:22:12,336
+The way to do it is the same thing the LLM did. Give yourself real concrete criteria and stick to them. So don't say this was good, this was bad.
+
+875
+01:22:12,656 --> 01:22:15,776
+Be specific the same way that you've told the LLM to be specific.
+
+876
+01:22:15,856 --> 01:22:20,388
+You failed at this specific thing, you asked, I this thing was supposed to be present and it wasn't.
+
+877
+01:22:21,838 --> 01:22:26,084
+And eliminate the chance to get lazy when you get tired of labeling.
+
+878
+01:22:28,366 --> 01:22:35,428
+As I said, the labeling is extremely time consuming, so I did it already.
+
+879
+01:22:37,454 --> 01:22:42,244
+Once I've labeled some spans in the UI, I can re-export the spans into the notebook.
+
+880
+01:22:44,686 --> 01:22:50,692
+And this is a nice thing about AX is that the human annotations that I added by hand come back as columns in the export.
+
+881
+01:22:51,856 --> 01:22:55,684
+so we filter down to just the rows that I labeled.
+
+882
+01:23:02,606 --> 01:23:03,172
+Here.
+
+883
+01:23:06,990 --> 01:23:14,884
+and now we're going to compare what I said was actionable and not actionable to what the judge says is actionable or not actionable.
+
+884
+01:23:15,696 --> 01:23:16,016
+Um
+
+885
+01:23:18,576 --> 01:23:23,172
+before we do that though, a little bit more about golden data sets.
+
+886
+01:23:23,536 --> 01:23:25,616
+Uh keep your tasks unambiguous.
+
+887
+01:23:25,696 --> 01:23:33,700
+If your agent scores 0% consistently, that's almost always a broken task. That's always you've written your rubric incorrectly.
+
+888
+01:23:35,086 --> 01:23:43,524
+if you've made your task something that only a human can do, or worse that's something nobody could really do, then you're gonna get a zero score.
+
+889
+01:23:44,336 --> 01:23:49,456
+so for each task, create a reference solution, a known working output that passes all of your graders.
+
+890
+01:23:49,614 --> 01:23:52,256
+This proves that the task is solvable.
+
+891
+01:23:52,494 --> 01:23:54,336
+And you should also test in both directions.
+
+892
+01:23:54,496 --> 01:23:58,276
+You should have cases where a behavior should occur and cases where it shouldn't.
+
+893
+01:23:58,656 --> 01:24:09,056
+So if you test, for instance, does it search the web, then you will end up with an agent that always searches the web even when it doesn't need to.
+
+894
+01:24:09,294 --> 01:24:15,428
+Whereas you should also have a test that says, Did it not search the web for this very obvious answer where it didn't need to do that.
+
+895
+01:24:16,976 --> 01:24:23,556
+And if you're doing this for real, you should split your labeled data that you just created into a development set and a test set.
+
+896
+01:24:24,256 --> 01:24:28,736
+so use maybe 75% of your labels to iterate on your eval,
+
+897
+01:24:29,616 --> 01:24:39,716
+tweaking criteria, adjusting examples until the judge agrees with you, then hold out the remaining 25% to run the judge and see that it actually gets the scores that you are expecting.
+
+898
+01:24:40,256 --> 01:24:46,660
+that's how you know that the judge is actually generalizing to new examples instead of just fitting to the specific data set that you gave
+
+899
+01:24:47,470 --> 01:24:50,736
+it. this is the same principle as train tests, splits, and machine learning.
+
+900
+01:24:50,958 --> 01:24:53,572
+Don't overfit your evaluator to your golden data set.
+
+901
+01:24:56,686 --> 01:24:58,884
+Now let's look at our actionability judge.
+
+902
+01:25:01,294 --> 01:25:08,004
+I have run the judge on some examples and it has come up with a list of where they agree and disagree.
+
+903
+01:25:08,816 --> 01:25:17,296
+spoiler alert, I just hit actionable and not actionable at random so that I would get lots of disagreement because actually Sonnet is pretty good at this stuff.
+
+904
+01:25:18,830 --> 01:25:23,616
+that gives us an agreement rate of 46%, six out of 13 times.
+
+905
+01:25:29,006 --> 01:25:31,940
+In real life, this is exactly where you dig in.
+
+906
+01:25:32,112 --> 01:25:36,912
+This is where you would ask, is my rubric wrong or where my human labels wrong?
+
+907
+01:25:37,072 --> 01:25:43,172
+When the judge disagrees with you, you should read its explanation and decide whether or not the judge was right or you were right.
+
+908
+01:25:44,302 --> 01:25:50,500
+That is the most valuable output of meta-evaluation. It usually reveals an ambiguity in the rules that you set down.
+
+909
+01:25:51,694 --> 01:25:57,712
+To fix a rubric, you should read the explanations on the disagreements, find the ambiguity, and tighten the criteria.
+
+910
+01:25:57,872 --> 01:26:05,072
+So instead of just includes forward-looking analysis, I'd write includes forward-looking analysis with specific recommendations or guidance.
+
+911
+01:26:05,232 --> 01:26:06,212
+That's more precise.
+
+912
+01:26:06,592 --> 01:26:11,460
+It rules out the case where the report talks about the future but never tells the judge what to do about it.
+
+913
+01:26:12,272 --> 01:26:16,548
+Then I'd rerun the judge on the same examples and see if the disagreement goes away.
+
+914
+01:26:17,072 --> 01:26:18,672
+This is rubric iteration.
+
+915
+01:26:18,926 --> 01:26:20,676
+Your eval prompt is an application.
+
+916
+01:26:21,312 --> 01:26:23,172
+It is another LLM application.
+
+917
+01:26:23,712 --> 01:26:26,628
+So it needs testing and iteration just like your agent does.
+
+918
+01:26:26,912 --> 01:26:29,988
+And that is what I meant when I said that you should treat your evals like code.
+
+919
+01:26:32,910 --> 01:26:36,964
+So now I'm going to talk very briefly about an ML concept called precision and recall.
+
+920
+01:26:39,470 --> 01:26:45,028
+Precision asks, when the judge says not actionable, how often is it really not actionable?
+
+921
+01:26:45,712 --> 01:26:51,332
+And recall asks, of all the reports that are actually not actionable, how many did the judge catch?
+
+922
+01:26:52,352 --> 01:26:57,412
+With a tiny sample like 12 examples, these numbers are going to jump around a lot.
+
+923
+01:26:58,112 --> 01:27:04,740
+But even with the 12 that I have, you can see whether the judge is in the right ballpark or completely off.
+
+924
+01:27:05,390 --> 01:27:06,832
+In most scenarios,
+
+925
+01:27:09,262 --> 01:27:14,212
+you want to prioritize recall. These two measurements are at odds with each other.
+
+926
+01:27:15,950 --> 01:27:23,076
+If you prioritize recall, then you're going to get false positives where the judge has said something is wrong when nothing is wrong.
+
+927
+01:27:23,342 --> 01:27:27,044
+That is much better than accidentally letting through things that are wrong.
+
+928
+01:27:28,302 --> 01:27:36,432
+However, in some cases, when you are tuning, you will say, actually, I want precision, I want it to be absolutely right when it's right, and I don't care if it misses some things.
+
+929
+01:27:36,686 --> 01:27:38,752
+There are domains where that is the output that you want.
+
+930
+01:27:38,912 --> 01:27:42,180
+But most of the time you want to prioritize recall.
+
+931
+01:27:46,592 --> 01:27:58,372
+A few known pitfalls with using an LLM as a judge, one is position bias. If you present it with two options to judge between, the judge tends to favor whichever comes first.
+
+932
+01:27:59,438 --> 01:28:06,468
+This depends on the model. Sometimes the model depends uh prefers whichever comes last, but it always has some kind of preference to position.
+
+933
+01:28:08,142 --> 01:28:09,540
+There's also length bias.
+
+934
+01:28:10,032 --> 01:28:17,284
+LLMs like longer responses. They tend to score those higher and say that they are better, even if the length, extra length is just filler.
+
+935
+01:28:18,112 --> 01:28:25,072
+And the last one I love, which is confidence bias. The judge gets fooled by a response that sounds confident, just like humans do.
+
+936
+01:28:25,232 --> 01:28:32,516
+If your LLM says things that are wrong but it says them in a really confident tone, your LLM judge is more likely to believe them.
+
+937
+01:28:34,286 --> 01:28:41,872
+There's also self-preference bias. If you use the same model to do the generation as you use to do the judging, they tend to like their own output.
+
+938
+01:28:41,952 --> 01:28:45,472
+So if possible, use both, say, OpenAI and Anthropic.
+
+939
+01:28:45,712 --> 01:28:51,204
+Use one to do your agent and one to do the judging, and they are less likely to agree with each other.
+
+940
+01:28:54,510 --> 01:29:02,832
+Self-preference bias is why I used Sonnet as a judge for output generated by Haiku, but it works even better if you use a different
+
+941
+01:29:03,152 --> 01:29:04,580
+labs model entirely.
+
+942
+01:29:06,766 --> 01:29:09,380
+And remember that the benchmark here is human performance.
+
+943
+01:29:09,806 --> 01:29:14,592
+Humans are not going to be perfect at judging whether things are or are not actionable.
+
+944
+01:29:14,862 --> 01:29:16,964
+They are going to get it wrong quite a lot of the time.
+
+945
+01:29:17,230 --> 01:29:22,788
+What you're trying to do is come up with an eval that is reasonably close to human judgment.
+
+946
+01:29:24,238 --> 01:29:33,152
+Human judgment also varies from human to human. Human interrator reliability, so two humans judging the same thing, is often as low as 0.2 or 0.3.
+
+947
+01:29:33,392 --> 01:29:39,300
+So two experts with the same output and the same rules disagree a surprising amount of the time.
+
+948
+01:29:39,758 --> 01:29:46,500
+So if your judge, if your LLM judge achieves that higher consistency than humans, then it is doing better than humans.
+
+949
+01:29:46,752 --> 01:29:52,004
+The judge sometimes disagrees with me, is not by itself a reason to distrust it.
+
+950
+01:29:52,512 --> 01:29:55,872
+What you're looking for is a judge that disagrees with you all of the time.
+
+951
+01:29:56,142 --> 01:30:03,748
+That is the danger signal. A judge that disagrees with you some of the time is a judge correctly handling a genuinely ambiguous task.
+
+952
+01:30:07,726 --> 01:30:17,216
+And also failure should seem fair. That is a principle from Anthropics eval teams that I want to leave you with. When a task fails, it should be clear what the agent got wrong and why.
+
+953
+01:30:17,376 --> 01:30:24,196
+If you look at a failing trace and you think that answer looks fine to me, the problem is probably the eval and not the agent.
+
+954
+01:30:26,670 --> 01:30:26,976
+So
+
+955
+01:30:27,936 --> 01:30:33,316
+now we've built evals, we've tested them, let's use them to actually improve our agent.
+
+956
+01:30:34,638 --> 01:30:36,676
+This is how you close the loop.
+
+957
+01:30:39,502 --> 01:30:41,092
+Here's the problem with one-off fixes.
+
+958
+01:30:42,222 --> 01:30:50,096
+If you've found some failures, you've read some explanations, you know what to improve, you change the prompt, and then what? How do you know whether the fix actually worked?
+
+959
+01:30:50,256 --> 01:30:52,816
+How do you know if it didn't break something that was working before?
+
+960
+01:30:53,038 --> 01:30:58,084
+If you just run the agent again on a couple of examples and eyeball it, then you're back to vibes.
+
+961
+01:30:58,656 --> 01:31:05,284
+You need a structured way to compare before and after. And as I mentioned earlier, this is what experiments are for.
+
+962
+01:31:06,926 --> 01:31:15,204
+As I showed you earlier, you can filter your traces down to just the ones that are failing, and you can turn them into a data set
+
+963
+01:31:15,456 --> 01:31:16,016
+like this.
+
+964
+01:31:16,430 --> 01:31:20,932
+So you select all of your traces, you click add to dataset, and you create a new data set.
+
+965
+01:31:21,614 --> 01:31:28,484
+In this case, I've called it AIEWF financial demo fails, and I've already created my failure data set.
+
+966
+01:31:29,390 --> 01:31:36,176
+But this gives you a smaller set of places where you know that your eval is failing so that you can then run
+
+967
+01:31:37,582 --> 01:31:39,456
+your changed prompt against just them.
+
+968
+01:31:39,616 --> 01:31:40,836
+This is faster and cheaper.
+
+969
+01:31:43,246 --> 01:31:44,868
+This is a regression test set.
+
+970
+01:31:46,158 --> 01:31:49,056
+Sorry, you should also save a regression test set.
+
+971
+01:31:49,136 --> 01:31:56,896
+Rather, you should get the ones where it is not failing and make sure that those are also a data set that you can check less frequently to make sure that when you've changed your model,
+
+972
+01:31:57,198 --> 01:32:03,044
+sorry, when you've changed your rubric, that you haven't accidentally made it fail in places that it was succeeding before.
+
+973
+01:32:08,496 --> 01:32:08,816
+And
+
+974
+01:32:08,816 --> 01:32:10,628
+your data sets are not static.
+
+975
+01:32:11,567 --> 01:32:19,748
+Pre-production, when you don't have users yet, your data sets are probably going to be synthetic, queries you generated yourself or queries that you got an LLM to generate for you.
+
+976
+01:32:20,046 --> 01:32:21,856
+That is fine, it gets you off the ground.
+
+977
+01:32:22,096 --> 01:32:25,220
+As soon as real traffic starts coming in, you should turn
+
+978
+01:32:26,254 --> 01:32:27,684
+that into your eval sets.
+
+979
+01:32:28,576 --> 01:32:30,980
+real failures should replace imagined ones.
+
+980
+01:32:31,374 --> 01:32:40,772
+The union of your failure cases and your passing cases is what people call your golden data set, the curated labeled set you trust as ground truth for measuring quality.
+
+981
+01:32:43,918 --> 01:32:48,068
+now we're going to improve our agent, but we are not going to hand write the fix.
+
+982
+01:32:50,350 --> 01:32:59,204
+as I mentioned, you can do all of this with skills, you can do all of this with a coding agent. I'm assuming it being 2026 that absolutely everyone is using a coding agent to do all of their coding.
+
+983
+01:33:00,462 --> 01:33:09,188
+So, why would you modify your prompts by yourself when you can get Claude Code to pull down your failing traces, modify your code for you,
+
+984
+01:33:09,776 --> 01:33:11,536
+and improve your application for you.
+
+985
+01:33:11,790 --> 01:33:13,156
+That is what we're going to do here.
+
+986
+01:33:15,534 --> 01:33:20,896
+Claude will pull down all of the failing traces, it will read all of the explanations, it will turn the explanations into
+
+987
+01:33:22,016 --> 01:33:23,908
+action that it takes on your code base.
+
+988
+01:33:26,766 --> 01:33:30,976
+and here's the important thing: nothing here is guessed. Claude isn't inventing improvements out of thin air.
+
+989
+01:33:31,056 --> 01:33:35,268
+You haven't just told it get better at this, you haven't just told it make no mistakes.
+
+990
+01:33:36,238 --> 01:33:40,164
+every change it proposes traces back to a specific failure explanation.
+
+991
+01:33:41,216 --> 01:33:48,356
+so if the judge said that it lacks specific recommendations, Claude will read that and rewrite the prompt so that it does.
+
+992
+01:33:48,816 --> 01:33:58,692
+if the judge said that it presents risks without supporting evidence, then it will rewrite the prompt so that it fixes that too. This is data driven prompt engineering, and now we can automate it.
+
+993
+01:34:02,766 --> 01:34:04,580
+So, notice what we've passed in.
+
+994
+01:34:05,152 --> 01:34:13,392
+We've passed in our requirements, what we were trying to get done, and we have passed in an improvement prompt telling it
+
+995
+01:34:14,352 --> 01:34:23,472
+what you should be working on and how to get better at it. This is yet another LLM application and yet another thing that is non-deterministic and yet another way that it can go wrong.
+
+996
+01:34:23,712 --> 01:34:32,672
+You could, if we had more time, meta-evaluate your meta-evaluator of your meta evaluator and make sure that your meta evaluator is doing the right thing, but we're not doing that here
+
+997
+01:34:32,832 --> 01:34:36,100
+because it gets too complicated, and also we only have so much time.
+
+998
+01:34:38,272 --> 01:34:38,592
+But
+
+999
+01:34:40,558 --> 01:34:42,564
+good requirements keep Claude honest.
+
+1000
+01:34:42,862 --> 01:34:49,444
+So you should be spending time making sure that this evaluator is as accurate as you can make it.
+
+1001
+01:34:51,072 --> 01:34:55,952
+So in this case, we are taking these prompts and we are wiring them into uh
+
+1002
+01:34:58,432 --> 01:34:59,072
+two pass.
+
+1003
+01:34:59,886 --> 01:35:05,156
+Uh, we are taking the recommendations that we got from Claude based on pulling the
+
+1004
+01:35:06,254 --> 01:35:14,352
+failing traces, and we are passing them back to Anthropic and saying, "Based on these explanations, write a better prompt, write a better research prompt,
+
+1005
+01:35:14,542 --> 01:35:17,636
+write a better write prompt ," and then we're going to feed them back into our agent.
+
+1006
+01:35:22,222 --> 01:35:23,780
+And now we're going to run an experiment.
+
+1007
+01:35:24,272 --> 01:35:24,592
+So
+
+1008
+01:35:25,934 --> 01:35:30,564
+over in the UI we have data sets and experiments, we have my demo financial fails.
+
+1009
+01:35:33,870 --> 01:35:34,432
+we can,
+
+1010
+01:35:37,294 --> 01:35:38,404
+assuming I can scroll,
+
+1011
+01:35:39,790 --> 01:35:49,952
+wire up an improved agent using those new improved prompts. So you can see the improved research prompt and the improved write prompt. This is otherwise exactly the same agent that it was before.
+
+1012
+01:35:50,832 --> 01:35:54,628
+and you can create an evaluator with an experiment.
+
+1013
+01:35:57,806 --> 01:36:01,632
+so what we're doing here is we're giving it a task.
+
+1014
+01:36:01,838 --> 01:36:03,232
+A task can be anything.
+
+1015
+01:36:03,374 --> 01:36:06,912
+So a task could be some subcomponent of what your agent did.
+
+1016
+01:36:07,054 --> 01:36:16,772
+So if we were running an evaluator that was about tool calls, then your task could be just call this tool and see what the output of the tool is, and then you would evaluate that.
+
+1017
+01:36:17,072 --> 01:36:21,712
+In this case, my task is run the entire agent again from start to finish.
+
+1018
+01:36:21,934 --> 01:36:22,980
+But it doesn't need to be.
+
+1019
+01:36:24,174 --> 01:36:26,980
+and then we are running the same evaluation results
+
+1020
+01:36:30,734 --> 01:36:32,484
+against this new running of the task.
+
+1021
+01:36:32,752 --> 01:36:38,372
+So we've changed the agent, we've rerun the agent, and we are rerunning the eval, and we're turning that into an experiment.
+
+1022
+01:36:39,278 --> 01:36:47,952
+This is what the experiment looks like: experiments.run, we've given it a name, we've given it the data set that it should work on, we've given it the task,
+
+1023
+01:36:48,174 --> 01:36:50,692
+we've given it the evaluator, and we've told it to run.
+
+1024
+01:36:53,870 --> 01:36:55,236
+this gives us the results
+
+1025
+01:36:56,592 --> 01:36:57,872
+which are here.
+
+1026
+01:37:00,366 --> 01:37:07,716
+So for every single run, we've got the output that it got and the new eval score.
+
+1027
+01:37:08,512 --> 01:37:08,832
+So
+
+1028
+01:37:09,838 --> 01:37:15,620
+as you can see, this was a data set, if you recall, where previously all of them were not actionable.
+
+1029
+01:37:16,192 --> 01:37:20,432
+the eval has run, and you can see that some of them are now actionable. So we have improved.
+
+1030
+01:37:20,782 --> 01:37:27,952
+And if we look at the overall score here, actually I've nailed it because I had a lot of chances to get this right.
+
+1031
+01:37:28,142 --> 01:37:35,332
+I have one-shotted my prompt uh from getting being wrong 50% of the time to being right 100% of the time.
+
+1032
+01:37:35,952 --> 01:37:38,724
+Uh real evals won't work like that.
+
+1033
+01:37:38,912 --> 01:37:42,112
+Uh, real iteration won't run so smoothly.
+
+1034
+01:37:42,318 --> 01:37:43,552
+That is why this is a graph.
+
+1035
+01:37:43,712 --> 01:37:50,992
+What you're expecting to do is run experiment after experiment and slowly watch the graph climb as your evals get more and more capable.
+
+1036
+01:37:51,214 --> 01:37:53,632
+That is the hill that I'm talking about that you're trying to
+
+1037
+01:37:53,632 --> 01:37:54,352
+climb.
+
+1038
+01:37:58,478 --> 01:38:07,008
+So the key abstraction behind experiments is that a task is just a Python function. It takes an example from the data set, it runs whatever you want, and it returns an output.
+
+1039
+01:38:07,182 --> 01:38:10,608
+So AX doesn't care what the task does internally.
+
+1040
+01:38:10,734 --> 01:38:15,168
+So it could run the full agent or just one component, like I said, or it could call an API.
+
+1041
+01:38:15,342 --> 01:38:19,172
+As long as it takes an input and returns an output, you can run experiments on it.
+
+1042
+01:38:20,014 --> 01:38:22,948
+The power of experiments is controlled comparison.
+
+1043
+01:38:23,534 --> 01:38:29,156
+So you take the same inputs, the same evaluators, and the only thing that changed is the agent's prompts.
+
+1044
+01:38:29,808 --> 01:38:32,928
+That means any difference in scores is attributable to your change.
+
+1045
+01:38:33,008 --> 01:38:41,060
+You're not wondering, did it score higher because of my prompt change or did it score higher because the web search happens to return better results this time?
+
+1046
+01:38:41,806 --> 01:38:48,288
+Well, actually, you're still wondering that a little bit but because the agent is non-deterministic, so it could have done 10 web searches instead of five web searches.
+
+1047
+01:38:48,558 --> 01:38:52,196
+But you've eliminated a major source of variation, which is the test cases.
+
+1048
+01:38:55,374 --> 01:39:03,728
+So, like I said, my agent has one-shotted this, which is great, but in reality, it's not going to be that
+
+1049
+01:39:03,728 --> 01:39:04,368
+simple.
+
+1050
+01:39:06,126 --> 01:39:09,508
+the eval iterate cycle that we're talking about here, where you go through,
+
+1051
+01:39:10,894 --> 01:39:17,316
+run an experiment, change your prompt, run the experiment again over and over and over, that is where the real value lies.
+
+1052
+01:39:18,048 --> 01:39:20,288
+not in the score itself, but in the cycle.
+
+1053
+01:39:20,622 --> 01:39:29,636
+You run the evals, you look at the failures, you read the explanations, you identify a pattern, and you adjust your prompt, or as in this case, you get Claude to adjust your prompt for you.
+
+1054
+01:39:33,230 --> 01:39:41,732
+Did it get better is a question that can only be answered by evals. You have taken the definition of good and you have codified it in a way that is incredibly useful.
+
+1055
+01:39:43,214 --> 01:39:46,980
+So this allows you to move from I think it's working to I can prove it's working.
+
+1056
+01:39:48,014 --> 01:39:52,260
+A practical question that comes up fast is how many samples do you need?
+
+1057
+01:39:52,848 --> 01:40:01,092
+For workshop scale experiments like today, 12 to 20 examples gives you directional signal. For actual shipping decisions, you're going to want more.
+
+1058
+01:40:01,488 --> 01:40:04,228
+You're going to want something like 200 to 400 is a good target.
+
+1059
+01:40:04,526 --> 01:40:10,596
+But note that 200 to 400 is still like a human-sized number that you could possibly accumulate over a couple of weeks.
+
+1060
+01:40:11,168 --> 01:40:15,236
+it's not tens of thousands or millions like you would use if you were training an ML model.
+
+1061
+01:40:17,134 --> 01:40:18,340
+there are diminishing returns.
+
+1062
+01:40:19,278 --> 01:40:23,076
+To have your margin of error, you have to quadruple your sample size.
+
+1063
+01:40:24,048 --> 01:40:25,088
+So at some
+
+1064
+01:40:25,968 --> 01:40:28,420
+point, you have enough signal to be able to get along
+
+1065
+01:40:31,694 --> 01:40:33,648
+When you're iterating, where do you invest?
+
+1066
+01:40:34,048 --> 01:40:35,140
+There's a hierarchy.
+
+1067
+01:40:36,128 --> 01:40:44,848
+data quality fixes have the highest impact. If your agent is searching the wrong sources or your knowledge base has stale information, then no amount of prompt iteration is going to help.
+
+1068
+01:40:45,008 --> 01:40:46,244
+You should fix the data first.
+
+1069
+01:40:47,008 --> 01:40:48,688
+Then prompting improvements are next.
+
+1070
+01:40:48,974 --> 01:40:58,528
+Few shot examples, explicit instructions, the kind of stuff that I mentioned today, constraints on what the agent should and shouldn't do, these are often the highest ROI change
+
+1071
+01:40:58,862 --> 01:40:59,908
+to your agent.
+
+1072
+01:41:02,190 --> 01:41:03,568
+Model selection comes third.
+
+1073
+01:41:03,728 --> 01:41:11,332
+Sometimes a more capable model solves problems that prompting can't, but it will also cost more and be slower, so that is a trade-off that you have to make.
+
+1074
+01:41:11,968 --> 01:41:15,140
+The thing to not spend a lot of time on is hyperparameter tuning.
+
+1075
+01:41:15,248 --> 01:41:20,068
+Things like temperature and top P, it's very tempting to just go for them because they're easy to tweak.
+
+1076
+01:41:20,688 --> 01:41:26,067
+They very seldom make a high-leverage change like prompting would or improving the quality of your data would.
+
+1077
+01:41:27,214 --> 01:41:29,924
+So you can try them, but they should be the last thing you try.
+
+1078
+01:41:31,278 --> 01:41:35,876
+A practice worth knowing is eval-driven development. Write the eval before you build the feature.
+
+1079
+01:41:36,974 --> 01:41:44,516
+If you want your agent to always verify customer identity before it does something, before processing a refund, for instance, then write the eval that checks for that first.
+
+1080
+01:41:44,910 --> 01:41:49,168
+That gives you a clear, measurable definition of what good looks like, of what done looks like.
+
+1081
+01:41:49,358 --> 01:41:51,408
+Then you can build a feature
+
+1082
+01:41:52,366 --> 01:41:56,356
+until the eval passes. This is the same philosophy as test driven development.
+
+1083
+01:41:59,808 --> 01:42:00,128
+And
+
+1084
+01:42:00,208 --> 01:42:06,688
+something I love about eval-driven development is that the people closest to product requirements are best positioned to define success.
+
+1085
+01:42:06,848 --> 01:42:13,604
+So product managers, customer service people, even salespeople can contribute to eval tasks.
+
+1086
+01:42:13,728 --> 01:42:16,804
+They can tell you what looks good and what doesn't look good in practice.
+
+1087
+01:42:17,568 --> 01:42:25,648
+They don't need to write code, they just need to describe in natural language what good looks like to them, and you can boil that down into your eval
+
+1088
+01:42:25,808 --> 01:42:26,116
+rubric.
+
+1089
+01:42:30,062 --> 01:42:31,088
+And so far
+
+1090
+01:42:32,494 --> 01:42:35,728
+I've shown you how to do things both offline and online.
+
+1091
+01:42:37,326 --> 01:42:39,172
+We've been doing everything in a notebook,
+
+1092
+01:42:40,366 --> 01:42:48,068
+but you're not really done when your dev experiment passes, you're done when your agent keeps performing in production on traffic that you've never seen.
+
+1093
+01:42:49,966 --> 01:42:55,044
+And it's worth spending a couple of minutes talking about that, even though we're going to stick in the notebook
+
+1094
+01:42:56,558 --> 01:42:57,412
+for this work session.
+
+1095
+01:42:59,150 --> 01:43:05,728
+the first thing is online evals. like I said, and like I showed you earlier, online evals are exactly what they sound like.
+
+1096
+01:43:05,838 --> 01:43:14,448
+They take the evaluators that you wrote today, the ticker check, the faithfulness, the actionability, and run them automatically on incoming production traces.
+
+1097
+01:43:14,542 --> 01:43:16,548
+The same evals running on new data.
+
+1098
+01:43:18,094 --> 01:43:22,048
+I showed you how to run this on a trace. AX lets you do this at three scopes.
+
+1099
+01:43:22,208 --> 01:43:30,048
+You can run your evals at the span level, so you can say this particular LLM call, this particular tool call, run a trace on it every single time.
+
+1100
+01:43:30,382 --> 01:43:38,948
+Sorry, run an eval on it every single time, or you can run it at the trace level where it has the full tree to look at and it can evaluate everything from start to finish.
+
+1101
+01:43:40,558 --> 01:43:43,012
+you pick the scope that matches the question that you're asking.
+
+1102
+01:43:44,686 --> 01:43:48,128
+and you don't need to run evals on every single prediction trace, I uh
+
+1103
+01:43:49,070 --> 01:43:50,180
+production trace rather.
+
+1104
+01:43:50,542 --> 01:43:55,328
+Um LLM judges cost money, and at that production scale, those costs can add up.
+
+1105
+01:43:55,408 --> 01:44:04,688
+So you sample 10% of your traffic or 1% of your traffic, and that gives you a directional signal without you having to run an expensive LLM as a judge on every single iteration,
+
+1106
+01:44:04,848 --> 01:44:07,332
+every single instance of your application.
+
+1107
+01:44:11,278 --> 01:44:20,420
+if you don't want to write your evals by hand, we have good news for you, which is that we have built an agent into AX itself. It is called Alex.
+
+1108
+01:44:21,966 --> 01:44:26,357
+You can describe your eval in plain English, or you can get your non-technical
+
+1109
+01:44:27,502 --> 01:44:28,288
+colleagues to
+
+1110
+01:44:29,248 --> 01:44:34,500
+describe the definition of good in plain English. and Alex will actually manipulate the UI for you.
+
+1111
+01:44:35,008 --> 01:44:40,036
+create an eval, write the rubric, set all the scores correctly, get all the configuration correct.
+
+1112
+01:44:40,206 --> 01:44:41,668
+and then just tell you that it's done.
+
+1113
+01:44:42,926 --> 01:44:45,077
+this is especially useful for non-engineers.
+
+1114
+01:44:47,557 --> 01:44:56,868
+And the full loop in production looks like this: you go from application which produces traces to online evals which grade those traces and produce labels and explanations.
+
+1115
+01:44:57,230 --> 01:45:00,932
+The eval labels feed into monitors, which we didn't cover today.
+
+1116
+01:45:01,998 --> 01:45:04,612
+the monitors can alert your team when something goes wrong.
+
+1117
+01:45:05,742 --> 01:45:09,540
+The team can investigate, find the failing traces, save them as a regression data set,
+
+1118
+01:45:10,766 --> 01:45:14,084
+improve the agent, run an experiment to verify, and ship the fix.
+
+1119
+01:45:14,478 --> 01:45:15,908
+And then the loop can run again.
+
+1120
+01:45:17,968 --> 01:45:24,448
+As new production traffic accumulates, you will accumulate new failure modes, you will accumulate new edge cases.
+
+1121
+01:45:24,768 --> 01:45:30,244
+you're always going to be iterating on your evals and iterating on your production monitoring.
+
+1122
+01:45:33,006 --> 01:45:38,160
+But it is a payoff that compounds. Every failure that your online evals catch becomes a new test case.
+
+1123
+01:45:38,318 --> 01:45:41,796
+You save it to a data set, and now it's a regression test for your next round of changes.
+
+1124
+01:45:42,254 --> 01:45:45,924
+Over time, this creates a data set that is unique to your application.
+
+1125
+01:45:46,640 --> 01:45:51,076
+So your specific failure modes, your specific users, your specific quality bar.
+
+1126
+01:45:51,280 --> 01:45:56,868
+Nobody else has that data, and that is a competitive advantage that grows every single time your agent runs.
+
+1127
+01:45:59,374 --> 01:46:05,520
+There's one last pattern that I want to leave you with, which is the most powerful one I know. We did the simplest version today.
+
+1128
+01:46:05,742 --> 01:46:09,252
+We fed the judge's explanations back to Claude and had it rewrite two prompts.
+
+1129
+01:46:09,440 --> 01:46:13,636
+This works beautifully for two prompts, but a real system isn't two prompts.
+
+1130
+01:46:13,838 --> 01:46:18,720
+It's prompts scattered across many files, retrieval settings, tool definitions all tangled together.
+
+1131
+01:46:18,880 --> 01:46:25,572
+Rewriting that isn't a single API call, it's a job for a coding agent that can see your entire repository.
+
+1132
+01:46:27,022 --> 01:46:36,772
+So this is the pattern. You want to export your failing traces from AX along with their explanations and hand the whole batch to Cloud Code or Cursor or another coding agent as context.
+
+1133
+01:46:37,920 --> 01:46:47,200
+This is where the Arise skills plugin that I mentioned at the beginning works really well because you don't have because you don't have to know how to call our API,
+
+1134
+01:46:47,360 --> 01:46:49,120
+you don't have to know how to do any of that stuff.
+
+1135
+01:46:49,358 --> 01:46:57,252
+You give it the skills and then tell Cloud Code, hey, pull down some traces, see what's wrong, and make make my application better, and it works.
+
+1136
+01:47:00,558 --> 01:47:02,880
+There should be two guardrails on that approach first, however.
+
+1137
+01:47:03,040 --> 01:47:06,160
+First, you should feed it your requirements too, and not just the failure explanations.
+
+1138
+01:47:06,240 --> 01:47:10,720
+So the goal isn't make the evals pass because otherwise it will cheat.
+
+1139
+01:47:10,800 --> 01:47:15,684
+It will include all of your test data into its eval and automatically pass all of your evals.
+
+1140
+01:47:15,982 --> 01:47:17,520
+So you have to make uh
+
+1141
+01:47:19,854 --> 01:47:28,320
+your you have to make sure that your requirements to your cloud code are clear that you don't want it just to pass the evals, you want it to do this specific thing, which then makes the evals
+
+1142
+01:47:28,560 --> 01:47:28,880
+pass.
+
+1143
+01:47:30,254 --> 01:47:33,840
+and second, you should tell it to find themes and not chase individual failures.
+
+1144
+01:47:34,067 --> 01:47:42,080
+It's very tempting for Cloud Code to look at one particular failed trace and write a whole bunch of code to fix that particular failed trace when there are actually 10 failing traces that are
+
+1145
+01:47:42,080 --> 01:47:45,124
+all the same cause that it should be focused on instead.
+
+1146
+01:47:46,830 --> 01:47:47,440
+I'm not going to do
+
+1147
+01:47:48,400 --> 01:47:50,340
+all of that, because I only have 12 minutes left.
+
+1148
+01:47:52,960 --> 01:47:53,280
+But
+
+1149
+01:47:55,086 --> 01:47:58,884
+once you have evals running, this is one of the highest leverage things that you can do with them.
+
+1150
+01:48:01,038 --> 01:48:03,600
+So let's step back and look at the whole shape of it.
+
+1151
+01:48:03,920 --> 01:48:08,000
+production produces traces, online evals grade them and produce explanations.
+
+1152
+01:48:08,206 --> 01:48:14,404
+A coding agent reads the explanations and proposes fixes, and experiments verify that the fixes work, and then you ship.
+
+1153
+01:48:15,022 --> 01:48:20,260
+The production traffic that comes back gets graded by the same online evals that started the loop.
+
+1154
+01:48:21,230 --> 01:48:24,484
+and this is the software development lifecycle closing in on itself.
+
+1155
+01:48:25,120 --> 01:48:30,880
+your AI software is helping you improve your AI software, and AX is the substrate that ties it all together.
+
+1156
+01:48:31,040 --> 01:48:36,868
+Your traces, the evals, the explanations, the data sets, the experiments, the online evals, and the monitors.
+
+1157
+01:48:39,054 --> 01:48:40,836
+So, just to recap,
+
+1158
+01:48:41,518 --> 01:48:44,960
+we instrumented an agent with two lines of code, we traced it and we read our data.
+
+1159
+01:48:45,120 --> 01:48:55,280
+We wrote a code eval and built-in LLM evals, we wrote a custom rubric from scratch, we validated our judge against human labels, we saved failures of the data set, we had Claude
+
+1160
+01:48:55,520 --> 01:48:58,372
+improve the prompts, we ran an experiment to prove that it worked.
+
+1161
+01:48:59,440 --> 01:49:04,580
+and we saw how AX takes all of that into production with online evals.
+
+1162
+01:49:06,158 --> 01:49:11,268
+this is the full loop, and now you know all of it. However, you don't have to do all of it at once.
+
+1163
+01:49:11,440 --> 01:49:15,680
+This has been two hours of extremely dense information, and I'm aware of that.
+
+1164
+01:49:15,918 --> 01:49:17,860
+You can start very, very small.
+
+1165
+01:49:18,480 --> 01:49:20,320
+you can start by reading your traces.
+
+1166
+01:49:20,480 --> 01:49:23,680
+Just add those two lines of code and start looking at your traces, and that is
+
+1167
+01:49:24,480 --> 01:49:28,356
+immediately going to give you information about what your agent is up to that you didn't know.
+
+1168
+01:49:29,200 --> 01:49:34,276
+15 minutes of reading real outputs will teach you more about your application than an hour of building dashboards.
+
+1169
+01:49:34,766 --> 01:49:40,036
+Then write one code eval. Code evals are easier than LLM evals, and they're faster and they're cheaper.
+
+1170
+01:49:41,038 --> 01:49:42,628
+And make it for the thing that matters most.
+
+1171
+01:49:42,798 --> 01:49:49,732
+So correctness, faithfulness, whatever fits your use case. Run them, look at the results, see what patterns emerge, and build from there.
+
+1172
+01:49:51,054 --> 01:49:52,480
+Evals are infrastructure.
+
+1173
+01:49:52,622 --> 01:49:59,360
+They are not an afterthought. Some teams create evals at the very start of development, others add them later once they are at scale.
+
+1174
+01:49:59,680 --> 01:50:04,388
+But either way, the important thing is that you treat evals as a core part of your system.
+
+1175
+01:50:04,942 --> 01:50:10,480
+They should be as routine as unit tests, and the value compounds, but only if you keep investing.
+
+1176
+01:50:10,640 --> 01:50:18,080
+Each time a regression shows up before it reaches your users instead of after, you'll understand why all of this work is worth doing.
+
+1177
+01:50:18,240 --> 01:50:19,620
+Don't hope for great.
+
+1178
+01:50:19,950 --> 01:50:25,348
+You can get to great systematically by specifying it, measuring it, and improving towards it.
+
+1179
+01:50:27,246 --> 01:50:30,052
+So now is the time to try this for real on an app of your own.
+
+1180
+01:50:31,790 --> 01:50:35,300
+You've already got an AX account, I hope, by the time the Wi-Fi kicked in.
+
+1181
+01:50:37,230 --> 01:50:38,864
+The docs at Arise.com
+
+1182
+01:50:39,790 --> 01:50:43,460
+have companion notebooks with runnable code for everything that we covered today.
+
+1183
+01:50:44,144 --> 01:50:51,748
+And if you want your coding agent to do the heavy lifting, you can install the Arise plugins, the Arise Skills plugin with one NPX command.
+
+1184
+01:50:52,384 --> 01:50:52,704
+And
+
+1185
+01:50:53,646 --> 01:50:55,236
+that link is in today's notebook.
+
+1186
+01:50:56,224 --> 01:51:04,384
+If you've made it all the way to the end of this, you can also get a free year of Arise Pro using that code that's on the screen right now.
+
+1187
+01:51:04,624 --> 01:51:05,504
+And that is it.
+
+1188
+01:51:05,664 --> 01:51:08,064
+Thank you all for your time and attention.
+
