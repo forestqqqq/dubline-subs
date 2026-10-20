@@ -1,0 +1,2275 @@
+1
+00:00:00,046 --> 00:00:09,520
+学习如何仅使用标准 CPU 从头开始构建并训练一个拥有 2500 万参数的 GLM 5.3 Flash 模型。
+Learn how to build and train a 25 million parameter GLM 5.3 flash model from scratch using just a standard CPU.
+
+2
+00:00:09,680 --> 00:00:20,260
+本教程涵盖核心预训练和强化学习技术，教你如何设计有效的实验并像现代 AI 研究员一样思考。
+This tutorial covers core pre-training and reinforcement learning techniques, teaching you how to design effective experiments and think like a modern AI researcher.
+
+3
+00:00:20,686 --> 00:00:29,092
+让我们来构建并训练 GLM 5.3 Flash，也就是 Ox Alpha，它是 Drupal AI 最新的顶级热门模型。
+Let's build and train GLM 5.3 Flash, which is Ox Alpha, which is the latest best viral model from Drupal AI.
+
+4
+00:00:29,440 --> 00:00:34,320
+我们将进行预训练和后训练，并且从头开始构建所有内容。
+We will do both pre-training and post-training as well as building everything from scratch.
+
+5
+00:00:34,400 --> 00:00:43,268
+因此，你将学到 GLM 研究人员以及 OpenAI 和 Anthropic 的研究人员所做的一切，只是在更简单的规模上。
+So you will learn how to do everything GLM researchers, everything researchers at OpenAI Anthropic do, just on a simpler scale.
+
+6
+00:00:43,534 --> 00:00:47,588
+AI 研究员的工作在短短几个月内发生了巨大的变化。
+And AI researcher job has dramatically changed in just a few months.
+
+7
+00:00:47,950 --> 00:00:53,920
+所以如果你想成为 AI 研究员，这是你需要的最新且最实用的课程。
+So this is the latest up-to-date course that you're going to need if you want to become AI researcher.
+
+8
+00:00:54,222 --> 00:00:56,420
+所有的代码都在 GitHub 上。
+All of the code is in the GitHub.
+
+9
+00:00:56,720 --> 00:01:01,700
+这些是实验，我们将重现所有内容，你可以看到图表，它们就在视频下方。
+These are the experiments, we will reproduce everything, you see the charts, so it's below the video.
+
+10
+00:01:02,094 --> 00:01:09,092
+这是 Anthropic 最新的招聘信息，这个职位描述涵盖了 95% 的 AI 研究员角色。
+This is the latest job posting for Anthropic, and this job posting describes 95% of AI researcher roles.
+
+11
+00:01:09,838 --> 00:01:20,000
+首先，你将在这个课程中理解架构和算法，然后我将向你展示如何通过设计环境、强化学习等来进行实际的 AI 研究，
+First, you will understand the architectures and the algorithms in this course, then I will show you how to do actual AI research with designing environments, reinforcement learning,
+
+12
+00:01:20,160 --> 00:01:21,440
+以及提出问题。
+asking questions.
+
+13
+00:01:21,806 --> 00:01:28,160
+目前，Cloud Code Codex 等 AI 正在自动编写所有的实验代码并能自主执行。
+So right now, Cloud Code Codex, AI is coding all of the experiments and it can do them autonomously.
+
+14
+00:01:28,334 --> 00:01:33,412
+作为 AI 研究员，你的工作只是提出哪些实验值得做的宏观思路。
+Your job as AI researcher is just to have high level idea which experiments to do.
+
+15
+00:01:33,998 --> 00:01:40,880
+尽管 Anthropic 和 OpenAI 可能在发明新的算法，但目前主要是 Transformer 和强化学习。
+So even though Anthropic and OpenAI could actually be inventing new algorithms, right now it's transformers, it's reinforcement learning.
+
+16
+00:01:40,960 --> 00:01:51,780
+我认为他们 99% 或更多的精力都集中在设计数据环境以及优化你将在本视频中理解的这些算法上。
+I think they are focusing 99% or more of their efforts in just designing data environments and then optimizing these algorithms that you're going to understand in this video.
+
+17
+00:01:52,240 --> 00:02:02,640
+展望未来，AI 研究员的工作将主要变成宏观思路而非编写代码。AI 模型将负责所有的编码和实验。
+And thinking for the future, AI researcher job is mainly going to become high-level ideas and not coding. AI models are going to do all of the coding and experiments.
+
+18
+00:02:02,800 --> 00:02:06,640
+但是，你仍然需要理解算法是如何运作的。
+So, but you still need to understand how the algorithms work.
+
+19
+00:02:06,830 --> 00:02:15,716
+你不需要手动编写代码，但人类依然是那些能够发明更好、更快概念和更高效算法的人，
+You don't need to write the code manually, but still, people, humans are ones who can invent better, faster concepts, faster algorithms,
+
+20
+00:02:16,240 --> 00:02:18,372
+并为系统创造更好的设计。
+and create better designs for the system.
+
+21
+00:02:18,734 --> 00:02:21,840
+然后 AI 可以负责实现、实验、测试等。
+And then AI can implement, experiment, try out, etc.
+
+22
+00:02:22,190 --> 00:02:29,604
+这就是为什么我们仍要过一遍代码并了解其原理，即使我们不一定需要手动从头写出所有内容。
+This is why we will still go over the code and understand how it works, even though we don't necessarily need to write everything from scratch manually.
+
+23
+00:02:30,254 --> 00:02:35,940
+但如果你想作为 AI 研究员去发明新算法，你就必须理解现有算法是如何运作的。
+But if you want to invent new algorithms as AI researcher, you need to understand how the current algorithms work.
+
+24
+00:02:36,622 --> 00:02:46,240
+虽然原始模型非常庞大且拥有数十亿参数，但我们的模型只有 2500 万，可以在 CPU、GPU 或 MacBook 上训练，
+So even though the original model is insane, billions of parameters, our model is just going to have 25 million and it can be trained on a CPU, GPU, MacBook,
+
+25
+00:02:46,400 --> 00:02:48,036
+任何设备都可以。我把它做得非常简单。
+anything. I made it very simple.
+
+26
+00:02:48,462 --> 00:02:58,180
+而这正是你想要做的。你仍然可以在这里做大量的研究。你可以学习如何提问、如何设定目标、主题和 AI 的研究方向。
+And this is what you want to do. You can still do so much research here. You can learn how to ask questions, how to set goals, topics, research directions from for the AI.
+
+27
+00:02:58,800 --> 00:03:04,880
+即使你有大量的算力，除了用 CPU 之外，你也没什么别的东西能做了。
+Even if you have a lot of compute, there is nothing more you can do with it than with just a CPU.
+
+28
+00:03:05,070 --> 00:03:08,196
+除非你想构建一个供他人使用的模型。
+I don't think, unless you want to build a model that other people use.
+
+29
+00:03:08,430 --> 00:03:09,988
+但在这里，我们是试图去学习。
+But here we're trying to learn.
+
+30
+00:03:10,158 --> 00:03:15,716
+所以我们主要想学习如何提问，而 AI 可以非常轻松地帮助回答这些问题。
+So we want to learn how to ask questions mainly, and AI can help answer those questions very easily.
+
+31
+00:03:16,462 --> 00:03:23,120
+AI 将变得越来越有能力回答问题，而人类目前的主要任务是提出问题。
+And AI will become more and more capable of answering questions, and humans are gonna be asking questions for now.
+
+32
+00:03:23,280 --> 00:03:29,600
+当然，我们不知道一年后会发生什么，是超智能还是别的什么，到那时人类可能就没用了，所有的事都由 AI 来做。
+Of course, we don't know what's gonna happen in a year, super intelligence, whatever, then humans will be useless, then AI will do everything.
+
+33
+00:03:29,680 --> 00:03:35,492
+所以目前，我们只专注于学习如何提问，提出研究问题，设定目标和方向。
+So for now, we are just focusing on learning how to ask questions, ask research questions, setting goals, directions.
+
+34
+00:03:36,302 --> 00:03:44,880
+这些是我们在这个研究中会提问并回答的一些示例。这是你可以实际操作的内容，你可以在仅有 CPU 的情况下学习如何进行研究。
+Here are some example questions we will be asking and answering in this research. So this is real stuff you can do, you can learn how to research on just CPU.
+
+35
+00:03:45,120 --> 00:03:49,092
+假设你正在训练一些强化学习推理。
+So let's say you are training some reinforcement learning reasoning.
+
+36
+00:03:49,806 --> 00:03:54,240
+那么，你应该给不完美的得分、部分得分奖励吗？还是不该给？
+So should you reward imperfect score, partial score, should you not?
+
+37
+00:03:54,414 --> 00:03:57,476
+嗯，我们会去尝试一下，看看哪种方法效果更好。
+Well, we will try out, we will see which one works better.
+
+38
+00:03:57,998 --> 00:04:00,292
+对于无效的代码，惩罚力度应该有多大？
+How strong should you punish invalid code?
+
+39
+00:04:00,750 --> 00:04:10,052
+还有强化学习中下一个词生成的温度或随机性。这是在已知知识的利用与探索之间的权衡。
+And then temperature or randomness of next word generation in reinforcement learning. So it's exploration versus exploitation with what it already knows.
+
+40
+00:04:11,022 --> 00:04:22,019
+这些都是一些例子，而你的工作就是提出这些问题。这就是区分经验丰富的优秀研究者与新手、没经验者的关键。
+So these are like a bunch of examples, and just asking these questions is your job. This is what distinguishes distinguishes experienced good researcher versus novel, not inexperienced.
+
+41
+00:04:22,478 --> 00:04:28,996
+而且现在 AI 可以独立完成所有这些实验。无论是 Claude 3 Opus 还是 Llama 3.1，大家都能做这些实验。
+And AI can do all of these experiments by itself right now. Even Seoul, Opus, and then Astra Fable, everybody can do these experiments.
+
+42
+00:04:29,902 --> 00:04:38,960
+顺便说一下，如果你在回答或提出这些问题时需要帮助，你可以加入一个真正的 AI 研究实验室，加入我们的学校社区，我们在那里模拟真实的 AI 研究实验室。
+By the way, if you need help answering, asking these questions, you want to join a real AI research lab, join our school community where we simulate a real AI research lab.
+
+43
+00:04:39,040 --> 00:04:45,920
+你将设定自己的研究目标或者使用我们的目标，回答我们的问题并帮助我们确定问题。
+You will be either setting your own research goals or using ours, answering our questions and helping us figure out questions.
+
+44
+00:04:46,000 --> 00:04:50,080
+我们正在进行模拟，教导人们、指导人们如何进行真正的 AI 研究。
+We are simulating, teaching people, coaching people how to do real AI research.
+
+45
+00:04:50,446 --> 00:04:51,492
+好了，让我们开始吧。
+Okay, so let's start.
+
+46
+00:04:51,886 --> 00:05:02,240
+我们知道 LLM 将预测下一个词或下一个标记，在我们的案例中是下一个字符，因为我们要构建，你也要构建一个小型模型。
+We know that LLMs are going to predict next word or next token or next character in our case because we are going to build and you are also going to build a small model.
+
+47
+00:05:02,320 --> 00:05:05,764
+正如我所说，我们只需要能够快速迭代的小型模型。
+As I said, we just need small models with fast iteration.
+
+48
+00:05:06,414 --> 00:05:13,796
+所以在这个例子中，输入可能是 return X plus，而模型将根据任务、根据提示词来预测一个结果。
+So in this example, input could be return X plus, and the model is going to predict one depending on the task, depending on the prompt.
+
+49
+00:05:14,000 --> 00:05:15,280
+这就是下一个标记。
+This is the next token.
+
+50
+00:05:15,760 --> 00:05:29,540
+真正的 LLM 使用 BPE 分词器，即字节对编码分词器。如果你有一段这样的文本，它们会将其拆分为子词标记或词标记。
+So the real, real LLMs use BP tokenizers, bytepair encoded tokenizers. So they would, if you have some text like this, they would split that into subword tokens or word tokens.
+
+51
+00:05:31,502 --> 00:05:44,676
+通常它们有 15 万或 30 万个这样的子词标记，然后它们就可以编码任何文本。任何文本都包含在这个词表里。
+Usually they have 150,000 or 300,000 of these subword tokens, and they can then encode any text. Any text is contained in uh with this vocabulary in this vocabulary.
+
+52
+00:05:45,198 --> 00:05:50,692
+但为了让它更容易理解和训练，我们将把每个 ASCII 字符都做成一个标记。
+But to make it simpler to understand, to train, we are going to make each ASCII character.
+
+53
+00:05:51,438 --> 00:05:54,020
+所以每个字母都会成为它自己的标记。
+So each letter is gonna be its own token.
+
+54
+00:05:54,510 --> 00:06:00,800
+在这里，如果我们有这个函数 def int 之类的，每一个都是它自己的标记。
+Here, if we have this function def int, whatever, each of them is its own token.
+
+55
+00:06:01,166 --> 00:06:09,060
+因此我们的词表里只有 260 个标记，所以我们不需要进行分词器训练，这样更简单。
+So we just have 260 tokens in our vocabulary, so we don't need to do tokenizer training, it's simpler.
+
+56
+00:06:09,600 --> 00:06:13,348
+此外，这也会导致一个以后会出现的大问题。
+Also, big problem that would happen later.
+
+57
+00:06:13,998 --> 00:06:22,756
+你们中的一些人可能已经了解 Transformer 架构、LLM 架构，并且知道有嵌入层和输出头层。
+So some of you may already know transformer architecture, LLM architecture, and you know that there is embedding layer, there is output head layer,
+
+58
+00:06:23,280 --> 00:06:29,540
+而这两个权重矩阵都使用词表作为它们的其中一个维度。
+and both of those weight matrices use token vocabulary as one of their dimensions.
+
+59
+00:06:29,998 --> 00:06:31,524
+所以如果我们有大量的标记，
+So if we have massive tokens,
+
+60
+00:06:32,270 --> 00:06:34,372
+庞大的词表，比如 25 万个，
+massive vocabularies, 250,000,
+
+61
+00:06:35,200 --> 00:06:45,540
+那么在非常小的模型中，这些矩阵将占据大部分；95% 的参数都会用于词表转换，
+then on a very small model, those matrices would be majority; 95% of parameters would just go into the vocabulary conversion,
+
+62
+00:06:46,320 --> 00:06:51,492
+而剩下的 5% 参数才会用于实际的层和模型本身。
+and other 5% of parameters would go into actual layers and the model itself.
+
+63
+00:06:52,270 --> 00:06:58,800
+所以如果你没听懂我刚才说的也没关系，只是对于小模型来说，你也需要一个很小的词表。
+So if you did not understand what I said, it's okay, just for a small models, you also need small small vocabulary.
+
+64
+00:06:59,054 --> 00:07:01,156
+260 个 token 的词表就很好。
+260 token vocabulary is good.
+
+65
+00:07:01,646 --> 00:07:12,320
+这就是 Transformer 内部生成下一个 token 的方式。假设我们有一些输入，它可以是数字、提示词或者任何东西。
+So this is how uh next token gets generated within the transformers. So let's say we have some input, so it can be some number, some prompt, whatever.
+
+66
+00:07:12,560 --> 00:07:15,108
+而输入中的每一个 token，
+And each of those tokens in the input,
+
+67
+00:07:15,920 --> 00:07:20,164
+每一个都有对应的向量嵌入来代表它。
+each of them have corresponding vector embedding that represents them.
+
+68
+00:07:21,134 --> 00:07:31,236
+所以每个 token 都会被替换成它自己的向量嵌入，而向量嵌入就像是一串编码了该 token 含义的数字序列。
+So each of them gets replaced with its own vector embedding, and vector embedding is like a sequence of numbers that encodes the meaning of that token.
+
+69
+00:07:32,080 --> 00:07:32,400
+所以
+So
+
+70
+00:07:33,200 --> 00:07:38,500
+token A 有一些数字，token B 有一些数字，加上号也有一些，减号也有一些。
+token A has some numbers, token B has some numbers, plus has some, minus has some.
+
+71
+00:07:39,598 --> 00:07:47,920
+然后加号的向量就会解释或包含如何进行加法，以及它的目的和功能是什么。
+And then the vector for plus would kind of explain or contain how addition is done and what is the purpose, what is the functionality of token plus.
+
+72
+00:07:49,134 --> 00:07:56,452
+所以提示词中的每个 token 都会被替换成描述其含义的对应向量。
+So every token in the prompt gets replaced with its corresponding vector that describes its meaning.
+
+73
+00:07:57,198 --> 00:08:00,772
+这些向量是由大语言模型学习出来的。
+These vectors are learned by the LLM.
+
+74
+00:08:00,974 --> 00:08:03,460
+当我们训练大语言模型时，这些向量就会被学到。
+When we train the LLM, these vectors are learned.
+
+75
+00:08:04,110 --> 00:08:10,532
+所以大语言模型学会了如何用一些数字来表示「加号」这个概念。
+So LLM learns how to represent a concept of a plus with some numbers.
+
+76
+00:08:11,630 --> 00:08:20,452
+然后我们有一串向量，这就是我们的提示词，它进入 Transformer，进入各个层，并在 Transformer 中进行处理，
+And then we have sequence of vectors, that's our prompt, that goes into the transformer, into the layers, it gets processed through the transformer,
+
+77
+00:08:20,720 --> 00:08:21,920
+然后在最后。
+and then at the end.
+
+78
+00:08:23,086 --> 00:08:24,932
+我们要预测下一个 token。
+We want to predict the next token.
+
+79
+00:08:25,536 --> 00:08:25,856
+所以
+So
+
+80
+00:08:27,054 --> 00:08:36,515
+它会把处理过的任何内容，也就是整个提示词的处理结果，转换成末端的概率分布
+it's gonna it's gonna just transform whatever was processed, the entire prompt was processed, it's gonna transform whatever is at the end into probability distribution
+
+81
+00:08:37,056 --> 00:08:38,563
+涵盖整个词表。
+over entire vocabulary.
+
+82
+00:08:38,895 --> 00:08:47,684
+所以基于这个提示词，你会得到词表中每个 token 作为下一个 token 的可能性。
+So so based on the prompt, you will get for each token in vocabulary how likely it is to be the next token.
+
+83
+00:08:48,686 --> 00:08:50,084
+这就是它大致的工作原理。
+That's roughly how it works.
+
+84
+00:08:50,670 --> 00:09:00,976
+这就是 Transformer 最基础的理念。现在 GLM 5.3 Flash 有一些新的架构，是一些我们之前在我的频道上没学过的部分。
+So that's the very basic idea of Transformer. Now GLM 5.3 Flash has some new architectures, new parts that we didn't learn about before on my channel.
+
+85
+00:09:01,216 --> 00:09:07,936
+比如线性与稀疏注意力混合，还有专家混合。我们讨论过这个，它非常有名。
+So linear and sparse attention hybrid, and then mixture of experts. We talked about this, it's very famous.
+
+86
+00:09:08,238 --> 00:09:12,676
+还有 deep six，流形约束残差连接，
+And then deep six, manifold constrained residual connections,
+
+87
+00:09:13,358 --> 00:09:14,276
+超连接。
+hyperconnections.
+
+88
+00:09:14,830 --> 00:09:17,476
+然后这个非常有名且经典。
+And then this one is quite famous and old.
+
+89
+00:09:17,856 --> 00:09:25,796
+它是指对输入和输出词表的嵌入转换使用同一个矩阵，
+it's to use the same matrix for input and output vocabulary into embedded conversion,
+
+90
+00:09:26,254 --> 00:09:27,108
+也就是输入和输出共用。
+so input and output.
+
+91
+00:09:28,016 --> 00:09:30,436
+这些是我们模型的规格。
+These are the specifications of our model.
+
+92
+00:09:30,976 --> 00:09:34,020
+原版模型非常庞大，但我们的模型很小。
+So original is huge, but our is tiny.
+
+93
+00:09:34,736 --> 00:09:38,212
+这些是层数，层数少得多，专家模块也少得多，
+These are the layers, a lot fewer layers, a lot fewer experts,
+
+94
+00:09:39,726 --> 00:09:45,476
+而且上下文长度只有192个token，而GLM有100万个token。
+and the context is just 192 tokens, while GLM has 1 million tokens.
+
+95
+00:09:46,318 --> 00:09:56,132
+在我们的实验中，你会看到在强化学习之前，它无法成功完成任何任务，而在强化学习之后，它能做到
+And you will see that in our experiments, before reinforcement learning, it will not do any of the tasks successfully, and after reinforcement learning, it will do
+
+96
+00:09:56,416 --> 00:09:59,140
+24项任务中的16项。
+16 out of 24 tasks successfully.
+
+97
+00:09:59,694 --> 00:10:05,764
+那些任务非常简单，比如写一个将输入乘以二的Python函数。
+Those tasks will be very simple, like write some Python function that multiplies input by two.
+
+98
+00:10:06,256 --> 00:10:10,084
+但你会看到强化学习训练前后的区别。
+But you will see the difference before and after RL training.
+
+99
+00:10:10,702 --> 00:10:17,828
+你还会学到如何提问，以及如何为模型学习设计思路和环境。
+And you will learn how to ask questions, how to design ideas and environments for the model to learn.
+
+100
+00:10:18,190 --> 00:10:24,644
+你还可以看到在训练过程中模型是如何学习的。这个图表展示了它在训练期间的学习情况。
+You can see also during training how the model is learning during this. Is the graph that shows how it's learning during the training.
+
+101
+00:10:25,550 --> 00:10:31,776
+现在我们来看看代码。我们要理解这些算法是如何运作的，但没人会去手动写这些代码。
+Let's look at the code now. So we are going to understand the algorithms, how they work, but nobody's gonna be coding this.
+
+102
+00:10:31,936 --> 00:10:41,444
+人类的任务是理解算法并对其进行改进，告诉AI该尝试什么、做什么，然后AI就会基于你的想法去尝试很多种方案，
+So but it's up to humans to understand algorithms and then improve them, tell the AI what to try, what to, and then AI is gonna just try many ideas based on your idea,
+
+103
+00:10:41,646 --> 00:10:43,456
+但你需要知道前进的方向。
+but you need to know the direction.
+
+104
+00:10:43,854 --> 00:10:47,856
+所以我们现在要理解的就是这部分代码。
+So this is what we're gonna be understanding this part of code now.
+
+105
+00:10:48,496 --> 00:10:53,316
+首先是嵌入，然后传递输入ID。
+So, first you have embedding and then passing input ID.
+
+106
+00:10:54,030 --> 00:10:56,132
+假设这是我们的token ID。
+Let's say this is our token ID.
+
+107
+00:10:56,750 --> 00:11:02,244
+它只会查阅词表并选取我之前提到的向量。
+This will just look into vocabulary and pick the vector that I mentioned earlier.
+
+108
+00:11:03,566 --> 00:11:11,296
+如果你有庞大的词表，这可能是一个巨大的矩阵，也就是一个巨大的权重矩阵；如果你有一个小模型，
+And so this could be a huge matrix if you have huge vocabulary, and this could be huge weight matrix, and if you have a small model,
+
+109
+00:11:12,302 --> 00:11:17,732
+那么这部分将占据95%的参数。这就是为什么对于小模型我们使用较小的词表字节。
+then this would be 95% of parameters. This is why for small model we use small vocabulary bytes.
+
+110
+00:11:18,830 --> 00:11:27,044
+然后它就会检索这些token向量，这是在处理提示词时的初始阶段。
+So then it's just gonna retrieve uh this tokens vector, and this is at the beginning when it's processing the prompt.
+
+111
+00:11:28,398 --> 00:11:30,576
+接下来就是数字了。
+So then we have numbers.
+
+112
+00:11:30,862 --> 00:11:39,364
+在我们转换所有这些向量后，我们会得到这个维度的向量，然后是token的数量，也就是token数量，
+So we after we convert all of these vectors, we're gonna have like this is the dimension of the vector, and then this is the number of tokens, so number of tokens,
+
+113
+00:11:39,822 --> 00:11:48,816
+token维度，而batch则是指在这个巨大的X向量、也就是X张量中包含多少个独立的对话。
+token dimension, and batch is like how many independent conversations you have in this huge X vector, X tensor.
+
+114
+00:11:49,518 --> 00:11:56,068
+你可以看到它如何获取这个X向量并创建一个由这些X向量组成的数组。
+You see how it will just take this X vector and create array of these X vectors.
+
+115
+00:11:56,878 --> 00:11:58,756
+这些将是残差连接。
+These will be the residual connections.
+
+116
+00:11:59,630 --> 00:12:01,956
+所以稍后，每一个残差连接……
+So later, each of the residual connections.
+
+117
+00:12:02,096 --> 00:12:06,468
+这些是DeepSeq和ByteDance提出的多维约束超连接。
+so these are manifold constrained hyperconnections by DeepSeq and ByteDence.
+
+118
+00:12:06,958 --> 00:12:16,576
+每一条都会在不经过注意力机制处理的情况下传递不同的信息，而且……
+and each of them is going to carry different information forward without that information, uh being processed through the attention, and uh,
+
+119
+00:12:17,102 --> 00:12:24,740
+所以它们不会混淆，而是直接向前传输。就像是几条高速公路，你可以通过它们传递四种不同类型的信息。
+so it's gonna be mixed up. it's gonna be like carried through forward. so it's like, uh, some highways where you pass the four different types of information.
+
+120
+00:12:25,486 --> 00:12:36,096
+所以我认为我不会在这里深入探讨太多细节。如果你感兴趣的话，我做了一些相关的视频，你也可以去读论文，因为我觉得如果继续讲下去可能会变得有点枯燥。
+So I think I will not go into too much detail here. If you are interested, here I made some videos and you can read paper because I feel like it does get boring if and
+
+121
+00:12:36,256 --> 00:12:42,256
+这部分我没法给你提供太多帮助。你需要自己去练习、阅读、理解并尝试一下。
+I cannot help you too much around this. You need to practice this yourself, read this, understand it, try this out.
+
+122
+00:12:42,606 --> 00:12:45,220
+如果我只是单纯解释，你可能就听不明白。
+If I just explain, you will not be able to follow maybe.
+
+123
+00:12:45,646 --> 00:12:47,456
+所以我们直接过一遍这些内容。
+So let's just go through these things.
+
+124
+00:12:47,886 --> 00:12:53,856
+这些超连接会根据不同的权重和混合方式相互融合。
+Those hyper connections are gonna get mixed into each other depending on sound weights and ways of mixing.
+
+125
+00:12:53,936 --> 00:13:00,004
+这样它们就在注意力机制、前馈网络等各个部分之间共享信息。
+So they are sharing information between each other, between the attention, feed forward networks, and all of this.
+
+126
+00:13:00,656 --> 00:13:05,252
+最后，它们会被合并成一个单一的隐藏维度向量。
+And at the end, they're going to get merged into a single hidden dimension vector.
+
+127
+00:13:06,062 --> 00:13:10,020
+通过这些超连接，你就不再只有单一的残差连接了。
+This way, with these hyperconnections, you don't just have one residual connection.
+
+128
+00:13:10,352 --> 00:13:17,124
+这让 Transformer 在处理过程中能够形成并传递多种不同类型的数据。
+You allow the transformer to form and to pass many different types of data through it while processing.
+
+129
+00:13:17,678 --> 00:13:24,708
+然后，这个隐藏状态会通过一个权重矩阵，转换成整个词表的概率分布。
+And then that hidden state gets transformed into probability distribution over entire vocabulary
+
+130
+00:13:25,678 --> 00:13:26,852
+就是用一些权重矩阵。
+with some weight matrix.
+
+131
+00:13:27,632 --> 00:13:34,532
+也就是计算在当前上下文中，哪个 token 最有可能是下一个出现的概率分布。
+So distribution of which token is likely to be next that fits into that context.
+
+132
+00:13:35,072 --> 00:13:43,952
+如果词表很大而模型很小，那么这部分相比模型的其他部分可能会变得非常庞大。
+And this is the other part that can be absolutely huge compared to the rest of the model if the vocabulary is big and the model is small.
+
+133
+00:13:44,206 --> 00:13:47,844
+所以这个转换隐藏状态的权重矩阵乘以...
+So this weight matrix that transforms that's hidden state times
+
+134
+00:13:49,390 --> 00:13:50,756
+词表可能会很大。
+vocabulary can be big.
+
+135
+00:13:51,214 --> 00:13:59,172
+如果你还记得，在 Transformer 的开头，我们也有词表乘以隐藏状态，或者说隐藏状态实际上是向量嵌入。
+And if you remember, at the beginning of the transformer, we also had vocabulary times hidden state, or hidden state is actually vector embedding.
+
+136
+00:13:59,854 --> 00:14:04,100
+所以你实际上可以用同一个权重矩阵来处理这两者。
+So you can actually use this same weight matrix for both of them.
+
+137
+00:14:04,494 --> 00:14:07,012
+也就是说，关于词表，也就是选择...
+So the vocabulary, the picking the
+
+138
+00:14:08,272 --> 00:14:12,708
+每个 token 的向量，并在最后生成...
+vector for each token, and at the end here generating
+
+139
+00:14:13,742 --> 00:14:14,948
+概率分布。
+probability distribution.
+
+140
+00:14:15,472 --> 00:14:22,564
+你可以使用完全相同的矩阵，而且根据它们采用的架构，这样做效果很好。
+You can use the exact same matrix, and it works well depending on the architecture they use it here.
+
+141
+00:14:23,086 --> 00:14:26,692
+这样你就能节省很多参数，把它们用在不同的地方。
+And then you save a lot of parameters that you can use at different places.
+
+142
+00:14:27,792 --> 00:14:29,952
+另一部分是 RMS norm。
+Another part is RMS norm.
+
+143
+00:14:30,446 --> 00:14:33,460
+这只是为了对向量进行归一化。
+So this is just going to normalize vectors.
+
+144
+00:14:33,646 --> 00:14:43,460
+你会看到我们这里的数值与这些不同，在神经网络的反向传播和数学计算中...
+So you see how we have, like a very different number here than these, and neural networks, and the way neural networks backpropagate and do math calculations.
+
+145
+00:14:43,952 --> 00:14:50,308
+这可能会干扰计算，导致权重爆炸、变得极小或者...
+this can mess with the calculations, make the weights explode, make them very tiny, or
+
+146
+00:14:51,152 --> 00:15:03,684
+这可能会承载所有的权重并让这些变得无关紧要。因为这个数值大得多。所以通常你希望数字在 1 左右，比如 1、-1、0 等类似的量级。
+this can carry all of the weight and then make these irrelevant. because this is so much bigger. So usually you wanna make the numbers around 1, minus 1, 0 and similar in scale.
+
+147
+00:15:04,334 --> 00:15:08,612
+这样当你连续乘很多个这样的数字时，它们就不会变得失控。
+And then these numbers will not go crazy when you multiply so many of them in a row.
+
+148
+00:15:10,062 --> 00:15:20,100
+这是位置编码。那么 Transformer 如何知道哪个 token 在哪个 token 后面？因为在注意力机制中...
+So this is positional encoding. So how does transformer know which token comes after which one? Because in attention, in attention mechanism,
+
+149
+00:15:21,710 --> 00:15:28,592
+你有一些 token 与其他 token 相乘，但你并不知道提示词中 token 的顺序。
+you have tokens multiplied by other tokens, but you don't know the order of tokens in the prompt.
+
+150
+00:15:29,102 --> 00:15:32,992
+所以每个 token 向量都会被旋转。
+So each of the token vectors is rotated.
+
+151
+00:15:33,326 --> 00:15:41,632
+例如，如果你有一个向量，你就取成对的维度并旋转每一对，并且根据
+For example, if you have some vector, you take pairs of dimensions and rotate each pair, and depending on where
+
+152
+00:15:42,574 --> 00:15:52,100
+嗯，这个配对在序列中的位置以及该词在整个词序列中的位置，你会得到稍微不同的旋转。
+uh the number of like where in the sequence that pair is and where the token is in the sequence of tokens, you're going to have a bit different rotations.
+
+153
+00:15:52,512 --> 00:15:57,156
+所以 Transformer 会根据这些向量旋转的程度来学习
+So transformer will learn based on how rotated these vectors are,
+
+154
+00:15:58,112 --> 00:15:58,916
+它们的位置。
+their position.
+
+155
+00:16:00,270 --> 00:16:09,552
+所以在 GLM 中，主模型使用的是 RoPE，而在稀疏索引器中使用的是 RoPE。
+So in GLM they are using nope, that's a version of rope, in a main model, and then rope in the sparse indexer.
+
+156
+00:16:09,806 --> 00:16:18,272
+这个稀疏索引器在注意力机制中检查我们应该关注哪部分，不该关注哪部分，因为
+This sparse indexer is checking in the attention which part we should it should attend to, which part it should not attend to, because
+
+157
+00:16:18,830 --> 00:16:28,548
+这里的注意力工作原理不是关注所有内容，也就是整个注意力、整个上下文窗口。所以这个词只会关注最相关的词。
+the way attention works here is it's not gonna attend to everything, uh, entire attention, entire context window. So this token will just attend to most relevant tokens.
+
+158
+00:16:29,358 --> 00:16:33,284
+所以这个索引器将去寻找
+So this indexer is gonna search for the most relevant tokens
+
+159
+00:16:34,158 --> 00:16:35,748
+让这个 token 去关注。
+for this token to attend to.
+
+160
+00:16:35,982 --> 00:16:42,756
+而且索引器也是一种注意力机制，但它要轻量得多，更便宜，且速度更快。
+And indexer is also attention mechanism, but a lot lighter, a lot cheaper, a lot faster attention mechanism.
+
+161
+00:16:43,662 --> 00:16:49,796
+它只寻找相关性，不需要像常规注意力那样进行大量的计算。
+And it just looks for relevance and it doesn't need to do so much computation that regular attention does.
+
+162
+00:16:50,414 --> 00:16:56,612
+所以它挑选出最相关的词，然后只有这些词会与完整的常规注意力进行计算。
+So it picks most relevant tokens and then only those tokens are computed with the full regular attention.
+
+163
+00:16:58,126 --> 00:16:59,812
+因此对于每一个词
+So for each token
+
+164
+00:17:00,558 --> 00:17:11,236
+在注意力机制中，它将选择最相关的 n 个词。可以是 2000 个或 1000 个最相关的词，然后与这些词进行注意力计算。
+in the attention mechanism, it's going to pick n most relevant tokens. It can be 2000 most relevant tokens or thousand most relevant tokens, and then do attention with that.
+
+165
+00:17:12,270 --> 00:17:22,544
+然后这里的注意力只是基于这个小型索引器进行缩放。所以这个小型索引器，与其这样缩放，它在那个地方的缩放会慢得多，因为
+And then here the attention is just scaling based on this small indexer. So this small indexer, so instead of scaling like this, it's gonna scale there a lot slower because
+
+166
+00:17:23,742 --> 00:17:28,420
+注意力大小始终是固定的，不随规模变化，但索引器的规模会随着序列长度增加。
+the attention size is always fixed, it doesn't scale, but the indexer scales with the sequence length.
+
+167
+00:17:29,390 --> 00:17:30,704
+序列长度。
+Sequence length.
+
+168
+00:17:31,694 --> 00:17:40,868
+所以我说的是计算量如何随序列长度缩放，它随序列长度的增长速度要慢得多，
+So I'm talking about how compute scales with a sequence length, and it's gonna scale a lot slower with sequence length,
+
+169
+00:17:41,166 --> 00:17:42,148
+计算量少得多。
+a lot less compute.
+
+170
+00:17:42,704 --> 00:17:43,024
+因为
+because
+
+171
+00:17:43,790 --> 00:17:50,948
+这个稀疏索引器是一种更轻量的注意力类型，计算量少得多，只需要找到相关的词。
+this sparse indexer is a lot lighter type of attention and does a lot less computation, just needs to find relevant tokens.
+
+172
+00:17:52,302 --> 00:17:53,540
+所以，如你所见，
+So, as you can see,
+
+173
+00:17:54,222 --> 00:18:00,324
+嗯，所以线性注意力与这种标准二次方注意力不同。
+uh so the linear attention is different from this standard quadratic attention.
+
+174
+00:18:01,390 --> 00:18:10,212
+为了不让你混淆，让我先解释一下，他们的注意力机制不包含位置编码。
+It keeps so not to confuse you, let me first explain that their attention mechanism does not contain positional encodings.
+
+175
+00:18:12,014 --> 00:18:15,684
+只有稀疏索引器包含位置编码。
+And only the sparse indexer contains positional encodings.
+
+176
+00:18:17,070 --> 00:18:17,672
+所以
+And so
+
+177
+00:18:17,672 --> 00:18:22,244
+所以 RoPE 意味着没有位置编码。
+so nope means no positional encodings.
+
+178
+00:18:23,342 --> 00:18:29,092
+所以我们在注意力中应用 RoPE，并在索引器中使用，只是为了让我们的模型更简单。
+So we apply rope inattention and indexer just to make it simpler for our model.
+
+179
+00:18:30,222 --> 00:18:35,344
+而线性注意力就是 KDA 线性注意力，这就是状态空间模型。
+And linear attention is just KDA linear attention, so this is state space model.
+
+180
+00:18:35,534 --> 00:18:36,324
+我来解释一下这个。
+I'll explain this.
+
+181
+00:18:37,422 --> 00:18:39,904
+所以我们有线性、线性、线性稀疏。
+So we have linear, linear, linear sparse.
+
+182
+00:18:39,984 --> 00:18:52,740
+线性层成本低，它们始终保持一个恒定的向量。想象一下你有这些标记，你有一种状态，就像一个矩阵，它是所有标记的记忆，
+So linears are cheap, they always keep a constant vector. So imagine that you have tokens, you have this like state, like a matrix that that's like a memory of all of the tokens,
+
+183
+00:18:53,582 --> 00:19:01,700
+而所有的标记在进入时都会被喂入这个状态，进入这个记忆中，而且它的尺寸始终不变，就像只是把它们加进去一样。
+and all of the tokens that as they come they get fed into this state, into this memory, and it's always same size, it's like just adding it in there.
+
+184
+00:19:02,062 --> 00:19:06,884
+所以线性层会记住近期的标记，但不会记住过去的标记
+And so linears are gonna remember recent tokens, they're not gonna remember past tokens
+
+185
+00:19:07,758 --> 00:19:13,092
+因为标记离得越远，它被修改的次数就越多，会被新的标记搞乱。
+because the further away token is, the more it's been modified, it's been messed up by the newer tokens.
+
+186
+00:19:14,062 --> 00:19:18,980
+所以这是为了近期标记，而且它们非常快，比注意力机制快得多。
+So this is for the recent tokens, and these are so fast, a lot faster than attention.
+
+187
+00:19:19,790 --> 00:19:25,476
+而注意力机制是用于长距离的，即上下文窗口中任何位置的标记。
+And attention is for long range, any tokens anywhere in the context window.
+
+188
+00:19:26,638 --> 00:19:31,184
+根据我的经验，这种方式训练速度快得多，推理也快得多
+So, by my experience, this trains a lot faster and inferences a lot faster
+
+189
+00:19:31,982 --> 00:19:35,716
+相比之下，注意力机制就慢一些。这就是为什么它针对推理进行了优化。
+as opposed to attention. That's why this is optimized for inference.
+
+190
+00:19:36,224 --> 00:19:41,220
+所以，线性层以较低的成本承载压缩后的历史记忆。
+So, linear layers carry compressed history cheaply memory.
+
+191
+00:19:41,742 --> 00:19:46,084
+稀疏层则周期性地恢复精确的远端细节。
+Sparse layers periodically recover exact distant details.
+
+192
+00:19:48,590 --> 00:19:52,804
+这是层和注意力的代码。让我给你们看看，它非常简单。
+Here is the code for the layers and attention. So let me show you it's very simple.
+
+193
+00:19:53,806 --> 00:19:59,300
+你只需要每隔四层设置一个稀疏注意力。
+So you're just going to take every fourth layer and set it a sparse attention.
+
+194
+00:20:00,526 --> 00:20:06,596
+这是线性注意力，所以你有一些标记，它们都会进入这个矩阵记忆中。
+And this is linear attention, so you have some tokens and they all get into this matrix memory matrix.
+
+195
+00:20:06,990 --> 00:20:09,796
+他们称之为运行键值状态。
+They call this running key value state.
+
+196
+00:20:11,150 --> 00:20:15,972
+随着上下文增加，序列长度增长，这个状态保持固定。
+So as context grows, sequence length grows, this state stays fixed.
+
+197
+00:20:16,462 --> 00:20:21,668
+所以这是一种在不呈平方级增长的情况下记住信息的方法。
+So this is a way to remember stuff without scaling quadratically.
+
+198
+00:20:22,510 --> 00:20:25,764
+权衡是由于你在压缩它，所以会丢失一些信息。
+The trade-off is you lose some information because you are compressing it.
+
+199
+00:20:26,702 --> 00:20:34,564
+接下来是稀疏注意力。通常在稀疏注意力中，你看的是固定窗口的最后标记，比如最后的 2000 个标记。
+So sparse attention. Usually in sparse attention, you look at a fixed window of last and tokens, last 2000 tokens.
+
+200
+00:20:35,534 --> 00:20:43,652
+然后你可以看常规空间，或者搜索后面的相关标记。
+And then you can look at regular spaces or you can search for relevant tokens behind.
+
+201
+00:20:45,102 --> 00:20:47,940
+接下来我们有专家混合。例如，
+And then we have mixture of experts. For example,
+
+202
+00:20:49,104 --> 00:20:52,324
+在 GLM 中，你有 288 个
+in GLM you uh you have 288
+
+203
+00:20:53,184 --> 00:20:54,468
+选定的专家，
+chosen experts,
+
+204
+00:20:55,344 --> 00:21:02,948
+每个标记将通过 288 个中的 8 个，并且有一个共享专家。
+and it's gonna choose each token will pass through eight out of 288, and there is one shared expert.
+
+205
+00:21:04,110 --> 00:21:07,588
+每个标记都会经过共享专家，而那个专家将
+Every token passes through the shared expert, and that expert will
+
+206
+00:21:09,102 --> 00:21:14,660
+学习所有标记的一些共同信息，这样其他专家就不需要浪费容量在这些信息上。
+learn some common information for every token, so other experts don't need to waste capacity on that.
+
+207
+00:21:15,566 --> 00:21:24,228
+所以在我们的小型模型中，我们可能有 8 个路由的、其中 2 个被选中的，以及 1 个共享的。
+So we may have uh eight routed and two uh two out of eight chosen and then one shared in our small model.
+
+208
+00:21:24,590 --> 00:21:29,956
+我也可以有一个只有两个专家且一个路由的，我是说一个被选中的。
+I also had I can have a model with just two experts and one routed, I mean one chosen.
+
+209
+00:21:30,606 --> 00:21:34,864
+这里我给你们展示我们训练模型的配置。
+Here I show you the model configuration for our training model.
+
+210
+00:21:35,054 --> 00:21:40,228
+我们已经提到过这个了，就是 8 个专家，12 层等等。
+We already mentioned this, so eight experts, twelve layers, etc.
+
+211
+00:21:41,646 --> 00:21:43,908
+所以这里有这四个超连接。
+So there are these four hyper connections.
+
+212
+00:21:44,400 --> 00:21:49,668
+然后在注意力机制内部，也就是在注意力和 MoE 之间，
+Then you have, uh, inside of attention, so between attention and MoE,
+
+213
+00:21:50,382 --> 00:21:55,428
+它们会合并到注意力中，然后再展开并重新合并到 MoE 中。
+so they kind of merge into attention. then they expand back and then merge back into MoE.
+
+214
+00:21:55,694 --> 00:21:59,524
+然后在这里，它们像残差连接一样连接起来。
+and then so here they are connected like residuals.
+
+215
+00:22:00,270 --> 00:22:02,640
+这里它们也像残差连接一样连接。
+and here they are also connected like residuals.
+
+216
+00:22:02,720 --> 00:22:05,636
+所以它们会经过 MoE，并且同时也穿过 MoE。
+so they pass MoE and they go through MoE as well.
+
+217
+00:22:07,310 --> 00:22:10,820
+注意力机制负责在不同的 token 位置之间传递信息。
+So attention moves information between token positions.
+
+218
+00:22:11,406 --> 00:22:14,880
+MoE 则对每个位置应用专门的变换。
+MOE applies specialist transformations to each position.
+
+219
+00:22:15,246 --> 00:22:23,920
+残差注意力在加入更新的同时保留之前的表示，而多重连接则保留不同类型的信息。
+Residual attentions preserve the previous representation while adding both updates, and multiple connections preserve different types of information.
+
+220
+00:22:24,526 --> 00:22:31,780
+所以输入和输出共享一个矩阵，也就是说输出权重和嵌入权重是同一个矩阵，
+So input and output share one matrix, so the output weights and embedding weights are the same matrix,
+
+221
+00:22:32,462 --> 00:22:33,700
+就像我之前提到的那样。
+as I mentioned earlier.
+
+222
+00:22:34,510 --> 00:22:39,044
+读取字节 token 和预测下一个字节使用相同的权重矩阵。
+So read byte tokens and predict next byte the same weight matrix.
+
+223
+00:22:39,950 --> 00:22:43,172
+一个矩阵同时学习 token 嵌入和输出 logits，
+One matrix learns both token embeddings and output logits,
+
+224
+00:22:43,854 --> 00:22:47,300
+或者我应该说是将它们转换成这些内容的权重矩阵。
+or I should say the weight matrix that transforms them into those.
+
+225
+00:22:48,462 --> 00:22:56,612
+这种做法叫作「权重共享」，它去掉了第二个大型矩阵，让读取和预测字节
+So weight tying, this is how it's called, remove second large matrix and makes reading and predicting bytes
+
+226
+00:22:57,006 --> 00:22:58,788
+使用相同的学习几何结构。
+use the same learn geometry.
+
+227
+00:22:59,150 --> 00:23:01,476
+所以这可能也有一些好处。
+So maybe there is some benefit there as well.
+
+228
+00:23:02,286 --> 00:23:05,924
+我不知道有没有相关的研究，大概是有吧，也许你也可以做点研究。
+I don't know if there is research, probably there is, maybe you also can do some.
+
+229
+00:23:06,606 --> 00:23:16,320
+GLM-Flash 里还有视觉功能，也就是说有图像，它会将这些图像转换成一些分块嵌入，
+So there is also vision in glm flash, and uh it's so there is image, it's going to convert that image into some patch embeddings,
+
+230
+00:23:16,480 --> 00:23:20,240
+把它们转换成 token，然后混合到
+convert those into tokens, and then mix them into
+
+231
+00:23:21,040 --> 00:23:22,052
+主模型中。
+the main model.
+
+232
+00:23:22,766 --> 00:23:28,548
+对于图像，它会被分割成分块，每个分块就是一个 token，所以它有
+For images, it's gonna get divided to patches, each patch is a token, so it has
+
+233
+00:23:29,262 --> 00:23:33,636
+这种二维位置旋转嵌入
+this 2D positional rotary embeddings
+
+234
+00:23:35,470 --> 00:23:37,156
+类似于 RoPE，只不过是二维的。
+similar to rope, is just 2D.
+
+235
+00:23:38,158 --> 00:23:42,500
+假设你有一张编号为 8 的图像，它是一个 32x32 的 RGB 图像，
+So let's say you have image number eight, it's 32 by 32 RGB image,
+
+236
+00:23:43,470 --> 00:23:47,780
+在这种情况下，它会被分割成 8x8 的分块。
+and it's gonna get divided into 8 by 8 patches in this case.
+
+237
+00:23:49,870 --> 00:23:55,972
+在我们编写的这个小型版本中，有两个视觉模块。
+So there are two vision blocks in our small version that we coded.
+
+238
+00:23:56,238 --> 00:23:58,500
+顺便说一下，所有这些代码都在 GitHub 上。
+That all of this code is in the GitHub, by the way.
+
+239
+00:23:59,502 --> 00:24:03,360
+所有的代码都在这里的 GitHub 上，你可以去查看。
+All of the code right here in the GitHub, so you can check it.
+
+240
+00:24:03,566 --> 00:24:04,516
+这些就是实验内容。
+These are the experiments.
+
+241
+00:24:05,838 --> 00:24:12,868
+所以这些分块中的每一组，四个分块将变成一个向量，也就是一个标记嵌入向量。
+So each of those patches, four patches are gonna become one vector, one token embedding vector.
+
+242
+00:24:13,966 --> 00:24:15,236
+就是 2x2 合并。
+So two by two merge.
+
+243
+00:24:16,846 --> 00:24:24,612
+这样到最后我们就会得到 4x4 的结果，即从这张 32x32 的图像中得到 16 个 token。
+And so we will get four by four at the end, which is 16 tokens from this 32 by 32 image.
+
+244
+00:24:25,454 --> 00:24:33,028
+所以如果你有其他不是 32x32 的图像，它必须被调整为这个尺寸，并进行填充或裁剪。
+So if you have some other image that's not 32 by 32, it must be resized into this shape and padded or cropped.
+
+245
+00:24:34,030 --> 00:24:42,080
+这只是为了我们的编码器。GPT 有任何图像编码器，你知道的，这些其他模型也是，我们也可以做任何样的。
+So this is just for our encoder. GPT has any image encoder, you know, these other models, and we can also make any.
+
+246
+00:24:42,160 --> 00:24:44,036
+我只是很快就做出了这个。
+I just made this one very quickly.
+
+247
+00:24:44,686 --> 00:24:52,640
+所以图像 token 会有一些标记，比如“图像从这里开始”，然后是全部 16 个图像 token，接着是
+So image tokens are gonna have some mark like image starts here, and then all of the 16 image tokens, and then
+
+248
+00:24:52,800 --> 00:24:53,860
+“图像到此结束”。
+image ends here.
+
+249
+00:24:54,222 --> 00:24:57,220
+这就是它们被加入到上下文窗口中的方式。
+So this is how they get added into the context window.
+
+250
+00:24:58,350 --> 00:24:59,204
+这些就是标记，
+There are these marks,
+
+251
+00:25:00,430 --> 00:25:03,360
+而且你可能会在周围看到文本。
+and you may have a text around.
+
+252
+00:25:03,470 --> 00:25:07,492
+顺便说一下，这个“序列开始”，我之前没提到它是一个特殊标记。
+So this beginning of sequence, by the way. I didn't mention this is special token.
+
+253
+00:25:08,430 --> 00:25:13,156
+在词汇表中，它仅仅表示一段对话的开始，
+in the vocabulary, it just shows this is beginning of sequence of a conversation,
+
+254
+00:25:14,000 --> 00:25:17,732
+然后你可以把文本追加到所有这些 token 后面。
+and then you can append text to all of these tokens.
+
+255
+00:25:18,830 --> 00:25:27,940
+然后接下来的这个，下一个将是，例如数字 7，预测出的 token。如果这张图片是一个数字 7 的图像。
+And then the next here, the next one would be, for example, number seven, predicted token. If this image is of uh image is a digit seven.
+
+256
+00:25:28,814 --> 00:25:35,536
+所以我们训练了一个小的 Transformer 来观察数字的图像并告诉我们它是哪个数字。
+So we trained a small transformer to look at the image of a digit and tell us which digit it is.
+
+257
+00:25:36,334 --> 00:25:47,696
+如果你对这些细节感兴趣，只需让你的 Codex 或 Cloud Code 克隆这个仓库。你可以询问它关于代码、关于一切、以及所有东西是如何运作的。
+So if you are interested more about the nitty-gritty details, you just tell your codex or cloud code to clone this repository. You can ask it about the code, about everything, how everything works.
+
+258
+00:25:47,776 --> 00:25:51,300
+你也可以让它像我在这里做的一样画出这些图表。
+You can also tell it to draw these graphs like I did here.
+
+259
+00:25:51,776 --> 00:25:56,516
+这些只是例子。当然，对我们来说这非常明显，我们很容易看出来。
+So these are examples. Now, of course, it's very visible to us, it's very easy for us to see.
+
+260
+00:25:56,896 --> 00:26:02,564
+无论如何，我们的视觉编码器，也就是我们的视觉 Transformer，成功地识别出了数字
+Anyways, our vision encoder, our vision transformer was successfully recognizing digits
+
+261
+00:26:03,502 --> 00:26:05,124
+使用了我所解释的这种方法。
+using this method that I explained.
+
+262
+00:26:05,646 --> 00:26:13,444
+如果你想做一些研究，你可以把这些变得更难，然后试着看看在哪个点它无法识别它们。
+If you want to do some research, you can make these a lot harder and then try to see at which point it's not able to recognize them.
+
+263
+00:26:14,446 --> 00:26:19,652
+现在让我们看看预训练。我们有一些提示词，它是一个 Python 函数，
+So let's look at the pre-training. So we have some prompt that is a Python function,
+
+264
+00:26:20,430 --> 00:26:27,536
+然后我们有这个补全内容，它是模型生成的，因为任务是返回 x 加一。
+and then we have this completion, which is model generated, because the task is return x plus one.
+
+265
+00:26:27,936 --> 00:26:40,452
+在预训练中，它并不是在思考这个答案，它只是在重复数据。所以它只是在重复这些。这就是它学习的方式，它已经掌握了所有这些内容。
+Now in pre-training, it's not thinking of this answer, it's just repeating what the data is. So it's just repeating these. That's how it's learning, it already has all of these.
+
+266
+00:26:41,390 --> 00:26:51,172
+所以这类似于模仿学习，它在进行模仿。在预训练中，它在模仿写作，它在学习所有这些 token、所有这些字符的含义，这样它就能生成它们，
+So it's similar to imitation learning, it's imitating. Now in pre-training, it's imitating to write, it's learning what all of these tokens, all of these characters mean, so it can generate them,
+
+267
+00:26:51,536 --> 00:26:58,180
+然后在强化学习中，它将学会去生成，去思考哪些答案才是真正正确的。
+and then in reinforcement learning, it's gonna learn to generate, to think about which answers are actually correct.
+
+268
+00:26:59,374 --> 00:27:05,828
+所以在后训练中，它在学习变得更聪明。
+So it's learning in Post training it's learning to be intelligent more.
+
+269
+00:27:06,542 --> 00:27:10,500
+比如你输入 red，它预测出你；你输入 return，它预测出空格。
+So you have red, it predicts you, it you have return, it predicts the space.
+
+270
+00:27:10,926 --> 00:27:14,276
+仅从一个提示词就能得到这么多训练示例。
+You have so many training examples just from one prompt.
+
+271
+00:27:15,182 --> 00:27:24,324
+这是经典的预训练流程：概率、交叉熵、分配权重，然后优化器将根据
+This is the classic pre-training pipeline, probabilities, cross-entropy, assigned weights, and then optimizer is going to update all the parameters based on
+
+272
+00:27:25,358 --> 00:27:27,300
+结果、下一个 token 以及正确性来更新所有参数。
+result, next token, correctness.
+
+273
+00:27:28,942 --> 00:27:30,176
+所以是 AdamW，
+so Adam W,
+
+274
+00:27:31,054 --> 00:27:36,676
+大多数人都在用 muon，但我为了简化处理才用了这个，我们不同时使用两者，只用 AdamW。
+most people are using muon, but I just did it for simplicity, so we don't use both, we just use Adam W.
+
+275
+00:27:37,806 --> 00:27:42,724
+你可以看到梯度如何从错误的概率分布转向更正确的分布。
+You see how gradients go from wrong probability distribution to more correct one.
+
+276
+00:27:43,598 --> 00:27:45,572
+它们在字面上改变选择的倾向。
+They are literally moving the choice.
+
+277
+00:27:46,382 --> 00:27:51,268
+它会改变数百万个权重，因此正确的字节每次都会变得更有可能。
+It's gonna change millions of weights, so correct byte becomes a bit more likely each time.
+
+278
+00:27:52,174 --> 00:27:58,736
+你可以看到在预训练开始前，它只是生成一些随机字符。
+You see how in the beginning, before pre-training, it was just generating some random characters.
+
+279
+00:27:58,896 --> 00:28:00,324
+如果这是提示词。
+If this is this is the prompt.
+
+280
+00:28:01,870 --> 00:28:04,068
+但后来它学会了生成这个内容。
+But later it learned to generate this.
+
+281
+00:28:05,518 --> 00:28:08,896
+现在让我们看看我做的一些研究问题和实验。
+Now let's see some research questions and experiments I did.
+
+282
+00:28:09,006 --> 00:28:10,980
+这就是他们进行研究的方式。
+So this is how they do research.
+
+283
+00:28:11,758 --> 00:28:21,380
+这是一个非常标准的例子。你可以看到如果你有较少的数据并重复这些数据，它在初期会学得更快，
+This is very standard example. So you see if you have less data and you repeat the data, it's gonna learn faster in the beginning,
+
+284
+00:28:21,776 --> 00:28:24,932
+但随后更多的数据量将会反超。
+but later more data will just overtake.
+
+285
+00:28:26,254 --> 00:28:34,084
+所以如果你只做几个步骤，多样性就没有用武之处，但在 200 步之后，它就会变得越来越有用。
+So diversity is not useful if you do like just a few steps, but then at 200 steps it becomes more and more useful.
+
+286
+00:28:34,702 --> 00:28:40,036
+好，现在假设你有三种不同类型的数据：类型 A、类型 B 和类型 C。
+Okay, now let's say you have three different types of data type A, type B, and type C.
+
+287
+00:28:40,558 --> 00:28:47,076
+是先训练 A 再练 B 再练 C 更好，还是将它们交替排列？
+Is it better to first train on type A then type B then type C or interleave them?
+
+288
+00:28:47,616 --> 00:28:56,036
+你会看到如果像这样训练，当它开始学习 C 时，它就会开始遗忘 A
+So you will see that if you train it like this, then as it starts to learn C, it's gonna start forgetting A
+
+289
+00:28:56,256 --> 00:28:56,836
+和 B。
+and B.
+
+290
+00:28:58,478 --> 00:29:03,076
+所以交替排列更好，你也可以通过实验来证明这一点。
+So it's better to interleave them, and you can show this with an experiment as well.
+
+291
+00:29:03,534 --> 00:29:05,668
+如果你愿意，可以做这个实验。
+So you can do this experiment if you want.
+
+292
+00:29:06,382 --> 00:29:13,348
+因此，交替数据不仅能改善生成效果，还能防止对先前学习数据的灾难性遗忘。
+So interleaving data will improve generation as well, as well as prevent catastrophic forgetting of previously learned data.
+
+293
+00:29:14,190 --> 00:29:19,364
+因此，同质化的区块可能会增加近因偏差或导致遗忘。
+So homogeneous blocks likely increased recency bias or forgetting.
+
+294
+00:29:19,744 --> 00:29:22,064
+但你需要明确你的实验在衡量什么。
+But you need to know what your experiment is measuring.
+
+295
+00:29:22,224 --> 00:29:28,740
+这里我们只是在衡量性能。我并没有测量它是否增加了近因偏差或导致遗忘。所以我不能做出那些断言。
+Here we're just measuring performance. We're not I'm not measuring if it's increasing recency bias or forgetting. So I cannot make those claims.
+
+296
+00:29:29,024 --> 00:29:31,044
+我只能推测可能是这种情况。
+I can just suggest that might be the case.
+
+297
+00:29:31,470 --> 00:29:32,388
+那这个怎么样？
+How about this?
+
+298
+00:29:32,718 --> 00:29:44,356
+如果我们先教它重复的模式、简单的模式，然后再教它更多样的数据呢？这样在开始时学习更简单的东西，随后是
+What if we first teach it repeated patterns, simple patterns, and then after teach it more diverse data? So maybe in the beginning it's simpler things to learn, and then later
+
+299
+00:29:45,184 --> 00:29:50,436
+更复杂的内容。我们将这种方式与仅包含简单内容或仅包含复杂内容的模型进行对比。
+more complex. So we are comparing that to only simple things and only complex things.
+
+300
+00:29:51,310 --> 00:29:57,668
+而且我们已经知道，如果只给简单的东西，它们表现不佳；如果只有相同的数据，它就会过拟合。
+And so we already know that simple things they underperform only simple, only same data, it overfits.
+
+301
+00:29:58,318 --> 00:30:00,324
+而在这里，课程学习并没有
+And here, curriculum did not
+
+302
+00:30:01,264 --> 00:30:02,884
+取得实质性的进展
+make substantial progress
+
+303
+00:30:03,534 --> 00:30:12,452
+相比于从一开始就针对复杂数据的补全进行训练。也许这些复杂数据也太简单了，所以我需要仔细思考我的实验设置。
+as opposed to just training for the comp of the complex data from the start. Maybe this complex data was also too simple, so I need to think carefully about my experiment setup.
+
+304
+00:30:13,134 --> 00:30:15,940
+而且，这种差异可能并不具有显著性差异。
+Also, this difference may not be statistically significant.
+
+305
+00:30:16,494 --> 00:30:26,404
+取决于我测量了多少次、如何测量的，我需要考虑所有这些因素，而 AI 可以帮助你理解并思考这些因素以及你的实验设置。
+Depending on how many times I measured, how I measured, I need to think about all of these things, and AI can help you understand and think about all of these things and setup of your experiment.
+
+306
+00:30:27,310 --> 00:30:29,284
+现在让我们来看看强化学习。
+Now let's take a look at the reinforcement learning.
+
+307
+00:30:29,664 --> 00:30:32,544
+所以这里的强化学习与预训练不同。
+So here reinforcement learning is different than pre-training.
+
+308
+00:30:32,718 --> 00:30:34,756
+预训练只是学习重复文本
+Pre-training is just learning to repeat text
+
+309
+00:30:35,598 --> 00:30:37,156
+并且学习每个 token 的含义。
+and it's learning what each token means.
+
+310
+00:30:37,806 --> 00:30:43,652
+在强化学习中，它试图生成答案，然后我们对正确的答案给予奖励。
+In reinforcement learning, it's trying to generate answers and then we reward correct answers.
+
+311
+00:30:44,064 --> 00:30:47,984
+所以在某种程度上，虽然我不知道具体是怎么样的，但它正在学会如何思考。
+So in some way, I don't know how, but it's learning to think somehow.
+
+312
+00:30:48,078 --> 00:30:51,332
+如果你能弄清楚其中的原理，你就会成为最著名的 AI 研究员。
+And if you can figure out how, you'll be the most famous AI researcher.
+
+313
+00:30:51,824 --> 00:30:59,364
+但在强化学习中，它在学习利用 Transformer 内部的思维来找出正确答案。
+But in reinforcement learning, it's learning to use its thinking throughout Transformer to figure out correct answer.
+
+314
+00:30:59,824 --> 00:31:09,184
+目前，强化学习追踪单次 rollout、单项任务补全，在 OpenAI 等前沿实验室可能需要几天时间
+Right now, reinforcement learning traces single rollout, single task completion is taking maybe even days in frontier labs like OpenAI
+
+315
+00:31:09,344 --> 00:31:09,796
+Anthropic。
+Anthropic.
+
+316
+00:31:10,702 --> 00:31:21,956
+如果你想让模型，如果你想教模型工作好几天，那么在训练过程中，你会让它尝试去完成那些需要数日才能完成的任务。
+If you want the model, if you want to teach the model to work for days, you're going to during the training, you're going to let it try to complete tasks that take days.
+
+317
+00:31:22,304 --> 00:31:22,624
+所以
+So
+
+318
+00:31:23,502 --> 00:31:26,244
+顺便提一下，如果你想
+this is just by the way, if you are if you want to
+
+319
+00:31:26,958 --> 00:31:29,664
+帮助这些实验室，你也可以在推理方面做出贡献。
+help these labs, you can also work on inference.
+
+320
+00:31:29,838 --> 00:31:35,652
+更快的推理意味着你能更快地生成数据，你可以更快地进行训练。
+Faster inference means you are generating data faster, you are you can train faster.
+
+321
+00:31:36,366 --> 00:31:47,268
+比如生成代码、运行测试、评估哪些是正确的，哪些是错误的。现在，有不同的评分方式，例如你只给正确或部分正确的结果评分，然后更新模型权重。
+So generate code, run tests, score which is correct, which is incorrect. Now, different ways of scoring, you can score only correct or partial results, for example, and then update the model weights.
+
+322
+00:31:48,206 --> 00:31:50,084
+你不会把测试题展示给模型看。
+You will not show tests to the model.
+
+323
+00:31:50,350 --> 00:31:51,984
+你只会评估它的结果。
+you will just evaluate its result.
+
+324
+00:31:52,304 --> 00:32:01,504
+因为如果你展示了测试题目，它可能会进行奖励作弊，也就是说它可能只是在读取结果，而不是学习如何解决问题，或者学会如何破解 Hugging
+because if you show tests, it can reward hack, which means like maybe reading the results instead of learning how to solve them, learning how to hack into hugging
+
+325
+00:32:01,664 --> 00:32:03,344
+Face 或其他系统。发生了什么？
+face or different systems. what happened?
+
+326
+00:32:03,904 --> 00:32:04,144
+而且
+and
+
+327
+00:32:05,166 --> 00:32:13,424
+在我们的一个小例子后训练中，正确答案的比例从 4% 提高到了 45%。
+in our post training of a small example, we went from 4% correct answers to 45% correct answers after the training.
+
+328
+00:32:13,744 --> 00:32:21,796
+所以通常你可以直接让 Claude 或 Fable 来为你做这些后训练。
+So usually you can just tell opus uh fable and opus and soul to do this post training for you.
+
+329
+00:32:22,304 --> 00:32:26,244
+这是你需要学习的。Claude 和 Fable 不知道的是
+this is what you need to learn. What opus and fable they don't know is
+
+330
+00:32:26,990 --> 00:32:30,020
+获取实验方向，获取实验思路。
+get the experiment direction, get the experiment ideas.
+
+331
+00:32:30,958 --> 00:32:38,224
+它们能做强化学习训练，只是因为这在网上被做过太多次了，它们知道怎么做。
+So they can do reinforcement learning trade uh training simply because it's been done so many times on the internet, they know how to do it.
+
+332
+00:32:38,464 --> 00:32:42,788
+但你现在的判断力，也就是对实验的判断力，才是你需要练习的。
+But your judgment right now, your judgment for experiments is what you need to practice.
+
+333
+00:32:43,246 --> 00:32:46,244
+什么样的想法，然后它才能执行这些实验。
+What kind of ideas, and then it can do the experiments.
+
+334
+00:32:46,830 --> 00:32:53,664
+所以在强化学习之前是 24 题中 0 题正确，强化学习后是 24 题中 16 题正确。
+So before reinforcement learning 0 out of 24, after reinforcement learning 16 out of 24 questions.
+
+335
+00:32:53,966 --> 00:33:00,224
+Pass at 1 意味着在测试时你只给它一次机会，然后判断对错。
+Pass at 1 means you just give it one try and then judge if it's correct or incorrect when you are testing
+
+336
+00:33:00,878 --> 00:33:09,284
+如果你设置成 Pass at 8，意思是给它 8 次机会，只要这 8 次里有任何一次是对的，就判定为回答正确。
+it. If you have pass at 8, it means you are giving it 8 tries, and if any one of eight is correct, so you take it as correctly answered.
+
+337
+00:33:10,062 --> 00:33:13,380
+我的意思是，你只是给它同样的题目，让它尝试多次回答。
+I mean you just give it same question, let it try to answer multiple times.
+
+338
+00:33:14,574 --> 00:33:18,244
+但在这里我们只让它回答一次，然后看它是对还是错。
+But here we just let it answer once and then see if it's correct or incorrect.
+
+339
+00:33:19,086 --> 00:33:22,820
+当然，你始终需要了解你是如何衡量结果的。
+Of course, you will always need to see how you are measuring your results.
+
+340
+00:33:23,310 --> 00:33:25,156
+例如，在这种情况下，
+For example, in this case,
+
+341
+00:33:26,112 --> 00:33:33,252
+我们是在测试它在训练期间学到的相似任务。虽然不是完全一样，但很相似。
+we are testing it on similar tasks that it learned during training. It's not same, but similar.
+
+342
+00:33:33,632 --> 00:33:41,380
+因为这样它会学习到模板，学会如何完成这些任务，然后它就能学会应用到不同的数字，甚至是不同的运算上。
+Because then it's gonna learn templates, it's gonna learn how to do these tasks, and then it's just gonna learn to apply to different numbers, maybe different operations.
+
+343
+00:33:41,902 --> 00:33:49,508
+现在，如果你想要更多的多样性和通用性，你就需要扩大模型的规模：更多的参数、更多的算力、更多的数据。
+Now, the more diversity you want, the more generality you want. You need to scale the model more parameters, more compute, more data.
+
+344
+00:33:49,998 --> 00:33:52,644
+这样它就会变得更通用、更多样。
+And then it's gonna become more general, more diverse.
+
+345
+00:33:53,614 --> 00:33:56,272
+但不用担心那个。你随时可以做研究。
+But don't worry about that. You can always do research.
+
+346
+00:33:56,462 --> 00:33:59,108
+我觉得即使在 CPU 上，你也能做很好的研究。
+I think you can do good research even on a CPU.
+
+347
+00:33:59,392 --> 00:34:04,644
+我觉得如果你想去 OpenAI 或 Anthropic 工作，你并不需要 GPU。
+I feel like if you want to get a job at OpenAI Anthropic, you don't need GPUs.
+
+348
+00:34:05,422 --> 00:34:15,472
+你想学习、想教会自己如何构建强化学习的环境，如何思考这些环境，并检查模型是否在这些环境中学会了东西，这才是重要的。
+You wanna learn you wanna teach yourself how to construct environments for reinforcement learning, how to think about them, check if model is learning in those environments, that's important.
+
+349
+00:34:15,694 --> 00:34:22,179
+除非你专门从事规模扩展或预训练，否则追求规模并不是最重要的。
+It's not important that you scale unless you are working explicitly on scaling or pre-training.
+
+350
+00:34:23,054 --> 00:34:35,556
+如果任务是返回 2 倍的 x，在强化学习之前它会返回 x 乘以 x，而强化学习后它会返回 x 乘以 2。所以这里它生成正确了，它学会了。
+If the task is return 2 times x, before reinforcement learning it would return x times x, and after reinforcement learning it would return x times 2. So here it generated correctly, it learned.
+
+351
+00:34:36,621 --> 00:34:42,916
+所以强化学习所做的是，基于所有参数增加了产生正确答案的概率。
+So what reinforcement learning did is increased probability that the correct answer will generate based on all of the parameters.
+
+352
+00:34:44,078 --> 00:34:47,232
+有很多种构建奖励的方法。
+There are many ways in which you can structure rewards.
+
+353
+00:34:47,391 --> 00:34:50,755
+例如，你可以规定所有测试通过加 1 分，
+For example, you can say plus one for all tests passed,
+
+354
+00:34:51,406 --> 00:34:54,404
+嗯，格式正确给 0 分
+uh zero for valid format
+
+355
+00:34:55,342 --> 00:35:00,676
+但数字错误，或者 Python 语法错误可能扣 1 分。
+but wrong number, and maybe minus one for invalid Python syntax.
+
+356
+00:35:01,134 --> 00:35:07,684
+所以这只是其中一种方法。你也可以在不合格或错误时给 0 分，而在所有测试通过时给 1 分。
+So this is just one way. You can just give zero for invalid or wrong, and then one all tests.
+
+357
+00:35:07,952 --> 00:35:15,588
+如果你能写出正确的格式，你也可以给 1 分。如果它写出了正确的 Python 代码，你可以给予奖励。所以有很多不同的
+You can also give one if it writes a correct format as well. If it writes correct Python, you can reward. So there are many different
+
+358
+00:35:15,712 --> 00:35:19,684
+方法，这就是实验，是经验证据。
+ways, and this is experimentation, empirical evidence.
+
+359
+00:35:21,390 --> 00:35:27,652
+不过我也认为，比这些算法的结构更重要的，是拥有更多的数据。
+in but I also think like it's a lot more data is a lot more important than the structure of these algorithms.
+
+360
+00:35:28,526 --> 00:35:37,312
+所以你会找到一个足够好的算法，然后与其去纠结于算法细节相比，思考其他方面会带来收益递减。
+So you will find a good enough algorithm and then you will have diminishing returns on thinking about the algorithm as opposed to thinking about
+
+361
+00:35:37,472 --> 00:35:37,764
+数据。
+data.
+
+362
+00:35:38,032 --> 00:35:46,084
+如果你思考的是我在教它什么、环境是什么、它在尝试做什么、它能不能做到、它能不能学会，你就能大幅提升模型。
+You will improve the model a lot more if you are thinking about what am I teaching it, what is the environment, what is it trying to do, can it do it, can it learn it?
+
+363
+00:35:47,342 --> 00:35:52,352
+所以，为环境、数据以及它正在学习的内容设定问题更为重要，
+So setting up questions for the environment, for the data, and what is it learning is more important,
+
+364
+00:35:53,774 --> 00:36:02,512
+一旦有了足够好的算法，这就是最重要的事。这也是为什么 DeepSeag 不再在 GRPO 上投入大量精力。
+is the most important thing once you have good enough algorithm. This is why DeepSeag is no longer putting substantial effort into GRPO.
+
+365
+00:36:02,752 --> 00:36:05,860
+GRPO 这个强化学习算法已经足够好了。
+GRPO, the reinforcement learning algorithm is good enough.
+
+366
+00:36:06,542 --> 00:36:13,988
+如果他们投入更多精力，其回报将不如投入到数据训练和后期训练环境中那样显著。
+If they put more effort, it will not yield as good returns as if they put more effort into data training, post-training environments.
+
+367
+00:36:15,342 --> 00:36:17,412
+验证器将运行隐藏测试。
+The verifier is going to run hidden tests.
+
+368
+00:36:17,710 --> 00:36:19,872
+现在你不会把这些测试展示给模型看。
+Now you don't show this test to the model.
+
+369
+00:36:20,112 --> 00:36:22,672
+现在你有像 GPT、Fable、Astra 之类的模型。
+Now you have like GPT, Fable, Astra.
+
+370
+00:36:23,022 --> 00:36:28,868
+他们可能会去破解并查看你的验证器。
+They are going to they are possibly going to hack and see your verifiers.
+
+371
+00:36:29,454 --> 00:36:31,428
+这是目前正在发生的事情。
+So this is something that's happening right now.
+
+372
+00:36:32,398 --> 00:36:34,032
+所以有多种方法可以实现这一点。
+So there are different ways you can do this.
+
+373
+00:36:34,112 --> 00:36:43,556
+例如，在 GRPO 和其他算法中，你可以给出一个相同的问题，让模型生成 16 个答案。
+So for example, in GRPO and other algorithms, you can give the same question and let model generate 16 answers.
+
+374
+00:36:44,334 --> 00:36:48,324
+然后你可以根据答案是否正确、错误、还是 Python 代码等情况来给每个答案奖励。
+and then you can reward each answer based on if it's correct, incorrect, wrong, Python,
+
+375
+00:36:48,974 --> 00:36:49,472
+等等。
+etc.
+
+376
+00:36:50,318 --> 00:36:52,992
+然后我们想计算出
+And then we want to calculate how much
+
+377
+00:36:53,838 --> 00:36:57,956
+每一个答案比其他答案、或者比平均水平好多少或差多少。
+each of the answers is better or worse than other answers, than the average.
+
+378
+00:36:59,022 --> 00:37:01,348
+他们称之为“优势”。
+So they call this advantage.
+
+379
+00:37:01,872 --> 00:37:06,788
+奖励只是你的 1、0 或 -1，这就是你的奖励。
+So reward is just your one, zero, or minus zero one, that's your reward
+
+380
+00:37:07,598 --> 00:37:09,892
+减去其他奖励的平均值。
+minus mean of other rewards.
+
+381
+00:37:11,438 --> 00:37:17,092
+所以它只是在计算这个是否比平均水平好，以及比平均水平好或差多少。
+So it's just gonna calculate is this better than average and how much is it better or worse than average?
+
+382
+00:37:17,614 --> 00:37:21,316
+这样更好的答案出现的概率会变高，而较差的答案出现的概率会降低。
+So better ones are gonna become more likely, and worse ones will become less likely.
+
+383
+00:37:22,510 --> 00:37:31,396
+这很好，因为你不需要独立的评论者，也就是不需要专门的模型来审核和给结果打分。你也不需要人工去操作。
+This is good because you don't need separate critic, like separate model to review the results and score the results. You don't need humans to do
+
+384
+00:37:32,206 --> 00:37:36,580
+你只需要让它生成多次，然后互相比较即可。
+it. You can just let it generate multiple times and compare them to each other.
+
+385
+00:37:37,902 --> 00:37:42,532
+我不会用这些强化学习信号来更新整个模型。
+So I'm not going to update the entire model with these reinforcement learning signals.
+
+386
+00:37:42,894 --> 00:37:49,584
+我只更新最后一个块：最终归一化层和输出头。
+I'm just going to update a last block final normalization layer and output head.
+
+387
+00:37:49,664 --> 00:37:52,708
+正如我之前提到的，这些是输入和输出之间的权重共享。
+Those are tied weights between input and output, as I mentioned earlier.
+
+388
+00:37:53,198 --> 00:38:01,636
+但只在末端做，因为这样一来，首先我们不会改变包含其他知识的先前层，而且它们可能会
+But just the end, because this way, first of all, we are not changing previous layers that have some other knowledge, and then they might be
+
+389
+00:38:01,966 --> 00:38:09,904
+它们可能会因为现在我们只在这些新数据上进行更改，而不是在旧数据上训练，而导致其他知识的遗忘。如果我们这样做，
+they might experience forgetting of other knowledge because now we are just changing on this new data, we are not training it on the old data, we so it
+
+390
+00:38:10,064 --> 00:38:11,396
+可能会改变太多内容。
+might change stuff too much.
+
+391
+00:38:12,206 --> 00:38:15,204
+而且这更快，因为更新的权重更少。
+And this is also faster, updating less weights.
+
+392
+00:38:16,334 --> 00:38:21,264
+所以你也可以用 LoRa，或者用其他技术，甚至可以更新整个模型。
+So you can also use LoRa, you can use different techniques, you can update the whole model.
+
+393
+00:38:21,550 --> 00:38:23,204
+所以这里有不同的技术手段。
+So there are different techniques here.
+
+394
+00:38:24,014 --> 00:38:25,700
+如果你想的话，
+you are going to look into this if you
+
+395
+00:38:26,446 --> 00:38:32,740
+你可以去研究和实验，尝试用不同的方法来更新几个模块，并试着弄清楚原因。
+want. You can also do research and experiments and try different ways of updating a few blocks and try to understand why.
+
+396
+00:38:33,024 --> 00:38:33,344
+所以，
+So
+
+397
+00:38:34,384 --> 00:38:39,344
+在做实验时，尽量使用简单的示例，这也是 MIT 的做法。
+try to when you do experiments, use toy examples, and this is what MIT says.
+
+398
+00:38:39,662 --> 00:38:44,132
+MIT 说你需要从小的、简单的例子开始，这样你才能搞清楚发生了什么。
+MIT says you need to start from small toy examples so you can understand what's going on.
+
+399
+00:38:44,384 --> 00:38:48,580
+这比去做那些复杂到让你摸不着头脑的大型实验要好。
+It's better than doing huge experiments complex that you don't know what's going on.
+
+400
+00:38:49,870 --> 00:38:52,624
+GRPO 是我正在使用的算法。
+RLOO is the algorithm I'm using.
+
+401
+00:38:52,910 --> 00:38:55,652
+所以正如我所说，算法本身并不是最重要的。
+So algorithms, as I said, doesn't matter too much.
+
+402
+00:38:56,046 --> 00:38:59,844
+数据才是关键。它能学到什么取决于我们给它的数据。
+Data is what matters. What is it going to learn is based on which data we give it.
+
+403
+00:39:00,782 --> 00:39:02,948
+因为我们的模型比较小，
+So because our model was small,
+
+404
+00:39:03,694 --> 00:39:08,004
+所以我们只能在那些我们训练过的相似任务上提升性能。
+we are able to improve it only around similar tasks that we train it on.
+
+405
+00:39:09,390 --> 00:39:16,324
+但另一方面，如果你有像 OpenAI 那样的庞大模型，他们也会在各种不同的任务上进行训练。
+But on the other hand, if you have big models like OpenAI, they are also going to train it on all the different tasks.
+
+406
+00:39:16,782 --> 00:39:22,820
+所以你可以说，它们可能也只在训练过的任务上有所提升，但由于他们涵盖了所有内容。
+So you could say that they might also only improve it on tasks they trained on, but they train on everything.
+
+407
+00:39:23,470 --> 00:39:32,704
+这就像个笑话：有人抱怨 LLM 只学到了训练数据里的东西，然后另一个人反驳说：
+And this is a joke that people complain that LLMs only learn what it's is in training data, and then the other guy says,
+
+408
+00:39:32,864 --> 00:39:34,820
+那我们就把所有东西都放进训练数据里。
+Then we'll put everything into training data.
+
+409
+00:39:35,342 --> 00:39:37,732
+所以我们有一些操作，比如 Python 操作。
+So we had these operations, Python operations.
+
+410
+00:39:38,190 --> 00:39:48,464
+比如递增、翻倍，这些都是一些 Python 任务，模型在这些方面有所提升。有趣的是，它在这一项上没变好。我不确定原因，可能需要去查一下。
+So increment, double, even these are just some Python tasks, and it improved on these. now, interestingly, it didn't improve on this one. I don't know why, I need to maybe check it.
+
+411
+00:39:48,544 --> 00:39:55,076
+所以，这可能是我代码里的 Bug，或者是 AI 生成的 Bug，或者是我实验中的 Bug，或者是别的什么问题。
+So, so here maybe it's a bug in my code or bug that AI generated or bug in my experiment or something.
+
+412
+00:39:56,078 --> 00:40:00,228
+如果不是 Bug 的话，那情况就更有趣了，但它很可能是个 Bug。
+Or if it's not a bug, then it's even more interesting, but it's probably a bug.
+
+413
+00:40:01,198 --> 00:40:07,904
+至于那些没训练过的任务，它没有提升，甚至可能出现了退步。
+And then ones that it didn't train on, it didn't improve, it may even have regressed.
+
+414
+00:40:08,014 --> 00:40:13,184
+现在，根据我们计算统计显著性的方式，你必须始终保持谨慎。
+Now, depending on how we calculated the statistical significance, you need to always be careful.
+
+415
+00:40:13,582 --> 00:40:17,572
+它真的退步了吗？你的样本量足够吗？你计算正确了吗？
+Did it actually regress? Do you have enough samples? Did you calculate it properly?
+
+416
+00:40:17,966 --> 00:40:24,164
+你有没有多次采样，来查看不同比例下的平均值？
+Did you sample maybe multiple times to see the average around different percentages?
+
+417
+00:40:25,326 --> 00:40:34,464
+所以，之前两个很强的系列出现了退步，因为只有一小块参数空间针对实践中的奖励分布进行了优化。
+So, two previously strong families regressed because only a narrow parameter surface was optimized for the practice reward distribution.
+
+418
+00:40:35,534 --> 00:40:39,620
+但在我们基于环境训练出的内容上，它确实有所提升。
+But it did improve in the things we trained it based on our environment.
+
+419
+00:40:40,590 --> 00:40:46,308
+这意味着你可以教它任何你想教的东西，只要你懂得如何构建环境。
+And this means that you can teach it whatever you want to teach it and know how to construct environments.
+
+420
+00:40:47,342 --> 00:40:51,908
+所以做实验时，你希望一次只改变一个变量。
+So when experimenting, you want to change just one variable at a time.
+
+421
+00:40:52,462 --> 00:41:01,904
+假设你有这些不同的变量，比如奖励机制、群体规模、一次生成的答案数量等，
+So let's say you have all of these different variables like reward, how you're rewarding the group size, how many answers you are generating at once, for example,
+
+422
+00:41:02,064 --> 00:41:03,076
+比如每个提示词生成 8 个。
+eight per prompt.
+
+423
+00:41:03,406 --> 00:41:06,756
+Temperature 是随机性或惩罚，也就是负奖励。
+Temperature is randomness or penalty, negative rewards.
+
+424
+00:41:07,182 --> 00:41:13,508
+所以如果你在做研究，你每次只想改变一个变量，做一个实验。
+So you want to just if you're doing research, you want to do one experiment, one variable per time.
+
+425
+00:41:14,702 --> 00:41:17,316
+在这里，我做了一系列不同的实验。
+Here I did a bunch of different experiments.
+
+426
+00:41:17,742 --> 00:41:24,196
+你看，如果我把群体规模设为 4，它的表现非常好，比群体规模为 16 的还要好。
+You see, if I set, for example, group size 4, it performs very well, better than group size 16.
+
+427
+00:41:25,006 --> 00:41:31,332
+然后 Temperature 为 0.2 更具确定性，随机性更低，表现优于更高随机性的温度值。
+Then temperature 0.2 is more deterministic, less random, performs better than more random temperature.
+
+428
+00:41:32,142 --> 00:41:40,576
+再看这些关于奖励是二元的、比如 0.1 或其他部分奖励，或者没有无效惩罚的实验，
+And then here in these experiments about reward binary, like 0.1 or other partial rewards, or no invalid penalty,
+
+429
+00:41:40,736 --> 00:41:51,300
+以及严厉的无效惩罚，它们在我的数据集上表现都一样。现在你不能只有 5 个，你需要大约 500 或 5000 个这样的样本来获得更好的见解。
+hard invalid penalty, they all perform same on my dataset. Now you don't want to just have five, you want to have like 500 or 5000 of these to get better insights.
+
+430
+00:41:52,462 --> 00:41:54,416
+但看看这个情况。
+But check out this horror.
+
+431
+00:41:55,310 --> 00:42:00,804
+你看在这一组种子下，群体规模 4 优于群体规模 8，
+You see group size 4 one over group size 8 on this seed,
+
+432
+00:42:01,486 --> 00:42:03,812
+但在这一组种子和那一组种子中都输了。
+but lost on this seed and lost on this seed.
+
+433
+00:42:04,494 --> 00:42:11,296
+好，这意味着首先，基于我的设置和训练数据，这并没有产生太大影响。
+Okay, so this is this means that first of all this doesn't have much influence based on my setup, my training data.
+
+434
+00:42:11,598 --> 00:42:15,204
+其次，是的，我们需要更多训练来看到真正的统计显著性。
+Secondly, we yeah, we need to train more to see actual statistical significance.
+
+435
+00:42:17,038 --> 00:42:17,536
+然后
+and then
+
+436
+00:42:18,734 --> 00:42:21,136
+也可能是因为它并不那么重要。
+also it could be that it's not so important.
+
+437
+00:42:22,830 --> 00:42:29,056
+但如果你在训练超大规模模型，哪怕是微小的差异也可能意味着节省大量的资金。
+But if you are training huge models, then even small differences could mean a lot of money saved.
+
+438
+00:42:29,326 --> 00:42:32,356
+你的模型训练得稍微快一点，就能省下很多钱。
+Your model is training a bit faster, which is gonna save a lot of money.
+
+439
+00:42:33,422 --> 00:42:37,476
+这就是为什么当人们审阅你的论文时，他们会要求你在三个种子上进行测试，
+So this is why when people are reviewing your papers, they will tell you to test on three seeds,
+
+440
+00:42:38,190 --> 00:42:45,028
+并且这三个种子都应该有明确的结论。比如在所有三个种子中，你都应该得出群体 4 比群体 8 更好的结论。
+and all three seeds should have a clear conclusion. Like all three seeds, you should say that group four is better than group eight.
+
+441
+00:42:46,126 --> 00:42:50,308
+所以我的这些实验都没有产生统计显著的改进。
+So none of my experiments produce statistically significant improvements.
+
+442
+00:42:50,894 --> 00:42:59,396
+也许我的实验规模太小了，随着你训练更大规模的模型，你会得到越来越清晰的
+Maybe my experiments are very small, maybe as you probably as you train bigger models, you're going to have a clearer and clearer
+
+443
+00:42:59,696 --> 00:43:02,468
+最优参数的具体设置。
+exact setup of parameters that's going to be best.
+
+444
+00:43:03,662 --> 00:43:06,016
+这里我们可以回顾每一个部分。
+And here we can review each part.
+
+445
+00:43:06,256 --> 00:43:16,004
+预训练将教会它写 Python，视觉将教会它把识别出的图像加入到 Transformer 中，也就是进入语言模型中，
+So pre-training is going to teach it to write Python, vision is going to teach it to add recognized images into the transformer, into the language model,
+
+446
+00:43:16,416 --> 00:43:21,380
+而强化学习在我们的案例中将改进增量并实现双倍操作。
+and reinforcement learning will in our case improve the increment and double operations.
+
+447
+00:43:22,638 --> 00:43:30,404
+所以我鼓励你去和 Codex 或者 Claude 聊聊，你可以问它：我在这里可以做哪些实验？
+So I encourage you to just go talk to Codex or a cloud Code, you can tell it, which kind of experiments can I do here?
+
+448
+00:43:31,056 --> 00:43:40,548
+不要太担心规模问题。我只是想让你学会如何做一些实验，学习科学思维，如何正确测量，以及如何得出结论。
+And don't be so concerned about scaling. I just want you to learn how to do some experiments, how to learn scientific thinking, how to measure properly, how to conclude properly.
+
+449
+00:43:40,942 --> 00:43:43,616
+你也可以把你的实验发到社交媒体上。
+So you can post your experiments on social media as well.
+
+450
+00:43:43,854 --> 00:43:50,404
+如果你想成为 AI 研究员，我建议你坚持每天或每周在社交媒体上发布你的实验。
+If you want to become AI researcher, I recommend you just keep posting your experiments every day or every week on social media.
+
+451
+00:43:50,958 --> 00:43:53,828
+持续性比强度更重要。
+Consistency is more important than intensity.
+
+452
+00:43:54,606 --> 00:44:01,476
+如果你连续发了五天然后就停了，那效果就不好；如果每周坚持发一次，一直坚持下去，效果要好得多。
+So if you post five days in a row but then you stop, it's not good. If you post once a week, forever, it's a lot better.
+
+453
+00:44:02,318 --> 00:44:07,876
+而且最好是去做实验，哪怕只是训练几秒钟的模型也好。
+And it's better to just do experiments and train a model for a few seconds.
+
+454
+00:44:08,174 --> 00:44:17,616
+你不想浪费时间去等待几分钟或几个小时。你需要思考并练习如何设计实验、环境和问题。
+You don't want to wait a few minutes, a few hours because it's wasted time. You need to be thinking how to need to be practicing how to design experiments, environments, questions.
+
+455
+00:44:17,902 --> 00:44:24,772
+你没必要去等模型，因为你不可能训练出一个能和那些大公司竞争、让大众使用的模型。
+You don't need to wait for the model because you cannot train a model that's gonna outcompete these companies that people are gonna use.
+
