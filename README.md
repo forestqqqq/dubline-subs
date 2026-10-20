@@ -5,6 +5,7 @@
 | 视频 | 原作者 | 更新 |
 |---|---|---|
 | [From Vibes to Production: Evaluating and Shipping AI Agents That Work 101 — Laurie Voss, Arize AI](medias/WES05/) | AI Engineer | 2026-10-19 |
+| [OpenAI Security: Controlling Models is Now ‘Hell’](medias/E860Q/) | AI Explained | 2026-10-19 |
 | [I Built a Personal AI Agent on a Raspberry Pi — Jeremy Adams, Neo4j](medias/D01GK/) | AI Engineer | 2026-10-19 |
 | [AI Agents Full Course \| From Beginner to Advanced (Complete Guide)](medias/9VZAV/) | The iScale | 2026-10-19 |
 | [Why Your AI Agent Fails in Production (And How to Catch It)](medias/9CYYJ/) | Google Cloud Tech | 2026-10-19 |
