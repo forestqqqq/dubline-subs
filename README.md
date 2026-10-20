@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [Nobel Economist: Where He Sees the Real Money in AI](medias/EYVRD/) | Silicon Valley Girl | 2026-10-20 |
 | [Build & Train a GLM-5.3-Flash Model From Scratch with Python](medias/A6ZYZ/) | freeCodeCamp.org | 2026-10-20 |
 | [The Biggest Launch Since ChatGPT (Muse)](medias/1HRZS/) | Cleo Abram | 2026-10-20 |
 | [From Vibes to Production: Evaluating and Shipping AI Agents That Work 101 — Laurie Voss, Arize AI](medias/WES05/) | AI Engineer | 2026-10-19 |
