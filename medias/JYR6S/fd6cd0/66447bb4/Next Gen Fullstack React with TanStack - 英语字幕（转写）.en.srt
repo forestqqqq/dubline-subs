@@ -1,0 +1,2832 @@
+1
+00:00:00,160 --> 00:00:01,252
+Welcome to syntax.
+
+2
+00:00:01,360 --> 00:00:12,720
+Today we have Tanner Lindsley on. He is the dev behind Tanstack Everything. You probably know Tanstack Query, Tanstack Router, Tanstack Table.
+
+3
+00:00:12,974 --> 00:00:15,360
+We're here to talk to him today about what's going on.
+
+4
+00:00:15,534 --> 00:00:24,640
+Specifically, I really want to know what's going on with the router and Tanstack Start. I want to know his thoughts on server components and where that's at.
+
+5
+00:00:24,880 --> 00:00:35,428
+So the Tanstack stuff has just been ripping through the React ecosystem the last couple of years, and it seems like it's just getting like a what ChatGPT uses Tanstack Query, is that right?
+
+6
+00:00:35,920 --> 00:00:40,164
+yeah, I just found that out. When everybody's making a big deal about switching over to remix, I was like,
+
+7
+00:00:41,070 --> 00:00:49,060
+well, I wonder if they use query. And it turns out that they've been using it for a while and they kept it through the transition. So I'm like, hey, that's pretty cool.
+
+8
+00:00:49,582 --> 00:00:53,220
+You and Tailwind are the only ones that didn't get the axe on that move.
+
+9
+00:00:53,550 --> 00:00:56,480
+Yeah. Hey, that's good. That's a better indication than the Switch, right?
+
+10
+00:00:57,280 --> 00:00:58,160
+That's a good testimonial.
+
+11
+00:00:58,800 --> 00:00:59,172
+Yeah.
+
+12
+00:00:59,886 --> 00:01:00,320
+Yes.
+
+13
+00:01:01,262 --> 00:01:03,044
+So good it didn't get ripped out.
+
+14
+00:01:03,280 --> 00:01:03,920
+Yeah.
+
+15
+00:01:04,590 --> 00:01:11,908
+Can you give us just a quick rundown of who you are and what you do with all your packages for anyone who hasn't listened to the past episodes?
+
+16
+00:01:12,560 --> 00:01:12,880
+yeah.
+
+17
+00:01:12,974 --> 00:01:23,280
+So I started Tan Stack officially I don't know, maybe like eight years ago, but really it's been an outlet for all my open source work that I've been doing over the last 10 years.
+
+18
+00:01:23,406 --> 00:01:30,020
+So I've had a startup called Nozzle over the last 10 years, and most of these packages were built to solve problems there.
+
+19
+00:01:30,382 --> 00:01:39,460
+Whether they were like we looked in the ecosystem and there was nothing there, or we looked in the ecosystem and used things for a while and then outgrew them and thought we could do it better.
+
+20
+00:01:40,000 --> 00:01:43,780
+So that's basically where all the packages in Tanstack came from.
+
+21
+00:01:44,270 --> 00:01:49,348
+And as of six months ago, well, almost six months ago, I went full-time on Tanstack.
+
+22
+00:01:49,520 --> 00:01:49,680
+So
+
+23
+00:01:50,670 --> 00:01:51,360
+yeah. Wow.
+
+24
+00:01:51,822 --> 00:01:56,080
+That's odd because you were working at Nozzle, or that was your company, right?
+
+25
+00:01:56,240 --> 00:01:56,612
+Mm-hmm.
+
+26
+00:01:57,200 --> 00:02:02,532
+And that was some pretty heavy, like data heavy UIs, right?
+
+27
+00:02:02,800 --> 00:02:05,280
+Yeah, tons of data heavy everything.
+
+28
+00:02:05,518 --> 00:02:15,440
+Admin and management screens were were basically very app like just for like one screen. So lots of tables, lots of charting.
+
+29
+00:02:15,520 --> 00:02:19,360
+We had data visualization for our admin screens, if that gives you any idea.
+
+30
+00:02:19,886 --> 00:02:22,148
+Like hey, this is pretty intense stuff.
+
+31
+00:02:22,542 --> 00:02:24,164
+Yeah, it was crazy.
+
+32
+00:02:24,718 --> 00:02:28,400
+Well, that's awesome. So I didn't realize that you were were full-time on it.
+
+33
+00:02:28,480 --> 00:02:34,916
+I thought maybe you you were, because I've I've seen everything new come out, but uh that's great to hear that you are full-time on this.
+
+34
+00:02:35,280 --> 00:02:38,148
+Let's talk about like React in general.
+
+35
+00:02:38,320 --> 00:02:46,640
+Like uh the whole ecosystem in the last, I don't know, maybe six months, a year has been kind of thrashy, I guess.
+
+36
+00:02:46,800 --> 00:02:53,760
+Is just like like obviously next move to to server components, and some people are stoked about that, some people are not stoked about that,
+
+37
+00:02:53,840 --> 00:02:59,120
+and people are moving over to remix, and then remix is moving to React router, you know?
+
+38
+00:02:59,342 --> 00:03:06,660
+Yeah, and then there's there's the Tanstack stuff, which is you're working on a like a whole framework called Tanstack Start. Is that true?
+
+39
+00:03:06,960 --> 00:03:07,680
+That is true.
+
+40
+00:03:08,078 --> 00:03:10,400
+So what is it in technical terms?
+
+41
+00:03:10,560 --> 00:03:12,100
+Tanstack start is like
+
+42
+00:03:12,800 --> 00:03:15,268
+95% Tanstack router,
+
+43
+00:03:15,950 --> 00:03:20,100
+and then this little layer around it for server-side stuff.
+
+44
+00:03:20,400 --> 00:03:22,276
+So it's powered by Vinci,
+
+45
+00:03:23,086 --> 00:03:26,640
+which is built by Nikhil Sarof, which is powered by Nitro.
+
+46
+00:03:27,246 --> 00:03:31,460
+So if you if you go all the way down, it's kind of Nitro and VIT at the bottom.
+
+47
+00:03:31,760 --> 00:03:32,080
+Okay.
+
+48
+00:03:32,430 --> 00:03:39,920
+But up where we're we're exposing it, so you get an SSR entry point for your app that's very convenient and very automatic.
+
+49
+00:03:40,000 --> 00:03:41,668
+You really don't need to do anything with it at all.
+
+50
+00:03:41,934 --> 00:03:49,280
+And then you get server functions like RPCs, API routes, that kind of stuff around it. So the ability to do server only things.
+
+51
+00:03:49,582 --> 00:03:57,360
+And other than that, and like the bundling and deployment stuff that you get with Nitro, everything else is just isomorphic Tan stack router.
+
+52
+00:03:58,158 --> 00:03:59,940
+Unless you're doing something server-side only.
+
+53
+00:04:00,398 --> 00:04:01,760
+And what is Nitro?
+
+54
+00:04:02,160 --> 00:04:10,276
+I don't even know that much about Nitro, to be honest, because it's proxied by Vinci, but Nitro is the utility that powers Nuxt.
+
+55
+00:04:10,560 --> 00:04:12,868
+And it was built by the NJS team.
+
+56
+00:04:13,600 --> 00:04:28,196
+And basically they handle all of the server-side stuff for you. So they have a package called H3, which does request response normalization between all of the different deployment targets.
+
+57
+00:04:28,800 --> 00:04:38,400
+They have bundling things for you know, targeting Vit and special plugins that help you do things like server functions and extraction
+
+58
+00:04:38,638 --> 00:04:39,428
+API routes,
+
+59
+00:04:40,270 --> 00:04:41,284
+a bunch of cool tools.
+
+60
+00:04:41,902 --> 00:04:49,920
+But the one thing that was lacking was that environments API that Vit has been working on, which Vinci
+
+61
+00:04:50,160 --> 00:04:56,960
+kind of stepped in much earlier and said, hey, we're going to simulate this environments setup using Nitro.
+
+62
+00:04:57,518 --> 00:05:04,068
+And Vinci will probably still stick around, even though the environments API is coming out, but that's kind of how it all came together.
+
+63
+00:05:04,974 --> 00:05:14,480
+So to explain how easy it is with Nitro, like if I wanted to change where I was deploying my apps, I could just go into my config and change one string
+
+64
+00:05:14,720 --> 00:05:21,440
+from like Cloudflare to Vercel. And then everything just builds and deploys differently. You don't have to import and change anything.
+
+65
+00:05:22,094 --> 00:05:28,960
+It's pretty good. Yeah, the Svelte Kit adapter pattern that uh it's one of my favorite things about using platforms like that is you don't
+
+66
+00:05:29,360 --> 00:05:32,160
+always know what your application is going to be when you you start working on it.
+
+67
+00:05:32,366 --> 00:05:37,280
+Yeah. I I wonder like this, you know, the unjs and the nitro stuff and the Vinci.
+
+68
+00:05:37,600 --> 00:05:38,000
+Vinci.
+
+69
+00:05:38,254 --> 00:05:40,820
+Yeah. Even though it's Vinci, I think it's V-I-N X,-I.
+
+70
+00:05:41,486 --> 00:05:45,600
+Yeah, all this stuff is so criminally underlooked in the React ecosystem.
+
+71
+00:05:45,870 --> 00:05:49,360
+Why do you think that is? Because I know it's big in Vueland with Next.
+
+72
+00:05:49,934 --> 00:05:52,800
+The React ecosystem is just dominated right now by Next.
+
+73
+00:05:53,070 --> 00:06:00,960
+And then anything that's left over, like the shavings from the Next Feast, go to Remix or maybe Redwood or something like that. I don't know.
+
+74
+00:06:01,166 --> 00:06:12,068
+Like ever since Create React app was deprecated, it just feels like everyone just stopped caring about like how do I abstract, how do I do all this stuff? They just want somebody to do it for them.
+
+75
+00:06:12,622 --> 00:06:17,520
+And Next.js just like expanded into that role very quickly.
+
+76
+00:06:17,902 --> 00:06:27,040
+And this V environments API, does this mean I've not heard of this before. Is this mean that we have VT for the server then, like server-side?
+
+77
+00:06:27,440 --> 00:06:28,000
+Kind of.
+
+78
+00:06:28,334 --> 00:06:29,520
+The environments API
+
+79
+00:06:30,320 --> 00:06:39,108
+has a lot of things, but one of the more impressive things is that it can actually simulate the right cloud environment that you're gonna deploy to in development.
+
+80
+00:06:39,534 --> 00:06:47,520
+So it will run with worker D from Cloudflare in dev mode if it thinks you're going to dev.
+
+81
+00:06:47,840 --> 00:06:55,972
+So it was just kind of that missing piece of like, oh yeah, you can bundle with Vite, but it was very unaware of where you were putting things.
+
+82
+00:06:57,040 --> 00:07:01,732
+but now it's becoming a little more aware of your like deployment targets.
+
+83
+00:07:02,638 --> 00:07:13,800
+Oh, interesting. And it'll literally run on node, bun, dino, worker D, all the 11. I don't even know. I have a whole talk on these different runtimes.
+
+84
+00:07:14,880 --> 00:07:20,160
+I don't know which ones specifically, but I know that many of those are are included or on their roadmap.
+
+85
+00:07:20,320 --> 00:07:20,800
+So okay.
+
+86
+00:07:21,198 --> 00:07:27,908
+So when you were when you were planning on doing something like this, was VT always going to be the plan or did you have any other options in mind?
+
+87
+00:07:28,238 --> 00:07:36,800
+Uh yeah, as far as as long as I'd been doing it, Vit was always the plan because I've been using VT for years. Like I got off Create React app a long, long, long time ago.
+
+88
+00:07:37,134 --> 00:07:42,116
+And I was like, VT's where it's at. As soon as the VT React plugin came out, I was like, okay, I'm moving over.
+
+89
+00:07:42,542 --> 00:07:50,724
+And since we were doing just client-side SPA stuff, it was a really easy lift. It was just like ditch all this webpack stuff and use all the VT stuff.
+
+90
+00:07:50,990 --> 00:07:55,920
+There were some things with like CSS modules and things like that that we had to a little bit of growing pains.
+
+91
+00:07:56,000 --> 00:07:57,188
+But once it was done, it was done.
+
+92
+00:07:57,582 --> 00:08:02,372
+So I've been using VT for a long time, and that's always kind of been the intention is moving to Vit.
+
+93
+00:08:03,360 --> 00:08:03,680
+Okay.
+
+94
+00:08:04,238 --> 00:08:05,680
+So we have to ask the
+
+95
+00:08:06,638 --> 00:08:09,124
+TanSac start stuff is going to be doing server side.
+
+96
+00:08:09,392 --> 00:08:14,672
+Is that React server components or is it your own server implementation?
+
+97
+00:08:15,152 --> 00:08:15,684
+Yes.
+
+98
+00:08:18,032 --> 00:08:20,548
+What is it? What are your thoughts on server components?
+
+99
+00:08:20,992 --> 00:08:25,792
+So my thoughts are very cool for specific use cases.
+
+100
+00:08:26,032 --> 00:08:26,756
+If you have
+
+101
+00:08:27,438 --> 00:08:37,952
+a component bundle that can get out of control really quickly with like all the permutations and like all the different variations of the client bundle that you can ship,
+
+102
+00:08:38,032 --> 00:08:46,912
+if that starts getting out of control and you start giving way too much client to the users and they're using like a tiny, tiny portion, that's a great, you know, use case for.
+
+103
+00:08:46,992 --> 00:08:54,148
+I mean, we're talking about like, you know, meta Facebook timeline stuff, like some of the reasons why they why they built it in the first place.
+
+104
+00:08:54,606 --> 00:09:03,632
+Um, or like, you know, what a lot of people would love to do is I think ditch all of that bundle that you have to ship to the client for things like markdown and and
+
+105
+00:09:04,046 --> 00:09:08,836
+parsing and ASTs and doing and just do that on the server, ship down the HTML.
+
+106
+00:09:09,232 --> 00:09:09,552
+Yeah.
+
+107
+00:09:09,806 --> 00:09:14,700
+But I do think that there's been way too much over prescription
+
+108
+00:09:15,632 --> 00:09:20,132
+and like over-road mapping and overselling RSCs is like the total future.
+
+109
+00:09:20,590 --> 00:09:25,872
+I think part of that is Next.js's interpretation of React server components in the app router.
+
+110
+00:09:26,254 --> 00:09:34,752
+And I think some of that is also React itself, because I, for one, don't think that I would move things to be like React
+
+111
+00:09:34,912 --> 00:09:36,832
+server component first model.
+
+112
+00:09:37,552 --> 00:09:39,392
+I have plans for them.
+
+113
+00:09:39,534 --> 00:09:45,232
+So, but we should definitely get into how I how we're going to support them and how um I interpret them.
+
+114
+00:09:45,614 --> 00:09:48,352
+So let's do that. All right. Okay, let's just do it. Yeah. Let's do it.
+
+115
+00:09:48,752 --> 00:09:52,260
+I said before that uh most of Start is Tanstack Router.
+
+116
+00:09:52,832 --> 00:10:01,072
+And I think the thing that makes Tanstack router stand out among kind of other routing solutions is that Next.js
+
+117
+00:10:01,232 --> 00:10:03,472
+is just server first. Like that's just what it is.
+
+118
+00:10:03,758 --> 00:10:10,948
+They're approaching things server first, and the client side SPA stuff routing is just kind of all controlled by the framework.
+
+119
+00:10:11,312 --> 00:10:18,352
+But it's very, I think it would be very weird to use Next.js if all you were doing is doing like a client-side application.
+
+120
+00:10:18,672 --> 00:10:28,036
+I tried that and it was hard. it was like painful. Yeah. I think you would end up basically just bailing out into something like React Router or TanStack Router if you're going to do that.
+
+121
+00:10:28,192 --> 00:10:39,620
+So I feel like that's out for client-side apps. And then there's React Router, which has been really great over the years, just kind of a stone in the arch of React.
+
+122
+00:10:39,950 --> 00:10:42,592
+But me personally, I've just wanted something better for a really long time.
+
+123
+00:10:42,752 --> 00:10:48,164
+So that's why I built my router and it does a lot of similar things, but it also does some really cool things that it doesn't do.
+
+124
+00:10:48,590 --> 00:10:53,732
+But one of the things is that I built Tanstack Router to be client-side only first.
+
+125
+00:10:54,318 --> 00:11:00,196
+I wanted it to be isomorphic. And you could, even before we started working on Start, you could do SSR with Tanstack Router.
+
+126
+00:11:00,592 --> 00:11:07,152
+You just render your app on the server and ship the HTML down, just like what we've been doing for a long time.
+
+127
+00:11:07,438 --> 00:11:14,352
+And Tanstack Start doesn't really change that notion. It just adds in the ability to do server-only things.
+
+128
+00:11:14,512 --> 00:11:24,004
+So when we talk about the ability to do streaming, streamed hydration, when we talk about being able to do like deferred
+
+129
+00:11:24,432 --> 00:11:32,032
+promise streaming from the server down to the client, like that's all just Tanstack router. We don't need start to do that.
+
+130
+00:11:32,430 --> 00:11:33,828
+Start's really just kind of that.
+
+131
+00:11:34,158 --> 00:11:37,632
+How do we do things only on the server and how do we deploy essentially?
+
+132
+00:11:37,934 --> 00:11:42,020
+That makes Tanstack start and router very client side first.
+
+133
+00:11:42,574 --> 00:11:50,912
+And and not just like we can do it, like React Router and Remix, they're like, oh, we have client side client loaders, right? Like an SPA mode.
+
+134
+00:11:51,072 --> 00:11:55,364
+No, Tanstack stuff is like client side out of the gate.
+
+135
+00:11:55,792 --> 00:12:06,032
+And then you instead of being server side first and like opting into the client with like use client, like that's kind of where Nexus take is like, oh, we have it's all server
+
+136
+00:12:06,192 --> 00:12:08,228
+first, and then you opt into the client where you need it.
+
+137
+00:12:08,592 --> 00:12:10,752
+This is more like, no, we are running,
+
+138
+00:12:11,552 --> 00:12:17,988
+an SPA. We're running client-side routing, we're doing full hydration, and that's going to be what it is out of the box.
+
+139
+00:12:18,382 --> 00:12:25,604
+And then if you want to opt into these server side things, including server components, you opt into them from a client side first approach.
+
+140
+00:12:26,192 --> 00:12:33,632
+So I think that sets it apart pretty well from the other routers, and remix kind of sits in the middle a little bit.
+
+141
+00:12:33,902 --> 00:12:40,292
+And I think that paints uh that that's kind of like the base for explaining how we're going to interpret server components.
+
+142
+00:12:41,230 --> 00:12:42,736
+Do you have any questions so far?
+
+143
+00:12:43,310 --> 00:12:55,056
+I think like that will probably solve a lot of the pain that people are having. Um, because I, I feel like a lot of the hate against server components is simply because
+
+144
+00:12:55,950 --> 00:13:01,696
+you try them out, and then it's just nothing but the red errors of what you can and cannot do.
+
+145
+00:13:01,934 --> 00:13:10,564
+and people are frustrated because all of a sudden you move to next and everything is server by default. and then you —I, can't put this in this, but you're allowed to put this in this. And
+
+146
+00:13:11,534 --> 00:13:16,292
+it's hard, especially when people have large apps that are many, many thousands of lines of code.
+
+147
+00:13:16,750 --> 00:13:19,332
+The reality is that most successful apps
+
+148
+00:13:19,982 --> 00:13:21,892
+in the React ecosystem today
+
+149
+00:13:22,976 --> 00:13:24,804
+have already existed for a long time.
+
+150
+00:13:25,934 --> 00:13:36,036
+There's a lot of new Greenfield apps being built every day as well, and some of them will graduate to, large production scale applications that live on for a long time.
+
+151
+00:13:36,416 --> 00:13:43,140
+But the bulk of enterprise applications and applications that are surviving well are coming from existing code bases.
+
+152
+00:13:43,662 --> 00:13:50,308
+So telling everybody they need to just totally turn their application upside down is a really hard pill to swallow.
+
+153
+00:13:50,816 --> 00:13:55,524
+and they just said, you know what, there's pages router and then there's app router, and it's just like a total migration.
+
+154
+00:13:56,014 --> 00:14:02,176
+And there's gimmicky things where they're like, oh, you know what? You can just do use client at the top, and you're back to pages.
+
+155
+00:14:02,656 --> 00:14:04,324
+But you're not back to pages router.
+
+156
+00:14:04,622 --> 00:14:05,376
+It's not the same.
+
+157
+00:14:05,678 --> 00:14:14,416
+So there it's really like all roads lead to migrations, and I think that's where everybody's a little uneasy about the React ecosystem right now.
+
+158
+00:14:14,656 --> 00:14:22,256
+It just seems like every corner you go, everywhere you go, it's like, oh, you got to migrate to get here, or you know you're gonna have to migrate soon anyway.
+
+159
+00:14:22,446 --> 00:14:23,108
+That's scary.
+
+160
+00:14:23,630 --> 00:14:35,012
+So I wanted to build something that felt like I could take most, most, if not all, of my existing, you know, client-side only apps or even server-side stuff too, and move it into this new framework
+
+161
+00:14:35,246 --> 00:14:37,456
+and really not have to change much.
+
+162
+00:14:37,806 --> 00:14:46,948
+I'm still going to do waterfall client-side data fetching and uh, you know, preload some things here and there, and it's going to be great because it'll be client-side only.
+
+163
+00:14:47,216 --> 00:14:55,652
+But then you can also opt into server-side stuff and say, okay, I'm going to build this very progressively enhanced, you know, HTML-driven experience.
+
+164
+00:14:56,336 --> 00:15:06,884
+And the whole goal was to be able to give something that's very familiar, very tried and true as far as patterns go, with the most powerful router that I can design,
+
+165
+00:15:07,216 --> 00:15:15,908
+with the best data fetching primitives like React Query that I think are out there, and then contain the blast radius of server components
+
+166
+00:15:16,416 --> 00:15:18,896
+to these little boxes, right?
+
+167
+00:15:19,342 --> 00:15:27,456
+And just say, okay, if you want to opt in, here is your blast radius, and the rest of your app will still function normally,
+
+168
+00:15:27,616 --> 00:15:31,696
+but once you go in there, just know that there be dragons, right?
+
+169
+00:15:31,856 --> 00:15:32,324
+Yeah.
+
+170
+00:15:32,656 --> 00:15:37,696
+Why why focus on client side if if if everyone's doing server side? You gotta do server side now.
+
+171
+00:15:37,966 --> 00:15:40,016
+Yeah, didn't you hear Laravel's is it now?
+
+172
+00:15:40,576 --> 00:15:41,696
+Yeah, yeah, I heard.
+
+173
+00:15:42,286 --> 00:15:45,060
+HDMI. Yeah, it's it's hot, so yeah.
+
+174
+00:15:45,518 --> 00:15:50,020
+It's okay. I I just I I love building applications this way, to be honest.
+
+175
+00:15:50,478 --> 00:15:59,696
+Yeah, it is so much fun, and there's a reason that I've really enjoyed the last 10 years of developing with React because it's been so highly interactive,
+
+176
+00:15:59,936 --> 00:16:04,900
+and it's easy to build very interactive UIs when you're on the client.
+
+177
+00:16:05,614 --> 00:16:17,284
+You know, I'm not I'm not targeting zero JS experiences. Like I want to do fancy applications and do fun things. So that's kind of the niche I'm trying to carve out for TanStack Router.
+
+178
+00:16:17,536 --> 00:16:18,308
+I love that. Yeah.
+
+179
+00:16:18,926 --> 00:16:22,308
+If you don't have any questions, I'd love to tell you how they actually are going to work.
+
+180
+00:16:22,734 --> 00:16:26,176
+Yes, please keep going. This is this is why we want you on.
+
+181
+00:16:27,136 --> 00:16:28,260
+People don't want to hear us.
+
+182
+00:16:29,134 --> 00:16:31,140
+you server, the directive. Yeah.
+
+183
+00:16:32,398 --> 00:16:33,028
+Very cool.
+
+184
+00:16:33,904 --> 00:16:34,692
+I hate it.
+
+185
+00:16:35,086 --> 00:16:36,548
+I just absolutely despise it.
+
+186
+00:16:37,824 --> 00:16:43,076
+Because it's just so it's it's like a wooden club.
+
+187
+00:16:43,374 --> 00:16:44,836
+It's just so blunt.
+
+188
+00:16:45,582 --> 00:16:45,924
+Yeah.
+
+189
+00:16:46,224 --> 00:16:52,384
+And and it's inflexible. So you call you server, and it's like so much magic is happening.
+
+190
+00:16:52,750 --> 00:16:59,364
+I mean, there's going to be magic, but there is a lot of magic and like opinion behind this directive that you put in your functions.
+
+191
+00:16:59,918 --> 00:17:04,064
+You have no idea how that thing is getting extracted and called behind the scenes.
+
+192
+00:17:04,238 --> 00:17:05,744
+Yeah, it turns into an RPC.
+
+193
+00:17:05,904 --> 00:17:14,436
+But I mean, eventually, if you unwrap things hard and like long enough and deep enough, you'll have some enterprise client that's like, how do I modify headers?
+
+194
+00:17:14,544 --> 00:17:16,064
+What what is it sending a post?
+
+195
+00:17:16,334 --> 00:17:19,652
+Is it sending a get, a put, you know, a patch? Can I do deletes?
+
+196
+00:17:20,014 --> 00:17:24,964
+How can I do all these things? So I just knew that use server as a cool primitive, very cool.
+
+197
+00:17:25,294 --> 00:17:26,064
+We don't use it.
+
+198
+00:17:26,286 --> 00:17:27,264
+I don't recommend using it.
+
+199
+00:17:27,584 --> 00:17:28,224
+I support it.
+
+200
+00:17:28,366 --> 00:17:29,572
+If you want to do that, go ahead.
+
+201
+00:17:29,902 --> 00:17:30,596
+Use a club.
+
+202
+00:17:30,798 --> 00:17:33,024
+But I would rather supply people with better tools.
+
+203
+00:17:33,184 --> 00:17:35,908
+So we have something called create server function.
+
+204
+00:17:36,784 --> 00:17:46,820
+And it's a higher order function that you you call and it's very much like use query in a way where you pass it a function that you want to wrap up in the server.
+
+205
+00:17:47,584 --> 00:17:54,224
+but then you can also pass it some other things as well. So if you don't pass anything else, you just give it a function, it's going to do the same thing as use server.
+
+206
+00:17:54,318 --> 00:17:55,748
+It's going to extract that function out.
+
+207
+00:17:56,110 --> 00:18:00,996
+It's single argument, so it doesn't do, you know, we can't pass as many arguments as you want.
+
+208
+00:18:01,678 --> 00:18:06,788
+The reason being that we want to reserve slots for options for like meta options to send through.
+
+209
+00:18:07,310 --> 00:18:09,700
+So it's single argument, it's fully type safe.
+
+210
+00:18:10,062 --> 00:18:17,060
+Um, and it also gives us a position to get in the middle with like middleware and also middleware that might adjust types.
+
+211
+00:18:17,390 --> 00:18:25,220
+A good one that I'm gonna throw out maybe a little earlier in this discussion is if you return. So here's the thing. I'm just gonna give it away.
+
+212
+00:18:25,774 --> 00:18:27,824
+Yeah, you call a server function.
+
+213
+00:18:28,046 --> 00:18:31,556
+So then it gives you back this function, right? And if you're on the server and you call it,
+
+214
+00:18:32,270 --> 00:18:33,796
+it's just like an identity thing.
+
+215
+00:18:34,318 --> 00:18:34,944
+It just calls it.
+
+216
+00:18:35,214 --> 00:18:37,860
+But we normalize things like middleware and all this other stuff.
+
+217
+00:18:37,998 --> 00:18:45,956
+And we actually create fake request responses on the server so that we know that you're getting the same experience between client and server.
+
+218
+00:18:46,304 --> 00:18:52,516
+And then what we do is if you return JSON, you get JSON, you return a request and response, you get a request and response.
+
+219
+00:18:52,944 --> 00:18:55,584
+You can return readable streams too.
+
+220
+00:18:55,918 --> 00:18:59,140
+You can return a lot of cool things in these server functions.
+
+221
+00:18:59,534 --> 00:19:07,236
+But what's cool is if you want to have a React server component, all you do is return React Elements or JSX.
+
+222
+00:19:07,790 --> 00:19:09,824
+Oh yeah, that makes so much sense.
+
+223
+00:19:09,934 --> 00:19:19,424
+Yeah. Right. And you know, hats off to like the remix team, like when Ryan was demoing at uh React Conf and he's like, you just move it to the loader.
+
+224
+00:19:19,662 --> 00:19:25,444
+And I'm like, this is great, this is a wonderful way to prove out what we were what we believed was going to be the way to do it.
+
+225
+00:19:25,806 --> 00:19:34,064
+But the difference is that we don't just have one loader location where you can do this, you can create as many server functions as you want, and they're just functions
+
+226
+00:19:34,862 --> 00:19:40,868
+because at the heart of it, I believe that server components are no different than any other async data source.
+
+227
+00:19:41,358 --> 00:19:47,184
+They just happen to be a readable stream instead of a promise because you could do some cool suspensey things.
+
+228
+00:19:47,344 --> 00:19:55,344
+Oh so there's in your mind, there's no difference between like an API endpoint that returns a bunch of data
+
+229
+00:19:55,664 --> 00:20:00,864
+and a URL that returns a server rendered component.
+
+230
+00:20:01,504 --> 00:20:02,304
+What is the difference?
+
+231
+00:20:02,464 --> 00:20:07,876
+The difference is that the data is something that is a little more granular that you have to put together on your own.
+
+232
+00:20:08,304 --> 00:20:12,704
+And the RSC payload is just something that's been put together for you already.
+
+233
+00:20:13,038 --> 00:20:17,284
+Some of the work has been partially applied, and then you're just kind of finishing it out on the client.
+
+234
+00:20:17,710 --> 00:20:19,556
+I I it's still data though.
+
+235
+00:20:19,744 --> 00:20:23,744
+Now, this is where I like to tell people say, you know what?
+
+236
+00:20:24,142 --> 00:20:25,940
+React server components in Next.js,
+
+237
+00:20:26,864 --> 00:20:30,944
+what happens when something changes from a mutation? What do you have to do?
+
+238
+00:20:31,630 --> 00:20:33,360
+Everybody knows this. You have to revalidate.
+
+239
+00:20:33,520 --> 00:20:34,500
+You have to revalidate.
+
+240
+00:20:34,800 --> 00:20:38,564
+Well, where's another place that talks about revalidation?
+
+241
+00:20:39,120 --> 00:20:39,600
+Yeah.
+
+242
+00:20:39,920 --> 00:20:42,000
+Oh, TanStack query.
+
+243
+00:20:42,286 --> 00:20:45,200
+Oh, boys, he's in it. He's he's got the whole thing.
+
+244
+00:20:45,680 --> 00:20:45,920
+So
+
+245
+00:20:46,720 --> 00:20:47,760
+listen, listen to this.
+
+246
+00:20:47,950 --> 00:20:55,908
+It's asynchronous data, which means it's asynchronous state. You're put you're capturing in one moment on the server, you're capturing some state.
+
+247
+00:20:56,430 --> 00:21:04,868
+You're partially applying it to some components, to some elements, and then you're shipping that partially applied JSX down to the down to the client to finish out the job,
+
+248
+00:21:05,200 --> 00:21:05,520
+right?
+
+249
+00:21:05,870 --> 00:21:14,820
+It is no different than managing any other asynchronous state. You're still going to have to worry about every single one of those bullet points that's on the front page of React query.
+
+250
+00:21:15,360 --> 00:21:16,292
+Stale data.
+
+251
+00:21:17,200 --> 00:21:18,560
+When could it be invalidated?
+
+252
+00:21:18,800 --> 00:21:20,000
+How should we cache it?
+
+253
+00:21:20,238 --> 00:21:22,916
+How are we going to do uh stale while revalidate?
+
+254
+00:21:23,086 --> 00:21:25,760
+And I'm even, guys, I'm even getting into stuff like
+
+255
+00:21:26,720 --> 00:21:28,356
+how can I cache it locally?
+
+256
+00:21:28,750 --> 00:21:33,600
+That's what I want. Yes. Yes, that's what I want. Yes. Local storage or index TV or something like that.
+
+257
+00:21:33,998 --> 00:21:35,332
+And we can't have done it.
+
+258
+00:21:35,520 --> 00:21:42,788
+Like I have done experimental versions of router and query where we can understand readable streams.
+
+259
+00:21:43,440 --> 00:21:53,764
+And I mean, because at the end of the day, if if you get the readable stream itself instead of the element, it's just a stream of payload text. You know, you can do whatever you want with that. So
+
+260
+00:21:54,798 --> 00:22:02,244
+that that's a big tangent, but just I feel like when I realized all of that, it unlocked a lot for me on how to approach server components.
+
+261
+00:22:02,510 --> 00:22:09,316
+All of a sudden I realized that I already have some of the best tools at my disposal to manage asynchronous state.
+
+262
+00:22:09,760 --> 00:22:11,492
+Why reinvent all of this?
+
+263
+00:22:11,840 --> 00:22:15,652
+Let's just make our stuff understand readable streams and be done.
+
+264
+00:22:16,240 --> 00:22:16,880
+Wow.
+
+265
+00:22:17,070 --> 00:22:21,440
+That's incredibly refreshing. I feel like my mind is blown here.
+
+266
+00:22:21,760 --> 00:22:22,640
+I have one more.
+
+267
+00:22:22,894 --> 00:22:28,036
+Everybody's always talking like, oh, you have to reinvalidate, reinvalidate everything with Next.js, right?
+
+268
+00:22:28,320 --> 00:22:30,560
+That's because the root is an RSC.
+
+269
+00:22:30,734 --> 00:22:34,852
+And that's why I just think the rooted RSC approach is not the right one.
+
+270
+00:22:35,150 --> 00:22:43,268
+You what you what you want to have is leaf nodes and composable RSCs that you can you can say, you know what, uh we've matched all of our routes.
+
+271
+00:22:43,694 --> 00:22:47,524
+We maybe we're doing nested routes, so we have like three or four nested routes that we've matched.
+
+272
+00:22:47,920 --> 00:22:55,940
+Each one of those could go off and trigger an RSC in the, you know, at the same time in parallel, all four of them, and then come back.
+
+273
+00:22:56,560 --> 00:23:04,836
+and then if inside of those RSCs you're using something like Outlet, then you can just compose those RSCs inside of each other.
+
+274
+00:23:05,262 --> 00:23:14,852
+And what's cool is if you manage them with something that can do granular invalidation, like React query, then you can set stale times and you can say, hey, you know what?
+
+275
+00:23:15,310 --> 00:23:18,640
+Uh this RSC is just always going to be out of date.
+
+276
+00:23:18,766 --> 00:23:25,360
+So let's always do stale while we validate, just always get it from the server. Or, you know, we only want to do this RSC every 10 minutes or something like that.
+
+277
+00:23:25,440 --> 00:23:28,740
+You get all those granular invalidation controls
+
+278
+00:23:29,390 --> 00:23:31,012
+and even for mutations.
+
+279
+00:23:31,406 --> 00:23:35,040
+So now your mutation keys apply to your RSCs as well.
+
+280
+00:23:35,534 --> 00:23:46,800
+So you can say, oh, you know what? This RSC consumes variables for this post ID and this user ID or something like that, right? Holy smokes. I know. Yeah, I'm just not I'm nodding so hard over here.
+
+281
+00:23:46,880 --> 00:23:54,372
+Yeah, so just continue. Anytime any of those variables change, your query is going to re-execute and it's going to call the server function and give you some new data.
+
+282
+00:23:54,960 --> 00:24:03,012
+Or you do an invalidation and you're like, hey, instead of blowing away our entire react, you know, tree of the app,
+
+283
+00:24:03,246 --> 00:24:07,040
+let's just invalidate things that have to do with invoices.
+
+284
+00:24:07,470 --> 00:24:14,404
+So you invalidate invoices and any RSCs that have to do with invoices go and revalidate and come back instead of your entire application.
+
+285
+00:24:14,926 --> 00:24:22,916
+So you're saying that Tanstack Query will be able to invalidate based on the server headers
+
+286
+00:24:23,150 --> 00:24:32,240
+that come from the server, and the other way around where you could refetch a server resource if Tanstack Query deems that it, like
+
+287
+00:24:32,400 --> 00:24:35,680
+whatever rules you have in Tanstack Query to, to refetch that data.
+
+288
+00:24:36,000 --> 00:24:36,356
+Yeah.
+
+289
+00:24:36,878 --> 00:24:40,228
+I mean you've been able to you've been able to do headers for a while now.
+
+290
+00:24:40,590 --> 00:24:42,640
+Um it's nothing it's nothing new there.
+
+291
+00:24:43,566 --> 00:24:52,496
+Oh, okay. So already can do so so for anyone, anyone maybe a bit lost, is like when you send a response from the server, um,
+
+292
+00:24:52,736 --> 00:24:58,416
+you can set expires headers on it or stale while validate or any of those. We have a bunch of shows on them.
+
+293
+00:24:58,734 --> 00:25:03,812
+And TanSecQuery will be able to to track those and and refetch them as needed.
+
+294
+00:25:04,206 --> 00:25:04,580
+Right.
+
+295
+00:25:05,262 --> 00:25:07,856
+And here there is a catch. There's always a catch, right?
+
+296
+00:25:07,936 --> 00:25:18,404
+And the catch is that um you have to move the utilities for doing create from fetch away from your APIs and towards your rendering.
+
+297
+00:25:19,150 --> 00:25:23,780
+Because you'll be getting readable streams back and passing readable streams around.
+
+298
+00:25:24,176 --> 00:25:31,136
+but then when it comes time to render the actual elements, that's when you want to apply the create from fetch, right?
+
+299
+00:25:31,278 --> 00:25:38,980
+Because as soon as you apply create from fetch, you've got weird element syntax, all this stuff. Nothing that is portable, nothing that's cacheable.
+
+300
+00:25:39,696 --> 00:25:50,436
+so for me, I'm always like, let's let's keep these readable streams as just plain readable stream with text as long as we possibly can until we need to turn them into something that's not portable.
+
+301
+00:25:51,136 --> 00:25:58,948
+Oh, and this is just a random thought, but does that mean we could potentially have like server state
+
+302
+00:25:59,630 --> 00:26:01,412
+that is synced to the client?
+
+303
+00:26:02,256 --> 00:26:02,628
+Yeah.
+
+304
+00:26:03,406 --> 00:26:08,096
+Yeah, like like if I mean I mean you can do that right now with just JSON.
+
+305
+00:26:08,526 --> 00:26:10,244
+So yeah, yeah, that's true.
+
+306
+00:26:10,638 --> 00:26:10,976
+Cool.
+
+307
+00:26:11,216 --> 00:26:13,296
+Man, I'm really excited about this.
+
+308
+00:26:14,736 --> 00:26:17,456
+Here's another fun one. And you know, that's React Query.
+
+309
+00:26:17,710 --> 00:26:20,484
+People are like, well, what does React Query? have to do a Tanstack router and start.
+
+310
+00:26:20,816 --> 00:26:23,524
+Well, we built it so that it integrates seamlessly.
+
+311
+00:26:24,206 --> 00:26:28,068
+So you pass one little bridge function at the top.
+
+312
+00:26:28,398 --> 00:26:32,164
+You take your router and you take your query client, you marry them together, and you're done.
+
+313
+00:26:32,896 --> 00:26:43,940
+but even if you don't do that, even if you just use the router, 10 people forget easily that Tanstack Router has a built-in miniaturized version of Tanstack Query inside of it.
+
+314
+00:26:44,590 --> 00:26:52,804
+So it can do basically all this, all most of the same things that React Query can do, but not everything, right? It doesn't have like infinite queries and pagination, all this other stuff.
+
+315
+00:26:53,376 --> 00:26:55,556
+But it does have a cache.
+
+316
+00:26:56,096 --> 00:27:04,976
+And like Remix and Next.js, they kind of have these ideas of a cache in their routers, but they really don't.
+
+317
+00:27:05,296 --> 00:27:11,588
+like remix just holds on to whatever you have until you get the new thing and then it's gone. It's just like disappears.
+
+318
+00:27:12,014 --> 00:27:17,156
+You load a new page, you gotta go load it again from the server. So we're caching things with TanSac Router just like Query is.
+
+319
+00:27:17,454 --> 00:27:20,516
+And then when you outgrow it, you can just you know move over to Query.
+
+320
+00:27:21,006 --> 00:27:25,668
+But it'll do all this same stuff just without Query if you want it to.
+
+321
+00:27:26,254 --> 00:27:26,576
+Jeez.
+
+322
+00:27:26,976 --> 00:27:30,980
+And and like if somebody wanted to move to this, they've got
+
+323
+00:27:31,854 --> 00:27:35,696
+a like a create React app, you know, from six years ago.
+
+324
+00:27:36,016 --> 00:27:42,180
+You could move over and opt in fairly easily as as you move through it, right?
+
+325
+00:27:42,990 --> 00:27:49,696
+Yeah, I think so. Because we we have code-based routing, which I don't suggest anybody uses, to be honest.
+
+326
+00:27:49,856 --> 00:27:58,276
+It it's difficult to hook up the same developer experience with code-based routing and like keep things hooked up well,
+
+327
+00:27:58,702 --> 00:28:04,516
+which is why I say like file based routing is more than just a way to manage your routes with files.
+
+328
+00:28:04,846 --> 00:28:14,336
+It's actually just a really good way to let a framework do a lot of magical things for you, like code splitting and type, type splitting and like
+
+329
+00:28:14,656 --> 00:28:15,296
+type
+
+330
+00:28:15,566 --> 00:28:15,776
+stuff.
+
+331
+00:28:16,622 --> 00:28:20,000
+Yeah. I occasionally get nostalgic over the the code based routing.
+
+332
+00:28:20,080 --> 00:28:23,120
+And then I remember these those things that you're referring to,
+
+333
+00:28:23,920 --> 00:28:29,280
+When you find yourself writing React.lazy import everywhere. Right. Yeah.
+
+334
+00:28:29,454 --> 00:28:29,680
+Yeah.
+
+335
+00:28:30,030 --> 00:28:39,396
+And then you realize there's no built-in way to pre-fetch those unless you have wrappers around it. And then it really takes like five minutes to be like, oh, I need a framework.
+
+336
+00:28:39,760 --> 00:28:40,080
+Yeah.
+
+337
+00:28:40,334 --> 00:28:40,880
+For real.
+
+338
+00:28:41,200 --> 00:28:49,280
+When I posted a video about Chat GPT moving over to Remix, half the comments were like, why didn't they just use React
+
+339
+00:28:49,440 --> 00:28:49,828
+Router?
+
+340
+00:28:50,030 --> 00:28:56,932
+And people don't realize if you're building this yourself, it's it's hard. You got to do a lot yourself.
+
+341
+00:28:57,360 --> 00:28:59,268
+And uh it's not fun.
+
+342
+00:28:59,726 --> 00:29:00,068
+Yeah.
+
+343
+00:29:00,560 --> 00:29:06,880
+So on top of that, I I think I think it's worth mentioning for anybody who doesn't know what TanSec Router is all about.
+
+344
+00:29:07,118 --> 00:29:11,940
+It's a client-side router, but it's been rebuilt from the ground up to be completely type safe.
+
+345
+00:29:12,398 --> 00:29:17,860
+And I know that type safety is going to be coming to you know React Router 7 and Next.js probably soon.
+
+346
+00:29:18,318 --> 00:29:26,800
+The best way that I can describe it is that these these are going to be imitations or semi,-close reproductions
+
+347
+00:29:27,040 --> 00:29:29,540
+of what Tanstack Router actually is.
+
+348
+00:29:30,480 --> 00:29:40,068
+it's a fully inferred type safe system that lets you define your routes either via files or code, and it knows everything about all of your routes.
+
+349
+00:29:40,462 --> 00:29:44,160
+It knows every path, every path parameter, every search param.
+
+350
+00:29:44,590 --> 00:29:46,080
+It knows about nesting.
+
+351
+00:29:46,286 --> 00:29:48,800
+It will literally not let you do something stupid.
+
+352
+00:29:48,974 --> 00:29:52,720
+And it has the best developer experience you can imagine.
+
+353
+00:29:53,040 --> 00:29:58,820
+And That's a really hard thing to like advertise and sell to people that are like, hey, this has an amazing developer experience.
+
+354
+00:29:59,278 --> 00:30:08,516
+But literally go go on Twitter and search Tanstack Router and just look at what everybody is saying, and everybody's like, this is amazing. I can't live without it anymore.
+
+355
+00:30:08,720 --> 00:30:20,960
+So it has great types, and it has a lot of really great state management and like enterprise app things that you might not think you need right now, but later on you'll be grateful you have.
+
+356
+00:30:21,486 --> 00:30:30,468
+Search validations for your search parameters using Zod, and great APIs for updating search parameters that feel like you're using something like use
+
+357
+00:30:30,800 --> 00:30:35,844
+state or Zustan, like just making it stupid simple to put state in the URL.
+
+358
+00:30:36,240 --> 00:30:42,320
+So this is coming from many, many years of building applications like Nozzle.
+
+359
+00:30:42,560 --> 00:30:50,756
+And if you want to see all of the errors in your application, you'll want to check out Sentry at Sentry.io forward slash syntax.
+
+360
+00:30:51,054 --> 00:30:58,240
+You don't want a production application out there that, well, you have no visibility into in case something is blowing up and you might not even know it.
+
+361
+00:30:58,382 --> 00:31:06,000
+So head on over to sentry.io forward slash syntax. Again, we've been using this tool for a long time and it totally rules. All right.
+
+362
+00:31:07,566 --> 00:31:13,028
+So you have obviously all these different Tanstack packages. I think you know Tanstack Query supports,
+
+363
+00:31:13,806 --> 00:31:15,492
+you know, a whole bunch of different frameworks.
+
+364
+00:31:15,982 --> 00:31:21,540
+Is there ever a future where Tanstack Router supports multiple frameworks other than React?
+
+365
+00:31:21,920 --> 00:31:22,560
+100%.
+
+366
+00:31:23,310 --> 00:31:24,356
+That's very exciting to me.
+
+367
+00:31:24,942 --> 00:31:39,200
+I built it most mostly in an agnostic way. So we don't use, just like all the other libraries, we're not using React for state management. We're not like most of the package is just TypeScript.
+
+368
+00:31:39,598 --> 00:31:43,908
+And then we have this layer of components and hooks that live on top of it.
+
+369
+00:31:44,590 --> 00:31:47,684
+And we try to keep as much of the logic in the core as possible.
+
+370
+00:31:48,400 --> 00:31:51,520
+for a while I was working on like a solid version of it.
+
+371
+00:31:51,600 --> 00:31:59,652
+I decided that I just needed to focus on one framework and get everything out the door, get you know, Tansec start out the door,
+
+372
+00:31:59,854 --> 00:32:05,764
+and then we can go back and say, okay, how can we make sure that all of this is going to run in an agnostic way?
+
+373
+00:32:06,190 --> 00:32:11,280
+But we're we're using all the utilities that we've developed internally at Tanstack already to do that.
+
+374
+00:32:11,440 --> 00:32:15,600
+Like, we have, we have a Tanstack store package;
+
+375
+00:32:15,822 --> 00:32:24,560
+it's kind of a stealthy package, but we use Tanstack Store as our state manager for all of the different libraries we build,
+
+376
+00:32:25,262 --> 00:32:38,240
+because we have an agnostic core for state management. and then a bunch of adapters that we've built that translate that state management into immutability for React, or Signals for Solid,
+
+377
+00:32:39,680 --> 00:32:41,440
+observables for view.
+
+378
+00:32:41,840 --> 00:32:44,160
+It's it's really, really, really pretty cool.
+
+379
+00:32:44,400 --> 00:32:44,708
+Jeez.
+
+380
+00:32:44,960 --> 00:32:45,120
+Yeah.
+
+381
+00:32:45,454 --> 00:32:52,800
+Yeah, we had Corbin Crutchley on uh on the podcast a couple of months ago, and we asked him, like, how are you building these things?
+
+382
+00:32:53,038 --> 00:33:00,836
+Like, like, what's the tip for building not the React version of something, but how do you build something that's ninety percent just JavaScript and then
+
+383
+00:33:01,582 --> 00:33:06,080
+filter it out? And he said, Yeah, the state management is a major key behind that.
+
+384
+00:33:07,054 --> 00:33:12,960
+Corbin has been involved in that project in a very like he is TanSec store now in a way.
+
+385
+00:33:13,134 --> 00:33:22,000
+Oh wow. Like he's been working on ways to do like he he built derived stores because we're gonna have things like like TanSec
+
+386
+00:33:22,160 --> 00:33:27,840
+Table is gonna start using derived stores to power individual cells inside of the data grid.
+
+387
+00:33:28,302 --> 00:33:29,060
+Man, that rules.
+
+388
+00:33:29,440 --> 00:33:38,800
+It uses kind of a pull-based signal-y type implementation, but in an agnostic way, so that we can translate it to all the different frameworks.
+
+389
+00:33:38,960 --> 00:33:47,588
+It's really interesting. It's not like the most performance state manager, but it's is good enough and and pretty dang fast,
+
+390
+00:33:48,238 --> 00:33:54,276
+but it it has all those attributes where we can we can just push it out to all the other frameworks. So it's all about flexibility.
+
+391
+00:33:54,670 --> 00:34:06,436
+And what's the plan for like form actions or submitting forms to you submit to the server, it does a bunch of stuff, and then send some data back. Is Tansac start going to have that?
+
+392
+00:34:07,118 --> 00:34:15,652
+Yeah, we will support all the new React 19 things when it launches, we are going to investigate all those and support them really well.
+
+393
+00:34:15,886 --> 00:34:22,788
+I don't really want to build my framework around that because not every other framework has those things.
+
+394
+00:34:23,150 --> 00:34:24,164
+And honestly,
+
+395
+00:34:24,942 --> 00:34:30,000
+other than like, you know, some some of the things around deep transition support
+
+396
+00:34:30,880 --> 00:34:38,532
+with React, you can do a lot of those things already. You just don't have like that transition support in a way.
+
+397
+00:34:38,894 --> 00:34:47,280
+I don't necessarily agree with all of the API decisions that they've made around things like you know, use Action State and server actions in general,
+
+398
+00:34:47,520 --> 00:34:54,720
+especially when they're interpreted in a way like Next.js can only do serial actions and remix.
+
+399
+00:34:55,200 --> 00:35:01,920
+there's something that came out recently about how remix is doing parallel actions and versus Next.js's serial actions.
+
+400
+00:35:02,480 --> 00:35:07,680
+I don't want to ship APIs that are just underpowered.
+
+401
+00:35:08,334 --> 00:35:13,020
+I would never be okay with a serially executed server action powder.
+
+402
+00:35:13,440 --> 00:35:13,860
+No way.
+
+403
+00:35:15,566 --> 00:35:20,356
+But but as far as I know, like tools like can set Query and just having like
+
+404
+00:35:21,038 --> 00:35:26,788
+a holistic invalidation strategy for your caching can solve a lot of that.
+
+405
+00:35:27,200 --> 00:35:36,160
+So yes, I believe in all these new React APIs if people want to use them, but I also don't think that we should be, you know,
+
+406
+00:35:36,400 --> 00:35:39,840
+up a creek right now because we don't have them yet.
+
+407
+00:35:40,110 --> 00:35:45,200
+So I'm not I'm not relying on them to ship a framework or ship a great experience.
+
+408
+00:35:46,510 --> 00:35:48,228
+We'll just kind of have to see how that evolves.
+
+409
+00:35:48,750 --> 00:35:56,644
+I'm also curious if we if for anyone who hasn't seen the website, there's uh Tansax store, uh Ranger, which is a headless
+
+410
+00:35:56,880 --> 00:36:04,960
+UI library, virtual, which is like a virtual virtual scrolling. If you've got a ton of DOM elements, you can't just scroll those smoothly. So you have to do it.
+
+411
+00:36:08,000 --> 00:36:08,240
+Yeah.
+
+412
+00:36:08,880 --> 00:36:10,480
+That's it's like virtual.
+
+413
+00:36:10,798 --> 00:36:12,772
+That's what we asked Corbin when he came on. We're like,
+
+414
+00:36:13,678 --> 00:36:24,560
+how is it virtual scrolling, which is like it literally depends on what it looks like uh and and how it renders on the page, but it's also headless, which means it doesn't render anything.
+
+415
+00:36:25,134 --> 00:36:27,120
+You render it. I don't know. Do you want to talk about that?
+
+416
+00:36:27,406 --> 00:36:34,480
+Yeah, I mean it's it's basically it's that partial application concept where we're handling literally everything except for the rendering.
+
+417
+00:36:34,766 --> 00:36:38,660
+So we just give you all the building blocks and then you get to render it how you want.
+
+418
+00:36:39,040 --> 00:36:47,076
+Which if if you look at a lot of virtualization libraries, that's one of the major complaints about a lot of them that just serve up components for you,
+
+419
+00:36:47,520 --> 00:36:54,308
+is that you have to have ways to override the component that you're rendering, and then you get into memoization problems.
+
+420
+00:36:54,670 --> 00:37:03,520
+We I just really wanted to get away from a lot of that, and I wanted a way to be able to throw the idea of a virtualizer onto any DOM
+
+421
+00:37:03,680 --> 00:37:04,676
+element that I wanted.
+
+422
+00:37:05,120 --> 00:37:13,348
+So you can take one virtualizer and use it kind of how you would expect with a parent div that contains the view,
+
+423
+00:37:13,742 --> 00:37:22,240
+and then a sub div that contains the total height of the content that is then translating up and down through, you know,
+
+424
+00:37:22,480 --> 00:37:26,720
+revealing only what's visible inside of that parent window.
+
+425
+00:37:27,632 --> 00:37:38,724
+but you could take that same concept, so the same state, the same methods, the same core API, and you could use that to do a table instead, like an actual table element,
+
+426
+00:37:39,118 --> 00:37:43,152
+which you can't do the same thing with a table because you can't nest a div inside of a table element.
+
+427
+00:37:43,662 --> 00:37:44,388
+So, what do you do?
+
+428
+00:37:44,832 --> 00:37:51,044
+You take a table element and you create fake headers and fake footer rows.
+
+429
+00:37:51,662 --> 00:38:00,484
+and then you, you split up the distance between the viewport on the top and the bottom and the upper and lower bounds of the all the content.
+
+430
+00:38:00,942 --> 00:38:04,292
+and you take that padding area that you can't see.
+
+431
+00:38:04,718 --> 00:38:08,932
+and you apply that height to the fake row in the table.
+
+432
+00:38:09,358 --> 00:38:18,192
+That makes it appear as if you have this huge scrollable area, but really it's just a 50,000 pixel
+
+433
+00:38:18,352 --> 00:38:19,632
+tall th
+
+434
+00:38:20,526 --> 00:38:29,152
+or a, you know, a 20, and then that that width is changing as you're going, as you're moving that window up and down, and then the items that are visible in the viewport.
+
+435
+00:38:29,232 --> 00:38:32,548
+Were just kind of swapping in and out as they enter or exit.
+
+436
+00:38:33,358 --> 00:38:35,712
+It's absurdly clever. How do you come up with this stuff?
+
+437
+00:38:36,592 --> 00:38:39,952
+I didn't come up with that one. I saw that one from a different table library.
+
+438
+00:38:40,352 --> 00:38:40,992
+Oh, okay.
+
+439
+00:38:41,326 --> 00:38:51,620
+That's wild. Yeah, yeah. And then what's cool too is a virtualizer does not have any notion if it I mean it has a small notion if it's vertical or horizontal.
+
+440
+00:38:51,886 --> 00:38:59,792
+So you can actually create two virtualizers and stack them on top of each other, one on different axes, and now you have a grid
+
+441
+00:39:00,112 --> 00:39:04,432
+using the same primitive. One of them is set horizontally, one of them set vertically.
+
+442
+00:39:04,752 --> 00:39:05,872
+So wild.
+
+443
+00:39:06,158 --> 00:39:11,428
+But do you spend do you spend your day like thinking? Like, do you have a thinking chair you sit down with on a pipe?
+
+444
+00:39:11,792 --> 00:39:12,032
+No.
+
+445
+00:39:12,752 --> 00:39:23,152
+I mean, I'm sitting there right now, it's just my I have my office. But no, I mean, I'm I'm a I'm a space case, like I spend a lot of time with my family and kids and my wife.
+
+446
+00:39:23,552 --> 00:39:29,792
+usually I'm I'm engaged, but I zone off quite a bit. I'm like, oh, it'd be cool if you know if we did that. Oh yeah.
+
+447
+00:39:30,752 --> 00:39:34,272
+So uh my wife calls me the absent-minded professor a lot.
+
+448
+00:39:35,392 --> 00:39:38,500
+My wife calls me Mr. Magoo because I'm always running into things.
+
+449
+00:39:38,672 --> 00:39:40,260
+Uh getting hurt.
+
+450
+00:39:41,038 --> 00:39:49,348
+And at what point do we get the rest of the stack and get Tanstack database or Tanstack CMS?
+
+451
+00:39:50,286 --> 00:39:51,632
+is that your end goal here?
+
+452
+00:39:52,592 --> 00:39:57,796
+we've been asking for a Rails or Laravel in JavaScript land and nothing's really stuck.
+
+453
+00:39:58,574 --> 00:40:00,004
+Are you going to save us?
+
+454
+00:40:01,454 --> 00:40:02,672
+No, probably not.
+
+455
+00:40:04,032 --> 00:40:05,632
+I mean, here's what's cool.
+
+456
+00:40:06,032 --> 00:40:12,228
+I think that given the right primitives, people will build those on their own.
+
+457
+00:40:12,912 --> 00:40:25,060
+And when those ideas start to win out, then hopefully they would want more of a solid platform to push some of those uh ideas and integrations.
+
+458
+00:40:25,390 --> 00:40:34,912
+I think you know, there's at a certain point you get into you know, the permutations explode into a lot of different directions you can go,
+
+459
+00:40:35,072 --> 00:40:35,312
+right?
+
+460
+00:40:35,694 --> 00:40:40,548
+As far as which framework you should choose, there's like, you know, maybe four or five React frameworks.
+
+461
+00:40:40,878 --> 00:40:42,752
+You know, what hosting providers should you use?
+
+462
+00:40:43,312 --> 00:40:44,708
+there's a lot more of those.
+
+463
+00:40:45,230 --> 00:40:52,932
+What database should you use from what service or from what you know, the permutations explode really quickly.
+
+464
+00:40:53,422 --> 00:41:02,788
+And at some point you kind of have to say, we're gonna leave some of that to the users. And if they have good primitives, then they should be able to use whatever they want.
+
+465
+00:41:03,182 --> 00:41:12,432
+So I believe it's more about having great primitives and not just great primitives, but good abstractions to let people apply those primitives in as many places as possible.
+
+466
+00:41:13,102 --> 00:41:17,776
+Yeah, well, I mean the reason what vi Vinix vit what was it called?
+
+467
+00:41:17,998 --> 00:41:19,056
+Vinci Vixy?
+
+468
+00:41:19,310 --> 00:41:19,776
+Vinci.
+
+469
+00:41:20,736 --> 00:41:21,696
+Vinci, V,
+
+470
+00:41:22,656 --> 00:41:23,136
+all of these.
+
+471
+00:41:24,656 --> 00:41:32,016
+You know, those are good primitives, right? And then you're able to come and build on top of that some of these amazing things.
+
+472
+00:41:32,430 --> 00:41:34,736
+A great example is Convex.
+
+473
+00:41:34,926 --> 00:41:38,256
+Convex is one of my is one of TanSec's partners.
+
+474
+00:41:38,606 --> 00:41:40,164
+They're one of the reasons I can go full time.
+
+475
+00:41:40,430 --> 00:41:52,420
+But Convex, they have built this real-time you know database that's relational, and then they have this React query adapter on top of it that just works.
+
+476
+00:41:52,782 --> 00:41:54,404
+It's really mind-boggling.
+
+477
+00:41:54,576 --> 00:42:03,696
+Like all you do is create this query client from Convex and kind of again marry it to the normal query client, and you don't do anything different.
+
+478
+00:42:03,856 --> 00:42:10,976
+You just pass your queries to use query, and convex takes care of the rest of it. So it's real-time socket-based queries.
+
+479
+00:42:11,630 --> 00:42:19,300
+it's pretty mind blowing. So that's, I think, is a great example. Like, oh, could we get into real time and could we get into databases? Yeah, of course, we could
+
+480
+00:42:20,336 --> 00:42:28,772
+spend so much time there, but with that really great primitive, convex was like, Yeah, it was not that difficult to build this, and it's so cool.
+
+481
+00:42:29,056 --> 00:42:37,296
+And because it works so well with the system, like we already have an example where you can use Tansteck Start with
+
+482
+00:42:37,456 --> 00:42:45,508
+router, with convex, with query, so you can have this SSR application deploying to wherever you want
+
+483
+00:42:45,774 --> 00:42:47,536
+that has live queries in it.
+
+484
+00:42:48,016 --> 00:42:49,668
+Yeah, it's pretty cool.
+
+485
+00:42:50,446 --> 00:42:51,216
+Man, that's great.
+
+486
+00:42:51,616 --> 00:42:54,976
+one thing I really love and admire about your work is the docs.
+
+487
+00:42:55,502 --> 00:42:58,336
+The documentation for all of your projects are incredible.
+
+488
+00:42:58,574 --> 00:43:00,736
+What are you using for that? Is that all bespoke?
+
+489
+00:43:00,896 --> 00:43:01,216
+Yeah.
+
+490
+00:43:01,376 --> 00:43:08,644
+I mean, I heard this yesterday. I'm gonna be honest. I I was on a I was on a different podcast uh two days ago, and they're like, we just love your docs.
+
+491
+00:43:09,038 --> 00:43:18,212
+I don't really understand that. I think it's got to be uh it's probably a hidden talent that I have. I enjoy writing quite a bit.
+
+492
+00:43:18,606 --> 00:43:23,236
+I'm not gonna say I enjoy writing documentation, but I try and make it enjoyable for myself
+
+493
+00:43:24,014 --> 00:43:25,216
+so that I can get through it.
+
+494
+00:43:25,486 --> 00:43:29,604
+And maybe some of that enjoyment rubs off onto the onto the readers, you know. Yeah.
+
+495
+00:43:29,966 --> 00:43:31,588
+But I wouldn't say that I'm like
+
+496
+00:43:32,256 --> 00:43:36,484
+studying and really going out of my way to be like, these docs have to be amazing.
+
+497
+00:43:36,736 --> 00:43:45,616
+Most of the time I'm just like, you know what? I really want to launch this thing, and I can't launch without docs, so it's just a boulder that I have to get over and then I can launch it.
+
+498
+00:43:45,776 --> 00:43:49,252
+So I do it and I launch it, and then it's just a work in progress after that.
+
+499
+00:43:49,774 --> 00:43:50,096
+Nice.
+
+500
+00:43:50,382 --> 00:43:55,172
+I appreciate that there's so many code examples, and it's not just like paragraphs of text.
+
+501
+00:43:55,438 --> 00:44:03,696
+I think there's a fine line between people writing too much text and not showing enough of the like the general API reference, but also code examples.
+
+502
+00:44:03,856 --> 00:44:06,336
+I mean, it's a balance, and and that's what I like about it, yeah.
+
+503
+00:44:06,576 --> 00:44:13,636
+Well, and and I explained it this way the other day is that I like to write documentation that can be approached by a bunch of different personality types.
+
+504
+00:44:13,998 --> 00:44:17,056
+You have the person who comes in and does a quick start, and then they're just out.
+
+505
+00:44:17,136 --> 00:44:24,932
+Like they're they'll learn the rest using TypeScript, and maybe they'll drop into Command K to a topic every once in a while.
+
+506
+00:44:25,536 --> 00:44:27,456
+so you just have to have good searchable docs.
+
+507
+00:44:27,822 --> 00:44:33,936
+And then there's the person that's like wants they love to read. So they're like, give me the guide, give me the story, right?
+
+508
+00:44:34,222 --> 00:44:43,856
+And that's why every TANStack, almost every Tanstack library has like a guide section where it's like we're going to take you from zero to hero, hopefully from primitives to abstractions, right?
+
+509
+00:44:44,046 --> 00:44:47,696
+Which is the same way that UI.dev does their education and their courses as well.
+
+510
+00:44:48,576 --> 00:44:54,980
+so we have that approach. And then there's just like the API reference person where they're like, I don't want to know, don't teach me how to use this.
+
+511
+00:44:55,310 --> 00:44:57,616
+I just need the just give me the encyclopedia
+
+512
+00:44:59,056 --> 00:45:00,016
+and I'll figure it out.
+
+513
+00:45:00,206 --> 00:45:04,836
+Right. And I don't understand those people, but I'm good for them, you know.
+
+514
+00:45:05,134 --> 00:45:09,476
+So I want to make sure that there's it can be attacked from like several different angles.
+
+515
+00:45:09,806 --> 00:45:15,748
+And I think there's also something to be said about trying to be a little too fun with your docs.
+
+516
+00:45:16,014 --> 00:45:20,576
+Sometimes it's fun to come into docs. Oh, it's super quirky, and you know, there's banter.
+
+517
+00:45:21,038 --> 00:45:29,220
+But when you're in the middle of like a bug or you're at work and something like you're on call for something and you got to fix something, and you come into the docs and it's like,
+
+518
+00:45:29,616 --> 00:45:37,700
+oh man, remember that one time when your grandma did this, and and then your and then your dad used the website and then it sucked.
+
+519
+00:45:38,062 --> 00:45:42,116
+And it's like, okay, cut the garbage. I don't even know how to use this thing.
+
+520
+00:45:42,446 --> 00:45:52,612
+So I think there's a I think there's a good balance between hey, you can have fun reading these docs because the voice of the company and the culture or the person can come through it
+
+521
+00:45:53,136 --> 00:45:56,736
+versus I'm taking you for a ride and trying to be
+
+522
+00:45:58,096 --> 00:46:00,656
+a little bit too much of a jokester.
+
+523
+00:46:01,134 --> 00:46:02,724
+Yeah, I get that. Yeah, for sure.
+
+524
+00:46:03,214 --> 00:46:09,604
+Didn't you say I think you said to me once that you use the AI to write the docs for one of your projects?
+
+525
+00:46:10,096 --> 00:46:10,736
+Was that true?
+
+526
+00:46:10,976 --> 00:46:22,496
+I I tried for the early docs of TanSac Router, I tried using, and this was a while ago. So it was like GPT 335, probably. Yeah. 3.5, something like that. It was it was old and it sucked.
+
+527
+00:46:22,830 --> 00:46:23,136
+And it was
+
+528
+00:46:24,096 --> 00:46:34,736
+really difficult. Like I didn't get very far with it. It was mostly for like writing like code examples because it could not write with my vocal style at all in the docs.
+
+529
+00:46:34,896 --> 00:46:37,776
+And I just said, This reads funny, you know.
+
+530
+00:46:38,062 --> 00:46:47,652
+It was saying things that it thought I would say, as like I was like, you know, I'm Tanner Lindsley, and it's like, oh, okay, I'm gonna write these docs. How I think you write, and it's like so dumb.
+
+531
+00:46:48,014 --> 00:46:50,948
+So it was hallucinating my personality big time.
+
+532
+00:46:51,502 --> 00:46:57,936
+AI thinks my personality says dog a lot. Like, what's up, dog? I'm like, I don't know if I say that, but yeah, thank you.
+
+533
+00:46:58,670 --> 00:47:07,588
+yeah, my my personality has it's like it definitely, is like, okay, he's a goober, he's definitely a Mormon, he's definitely from Utah, and he's just like
+
+534
+00:47:07,856 --> 00:47:11,856
+overly, like overtly friendly and and trying to, you know.
+
+535
+00:47:12,174 --> 00:47:16,016
+I'm like, okay, I don't, I'm not that friendly, right?
+
+536
+00:47:18,416 --> 00:47:20,016
+I'm not trying to suck up.
+
+537
+00:47:20,334 --> 00:47:23,056
+Like, that's what it sounded I'm like, this AI is a brown noser.
+
+538
+00:47:23,376 --> 00:47:24,836
+I look forward to the day that
+
+539
+00:47:25,550 --> 00:47:36,096
+the AI will be able to assume your personality based on things you said. Like, I've we have, I don't know, I've like many thousands of hours of myself speaking into this microphone. Yeah.
+
+540
+00:47:36,256 --> 00:47:42,148
+I just would love the day that I can just feed all of that into my own model and have a little wes.
+
+541
+00:47:43,310 --> 00:47:46,596
+But yeah, it always goes overboard, you know? Too many emojis, you know.
+
+542
+00:47:47,776 --> 00:47:50,736
+Who needs children? You can have your little have that little wes.
+
+543
+00:47:51,056 --> 00:47:53,936
+Yes, exactly. I Just want a little less, yeah.
+
+544
+00:47:54,126 --> 00:47:55,684
+Oh my god. Oh man.
+
+545
+00:47:56,206 --> 00:47:59,108
+I can tell you something that I've been excited about lately. Yeah.
+
+546
+00:47:59,296 --> 00:48:02,948
+Is uh this create server function primitive that I'm building.
+
+547
+00:48:03,342 --> 00:48:10,212
+Uh, we're rewriting it to allow you to incrementally adopt into API routes.
+
+548
+00:48:10,830 --> 00:48:14,180
+So if you start with a function, that's all you need and it'll get extracted.
+
+549
+00:48:14,862 --> 00:48:21,988
+But if you want to change the method, you just pass method colon post or put or whatever.
+
+550
+00:48:22,254 --> 00:48:28,484
+And when you call that server function on the client, it will do it as a get. So then you get caching, like browser level caching.
+
+551
+00:48:28,910 --> 00:48:29,216
+Oh.
+
+552
+00:48:29,678 --> 00:48:36,096
+And then the step after that is like, oh, you know what? What if I want to validate this? Uh, we're building validation into the API.
+
+553
+00:48:36,206 --> 00:48:42,496
+So you can pass a Zod schema or a yup schema, and you'll get client side and server side validation through that function.
+
+554
+00:48:43,136 --> 00:48:53,700
+And here's the cool part, I think, is now it's like, oh, you know what? I really wish I could use this same function in my React Native app or or somewhere externally.
+
+555
+00:48:54,094 --> 00:48:58,576
+All you do is pass a path with your with the API route that you want to expose it at.
+
+556
+00:48:59,374 --> 00:49:00,736
+That solves so many problems for me.
+
+557
+00:49:01,070 --> 00:49:06,084
+Yeah, you have your path, your method, your validation, you have everything, but you do it through a server function.
+
+558
+00:49:06,416 --> 00:49:07,616
+It's a sliding scale.
+
+559
+00:49:07,696 --> 00:49:16,228
+You know, you can be totally in line and I don't care about the external world, or you can be all the way over to the other side and say externalize this and make it completely safe.
+
+560
+00:49:17,856 --> 00:49:19,456
+that's the route that we're going.
+
+561
+00:49:20,302 --> 00:49:27,008
+And on that same idea, you said earlier that a middleware, like a middleware can modify data.
+
+562
+00:49:27,168 --> 00:49:32,128
+And with TypeScript, that's sometimes a bit funky because you don't way ahead of US.
+
+563
+00:49:32,528 --> 00:49:35,524
+Yeah, tell me about middleware and modifying types.
+
+564
+00:49:36,288 --> 00:49:41,924
+So middleware is fun with like types because middleware is usually very magical.
+
+565
+00:49:42,448 --> 00:49:46,688
+It's just grabbing something, setting some magical property, and then just ditching out, right?
+
+566
+00:49:46,926 --> 00:49:49,444
+Or doing some logging or whatever, or transforming.
+
+567
+00:49:49,808 --> 00:49:56,208
+And there's some middleware that that doesn't need to like transfer type information through to the rest of the system.
+
+568
+00:49:56,528 --> 00:50:06,448
+And that can just keep working as is. But there is middleware that you would want to write to just not repeat yourself or to like enforce things all the time for something.
+
+569
+00:50:06,608 --> 00:50:10,768
+So the two good use cases I always bring up is authentication, is one of them.
+
+570
+00:50:10,928 --> 00:50:11,168
+Yeah.
+
+571
+00:50:11,406 --> 00:50:12,208
+Is the user set?
+
+572
+00:50:12,608 --> 00:50:23,236
+Yeah, you you never want to just let your junior developers have to remember to put so the way I say type safety doesn't just involve types, but it also involves forgettability,
+
+573
+00:50:24,128 --> 00:50:34,436
+And adding middleware uh to authenticate a request is forgettable for a lot of people, even myself, right? You get it caught up in the moment, you're just like, man whatever.
+
+574
+00:50:34,926 --> 00:50:38,596
+Uh, you just assume that this user object is there and then everything breaks.
+
+575
+00:50:39,022 --> 00:50:48,260
+So the way that we've designed middleware is that we can use kind of the same system that we're using for 10 stack Router that can carry types throughout an entire system.
+
+576
+00:50:48,942 --> 00:50:57,328
+You can create a single off middleware at the top and say, assign this middleware to all these functions under this path, or you can compose them and like
+
+577
+00:50:57,488 --> 00:51:00,612
+import them and compose them together with like a middleware array list.
+
+578
+00:51:01,088 --> 00:51:01,328
+Nice.
+
+579
+00:51:01,808 --> 00:51:12,132
+And once you do that, all of a sudden you have this context object that comes through and every single middleware, like every single middleware underneath it and every server function that consumes it
+
+580
+00:51:12,462 --> 00:51:15,684
+will now have this context dot whatever you return.
+
+581
+00:51:15,968 --> 00:51:18,180
+User, user ID, email, whatever.
+
+582
+00:51:18,446 --> 00:51:19,940
+And it's type safe, it's there.
+
+583
+00:51:20,302 --> 00:51:24,288
+So if you try and reference it without the middleware, you'll get an error.
+
+584
+00:51:24,590 --> 00:51:26,208
+Add the middleware in, you're good to go.
+
+585
+00:51:26,510 --> 00:51:35,364
+That's one of those that's like very magical. Like you just want to set it in one place, and you don't want you just have to remember to import it and remember to put it in there.
+
+586
+00:51:35,694 --> 00:51:42,020
+But then there's the other approach where it's like, okay, you might create middleware for doing common tasks and operations.
+
+587
+00:51:42,382 --> 00:51:51,808
+So within endpoints that manage things for Teams, you might want to include a workspace and Teams middleware that you just don't have to think about,
+
+588
+00:51:51,968 --> 00:51:55,620
+right? But the workspace can just always provide you with workspace context.
+
+589
+00:51:56,142 --> 00:52:00,260
+The team can always provide you with team context and it can handle permissions and all that stuff.
+
+590
+00:52:00,686 --> 00:52:04,932
+You need to be able to compose those things in at the site of the server function.
+
+591
+00:52:05,326 --> 00:52:06,500
+So you kind of have to have both.
+
+592
+00:52:06,862 --> 00:52:16,288
+You have to have the primitive of composition, but you also have to have the abstraction of automatic wizardry so that you know each type of developer,
+
+593
+00:52:16,448 --> 00:52:25,248
+be it super junior early dev, can do his little functional composition, and staff engineer can make sure he's enforcing things across the board.
+
+594
+00:52:25,582 --> 00:52:28,644
+But that's the idea for middleware is that we're going to do all of it.
+
+595
+00:52:29,008 --> 00:52:30,212
+And middleware,
+
+596
+00:52:30,990 --> 00:52:38,048
+commonly you'll see it split up into uh you have a next function passed to you, you await it, you get the result, and then you do something with it.
+
+597
+00:52:38,128 --> 00:52:42,928
+So very common to see kind of the next function approach.
+
+598
+00:52:43,168 --> 00:52:50,276
+But to do to do inferred type safety well, you need to be able to have a return type that you can infer.
+
+599
+00:52:50,638 --> 00:52:54,020
+You can't infer what some next function is called with.
+
+600
+00:52:54,446 --> 00:52:58,848
+So what we do is we split that phase up and we say we have a before and we have an after.
+
+601
+00:52:59,022 --> 00:53:04,260
+Before is everything that you would do before you call next, and what you return will be the arguments into next.
+
+602
+00:53:04,528 --> 00:53:09,764
+And then after, you'll have everything that you would do after next, including the result and anything that you returned.
+
+603
+00:53:10,158 --> 00:53:18,208
+That way we can infer the types for all of the middlewares going down the chain and compose them together and make sure that they are all compatible.
+
+604
+00:53:18,606 --> 00:53:23,076
+Yeah. I that's how we do it in in Svelte Kit with hooks in the same sort of way.
+
+605
+00:53:23,470 --> 00:53:24,128
+And that like
+
+606
+00:53:24,974 --> 00:53:27,712
+That's it for me. That's the promise land. That's how I like it.
+
+607
+00:53:27,822 --> 00:53:28,672
+That's how I want it to be.
+
+608
+00:53:28,782 --> 00:53:31,312
+Yeah. It's very, I think it's it's very similar in spirit.
+
+609
+00:53:31,632 --> 00:53:36,164
+I have a very large Express app and it's it's very heavy on the middleware.
+
+610
+00:53:36,366 --> 00:53:41,124
+And every time something new comes out, I look at what their middleware implementation looks like.
+
+611
+00:53:41,632 --> 00:53:48,032
+So much that I haven't found anything I like. I've started moving a lot of my middleware over to async local storage.
+
+612
+00:53:48,366 --> 00:53:53,380
+So it sort of just goes up into the ether and then you can access it, but I haven't figured out the type safety thing yet.
+
+613
+00:53:53,646 --> 00:53:55,392
+Yeah. So I'm really happy to hear that.
+
+614
+00:53:55,632 --> 00:54:02,084
+Well, Vinci and H3 and all the utilities we're using, they require uh async local storage.
+
+615
+00:54:02,318 --> 00:54:08,272
+And what's cool is you don't have to use the magical functions like set headers and whatnot.
+
+616
+00:54:08,352 --> 00:54:17,712
+If you want to use the raw primitives of request and response, you can, but you also have access to all of those great abstractions from something like H3.
+
+617
+00:54:17,792 --> 00:54:26,672
+So it's kind of like you have all the great primitive approach of something like remix, but then you have some of the abstraction utilities that Next.js is all about, right?
+
+618
+00:54:26,798 --> 00:54:34,352
+So it kind of sits in the middle, but then the things that you need type safety for, we just say, you know what, if you want to do type safe things, this is the way to do it.
+
+619
+00:54:34,592 --> 00:54:37,252
+Make those first class citizens as part of the API.
+
+620
+00:54:37,710 --> 00:54:39,492
+Beautiful. I'm excited for that.
+
+621
+00:54:40,078 --> 00:54:47,712
+Me too. so what is the what is the timeline look for getting Tanstack Start to at least a beta?
+
+622
+00:54:48,110 --> 00:54:57,028
+It's in alpha right now, right? It's in alpha right now. And tanstack.com has been running. So we migrated from remix to Tanstack Start eight months ago.
+
+623
+00:54:57,422 --> 00:54:57,764
+Nice.
+
+624
+00:54:58,030 --> 00:55:02,992
+So we've been using it for quite a while. And Tanstack.com serves a lot of traffic.
+
+625
+00:55:03,374 --> 00:55:06,788
+So I'm very I'm pretty confident in Tanstack Start's ability already.
+
+626
+00:55:07,118 --> 00:55:11,300
+So beyond that, I want to move to beta hopefully in October.
+
+627
+00:55:11,822 --> 00:55:12,032
+Okay.
+
+628
+00:55:12,462 --> 00:55:22,352
+I want to get this middleware server function API really, really nice. In fact, I want to get it good enough to where we can deprecate API routes as a thing.
+
+629
+00:55:22,606 --> 00:55:29,872
+Like you'll just use the server function API to do both server functions and API routes, just one unified API to do it all.
+
+630
+00:55:30,032 --> 00:55:32,420
+And when we can figure that out, I'll launch beta.
+
+631
+00:55:33,262 --> 00:55:39,236
+After that, I'm gonna feel very good about just saying, okay, everybody, everybody go use this and try it out.
+
+632
+00:55:39,712 --> 00:55:46,436
+and as long as we don't encounter any but big bugs or like architectural problems or architectural feedback,
+
+633
+00:55:46,798 --> 00:55:51,952
+then I think my plan is to try and get an RC or maybe even a release out before Thanksgiving.
+
+634
+00:55:52,032 --> 00:55:53,636
+I want people to be able to play with this
+
+635
+00:55:54,352 --> 00:55:56,996
+before the holidays or just over the holidays.
+
+636
+00:55:57,422 --> 00:56:01,924
+People tend to just kind of take projects and things and then they go on vacation, they just kind of tinker.
+
+637
+00:56:02,318 --> 00:56:04,452
+So I want to get it out by then.
+
+638
+00:56:05,198 --> 00:56:05,472
+Sick.
+
+639
+00:56:06,126 --> 00:56:13,124
+Awesome. Well, I'm very much looking forward to it. I've been uh my own personal website and my course platform. I've been
+
+640
+00:56:13,902 --> 00:56:17,156
+thinking, uh, what do I move it to? You know, and I haven't been
+
+641
+00:56:17,902 --> 00:56:29,232
+like stoked about anything yet. I moved my own personal website over to Next.js and server components almost entirely, but there's uh I don't know, some pain, pain in my butts in a couple of places.
+
+642
+00:56:29,390 --> 00:56:33,380
+So yeah, curious to see when this comes out. I'm gonna try it like crazy.
+
+643
+00:56:33,998 --> 00:56:38,660
+I've I've been in all those places too. I we used to serve tansack.com on next.
+
+644
+00:56:39,232 --> 00:56:40,964
+We we used remix.
+
+645
+00:56:41,392 --> 00:56:46,660
+I mean, I I feel like we've got a lot of experience under our belt with things that we've tried ourselves.
+
+646
+00:56:47,118 --> 00:56:57,124
+This is definitely not a framework that's been born out of curiosity. It's yeah, we're we're building it how we want it because of the things that we've experienced. So beautiful.
+
+647
+00:56:57,712 --> 00:57:05,232
+Scott, you want to wrap it up with the last sections? Yeah. So this is the part of the show where we talk about sick picks and shameless plugs. Tanner, you've been on before.
+
+648
+00:57:05,486 --> 00:57:07,876
+Did you come with a sick pic for us today?
+
+649
+00:57:08,430 --> 00:57:09,792
+I have I have some sick picks.
+
+650
+00:57:09,872 --> 00:57:11,792
+I'll just tell you things I'm into lately.
+
+651
+00:57:12,032 --> 00:57:20,592
+So sick I uh recently was shopping for a new television for my for my basement, and I did a lot of research into like something that's affordable
+
+652
+00:57:20,752 --> 00:57:22,660
+but also just really, really good quality.
+
+653
+00:57:22,926 --> 00:57:27,620
+And and it's hard because up in my main floor I have a frame, a Samsung frame.
+
+654
+00:57:28,110 --> 00:57:34,672
+And man, it looks so good like as a as an item. And it just makes our you know, it's art.
+
+655
+00:57:34,766 --> 00:57:41,872
+It's so cool. Yeah, and I I almost got sucked into that again in my basement, and I almost bought an 85-inch frame.
+
+656
+00:57:41,952 --> 00:57:51,812
+And then I I stepped back and I was like, dude, this is not this is not what you want. This is not what you need. This is for watching films, this is for like you know, being immersed.
+
+657
+00:57:52,432 --> 00:58:00,432
+And I ended up with an LG C4, it's a 77 inch C4, and I could not be happier.
+
+658
+00:58:00,526 --> 00:58:06,912
+That thing is amazing. So sick pick, like I think that it's probably one of the best bang for your buck.
+
+659
+00:58:07,822 --> 00:58:08,996
+OLED TVs.
+
+660
+00:58:09,152 --> 00:58:12,832
+Like, yeah, it's it's an OLED TV, so you're up in that range of
+
+661
+00:58:12,832 --> 00:58:17,312
+price, but it's not insane for like the size that it is.
+
+662
+00:58:17,422 --> 00:58:19,364
+So that's that's one of my sick picks.
+
+663
+00:58:20,046 --> 00:58:21,472
+Awesome. That's a good one.
+
+664
+00:58:21,806 --> 00:58:24,500
+Sorry, that was the LG my C4.
+
+665
+00:58:24,910 --> 00:58:27,872
+C4, my headphones went low battery for a second.
+
+666
+00:58:28,270 --> 00:58:33,312
+Yeah, the C4. I I've been looking at TVs as well. Not that um I'm going to buy one, but
+
+667
+00:58:34,126 --> 00:58:35,312
+just because I'm interested in it.
+
+668
+00:58:35,406 --> 00:58:47,172
+And like, yeah, that OLED, I'm I'm probably gonna go OLED for the next one no matter what. And the C4 caught my eye for sure. So I also found these like super slim wall mounts.
+
+669
+00:58:47,342 --> 00:58:50,820
+They're they're called, they're from a company called SoupKline or sup Klein.
+
+670
+00:58:51,792 --> 00:59:02,272
+and they look just like the mounts that come with the frame TV, like the Samsung frame, but you can use them on anything, and they have these big metal hooks that hook on to a
+
+671
+00:59:02,432 --> 00:59:06,500
+latch, and then they they it folds down in magnets against the wall.
+
+672
+00:59:06,830 --> 00:59:14,192
+So I'm really excited to. I just got that in from Amazon today, and I'm I'm kind of itching to go install it. So that looks cool.
+
+673
+00:59:14,414 --> 00:59:14,672
+Wow.
+
+674
+00:59:14,926 --> 00:59:24,112
+Oh yeah, yeah, that's exactly like the frame. I had a I hung our frame TV in our living room, and I it was yeah, it looks exactly like the frame stuff.
+
+675
+00:59:24,302 --> 00:59:29,392
+I'm like, did they did they design and supply those to Samsung? Because they look exactly the same.
+
+676
+00:59:29,472 --> 00:59:31,472
+So cool, cool.
+
+677
+00:59:31,822 --> 00:59:33,872
+All right, and uh Shameless plugs.
+
+678
+00:59:34,112 --> 00:59:36,004
+What would you like to plug to our audience?
+
+679
+00:59:36,430 --> 00:59:38,980
+I want to plug my maintainers, to be honest.
+
+680
+00:59:39,232 --> 00:59:42,032
+Like, so they're so so cool.
+
+681
+00:59:42,446 --> 00:59:49,792
+Tanstack is sure, it has it's got some name play from my name, right? But like my maintainers are some of the smartest, coolest people in the world.
+
+682
+00:59:49,998 --> 00:59:51,232
+We've already talked about Corbin.
+
+683
+00:59:51,758 --> 00:59:53,872
+TK Dodo goes without mentioning, right?
+
+684
+00:59:54,254 --> 00:59:59,652
+Kevin Vandy is doing things with with TanStack Table that would blow a lot of people's minds.
+
+685
+01:00:00,032 --> 01:00:10,592
+It's gonna be really impressive, the next version. Like the smallest kilobyte version of TanStack Table is gonna be like four kilobytes, which is insane when you think that AG Grid, who
+
+686
+01:00:10,798 --> 01:00:14,980
+we love them, I'm a partner with AG Grid, but like their base sizes is just massive.
+
+687
+01:00:15,232 --> 01:00:16,772
+But also some newcomers.
+
+688
+01:00:17,152 --> 01:00:27,460
+So Sean Cassieri, uh, and Manuel Schiller and Chris Harobin are like really pushing things on Tan Stack Router and start.
+
+689
+01:00:27,822 --> 01:00:33,796
+These guys are TypeScript wizards, they understand users and developers, like they're so cool.
+
+690
+01:00:34,192 --> 01:00:41,956
+So we need to give them some love. I'm trying to, I'm trying to get them, like give them their their moment in the spotlight because they deserve it big time.
+
+691
+01:00:42,542 --> 01:00:51,552
+Awesome. Well, send us send us links to all their websites or socials or whatever, and we'll put them in the show notes because often those are the best follows of
+
+692
+01:00:51,792 --> 01:00:54,692
+people that are like yeah sharing nuggets.
+
+693
+01:00:55,118 --> 01:01:04,752
+Chris Harobin just launched a blog post on Tannstack blog, which we don't have a lot of blog posts, but it is like the coolest deep dive on TypeScript performance you've you've
+
+694
+01:01:04,912 --> 01:01:05,828
+you'll ever read.
+
+695
+01:01:05,952 --> 01:01:13,828
+It is so cool, and shows a little bit why like Tanstack routers type safety is going to be difficult to match.
+
+696
+01:01:14,272 --> 01:01:14,592
+Man,
+
+697
+01:01:15,374 --> 01:01:25,712
+you guys are doing big things, and uh Tanner, I think my my head was nodding this entire episode. So, man, um I'm just so stoked about all the stuff you guys are working on. So great. Yeah, yes, yeah.
+
+698
+01:01:25,872 --> 01:01:27,072
+Thanks so much for coming on.
+
+699
+01:01:27,312 --> 01:01:35,552
+Yeah, absolutely. I'm yeah, I'm stoked about this. You're uh you're great at explaining the benefits as well. I think like that's a a skill on its own.
+
+700
+01:01:35,632 --> 01:01:41,828
+It's like you're obviously smart at thinking about how to approach these problems, but also being able to explain them to
+
+701
+01:01:42,286 --> 01:01:46,912
+just regular folk like Scott and I and get us excited about it is a is a huge skill.
+
+702
+01:01:47,232 --> 01:01:48,832
+Regular folk, come on. Yeah,
+
+703
+01:01:50,032 --> 01:01:56,032
+but no, that that's that's me and Scott's whole thing is that like we hope to represent the normies, you know?
+
+704
+01:01:56,192 --> 01:02:06,112
+Like we want to talk to the the really smart people, but like most developers are are regular folk and uh we want to be able to translate it to them
+
+705
+01:02:06,510 --> 01:02:06,912
+for sure.
+
+706
+01:02:07,214 --> 01:02:09,712
+Yeah, I just want everybody to be productive, you know.
+
+707
+01:02:09,872 --> 01:02:20,992
+Yeah, everybody deserves to be uh an MVP at their job or whatever they're doing. So all right. Well, thank you so much, Tanner. Appreciate all your time, and we hope to have you on again soon.
+
+708
+01:02:21,792 --> 01:02:22,276
+Count on it.
+
