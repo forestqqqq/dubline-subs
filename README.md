@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [Rogue AI Agents](medias/GQEVK/) | Emergent Garden | 2026-10-22 |
 | [Google DeepMind AI Researcher: I'm not saying that extinction is inevitable](medias/FVM7B/) | Palisade Research | 2026-10-22 |
 | [The Physicist Revolutionizing Physics With AI](medias/1SMAS/) | Curt Jaimungal | 2026-10-22 |
 | [DeepMind's New AI Just Cracked The Code Of Life](medias/0J6R6/) | Two Minute Papers | 2026-10-22 |
