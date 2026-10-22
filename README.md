@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [Tanstack Router Full Course](medias/E9ZWM/) | Ali Alaa | 2026-10-21 |
 | [Nobel Economist: Where He Sees the Real Money in AI](medias/EYVRD/) | Silicon Valley Girl | 2026-10-20 |
 | [Build & Train a GLM-5.3-Flash Model From Scratch with Python](medias/A6ZYZ/) | freeCodeCamp.org | 2026-10-20 |
 | [Anthropic Researchers: How AI Will Create A Radically Better 2030s](medias/4TJA4/) | Joe Lonsdale | 2026-10-20 |
