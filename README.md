@@ -6,6 +6,7 @@
 |---|---|---|
 | [Google DeepMind AI Researcher: I'm not saying that extinction is inevitable](medias/FVM7B/) | Palisade Research | 2026-10-22 |
 | [The Physicist Revolutionizing Physics With AI](medias/1SMAS/) | Curt Jaimungal | 2026-10-22 |
+| [DeepMind's New AI Just Cracked The Code Of Life](medias/0J6R6/) | Two Minute Papers | 2026-10-22 |
 | [Next Gen Fullstack React with TanStack](medias/JYR6S/) | Syntax | 2026-10-21 |
 | [TanStack Router Essentials for Modern Applications](medias/EK734/) | Josef Bender | 2026-10-21 |
 | [Tanstack Router Full Course](medias/E9ZWM/) | Ali Alaa | 2026-10-21 |
