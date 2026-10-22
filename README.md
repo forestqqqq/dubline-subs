@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [TanStack Router Essentials for Modern Applications](medias/EK734/) | Josef Bender | 2026-10-21 |
 | [Tanstack Router Full Course](medias/E9ZWM/) | Ali Alaa | 2026-10-21 |
 | [Nobel Economist: Where He Sees the Real Money in AI](medias/EYVRD/) | Silicon Valley Girl | 2026-10-20 |
 | [Build & Train a GLM-5.3-Flash Model From Scratch with Python](medias/A6ZYZ/) | freeCodeCamp.org | 2026-10-20 |
