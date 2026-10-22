@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [Google DeepMind AI Researcher: I'm not saying that extinction is inevitable](medias/FVM7B/) | Palisade Research | 2026-10-22 |
 | [The Physicist Revolutionizing Physics With AI](medias/1SMAS/) | Curt Jaimungal | 2026-10-22 |
 | [Next Gen Fullstack React with TanStack](medias/JYR6S/) | Syntax | 2026-10-21 |
 | [TanStack Router Essentials for Modern Applications](medias/EK734/) | Josef Bender | 2026-10-21 |
