@@ -1,0 +1,5312 @@
+1
+00:00:03,886 --> 00:00:09,760
+Today, the plan is to continue exploring Tanstack Start,
+
+2
+00:00:11,406 --> 00:00:18,720
+Betteroth, and Drizzle. And last week, if you watched the stream last week, was a bit chaotic.
+
+3
+00:00:20,240 --> 00:00:28,560
+We had some problems, or I had some problems setting up Betteroth with Tanstack, but in the end it worked, and we're going to pick
+
+4
+00:00:28,720 --> 00:00:30,720
+up from there today.
+
+5
+00:00:31,086 --> 00:00:41,760
+If you missed last week and you wanna watch it, see it, or if you can't watch today in full length and you wanna watch that again,
+
+6
+00:00:41,920 --> 00:00:49,760
+I got a YouTube channel, Maxim Schwarzmüller extended, and I upload all the VODs of my livestreams to that channel.
+
+7
+00:00:50,080 --> 00:00:57,892
+So you can watch all past live streams, including this one, whenever you want. And I'll upload this one tomorrow.
+
+8
+00:00:58,382 --> 00:01:03,200
+So that's that. Now, as I said, yeah, hi, hi everyone.
+
+9
+00:01:03,360 --> 00:01:05,360
+Great to have you on board.
+
+10
+00:01:05,678 --> 00:01:07,360
+Great to have you here in the stream.
+
+11
+00:01:07,680 --> 00:01:09,860
+as I said, last week was a bit chaotic.
+
+12
+00:01:10,320 --> 00:01:14,160
+I ran into some problems, some setup problems with better auth.
+
+13
+00:01:14,480 --> 00:01:24,320
+some problems with 10 stack start, with Drizzle, also because I don't know anything about Tanstack Start, and they have a lot of documentation.
+
+14
+00:01:24,640 --> 00:01:36,160
+but reading through all that documentation, whilst you're also streaming, is pretty hard. Um so that's why I missed some things here and there, and that's why it was a bit bumpy.
+
+15
+00:01:36,240 --> 00:01:43,200
+And I will also say that let me adjust this camera a bit. I will also say that
+
+16
+00:01:44,302 --> 00:01:54,480
+the creator, or I guess one of the creators of Better Auth, um Baker, uh, reached out to me after last week's stream
+
+17
+00:01:54,720 --> 00:02:04,400
+and kind of apologized for all the issues I had with Better Auth, and also gave me some recommendations on how to use Better Auth, which was much appreciated, and
+
+18
+00:02:04,800 --> 00:02:16,880
+the apology was absolutely unnecessary. I also told him that because it's essentially all well, I could have read some docs better, and I think the things that were not documented were mostly on
+
+19
+00:02:20,080 --> 00:02:34,404
+Drizzle's side or stuff I missed in the in the uh Tanstack documentation. Still really nice move having him reach out and I hope I'll have more success with Tanstack and better off today.
+
+20
+00:02:35,790 --> 00:02:37,348
+So that's that.
+
+21
+00:02:37,760 --> 00:02:38,244
+Now,
+
+22
+00:02:39,534 --> 00:02:49,680
+as I mentioned, I finished with authentication working last week. I have my development server up and running here, and what I did
+
+23
+00:02:50,880 --> 00:02:59,120
+last week was I, for authentication I mean, I created some server functions with this create server FN
+
+24
+00:02:59,662 --> 00:03:02,564
+function that's provided by Tanstack.
+
+25
+00:03:03,470 --> 00:03:11,840
+And I used those to set up validation and to then also handle the request after validation.
+
+26
+00:03:12,080 --> 00:03:23,332
+and I then used the better auth server side API, which you can use to create a new user or to log a user in on the server side.
+
+27
+00:03:23,600 --> 00:03:34,400
+So my idea was since I'm already on the server side in this Tan Stack server function, it makes sense that I also use better-off's server side capabilities
+
+28
+00:03:34,560 --> 00:03:42,960
+there to create a user or log a user in. Now, one problem I faced with this approach was that
+
+29
+00:03:43,694 --> 00:03:53,760
+BetterAuth normally sets the authentication session cookie for you, but since I used their server-side capabilities,
+
+30
+00:03:53,966 --> 00:04:06,692
+it was not able to do that because I was still on that server side. No request was sent back to the client side yet. So I had to figure out how to set this authentication cookie myself.
+
+31
+00:04:06,990 --> 00:04:16,320
+And I did. I did figure that out because when you use the server side capabilities of Better Auth, you get access to this headers object on this result
+
+32
+00:04:16,480 --> 00:04:26,340
+object that is returned by Better Auth. You can get the um the cookie header essentially that contains this cookie better auth wants to set, and I then set it myself.
+
+33
+00:04:26,670 --> 00:04:41,380
+That's what I did, and that way I was able to make authentication work, and I can show this to you here. If I go to slash auth, I have my auth screen, and if I create a new account here for some user.
+
+34
+00:04:43,342 --> 00:04:46,660
+Then I'm redirected to Hello World, which um
+
+35
+00:04:47,470 --> 00:04:53,508
+proves that authentication works because otherwise I would have stayed on that uh auth page.
+
+36
+00:04:54,576 --> 00:05:00,736
+At least I hope it works. Um yeah, we have a redirect here, so that's looking good.
+
+37
+00:05:00,976 --> 00:05:10,416
+Now, um, as I mentioned, a Bekka by the Better Auth team reached out to me and gave me some recommendations, and one recommendation was that I should not
+
+38
+00:05:11,758 --> 00:05:14,656
+that I should try to use the client side
+
+39
+00:05:16,014 --> 00:05:26,096
+library, so to say, Better Auth gives me. So I should not I should try to avoid doing authentication on the server side myself as I'm doing it here.
+
+40
+00:05:26,176 --> 00:05:33,220
+And I guess for the reasons I just explained, that you then have to deal with setting cookies on your own and so on.
+
+41
+00:05:33,550 --> 00:05:42,656
+So the first thing I want to do today is give this a try and not have my own server side logic, but instead try to use better
+
+42
+00:05:42,816 --> 00:05:48,976
+off's client side logic. Now, one thing I'm missing here is the logout button.
+
+43
+00:05:49,136 --> 00:05:50,576
+That's a bit weird.
+
+44
+00:05:51,374 --> 00:05:53,296
+I thought okay, here it is.
+
+45
+00:05:53,582 --> 00:05:57,508
+Okay, okay, so now I logged out. so that's what I'll try.
+
+46
+00:05:57,936 --> 00:06:08,256
+And to try that, I will need to I have this auth client.ts file already, which exports the auth client, and that is essentially this
+
+47
+00:06:08,416 --> 00:06:16,416
+better auth client side library or functionality so that you can use it in your app on the client side.
+
+48
+00:06:16,750 --> 00:06:29,924
+And I will use that now to create a user and sign a user in. So back on this auth page, my goal is here in this on submit function, and I'll actually outsource this
+
+49
+00:06:30,318 --> 00:06:37,776
+handle submit. Let's create a new function here, make it async, and I'll grab
+
+50
+00:06:39,022 --> 00:06:40,036
+this code here,
+
+51
+00:06:40,750 --> 00:06:41,572
+put it in there,
+
+52
+00:06:43,086 --> 00:06:50,496
+and I expect to get an event here, and that will be an event of type react form event wrapped around the HTML form element.
+
+53
+00:06:51,534 --> 00:06:54,896
+So here I want, yeah, I want that exactly.
+
+54
+00:06:55,182 --> 00:07:02,976
+Thank you, GitHub Copilot, and I will call handle submit here, just to clean this up a little bit.
+
+55
+00:07:03,136 --> 00:07:11,536
+And now I will not call my own sign up and not my own login function, and I will therefore no longer connect them to the client side by using
+
+56
+00:07:11,696 --> 00:07:17,700
+Tanstax use server function, which is also something that took me some time to figure out last week. So we'll remove that.
+
+57
+00:07:19,216 --> 00:07:26,308
+Instead, I will use the client side better auth capabilities.
+
+58
+00:07:27,310 --> 00:07:30,084
+So I want to import this auth client here.
+
+59
+00:07:32,576 --> 00:07:37,856
+And I should probably look at the better auth docs on how to use it, but I'll first try it on my own.
+
+60
+00:07:38,016 --> 00:07:40,736
+So I can use auth client, and I did now
+
+61
+00:07:41,696 --> 00:07:42,852
+import it here.
+
+62
+00:07:43,856 --> 00:07:45,700
+So I'm using that now
+
+63
+00:07:46,830 --> 00:07:48,096
+to call
+
+64
+00:07:49,296 --> 00:07:50,656
+sign up, I guess.
+
+65
+00:07:51,296 --> 00:07:53,616
+Or is there something with an email?
+
+66
+00:07:54,030 --> 00:08:04,420
+Change email? No, I guess I want to call sign up. There is no sign up email method though, but there is a sign up method, and I probably pass an object to that, I guess.
+
+67
+00:08:08,736 --> 00:08:09,056
+And
+
+68
+00:08:10,576 --> 00:08:22,416
+well, I might be using that wrong. So to not go down that rabbit hole of missing important information again, I will go to the official documentation and take a look at how that
+
+69
+00:08:22,862 --> 00:08:23,696
+should work.
+
+70
+00:08:24,496 --> 00:08:24,816
+So,
+
+71
+00:08:25,696 --> 00:08:30,176
+okay, sign up is an object that gives me an email method. So that's what I want to do here.
+
+72
+00:08:30,416 --> 00:08:31,620
+So sign up
+
+73
+00:08:33,038 --> 00:08:33,536
+email,
+
+74
+00:08:34,894 --> 00:08:37,028
+and then here, yeah, that looks better.
+
+75
+00:08:37,646 --> 00:08:42,052
+Um, I'll pass an object to it which wants the email address.
+
+76
+00:08:42,446 --> 00:08:44,740
+And I can get that from my form data here.
+
+77
+00:08:45,102 --> 00:08:48,736
+So that will be um form data get email.
+
+78
+00:08:50,446 --> 00:09:01,296
+And um, yeah, I guess we can do it like this. I could also add client side validation, I'll not do it for now. And regarding server side validation, better auth should be doing that for us.
+
+79
+00:09:01,376 --> 00:09:03,012
+So we should be fine like this.
+
+80
+00:09:05,136 --> 00:09:05,456
+So
+
+81
+00:09:06,416 --> 00:09:11,396
+I guess we also need the name here, right? And I'll use the email address for that again.
+
+82
+00:09:11,696 --> 00:09:16,976
+So that should be the signup code. Now, email, this method returns
+
+83
+00:09:18,176 --> 00:09:25,856
+a promise, so we should await it, and then an object with some data about the user that was created, I guess, and an error.
+
+84
+00:09:27,214 --> 00:09:29,056
+So let's see what we get here.
+
+85
+00:09:29,294 --> 00:09:33,776
+I'll await this and destructure this data and error.
+
+86
+00:09:35,758 --> 00:09:36,336
+Like this.
+
+87
+00:09:37,294 --> 00:09:44,324
+And error seems to be an object which has a code, a message. So what I want to do here is I want to check if
+
+88
+00:09:45,134 --> 00:09:54,628
+is error potentially null? It is. So I want to check if error is truthy, if we have an error. And in that case, I'll set my error state to error message.
+
+89
+00:09:54,976 --> 00:10:01,696
+Or if no message is provided, I'll say creating or signing up failed.
+
+90
+00:10:02,256 --> 00:10:06,884
+Please try again later, something like that. So I'll do that.
+
+91
+00:10:08,176 --> 00:10:10,532
+If we don't have an error, I guess we succeeded.
+
+92
+00:10:11,136 --> 00:10:23,620
+So I'll return here to not execute any other code. If we don't have an error, I'll console.log the data here to find out what's in there. And then later I'll add the redirect logic again.
+
+93
+00:10:24,416 --> 00:10:29,456
+Okay, so that's the sign up logic now for signing in for logging in.
+
+94
+00:10:30,016 --> 00:10:31,556
+I guess it's quite similar.
+
+95
+00:10:31,822 --> 00:10:32,772
+Let's check.
+
+96
+00:10:33,134 --> 00:10:34,576
+I have sign in.
+
+97
+00:10:35,136 --> 00:10:41,156
+Yeah, yeah, yeah. That looks uh pretty familiar. So I'll yep, I'll do that.
+
+98
+00:10:42,736 --> 00:10:44,656
+That all looks good.
+
+99
+00:10:45,486 --> 00:10:52,772
+By the way, um maybe you saw my my video I created recently on my main YouTube channel.
+
+100
+00:10:54,016 --> 00:10:54,336
+Um
+
+101
+00:10:56,654 --> 00:10:57,540
+where is it?
+
+102
+00:10:57,936 --> 00:11:04,736
+This one, The Empire Strikes Back, which is about Microsoft um basically trying to um
+
+103
+00:11:05,742 --> 00:11:12,176
+to to do something against Cursor and and so on, and about them releasing a new GitHub Copilot version.
+
+104
+00:11:12,336 --> 00:11:24,896
+In that video, I mentioned that I like this tap tap tap feature, like the smart suggestions and autocompletions most when it comes to AI assistance in coding. And here you saw a good example.
+
+105
+00:11:25,294 --> 00:11:33,936
+This, of course, is not any difficult code to write, especially this here is essentially the same code as above, and therefore we could probably also refactor it to reuse
+
+106
+00:11:34,318 --> 00:11:36,576
+some code here, but that's a different thing.
+
+107
+00:11:37,582 --> 00:11:47,616
+such situations are, of course, the places where all these AI assistants can really shine because just hitting tab and having all this code be there immediately, of course,
+
+108
+00:11:47,856 --> 00:11:48,932
+saves some time.
+
+109
+00:11:49,806 --> 00:11:51,748
+Anyways, that's that.
+
+110
+00:11:54,894 --> 00:12:03,076
+I got my logic here. Let's now see whether that works, I guess. So development server is up and running.
+
+111
+00:12:03,856 --> 00:12:05,216
+Let's go to
+
+112
+00:12:06,062 --> 00:12:08,292
+the auth screen again.
+
+113
+00:12:09,936 --> 00:12:10,256
+And
+
+114
+00:12:11,456 --> 00:12:17,696
+unfortunately I forgot all my users, so I have to create more new users because I forgot the passwords.
+
+115
+00:12:17,856 --> 00:12:19,616
+So let's try that again.
+
+116
+00:12:20,046 --> 00:12:22,736
+And let's show the console because there should be something there.
+
+117
+00:12:22,976 --> 00:12:23,876
+Create user.
+
+118
+00:12:24,336 --> 00:12:25,700
+Yep, that looks good.
+
+119
+00:12:26,894 --> 00:12:28,416
+No, I don't want to save that.
+
+120
+00:12:28,896 --> 00:12:31,556
+I'm getting back a token, getting back
+
+121
+00:12:32,238 --> 00:12:33,056
+a user.
+
+122
+00:12:34,222 --> 00:12:37,856
+So that looks good, and I guess I have the logout button here.
+
+123
+00:12:38,576 --> 00:12:43,972
+I guess we can also quickly check in the application part here. Cookies.
+
+124
+00:12:44,590 --> 00:12:48,196
+There are a bunch of cookies, but this one is the interesting one.
+
+125
+00:12:48,656 --> 00:12:48,964
+No,
+
+126
+00:12:49,806 --> 00:12:52,132
+this one is probably the interesting one, better off.
+
+127
+00:12:56,046 --> 00:12:56,624
+Here we go.
+
+128
+00:12:57,220 --> 00:12:59,204
+Better off session token, I guess.
+
+129
+00:13:01,934 --> 00:13:08,324
+I guess that's the one that was set by better off. We can check because I can log out and now it was removed.
+
+130
+00:13:09,358 --> 00:13:10,788
+So that's looking good.
+
+131
+00:13:12,064 --> 00:13:21,424
+And now again, if I go here and I log in with that user I just created, where I hopefully still remember
+
+132
+00:13:21,664 --> 00:13:25,504
+the password, though I'm not sure to be honest. Okay, that was not it.
+
+133
+00:13:25,774 --> 00:13:28,164
+This was the password. Yeah, this also works.
+
+134
+00:13:29,024 --> 00:13:29,344
+So
+
+135
+00:13:30,638 --> 00:13:32,064
+yeah, that's all looking good.
+
+136
+00:13:32,174 --> 00:13:37,744
+So that's the client side, better off functionality being used. And we we still have validation.
+
+137
+00:13:37,904 --> 00:13:39,184
+Now I don't know how it is.
+
+138
+00:13:39,470 --> 00:13:46,564
+If I create a user, user already exists, that looks good. If I try to create a user and have a super short password, is that allowed?
+
+139
+00:13:46,926 --> 00:13:52,544
+Yeah, I get an error there too. Okay, so better off has some good validation built in, as it seems.
+
+140
+00:13:52,704 --> 00:14:00,964
+So we still have that server-side validation, but now we have less server-side logic we have to write ourselves, and therefore I can actually get rid of
+
+141
+00:14:01,744 --> 00:14:03,504
+my server functions here.
+
+142
+00:14:03,744 --> 00:14:06,944
+We'll write more server functions again later
+
+143
+00:14:07,950 --> 00:14:16,304
+when we add the actual app functionality, but that is of course nice to have. Now I also want to redirect, but first I see I got some questions here.
+
+144
+00:14:16,544 --> 00:14:23,104
+So, uh, how do you know design trends like the colors you're using in other UI elements?
+
+145
+00:14:23,470 --> 00:14:38,064
+Now, to be honest, maybe you noticed, I'm not that great at design. So personally, what I typically do is for most sites, so, if I get like a design specification by a designer,
+
+146
+00:14:38,384 --> 00:14:41,424
+I of course follow that if I get some mockups and so on.
+
+147
+00:14:41,584 --> 00:14:48,464
+But if I build a website on my own, I typically build it or it looks the way most websites look.
+
+148
+00:14:48,784 --> 00:15:03,140
+I just basically follow the general trends I'm seeing on the sites I'm visiting, which is not super exciting, but I'm not a good designer. So copying or getting inspired is the best I can do, I guess.
+
+149
+00:15:03,904 --> 00:15:14,544
+hi Max, thank you for your courses. They are great and the best you can find. You do an impressive job in education. Um, thank you so very much, uh Cardi Nalate. Uh thank you so very much.
+
+150
+00:15:14,704 --> 00:15:25,188
+That means a lot to me. super happy you're liking the courses, and yeah, I love creating them, and it's always amazing to see people like them. So thank you very much.
+
+151
+00:15:26,224 --> 00:15:29,984
+hi uh Paxters. Uh, what do you think about VIM Motions?
+
+152
+00:15:30,784 --> 00:15:45,024
+Vim Motions are really great, and I would love to be better at Vim. Now, to be very honest, Vim or Neo Vim is something I really only started learning better this year
+
+153
+00:15:45,198 --> 00:15:59,104
+or become better at this year. so of course, I'm able to use Vim and I have been able for many years, obviously, but getting into those motions and into what you can do with NeoVim,
+
+154
+00:15:59,822 --> 00:16:04,944
+I'm still in the learning process there because it is quite a steep learning curve, I gotta say.
+
+155
+00:16:05,424 --> 00:16:11,104
+but I definitely like see the advantages of being able to like fur fly through your code
+
+156
+00:16:12,046 --> 00:16:16,224
+with keyboard shortcuts and keyboard commands, and yeah, I like them a lot.
+
+157
+00:16:16,784 --> 00:16:19,652
+hi max, have you used Tanstack Forum? I haven't.
+
+158
+00:16:19,950 --> 00:16:28,580
+I haven't. I have only worked with Tanstack query in the past, though that's also been some time ago. and now TanStack start.
+
+159
+00:16:29,454 --> 00:16:39,364
+So I want to redirect when a user is logged in or signed up, therefore I have to find out how that works on the client side.
+
+160
+00:16:42,624 --> 00:16:47,824
+redirect, redirect, redirect returns, the redirect function.
+
+161
+00:16:48,526 --> 00:16:57,584
+The redirect function returns a new redirect object that can either be returned or thrown from places like a routes before load or loader callbacks.
+
+162
+00:16:58,286 --> 00:17:03,236
+That does not sound like the thing I need. I want to do a client-side redirect.
+
+163
+00:17:04,064 --> 00:17:14,784
+Oh, I guess I guess Tanstack Router has a hook I can use for that, probably. A hook that gives me some navigation object with methods.
+
+164
+00:17:14,944 --> 00:17:17,476
+I probably used it in the last stream already.
+
+165
+00:17:17,806 --> 00:17:20,420
+I vaguely remember something there.
+
+166
+00:17:22,224 --> 00:17:33,744
+so the the thing with the Tanstack documentation is they really got lots of documentation, and I'm a big fan of that. Um so that's really just uh something I want to say here.
+
+167
+00:17:33,984 --> 00:17:43,268
+Obviously, when I stream I can't read it all, and therefore I might miss stuff, but I'm I really like the fact that they have a very, very thorough documentation.
+
+168
+00:17:43,982 --> 00:17:48,324
+So let's see which hooks do they have. Do they have like a use navigate
+
+169
+00:17:48,974 --> 00:17:49,412
+hook?
+
+170
+00:17:54,190 --> 00:18:00,580
+The use navigate hook is a hook that returns a navigate function. It can be used to navigate to a new location. That sounds useful. So let's use that.
+
+171
+00:18:00,974 --> 00:18:06,756
+In the route component, I'll use use navigate, have it import from
+
+172
+00:18:07,438 --> 00:18:08,452
+tanstack router.
+
+173
+00:18:09,200 --> 00:18:13,120
+And as I understand it, that gives me a navigate function.
+
+174
+00:18:17,520 --> 00:18:19,812
+Or object that I can use.
+
+175
+00:18:20,462 --> 00:18:28,964
+So here, navigate function, navigate, and then I want to go to slash main, let's say.
+
+176
+00:18:29,680 --> 00:18:35,236
+And um yeah, I can set replace to true so that the user can't go back to the off page.
+
+177
+00:18:36,046 --> 00:18:40,560
+And we do that for login to. And of course, I got a lot of code duplication here.
+
+178
+00:18:40,720 --> 00:18:52,240
+So actually, it makes way more sense to copy this code here where I set the error and where I navigate, and have just a different logic here in my if-else
+
+179
+00:18:52,560 --> 00:18:55,972
+block and put the rest after this if-else block.
+
+180
+00:18:56,622 --> 00:19:05,440
+Now, of course, TypeScript now complains that error is not necessarily available here, though we know it will always be available because we make it either into the else,
+
+181
+00:19:05,600 --> 00:19:08,868
+uh the if or the else block. nonetheless.
+
+182
+00:19:11,246 --> 00:19:19,360
+or actually it's complaining about the fact that error here, of course, refers to my state, which is a string, and not to this error object here.
+
+183
+00:19:19,680 --> 00:19:21,440
+So what I'll do
+
+184
+00:19:23,200 --> 00:19:25,200
+is I'll name this here.
+
+185
+00:19:25,966 --> 00:19:29,412
+"error response ,", assign a little alias here,
+
+186
+00:19:30,880 --> 00:19:34,720
+and here, too, and use that down there, and um
+
+187
+00:19:39,118 --> 00:19:43,748
+and uh. now, it complains about the fact that it doesn't know that.
+
+188
+00:19:45,520 --> 00:19:49,840
+So actually I think what I'll do is
+
+189
+00:19:59,214 --> 00:19:59,760
+Well
+
+190
+00:20:00,590 --> 00:20:03,588
+there are different routes we could take here.
+
+191
+00:20:04,880 --> 00:20:05,476
+I'm just
+
+192
+00:20:06,126 --> 00:20:08,132
+thinking about which one I want to take here.
+
+193
+00:20:17,920 --> 00:20:18,660
+So, I guess
+
+194
+00:20:19,630 --> 00:20:31,040
+so w one pretty simple way would of course be to just declare this as a type here, right? So say like we got back an error response, and that is the type.
+
+195
+00:20:31,520 --> 00:20:32,800
+and then
+
+196
+00:20:33,902 --> 00:20:36,320
+we got our error here.
+
+197
+00:20:37,070 --> 00:20:40,068
+and I set error response equal to that error.
+
+198
+00:20:45,550 --> 00:20:54,756
+but with that, it actually still complains that I'm using this before. it's being set, which again, doesn't make a lot of sense here because
+
+199
+00:20:55,790 --> 00:20:57,680
+oh, well, because I'm not setting it here.
+
+200
+00:20:57,806 --> 00:21:01,360
+right? So with that, that would be one way of going about it. Um
+
+201
+00:21:02,222 --> 00:21:04,324
+arguably not the most elegant one.
+
+202
+00:21:04,718 --> 00:21:08,804
+Uh, I could also do some TypeScript magic here
+
+203
+00:21:09,840 --> 00:21:16,960
+and uh basically infer that type by using what would it be, type of off client
+
+204
+00:21:18,000 --> 00:21:19,680
+sign up email.
+
+205
+00:21:20,750 --> 00:21:22,596
+So now the type would be
+
+206
+00:21:24,080 --> 00:21:24,932
+I guess
+
+207
+00:21:25,742 --> 00:21:29,476
+so. I'm interested in the return type of that.
+
+208
+00:21:32,206 --> 00:21:33,200
+So that should be
+
+209
+00:21:34,318 --> 00:21:35,360
+why is this any?
+
+210
+00:21:38,254 --> 00:21:39,120
+Why is this any?
+
+211
+00:21:55,246 --> 00:21:55,568
+Yeah.
+
+212
+00:22:02,848 --> 00:22:03,168
+I'm
+
+213
+00:22:03,168 --> 00:22:07,088
+just wondering why this is returning any here It's not super important.
+
+214
+00:22:08,782 --> 00:22:10,340
+But I should be able to infer that.
+
+215
+00:22:11,598 --> 00:22:12,964
+What are you doing to me, TypeScript?
+
+216
+00:22:17,294 --> 00:22:17,728
+Well.
+
+217
+00:22:18,048 --> 00:22:20,288
+Anyways, let's not drag this out.
+
+218
+00:22:20,782 --> 00:22:23,248
+I'll leave it like this for now because I want to move on.
+
+219
+00:22:23,648 --> 00:22:29,572
+There are other ways of solving it, but that is actually not what I want to spend today's time on.
+
+220
+00:22:30,574 --> 00:22:39,328
+And yeah, you could simply add a handle error function like um like this, like function handle
+
+221
+00:22:39,648 --> 00:22:40,288
+error.
+
+222
+00:22:41,008 --> 00:22:41,328
+Um
+
+223
+00:22:42,608 --> 00:22:53,008
+then you need to define the error type here though, and I'm uh no, I I would I would like to infer it. I'm not sure what went wrong there. So, anyways, uh how do you quit from VIN?
+
+224
+00:22:53,088 --> 00:22:58,928
+Yeah, quitting from Wim. Uh I guess that's a part we all stumbled over, right?
+
+225
+00:22:59,488 --> 00:23:05,408
+when we the first time opened something on some server with uh Wim and we were stuck there and didn't know how to get out there.
+
+226
+00:23:05,808 --> 00:23:13,088
+would you say using NextJS should be the way to go for a new project, startup, or plain React is okay. That really depends, I would say,
+
+227
+00:23:17,488 --> 00:23:29,088
+whether you need a server side or not, though I guess most apps actually need a server side. So I should probably rephrase it as it depends on whether you want to build your front end
+
+228
+00:23:29,998 --> 00:23:34,528
+standalone from the back end, kind of, or if you want to have like an integrated experience.
+
+229
+00:23:34,688 --> 00:23:44,048
+I would guess for most projects, if you're getting started, using something like NextJS makes more sense because it simplifies the process
+
+230
+00:23:45,328 --> 00:23:51,328
+of building full stack React applications. It also definitely introduces some new problems,
+
+231
+00:23:52,288 --> 00:23:55,620
+but it can definitely help with
+
+232
+00:23:57,328 --> 00:24:01,488
+you don't need to build like a separate back end and front end and then learn how to connect them.
+
+233
+00:24:01,568 --> 00:24:10,380
+And especially if you want to host the app, hosting two different applications, of course, is a bit more complex than hosting one next application, especially if you're using something like Vercel
+
+234
+00:24:10,848 --> 00:24:13,888
+it gets super simple. So that would be my recommendation, I guess.
+
+235
+00:24:14,288 --> 00:24:17,568
+do you have a course combining all the latest trends, tools about AI?
+
+236
+00:24:17,648 --> 00:24:29,124
+You're my favorite teacher when learning any tech tech I do have an AI course, and I guess I can already say there will be a rather big update in the relatively near future.
+
+237
+00:24:29,648 --> 00:24:29,968
+So
+
+238
+00:24:32,686 --> 00:24:33,988
+I have a course,
+
+239
+00:24:37,120 --> 00:24:41,088
+a ChatGPT course, though it actually does not just cover ChatGPT;
+
+240
+00:24:41,168 --> 00:24:49,888
+it covers different models, prompt engineering, and again, an update is I'm working on an update for this course right now to also include agents and
+
+241
+00:24:50,128 --> 00:24:58,208
+RAG and stuff like that. So that might be an interesting course for you. Had you worked with Lucia Auth, the author moved to working on cryptography now.
+
+242
+00:24:59,662 --> 00:25:06,368
+had you played with implementing auth from scratch on your own. I feel JSTS is so messed up working with Auth provider.
+
+243
+00:25:06,768 --> 00:25:16,368
+So um I have actually used Lucia Auth. I liked it a lot, and I found it a bit sad that the author moved away from it. Essentially, I liked it.
+
+244
+00:25:16,848 --> 00:25:26,928
+I guess now that we have better auth, it's okay because better auth seems to be pretty powerful, pretty amazing. but yeah, I use Lucia.
+
+245
+00:25:27,248 --> 00:25:35,728
+I have also played around with implementing auth myself, so not everything, like the cryptography part, you don't want to do that on your own, because
+
+246
+00:25:36,078 --> 00:25:40,608
+even if you know what you're doing, which I don't, you are probably doing it wrong.
+
+247
+00:25:40,848 --> 00:25:49,488
+But of course, like using cryptography as it's built into Node or so on, and then building on top of that, I have definitely played around with that.
+
+248
+00:25:49,568 --> 00:25:58,208
+Yeah, and I think like implementing auth from scratch, if you use, as I just said, cryptography and so on,
+
+249
+00:25:58,528 --> 00:26:03,396
+if you don't reinvent the wheel, there is actually not that hard as some people make it seem.
+
+250
+00:26:03,728 --> 00:26:12,164
+But still, of course, using something like Better Auth gives you tons of auth related features, which you probably also need, which you then don't have to build on your own.
+
+251
+00:26:13,664 --> 00:26:21,264
+do you have any suggestions on what to learn to keep up with AI development? So, of course, like in the world of AI, everything moves super fast.
+
+252
+00:26:21,424 --> 00:26:29,104
+There also are quite a lot of people that can give you the feeling that everything changes all the time, and you need to keep up, or you will be lost.
+
+253
+00:26:29,184 --> 00:26:31,844
+And I'm not on board of that, uh, board with that.
+
+254
+00:26:32,624 --> 00:26:43,104
+But in order to keep up with AI development, really just using the different tools already gets you pretty far, and is what I would recommend.
+
+255
+00:26:43,264 --> 00:26:51,664
+Like obviously exploring things like cursor, GitHub Copilot when it comes to coding, but also like different AI chatbots,
+
+256
+00:26:51,824 --> 00:27:02,784
+chat GPT, Google Gemini, I like that a lot. And also play around with some open source large language models, which you can run on your machine, maybe on your laptop, depending on the laptop,
+
+257
+00:27:03,104 --> 00:27:08,064
+with Olamma or LM Studio. So these are the things I would recommend.
+
+258
+00:27:08,590 --> 00:27:18,224
+What are we doing today? We're building or we're diving deeper into Tanstech Stark, better auth, and so on, and we'll build or continue building an app where
+
+259
+00:27:18,926 --> 00:27:26,624
+I want users to be able to suggest topics for future live streams and vote on these topics. That's the ultimate goal.
+
+260
+00:27:26,784 --> 00:27:32,228
+I'll probably not be able to finish it today, but we'll see how far we how far we get.
+
+261
+00:27:33,902 --> 00:27:36,452
+Okay, so let's see if redirecting works, shall we?
+
+262
+00:27:39,726 --> 00:27:41,504
+so for login it worked.
+
+263
+00:27:41,806 --> 00:27:46,944
+So I guess I already had redirect there, I could have looked that up too, anyways.
+
+264
+00:27:47,424 --> 00:27:50,704
+And now here for logging in that also works.
+
+265
+00:27:50,958 --> 00:27:51,492
+Awesome.
+
+266
+00:27:51,664 --> 00:27:54,660
+So authentication works, perfect.
+
+267
+00:27:56,526 --> 00:28:04,704
+So with that out of the way, I don't want to spend more time on authentication for now, but instead I want to move on. And
+
+268
+00:28:05,824 --> 00:28:17,024
+at the moment in this application, I really only have two pages. I have the auth page and I have the the starting page, and then I have the API here which only serves better auth. So
+
+269
+00:28:18,734 --> 00:28:25,700
+as I just said, the goal is to build an app where people can create topic suggestions and then vote on them.
+
+270
+00:28:25,966 --> 00:28:28,784
+So it probably makes sense to add some pages for that.
+
+271
+00:28:28,944 --> 00:28:40,864
+So I'll add a topics TSX file, and the goal here is to have like a list of all topics and a button that you can click to be taken to the new topic page.
+
+272
+00:28:41,424 --> 00:28:41,744
+So,
+
+273
+00:28:42,926 --> 00:28:52,304
+and then, of course, I'll have to figure out if I really were to deploy that. I should probably implement some things to make sure that people don't
+
+274
+00:28:53,264 --> 00:29:01,984
+start posting porn links and all kinds of stuff, and that I don't end up with thousands of topic suggestions, but zero votes.
+
+275
+00:29:02,286 --> 00:29:11,396
+These are things I'll worry about next for now. I'll just build this good old CRUD application here with a list of topics and a route for adding new topics.
+
+276
+00:29:11,662 --> 00:29:13,504
+Now, when it comes to routing,
+
+277
+00:29:15,824 --> 00:29:19,556
+in Tanstack Start, I can create folders
+
+278
+00:29:20,462 --> 00:29:26,980
+and then in there have my new TSX file and I guess my index.tsx file instead of the topics.tsx file.
+
+279
+00:29:28,174 --> 00:29:29,604
+So that should also work, yep.
+
+280
+00:29:30,304 --> 00:29:32,324
+And um yep.
+
+281
+00:29:32,704 --> 00:29:36,964
+And now I need a data model for my topics.
+
+282
+00:29:37,344 --> 00:29:38,916
+So I'm using Drizzle.
+
+283
+00:29:41,934 --> 00:29:50,980
+I'm using Drizzle for interacting with SQLite here, and thus far I only set it up to work with BetterAll.
+
+284
+00:29:51,854 --> 00:30:05,984
+I have not done anything else, and I have only played around with Drizzle quite a long time ago, so I don't know anything about it anymore. I have used Prisma and other projects, but not Drizzle.
+
+285
+00:30:06,224 --> 00:30:07,588
+So let's see
+
+286
+00:30:08,398 --> 00:30:10,852
+how that works. How do I create schemas?
+
+287
+00:30:11,502 --> 00:30:15,780
+Because I need a schema in order to store data and interact with data, I guess.
+
+288
+00:30:16,224 --> 00:30:29,904
+Okay, so we have like our Drizzle config file, and I guess I have that file here, right? I should have like a Drizzle config file, yeah. we have the auth schema here, and I guess that's not great.
+
+289
+00:30:30,190 --> 00:30:40,224
+I guess I should have a general schema file which imports and exports the auth schema so that I can merge other schemas into
+
+290
+00:30:40,464 --> 00:30:40,784
+it.
+
+291
+00:30:41,104 --> 00:30:42,276
+That would be
+
+292
+00:30:43,024 --> 00:30:46,468
+my guess that it makes sense to do it like this.
+
+293
+00:30:48,064 --> 00:30:54,864
+schema in multiple files, you can place your Drizzle models such as tables, blah blah blah, not only in one file, but in any file you prefer.
+
+294
+00:30:54,944 --> 00:31:02,144
+The only thing you must ensure is that you export all the models from those files so that DrizzleKit can import them and use them in migrations.
+
+295
+00:31:02,224 --> 00:31:06,980
+Okay, so we can split our schema across multiple files, for example, here in a schema folder.
+
+296
+00:31:12,848 --> 00:31:13,168
+And
+
+297
+00:31:13,168 --> 00:31:15,972
+then I just point at that folder, okay.
+
+298
+00:31:17,648 --> 00:31:22,288
+Okay, yeah, that makes sense. So I could add a schema folder, I guess, or
+
+299
+00:31:23,758 --> 00:31:29,408
+also in the app folder, and move my auth schema into that folder.
+
+300
+00:31:29,678 --> 00:31:34,052
+So move that file into there and maybe rename it to just auth.
+
+301
+00:31:34,702 --> 00:31:43,248
+And in the drizzle config, then say that my schema is an app schema, right? That should work if I understand this correctly.
+
+302
+00:31:43,488 --> 00:31:48,448
+And now I could add another schema in there and have my
+
+303
+00:31:49,328 --> 00:31:51,332
+topic TS file
+
+304
+00:31:52,174 --> 00:31:55,328
+for the topic-related stuff or
+
+305
+00:31:57,294 --> 00:31:58,276
+topics.
+
+306
+00:31:58,830 --> 00:32:00,128
+Doesn't matter, I guess.
+
+307
+00:32:01,550 --> 00:32:08,516
+and now in there I can define my schema, and I do remember that you define it entirely by calling functions and so on.
+
+308
+00:32:10,670 --> 00:32:21,380
+So for SQLite, I want to probably use this SQLite table function, so I can I guess copy this code simply and then fine-tune this and have my topics
+
+309
+00:32:22,688 --> 00:32:23,172
+table.
+
+310
+00:32:30,510 --> 00:32:34,244
+And in there, I guess every topic should have an ID.
+
+311
+00:32:35,118 --> 00:32:41,924
+Every topic should have a title. Now I don't want to make this and the title should not be an integer. What are you doing, Copilot?
+
+312
+00:32:42,222 --> 00:32:43,172
+It should be
+
+313
+00:32:44,688 --> 00:32:48,208
+uh string or is it text?
+
+314
+00:32:51,248 --> 00:32:52,260
+It's text.
+
+315
+00:32:52,448 --> 00:32:54,852
+So I want to have a text title,
+
+316
+00:32:55,968 --> 00:32:56,288
+and
+
+317
+00:32:57,968 --> 00:32:59,140
+I'm not sure.
+
+318
+00:33:00,208 --> 00:33:03,648
+Maybe maybe it's not even a title, maybe it's like a text.
+
+319
+00:33:03,808 --> 00:33:12,288
+Like a topic is just some text because you could have a title and a description, but that's just a bunch of text for people to enter, and if you vote on it, you're
+
+320
+00:33:12,590 --> 00:33:19,236
+you don't want to read like through a bunch of text, right? So maybe a topic is really just one piece of text and that's it.
+
+321
+00:33:20,974 --> 00:33:28,036
+That's something I could do here. The alternative route, of course, would be to have a title and a description.
+
+322
+00:33:29,728 --> 00:33:30,768
+Well, yeah.
+
+323
+00:33:30,990 --> 00:33:33,700
+Well, I guess I'll do that and I can always change it later.
+
+324
+00:33:34,368 --> 00:33:38,368
+created at makes sense. Updated at, we I don't plan.
+
+325
+00:33:38,990 --> 00:33:40,804
+Should people be able to update it?
+
+326
+00:33:41,678 --> 00:33:52,420
+Well, let's add it. I don't know yet if I want it, but we'll see. Yeah, created by, that should be a user ID, and I'll have to figure out how I can like set up foreign keys with Drizzle.
+
+327
+00:33:52,608 --> 00:33:54,848
+There certainly is a way of doing it.
+
+328
+00:33:55,568 --> 00:33:57,796
+I'll dive into the docs to find out.
+
+329
+00:33:58,208 --> 00:34:00,768
+By the way, in this auth schema,
+
+330
+00:34:01,614 --> 00:34:03,492
+yeah, it's done in the same way.
+
+331
+00:34:03,808 --> 00:34:08,292
+I can probably also see foreign keys there with references, I guess.
+
+332
+00:34:10,688 --> 00:34:11,008
+So
+
+333
+00:34:13,102 --> 00:34:19,008
+that would just mean that I need to import, I guess, this user table.
+
+334
+00:34:19,648 --> 00:34:19,968
+So
+
+335
+00:34:20,928 --> 00:34:25,408
+if I, so I guess I could say, created by
+
+336
+00:34:26,062 --> 00:34:31,488
+references, users, ID, and here, whoops, I want to import,
+
+337
+00:34:33,806 --> 00:34:35,364
+and that should be named topics.
+
+338
+00:34:35,568 --> 00:34:36,928
+and here I want to import
+
+339
+00:34:39,374 --> 00:34:40,740
+the users. table.
+
+340
+00:34:42,030 --> 00:34:49,540
+Okay, I'm not getting any suggestion. It is being exported though. Yeah, export const users. So import users from auth.
+
+341
+00:34:50,318 --> 00:34:51,332
+why is this not working.
+
+342
+00:34:51,950 --> 00:34:54,116
+Auth has no export. Oh, it's user.
+
+343
+00:34:54,958 --> 00:34:55,648
+Is it a user?
+
+344
+00:34:55,808 --> 00:34:56,484
+It's user.
+
+345
+00:34:56,768 --> 00:35:00,644
+Okay, so if that is singular, I want to use singular here as well.
+
+346
+00:35:01,808 --> 00:35:05,732
+So I guess that's how I can set up such a foreign key.
+
+347
+00:35:06,734 --> 00:35:10,788
+So that would be the topic, and of course, I also want to store votes.
+
+348
+00:35:11,648 --> 00:35:11,728
+So
+
+349
+00:35:13,742 --> 00:35:20,644
+I want to have like a vote table, and every vote should also have an integer, and every vote should belong to a topic and to a user,
+
+350
+00:35:21,390 --> 00:35:26,788
+and I don't need to make that overly complex. I want to have created that but no updated ad. You
+
+351
+00:35:27,694 --> 00:35:32,608
+shouldn't be able to change your vote. You can, of course, like remove it.
+
+352
+00:35:32,814 --> 00:35:37,476
+Um, that's possible, but that's just a delete and not an update.
+
+353
+00:35:37,808 --> 00:35:39,620
+So I guess that's my schema here.
+
+354
+00:35:40,288 --> 00:35:46,212
+Um, I also guess there is way there's way more I could do with um drizzle.
+
+355
+00:35:46,894 --> 00:35:49,316
+Probably also some best practices I should follow.
+
+356
+00:35:50,286 --> 00:35:52,260
+Uh cameless snake casing.
+
+357
+00:35:53,008 --> 00:35:53,648
+Uh
+
+358
+00:35:56,768 --> 00:36:00,208
+but I guess oh, varchar.
+
+359
+00:36:01,614 --> 00:36:03,460
+Or is this because it's SQL?
+
+360
+00:36:04,544 --> 00:36:05,540
+MySQL.
+
+361
+00:36:06,606 --> 00:36:09,890
+Is it Varchar if I use SQLite?
+
+362
+00:36:15,118 --> 00:36:20,544
+I need to find out which data types are supported.
+
+363
+00:36:22,446 --> 00:36:27,344
+So I guess here I just find the instructions on how to connect
+
+364
+00:36:29,774 --> 00:36:30,944
+crystal schema
+
+365
+00:36:32,630 --> 00:36:37,508
+PostgreSQL data types? Yeah, I need the SQLite data types.
+
+366
+00:36:55,584 --> 00:37:01,504
+Ah here, data types. Text SQLite. Text is text. Okay, yeah, that's good.
+
+367
+00:37:04,462 --> 00:37:11,504
+You can add a default now on the created ad. Yep, that makes sense. So I guess I can call can I call default?
+
+368
+00:37:13,486 --> 00:37:14,064
+And then
+
+369
+00:37:15,054 --> 00:37:16,772
+is it like like this?
+
+370
+00:37:17,584 --> 00:37:17,904
+No.
+
+371
+00:37:20,686 --> 00:37:22,692
+Let's see. Maybe there is like a built-in
+
+372
+00:37:23,504 --> 00:37:23,824
+um
+
+373
+00:37:27,150 --> 00:37:28,144
+default now.
+
+374
+00:37:33,710 --> 00:37:38,852
+Is there is there maybe an example? Created at. Okay, there is a default now function.
+
+375
+00:37:39,184 --> 00:37:40,708
+Created at okay.
+
+376
+00:37:41,742 --> 00:37:42,384
+Timestamp.
+
+377
+00:37:42,638 --> 00:37:45,424
+So I set this. Yeah, it should not be an integer, I guess.
+
+378
+00:37:45,710 --> 00:37:47,584
+So I use timestamp.
+
+379
+00:37:51,822 --> 00:37:52,624
+Where is
+
+380
+00:37:54,382 --> 00:37:56,196
+where is the SQLite version of that?
+
+381
+00:37:57,294 --> 00:38:03,396
+I guess in SQLite we technically don't have a timestamp, so let's take a look at the data types again.
+
+382
+00:38:04,494 --> 00:38:13,824
+Let's take a look at the data types. integer real text numeric custom okay, where is the
+
+383
+00:38:15,118 --> 00:38:17,424
+where is the date?
+
+384
+00:38:18,190 --> 00:38:21,156
+Timestamp is a text. Okay, so that's how I
+
+385
+00:38:23,054 --> 00:38:24,676
+how I do it, I guess, in
+
+386
+00:38:26,350 --> 00:38:27,184
+in SQLite.
+
+387
+00:38:27,758 --> 00:38:29,924
+An updated that should also be text.
+
+388
+00:38:31,374 --> 00:38:33,584
+It's a bit weird that
+
+389
+00:38:34,830 --> 00:38:38,948
+um that I have to like inject my own custom
+
+390
+00:38:42,606 --> 00:38:44,260
+SQL code here.
+
+391
+00:38:49,646 --> 00:38:52,144
+I would have expected some built-in
+
+392
+00:38:52,878 --> 00:38:53,892
+type for that.
+
+393
+00:38:54,606 --> 00:38:57,664
+But okay, that also works, of course.
+
+394
+00:38:59,758 --> 00:39:01,584
+Not null default now.
+
+395
+00:39:02,190 --> 00:39:08,292
+Is this also here like not null default, but there is no default now. I could chain
+
+396
+00:39:11,374 --> 00:39:14,544
+for text, and I guess it should be text in SQLite.
+
+397
+00:39:15,184 --> 00:39:20,260
+So I guess since this is all what I see in the official docs, I'll just set it like this.
+
+398
+00:39:25,550 --> 00:39:30,464
+also down here, default, yep, like this. So that's looking good.
+
+399
+00:39:30,624 --> 00:39:36,384
+I also, since I just saw it, I want to make this not null and this not null, of course.
+
+400
+00:39:36,704 --> 00:39:43,300
+And the ID, can I set this to primary key to make sure that it's like set automatically?
+
+401
+00:39:44,944 --> 00:39:50,304
+because normally in SQLite, if something is the primary key, it is simply set.
+
+402
+00:39:52,544 --> 00:39:52,864
+So
+
+403
+00:39:54,190 --> 00:39:56,548
+I'm not sure if I need auto increment. true
+
+404
+00:39:58,064 --> 00:39:58,384
+because,
+
+405
+00:39:59,438 --> 00:40:01,584
+and I think many people don't know that.
+
+406
+00:40:02,064 --> 00:40:03,504
+but in SQLite,
+
+407
+00:40:04,784 --> 00:40:08,036
+if you create a table and you set it up,
+
+408
+00:40:12,526 --> 00:40:15,460
+and you set up your primary key. Where is it?
+
+409
+00:40:16,174 --> 00:40:23,972
+SQLite auto increment. They're actually the official docs tell you that you don't need to add the auto increment keyword.
+
+410
+00:40:24,622 --> 00:40:26,308
+It is usually not needed.
+
+411
+00:40:27,344 --> 00:40:35,984
+the auto increment keyword uh imposes extra CPU memory disk space and IO overhead and should be avoided if not strictly necessary.
+
+412
+00:40:36,304 --> 00:40:42,224
+Needed needed. So you shouldn't use um auto increment with SQLite.
+
+413
+00:40:43,374 --> 00:40:47,744
+So I'll try without and see if an ID gets added automatically.
+
+414
+00:40:48,144 --> 00:40:50,148
+Okay, so that's that.
+
+415
+00:40:53,998 --> 00:40:59,328
+That is that. Let me just quickly check again.
+
+416
+00:41:01,422 --> 00:41:07,396
+SQL from Drizzle ORM. Yeah, that's I just wanted to check if this import is correct because I had multiple options there.
+
+417
+00:41:07,888 --> 00:41:09,088
+Okay, so that's that.
+
+418
+00:41:09,408 --> 00:41:11,172
+I got my topic set up now.
+
+419
+00:41:11,648 --> 00:41:12,516
+Therefore,
+
+420
+00:41:13,408 --> 00:41:24,928
+I can I guess run these migrations. And what I'll do is I'll I'll actually delete my database because I want to get rid of all these dummy users I created, anyways. No sound, really?
+
+421
+00:41:25,888 --> 00:41:27,168
+There was sound
+
+422
+00:41:28,974 --> 00:41:30,692
+until now, I guess. Can you hear me?
+
+423
+00:41:31,662 --> 00:41:35,524
+So here nothing changed. So sound should still be there.
+
+424
+00:41:37,614 --> 00:41:40,768
+Let me know if my sound went away.
+
+425
+00:41:41,454 --> 00:41:41,728
+Um,
+
+426
+00:41:45,408 --> 00:41:51,088
+so so so what do uh what did I wanna I wanted to migrate that again. So how does this work?
+
+427
+00:41:51,598 --> 00:41:54,368
+Sound is fine. Okay, thank you so much for letting me know.
+
+428
+00:41:54,702 --> 00:41:59,328
+So I guess it's just like a problem on your machine, unfortunately.
+
+429
+00:42:00,288 --> 00:42:02,608
+how do I run my migrations here?
+
+430
+00:42:05,998 --> 00:42:08,036
+I just wanna hear migrations.
+
+431
+00:42:10,702 --> 00:42:12,516
+So I probably need to
+
+432
+00:42:15,438 --> 00:42:18,436
+what do what do I need to do? Do I need to run
+
+433
+00:42:23,888 --> 00:42:24,768
+generate
+
+434
+00:42:27,534 --> 00:42:30,212
+and then migrate, I guess.
+
+435
+00:42:32,462 --> 00:42:33,764
+So let's see if that works.
+
+436
+00:42:34,414 --> 00:42:37,412
+That's the interesting part, that's what never worked before.
+
+437
+00:42:37,888 --> 00:42:40,772
+Um npx drizzle kit generate.
+
+438
+00:42:42,766 --> 00:42:44,996
+Okay, and now migrate.
+
+439
+00:42:46,670 --> 00:42:47,908
+Okay, no error.
+
+440
+00:42:48,302 --> 00:42:49,476
+That's surprising.
+
+441
+00:42:50,126 --> 00:42:57,828
+Let's see, we got our user table and so on, and we got the topics table, and we got the votes table, and therefore that's looking good.
+
+442
+00:42:58,528 --> 00:42:58,848
+So
+
+443
+00:43:00,462 --> 00:43:08,048
+now that the topic are the that the topics are set up, we can work on our new topic page.
+
+444
+00:43:08,368 --> 00:43:11,268
+And in there, of course, I want to have a form.
+
+445
+00:43:12,206 --> 00:43:21,284
+So, and by the way, I'll add more styling later. I I keep like the styling and the markup super simple right now because I want to add the functionality and then work on the styling later.
+
+446
+00:43:22,768 --> 00:43:35,008
+So, um, yeah, divs, labels, title, description, that's looking good. These are the two fields I need to set, right? we want to have a title and description. Created at will be set automatically.
+
+447
+00:43:35,406 --> 00:43:43,088
+Updated ad should also be set automatically. We we would have to do that a little bit different with a database trigger, I guess. I'll take care of that later.
+
+448
+00:43:43,328 --> 00:43:47,968
+Um, yeah, so we only need to set title and description here.
+
+449
+00:43:48,590 --> 00:43:53,728
+Have two inputs, descriptions, a text area, makes sense, a button makes sense.
+
+450
+00:43:54,048 --> 00:43:56,448
+We actually don't need type submit, I guess.
+
+451
+00:43:56,590 --> 00:44:03,140
+It's the default, anyways. And then I want to add a function that handles it, and that should again be a server function.
+
+452
+00:44:05,166 --> 00:44:07,248
+Um, so I'll name it um
+
+453
+00:44:08,848 --> 00:44:10,404
+create topic.
+
+454
+00:44:12,142 --> 00:44:13,008
+And actually,
+
+455
+00:44:14,208 --> 00:44:15,428
+that should be
+
+456
+00:44:16,448 --> 00:44:19,008
+actually I should be I should create it differently, I guess.
+
+457
+00:44:19,168 --> 00:44:26,768
+Um actually I want to create it by calling create server function, which is imported from tanstack start,
+
+458
+00:44:27,568 --> 00:44:30,980
+and then I create my function here.
+
+459
+00:44:36,288 --> 00:44:40,676
+no, no, no, no. That was not how it worked. I can call add a handler here.
+
+460
+00:44:40,910 --> 00:44:44,100
+That's how it works, and then here I have my
+
+461
+00:44:44,974 --> 00:44:46,608
+my function right.
+
+462
+00:44:47,342 --> 00:44:53,408
+Okay, and then here I can extract like the data that was submitted, the method that was used,
+
+463
+00:44:54,862 --> 00:45:00,288
+and so on, and I guess I could use the context to access any any search params, but we don't need it here.
+
+464
+00:45:00,848 --> 00:45:04,196
+So, data is of type undefined here,
+
+465
+00:45:06,254 --> 00:45:16,768
+and that's why I'm getting some type errors here. And um, I forgot, how did this work? How do I make Tanstack aware of the type of data we'll have here?
+
+466
+00:45:17,294 --> 00:45:21,060
+Does it infer this somehow or do I need to tell it?
+
+467
+00:45:24,270 --> 00:45:31,012
+It's a problem. If you work on so many stuff every week, you forget everything that happened in the last week.
+
+468
+00:45:32,128 --> 00:45:33,408
+So, so so
+
+469
+00:45:39,662 --> 00:45:41,344
+Context data
+
+470
+00:45:42,224 --> 00:45:43,844
+runtime input.
+
+471
+00:45:47,534 --> 00:45:55,492
+Okay, so what they're doing here, they expect to get some unknown data, then they validate it, and that's how this data gets inferred. So I guess that makes sense.
+
+472
+00:45:55,854 --> 00:45:57,444
+So I will add validator.
+
+473
+00:45:58,286 --> 00:46:01,892
+And validator also takes a function.
+
+474
+00:46:05,486 --> 00:46:07,744
+And in there I get my
+
+475
+00:46:08,782 --> 00:46:09,744
+do I get my data?
+
+476
+00:46:10,062 --> 00:46:11,396
+Yeah, I just get my
+
+477
+00:46:14,158 --> 00:46:15,744
+data here like this.
+
+478
+00:46:16,750 --> 00:46:20,196
+And then I would check if everything I want is in that data.
+
+479
+00:46:20,910 --> 00:46:24,384
+So for example, for example, thank you, Copilot. I can check.
+
+480
+00:46:24,686 --> 00:46:33,104
+Should it be is it not an object? Because I expect it to be an object, or is it null? In that case, yeah, we return an error, we throw an error.
+
+481
+00:46:33,344 --> 00:46:33,664
+Um
+
+482
+00:46:36,864 --> 00:46:37,184
+is
+
+483
+00:46:39,950 --> 00:46:41,700
+Is the type of the title not a string?
+
+484
+00:46:43,918 --> 00:46:50,084
+I'm actually not sure about that. I would rather check if so we know at this point the data is an object, so I want to check if
+
+485
+00:46:52,046 --> 00:46:54,244
+if title in data
+
+486
+00:46:55,104 --> 00:46:56,384
+and if
+
+487
+00:46:57,264 --> 00:46:59,460
+type of data title
+
+488
+00:47:00,462 --> 00:47:02,244
+is not equal string.
+
+489
+00:47:02,830 --> 00:47:05,348
+Uh no, or if type
+
+490
+00:47:07,694 --> 00:47:10,304
+no, I want to check if not
+
+491
+00:47:13,998 --> 00:47:18,084
+title in data, or the type of it is not string.
+
+492
+00:47:19,214 --> 00:47:21,024
+In that case, I'll
+
+493
+00:47:22,350 --> 00:47:23,184
+title
+
+494
+00:47:26,464 --> 00:47:27,984
+received in
+
+495
+00:47:29,006 --> 00:47:32,772
+invalid format, something like this. and then I can check if
+
+496
+00:47:34,304 --> 00:47:42,224
+data title trim, if that is equal to an empty string, in which case I know it's empty. so then I want to return titles, required.
+
+497
+00:47:42,384 --> 00:47:48,704
+So that could be something I want to do here, and then for the description, I'll just check
+
+498
+00:47:53,070 --> 00:48:00,708
+if not description in data, and so just as before for the title, and I want to check if it's empty and then show a different error message.
+
+499
+00:48:01,262 --> 00:48:06,464
+So here I'll say description received in invalid format.
+
+500
+00:48:07,406 --> 00:48:15,824
+So now we have a bunch of validation here, and I could use sought for that too, might add a two, um, but for now let's do it manually.
+
+501
+00:48:15,984 --> 00:48:21,344
+And then I return the data, and now here data is inferred to have a title and a description.
+
+502
+00:48:21,504 --> 00:48:25,904
+And I wonder why it thinks that title is unknown.
+
+503
+00:48:26,190 --> 00:48:28,304
+I'm checking oh,
+
+504
+00:48:29,184 --> 00:48:36,900
+because it's not guaranteed that it's a string. So I guess it should infer it correctly if I split this across two if statements.
+
+505
+00:48:37,646 --> 00:48:40,900
+If type of data title is not string.
+
+506
+00:48:41,934 --> 00:48:43,024
+So now that should be
+
+507
+00:48:43,950 --> 00:48:44,868
+why is it
+
+508
+00:48:46,926 --> 00:48:51,012
+it should be pretty clear here, I guess, that data title.
+
+509
+00:48:51,950 --> 00:48:58,704
+Title must be a string. It is clear here after all, even after split uh even without splitting that. So I guess we don't need it.
+
+510
+00:48:58,926 --> 00:49:00,260
+So it should be clear
+
+511
+00:49:01,264 --> 00:49:07,524
+that data actually holds a property named title, which is a string.
+
+512
+00:49:09,550 --> 00:49:12,036
+So I'm not 100% sure
+
+513
+00:49:14,670 --> 00:49:17,860
+why it's not inferring that here correctly.
+
+514
+00:49:19,662 --> 00:49:22,704
+I guess what I can always do is of course, whoops,
+
+515
+00:49:23,854 --> 00:49:29,796
+that was the wrong key. I can always cast it and convince TypeScript
+
+516
+00:49:30,702 --> 00:49:32,004
+that it will have this shape.
+
+517
+00:49:32,622 --> 00:49:34,980
+I would have preferred it to be inferred though.
+
+518
+00:49:37,934 --> 00:49:39,044
+I'm not sure
+
+519
+00:49:40,654 --> 00:49:47,172
+why it's not the case. Now what what happens if I actually set this return type to this and I don't cast here?
+
+520
+00:49:48,174 --> 00:49:49,380
+Yeah, then I get an error.
+
+521
+00:49:51,982 --> 00:49:52,544
+Weird.
+
+522
+00:49:53,344 --> 00:49:54,500
+Really weird.
+
+523
+00:49:57,454 --> 00:50:00,772
+Okay, but anyways, so now I got my title and description here.
+
+524
+00:50:02,350 --> 00:50:04,544
+So now I want
+
+525
+00:50:08,142 --> 00:50:09,120
+I want to.
+
+526
+00:50:09,454 --> 00:50:16,708
+I don't want to simulate a database insert. I want to insert it in the database. For that, I need to consult the Drizzle docs again.
+
+527
+00:50:17,870 --> 00:50:24,400
+How do I insert data into my database based on my schema?
+
+528
+00:50:27,150 --> 00:50:30,532
+Yeah, that's how I select data. Okay, inserting.
+
+529
+00:50:31,054 --> 00:50:32,400
+DB insert,
+
+530
+00:50:33,390 --> 00:50:35,520
+and then I pass my table
+
+531
+00:50:37,358 --> 00:50:45,040
+to insert and then define the values, I guess. So what's db? Is that something I have in some
+
+532
+00:50:46,222 --> 00:50:49,680
+is that something I'm exporting? DBTS here. Okay.
+
+533
+00:50:50,542 --> 00:50:50,800
+Oh.
+
+534
+00:50:51,950 --> 00:50:54,532
+Why is schema here only auth schema?
+
+535
+00:50:56,160 --> 00:51:03,200
+Ah, I remember I had to add this here last week. Otherwise, better off better off where Drizzle would not work.
+
+536
+00:51:03,950 --> 00:51:10,080
+So I guess I guess normally you don't need to add it, but here I will therefore also add my topic.
+
+537
+00:51:11,822 --> 00:51:15,200
+No, not my topic, like this, my topic schema. So
+
+538
+00:51:16,160 --> 00:51:19,120
+where is the auth schema coming from?
+
+539
+00:51:21,134 --> 00:51:29,540
+Oh, that's everything from that file. So I should also import everything as topic schema from schema topics,
+
+540
+00:51:30,478 --> 00:51:32,644
+right? And then have that here too, I guess.
+
+541
+00:51:32,880 --> 00:51:34,340
+And that's then my database.
+
+542
+00:51:35,118 --> 00:51:36,548
+So with that, here,
+
+543
+00:51:38,670 --> 00:51:40,560
+I can then use
+
+544
+00:51:42,254 --> 00:51:45,040
+go away. Copilot use db,
+
+545
+00:51:46,606 --> 00:51:48,484
+import that from the db file,
+
+546
+00:51:49,200 --> 00:51:52,960
+insert, pass topic to it,
+
+547
+00:51:53,870 --> 00:51:55,844
+and then define the values;
+
+548
+00:51:56,686 --> 00:52:03,236
+and the values here should be inferred that I need to pass in title and description. The other values are optional.
+
+549
+00:52:04,302 --> 00:52:09,680
+Also the ID, so looks like it will insert it automatically, even though it's not auto-increment.
+
+550
+00:52:10,222 --> 00:52:14,080
+So title and description, that is what I
+
+551
+00:52:14,880 --> 00:52:16,228
+want to insert here,
+
+552
+00:52:17,358 --> 00:52:18,880
+and that will give me
+
+553
+00:52:20,398 --> 00:52:21,280
+a promise, I guess.
+
+554
+00:52:21,678 --> 00:52:22,628
+Yeah, I should await it.
+
+555
+00:52:22,766 --> 00:52:24,400
+So let's do that. Await
+
+556
+00:52:25,358 --> 00:52:28,292
+and then thereafter return success. Actually, I want to redirect.
+
+557
+00:52:28,640 --> 00:52:32,868
+So I guess here I can call like there was this redirect function, right?
+
+558
+00:52:33,774 --> 00:52:35,108
+So I can redirect here.
+
+559
+00:52:37,230 --> 00:52:41,440
+Or no, that needs to be thrown if I recall that correctly.
+
+560
+00:52:41,998 --> 00:52:43,460
+So that should be
+
+561
+00:52:45,358 --> 00:52:46,276
+the code we need
+
+562
+00:52:47,374 --> 00:52:48,612
+to create a new topic.
+
+563
+00:52:49,120 --> 00:52:56,452
+Now on the client side, I do remember that I need to use the use serverfn hook and pass create topic to it
+
+564
+00:52:58,560 --> 00:52:59,520
+to have my
+
+565
+00:53:00,400 --> 00:53:06,276
+um yeah, create topic function there or create topicfn, whatever.
+
+566
+00:53:11,840 --> 00:53:12,480
+create
+
+567
+00:53:13,774 --> 00:53:17,760
+new topic. I always hate it if you have to rename something because you have a name clash.
+
+568
+00:53:18,080 --> 00:53:22,720
+I guess I could name the server function differently, but uh, yeah, for now I'll go with that.
+
+569
+00:53:23,120 --> 00:53:30,000
+And I also now need yeah, I need to handle submit function, that's correct.
+
+570
+00:53:30,126 --> 00:53:38,160
+I want to prevent the default, want to gather the data, extract the data, and then I
+
+571
+00:53:38,480 --> 00:53:40,080
+want to try.
+
+572
+00:53:43,854 --> 00:53:49,956
+I want to try and await create new topic.
+
+573
+00:53:50,990 --> 00:53:52,964
+This is not a function I execute.
+
+574
+00:53:54,830 --> 00:53:56,196
+Create new topic.
+
+575
+00:54:00,526 --> 00:54:01,892
+is that not how I do it?
+
+576
+00:54:02,606 --> 00:54:05,440
+Server functions, how do I call them?
+
+577
+00:54:15,470 --> 00:54:22,736
+Oh, I just see if you don't want to validate and you just want to tell make TenStack aware of the type of something,
+
+578
+00:54:22,896 --> 00:54:29,604
+you can just set the type here and basically tell it, yeah, that's the type without validation, and that's how you could do it too.
+
+579
+00:54:30,016 --> 00:54:30,336
+Okay.
+
+580
+00:54:31,886 --> 00:54:32,176
+Um
+
+581
+00:54:34,256 --> 00:54:38,244
+right, I pass an object to it which has a data field, and then that's my form data.
+
+582
+00:54:39,694 --> 00:54:45,616
+Right, so I guess I don't have to extract the data here, I can just set data equal to form data, right?
+
+583
+00:54:45,696 --> 00:54:46,500
+That should do the trick.
+
+584
+00:54:47,216 --> 00:54:48,932
+And then if I get an error,
+
+585
+00:54:49,776 --> 00:54:50,096
+um
+
+586
+00:54:52,096 --> 00:54:57,696
+for now I'll just log it and later I'll add error handling with use state.
+
+587
+00:54:58,656 --> 00:55:06,852
+And since I wrapped my server function with use serverfn, if I remember it correctly, redirecting should just work.
+
+588
+00:55:11,136 --> 00:55:11,456
+So
+
+589
+00:55:13,550 --> 00:55:15,536
+let's see if that works, shall we?
+
+590
+00:55:16,046 --> 00:55:19,136
+Um for that I'll go to
+
+591
+00:55:22,176 --> 00:55:23,908
+slash topic slash new.
+
+592
+00:55:24,974 --> 00:55:25,936
+There's my form.
+
+593
+00:55:26,926 --> 00:55:32,036
+And obviously like totally broken styling, like crammed into the top left corner.
+
+594
+00:55:33,518 --> 00:55:38,084
+And I wonder why my why my laptop is so slow now.
+
+595
+00:55:39,342 --> 00:55:41,828
+It's like really slow.
+
+596
+00:55:45,150 --> 00:55:48,132
+I've not have that had in the past.
+
+597
+00:55:50,030 --> 00:55:51,908
+Like, go away with
+
+598
+00:55:53,390 --> 00:55:56,576
+Yeah, thank you. Okay, test and test.
+
+599
+00:55:58,016 --> 00:56:04,548
+Or first, if I don't enter anything here, my expectation would be that I
+
+600
+00:56:05,550 --> 00:56:07,136
+come on, get
+
+601
+00:56:08,046 --> 00:56:09,056
+get over there.
+
+602
+00:56:09,376 --> 00:56:11,492
+My expectation would be that I get an error.
+
+603
+00:56:13,056 --> 00:56:16,336
+I get a page reload. Oh yeah, because I have not connected the form.
+
+604
+00:56:16,782 --> 00:56:19,556
+So on submit equals handle submit.
+
+605
+00:56:20,174 --> 00:56:23,460
+So now let's try again. If I submit it like this,
+
+606
+00:56:25,456 --> 00:56:28,976
+I get an error title received in invalid format.
+
+607
+00:56:29,136 --> 00:56:36,452
+That makes sense. So if I now enter something here, test and Where's the field here? Test.
+
+608
+00:56:38,894 --> 00:56:43,620
+Okay, I'm still getting an error. Let's see. Name title, name description.
+
+609
+00:56:44,814 --> 00:56:46,948
+I'm gathering my form data here.
+
+610
+00:56:47,758 --> 00:56:49,616
+I'm attaching it here.
+
+611
+00:56:51,790 --> 00:56:54,564
+Let's see which data arrives on the server.
+
+612
+00:56:54,990 --> 00:56:58,052
+Let's do good old console log debugging here.
+
+613
+00:56:59,150 --> 00:57:04,016
+So if I log this here on the server and I submit this,
+
+614
+00:57:05,390 --> 00:57:17,376
+I got some form data which contains the data. So I guess it's only about the extraction, which I'm not doing correctly. Uh, if I got form data, then data is.
+
+615
+00:57:18,496 --> 00:57:22,116
+Does Tanstack understand that this is form data?
+
+616
+00:57:22,766 --> 00:57:23,696
+No, it's any.
+
+617
+00:57:26,126 --> 00:57:27,652
+Okay, so I want to check.
+
+618
+00:57:29,678 --> 00:57:31,940
+So I should set it to unknown, I guess.
+
+619
+00:57:32,336 --> 00:57:34,416
+And then I want to check if
+
+620
+00:57:35,376 --> 00:57:41,828
+the data instance is not form data, and therefore this check here makes no sense.
+
+621
+00:57:43,118 --> 00:57:44,580
+If it is foreign data though,
+
+622
+00:57:45,678 --> 00:57:46,820
+I want to continue.
+
+623
+00:57:47,456 --> 00:57:51,812
+And actually, then I'll change these checks here.
+
+624
+00:57:52,176 --> 00:57:55,140
+I'll get my title by using data
+
+625
+00:57:56,430 --> 00:58:01,540
+get title since it's forum data. I can safely use that and get my description here,
+
+626
+00:58:02,254 --> 00:58:08,964
+or do that after this check, I guess, and then check if title trim, and yeah, I need to like
+
+627
+00:58:09,870 --> 00:58:11,332
+call toString here
+
+628
+00:58:14,542 --> 00:58:15,204
+like this,
+
+629
+00:58:16,270 --> 00:58:17,636
+and do the same here.
+
+630
+00:58:23,246 --> 00:58:23,776
+And now
+
+631
+00:58:25,056 --> 00:58:27,456
+that should all work, hopefully.
+
+632
+00:58:29,936 --> 00:58:30,256
+And
+
+633
+00:58:34,318 --> 00:58:36,324
+Then I want to return
+
+634
+00:58:38,062 --> 00:58:40,804
+an object here, which has my title and my description.
+
+635
+00:58:41,808 --> 00:58:43,684
+And now that all works.
+
+636
+00:58:44,206 --> 00:58:44,868
+Awesome.
+
+637
+00:58:45,968 --> 00:58:46,288
+So
+
+638
+00:58:48,526 --> 00:58:50,404
+if I now go back here,
+
+639
+00:58:52,494 --> 00:58:54,404
+looks better. I was redirected.
+
+640
+00:58:54,958 --> 00:58:56,740
+And that's the old error here.
+
+641
+00:58:57,326 --> 00:58:59,088
+That all worked. Great.
+
+642
+00:58:59,470 --> 00:59:02,528
+So, what do we have in the chat? Whoops, that was loud.
+
+643
+00:59:04,334 --> 00:59:14,848
+my co-pilot subscription ended a week ago. I thought I'd keep going for another week like I used to, but I was surprised to see that my thinking and problem-solving ability had declined significantly.
+
+644
+00:59:14,928 --> 00:59:16,928
+Yeah, you're touching on a really good point,
+
+645
+00:59:19,024 --> 00:59:19,564
+Maggenia.
+
+646
+00:59:19,918 --> 00:59:21,088
+I totally relate.
+
+647
+00:59:21,728 --> 00:59:26,048
+I actually also turn off GitHub Copilot here and there,
+
+648
+00:59:27,008 --> 00:59:35,968
+because I don't want to use it all the time, because exactly what you said, the more I rely on it, kind of not surprisingly, I guess,
+
+649
+00:59:36,208 --> 00:59:46,928
+the worse I get at solving problems on my own. And it's a little bit like driving a car with navigation turned on, like GPS navigation turned on.
+
+650
+00:59:47,246 --> 00:59:55,648
+If you use your car like that, you get from A to B, of course, and you probably do it in an efficient way, but you don't remember, or I at least
+
+651
+00:59:55,808 --> 00:59:58,756
+don't really remember how I got there.
+
+652
+00:59:59,248 --> 01:00:07,748
+If I had to drive the same road or the same route again a few days later without navigation turned on,
+
+653
+01:00:08,128 --> 01:00:19,488
+I would probably have a hard time doing that. And it's kind of similar for me with GitHub Copilot and all these AI tools. If I use them too much, I forget how to do certain things on my own.
+
+654
+01:00:19,648 --> 01:00:28,928
+Or of course, I don't forget things I have used hundreds of times or I have done hundreds of times. But if I'm learning something new, or if I'm here, if I'm working with Tanstack and
+
+655
+01:00:30,190 --> 01:00:36,368
+I don't know anything about it, and if I then get a lot of AI completion and I accept it and things work and I move on,
+
+656
+01:00:36,622 --> 01:00:42,692
+the next time I'll work with Tanstack, I again don't know how it works, and therefore you get more and more reliant on AI.
+
+657
+01:00:43,438 --> 01:00:46,852
+And uh yeah, so I totally understand what you mean.
+
+658
+01:00:47,728 --> 01:00:54,848
+from what I'm seeing, online Tanstack starts seems to take a client-first approach versus other frameworks. Interesting. Yeah, I totally agree.
+
+659
+01:00:54,928 --> 01:01:03,888
+So that's the part with which I really struggled initially, and which which is why I took some or made some wrong decisions initially,
+
+660
+01:01:04,128 --> 01:01:13,248
+because I also I'm used to um submitting a form, handling it on the server, doing authentication on the server, uh, and so on.
+
+661
+01:01:13,808 --> 01:01:22,528
+And for example, that you have to add a function like this on the client side and prevent the default, like in the good old React
+
+662
+01:01:22,688 --> 01:01:27,140
+days, and then actually call the server-side code on your own.
+
+663
+01:01:27,694 --> 01:01:33,508
+I guess that makes sense. That's just how it works in TanStack, but definitely something to get used to. I totally agree.
+
+664
+01:01:33,968 --> 01:01:40,448
+I'm currently taking a React course. Uh awesome, uh Arisad. I hope you like it. I hope you get a lot out of it.
+
+665
+01:01:40,688 --> 01:01:42,928
+awesome to have you on board of this course.
+
+666
+01:01:44,878 --> 01:01:56,644
+Okay, so back here, I added this functionality to add a new topic. Now I want to display them and then I'll try to make it all look a bit better because it really looks horrible.
+
+667
+01:01:57,806 --> 01:02:05,284
+So here in this component, I now need a loader if I recall that correctly.
+
+668
+01:02:05,870 --> 01:02:08,848
+Right? In Tanstack we have the concept of loaders.
+
+669
+01:02:13,742 --> 01:02:15,808
+route generation, client entry.
+
+670
+01:02:16,288 --> 01:02:17,888
+Yeah, there's that.
+
+671
+01:02:19,150 --> 01:02:24,848
+I guess the idea was that you have like a loader that loads the data you need for a component.
+
+672
+01:02:27,694 --> 01:02:28,804
+Data loading.
+
+673
+01:02:34,144 --> 01:02:36,548
+yeah, exactly. You have like a loader,
+
+674
+01:02:39,854 --> 01:02:50,224
+and that loader can be configured right. Yeah, we you probably would want an abort controller to stop loading if the user navigates away. I do remember that.
+
+675
+01:02:50,784 --> 01:02:52,464
+Um loader.
+
+676
+01:02:55,118 --> 01:03:02,464
+Okay, so here in my loader, and I guess I could create a separate function which I call in there, but I'll do it right in there.
+
+677
+01:03:02,702 --> 01:03:06,308
+In this loader, I want to fetch data with help of Drizzle.
+
+678
+01:03:06,990 --> 01:03:09,476
+So that's this code now.
+
+679
+01:03:10,670 --> 01:03:12,100
+So again, using the db,
+
+680
+01:03:14,478 --> 01:03:24,516
+awaiting it, of course, and calling what's it select. Okay, so you basically like write a SQL statement with functions, I guess.
+
+681
+01:03:25,390 --> 01:03:28,804
+So here for now I'll select everything
+
+682
+01:03:29,664 --> 01:03:29,984
+from,
+
+683
+01:03:31,374 --> 01:03:37,380
+and then I guess you pass your actual table schema in there, right? So from topic,
+
+684
+01:03:38,606 --> 01:03:41,764
+and therefore I should have named it topics, I guess.
+
+685
+01:03:46,606 --> 01:03:47,588
+I'll change that.
+
+686
+01:03:48,654 --> 01:03:53,700
+I really don't like having topic here if I'm actually fetching multiple topics.
+
+687
+01:03:54,638 --> 01:03:57,636
+So I'll change it for votes too.
+
+688
+01:03:58,830 --> 01:04:06,180
+I guess it will not mess with my database because the table names are what I set up here, I guess.
+
+689
+01:04:06,384 --> 01:04:07,940
+So that shouldn't be a problem.
+
+690
+01:04:09,904 --> 01:04:20,864
+what is a problem though is that I'm using it in different places, so let's rename it more elegantly by using the refactor rename functionality, of course.
+
+691
+01:04:21,184 --> 01:04:21,504
+So
+
+692
+01:04:23,054 --> 01:04:24,708
+that's topics now.
+
+693
+01:04:27,424 --> 01:04:33,700
+I don't want to filter here. I guess I'd like to order by created at
+
+694
+01:04:37,070 --> 01:04:40,164
+that's seemingly not how it works. Is it
+
+695
+01:04:40,942 --> 01:04:42,624
+topics created at?
+
+696
+01:04:43,598 --> 01:04:45,028
+And then here it's
+
+697
+01:04:46,944 --> 01:04:49,700
+um how does order by work?
+
+698
+01:04:57,166 --> 01:04:57,664
+Really?
+
+699
+01:04:58,702 --> 01:05:01,252
+No, you don't have to use a SQL statement, right?
+
+700
+01:05:06,224 --> 01:05:07,184
+Order by
+
+701
+01:05:08,558 --> 01:05:12,324
+but how can I control whether it's ascending or descending?
+
+702
+01:05:25,664 --> 01:05:28,464
+Grizzle queries order by
+
+703
+01:05:30,510 --> 01:05:35,424
+you can use same ordering core API or use order by operator.
+
+704
+01:05:38,064 --> 01:05:39,268
+Okay, so they
+
+705
+01:05:40,206 --> 01:05:42,020
+also give me a different way of
+
+706
+01:05:42,766 --> 01:05:45,668
+fetching data, I guess, with find many.
+
+707
+01:05:50,624 --> 01:05:50,944
+So
+
+708
+01:05:50,944 --> 01:05:54,276
+that's a different API. Is that like core API?
+
+709
+01:06:00,174 --> 01:06:02,384
+So I guess what I could do here is,
+
+710
+01:06:04,624 --> 01:06:04,864
+um.
+
+711
+01:06:08,398 --> 01:06:10,372
+so I can also do like query
+
+712
+01:06:13,104 --> 01:06:15,876
+topics, find many
+
+713
+01:06:19,278 --> 01:06:20,224
+order, uh.
+
+714
+01:06:20,784 --> 01:06:26,224
+and then to find many, I set order by to
+
+715
+01:06:27,344 --> 01:06:28,356
+descending,
+
+716
+01:06:29,998 --> 01:06:33,504
+imported from drizzle or m topics created at.
+
+717
+01:06:33,584 --> 01:06:34,788
+I think I like that better.
+
+718
+01:06:38,350 --> 01:06:39,876
+What else can I set up here?
+
+719
+01:06:41,102 --> 01:06:44,224
+Columns, which columns I want to fetch. okay.
+
+720
+01:06:44,622 --> 01:06:46,704
+Yeah, so I guess columns. Um
+
+721
+01:06:48,142 --> 01:06:49,744
+what does columns want?
+
+722
+01:06:49,984 --> 01:06:52,068
+Any not too helpful.
+
+723
+01:06:53,070 --> 01:06:55,460
+So, where can I find more about find many?
+
+724
+01:06:58,830 --> 01:07:00,932
+Hello, find many.
+
+725
+01:07:06,478 --> 01:07:11,328
+So it is find many only usable together with the order by or what is this?
+
+726
+01:07:11,790 --> 01:07:12,448
+Find many.
+
+727
+01:07:13,678 --> 01:07:15,168
+Find many, find many.
+
+728
+01:07:20,128 --> 01:07:20,448
+So
+
+729
+01:07:24,686 --> 01:07:31,460
+it's another case of it would be nice to thoroughly read all the the documentation, but we'll get there.
+
+730
+01:07:32,848 --> 01:07:42,756
+So so so I'm I'm using find many, but I just want to understand how do I set up here columns. Okay, it's a map of key value pairs essentially.
+
+731
+01:07:43,022 --> 01:07:47,328
+So columns, I only want to have the ID,
+
+732
+01:07:48,078 --> 01:07:49,008
+the title,
+
+733
+01:07:50,062 --> 01:07:51,460
+and the description.
+
+734
+01:07:53,294 --> 01:07:54,848
+Maybe also created at.
+
+735
+01:07:55,968 --> 01:07:59,908
+Oh, and I also want to join that with the user data actually.
+
+736
+01:08:01,262 --> 01:08:10,308
+I also need to set this up when I submit a new topic. I totally forgot about that. When I insert a topic here, of course,
+
+737
+01:08:11,022 --> 01:08:15,332
+I also want to set created by to my current user.
+
+738
+01:08:17,326 --> 01:08:21,316
+So that should not always be one. Instead, I need to find out who the current user is.
+
+739
+01:08:23,822 --> 01:08:26,404
+So that's something I need to do.
+
+740
+01:08:32,270 --> 01:08:40,288
+So I need some way of getting hold of my current user, and I guess for that I can now use the better off server
+
+741
+01:08:40,448 --> 01:08:42,276
+side API.
+
+742
+01:08:43,534 --> 01:08:45,568
+Is there something like get session?
+
+743
+01:08:47,648 --> 01:08:50,468
+Get session probably wants a request, I guess.
+
+744
+01:08:50,926 --> 01:08:52,996
+Do I have access to my request here?
+
+745
+01:08:53,934 --> 01:08:54,768
+I don't.
+
+746
+01:08:56,270 --> 01:08:57,668
+Well, that's inconvenient.
+
+747
+01:08:58,638 --> 01:09:00,580
+I think there is some way of
+
+748
+01:09:01,806 --> 01:09:07,248
+there is some way of getting access to it. It's not in the context, right? Context is undefined. Okay.
+
+749
+01:09:08,110 --> 01:09:11,940
+So how do I get access to my request object in
+
+750
+01:09:12,622 --> 01:09:15,396
+handler? And just to verify, get session,
+
+751
+01:09:16,110 --> 01:09:20,452
+it wants a context object which includes headers.
+
+752
+01:09:20,974 --> 01:09:24,068
+So I guess this context here will not do, right?
+
+753
+01:09:25,968 --> 01:09:26,276
+No.
+
+754
+01:09:27,568 --> 01:09:27,888
+Okay.
+
+755
+01:09:34,798 --> 01:09:43,968
+So most importantly, I need to provide the headers. The rest is not that important, but the headers are. So how do I get access to the request headers in my
+
+756
+01:09:45,134 --> 01:09:46,436
+server function?
+
+757
+01:09:47,406 --> 01:09:48,452
+Let's see again.
+
+758
+01:09:49,198 --> 01:09:51,008
+10 stick start docs
+
+759
+01:09:52,928 --> 01:09:54,596
+server functions.
+
+760
+01:09:59,408 --> 01:10:00,368
+And then
+
+761
+01:10:02,688 --> 01:10:04,208
+where can I call
+
+762
+01:10:05,008 --> 01:10:06,768
+runtime validation?
+
+763
+01:10:07,086 --> 01:10:09,572
+Validation library, type safety inference,
+
+764
+01:10:10,670 --> 01:10:21,808
+form data, server function context. In addition to the single parameter that server functions accept, you can also access server request context from within any server function using you.
+
+765
+01:10:21,968 --> 01:10:23,968
+Oh, right, right, right. I recall.
+
+766
+01:10:24,526 --> 01:10:31,728
+I think you could get access to headers with functions like I always forget this. It's the third time that I forget it.
+
+767
+01:10:31,918 --> 01:10:33,408
+But I think there is like
+
+768
+01:10:35,408 --> 01:10:46,340
+getHeaders by here, get headers. I guess I can call this, and this gives me the headers of the request that is responsible for calling this function.
+
+769
+01:10:46,798 --> 01:10:51,184
+I always I keep on forgetting that. and now i guess i can set my headers here
+
+770
+01:10:54,034 --> 01:10:57,554
+but that's not a valid headers object seemingly
+
+771
+01:11:01,632 --> 01:11:06,692
+So I can get the overall request by calling getWebRequest. Let's see if that does the trick.
+
+772
+01:11:07,854 --> 01:11:13,924
+Constrec get web request imported like this.
+
+773
+01:11:14,382 --> 01:11:16,752
+then headers is request headers.
+
+774
+01:11:19,726 --> 01:11:25,232
+Okay, now the problem is that it's undefined. So let's check if not rec, I will throw an error.
+
+775
+01:11:25,550 --> 01:11:26,752
+Otherwise, this works.
+
+776
+01:11:26,912 --> 01:11:28,932
+So that will then give me
+
+777
+01:11:34,062 --> 01:11:42,500
+Or does it give me a promise? It gives me a promise, so I'll await this. And then I have my session. And from that session, I can hopefully get my user
+
+778
+01:11:43,232 --> 01:11:43,872
+ID.
+
+779
+01:11:44,032 --> 01:11:53,952
+And that's what I want to store here. Of course, session could be undefined. And by the way, that is also something I should check, anyways. I should make sure that I also protect all these routes.
+
+780
+01:11:54,112 --> 01:11:59,460
+So here I check if I maybe don't have a session. In that case, I throw an error and the user is not authenticated.
+
+781
+01:12:01,070 --> 01:12:02,212
+So what's the problem here?
+
+782
+01:12:04,974 --> 01:12:14,884
+That ID is a string, and created by once a number because I did not set this up correctly. Created by should be text as it seems.
+
+783
+01:12:15,726 --> 01:12:22,916
+So I'll have to update my tables, or in my case, I'll just delete them and recreate them because there's nothing important in them, anyways.
+
+784
+01:12:23,152 --> 01:12:28,804
+Okay, so that's that. Now, before I do that though, here I want to continue fetching data. And
+
+785
+01:12:29,552 --> 01:12:38,116
+with find many, can I also join to get the username? Let's say
+
+786
+01:12:39,086 --> 01:12:41,232
+I'm pretty sure I can.
+
+787
+01:12:42,574 --> 01:12:49,392
+Um find many, find first, include relations with, yeah, that's what I need.
+
+788
+01:12:49,792 --> 01:12:52,512
+So I want to set with here to
+
+789
+01:12:53,792 --> 01:12:54,112
+um
+
+790
+01:12:56,592 --> 01:12:57,232
+users
+
+791
+01:12:58,032 --> 01:13:00,388
+user now what's the name
+
+792
+01:13:01,792 --> 01:13:04,912
+users true or is it user?
+
+793
+01:13:05,552 --> 01:13:09,632
+I'm not sure because in the auth schema
+
+794
+01:13:12,654 --> 01:13:16,032
+this is called user, and the table is also called user.
+
+795
+01:13:16,352 --> 01:13:18,432
+So I guess I will
+
+796
+01:13:19,982 --> 01:13:21,632
+I'll probably need user here.
+
+797
+01:13:21,806 --> 01:13:23,812
+So that should hopefully also bring in
+
+798
+01:13:25,792 --> 01:13:27,780
+the user data into the topics.
+
+799
+01:13:34,126 --> 01:13:36,272
+That's my fetch topics then.
+
+800
+01:13:37,422 --> 01:13:40,324
+And with that here in the loader,
+
+801
+01:13:41,070 --> 01:13:43,876
+I guess I can return those fetch topics, right?
+
+802
+01:13:45,006 --> 01:13:48,580
+And that will be an array of objects. Why is user never?
+
+803
+01:13:50,254 --> 01:13:51,364
+Why is this never?
+
+804
+01:13:52,270 --> 01:13:52,752
+Shouldn't
+
+805
+01:13:53,872 --> 01:13:54,820
+user data be
+
+806
+01:13:56,462 --> 01:13:57,380
+incorporated?
+
+807
+01:14:05,632 --> 01:14:06,180
+With
+
+808
+01:14:07,534 --> 01:14:09,348
+so that looks alright, I guess.
+
+809
+01:14:17,952 --> 01:14:18,192
+Oh
+
+810
+01:14:18,432 --> 01:14:18,512
+sh
+
+811
+01:14:19,694 --> 01:14:20,836
+no, I cannot.
+
+812
+01:14:22,862 --> 01:14:28,592
+Well, I guess I'll see what I get. let me first check how I get this
+
+813
+01:14:30,542 --> 01:14:30,832
+um
+
+814
+01:14:32,174 --> 01:14:33,988
+this data on the client side.
+
+815
+01:14:36,398 --> 01:14:39,552
+Uh loading, data loading, that's what I need.
+
+816
+01:14:40,272 --> 01:14:43,072
+data loading guide. Oh, that's in the router guide, right?
+
+817
+01:14:43,406 --> 01:14:50,032
+That's why I did not find it. So I got my route loader, I'm fetching my topics, not sure if the user is in there, but we'll find out.
+
+818
+01:14:50,352 --> 01:14:54,192
+So now to access it in the component,
+
+819
+01:14:55,982 --> 01:14:57,232
+how do I do that?
+
+820
+01:15:04,590 --> 01:15:04,800
+Um
+
+821
+01:15:11,360 --> 01:15:14,320
+many examples but none for that.
+
+822
+01:15:15,630 --> 01:15:18,800
+Quick start, do you tell me how it works? Um
+
+823
+01:15:22,894 --> 01:15:25,520
+is there a loader on this page? No.
+
+824
+01:15:28,590 --> 01:15:28,880
+Um
+
+825
+01:15:35,054 --> 01:15:36,868
+is there like a use loader
+
+826
+01:15:38,446 --> 01:15:41,508
+data hook that I need to hook uh use?
+
+827
+01:15:45,070 --> 01:15:47,876
+The use loader data hook returns the loader data.
+
+828
+01:15:49,486 --> 01:15:51,360
+So I guess that's how I access this data.
+
+829
+01:15:51,520 --> 01:15:52,516
+Use loader data.
+
+830
+01:15:56,782 --> 01:15:57,732
+Data never.
+
+831
+01:15:58,062 --> 01:15:58,916
+That sounds bad.
+
+832
+01:16:01,774 --> 01:16:03,236
+Which argument do you want?
+
+833
+01:16:04,334 --> 01:16:09,040
+Why is this so complex from yeah, but that that does not look right?
+
+834
+01:16:09,422 --> 01:16:11,524
+Or do I get it as a parameter?
+
+835
+01:16:15,150 --> 01:16:21,348
+I don't remember, and it would be really nice if there would simply be an example somewhere.
+
+836
+01:16:22,350 --> 01:16:24,804
+And there probably is, I just need to find it.
+
+837
+01:16:25,440 --> 01:16:27,360
+Okay, let me quickly check again.
+
+838
+01:16:27,520 --> 01:16:32,324
+There is absolutely no example in the data loading documentation.
+
+839
+01:16:33,390 --> 01:16:34,340
+No, there is.
+
+840
+01:16:34,638 --> 01:16:36,004
+That's how I consume the data.
+
+841
+01:16:36,240 --> 01:16:37,600
+Okay, so
+
+842
+01:16:41,038 --> 01:16:41,828
+here we go.
+
+843
+01:16:44,366 --> 01:16:49,840
+Data now is this, and let's just console log it to see what's in there, right?
+
+844
+01:16:52,782 --> 01:16:54,080
+yeah, it's okay.
+
+845
+01:16:54,350 --> 01:17:04,932
+So that's that. Restart and delete the database again, and then let me quickly generate migrations again and migrate
+
+846
+01:17:05,870 --> 01:17:07,120
+and npm run dev.
+
+847
+01:17:09,038 --> 01:17:11,140
+And let's go back to our page,
+
+848
+01:17:11,982 --> 01:17:13,284
+go to topics new.
+
+849
+01:17:16,046 --> 01:17:18,052
+Let's enter this test.
+
+850
+01:17:19,982 --> 01:17:20,932
+Oh, did I
+
+851
+01:17:22,286 --> 01:17:23,748
+user not authenticated?
+
+852
+01:17:29,998 --> 01:17:30,916
+Yeah, it's possible.
+
+853
+01:17:33,742 --> 01:17:34,116
+Yeah.
+
+854
+01:17:35,886 --> 01:17:37,636
+I guess I am not an authenticated.
+
+855
+01:17:38,240 --> 01:17:39,300
+So let's do that.
+
+856
+01:17:40,206 --> 01:17:40,560
+Auth.
+
+857
+01:17:43,854 --> 01:17:45,028
+Oh yeah, because I
+
+858
+01:17:45,934 --> 01:17:50,276
+I also like deleted the database, right? So let's create a new account.
+
+859
+01:17:51,822 --> 01:17:54,692
+Let's now go to topics new.
+
+860
+01:17:55,502 --> 01:17:57,348
+Yeah, I don't want to save that, thank you.
+
+861
+01:17:57,760 --> 01:18:01,028
+And test and test, create topic.
+
+862
+01:18:02,254 --> 01:18:04,740
+And I got an error, as it seems.
+
+863
+01:18:06,960 --> 01:18:09,124
+Okay, we got an infinite loop somewhere
+
+864
+01:18:11,470 --> 01:18:13,988
+on the topics page. So redirecting worked,
+
+865
+01:18:21,200 --> 01:18:21,520
+but
+
+866
+01:18:21,520 --> 01:18:24,324
+I got an infinite loop. I wonder if that is
+
+867
+01:18:26,560 --> 01:18:31,680
+because of my code here where I try to include
+
+868
+01:18:33,280 --> 01:18:33,600
+really?
+
+869
+01:18:34,830 --> 01:18:37,028
+Is it because I tried to include the user data?
+
+870
+01:18:37,422 --> 01:18:42,720
+Okay, we'll fix that soon. Okay, so that was fetched. Now I need to figure out how to
+
+871
+01:18:43,600 --> 01:18:47,428
+include my user data without breaking the app.
+
+872
+01:18:52,480 --> 01:18:54,880
+So, how do I do that?
+
+873
+01:18:55,440 --> 01:18:57,360
+include relations with operatel
+
+874
+01:18:58,400 --> 01:19:04,420
+lets you combine data from multiple related tables and properly aggregate results.
+
+875
+01:19:06,766 --> 01:19:11,120
+Is it maybe the case that here I need to add created by?
+
+876
+01:19:18,318 --> 01:19:18,880
+Because
+
+877
+01:19:19,950 --> 01:19:21,796
+in the topics schema,
+
+878
+01:19:22,640 --> 01:19:24,932
+my foreign key
+
+879
+01:19:26,446 --> 01:19:27,780
+is named "created by
+
+880
+01:19:42,288 --> 01:19:42,608
+". Well.
+
+881
+01:19:42,688 --> 01:19:45,028
+I guess we can simply try.
+
+882
+01:19:47,854 --> 01:19:48,420
+Nope.
+
+883
+01:19:48,846 --> 01:19:50,244
+I'm back in the infinite loop.
+
+884
+01:19:53,248 --> 01:19:53,568
+Okay.
+
+885
+01:19:55,534 --> 01:19:57,008
+I'll figure it out in a second.
+
+886
+01:19:57,248 --> 01:19:59,008
+First, some questions.
+
+887
+01:20:02,830 --> 01:20:06,928
+Yo, Maximilian, longtime listener, first time caller. Please respond.
+
+888
+01:20:07,214 --> 01:20:08,132
+I responded!
+
+889
+01:20:08,590 --> 01:20:09,540
+Nice to have you here.
+
+890
+01:20:09,934 --> 01:20:19,488
+Nice to finally like see each other and not just listen to each other or you listen to me, I guess. in the future, you may create a full Nest.js course.
+
+891
+01:20:21,902 --> 01:20:25,060
+well, it's not planned right now, to be honest.
+
+892
+01:20:26,128 --> 01:20:29,572
+the last time I really worked with Nest.js was in
+
+893
+01:20:30,638 --> 01:20:33,008
+2019, I guess.
+
+894
+01:20:33,326 --> 01:20:42,048
+So six years ago. And I know that Nest.js is quite popular. I'm just not using it really, so a course is unlikely, unfortunately.
+
+895
+01:20:42,208 --> 01:20:43,888
+At least in the near future.
+
+896
+01:20:44,208 --> 01:20:44,528
+Um
+
+897
+01:20:45,390 --> 01:20:50,848
+chess app Flutter plus Python plus fast API. Is it good? You mean if it's a good project?
+
+898
+01:20:51,086 --> 01:20:52,900
+It sounds like a fun project to do.
+
+899
+01:20:53,168 --> 01:20:53,988
+Um, sure.
+
+900
+01:20:55,470 --> 01:20:56,356
+Sure, sure.
+
+901
+01:21:00,078 --> 01:21:01,316
+Okay, so let me figure out
+
+902
+01:21:02,928 --> 01:21:05,604
+why this is not working.
+
+903
+01:21:06,222 --> 01:21:07,012
+I mean,
+
+904
+01:21:07,822 --> 01:21:15,568
+I have to say, the official docs don't look that complex. I'm just not sure which key I have to plug in here.
+
+905
+01:21:15,728 --> 01:21:19,460
+But I tried user before, which is the the name
+
+906
+01:21:20,590 --> 01:21:25,860
+of the of the of the table I set up the connection with, and that gave me an infinite loop.
+
+907
+01:21:26,128 --> 01:21:31,808
+Now I tried the name of the foreign key, and that also gave me an infinite loop, which is rather unfortunate.
+
+908
+01:21:32,398 --> 01:21:41,476
+So I'm thinking about going back to the more SQLite um syntax so that I can write the statement almost on my own.
+
+909
+01:21:44,928 --> 01:21:51,748
+I mean Drizzle is not that unknown, right? So so let's AI help me here.
+
+910
+01:21:54,126 --> 01:21:55,968
+Oh, I have a problem.
+
+911
+01:21:57,326 --> 01:22:01,636
+In this file, I'm trying to load all topics,
+
+912
+01:22:02,608 --> 01:22:04,932
+including related user data.
+
+913
+01:22:05,870 --> 01:22:06,564
+That's
+
+914
+01:22:08,878 --> 01:22:09,796
+why I
+
+915
+01:22:10,446 --> 01:22:11,888
+added with
+
+916
+01:22:12,910 --> 01:22:15,012
+to find many,
+
+917
+01:22:15,728 --> 01:22:19,076
+as instructed by the drizzle
+
+918
+01:22:20,078 --> 01:22:20,868
+dogs.
+
+919
+01:22:22,094 --> 01:22:25,408
+I seem to be doing something wrong though.
+
+920
+01:22:25,742 --> 01:22:28,676
+Adding this causes an infinite
+
+921
+01:22:30,062 --> 01:22:30,528
+loop.
+
+922
+01:22:32,078 --> 01:22:33,488
+What's the problem?
+
+923
+01:22:34,928 --> 01:22:43,008
+Also see, and it should, I think, also take a look at other files itself, but I'll point it at my auth schema and
+
+924
+01:22:43,328 --> 01:22:43,648
+my
+
+925
+01:22:44,686 --> 01:22:45,828
+topic schema.
+
+926
+01:22:47,808 --> 01:22:48,128
+and
+
+927
+01:22:49,902 --> 01:22:52,676
+why am I is this an old version?
+
+928
+01:22:53,294 --> 01:22:55,268
+I should have agent mode enabled.
+
+929
+01:22:56,528 --> 01:23:02,528
+I guess for this problem, asking is good enough, but I wonder why why I'm not in agent mode here.
+
+930
+01:23:02,830 --> 01:23:04,288
+But it's also not too important.
+
+931
+01:23:04,654 --> 01:23:07,568
+Um let's see if GitHub Copilot can help me.
+
+932
+01:23:08,270 --> 01:23:11,168
+Thank you for your JavaScript course. Thank you for taking it.
+
+933
+01:23:11,310 --> 01:23:12,608
+Uh, I hope it was helpful.
+
+934
+01:23:12,814 --> 01:23:14,372
+Thank you so much for being part of it.
+
+935
+01:23:14,608 --> 01:23:17,254
+What do you think about remix compared to Next.js?
+
+936
+01:23:19,328 --> 01:23:19,648
+well,
+
+937
+01:23:20,942 --> 01:23:22,128
+they're both amazing.
+
+938
+01:23:22,288 --> 01:23:23,556
+Um, personally,
+
+939
+01:23:24,206 --> 01:23:28,612
+uh, I have worked more with Next.js, I guess.
+
+940
+01:23:29,168 --> 01:23:41,408
+But there are some aspects I don't like about Next.js that I do like about Remix or React Router because it's now been merged back into React Router. So yeah, there is that.
+
+941
+01:23:41,614 --> 01:23:42,768
+Both are amazing.
+
+942
+01:23:43,434 --> 01:23:46,128
+Next.js is, I'd say, the more popular one.
+
+943
+01:23:46,638 --> 01:23:57,540
+React Router, of course, is super popular, but but the framework part is relatively new. It was remixed in the past, and that was not as popular as Next.js, but yeah.
+
+944
+01:23:58,926 --> 01:24:06,340
+Ultimately, I'd use whichever you like more, unless you have like a reason that you need to use one or the other due to your job.
+
+945
+01:24:06,848 --> 01:24:09,808
+So, what's the problem? The problem is how you're trying to use relations.
+
+946
+01:24:09,888 --> 01:24:17,728
+You've set up a reference with the created by field in the topics table, but you haven't properly defined the relation for Drizzle to use with the with syntax.
+
+947
+01:24:18,288 --> 01:24:18,608
+Okay,
+
+948
+01:24:19,408 --> 01:24:22,768
+so I need to update my topics schema
+
+949
+01:24:24,334 --> 01:24:26,756
+to define the relation properly.
+
+950
+01:24:28,270 --> 01:24:30,660
+I need to define relationships like this
+
+951
+01:24:31,694 --> 01:24:31,968
+really
+
+952
+01:24:33,102 --> 01:24:33,534
+Really?
+
+953
+01:24:39,246 --> 01:24:40,368
+It's possible
+
+954
+01:24:43,214 --> 01:24:45,060
+M:M relations.
+
+955
+01:24:50,478 --> 01:24:52,260
+Yeah, so that's what I want to do,
+
+956
+01:24:53,326 --> 01:24:54,528
+and for that,
+
+957
+01:25:00,174 --> 01:25:02,788
+so I have like a one -to -many relation here.
+
+958
+01:25:05,742 --> 01:25:06,820
+Interesting.
+
+959
+01:25:08,878 --> 01:25:09,728
+So what's the
+
+960
+01:25:10,766 --> 01:25:11,008
+—so
+
+961
+01:25:12,302 --> 01:25:13,796
+what's the purpose
+
+962
+01:25:14,862 --> 01:25:16,452
+of references here?
+
+963
+01:25:18,222 --> 01:25:20,996
+It's not showing up here it's in the docs, right?
+
+964
+01:25:22,638 --> 01:25:23,140
+Huh
+
+965
+01:25:25,422 --> 01:25:27,012
+This reference is mentioned here?
+
+966
+01:25:33,998 --> 01:25:35,364
+It's used differently.
+
+967
+01:25:36,368 --> 01:25:36,688
+Okay.
+
+968
+01:25:40,174 --> 01:25:41,252
+So, I guess
+
+969
+01:25:42,574 --> 01:25:44,580
+—oh, thanks for breaking my code.
+
+970
+01:25:53,422 --> 01:25:54,688
+I guess
+
+971
+01:25:56,078 --> 01:25:56,836
+I'll make
+
+972
+01:25:58,208 --> 01:25:59,236
+this adjustment:
+
+973
+01:26:00,814 --> 01:26:05,568
+"creator ." And now I would use "creator" as a key with the "with" statement. I
+
+974
+01:26:05,568 --> 01:26:06,916
+guess. Yeah.
+
+975
+01:26:09,582 --> 01:26:09,808
+Okay,
+
+976
+01:26:12,142 --> 01:26:13,796
+so let's give this a try.
+
+977
+01:26:14,288 --> 01:26:14,928
+Creator.
+
+978
+01:26:15,568 --> 01:26:16,528
+And since,
+
+979
+01:26:17,518 --> 01:26:23,748
+well, I don't think I need to migrate again necessarily, I'm not sure if this changes anything about the table setup.
+
+980
+01:26:25,966 --> 01:26:29,088
+Yeah, now it works. Okay, good, good, good, good.
+
+981
+01:26:29,326 --> 01:26:35,248
+So now I got my topics here, and in the topics, I got the creator, and that's my user data.
+
+982
+01:26:35,488 --> 01:26:44,368
+And my guess would be that I could also say Instead of setting this to true, I can set it to an object and define which columns I want to get,
+
+983
+01:26:44,448 --> 01:26:48,420
+because I only want to get like the ID and the name of the user. I don't need anything else,
+
+984
+01:26:49,408 --> 01:26:56,676
+and in the future I also want to get votes. And now that I think of it, votes, of course, should also be connected to
+
+985
+01:26:57,488 --> 01:27:06,048
+a topic. I have, oh yeah, I have this here, but I need the relations, so I need my votes relations, right? Topic.
+
+986
+01:27:09,088 --> 01:27:11,168
+Related to one topic
+
+987
+01:27:11,950 --> 01:27:13,028
+and to a user,
+
+988
+01:27:13,742 --> 01:27:15,172
+yep, that makes sense.
+
+989
+01:27:15,648 --> 01:27:16,528
+And then here,
+
+990
+01:27:19,054 --> 01:27:22,288
+actually here, I want to get like the,
+
+991
+01:27:23,310 --> 01:27:24,208
+the count
+
+992
+01:27:27,662 --> 01:27:28,608
+of votes.
+
+993
+01:27:28,878 --> 01:27:30,340
+Is that something I can do here?
+
+994
+01:27:31,822 --> 01:27:33,508
+Can I like aggregate them?
+
+995
+01:27:45,968 --> 01:27:51,088
+Why am I not allowed to add votes here next to creator?
+
+996
+01:27:54,688 --> 01:27:59,088
+Oh, because on topic I only have created by, right?
+
+997
+01:27:59,408 --> 01:28:01,668
+And I guess I need votes,
+
+998
+01:28:02,990 --> 01:28:03,248
+but
+
+999
+01:28:04,270 --> 01:28:07,076
+no, how do I do that with Drizzle?
+
+1000
+01:28:08,078 --> 01:28:16,836
+That I, I, I basically want to say topics should have a votes key which is giving me all related votes.
+
+1001
+01:28:20,942 --> 01:28:24,928
+So the other side of the relation, so to say, so one
+
+1002
+01:28:26,286 --> 01:28:27,908
+topic has many votes.
+
+1003
+01:28:30,446 --> 01:28:33,956
+Is it something like, can I say here, um, "votes"
+
+1004
+01:28:35,470 --> 01:28:36,804
+is there like a many?
+
+1005
+01:28:42,944 --> 01:28:44,144
+No. oh
+
+1006
+01:28:46,704 --> 01:28:48,064
+Many too many.
+
+1007
+01:28:50,544 --> 01:28:52,932
+I mean, I have one side of the relation here,
+
+1008
+01:28:53,870 --> 01:29:05,444
+and this is correct, but I want to fetch the number of votes when per topic when I fetch my topic, and I would like to do this all in one query. And I wonder how to do that.
+
+1009
+01:29:07,984 --> 01:29:09,184
+Let's see what
+
+1010
+01:29:10,318 --> 01:29:11,812
+GitHub Copilot has to say
+
+1011
+01:29:13,184 --> 01:29:13,824
+about this.
+
+1012
+01:29:14,670 --> 01:29:16,324
+So again, opening this up.
+
+1013
+01:29:17,744 --> 01:29:22,904
+Great. I now also want to I now also edited
+
+1014
+01:29:28,494 --> 01:29:39,984
+to set up the relations between votes and topics slash users. And I also want to fetch the number of
+
+1015
+01:29:41,904 --> 01:29:42,756
+votes
+
+1016
+01:29:45,424 --> 01:29:53,984
+index in this file here, when fetching all topics, so that for every topic
+
+1017
+01:29:54,304 --> 01:29:58,944
+I have the number of votes attached to it.
+
+1018
+01:30:03,950 --> 01:30:07,184
+Have you tried Elm before? No, I have not.
+
+1019
+01:30:08,944 --> 01:30:12,544
+I am working with ASP API and React.
+
+1020
+01:30:13,824 --> 01:30:14,144
+Okay.
+
+1021
+01:30:19,342 --> 01:30:23,264
+So you mean with ASP.NET?
+
+1022
+01:30:24,046 --> 01:30:24,676
+I guess.
+
+1023
+01:30:25,344 --> 01:30:27,844
+also something I have not worked with, to be honest.
+
+1024
+01:30:31,566 --> 01:30:32,384
+Let's see.
+
+1025
+01:30:32,718 --> 01:30:35,364
+Can GitHub Copilot help me here
+
+1026
+01:30:36,110 --> 01:30:38,596
+using Claude 3.7
+
+1027
+01:30:41,294 --> 01:30:48,132
+and I guess Agent is not enabled here because I'm in a different user profile now that I think of it.
+
+1028
+01:30:50,222 --> 01:30:52,068
+It's really thinking about that, huh?
+
+1029
+01:31:06,126 --> 01:31:06,624
+Hello
+
+1030
+01:31:08,046 --> 01:31:11,556
+Mr. Copilot, can you please thank you?
+
+1031
+01:31:11,984 --> 01:31:17,188
+To include the number of votes you need to first add the reverse relation. Yeah that
+
+1032
+01:31:18,670 --> 01:31:22,224
+Yeah, but is there there is no many function, is there?
+
+1033
+01:31:22,478 --> 01:31:23,652
+That's what I tried.
+
+1034
+01:31:24,366 --> 01:31:31,104
+But I got no suggestion regarding can I import many from the same place where one where's one
+
+1035
+01:31:31,904 --> 01:31:32,224
+oh
+
+1036
+01:31:36,224 --> 01:31:36,864
+okay.
+
+1037
+01:31:37,710 --> 01:31:39,264
+I should have looked better.
+
+1038
+01:31:39,534 --> 01:31:43,396
+It's an argument, not an import. That's why I got no suggestions there.
+
+1039
+01:31:44,622 --> 01:31:44,864
+Okay.
+
+1040
+01:31:47,950 --> 01:31:48,544
+Sure.
+
+1041
+01:31:50,382 --> 01:31:51,504
+And with that,
+
+1042
+01:31:53,664 --> 01:31:56,224
+I use extras.
+
+1043
+01:31:57,550 --> 01:32:00,484
+And then I write my own SQL statement, really. Is that the way to go?
+
+1044
+01:32:01,230 --> 01:32:07,104
+Is there no other way than writing my own SQL statement?
+
+1045
+01:32:08,334 --> 01:32:10,340
+I would rather have like a built-in way.
+
+1046
+01:32:14,382 --> 01:32:27,428
+Hey Max, what is the best way to think fast and manage edge cases when creating logics? Uh I'm not sure what you mean with logics, but um yeah. Could you clarify what exactly you mean?
+
+1047
+01:32:28,814 --> 01:32:31,620
+have you ever worked with Electron JS before? I have, yeah.
+
+1048
+01:32:32,064 --> 01:32:32,484
+I have.
+
+1049
+01:32:37,422 --> 01:32:43,888
+And I think Electron is actually better than some people make it seem.
+
+1050
+01:32:44,110 --> 01:32:53,248
+I guess like the reputation is not the best, but it's actually a good tool for building desktop applications with web technologies.
+
+1051
+01:32:53,582 --> 01:32:56,048
+I mean, you get what you
+
+1052
+01:32:57,408 --> 01:32:58,788
+buy, so to say.
+
+1053
+01:33:03,950 --> 01:33:08,292
+Hell sir, what will happen to us as software developers? I mean,
+
+1054
+01:33:09,006 --> 01:33:13,088
+I guess you mean because of AI, right?
+
+1055
+01:33:13,488 --> 01:33:13,808
+And
+
+1056
+01:33:14,958 --> 01:33:29,248
+my take on this is that AI, as you probably heard before by Avrus, is a tool, a useful tool. I mean, I'm using it here, and for example, here I find AI useful because I don't know a lot about Drizzle.
+
+1057
+01:33:29,646 --> 01:33:39,008
+I would normally dive a bit deeper and try to really learn it, but here in the stream, I want to find the right mixture. I don't want to bore you by reading through docs.
+
+1058
+01:33:40,430 --> 01:33:49,092
+and being able to like ask AI and solve some problems quicker than it might be for me to dive into the docs can be really great.
+
+1059
+01:33:49,648 --> 01:33:49,968
+But
+
+1060
+01:33:50,768 --> 01:33:58,288
+AI replacing developers, I don't see that in the near or or or midterm, to be honest.
+
+1061
+01:33:58,768 --> 01:34:07,408
+and and not just because um it's not just because being a developer is more than just writing code, it's about problem solving,
+
+1062
+01:34:07,568 --> 01:34:15,088
+of course. But also simply, even if AI would be absolutely perfect in solving problems and everything,
+
+1063
+01:34:17,902 --> 01:34:24,548
+even then, companies would not suddenly all start to drop developers or not hire anymore.
+
+1064
+01:34:27,408 --> 01:34:37,188
+someone will be needed to control the output of AI. And by the way, I don't believe that AI would even be capable of replacing developers
+
+1065
+01:34:38,222 --> 01:34:45,488
+in general, but even if it were, there would be other reasons for why developers would still be needed.
+
+1066
+01:34:45,968 --> 01:34:47,524
+that's my take on that.
+
+1067
+01:34:49,648 --> 01:35:00,768
+but I think it's a tool you should definitely consider using and experiment with. You just you just should not rely on it too much, because if you rely on it too much, you get dependent and you
+
+1068
+01:35:02,094 --> 01:35:05,968
+you forget how to solve problems on your own, which is not good.
+
+1069
+01:35:06,542 --> 01:35:11,648
+Because at some point you're only as good as the AI, and that's probably not where you want to end up.
+
+1070
+01:35:12,238 --> 01:35:13,968
+Uh so yeah, thank you so much.
+
+1071
+01:35:14,222 --> 01:35:16,004
+Thank you all so much for for being here.
+
+1072
+01:35:17,728 --> 01:35:22,820
+Um okay, in newer versions of Drizzle ORM you can use the count helper.
+
+1073
+01:35:24,014 --> 01:35:25,328
+Yeah, that sounds good.
+
+1074
+01:35:25,774 --> 01:35:26,724
+Does this work?
+
+1075
+01:35:27,566 --> 01:35:29,408
+So can I go
+
+1076
+01:35:30,368 --> 01:35:30,688
+here
+
+1077
+01:35:32,142 --> 01:35:33,088
+and say with
+
+1078
+01:35:34,688 --> 01:35:35,408
+votes
+
+1079
+01:35:40,078 --> 01:35:41,728
+and then say what?
+
+1080
+01:35:42,158 --> 01:35:43,140
+Count no.
+
+1081
+01:35:45,006 --> 01:35:46,884
+That looks like a hallucination to me.
+
+1082
+01:35:49,134 --> 01:35:51,876
+This I guess does not work.
+
+1083
+01:35:56,302 --> 01:36:03,328
+I can do a bunch of other stuff, but I cannot I keep on going back. I cannot do that.
+
+1084
+01:36:05,230 --> 01:36:08,128
+Use separate queries, yeah. I don't want to do that.
+
+1085
+01:36:10,222 --> 01:36:12,836
+Oh, I need to import the count function.
+
+1086
+01:36:15,310 --> 01:36:17,060
+Yeah, but only if I do that, right?
+
+1087
+01:36:17,902 --> 01:36:18,208
+So
+
+1088
+01:36:19,248 --> 01:36:19,568
+here
+
+1089
+01:36:21,070 --> 01:36:22,116
+this will not work.
+
+1090
+01:36:22,928 --> 01:36:28,100
+So the other approach was of course here with extras, right? So I could say extras,
+
+1091
+01:36:29,710 --> 01:36:31,940
+and that I guess allows me to add
+
+1092
+01:36:33,248 --> 01:36:35,076
+extra fields,
+
+1093
+01:36:38,574 --> 01:36:39,968
+and I could say
+
+1094
+01:36:40,928 --> 01:36:41,700
+votes,
+
+1095
+01:36:43,150 --> 01:36:48,580
+and then essentially like, yeah, like copy this here. right? And
+
+1096
+01:36:57,568 --> 01:36:57,888
+import
+
+1097
+01:36:58,768 --> 01:37:00,484
+votes from my schema
+
+1098
+01:37:01,486 --> 01:37:03,008
+and import this.
+
+1099
+01:37:12,208 --> 01:37:12,928
+Do I need to?
+
+1100
+01:37:21,274 --> 01:37:23,214
+Yeah, okay, so
+
+1101
+01:37:24,654 --> 01:37:26,128
+let's see if that does the trick.
+
+1102
+01:37:26,448 --> 01:37:28,048
+If I now reload.
+
+1103
+01:37:31,728 --> 01:37:33,604
+I got a bunch of topics here.
+
+1104
+01:37:37,806 --> 01:37:39,044
+And I got some votes in there.
+
+1105
+01:37:39,726 --> 01:37:44,768
+And I hope these will update once I start adding a vote mechanism.
+
+1106
+01:37:45,008 --> 01:37:45,328
+Okay.
+
+1107
+01:37:45,966 --> 01:37:46,820
+Sounds good.
+
+1108
+01:37:52,208 --> 01:38:01,648
+Max, do you work in IoT using Node.js? Also, can you suggest a framework that helps in IoT? No, unfortunately, I don't really have any IoT experience, sorry.
+
+1109
+01:38:02,448 --> 01:38:10,628
+I got into coding because I like the mental challenge. Watching someone else's AI take away that challenge makes coding boring. I 100% agree.
+
+1110
+01:38:11,008 --> 01:38:17,008
+Um, and uh that brings me back kind of to what we discussed earlier in the stream, right?
+
+1111
+01:38:17,134 --> 01:38:24,288
+You don't want to use AI all the time because you just get reliant on it and you lose your ability to think,
+
+1112
+01:38:25,294 --> 01:38:25,728
+kind of.
+
+1113
+01:38:26,222 --> 01:38:34,852
+And I agree, the fun part of writing code is not writing boilerplate, it's about figuring stuff out, solving complex problems, and yeah, I totally agree.
+
+1114
+01:38:38,734 --> 01:38:46,020
+I mean creating a function logic that will solve complex problem on your application. So that relates back to the earlier question.
+
+1115
+01:38:47,488 --> 01:38:54,756
+what is the best way to think fast and manage edge cases when creating logic? So when creating function logic.
+
+1116
+01:38:55,118 --> 01:38:56,528
+So thinking fast,
+
+1117
+01:38:58,126 --> 01:38:59,204
+I don't think you can,
+
+1118
+01:38:59,854 --> 01:39:02,852
+I don't know if you can train that, right? So obviously
+
+1119
+01:39:04,368 --> 01:39:11,684
+there is no general approach I follow when it comes to solving problems or coming up with the logic that needs to go into a function.
+
+1120
+01:39:11,888 --> 01:39:14,528
+Uh some parts come from experience,
+
+1121
+01:39:15,488 --> 01:39:27,568
+some parts come from documentation. if I'm working with like here, I'm exploring how to use certain libraries and frameworks, and so you piece together the different parts, but the biggest part,
+
+1122
+01:39:31,088 --> 01:39:33,540
+I would say comes from experience.
+
+1123
+01:39:35,022 --> 01:39:41,408
+but yeah, there is no general guide I can give on how to think fast or come up with good solutions.
+
+1124
+01:39:41,614 --> 01:39:43,808
+Practice makes perfect, that's really it.
+
+1125
+01:39:45,248 --> 01:39:48,676
+it's good to see you live. Thank you so much. Nice to have you here, Upurv.
+
+1126
+01:39:49,888 --> 01:39:50,208
+Um,
+
+1127
+01:39:53,006 --> 01:39:58,368
+I love your courses and hope you keep on making them, even if I if AI takes away all our jobs.
+
+1128
+01:39:58,448 --> 01:40:08,368
+Well, if AI takes away all our jobs, I will probably stop making courses because there probably will be no one left to buy them. But I'm hopeful that this will not be the case anytime soon.
+
+1129
+01:40:09,168 --> 01:40:14,608
+Uh are you still going to be live tomorrow since we are used on Thursdays, right?
+
+1130
+01:40:14,848 --> 01:40:24,996
+I normally stream on Thursdays, but tomorrow I got an appointment at a doctor, so I will not that's why I'm streaming today, essentially. But normally it's Thursday, that is correct.
+
+1131
+01:40:26,208 --> 01:40:26,848
+Uh
+
+1132
+01:40:29,934 --> 01:40:35,728
+just got your book, React Key Concepts, second edition myself. Cannot wait to read it. Also, love you, courses. Thanks.
+
+1133
+01:40:35,888 --> 01:40:36,528
+Thank you so much.
+
+1134
+01:40:36,688 --> 01:40:40,288
+By the way, since you mentioned it, gives me a nice opportunity to advertise it.
+
+1135
+01:40:40,526 --> 01:40:43,328
+That's my book, React Key Concepts, which which you mentioned.
+
+1136
+01:40:43,630 --> 01:40:46,448
+Thank you so much for buying it. I hope you like it. I hope you get a lot out of it.
+
+1137
+01:40:46,606 --> 01:40:55,728
+It's fully updated for the latest version of React and React Router. Uh covers all the key concepts as the name suggests, including server components and all the fun stuff.
+
+1138
+01:40:55,808 --> 01:41:00,448
+So, yeah, I hope you like it a lot. Uh, your English is very clear to understand.
+
+1139
+01:41:00,608 --> 01:41:01,088
+Thanks.
+
+1140
+01:41:01,408 --> 01:41:03,728
+Thanks for all your tutorials. Yeah, I feel honored.
+
+1141
+01:41:03,808 --> 01:41:10,208
+Thank you so much. Happy to hear uh it's understandable. I guess you can't get rid of the German accent, but what will you do?
+
+1142
+01:41:10,382 --> 01:41:13,796
+Um, and yeah, thank you so much. Happy you're you're liking the tutorials.
+
+1143
+01:41:14,734 --> 01:41:28,048
+Okay, so back to the app. I'm loading my topics. I got them here on the client side, so now we should finally start outputting them, and then we can start working on some styling. So I
+
+1144
+01:41:29,646 --> 01:41:32,644
+have my topics here, so I guess I should name it topics.
+
+1145
+01:41:33,614 --> 01:41:41,636
+Okay, no, it's data, so I'll name it data, and in there I have some topics, or actually, I can use
+
+1146
+01:41:42,030 --> 01:41:43,492
+destructuring here.
+
+1147
+01:41:45,102 --> 01:41:46,128
+Topics,
+
+1148
+01:41:47,168 --> 01:41:49,248
+map this, and then
+
+1149
+01:41:50,848 --> 01:41:51,168
+um
+
+1150
+01:41:52,448 --> 01:41:55,588
+have a list item for every topic, have a key,
+
+1151
+01:41:56,686 --> 01:42:03,168
+topic ID, and then for every topic, let's see, title description.
+
+1152
+01:42:04,910 --> 01:42:13,488
+Yeah, I guess I want to have the name, I want to have the number of votes. Um, I'll display it a little bit differently and create it at sure. Why not?
+
+1153
+01:42:13,728 --> 01:42:19,808
+Now here the problem is that topic creator is potentially null.
+
+1154
+01:42:22,318 --> 01:42:27,328
+Why is it potentially null? Should I set it up differently in my schema?
+
+1155
+01:42:27,728 --> 01:42:30,244
+Yeah, I guess this should be not null, right?
+
+1156
+01:42:33,838 --> 01:42:38,532
+So now I now I always have a creator and for the votes
+
+1157
+01:42:41,358 --> 01:42:42,756
+this is unknown.
+
+1158
+01:42:45,646 --> 01:42:48,036
+Unknown. How can I set the type?
+
+1159
+01:42:51,342 --> 01:42:53,316
+How can I set the type?
+
+1160
+01:42:55,022 --> 01:42:57,808
+That would be like extra
+
+1161
+01:43:00,078 --> 01:43:01,188
+extra data
+
+1162
+01:43:05,614 --> 01:43:07,140
+extras is the name.
+
+1163
+01:43:07,726 --> 01:43:08,580
+Extras
+
+1164
+01:43:14,928 --> 01:43:17,124
+Okay where can I learn more about that?
+
+1165
+01:43:21,568 --> 01:43:24,932
+select query query is what I want.
+
+1166
+01:43:28,208 --> 01:43:29,988
+Where are the extras?
+
+1167
+01:43:32,014 --> 01:43:37,316
+Extras as lower name, yeah but how can I make Drizzle aware of the type?
+
+1168
+01:43:41,454 --> 01:43:43,968
+There is no type assignment here
+
+1169
+01:43:54,048 --> 01:43:54,368
+I
+
+1170
+01:43:54,368 --> 01:43:55,332
+wanna tell
+
+1171
+01:43:56,622 --> 01:43:58,372
+tell it that this will be a number.
+
+1172
+01:44:02,768 --> 01:44:04,132
+Can I set a type here?
+
+1173
+01:44:10,414 --> 01:44:12,580
+I guess I can say as number.
+
+1174
+01:44:16,928 --> 01:44:22,048
+But that does not work because it's actually a SQL alias.
+
+1175
+01:44:23,022 --> 01:44:26,020
+So I could say as SQL alias number.
+
+1176
+01:44:27,150 --> 01:44:30,436
+Can I is this generic? can I say number here?
+
+1177
+01:44:32,448 --> 01:44:32,768
+Okay.
+
+1178
+01:44:33,518 --> 01:44:37,328
+So now I got my number and last but not least, created at.
+
+1179
+01:44:38,254 --> 01:44:43,888
+What's the problem here? That this is yeah, this is not no.
+
+1180
+01:44:44,494 --> 01:44:46,148
+Oh, that this is potentially null.
+
+1181
+01:44:47,248 --> 01:44:47,568
+So
+
+1182
+01:44:50,048 --> 01:44:51,328
+I should.
+
+1183
+01:44:52,782 --> 01:45:00,548
+I mean, it will never be null, right? Because it has a default, but to make TypeScript aware of that, I guess I also chain not null here.
+
+1184
+01:45:02,128 --> 01:45:09,088
+And with that, all the errors went away. And now if I reload, yeah, I see my
+
+1185
+01:45:10,798 --> 01:45:11,652
+I see it here.
+
+1186
+01:45:13,518 --> 01:45:14,208
+Awesome.
+
+1187
+01:45:15,408 --> 01:45:16,004
+Now
+
+1188
+01:45:17,728 --> 01:45:26,368
+I really need to work on the looks of that, but let's start by adding a link to our new topic page, and then I'll
+
+1189
+01:45:26,702 --> 01:45:29,648
+start working on look on the styles a bit.
+
+1190
+01:45:30,094 --> 01:45:35,088
+So up here mmm I'll actually add a little
+
+1191
+01:45:37,742 --> 01:45:43,012
+I guess a nav bar. It only has one element though, so let's let's simply add
+
+1192
+01:45:44,142 --> 01:45:44,448
+a div
+
+1193
+01:45:46,414 --> 01:45:55,236
+in here and there I'll add uh is there a link in Tanstack? There is two topics new, create a new topic.
+
+1194
+01:45:57,646 --> 01:46:01,156
+Can you make is this how the link component works? No, I don't
+
+1195
+01:46:02,254 --> 01:46:04,996
+I I wanna I don't have a button here, just like this.
+
+1196
+01:46:05,998 --> 01:46:06,288
+So
+
+1197
+01:46:07,438 --> 01:46:08,448
+now I can go here.
+
+1198
+01:46:08,608 --> 01:46:09,156
+Awesome.
+
+1199
+01:46:10,254 --> 01:46:10,788
+Whoops.
+
+1200
+01:46:14,318 --> 01:46:17,028
+Why does going back break the app though?
+
+1201
+01:46:18,574 --> 01:46:20,196
+Why does this cause an infinite loop?
+
+1202
+01:46:20,974 --> 01:46:22,628
+Is there is this because of caching?
+
+1203
+01:46:27,534 --> 01:46:28,484
+That could be the case.
+
+1204
+01:46:30,158 --> 01:46:33,968
+It's possible that when I go back it's loading a cached version which is still broken.
+
+1205
+01:46:35,950 --> 01:46:36,768
+Can you pair
+
+1206
+01:46:38,638 --> 01:46:43,408
+Yeah, it worked with the generic argument. Yeah, good catch.
+
+1207
+01:46:53,134 --> 01:46:55,236
+Okay, so create a new topic.
+
+1208
+01:46:56,864 --> 01:46:59,268
+why is this crashing if I go back?
+
+1209
+01:47:01,070 --> 01:47:01,984
+It's really weird.
+
+1210
+01:47:02,350 --> 01:47:06,532
+I mean, I also got an error here, but that's a hydration error.
+
+1211
+01:47:07,694 --> 01:47:10,148
+Not sure why I'm getting that though.
+
+1212
+01:47:14,894 --> 01:47:16,260
+Because of the date formatting.
+
+1213
+01:47:19,104 --> 01:47:21,184
+Oh, yeah, because I'm
+
+1214
+01:47:22,190 --> 01:47:24,068
+here the date, of course.
+
+1215
+01:47:25,518 --> 01:47:28,708
+Well, no, it should always be the same in theory.
+
+1216
+01:47:31,502 --> 01:47:36,196
+Well, I don't care about that, but actually I do care about the fact that going back crashes the app.
+
+1217
+01:47:48,590 --> 01:47:54,308
+Like a these all look like internal errors from Tanstac's side.
+
+1218
+01:48:00,784 --> 01:48:10,384
+This looks like another case of I should go through the TanStack docs in greater detail because it looks like I don't know, maybe related to caching
+
+1219
+01:48:10,704 --> 01:48:12,544
+or something like that.
+
+1220
+01:48:20,110 --> 01:48:21,744
+Hi Tanner, nice to have you here.
+
+1221
+01:48:21,934 --> 01:48:24,864
+I'm exploring Tann Stack Start as a Z.
+
+1222
+01:48:25,184 --> 01:48:26,340
+Currently fighting
+
+1223
+01:48:27,344 --> 01:48:28,544
+with a problem
+
+1224
+01:48:29,998 --> 01:48:33,664
+when going back from my beautiful new topics page.
+
+1225
+01:48:34,144 --> 01:48:34,464
+Um
+
+1226
+01:48:39,918 --> 01:48:46,532
+chances are high, by the way. I just mentioned it that I should probably just read the docs a bit better and I would not face this problem.
+
+1227
+01:48:49,550 --> 01:48:52,420
+is this 10-6 start? Yeah, show me the root route.
+
+1228
+01:48:53,422 --> 01:48:54,180
+Here you go.
+
+1229
+01:49:29,006 --> 01:49:29,794
+so
+
+1230
+01:49:31,438 --> 01:49:33,374
+what's weird is that
+
+1231
+01:49:35,544 --> 01:49:44,580
+i can navigate to the topics page without problems Well, besides this hydration error, which seems to be related to a date,
+
+1232
+01:49:44,864 --> 01:49:45,380
+I guess.
+
+1233
+01:49:46,624 --> 01:49:46,944
+Um
+
+1234
+01:49:49,966 --> 01:49:51,140
+but I can go to it.
+
+1235
+01:49:51,584 --> 01:49:54,224
+So if I comment this out,
+
+1236
+01:49:55,150 --> 01:49:57,984
+I guess the hydration error is gone then, and
+
+1237
+01:49:59,406 --> 01:50:04,036
+I still have this infinite loop problem if I go back from the new topic page though.
+
+1238
+01:50:05,584 --> 01:50:05,904
+So
+
+1239
+01:50:08,686 --> 01:50:11,492
+hierarchy request error failed to execute.
+
+1240
+01:50:12,270 --> 01:50:13,956
+So it really looks like some
+
+1241
+01:50:14,670 --> 01:50:20,144
+internal problem, though it's probably caused by me using the framework incorrectly, I guess.
+
+1242
+01:50:20,704 --> 01:50:21,024
+Um
+
+1243
+01:50:23,310 --> 01:50:27,524
+what happens if in this new topic route
+
+1244
+01:50:28,384 --> 01:50:33,316
+I go back if I let let's say I add a cancel button here,
+
+1245
+01:50:35,104 --> 01:50:40,196
+and I go back by using the use navigate hook.
+
+1246
+01:50:41,134 --> 01:50:42,704
+Use navigate.
+
+1247
+01:50:47,086 --> 01:50:48,384
+So if I do that
+
+1248
+01:50:51,918 --> 01:50:55,172
+and I go to topics here, does this also break the app?
+
+1249
+01:51:00,110 --> 01:51:00,896
+It does.
+
+1250
+01:51:01,216 --> 01:51:02,084
+Interesting.
+
+1251
+01:51:05,390 --> 01:51:09,284
+It's really weird that I can reload this page and it works.
+
+1252
+01:51:09,998 --> 01:51:13,764
+But if I go there with any navigation, it breaks.
+
+1253
+01:51:17,486 --> 01:51:17,776
+So
+
+1254
+01:51:20,494 --> 01:51:27,136
+I guess it's related to me fetching data here. If I comment that out.
+
+1255
+01:51:32,206 --> 01:51:33,616
+or remove it, sure.
+
+1256
+01:51:34,030 --> 01:51:36,124
+If I do that. no
+
+1257
+01:51:40,016 --> 01:51:41,540
+Interesting, it still crashes.
+
+1258
+01:51:44,494 --> 01:51:47,396
+Maybe it also helps if I simply restart the development server.
+
+1259
+01:51:57,776 --> 01:51:58,404
+Nope.
+
+1260
+01:52:06,896 --> 01:52:09,572
+quite interesting that even an empty page
+
+1261
+01:52:10,894 --> 01:52:12,868
+crashes when I go back to it.
+
+1262
+01:52:14,896 --> 01:52:20,068
+And I really don't understand why it crashes if there is essentially nothing in that page.
+
+1263
+01:52:21,038 --> 01:52:22,788
+So if I delete that all,
+
+1264
+01:52:25,326 --> 01:52:27,140
+if I comment out my loader,
+
+1265
+01:52:29,776 --> 01:52:32,100
+so now there's really nothing going on in there.
+
+1266
+01:52:35,022 --> 01:52:39,172
+Okay, now it works. So it probably is the loader, I guess.
+
+1267
+01:52:40,814 --> 01:52:42,816
+Because if I comment that back in.
+
+1268
+01:52:46,286 --> 01:52:47,524
+Yeah, it crashes.
+
+1269
+01:52:48,046 --> 01:52:49,380
+Okay, so we know that.
+
+1270
+01:52:50,702 --> 01:52:50,976
+So
+
+1271
+01:52:56,142 --> 01:52:57,376
+in that loader,
+
+1272
+01:52:59,456 --> 01:53:08,292
+is that I mean the infinite loop before we had one with drizzle due to this width thing, but it actually then started to work.
+
+1273
+01:53:08,974 --> 01:53:11,300
+However, nonetheless, if I remove that
+
+1274
+01:53:14,254 --> 01:53:15,396
+and comment this out.
+
+1275
+01:53:20,622 --> 01:53:22,372
+Nope, that was not it.
+
+1276
+01:53:34,286 --> 01:53:36,676
+Just shoot me a link to join and I'll help you out.
+
+1277
+01:53:37,838 --> 01:53:38,096
+Um
+
+1278
+01:53:39,150 --> 01:53:43,300
+yeah, actually I gotta go in five minutes, so it's much appreciated, but
+
+1279
+01:53:44,238 --> 01:53:45,476
+I think what I'll do
+
+1280
+01:53:46,254 --> 01:53:47,812
+is I'll push this to GitHub.
+
+1281
+01:53:49,376 --> 01:53:49,696
+And
+
+1282
+01:53:52,078 --> 01:53:53,476
+I guess that makes sense.
+
+1283
+01:53:54,158 --> 01:53:54,820
+Anyways.
+
+1284
+01:53:55,854 --> 01:53:56,964
+So I'll push it to GitHub.
+
+1285
+01:53:58,510 --> 01:54:00,036
+Oops, wrong account.
+
+1286
+01:54:01,422 --> 01:54:04,612
+And then I'll share the link.
+
+1287
+01:54:13,262 --> 01:54:16,644
+Just keep in mind that a lot is broken there.
+
+1288
+01:54:21,056 --> 01:54:21,376
+So
+
+1289
+01:54:41,856 --> 01:54:43,012
+that's now the
+
+1290
+01:54:43,758 --> 01:54:45,856
+point in time where I should see
+
+1291
+01:54:46,574 --> 01:54:48,816
+that. I pushed some secrets, but I did not.
+
+1292
+01:54:49,198 --> 01:54:51,396
+There also is nothing secret in here.
+
+1293
+01:54:52,816 --> 01:54:53,136
+Okay.
+
+1294
+01:54:54,576 --> 01:55:01,156
+So anyone who's interested can check out this very broken, not really working
+
+1295
+01:55:01,934 --> 01:55:07,428
+code here. I think I disabled that I can share links in my chat.
+
+1296
+01:55:08,558 --> 01:55:09,860
+But I guess you can see it here.
+
+1297
+01:55:11,164 --> 01:55:16,548
+GitHub.com slash amartzmotor slash tenstack dash start dash exploration.
+
+1298
+01:55:18,030 --> 01:55:24,096
+And yeah, feel free to explore the code. Of course, everyone, feel free to explore it. there will be tons of bugs in there.
+
+1299
+01:55:24,336 --> 01:55:28,452
+Just saying, it's not finished at all. We just got started with that.
+
+1300
+01:55:29,294 --> 01:55:30,736
+But yeah, that's that.
+
+1301
+01:55:31,216 --> 01:55:31,536
+Um
+
+1302
+01:55:35,044 --> 01:55:37,216
+I as I said, I gotta go, unfortunately.
+
+1303
+01:55:37,456 --> 01:55:37,776
+So
+
+1304
+01:55:39,118 --> 01:55:46,340
+I'll probably continue exploring Tanstack, Better Off, Drizzle, all that stuff. I have, as you see, not really worked with
+
+1305
+01:55:47,376 --> 01:55:50,176
+in the next week. Yeah, should work.
+
+1306
+01:55:50,256 --> 01:55:52,496
+I guess next Thursday I have time.
+
+1307
+01:55:55,054 --> 01:55:55,744
+I do.
+
+1308
+01:55:56,238 --> 01:55:59,824
+Um, so yeah, hopefully I see you there.
+
+1309
+01:56:00,110 --> 01:56:02,756
+Hopefully, you enjoyed it. We made some progress here.
+
+1310
+01:56:03,184 --> 01:56:10,624
+Um, not a lot, well, quite a lot still missing, but the general functionality is coming together.
+
+1311
+01:56:11,246 --> 01:56:17,264
+We'll make it prettier next week. We'll hopefully get all this stuff to work that did not work right now.
+
+1312
+01:56:17,744 --> 01:56:18,064
+And
+
+1313
+01:56:19,854 --> 01:56:21,764
+yeah, I hope you liked it.
+
+1314
+01:56:22,094 --> 01:56:23,780
+Thank you so much for being part of the stream.
+
+1315
+01:56:24,144 --> 01:56:29,034
+Let's continue exploring Tanztack Start and better auth
+
+1316
+01:56:29,774 --> 01:56:32,132
+and drizzle for me in the future.
+
+1317
+01:56:32,624 --> 01:56:36,304
+So, have a great day, morning, evening, whatever it is for you.
+
+1318
+01:56:36,526 --> 01:56:41,664
+Thank you all so much for being part of the stream. And as I mentioned before, I will upload this
+
+1319
+01:56:42,478 --> 01:56:45,860
+stream, the VOD of this stream, to my channel
+
+1320
+01:56:47,342 --> 01:56:50,144
+YouTube, Maximilian Schwarzmüller, Maximilian Extended.
+
+1321
+01:56:50,382 --> 01:56:55,780
+That's youtube.com slash at Maximilian Dash Extended. So you can watch it there.
+
+1322
+01:56:57,134 --> 01:56:58,304
+Yep, Thursday.
+
+1323
+01:56:58,464 --> 01:56:59,972
+Um, today is Wednesday.
+
+1324
+01:57:00,144 --> 01:57:08,900
+Normally I stream on Thursdays, but um tomorrow I got appointment at a doctor, so tomorrow I will not stream, but tomorrow in a week,
+
+1325
+01:57:09,264 --> 01:57:09,584
+so
+
+1326
+01:57:10,638 --> 01:57:15,908
+Thursday next week, I will again stream. Wednesday is the exception, essentially.
+
+1327
+01:57:16,430 --> 01:57:17,988
+So, have a great day.
+
+1328
+01:57:18,304 --> 01:57:18,660
+Bye.
+

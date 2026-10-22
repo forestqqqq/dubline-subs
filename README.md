@@ -7,6 +7,7 @@
 | [Next Gen Fullstack React with TanStack](medias/JYR6S/) | Syntax | 2026-10-21 |
 | [TanStack Router Essentials for Modern Applications](medias/EK734/) | Josef Bender | 2026-10-21 |
 | [Tanstack Router Full Course](medias/E9ZWM/) | Ali Alaa | 2026-10-21 |
+| [Continuing to build a web app with TanStack Start, Drizzle, Better Auth & Tailwind](medias/9MJBQ/) | Maximilian Schwarzmüller Extended | 2026-10-21 |
 | [Nobel Economist: Where He Sees the Real Money in AI](medias/EYVRD/) | Silicon Valley Girl | 2026-10-20 |
 | [Build & Train a GLM-5.3-Flash Model From Scratch with Python](medias/A6ZYZ/) | freeCodeCamp.org | 2026-10-20 |
 | [Anthropic Researchers: How AI Will Create A Radically Better 2030s](medias/4TJA4/) | Joe Lonsdale | 2026-10-20 |
