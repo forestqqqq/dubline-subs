@@ -6,6 +6,7 @@
 |---|---|---|
 | [2026年，硅谷一线创投，几乎不看AI应用了？｜对话硅谷投资人周楠](medias/X0AMH/) | 课代表立正 | 2026-10-23 |
 | [MCtalk·无限对话：个人专注个体，公司重构组织：AI 落地的两套打法](medias/7QF40/) | 第四种黑猩猩CHIMP | 2026-10-23 |
+| [System Design Complete Course \| All Important Concepts Explained](medias/2EB6T/) | Gate Smashers | 2026-10-23 |
 | [TanStack Start Full Course 2026 \| Build and Deploy a Full Stack Application](medias/VJWRM/) | JavaScript Mastery | 2026-10-22 |
 | [Build a Full-Stack Job Board with TanStack Start (Auth, Database, SSR & More](medias/KRXV4/) | code with lari | 2026-10-22 |
 | [Rogue AI Agents](medias/GQEVK/) | Emergent Garden | 2026-10-22 |
