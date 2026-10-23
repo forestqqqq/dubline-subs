@@ -1,4 +1,4 @@
-<!-- dubline-subs {"title": "2026年，硅谷一线创投，几乎不看AI应用了？｜对话硅谷投资人周楠", "author": "课代表立正", "files": 1, "updated": "2026-10-23"} -->
+<!-- dubline-subs {"title": "2026年，硅谷一线创投，几乎不看AI应用了？｜对话硅谷投资人周楠", "author": "课代表立正", "files": 2, "updated": "2026-10-23"} -->
 # 2026年，硅谷一线创投，几乎不看AI应用了？｜对话硅谷投资人周楠
 
 <img src="c7c30a/1d884407/2026%E5%B9%B4%EF%BC%8C%E7%A1%85%E8%B0%B7%E4%B8%80%E7%BA%BF%E5%88%9B%E6%8A%95%EF%BC%8C%E5%87%A0%E4%B9%8E%E4%B8%8D%E7%9C%8BAI%E5%BA%94%E7%94%A8%E4%BA%86%EF%BC%9F%EF%BD%9C%E5%AF%B9%E8%AF%9D%E7%A1%85%E8%B0%B7%E6%8A%95%E8%B5%84%E4%BA%BA%E5%91%A8%E6%A5%A0.webp" alt="封面" width="480">
@@ -10,11 +10,16 @@
 | 时长 | 1 小时 5 分 55 秒 |
 | 原作者 | 课代表立正（491306902） |
 
+## 深度解读
+
+- [深度解读 · 吃透内容 · 简体中文](f4e4fd/13f81e35/2026%E5%B9%B4%EF%BC%8C%E7%A1%85%E8%B0%B7%E4%B8%80%E7%BA%BF%E5%88%9B%E6%8A%95%EF%BC%8C%E5%87%A0%E4%B9%8E%E4%B8%8D%E7%9C%8BAI%E5%BA%94%E7%94%A8%E4%BA%86%EF%BC%9F%EF%BD%9C%E5%AF%B9%E8%AF%9D%E7%A1%85%E8%B0%B7%E6%8A%95%E8%B5%84%E4%BA%BA%E5%91%A8%E6%A5%A0%20-%20%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87%E6%B7%B1%E5%BA%A6%E8%A7%A3%E8%AF%BB%EF%BC%88%E5%90%83%E9%80%8F%E5%86%85%E5%AE%B9%EF%BC%89.md)
+
 ## 文件下载
 
 | 文件 | 说明 | 页面 | 直链 |
 |---|---|---|---|
 | 2026年，硅谷一线创投，几乎不看AI应用了？｜对话硅谷投资人周楠 - 简体中文字幕（转写）.zh.srt | 原文字幕（转写） | [查看 / 下载](c7c30a/0d6245f3/2026%E5%B9%B4%EF%BC%8C%E7%A1%85%E8%B0%B7%E4%B8%80%E7%BA%BF%E5%88%9B%E6%8A%95%EF%BC%8C%E5%87%A0%E4%B9%8E%E4%B8%8D%E7%9C%8BAI%E5%BA%94%E7%94%A8%E4%BA%86%EF%BC%9F%EF%BD%9C%E5%AF%B9%E8%AF%9D%E7%A1%85%E8%B0%B7%E6%8A%95%E8%B5%84%E4%BA%BA%E5%91%A8%E6%A5%A0%20-%20%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87%E5%AD%97%E5%B9%95%EF%BC%88%E8%BD%AC%E5%86%99%EF%BC%89.zh.srt) | [直链](https://github.com/forestqqqq/dubline-subs/raw/main/medias/X0AMH/c7c30a/0d6245f3/2026%E5%B9%B4%EF%BC%8C%E7%A1%85%E8%B0%B7%E4%B8%80%E7%BA%BF%E5%88%9B%E6%8A%95%EF%BC%8C%E5%87%A0%E4%B9%8E%E4%B8%8D%E7%9C%8BAI%E5%BA%94%E7%94%A8%E4%BA%86%EF%BC%9F%EF%BD%9C%E5%AF%B9%E8%AF%9D%E7%A1%85%E8%B0%B7%E6%8A%95%E8%B5%84%E4%BA%BA%E5%91%A8%E6%A5%A0%20-%20%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87%E5%AD%97%E5%B9%95%EF%BC%88%E8%BD%AC%E5%86%99%EF%BC%89.zh.srt) |
+| 2026年，硅谷一线创投，几乎不看AI应用了？｜对话硅谷投资人周楠 - 简体中文深度解读（吃透内容）.md | 深度解读 · 吃透内容 · 简体中文 | [查看 / 下载](f4e4fd/13f81e35/2026%E5%B9%B4%EF%BC%8C%E7%A1%85%E8%B0%B7%E4%B8%80%E7%BA%BF%E5%88%9B%E6%8A%95%EF%BC%8C%E5%87%A0%E4%B9%8E%E4%B8%8D%E7%9C%8BAI%E5%BA%94%E7%94%A8%E4%BA%86%EF%BC%9F%EF%BD%9C%E5%AF%B9%E8%AF%9D%E7%A1%85%E8%B0%B7%E6%8A%95%E8%B5%84%E4%BA%BA%E5%91%A8%E6%A5%A0%20-%20%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87%E6%B7%B1%E5%BA%A6%E8%A7%A3%E8%AF%BB%EF%BC%88%E5%90%83%E9%80%8F%E5%86%85%E5%AE%B9%EF%BC%89.md) | [直链](https://github.com/forestqqqq/dubline-subs/raw/main/medias/X0AMH/f4e4fd/13f81e35/2026%E5%B9%B4%EF%BC%8C%E7%A1%85%E8%B0%B7%E4%B8%80%E7%BA%BF%E5%88%9B%E6%8A%95%EF%BC%8C%E5%87%A0%E4%B9%8E%E4%B8%8D%E7%9C%8BAI%E5%BA%94%E7%94%A8%E4%BA%86%EF%BC%9F%EF%BD%9C%E5%AF%B9%E8%AF%9D%E7%A1%85%E8%B0%B7%E6%8A%95%E8%B5%84%E4%BA%BA%E5%91%A8%E6%A5%A0%20-%20%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87%E6%B7%B1%E5%BA%A6%E8%A7%A3%E8%AF%BB%EF%BC%88%E5%90%83%E9%80%8F%E5%86%85%E5%AE%B9%EF%BC%89.md) |
 
 - 点「查看 / 下载」进入文件页面，再点右上角的下载按钮（↓）保存。
 - 点「直链」会在浏览器里直接打开文本，右键「另存为」即可。
