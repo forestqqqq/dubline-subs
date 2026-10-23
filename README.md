@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [TanStack Start Full Course 2026 \| Build and Deploy a Full Stack Application](medias/VJWRM/) | JavaScript Mastery | 2026-10-22 |
 | [Build a Full-Stack Job Board with TanStack Start (Auth, Database, SSR & More](medias/KRXV4/) | code with lari | 2026-10-22 |
 | [Rogue AI Agents](medias/GQEVK/) | Emergent Garden | 2026-10-22 |
 | [Google DeepMind AI Researcher: I'm not saying that extinction is inevitable](medias/FVM7B/) | Palisade Research | 2026-10-22 |
