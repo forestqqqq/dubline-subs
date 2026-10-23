@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [2026年，硅谷一线创投，几乎不看AI应用了？｜对话硅谷投资人周楠](medias/X0AMH/) | 课代表立正 | 2026-10-23 |
 | [TanStack Start Full Course 2026 \| Build and Deploy a Full Stack Application](medias/VJWRM/) | JavaScript Mastery | 2026-10-22 |
 | [Build a Full-Stack Job Board with TanStack Start (Auth, Database, SSR & More](medias/KRXV4/) | code with lari | 2026-10-22 |
 | [Rogue AI Agents](medias/GQEVK/) | Emergent Garden | 2026-10-22 |
