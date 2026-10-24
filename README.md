@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [Kent Beck: Software Engineering in the Age of AI \| Prodacity 2026](medias/K3S2A/) | Rise8 | 2026-10-24 |
 | [2026年，硅谷一线创投，几乎不看AI应用了？｜对话硅谷投资人周楠](medias/X0AMH/) | 课代表立正 | 2026-10-23 |
 | [Has a Millennium Prize Problem been solved by AI?](medias/HJHS6/) | Stand-up Maths | 2026-10-23 |
 | [MCtalk·无限对话：个人专注个体，公司重构组织：AI 落地的两套打法](medias/7QF40/) | 第四种黑猩猩CHIMP | 2026-10-23 |
