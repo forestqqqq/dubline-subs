@@ -6,6 +6,7 @@
 |---|---|---|
 | [Agentic AI Full Course 2026 in 1 hour  \| Build AI Agents & Workflows \| Simplilearn](medias/WCBBQ/) | Simplilearn | 2026-10-25 |
 | [Full Guide on Creating Reliable & Stable AI Agent Skills](medias/DXZSR/) | Philipp Lackner | 2026-10-25 |
+| [🐙 Building With Hermes Agent](medias/7RHBY/) | Tina Huang | 2026-10-25 |
 | [Instinct AI is For Real. What You Need to Know.](medias/5G8AQ/) | Greg Isenberg | 2026-10-25 |
 | [Kent Beck: Software Engineering in the Age of AI \| Prodacity 2026](medias/K3S2A/) | Rise8 | 2026-10-24 |
 | [Lead Architect Reveals His Rules for Coding Agents](medias/K03NX/) | Beyond Coding | 2026-10-24 |
