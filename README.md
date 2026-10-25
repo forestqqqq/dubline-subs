@@ -10,6 +10,7 @@
 | [Full Guide on Creating Reliable & Stable AI Agent Skills](medias/DXZSR/) | Philipp Lackner | 2026-10-25 |
 | [🐙 Building With Hermes Agent](medias/7RHBY/) | Tina Huang | 2026-10-25 |
 | [Instinct AI is For Real. What You Need to Know.](medias/5G8AQ/) | Greg Isenberg | 2026-10-25 |
+| [Introduction to AI Agents \| Build Your First AI Agent \| FDE Full Course #5](medias/3P32Y/) | Coder Army | 2026-10-25 |
 | [Kent Beck: Software Engineering in the Age of AI \| Prodacity 2026](medias/K3S2A/) | Rise8 | 2026-10-24 |
 | [Lead Architect Reveals His Rules for Coding Agents](medias/K03NX/) | Beyond Coding | 2026-10-24 |
 | [Satya Nadella on the AI backlash, and the rise of agents](medias/HRW80/) | Sources Podcast | 2026-10-24 |
