@@ -6,6 +6,7 @@
 |---|---|---|
 | [Kent Beck: Software Engineering in the Age of AI \| Prodacity 2026](medias/K3S2A/) | Rise8 | 2026-10-24 |
 | [Lead Architect Reveals His Rules for Coding Agents](medias/K03NX/) | Beyond Coding | 2026-10-24 |
+| [Satya Nadella on the AI backlash, and the rise of agents](medias/HRW80/) | Sources Podcast | 2026-10-24 |
 | [AI Engineering Full Roadmap vs 100-Day Sprint: In-Demand Skills, Job Market Data & Curriculum](medias/GZ82M/) | CampusX | 2026-10-24 |
 | [DSA Full Course \| Learn from Scratch, Solve FAANG-Level Problems & Get Job-Ready](medias/D6XKS/) | Mayank Aggarwal | 2026-10-24 |
 | [Agentic AI Full Course  \| Build Real World AI Agents with LangChain, LangGraph, LlamaIndex & CrewAI](medias/0F22G/) | Tech With Mala | 2026-10-24 |
