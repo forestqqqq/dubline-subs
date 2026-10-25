@@ -8,6 +8,7 @@
 | [Lead Architect Reveals His Rules for Coding Agents](medias/K03NX/) | Beyond Coding | 2026-10-24 |
 | [AI Engineering Full Roadmap vs 100-Day Sprint: In-Demand Skills, Job Market Data & Curriculum](medias/GZ82M/) | CampusX | 2026-10-24 |
 | [DSA Full Course \| Learn from Scratch, Solve FAANG-Level Problems & Get Job-Ready](medias/D6XKS/) | Mayank Aggarwal | 2026-10-24 |
+| [Agentic AI Full Course  \| Build Real World AI Agents with LangChain, LangGraph, LlamaIndex & CrewAI](medias/0F22G/) | Tech With Mala | 2026-10-24 |
 | [2026年，硅谷一线创投，几乎不看AI应用了？｜对话硅谷投资人周楠](medias/X0AMH/) | 课代表立正 | 2026-10-23 |
 | [Has a Millennium Prize Problem been solved by AI?](medias/HJHS6/) | Stand-up Maths | 2026-10-23 |
 | [MCtalk·无限对话：个人专注个体，公司重构组织：AI 落地的两套打法](medias/7QF40/) | 第四种黑猩猩CHIMP | 2026-10-23 |
