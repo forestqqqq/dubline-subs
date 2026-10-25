@@ -7,6 +7,7 @@
 | [Design Software Systems Like a Senior Engineer – Complete Course](medias/YAES4/) | freeCodeCamp.org | 2026-10-25 |
 | [Agentic AI Full Course 2026 in 1 hour  \| Build AI Agents & Workflows \| Simplilearn](medias/WCBBQ/) | Simplilearn | 2026-10-25 |
 | [Full Course: Spec-Driven Development with Coding Agents](medias/VXPGQ/) | DeepLearningAI | 2026-10-25 |
+| [AI is Changing Tech Hiring - What Software Engineers Must Know Before 2027](medias/NJQZY/) | Technical Suneja | 2026-10-25 |
 | [AI Agents: The Highest-Paying Skill to Learn in 2026 (Full Guide)](medias/MFAZC/) | AI Edge | 2026-10-25 |
 | [Full Guide on Creating Reliable & Stable AI Agent Skills](medias/DXZSR/) | Philipp Lackner | 2026-10-25 |
 | [🐙 Building With Hermes Agent](medias/7RHBY/) | Tina Huang | 2026-10-25 |
