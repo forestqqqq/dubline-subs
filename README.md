@@ -6,6 +6,7 @@
 |---|---|---|
 | [Kent Beck: Software Engineering in the Age of AI \| Prodacity 2026](medias/K3S2A/) | Rise8 | 2026-10-24 |
 | [Lead Architect Reveals His Rules for Coding Agents](medias/K03NX/) | Beyond Coding | 2026-10-24 |
+| [AI Engineering Full Roadmap vs 100-Day Sprint: In-Demand Skills, Job Market Data & Curriculum](medias/GZ82M/) | CampusX | 2026-10-24 |
 | [DSA Full Course \| Learn from Scratch, Solve FAANG-Level Problems & Get Job-Ready](medias/D6XKS/) | Mayank Aggarwal | 2026-10-24 |
 | [2026年，硅谷一线创投，几乎不看AI应用了？｜对话硅谷投资人周楠](medias/X0AMH/) | 课代表立正 | 2026-10-23 |
 | [Has a Millennium Prize Problem been solved by AI?](medias/HJHS6/) | Stand-up Maths | 2026-10-23 |
