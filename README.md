@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [Yann Le Cun : où va l’intelligence artificielle ?](medias/SJX8P/) | Sciences Po | 2026-10-26 |
 | [What AI Researchers Saw, Before Their Demand to ‘Pace’ AI](medias/S3BMZ/) | AI Explained | 2026-10-26 |
 | [The CHILLING Reason AI Researchers Are Quitting Their Jobs](medias/MMZGK/) | The Young Turks | 2026-10-26 |
 | [Design Software Systems Like a Senior Engineer – Complete Course](medias/YAES4/) | freeCodeCamp.org | 2026-10-25 |
