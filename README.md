@@ -5,6 +5,7 @@
 | 视频 | 原作者 | 更新 |
 |---|---|---|
 | [What AI Researchers Saw, Before Their Demand to ‘Pace’ AI](medias/S3BMZ/) | AI Explained | 2026-10-26 |
+| [The CHILLING Reason AI Researchers Are Quitting Their Jobs](medias/MMZGK/) | The Young Turks | 2026-10-26 |
 | [Design Software Systems Like a Senior Engineer – Complete Course](medias/YAES4/) | freeCodeCamp.org | 2026-10-25 |
 | [Agentic AI Full Course 2026 in 1 hour  \| Build AI Agents & Workflows \| Simplilearn](medias/WCBBQ/) | Simplilearn | 2026-10-25 |
 | [Full Course: Spec-Driven Development with Coding Agents](medias/VXPGQ/) | DeepLearningAI | 2026-10-25 |
