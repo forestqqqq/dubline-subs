@@ -8,6 +8,7 @@
 | [What AI Researchers Saw, Before Their Demand to ‘Pace’ AI](medias/S3BMZ/) | AI Explained | 2026-10-26 |
 | [The CHILLING Reason AI Researchers Are Quitting Their Jobs](medias/MMZGK/) | The Young Turks | 2026-10-26 |
 | [Why I Switched from Claude Code to Cursor (And Why I Use Both)](medias/GWXYN/) | Embedded Nature | 2026-10-26 |
+| [AI Office Hours: Vibe Coding, Multi-Agent Systems, and Human Oversight with Pat Riley](medias/DFFR8/) | neil haley | 2026-10-26 |
 | ["Terrifying New Behavior" Real Reason AI CEOs Are Building Bunkers \| Connor Leahy](medias/742GX/) | Danny Jones | 2026-10-26 |
 | [Design Software Systems Like a Senior Engineer – Complete Course](medias/YAES4/) | freeCodeCamp.org | 2026-10-25 |
 | [Agentic AI Full Course 2026 in 1 hour  \| Build AI Agents & Workflows \| Simplilearn](medias/WCBBQ/) | Simplilearn | 2026-10-25 |
