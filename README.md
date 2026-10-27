@@ -7,6 +7,7 @@
 | [The Next Breakthroughs in AI with Yossi Matias \| The Google Research Podcast](medias/T371W/) | Google Research | 2026-10-27 |
 | [The Future of Full-Stack Engineering (2026)](medias/QGC0P/) | Patel MernStack | 2026-10-27 |
 | [The Future of AI Is Bigger Than We Think](medias/QCB0B/) | Perfology Clips | 2026-10-27 |
+| [What is the Probability of Doom? \| The CS50 Show with David J. Malan \| Season 1, Episode 1](medias/NE34S/) | CS50 | 2026-10-27 |
 | [The Real Story Behind What Happened At OpenAI](medias/N8M69/) | Looking Glass Universe | 2026-10-27 |
 | [Jacob Coxon On Witnessing the Existential Threat of AI from the Inside \| The Daily Show](medias/N77H4/) | The Daily Show | 2026-10-27 |
 | [Vibe coding an app like a senior engineer \| GPT Astra + Opus 5.5 🔴 LIVE](medias/C1A9Q/) | Asklog | 2026-10-27 |

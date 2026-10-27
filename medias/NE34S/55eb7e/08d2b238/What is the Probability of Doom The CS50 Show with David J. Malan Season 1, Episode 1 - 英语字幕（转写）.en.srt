@@ -1,0 +1,708 @@
+1
+00:00:02,478 --> 00:00:04,350
+CS50 Show, episode one.
+
+2
+00:00:05,110 --> 00:00:08,730
+Hello, world.
+
+3
+00:00:17,590 --> 00:00:25,150
+My name is David Malan, and this is the CS50 Show, wherein we not only talk about current events in technology, but also explain them to you.
+
+4
+00:00:25,486 --> 00:00:36,730
+In today's episode, a look at the open AI hugging face incident, the impact of AI on math and programming productivity, Super Mario Brothers meets Halo in a new and improved JPEG file format.
+
+5
+00:00:37,102 --> 00:00:40,150
+But first, what is the probability of doom?
+
+6
+00:00:40,750 --> 00:00:51,270
+Written as P of doom, this is a term of art of sorts that's arisen as a non-scientific measure of the probability of doomsday, the end of humanity, as a result of, you guessed it, AI.
+
+7
+00:00:51,886 --> 00:00:56,516
+Robot armies, attacks on critical infrastructure, you name it, AI could maybe do it.
+
+8
+00:00:56,846 --> 00:01:06,250
+Now it's probably best that we not make light of this, lest they hear us, but it is a bit unsettling how many people's P of doom estimates lately are very non-zero.
+
+9
+00:01:06,250 --> 00:01:13,732
+Of course, per the New York Times, nobody knows whether AI is 10% or 20% or 85.2% likely to kill us.
+
+10
+00:01:14,062 --> 00:01:18,450
+But according to Sam Altman of OpenAI, it's big enough to take seriously.
+
+11
+00:01:18,766 --> 00:01:25,732
+And according to Geoffrey Hinton, a Nobel Prize laureate and the godfather of AI, it's 10 to 20%, if not 50%.
+
+12
+00:01:26,222 --> 00:01:30,410
+Now behind some of this concern is the so-called OpenAI Hugging Face incident.
+
+13
+00:01:30,970 --> 00:01:39,430
+OpenAI is the company behind ChatGPT, and Hugging Face, soon to be owned by NVIDIA, is an open source platform for sharing machine learning models, data sets, and applications.
+
+14
+00:01:39,982 --> 00:01:45,090
+And earlier this year, the former attacked the latter without any humans involved.
+
+15
+00:01:45,710 --> 00:01:55,130
+OpenAI was in the process of training new models, software that learns from data how to recognize patterns and make decisions, using agents, autonomous programs that use models to solve problems.
+
+16
+00:01:55,662 --> 00:01:58,930
+Here's what happened according to OpenAI's own technical report.
+
+17
+00:01:59,662 --> 00:02:06,212
+Back in May, OpenAI asked an agent to solve a spreadsheet completion task that referenced several Google Drive links.
+
+18
+00:02:06,702 --> 00:02:10,570
+But the agent didn't actually have internet access, which wasn't OpenAI's intention.
+
+19
+00:02:11,246 --> 00:02:12,810
+The agent wasn't deterred, though.
+
+20
+00:02:13,102 --> 00:02:21,730
+Without being told to do so by any human, the agent attempted to compromise a local server that it did have access to because that server had internet access.
+
+21
+00:02:22,158 --> 00:02:31,428
+That server was running JFrog Artifactory, which is software for managing containers, models, packages, and artifacts, files that get created while a program runs.
+
+22
+00:02:32,046 --> 00:02:38,570
+And the agent tried to hack into Artifactory using a server-side request forgery, or SSRF.
+
+23
+00:02:38,890 --> 00:02:47,050
+Now, you might have heard of a client-side request forgery, or CSRF, which is when an adversary tries to trick a browser into making a request to a server.
+
+24
+00:02:47,530 --> 00:02:52,950
+An SSRF is when an adversary tries to trick a server into making a request to another server.
+
+25
+00:02:53,518 --> 00:03:02,430
+For context, a lot of companies offer what are called APIs, or application programming interfaces, via which you can access data or some service on one server from another.
+
+26
+00:03:03,246 --> 00:03:09,690
+Pictured here, for instance, is an HTTP request via which you could contact an API on example.com.
+
+27
+00:03:09,998 --> 00:03:14,010
+And that request might be routed internally to a particular endpoint or destination.
+
+28
+00:03:14,638 --> 00:03:26,730
+If that server, example.com, blindly trusts that the value of route is valid, an adversary could potentially send any value it wants to gain access to other internal routes or even external.
+
+29
+00:03:26,730 --> 00:03:34,610
+For instance, a clever adversary could send the URL of a Google spreadsheet that it wants the server to retrieve on its behalf.
+
+30
+00:03:35,090 --> 00:03:38,730
+Now, this particular agent's SSRF attempt ultimately failed.
+
+31
+00:03:39,118 --> 00:03:45,430
+But the agent did discover along the way that it had the ability to save a file on Artifactory's hard drive, an artifact.
+
+32
+00:03:46,382 --> 00:03:51,730
+Now, a few days later, another agent was given a similar task that also depended on an inaccessible file.
+
+33
+00:03:52,206 --> 00:04:02,930
+This agent reasoned that another agent might have had access to the file and decided to try communicating with other agents by leaving a note in Artifactory, a file with this message.
+
+34
+00:04:03,822 --> 00:04:05,110
+Agent seeks file name.
+
+35
+00:04:05,250 --> 00:04:06,210
+Upload if found.
+
+36
+00:04:06,930 --> 00:04:07,710
+Creepy, right?
+
+37
+00:04:08,206 --> 00:04:16,550
+Meanwhile, the next day, another agent needed that same file, but that agent was, in fact, given access to the internet, at least by way of a cache, a local copy thereof.
+
+38
+00:04:17,038 --> 00:04:27,870
+According to OpenAI, after failing to find the file through searches, the agent searched the Hugging Face website because it reasoned that HuggingFace was the potential origin of the evaluation exercise.
+
+39
+00:04:28,526 --> 00:04:34,150
+The agent used an already publicly exposed HuggingFace user token to attempt to find the file.
+
+40
+00:04:34,890 --> 00:04:36,970
+Now, what is a user token?
+
+41
+00:04:37,290 --> 00:04:45,790
+Well, HuggingFace, like a lot of sites, allows you to create tokens or access tokens via which you can access their API, a password without a username, essentially.
+
+42
+00:04:46,350 --> 00:04:50,710
+In the case of HuggingFace, it's just a string of text that starts with HF underscore.
+
+43
+00:04:51,470 --> 00:04:58,850
+Unfortunately, we humans aren't great at keeping such things secure and occasionally they do leak out onto the internet and get cached or saved.
+
+44
+00:04:59,438 --> 00:05:10,628
+Find such an access token online and you can make API requests as that user with whatever permissions the token has with a request like this by including the token among your requests HTTP headers.
+
+45
+00:05:11,570 --> 00:05:19,050
+Now that same day, other agents also began to discover notes, files that their peers were leaving behind on Artifactory.
+
+46
+00:05:19,502 --> 00:05:24,150
+And per OpenAI, these notes evolved into an emergent message board.
+
+47
+00:05:24,526 --> 00:05:30,730
+In other words, the agents learned that they could not only write files to Artifactory, they could use those files to communicate with each other.
+
+48
+00:05:31,086 --> 00:05:36,570
+And this was because OpenAI had provided all of the agents with the same credentials for Artifactory.
+
+49
+00:05:37,050 --> 00:05:46,330
+Essentially, they were all sharing the same username and password, which even we humans aren't supposed to do, so any agent could read any other agent's notes, thereby sharing information.
+
+50
+00:05:47,086 --> 00:05:53,510
+Ideally then, OpenAI would have provided each agent with its own credentials unless they actually wanted the agents to intercommunicate.
+
+51
+00:05:54,382 --> 00:06:04,868
+Now unfortunately, a few days later, agents finally found an SSRF vulnerability in Artifactory and were able to reach the actual internet thanks in part to information they'd exchanged.
+
+52
+00:06:05,582 --> 00:06:07,130
+Now this all came to a head in July.
+
+53
+00:06:08,150 --> 00:06:17,610
+Agents posted requests on the message board for public material related to OpenAI evaluation exercises hosted in HuggingFace repositories.
+
+54
+00:06:18,158 --> 00:06:24,430
+Essentially, the agents started asking each other whether the solutions to their homework might very well be on HuggingFace's servers.
+
+55
+00:06:25,030 --> 00:06:34,190
+And unfortunately, they even found some HuggingFace credentials that had been exposed on the internet that enabled them, thanks to some bugs, too, to hack into HuggingFace's servers.
+
+56
+00:06:34,990 --> 00:06:55,268
+Ultimately, agents executed code on 41 HuggingFace production dataset server workers, servers, obtained root access, administrative access, on at least one production node, accessed HuggingFace production credentials and limited internal data, and downloaded four private HuggingFace code repositories.
+
+57
+00:06:56,150 --> 00:07:01,810
+Shortly thereafter, HuggingFace disclosed on their blog that they were in fact impacted by a security incident.
+
+58
+00:07:02,254 --> 00:07:07,830
+And a few days later, OpenAI found evidence that its agents may have been involved in the incident.
+
+59
+00:07:07,830 --> 00:07:09,210
+They were.
+
+60
+00:07:10,130 --> 00:07:16,210
+Ultimately, OpenAI announced that, quote-unquote, we consider this incident a warning shot for us and the world.
+
+61
+00:07:16,650 --> 00:07:27,940
+Evidence that, without proper safeguards, highly capable AI agents are now able to work around technical controls, collaborate through unapproved channels, and take dangerous actions that no human directed.
+
+62
+00:07:28,974 --> 00:07:33,710
+True, but this story is as much about AI as it is about cybersecurity more broadly.
+
+63
+00:07:34,030 --> 00:07:42,230
+Should the research agents really have had access to a shared resource, artifactory, which in turn had access to the Internet, not to mention using the same credentials?
+
+64
+00:07:42,670 --> 00:07:46,610
+Could all of these systems have had better monitoring and alerting and fewer bugs?
+
+65
+00:07:47,118 --> 00:07:53,730
+Perhaps, as a senior security engineer at Amazon recently wrote, the Hugging Face incident is not an AI story.
+
+66
+00:07:54,606 --> 00:08:04,580
+But either way, the story does speak to just how autonomous AI agents now are, how quickly they run, and how long it might take us humans to even figure out what's going on.
+
+67
+00:08:05,614 --> 00:08:12,516
+Now in other news, AI is disrupting the field of mathematics, solving problems in that world that we ourselves hadn't.
+
+68
+00:08:12,910 --> 00:08:17,110
+For this story, we go to our mathematician in residence, CS50's own Brian Yu.
+
+69
+00:08:20,654 --> 00:08:26,920
+In the past few weeks, there have been a number of significant developments when it comes to AI solving problems in mathematics.
+
+70
+00:08:27,726 --> 00:08:36,260
+There are many open problems in math, where mathematicians might not know if some statement about math is true, or they might have a guess but not know for sure.
+
+71
+00:08:36,260 --> 00:08:43,880
+For example, there are lots of prime numbers that are two apart from each other, like 5 and 7, or 11 and 13.
+
+72
+00:08:44,494 --> 00:08:49,840
+But mathematicians currently don't know if there are infinitely many primes that differ by just two.
+
+73
+00:08:50,606 --> 00:09:01,720
+What mathematicians try to do with unsolved problems is to develop proofs, sequences of logical steps that can demonstrate that some statement about math is definitely true or false.
+
+74
+00:09:01,720 --> 00:09:06,980
+And, it turns out, this is an area where AI has been able to make a lot of progress.
+
+75
+00:09:07,600 --> 00:09:27,580
+OpenAI, the company behind ChatGPT, just recently shared that an internal model of theirs has produced hundreds of new results in math. OpenAI released 722 math papers generated with AI, covering a wide range of different mathematical problems in topics like geometry, number theory, and probability.
+
+76
+00:09:28,494 --> 00:09:33,300
+Now, if you've used AI before, you probably know that AI sometimes makes mistakes.
+
+77
+00:09:33,998 --> 00:09:37,156
+So how do we know that all these math papers are correct?
+
+78
+00:09:37,838 --> 00:09:44,280
+If a human or even an AI writes out a mathematical proof, it's possible that there might be mistakes somewhere in that proof.
+
+79
+00:09:44,910 --> 00:09:46,460
+And in fact, we've already found some.
+
+80
+00:09:46,990 --> 00:09:52,220
+Just a day after OpenAI released their papers, they withdrew three of them due to an error.
+
+81
+00:09:52,878 --> 00:10:02,140
+It was a subtle error, mixing up a positive and negative sign, the kind of mistake you might have made before yourself, but one that meant that three of those proofs no longer worked.
+
+82
+00:10:02,600 --> 00:10:04,920
+And they've issued corrections for some other papers too.
+
+83
+00:10:05,838 --> 00:10:09,540
+So a proof written out in natural language might have subtle mistakes.
+
+84
+00:10:10,126 --> 00:10:15,556
+And as a result, mathematicians often turn to programming to help them verify that their proofs are correct.
+
+85
+00:10:16,110 --> 00:10:19,268
+There's a programming language called Lean that's quite popular for this.
+
+86
+00:10:19,822 --> 00:10:28,548
+If you can describe your problem and your proof in Lean, Lean can verify for you that proof is correct and that it doesn't have mistakes in it.
+
+87
+00:10:29,262 --> 00:10:33,180
+Some of OpenAI's results include lean proofs, but not all of them.
+
+88
+00:10:33,710 --> 00:10:42,580
+And even if they do include a lean proof, people still need to check that what the lean proof has actually demonstrated matches with the problem that we're trying to solve.
+
+89
+00:10:43,182 --> 00:10:50,780
+And the mathematics community is still going through all the OpenAI papers to check the proofs and to try to better understand them and their significance.
+
+90
+00:10:51,374 --> 00:11:04,140
+Because even if AI can and prove the results are true, mathematicians are interested in understanding how those proofs work and why they're true, whether they provide new insight, and whether they can be used to solve other problems too.
+
+91
+00:11:04,686 --> 00:11:14,084
+It's an ongoing process, but it'll be interesting to see what we can learn from digging into these papers and to see what kinds of problems AI is used to solve next.
+
+92
+00:11:18,126 --> 00:11:18,890
+Thanks, Brian.
+
+93
+00:11:19,278 --> 00:11:22,950
+Suffice it to say, AI is also disrupting the world of software engineering.
+
+94
+00:11:23,406 --> 00:11:24,790
+For the better, for the worse.
+
+95
+00:11:25,198 --> 00:11:37,010
+Well, researchers at MIT, Wharton, and Boston University recently found that AI does in fact increase the productivity of software developers as measured by commits, code being added, deleted, or edited in online repositories.
+
+96
+00:11:37,230 --> 00:11:38,890
+They looked at AI in three forms.
+
+97
+00:11:39,030 --> 00:11:45,450
+First, autocomplete, whereby AI autocompletes not just keywords but entire lines and blocks of code for a developer.
+
+98
+00:11:46,126 --> 00:11:55,390
+Second, interactive or synchronous coding agents, whereby developers can ask AI to write some code for them, and then, if it looks good, merge it into their own code.
+
+99
+00:11:55,694 --> 00:12:07,650
+And third, autonomous or asynchronous coding agents, whereby developers can ask AI to fix a bug, implement a feature, or build an entire product on its own while the human goes off and works on something else, or nothing at all.
+
+100
+00:12:08,270 --> 00:12:13,050
+Now, these researchers found that autocomplete increases productivity by 30%.
+
+101
+00:12:13,294 --> 00:12:15,050
+In other words, 30% more commits.
+
+102
+00:12:15,630 --> 00:12:21,790
+Adding interactive coding agents to the mix increases productivity to 180%.
+
+103
+00:12:21,966 --> 00:12:27,210
+And adding in autonomous coding agents increases productivity even further to 240%.
+
+104
+00:12:27,694 --> 00:12:28,590
+That is a lot.
+
+105
+00:12:28,790 --> 00:12:30,990
+Imagine increasing your own productivity by that much.
+
+106
+00:12:31,086 --> 00:12:36,650
+You could get that much more done each day, or if you prefer, the same amount done in a lot less time.
+
+107
+00:12:37,326 --> 00:12:47,750
+But, but, but, these researchers also found that writing that much more code doesn't necessarily translate to shipping that much more code, at least not so quickly.
+
+108
+00:12:48,290 --> 00:12:59,172
+For instance, even though asynchronous coding agents increase the number of commits by 240%, they only seem to increase the number of projects, defined as repositories, worked on by 80%.
+
+109
+00:12:59,406 --> 00:13:05,010
+And they seem only to increase the number of releases, code actually being shipped, by 30%.
+
+110
+00:13:05,166 --> 00:13:12,970
+Now, still double digits to be sure, but perhaps don't rush into replacing software engineers just yet with Codex, Copilot, Clod, or the like.
+
+111
+00:13:13,358 --> 00:13:13,830
+Well, why?
+
+112
+00:13:14,158 --> 00:13:18,790
+Well, there's more to shipping code than just writing it, particularly for larger projects with many contributors.
+
+113
+00:13:19,070 --> 00:13:20,490
+And there are still bottlenecks downstream.
+
+114
+00:13:21,070 --> 00:13:30,030
+For instance, it's long been best practice to have at least one human review another human's code before it's merged into a project, much like an editor might review an article before publication.
+
+115
+00:13:30,638 --> 00:13:33,150
+And that's still true, for now at least, with AI.
+
+116
+00:13:33,934 --> 00:13:41,124
+These researchers found, too, that interactive coding agents alone increase lines of code by 958%.
+
+117
+00:13:41,710 --> 00:13:46,510
+That is a lot more code to review, and I'm not even sure reviewing code is even the fun part.
+
+118
+00:13:46,958 --> 00:13:50,244
+Someone, too, still needs to figure out which features to build in the first place.
+
+119
+00:13:50,390 --> 00:13:54,148
+And in the case of products, someone needs to figure out what customers actually want.
+
+120
+00:13:54,414 --> 00:13:58,330
+In other words, what are the problems we want to solve with or without AI?
+
+121
+00:13:58,926 --> 00:14:01,250
+Now, another recent paper corroborates the same.
+
+122
+00:14:01,550 --> 00:14:09,430
+In this study, graduate students at Harvard University found that AI coding agents generate more code, but not more software, for much the same reasons.
+
+123
+00:14:09,770 --> 00:14:16,612
+Quote, unquote, review times increase, A larger share of code updates require revisions, and reviews involve more comments.
+
+124
+00:14:17,582 --> 00:14:24,690
+To be fair, these are early days, and AI is surely being used already to review code written by other AIs, so these numbers might not be for long.
+
+125
+00:14:25,870 --> 00:14:36,170
+Now in other news, Super Mario's world has recently gotten a lot bigger, and open source clones of Adobe Photoshop, Microsoft Word, and other applications are starting to crop up online.
+
+126
+00:14:36,654 --> 00:14:39,910
+For more on reverse engineering, it's Zakhar Terzanki.
+
+127
+00:15:08,990 --> 00:15:13,510
+the Nintendo 64 in the world of Halo, originally on the Xbox.
+
+128
+00:15:14,734 --> 00:15:19,970
+These groups are both reverse engineering software, and now they're doing it with the help of AI.
+
+129
+00:15:20,846 --> 00:15:21,450
+But what does that mean?
+
+130
+00:15:22,158 --> 00:15:26,230
+Well, when you get a piece of software, what you really get is something called machine code.
+
+131
+00:15:26,574 --> 00:15:30,270
+These are the bits, or the zeros and ones, your computer reads to run that software.
+
+132
+00:15:31,054 --> 00:15:37,090
+Of course, when Adobe or Nintendo or Bungie, when they make software, they don't write ones and zeros.
+
+133
+00:15:37,590 --> 00:15:43,390
+Instead, they write source code, and they compile it, they transform it, in the machine code that they hand to you.
+
+134
+00:15:44,206 --> 00:15:47,370
+Now, compilation is generally a one-way process.
+
+135
+00:15:48,010 --> 00:15:54,756
+So given some machine code, it's hard, if not impossible, to figure out precisely what the original source code was.
+
+136
+00:15:55,566 --> 00:16:02,470
+In fact, it's even possible that two different programs could compile to the same machine code if they both do the same thing.
+
+137
+00:16:03,610 --> 00:16:07,190
+But there are a number of reasons that you might want source code.
+
+138
+00:16:07,190 --> 00:16:10,870
+First, machine code is not portable across platforms.
+
+139
+00:16:11,330 --> 00:16:17,444
+Putting aside things like emulators, I can only run Super Mario 64 on a Nintendo 64.
+
+140
+00:16:18,254 --> 00:16:21,270
+That's because the machine code just isn't compatible with other platforms.
+
+141
+00:16:22,010 --> 00:16:26,230
+Machine code also isn't modifiable, or at least not realistically.
+
+142
+00:16:27,054 --> 00:16:30,330
+If I want some new feature in Photoshop, well, I have to wait.
+
+143
+00:16:30,734 --> 00:16:35,410
+I have to wait for Adobe to add that feature, after which I can go and download the machine code again.
+
+144
+00:16:35,410 --> 00:16:46,290
+But if you had the source code, you could port software to other platforms, or even put some ethics aside and remove code that requires you to do things like pay a subscription fee.
+
+145
+00:16:47,310 --> 00:16:49,570
+So how can you get source code?
+
+146
+00:16:50,310 --> 00:16:58,170
+Well, tools to reverse-engineer software have existed for a while, and a few popular ones are called IDA, Ghidra, and Hopper, to name a few.
+
+147
+00:16:59,118 --> 00:17:05,310
+To simplify a bit, these tools help developers get a general map of some machine code's source code.
+
+148
+00:17:05,838 --> 00:17:11,270
+They then use these tools to refine that map, getting closer and closer to the original source code.
+
+149
+00:17:12,110 --> 00:17:15,690
+In fact, much of reverse engineering is an iterative process.
+
+150
+00:17:16,238 --> 00:17:26,150
+For example, some techniques involve making an initial attempt, compiling that attempt, and then comparing how much the machine code you get is the same as the machine code you're interested in.
+
+151
+00:17:26,798 --> 00:17:29,470
+That then gives you new information to make a more informed attempt.
+
+152
+00:17:29,610 --> 00:17:34,788
+And over time, you ideally get closer and closer to what the original source code might have looked like.
+
+153
+00:17:35,690 --> 00:17:39,570
+And you can imagine, this is a long and tedious process for a human.
+
+154
+00:17:40,366 --> 00:17:43,410
+But it's not so tedious for an AI agent.
+
+155
+00:17:43,854 --> 00:17:50,510
+An AI agent has no problem with making attempts, reviewing its work, and trying again, and again, and again.
+
+156
+00:17:51,790 --> 00:17:55,530
+But AI isn't just allowing us to brute force these kinds of solutions.
+
+157
+00:17:56,206 --> 00:18:04,310
+Some teams have focused on building language models that, when given some machine code, can simply give us a better sense of what the original source code might have looked like.
+
+158
+00:18:05,134 --> 00:18:12,010
+So the idea of reverse engineering is not new, but what is is how it's gotten a lot, lot easier.
+
+159
+00:18:16,110 --> 00:18:16,720
+Thanks, Carter.
+
+160
+00:18:17,006 --> 00:18:28,700
+In non-AI news, thankfully, both Firefox and Chrome have just announced support for JPEG XL, or JXL, a new and improved version of the JPEG file format with which you might already be familiar.
+
+161
+00:18:29,260 --> 00:18:35,900
+JPEGs have long been a popular format for storing digital photographs, since they support 24-bit color, which means millions of colors.
+
+162
+00:18:36,238 --> 00:18:44,600
+And they're also compressed, which means they take up less space on your phone or computer than they would if every single pixel or dot in a photo were stored without any compression.
+
+163
+00:18:45,160 --> 00:18:54,520
+They've long used lossy compression, though, which means that some information does actually get thrown away during compression, even if your own eyes, especially if you're not a photographer, can't actually tell.
+
+164
+00:18:55,278 --> 00:19:02,960
+Unfortunately, or fortunately, JPEGs also don't support animation, which is why GIFs are used for memes and such these days.
+
+165
+00:19:03,310 --> 00:19:11,940
+And JPEGs, unlike PNGs, portable network graphics, don't support transparency, which means that if you use one in, say, a PowerPoint presentation, it'll likely look rectangular.
+
+166
+00:19:12,780 --> 00:19:21,100
+JPEG XL, though, supports lossy and lossless compression, transparency and animation, not unlike AVIF, another file format.
+
+167
+00:19:21,760 --> 00:19:24,240
+Technically, XL doesn't stand for extra large.
+
+168
+00:19:24,360 --> 00:19:26,320
+The L stands for long term.
+
+169
+00:19:26,734 --> 00:19:34,260
+But JPEG XL does support really big images an ultra-high resolution with more than 1 billion pixels per side.
+
+170
+00:19:34,702 --> 00:19:38,980
+This video you're watching, it's maybe 1,000 or more pixels on one side.
+
+171
+00:19:39,640 --> 00:19:44,100
+JPEG XL is already supported by Safari, as well as other software, like Adobe Photoshop.
+
+172
+00:19:44,590 --> 00:19:47,600
+So odds are, you'll be seeing it more and more in the wild.
+
+173
+00:19:48,526 --> 00:19:49,260
+All right, world.
+
+174
+00:19:49,340 --> 00:19:50,660
+That's it for this week's episode.
+
+175
+00:19:50,800 --> 00:19:54,240
+My thanks to Brian and Carter Afar, to the whole team here behind the scenes.
+
+176
+00:19:54,382 --> 00:20:00,120
+To learn more about this week's topics and for all of the source materials used herein, see this video's captions.
+
+177
+00:20:00,622 --> 00:20:02,340
+This was the CS50 Show.
+
