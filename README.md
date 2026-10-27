@@ -5,6 +5,7 @@
 | 视频 | 原作者 | 更新 |
 |---|---|---|
 | [The Future of Full-Stack Engineering (2026)](medias/QGC0P/) | Patel MernStack | 2026-10-27 |
+| [Vibe coding an app like a senior engineer \| GPT Astra + Opus 5.5 🔴 LIVE](medias/C1A9Q/) | Asklog | 2026-10-27 |
 | [Yann Le Cun : où va l’intelligence artificielle ?](medias/SJX8P/) | Sciences Po | 2026-10-26 |
 | [What AI Researchers Saw, Before Their Demand to ‘Pace’ AI](medias/S3BMZ/) | AI Explained | 2026-10-26 |
 | [The CHILLING Reason AI Researchers Are Quitting Their Jobs](medias/MMZGK/) | The Young Turks | 2026-10-26 |
