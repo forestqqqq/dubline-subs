@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [The Next Breakthroughs in AI with Yossi Matias \| The Google Research Podcast](medias/T371W/) | Google Research | 2026-10-27 |
 | [The Future of Full-Stack Engineering (2026)](medias/QGC0P/) | Patel MernStack | 2026-10-27 |
 | [Vibe coding an app like a senior engineer \| GPT Astra + Opus 5.5 🔴 LIVE](medias/C1A9Q/) | Asklog | 2026-10-27 |
 | [Yann Le Cun : où va l’intelligence artificielle ?](medias/SJX8P/) | Sciences Po | 2026-10-26 |
