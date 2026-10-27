@@ -1,4 +1,4 @@
-<!-- dubline-subs {"title": "Matt Pocock's 3 New Skills Close the AI Coding Loop", "author": "Eric Tech", "files": 3, "updated": "2026-10-27"} -->
+<!-- dubline-subs {"title": "Matt Pocock's 3 New Skills Close the AI Coding Loop", "author": "Eric Tech", "files": 4, "updated": "2026-10-27"} -->
 # Matt Pocock's 3 New Skills Close the AI Coding Loop
 
 <img src="8fb9b6/a98fc5ce/Matt%20Pocock%27s%203%20New%20Skills%20Close%20the%20AI%20Coding%20Loop.webp" alt="封面" width="480">
@@ -47,9 +47,10 @@
 
 | 文件 | 说明 | 页面 | 直链 |
 |---|---|---|---|
-| Matt Pocock's 3 New Skills Close the AI Coding Loop - 简体中文字幕（翻译）.zh.srt | 译文字幕 | [查看 / 下载](310b13/00e97a03/Matt%20Pocock%27s%203%20New%20Skills%20Close%20the%20AI%20Coding%20Loop%20-%20%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87%E5%AD%97%E5%B9%95%EF%BC%88%E7%BF%BB%E8%AF%91%EF%BC%89.zh.srt) | [直链](https://github.com/forestqqqq/dubline-subs/raw/main/medias/6DB9Q/310b13/00e97a03/Matt%20Pocock%27s%203%20New%20Skills%20Close%20the%20AI%20Coding%20Loop%20-%20%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87%E5%AD%97%E5%B9%95%EF%BC%88%E7%BF%BB%E8%AF%91%EF%BC%89.zh.srt) |
-| Matt Pocock's 3 New Skills Close the AI Coding Loop - 英语字幕（转写）.en.srt | 原文字幕（转写） | [查看 / 下载](310b13/063757ad/Matt%20Pocock%27s%203%20New%20Skills%20Close%20the%20AI%20Coding%20Loop%20-%20%E8%8B%B1%E8%AF%AD%E5%AD%97%E5%B9%95%EF%BC%88%E8%BD%AC%E5%86%99%EF%BC%89.en.srt) | [直链](https://github.com/forestqqqq/dubline-subs/raw/main/medias/6DB9Q/310b13/063757ad/Matt%20Pocock%27s%203%20New%20Skills%20Close%20the%20AI%20Coding%20Loop%20-%20%E8%8B%B1%E8%AF%AD%E5%AD%97%E5%B9%95%EF%BC%88%E8%BD%AC%E5%86%99%EF%BC%89.en.srt) |
-| Matt Pocock's 3 New Skills Close the AI Coding Loop - 中英双语字幕.srt | 双语字幕 | [查看 / 下载](310b13/3139e654/Matt%20Pocock%27s%203%20New%20Skills%20Close%20the%20AI%20Coding%20Loop%20-%20%E4%B8%AD%E8%8B%B1%E5%8F%8C%E8%AF%AD%E5%AD%97%E5%B9%95.srt) | [直链](https://github.com/forestqqqq/dubline-subs/raw/main/medias/6DB9Q/310b13/3139e654/Matt%20Pocock%27s%203%20New%20Skills%20Close%20the%20AI%20Coding%20Loop%20-%20%E4%B8%AD%E8%8B%B1%E5%8F%8C%E8%AF%AD%E5%AD%97%E5%B9%95.srt) |
+| Matt Pocock's 3 New Skills Close the AI Coding Loop - 简体中文字幕（翻译）.zh.srt |  | [查看 / 下载](310b13/00e97a03/Matt%20Pocock%27s%203%20New%20Skills%20Close%20the%20AI%20Coding%20Loop%20-%20%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87%E5%AD%97%E5%B9%95%EF%BC%88%E7%BF%BB%E8%AF%91%EF%BC%89.zh.srt) | [直链](https://github.com/forestqqqq/dubline-subs/raw/main/medias/6DB9Q/310b13/00e97a03/Matt%20Pocock%27s%203%20New%20Skills%20Close%20the%20AI%20Coding%20Loop%20-%20%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87%E5%AD%97%E5%B9%95%EF%BC%88%E7%BF%BB%E8%AF%91%EF%BC%89.zh.srt) |
+| Matt Pocock's 3 New Skills Close the AI Coding Loop - 英语字幕（转写）.en.srt | 原文字幕（转写）（原片时间轴） | [查看 / 下载](310b13/063757ad/Matt%20Pocock%27s%203%20New%20Skills%20Close%20the%20AI%20Coding%20Loop%20-%20%E8%8B%B1%E8%AF%AD%E5%AD%97%E5%B9%95%EF%BC%88%E8%BD%AC%E5%86%99%EF%BC%89.en.srt) | [直链](https://github.com/forestqqqq/dubline-subs/raw/main/medias/6DB9Q/310b13/063757ad/Matt%20Pocock%27s%203%20New%20Skills%20Close%20the%20AI%20Coding%20Loop%20-%20%E8%8B%B1%E8%AF%AD%E5%AD%97%E5%B9%95%EF%BC%88%E8%BD%AC%E5%86%99%EF%BC%89.en.srt) |
+| Matt Pocock's 3 New Skills Close the AI Coding Loop - 中英双语字幕.srt | 双语字幕（原片时间轴） | [查看 / 下载](310b13/3139e654/Matt%20Pocock%27s%203%20New%20Skills%20Close%20the%20AI%20Coding%20Loop%20-%20%E4%B8%AD%E8%8B%B1%E5%8F%8C%E8%AF%AD%E5%AD%97%E5%B9%95.srt) | [直链](https://github.com/forestqqqq/dubline-subs/raw/main/medias/6DB9Q/310b13/3139e654/Matt%20Pocock%27s%203%20New%20Skills%20Close%20the%20AI%20Coding%20Loop%20-%20%E4%B8%AD%E8%8B%B1%E5%8F%8C%E8%AF%AD%E5%AD%97%E5%B9%95.srt) |
+| dubbed.srt | 配音版字幕（配音版时间轴） | [查看 / 下载](310b13/af9ac7cb/dubbed.srt) | [直链](https://github.com/forestqqqq/dubline-subs/raw/main/medias/6DB9Q/310b13/af9ac7cb/dubbed.srt) |
 
 - 点「查看 / 下载」进入文件页面，再点右上角的下载按钮（↓）保存。
 - 点「直链」会在浏览器里直接打开文本，右键「另存为」即可。
