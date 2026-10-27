@@ -13,6 +13,7 @@
 | [What is the Probability of Doom? \| The CS50 Show with David J. Malan \| Season 1, Episode 1](medias/NE34S/) | CS50 | 2026-10-27 |
 | [The Real Story Behind What Happened At OpenAI](medias/N8M69/) | Looking Glass Universe | 2026-10-27 |
 | [Jacob Coxon On Witnessing the Existential Threat of AI from the Inside \| The Daily Show](medias/N77H4/) | The Daily Show | 2026-10-27 |
+| [You're using AI agents wrong](medias/DE0RF/) | Theo - t3․gg | 2026-10-27 |
 | [Vibe coding an app like a senior engineer \| GPT Astra + Opus 5.5 🔴 LIVE](medias/C1A9Q/) | Asklog | 2026-10-27 |
 | [Matt Pocock's 3 New Skills Close the AI Coding Loop](medias/6DB9Q/) | Eric Tech | 2026-10-27 |
 | [An OpenAI Engineer and His Friends Debate the Future \| The New Yorker Documentary](medias/3R73R/) | The New Yorker | 2026-10-27 |
