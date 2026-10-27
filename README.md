@@ -6,6 +6,7 @@
 |---|---|---|
 | [The Next Breakthroughs in AI with Yossi Matias \| The Google Research Podcast](medias/T371W/) | Google Research | 2026-10-27 |
 | [How Does AI Actually Know Anything?](medias/RYJZS/) | Silicon Up Close | 2026-10-27 |
+| [Généalogie des grands modèles de langage](medias/R3ZWJ/) | Monsieur Phi | 2026-10-27 |
 | [The Future of Full-Stack Engineering (2026)](medias/QGC0P/) | Patel MernStack | 2026-10-27 |
 | [The Future of AI Is Bigger Than We Think](medias/QCB0B/) | Perfology Clips | 2026-10-27 |
 | [What is the Probability of Doom? \| The CS50 Show with David J. Malan \| Season 1, Episode 1](medias/NE34S/) | CS50 | 2026-10-27 |
