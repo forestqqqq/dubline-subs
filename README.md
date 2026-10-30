@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [How I Review AI Code - (Meta Senior Staff Engineer)](medias/4EZ6C/) | John Kim | 2026-10-30 |
 | [It's a Coin Toss Whether AI Takes Over](medias/8JBYP/) | Sam Harris | 2026-10-29 |
 | [AI Experts Debate: The AI Labs Are Lying To Everyone, Is There A 99% Chance Of Human Extinction?](medias/XJNBA/) | The Diary Of A CEO | 2026-10-27 |
 | [The Next Breakthroughs in AI with Yossi Matias \| The Google Research Podcast](medias/T371W/) | Google Research | 2026-10-27 |

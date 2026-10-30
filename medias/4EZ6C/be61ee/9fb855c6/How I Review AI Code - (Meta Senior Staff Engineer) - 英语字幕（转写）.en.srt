@@ -1,0 +1,996 @@
+1
+00:00:00,000 --> 00:00:01,040
+Well, hello there.
+
+2
+00:00:01,200 --> 00:00:03,652
+So are you even reading your code these days?
+
+3
+00:00:03,982 --> 00:00:10,640
+Or do you just send it off and just let your vibe-coded AI slop code just into the wild without any review?
+
+4
+00:00:10,800 --> 00:00:13,360
+Or are you still in the camp of reading all your code?
+
+5
+00:00:13,520 --> 00:00:17,920
+In my opinion, this topic of code review is very split right now.
+
+6
+00:00:18,080 --> 00:00:20,160
+The community is very split.
+
+7
+00:00:20,320 --> 00:00:25,380
+There's a group of people who say if you're reviewing your code still, then you're not moving fast enough.
+
+8
+00:00:25,678 --> 00:00:28,960
+The agents are probably already better at reviewing code than you are.
+
+9
+00:00:29,134 --> 00:00:30,720
+So why are you reading your code?
+
+10
+00:00:31,320 --> 00:00:32,196
+Those are the that camp.
+
+11
+00:00:32,400 --> 00:00:36,800
+The other camp is people who are saying, no, the AI agents are still not great yet.
+
+12
+00:00:36,880 --> 00:00:37,600
+It's not perfect.
+
+13
+00:00:37,680 --> 00:00:44,640
+It makes dumb mistakes and you're creating a lot of AI slop, and you really need to tone it down and review the stuff that you're writing.
+
+14
+00:00:44,814 --> 00:00:45,892
+So there's these two camps.
+
+15
+00:00:46,160 --> 00:00:49,840
+And in this video, we're going to talk about what I think of this topic.
+
+16
+00:00:49,966 --> 00:00:58,640
+And I'm also going to give you my strategies on how I navigate and review my own code and land high quality code into the production.
+
+17
+00:00:58,798 --> 00:01:00,800
+So yeah, that's what we'll cover in this video today.
+
+18
+00:01:01,006 --> 00:01:02,960
+So if you're new to this channel, my name is John.
+
+19
+00:01:03,086 --> 00:01:05,600
+I'm a senior staff software engineer at Meta.
+
+20
+00:01:05,840 --> 00:01:12,080
+And on this channel, I talk about AI tech news, AI tech tutorials, anything to do with AI.
+
+21
+00:01:12,240 --> 00:01:14,720
+It's my fun side hobby to dig into all of this.
+
+22
+00:01:14,926 --> 00:01:16,880
+But yeah, a lot of you guys are not subscribed.
+
+23
+00:01:16,960 --> 00:01:20,400
+You guys watch a lot of my videos, but for some reason don't subscribe.
+
+24
+00:01:20,560 --> 00:01:23,040
+So do a brother a favor and subscribe.
+
+25
+00:01:23,342 --> 00:01:25,636
+I get a ton of like tokens if people subscribe.
+
+26
+00:01:25,934 --> 00:01:28,800
+I don't, actually, but please subscribe.
+
+27
+00:01:28,974 --> 00:01:30,320
+So let's get right into this video.
+
+28
+00:01:30,542 --> 00:01:35,908
+So as usual, I made some slides, just some simple slides to have some talking points over all of this.
+
+29
+00:01:36,320 --> 00:01:44,800
+And for this video, I also created just a simple website that like you can swipe essentially to vote whether something is AI or not.
+
+30
+00:01:45,006 --> 00:01:47,680
+And they will tell you like if it's AI or not.
+
+31
+00:01:48,110 --> 00:01:56,160
+It's just a simple demo app and it's really there so I can showcase some of the tools and like things that I'm thinking about for the video.
+
+32
+00:01:56,398 --> 00:01:57,892
+So let's start off with the obvious.
+
+33
+00:01:58,510 --> 00:02:06,560
+I think we can all safely say with the advent of AI coding, the amount of code that people are generating is going through the roof.
+
+34
+00:02:06,640 --> 00:02:09,040
+It's like so much more code.
+
+35
+00:02:09,200 --> 00:02:18,480
+People are writing a lot more features, they're writing more tests, they're just doing a lot more because one person can spin up multiple agents and generate a ton of code.
+
+36
+00:02:18,560 --> 00:02:28,400
+And to be honest, it's almost impossible of a task for a single engineer to review even their own code, let alone do code reviews for other people.
+
+37
+00:02:28,560 --> 00:02:31,972
+So, where do I stand right now personally for code reviews?
+
+38
+00:02:32,494 --> 00:02:34,880
+And the answer is it depends.
+
+39
+00:02:35,120 --> 00:02:44,292
+I think like any good answer to any hard problem, answer is really it depends because the reality of code reviews is a gradient.
+
+40
+00:02:44,560 --> 00:02:47,040
+It really depends on the code that you're reviewing.
+
+41
+00:02:47,214 --> 00:02:59,040
+So when you're writing code and when you're building a feature, the AI agents should be part of the entire code's journey to production, uh, from planning, building, reviewing, and launching.
+
+42
+00:02:59,200 --> 00:03:04,960
+Every single part of this, you should actually include your AI agents throughout the whole process, right?
+
+43
+00:03:05,120 --> 00:03:15,280
+Whether it's planning out a spec to build out, um, making sure things are feature complete and making sure you have like evaluations and like validation criteria that you're thinking about ahead of time.
+
+44
+00:03:15,534 --> 00:03:25,120
+And when you're building the code, you want to have agentic validation so that the AI can self-validate and self-fix itself and then get the code right a lot more often.
+
+45
+00:03:25,390 --> 00:03:28,772
+And then we have the review, which is like what we're talking about today.
+
+46
+00:03:29,070 --> 00:03:32,320
+And we're going to talk about some strategies on how you should do this.
+
+47
+00:03:32,558 --> 00:03:36,160
+And then when you're launching, I think this also should be part of it.
+
+48
+00:03:36,334 --> 00:03:38,980
+You want to feature gate and run experiments on your code.
+
+49
+00:03:39,374 --> 00:03:46,480
+And all of these things I think tie together to answer the question when and how much should you review a code?
+
+50
+00:03:46,734 --> 00:03:47,920
+So it really depends, right?
+
+51
+00:03:48,014 --> 00:03:54,080
+Now, the big concept that I want to let you guys know about today is that I think of the code base like a tree.
+
+52
+00:03:54,848 --> 00:03:59,408
+And like a tree, there are different parts of the tree that is more important.
+
+53
+00:03:59,648 --> 00:04:05,008
+So think of like kind of the trunk, the root, the main part of the code.
+
+54
+00:04:05,168 --> 00:04:11,328
+That's like your main entry points, like your app.js that has all of the different helpers that are like added to it.
+
+55
+00:04:11,566 --> 00:04:20,368
+And then your infrastructure code, like image processing, networking, and all these things that if something goes wrong in that code base, it can affect the entire app.
+
+56
+00:04:20,608 --> 00:04:22,528
+I think of that as like a trunk piece of code.
+
+57
+00:04:22,638 --> 00:04:23,844
+And then there's like leaf notes.
+
+58
+00:04:24,048 --> 00:04:26,768
+And we're going to get into more of this topic throughout this video.
+
+59
+00:04:26,928 --> 00:04:29,568
+But start thinking about your code base as a trunk.
+
+60
+00:04:29,728 --> 00:04:45,008
+And as soon as you start thinking about this, then the obvious next thing that you naturally think about is that the review depth, the depth that your own effort level on reviewing a certain code, it should really be based on like the blast radius of that code change.
+
+61
+00:04:45,102 --> 00:04:56,580
+As an example, if you're touching something that's like core image rendering infrastructure that touches all the different image renderings, and there's a lot of downstream dependencies, then I would spend a lot of time reading that piece of code, for example.
+
+62
+00:04:57,328 --> 00:05:10,532
+and then for any like one off leaf node code, you could probably just have agents do simple validations like component testing or snapshot testing and just visually validate the PR as long as they have proof in the PR.
+
+63
+00:05:10,768 --> 00:05:17,888
+So this concept of like changing your effort level depending on the importance of the code, I think really matters a lot.
+
+64
+00:05:18,048 --> 00:05:20,288
+And you should actually do this planning from the beginning.
+
+65
+00:05:20,462 --> 00:05:24,688
+So when you're planning the entire feature, you actually want to feature gate it.
+
+66
+00:05:24,768 --> 00:05:33,988
+Now, if you don't know what feature gating is, is essentially adding a branching logic in your code base where you can say, hey, this feature is on or off.
+
+67
+00:05:34,286 --> 00:05:40,848
+So there's a concept called feature toggling, a really popular option, it's called launch starkly, and you could have feature gating.
+
+68
+00:05:40,928 --> 00:05:49,248
+There's a lot of actually infrastructure that you need to do feature gating properly, but you can start out really simple by just adding a Boolean flag in your code base.
+
+69
+00:05:49,328 --> 00:05:52,228
+It's a gating code and you just turn things on and off.
+
+70
+00:05:52,448 --> 00:06:01,156
+So from the beginning, if you're planning a new feature, think in broad strokes and gate all of the things out, and then think a lot about the integration pieces.
+
+71
+00:06:01,454 --> 00:06:09,168
+So you want to separate out leaf nodes, things that don't touch any of the existing code bases, and then you want to think about integration separately.
+
+72
+00:06:09,328 --> 00:06:11,588
+You really want to like gate those integration layers.
+
+73
+00:06:11,822 --> 00:06:19,248
+So once you have like a good solid plan and a good like roadmap and you have like good feature gating like ready to go, then you can start coding.
+
+74
+00:06:19,328 --> 00:06:27,328
+And then this coding part is like, you know, just use agents to build the code out, and then you can just use the agents to like you know make atomic changes.
+
+75
+00:06:27,488 --> 00:06:33,060
+I have a ton of videos around using agents to code, but you know, we're not covering that particular topic.
+
+76
+00:06:33,248 --> 00:06:37,248
+But once you're ready for a PR, what should go in that PR?
+
+77
+00:06:37,422 --> 00:06:38,208
+So let's think about that.
+
+78
+00:06:38,368 --> 00:06:47,076
+So, in my opinion, for your diffs to be really like solid, your PRs to be like rock solid, you really want to anchor and push your agents to give you proof.
+
+79
+00:06:47,168 --> 00:06:50,340
+And there's many different types of proof that the agents could give you.
+
+80
+00:06:50,528 --> 00:06:52,644
+There can be just straight up unit tests.
+
+81
+00:06:52,878 --> 00:06:56,420
+So, as an example, something like this it's just a straight up unit test.
+
+82
+00:06:56,768 --> 00:06:58,532
+Very simple, a lot of tests.
+
+83
+00:06:58,958 --> 00:07:03,844
+And this is like just reading the test names and just skimming the tests and the asserts.
+
+84
+00:07:03,968 --> 00:07:08,768
+You could quickly get some like good sense of, oh, there's like good logic testing that's happening.
+
+85
+00:07:08,928 --> 00:07:12,676
+One side note is you want to be careful here when the agents are writing tests.
+
+86
+00:07:12,848 --> 00:07:17,168
+You should probably make your own skill around not writing useless tests.
+
+87
+00:07:17,408 --> 00:07:18,608
+That's like a little side tip.
+
+88
+00:07:18,848 --> 00:07:20,868
+And then you also want runtime evidence.
+
+89
+00:07:21,038 --> 00:07:32,356
+So let's say that you have a lot of like runtime logs, and I talk about this in my angel tech engineering video where you want to really anchor on giving more visibility and more eyes for the agents.
+
+90
+00:07:32,750 --> 00:07:38,208
+So you can have runtime evidence, and then you could have visual evidence where maybe it's a screenshot.
+
+91
+00:07:38,368 --> 00:07:45,888
+And then I also ask the agents to give a confidence level on their code and their gating and like different parts of the code.
+
+92
+00:07:46,030 --> 00:07:50,848
+So you really want to push your agents when you're ready to like push out a PR on these kinds of things.
+
+93
+00:07:51,168 --> 00:07:52,128
+Like, do you have evidence?
+
+94
+00:07:52,288 --> 00:07:54,116
+Obviously, you want to build these into your skills.
+
+95
+00:07:54,368 --> 00:07:57,168
+So let's take a look at like UI proof, right?
+
+96
+00:07:57,294 --> 00:08:06,128
+So, one of the things I like to do every time I make changes with the AI, I always ask it to have a video or a UI screenshot, right?
+
+97
+00:08:06,222 --> 00:08:10,048
+So for this one, this lets the player save a card, right?
+
+98
+00:08:10,318 --> 00:08:11,488
+So you can see right here.
+
+99
+00:08:12,128 --> 00:08:13,488
+There is a save button.
+
+100
+00:08:13,568 --> 00:08:15,332
+So I can see that Oh, okay, this was saved.
+
+101
+00:08:15,488 --> 00:08:17,316
+And here's some like simple code changes.
+
+102
+00:08:17,488 --> 00:08:19,408
+And then it looks roughly right.
+
+103
+00:08:19,488 --> 00:08:21,488
+But the point is, I see a visual proof.
+
+104
+00:08:21,568 --> 00:08:26,448
+So immediately I'm a lot more believing of this AI's code output, right?
+
+105
+00:08:26,734 --> 00:08:31,652
+So if you have the visual proof and if you know that it's safe, then it's a lot safe to land.
+
+106
+00:08:31,888 --> 00:08:38,308
+So having proof and having more proof lets you move faster because you don't have to manually check these proofs.
+
+107
+00:08:38,574 --> 00:08:41,008
+And this is really around agentic validation.
+
+108
+00:08:41,198 --> 00:08:44,048
+And I talk about that in my agentic engineering video.
+
+109
+00:08:44,142 --> 00:08:55,328
+But agentic validation is a core concept of being able to read less code because if you have a lot of these proof upfront on the PR, then you don't have to read as much code.
+
+110
+00:08:55,488 --> 00:09:00,128
+Now, the next big concept, and this is kind of in the tree concept, is leaf code.
+
+111
+00:09:00,288 --> 00:09:06,848
+A leaf code is really code that is written in isolation or it's completely gated off in a feature gate.
+
+112
+00:09:06,928 --> 00:09:14,768
+So this can mean like one off components that you can just validate with like a component test or a snapshot test, right?
+
+113
+00:09:14,928 --> 00:09:24,580
+Or maybe it's new infrastructure, new logic, maybe a new endpoint that you're integrating with, and you could just validate that with you know unit tests or integration tests.
+
+114
+00:09:24,688 --> 00:09:29,328
+And as long as they're not integrated to the main production code base, you can move really quickly.
+
+115
+00:09:29,550 --> 00:09:32,608
+And then I'll cover later what you should be doing.
+
+116
+00:09:32,846 --> 00:09:37,008
+So for me, when I'm reviewing leaf like code, I spend a lot less time.
+
+117
+00:09:37,088 --> 00:09:44,608
+I'm almost just mainly skimming the code and making sure things are not like very off or like something is just obviously wrong.
+
+118
+00:09:44,768 --> 00:09:49,808
+And for example, what can be a trunk is like you know, in the reducer reducer has a lot of shared state.
+
+119
+00:09:49,888 --> 00:09:54,372
+So let's say you change some behavior here in this like game action advanced cards.
+
+120
+00:09:54,528 --> 00:09:59,248
+Maybe there's like a new card type or something like that, and you're changing existing behavior.
+
+121
+00:09:59,342 --> 00:10:05,088
+And if that behavior is not gated out, then I would spend a lot more time reviewing it because that changes production, right?
+
+122
+00:10:05,168 --> 00:10:10,928
+And then this has trickle-down effects and side effects, and all these things can really matter and affect production code, right?
+
+123
+00:10:11,054 --> 00:10:12,548
+So you're really anchoring on safety.
+
+124
+00:10:12,846 --> 00:10:21,764
+So we kind of covered like thinking about code as like this gradient and how you should anchor on changing your effort level, right?
+
+125
+00:10:22,128 --> 00:10:25,808
+And in my opinion, everything should be anchored on safety.
+
+126
+00:10:25,968 --> 00:10:28,740
+What is the control experience that should not change?
+
+127
+00:10:28,974 --> 00:10:32,448
+And if this change went wrong, how bad can it be?
+
+128
+00:10:32,654 --> 00:10:35,168
+And then can I roll this change back?
+
+129
+00:10:35,310 --> 00:10:37,764
+And then that really just depends on feature gating, right?
+
+130
+00:10:38,126 --> 00:10:45,568
+So if you can answer these questions, especially the last one, then you can spend a lot less time reviewing each individual code.
+
+131
+00:10:45,728 --> 00:10:56,208
+Now, one other thing that is like not that important in my opinion these days, that is part of like usually reviews is like knits and like little like different ways of writing.
+
+132
+00:10:56,368 --> 00:11:00,484
+And I would just leverage like static checking here to be able to do a lot of that work.
+
+133
+00:11:00,782 --> 00:11:04,516
+So, like type checking, linting, and all those kind of things.
+
+134
+00:11:04,878 --> 00:11:07,168
+And agents are really good at doing stuff like this.
+
+135
+00:11:07,310 --> 00:11:17,328
+So we have a codex reviewer here, and it's like seeing some linting issues, so it's like saying we should fix it as an example, and here's some like stylistic changes, right?
+
+136
+00:11:17,568 --> 00:11:25,808
+So, one big thing about code review is that I think the old days of like having your knits and then like, oh, the code should look this way.
+
+137
+00:11:25,968 --> 00:11:28,196
+This is my favorite way of writing code.
+
+138
+00:11:28,368 --> 00:11:29,568
+I think that's kind of dead.
+
+139
+00:11:29,728 --> 00:11:41,316
+I think we write so much code, and code is being a lot more fluid, and refactors are happening a lot more often, and it's a lot easier to do, especially once like there's good validations for the code that you want to refactor.
+
+140
+00:11:41,728 --> 00:11:46,608
+I think these kind of knits don't really belong in the conversation of code reviews anymore.
+
+141
+00:11:46,768 --> 00:11:50,928
+So, going back to the original question is do I read the code?
+
+142
+00:11:51,150 --> 00:11:53,728
+The simple answer is yes, I still read a lot of code.
+
+143
+00:11:53,934 --> 00:11:56,740
+I think I read more code than I did before.
+
+144
+00:11:57,248 --> 00:12:04,768
+But I definitely have this like knob where I I first ask myself, is this a core change, like a trunk change?
+
+145
+00:12:04,928 --> 00:12:06,608
+And is it touch, It's like an infra?
+
+146
+00:12:06,848 --> 00:12:08,688
+Does it have a lot of like dependencies?
+
+147
+00:12:08,848 --> 00:12:10,208
+If so, I increase it.
+
+148
+00:12:10,368 --> 00:12:11,808
+And then I say, is this safe?
+
+149
+00:12:11,968 --> 00:12:12,768
+Is there gating?
+
+150
+00:12:13,198 --> 00:12:14,768
+If something went wrong, like what can happen?
+
+151
+00:12:14,848 --> 00:12:18,244
+So all of these things really change how much I review the code, right?
+
+152
+00:12:18,542 --> 00:12:21,488
+And then the more dangerous it is, the more I spend time.
+
+153
+00:12:21,728 --> 00:12:25,328
+More of that changes a one-way door, I spend more time reviewing, right?
+
+154
+00:12:25,488 --> 00:12:31,556
+Now, let's get kind of to the fun parts of like looking at how you can use agents to kind of help you review your code.
+
+155
+00:12:31,694 --> 00:12:35,968
+Now, in my opinion, AI is really good at reviewing code already.
+
+156
+00:12:36,174 --> 00:12:38,628
+I actually do think it's better than most humans.
+
+157
+00:12:39,118 --> 00:12:41,968
+The issue is a lot of people are doing it wrong.
+
+158
+00:12:42,128 --> 00:12:45,968
+And in my opinion, there's a few things that you should really anchor on doing.
+
+159
+00:12:46,128 --> 00:12:48,208
+One, you should have a really good review skill.
+
+160
+00:12:48,368 --> 00:12:52,420
+I think both clock code and codex have really good built reviews.
+
+161
+00:12:52,974 --> 00:12:55,172
+And then here is the review agent right here.
+
+162
+00:12:55,534 --> 00:12:59,684
+And then for clock code, it's slash code review.
+
+163
+00:13:00,622 --> 00:13:03,936
+So these are all both really good review agents, in my opinion.
+
+164
+00:13:04,174 --> 00:13:15,908
+But one thing that's kind of important to do is to use a new subagent or a different agent, an agent that doesn't have the context of the code that it was used to create the code because the agents will cheat.
+
+165
+00:13:16,238 --> 00:13:18,788
+You know, all the context that you gave it, it will cheat.
+
+166
+00:13:19,456 --> 00:13:23,204
+and then and it will really try to anchor on like a lot of the previous conversation.
+
+167
+00:13:23,376 --> 00:13:32,096
+So you really want to review the code with like a different sub agent or like a separate agent that is called an adversarial review agent.
+
+168
+00:13:32,256 --> 00:13:37,776
+And when you have an agent write a diff or thing, just have like a good template that the agent can pull from.
+
+169
+00:13:37,998 --> 00:13:42,564
+So your PRs look the same, they feel the same, they have the important bits.
+
+170
+00:13:42,926 --> 00:13:49,936
+If you don't give any guidance on the what the agent should really have, it will write you like a giant paragraph, like a story.
+
+171
+00:13:50,126 --> 00:14:00,484
+And honestly, that's my biggest pet peeve right now is when people submit PRs or diffs to review where the summary and test plan is longer than the code changes itself.
+
+172
+00:14:00,718 --> 00:14:01,536
+So don't be that guy.
+
+173
+00:14:01,696 --> 00:14:09,284
+Now I showed this off a little bit, but all the agent stuff that I've been talking about was during runtime, during the generation of the code, and that's what you're running.
+
+174
+00:14:09,614 --> 00:14:21,696
+But then Codex actually offers this integration right here where you can add a codex reviewer onto GitHub and it could run on new GitHub, like you know, PR opens, or you could also like just add codex here like that.
+
+175
+00:14:21,776 --> 00:14:24,336
+And essentially it's this chat GPD Codex connector.
+
+176
+00:14:24,416 --> 00:14:28,816
+And I think there's a separate model slightly that is custom trained just for like reviewing.
+
+177
+00:14:28,976 --> 00:14:30,628
+Now, all of this costs money, right?
+
+178
+00:14:31,216 --> 00:14:32,656
+But yeah, that's an example.
+
+179
+00:14:32,816 --> 00:14:36,976
+Another thing you can do is actually use goals as an example.
+
+180
+00:14:37,326 --> 00:14:50,532
+So one of the common issues that people will run into when they start having these agentic systems that are reviewing their code on GitHub is that after you submit a PR, the agent will go do stuff and then it'll give you a bunch of comments that you need to fix.
+
+181
+00:14:50,990 --> 00:14:52,896
+And sometimes there'll be a lot of back and forth.
+
+182
+00:14:52,976 --> 00:14:56,656
+You fix it and then like you resubmit, and then it'll be like back and forth.
+
+183
+00:14:56,846 --> 00:15:00,816
+So a thing you can do is like just use goals to babysit a PR.
+
+184
+00:15:00,910 --> 00:15:03,136
+So let's say we had this like random PR.
+
+185
+00:15:03,216 --> 00:15:08,656
+This is a draft, but you could just say, for this PR, can you babysit it every hour?
+
+186
+00:15:08,846 --> 00:15:15,456
+Check it every hour and make sure that you address any changes requests from the codex agent.
+
+187
+00:15:15,536 --> 00:15:17,136
+It misspelled it, but you get the point.
+
+188
+00:15:17,262 --> 00:15:27,588
+So, what this will do is every hour it will check that PR and then it will fix any issues, rerun your local validations, agentic validations, update the PR notes and then resend it.
+
+189
+00:15:27,936 --> 00:15:32,816
+So these are the kind of things that you should build into your own skill if you haven't done so.
+
+190
+00:15:33,038 --> 00:15:37,616
+But yeah, so those are kind of like the high-level, like useful tools, in my opinion.
+
+191
+00:15:37,776 --> 00:15:41,604
+It's just really important to use adversarial agent, in my opinion.
+
+192
+00:15:41,806 --> 00:15:43,216
+Have good review skills.
+
+193
+00:15:43,342 --> 00:15:46,244
+I actually just like the default like skill reviewers.
+
+194
+00:15:46,576 --> 00:15:56,336
+Have a template for your PRs, and you could use my template if you want, but just have a template so it conforms your PRs to that template and then it adds like validation proof.
+
+195
+00:15:56,416 --> 00:15:58,656
+You know, we talked about the different types of validation.
+
+196
+00:15:58,958 --> 00:16:01,924
+You really want to anchor on the agents giving you proof.
+
+197
+00:16:02,318 --> 00:16:04,416
+That will actually help your AI coding, by the way.
+
+198
+00:16:04,576 --> 00:16:08,580
+And then you just submit all of that, and then you make sure you anchor on safety and gating.
+
+199
+00:16:08,878 --> 00:16:11,056
+So these are kind of the high-level things that I think about.
+
+200
+00:16:11,216 --> 00:16:22,096
+Before we end this video, I also want to talk about what it means if you're coding like this, where you're reading some of the code deeply and you're reading like leaf notes, kind of like skimming it as you're going.
+
+201
+00:16:22,256 --> 00:16:29,540
+The end product of that entire feature at the end of your coding session, like you're like, oh, I'm done.
+
+202
+00:16:29,806 --> 00:16:34,788
+If you actually code in this way, you'll be only actually like 80% done.
+
+203
+00:16:35,182 --> 00:16:39,588
+So here I'm saying, even if it's merge ready, I don't think it's launch ready.
+
+204
+00:16:39,950 --> 00:16:45,764
+So, what I like to do is I call this initial step of like getting everything gated and landed.
+
+205
+00:16:45,936 --> 00:16:47,748
+I call that like broad strokes.
+
+206
+00:16:47,856 --> 00:16:55,524
+I'm doing like broad strokes of the code changes, and then this last like 20% or so is really getting something launch ready.
+
+207
+00:16:55,758 --> 00:16:59,056
+And this is where a lot of my human like effort comes in.
+
+208
+00:16:59,136 --> 00:17:03,684
+And I do a lot of refactoring here and kind of like cleaning up of the code base.
+
+209
+00:17:04,224 --> 00:17:04,464
+Right.
+
+210
+00:17:04,704 --> 00:17:07,984
+So I actually have a bunch of agents before I do any launch.
+
+211
+00:17:08,144 --> 00:17:10,916
+I like audit the entire code that it was written.
+
+212
+00:17:11,214 --> 00:17:13,024
+And I think about it from high level.
+
+213
+00:17:13,198 --> 00:17:21,024
+And I think about like important things like performance, uh, bug, security, you know, and then whether the feature actually works suspect.
+
+214
+00:17:21,582 --> 00:17:24,704
+And I'm really like detailing the animations or anything like that.
+
+215
+00:17:24,784 --> 00:17:29,024
+And so this last 20% actually takes as long as the first 80%.
+
+216
+00:17:29,646 --> 00:17:32,304
+Uh, but it's actually the thing that is the most important.
+
+217
+00:17:32,544 --> 00:17:41,824
+And in my opinion, you're able to move so quickly in the beginning, but this last 20% still requires a lot of like, like human taste factor.
+
+218
+00:17:41,966 --> 00:17:43,184
+So you still need to look at it.
+
+219
+00:17:43,344 --> 00:17:47,584
+And this is where my code kind of becomes a lot more clean and production ready.
+
+220
+00:17:47,744 --> 00:17:56,704
+Now, finally, when you're ready to launch the feature, I highly encourage you to try to run experiments so you could like validate that the code is actually working.
+
+221
+00:17:57,006 --> 00:18:01,104
+Now, if you have a small user group, then you can't really run a sizable experiment.
+
+222
+00:18:01,294 --> 00:18:07,300
+You don't have statistical like power to even like run a legitimate A B testing.
+
+223
+00:18:07,534 --> 00:18:23,492
+But I still recommend running A B tests or doing like canary deployments because what that helps you is if you trickle your traffic for your new feature through like feature gating, then you're able to very quickly see bugs or crashes or alerts that fire.
+
+224
+00:18:23,854 --> 00:18:24,864
+And that's the whole point.
+
+225
+00:18:24,944 --> 00:18:33,104
+You want to anchor always on safety when you're using agents to code because physically you won't be able to physically read everything in detail.
+
+226
+00:18:33,264 --> 00:18:34,384
+It's just impossible now.
+
+227
+00:18:34,624 --> 00:18:47,264
+So the idea high level is you want to create like an agentic safeguard, and like an agentic garden where you have a lot of tests, you have a lot of validation, and you have a lot of agents doing a lot of work to make sure your code is good.
+
+228
+00:18:47,502 --> 00:18:53,316
+But at the same time, you want to anchor on safety and make sure you can take back bad decisions with gating.
+
+229
+00:18:53,424 --> 00:18:54,864
+So, do I review code?
+
+230
+00:18:55,086 --> 00:18:58,624
+I think the simple answer is yes, but it really depends.
+
+231
+00:18:58,944 --> 00:19:00,580
+And it's a gradient, right?
+
+232
+00:19:00,944 --> 00:19:04,064
+But in my opinion, the models are getting better and better.
+
+233
+00:19:04,270 --> 00:19:09,540
+So you will probably review less code, but you should really anchor on validation, agentic validation.
+
+234
+00:19:09,870 --> 00:19:21,184
+And then the agent should like have a lot of validation and proof and evidence of the proof, like whether it's video recording or uh logs or like just screenshots, whatever it is.
+
+235
+00:19:21,264 --> 00:19:23,876
+And then you gate and then you like start trusting the agents more.
+
+236
+00:19:24,366 --> 00:19:28,864
+And as long as you have like controls to take things back with gating, then it should be safe to go.
+
+237
+00:19:29,038 --> 00:19:35,172
+So, yeah, I hope you guys enjoyed this video on agentic code reviewing and like my thoughts on code reviewing.
+
+238
+00:19:35,374 --> 00:19:38,660
+The thing is, this topic keeps changing for me.
+
+239
+00:19:38,864 --> 00:19:47,904
+Right now, I'm comfortable with the skimming of some code, depending on like where it is and the like tree concept that I talked about.
+
+240
+00:19:48,144 --> 00:19:54,884
+But maybe after another few generations of the model, I might say, you know what, you don't need to read any of the code.
+
+241
+00:19:55,310 --> 00:19:56,132
+So who knows?
+
+242
+00:19:56,384 --> 00:20:02,144
+But right now, I think you still need to like read some of the code and have like a fine-tuned opinion of it.
+
+243
+00:20:02,304 --> 00:20:17,476
+Now, one last thing that I forgot to mention is that if you understand your code base, it's actually easier to review the code because you can very quickly spot what's touching like the dangerous zones of your code base and what's like really simple and leaf nodes, right?
+
+244
+00:20:17,870 --> 00:20:19,504
+So, yeah, that wraps up this video.
+
+245
+00:20:19,584 --> 00:20:20,864
+I hope you guys enjoyed it.
+
+246
+00:20:20,944 --> 00:20:22,464
+I do a ton of these videos.
+
+247
+00:20:22,638 --> 00:20:27,184
+I did a video on like codecs and clock code, which I think would be very relevant for this video.
+
+248
+00:20:27,438 --> 00:20:28,772
+So feel free to check that out.
+
+249
+00:20:29,006 --> 00:20:31,184
+But until I see you on the next one, bye.
+
