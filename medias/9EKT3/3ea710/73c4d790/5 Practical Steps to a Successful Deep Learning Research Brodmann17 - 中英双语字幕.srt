@@ -1,0 +1,2506 @@
+1
+00:00:05,678 --> 00:00:19,236
+在过去的几年里，深度学习获得了巨大的关注，尤其是因为它成功提升了许多领域的最先进水平。
+So, deep learning has gained a huge amount of popularity over the last several years,
+especially due to the fact that it has managed to increase state-of-the-art in many, many domains.
+
+2
+00:00:19,930 --> 00:00:25,170
+现在有很多开源实现和资源可以利用。
+Many open source implementations and resources are available out there.
+
+3
+00:00:25,910 --> 00:00:39,490
+然而，这些大量的资源其实有点误导性，特别是这些开源实现。
+因为当有人真正想把这些开源实现变成一个真正的产品时，实际上会遇到一个巨大的鸿沟。
+So, this vast amount of resources is actually a bit misleading, especially this open source implementation, Because,
+when somebody actually wants to take these open source implementations and
+
+4
+00:00:39,490 --> 00:00:44,630
+然而，这些大量的资源其实有点误导性，特别是这些开源实现。
+因为当有人真正想把这些开源实现变成一个真正的产品时，实际上会遇到一个巨大的鸿沟。
+make them into a real product, it actually encounters a very big gap there.
+
+5
+00:00:45,430 --> 00:00:59,850
+这个鸿沟之所以存在，是因为为了让这些算法能够产品化，
+实际上需要投入大量的研究和计算工作。
+The back, the gap is actually due to the fact that there is a huge amount of research efforts and compute efforts that actually needs
+to be done in order to productize this algorithm.
+
+6
+00:01:00,510 --> 00:01:00,650
+明白吗？
+Okay?
+
+7
+00:01:00,650 --> 00:01:13,570
+所以今天我将结合我在 Brodmann17 领导研究的经验，
+来谈谈如何开发这些基于深度学习的计算机视觉应用。
+So today I'm going to talk from my experience leading the research at Broadman 17
+on how to how to develop these deep learning based computer vision applications.
+
+8
+00:01:14,126 --> 00:01:25,252
+我将重点介绍几个我们发现的关键步骤，这些步骤对于高效开发这些应用或产品至关重要。
+I'm going to focus on several steps which we found to be critical to
+follow in order to develop these applications or products very efficiently.
+
+9
+00:01:25,270 --> 00:01:36,110
+从初创公司的角度来看，当你的资源非常有限且时间紧迫时，你确实需要进行高度优化的操作。
+From a startup perspective, when you have very low resources and time is not abundant, you actually want to do it very optimized.
+
+10
+00:01:36,670 --> 00:01:40,868
+这就是我演讲的主题。
+So this is the topic for my talk.
+
+11
+00:01:41,450 --> 00:01:44,228
+先简单介绍一下 Brodmann17。
+So a few words about Broadman17.
+
+12
+00:01:44,846 --> 00:01:47,428
+公司成立于 2016 年。
+The company was founded in 2016.
+
+13
+00:01:47,750 --> 00:02:01,450
+现在我们有 19 多名员工，大部分是拥有硕士或博士学位的机器学习研究人员；
+我们的投资者包括 LulVentures、ManiVentures、Sony Innovation，
+Today we are more than 19 people, mostly a research team with master degrees, PhDs, machine learning researchers,
+some of our investors, LulVentures, ManiVentures, Sony Innovation, and of course Samsung Next, our host for the event.
+
+14
+00:02:01,450 --> 00:02:05,444
+当然还有本次活动的东道主 Samsung Next。
+Today we are more than 19 people, mostly a research team with master degrees, PhDs, machine learning researchers,
+some of our investors, LulVentures, ManiVentures, Sony Innovation, and of course Samsung Next, our host for the event.
+
+15
+00:02:06,158 --> 00:02:18,852
+我们设计了一项专有的深度学习技术，目前正在申请专利，
+它能在保证最优性能的同时最大限度地减少对准确性的牺牲。
+So we have designed a proprietary deep learning technology, which is currently patent pending,
+which has optimal performance and minimal sacrificing of accuracy.
+
+16
+00:02:19,566 --> 00:02:26,910
+我们的目标是低端处理器，当然，在高端计算机资源上，我们当然可以做更多的 AI。
+We target very low processors and in high-end computer resources of course we can do more AI.
+
+17
+00:02:27,630 --> 00:02:30,436
+目前我们专注于汽车工业。
+Currently we're focusing on the automotive industry.
+
+18
+00:02:32,560 --> 00:02:41,900
+好的，我将涵盖的课题包括：需求、数据采集、数据标注、研究评估指标以及研发。
+Okay, so the topics I'm going to cover are these, the requirements, the
+data collection, data annotation, research evaluation metric, and research.
+
+19
+00:02:42,478 --> 00:02:48,020
+我将逐一讲解这些内容，并把所有这些部分联系起来。
+So I'm going to talk about each one of these, and I'm going to make the connection between all these parts.
+
+20
+00:02:48,526 --> 00:02:59,080
+我希望在演讲结束时，你们能够真正理解每个组成部分的意义。
+And I hope by the end of the talk, you will be able to actually understand the significance of each component.
+
+21
+00:03:02,460 --> 00:03:10,340
+我们都喜欢做开放式研究，比如拿这些开源实现、拿这些论文来实际去实现它们。
+So we all like to do open research, like taking this open source implementation, taking this paper, actually implement it.
+
+22
+00:03:10,670 --> 00:03:15,012
+现在有很多令人兴奋的新技术。
+Many new exciting technologies out there.
+
+23
+00:03:15,820 --> 00:03:30,940
+探索这些新机会、新技术、新的深度学习架构或算法，实际
+上是为你的公司或初创公司进行短期和长期投资的绝佳方式。
+So exploring these new opportunities, new technologies, new deep learning architectures or algorithms are actually a great way to make
+like a short-term, a long-term investment for your company or for your startup.
+
+24
+00:03:31,502 --> 00:03:38,460
+许多新产品甚至是你现有产品中的新功能，都可以源于这种开放式的探索。
+So many new products or even features in your current products can actually arise from this open exploration.
+
+25
+00:03:38,460 --> 00:03:40,460
+我称之为“开放式研究”。
+So, I call this open research.
+
+26
+00:03:40,910 --> 00:03:43,800
+但这个阶段其实风险很高。
+But this phase is actually highly risky.
+
+27
+00:03:44,590 --> 00:03:52,000
+没有人能保证它一定能为你提供一个有意义的产品。
+No one can actually guarantee that it will provide you with a meaningful product.
+
+28
+00:03:52,878 --> 00:03:56,700
+所以，当然，我鼓励你们继续保持这种研究。
+So, of course, I encourage you to keep this alive.
+
+29
+00:03:56,942 --> 00:03:59,940
+这对任何公司、任何初创公司都非常重要。
+It's very important to any company, any startup.
+
+30
+00:04:00,620 --> 00:04:02,692
+在整个演讲中，我不会讨论那个部分。
+Throughout this talk, I'm not going to talk about that.
+
+31
+00:04:03,086 --> 00:04:16,560
+我要讲的是应用研究，即开展的研究其 KPI 是这些研究成果将成为产品的一部分。
+I'm going to talk about applicative research, which is research conducted and
+the KPI is that the products of this research will be a part of a product.
+
+32
+00:04:16,779 --> 00:04:27,400
+也就是公司真正想要开发的那个产品；当然，开发任何产品的第一个步骤就是定义产品需求。
+So the product the company actually wants to develop and of course the first
+step in developing any products is actually defining the product requirements.
+
+33
+00:04:27,854 --> 00:04:32,440
+好的，比如我们要解决什么任务，数据是什么？
+Okay, so things like what is the task we want to solve, what is the data?
+
+34
+00:04:32,660 --> 00:04:38,400
+当然，我们讨论的是 AI 应用，所以我们需要知道数据模态是什么。
+Of course, we're talking about AI applications, so we need to know what is the data modality.
+
+35
+00:04:38,960 --> 00:04:46,360
+而在我们的案例中，了解目标平台——也就是这个实际应用将在哪里运行——也非常重要。
+And in our case, it's also important to understand what is the target platform, where I'm going to run this actual application.
+
+36
+00:04:46,894 --> 00:04:54,400
+虽然这听起来很简单，但定义这些产品需求是很多初创公司甚至根本没去做的事情。
+So though it sounds very trivial, defining these product requirements is something many startups don't even do.
+
+37
+00:04:54,766 --> 00:04:59,680
+我们都在急于训练这些网络、收集数据、标注数据。
+We all rush into training these networks, collecting data, annotating data.
+
+38
+00:04:59,800 --> 00:05:03,860
+这些事我们做得相对容易，尤其是在创业公司里。
+That's something we can do fairly easy, especially in startup.
+
+39
+00:05:03,860 --> 00:05:07,760
+在初创公司刚起步时，我们往往没有清晰的产品定义。
+When we just begin the startup, we don't have a clear product definition.
+
+40
+00:05:08,270 --> 00:05:12,460
+我们只大概知道想做什么，所以就急于推进各项工作。
+We know in general what we want to do, so we rush into things.
+
+41
+00:05:12,686 --> 00:05:14,240
+所以这是个关键环节。
+So that's a critical part.
+
+42
+00:05:15,180 --> 00:05:28,300
+在整个演讲中，我会强调这些原始产品要求与后续所
+有内容之间的联系，因为这是我们要做什么的准则。
+So throughout this talk, I will emphasize the connection between these original product requirements, and everything that follows,
+because that's the guideline to what we want to do.
+
+43
+00:05:28,760 --> 00:05:28,920
+好的。
+OK.
+
+44
+00:05:29,070 --> 00:05:31,200
+接下来我要谈论的方面是数据。
+So the next aspect I'm going to talk about is the data.
+
+45
+00:05:31,820 --> 00:05:31,980
+好的。
+OK.
+
+46
+00:05:32,046 --> 00:05:36,880
+正如我们所知，数据是机器学习、深度学习的核心基础。
+Data, as we all know it, it's the bread and butter of machine learning, of deep learning.
+
+47
+00:05:38,190 --> 00:05:44,620
+它是任何实时应用中的关键部分。
+It's a crucial part in any real-time application.
+
+48
+00:05:44,814 --> 00:05:50,000
+在那之前，让我先举一个模拟产品的简短例子，好吗？
+Before that, let me just give you a short example of a mock product, OK?
+
+49
+00:05:50,000 --> 00:05:54,900
+比如，我们来聊聊智能门铃摄像头，好吗？
+So, for instance, let's talk about a smart doorbell camera, okay?
+
+50
+00:05:55,598 --> 00:06:07,000
+智能门铃摄像头，假设我有一个设备，把它装在门口，它带有一个摄像头，
+并且一旦看到有人出现在门口，就会向我的手机发送警报，好吗？
+So a smart doorbell camera, let's say I have a device, I mount it on my doorstep,
+it has a camera and it actually pops an alert to my cell phone once it sees somebody that appears the door, okay?
+
+51
+00:06:07,630 --> 00:06:10,300
+所以任务是：当人类出现时发出警报。
+So this is the task: alert when a human appears.
+
+52
+00:06:10,980 --> 00:06:15,040
+那么这就是召回率的要求，以及误报的数量；
+So this is the amount of recall, the amount of false alarms;
+
+53
+00:06:15,100 --> 00:06:17,020
+它必须有非常低的误报率。
+it has to have a very low false alarm.
+
+54
+00:06:17,400 --> 00:06:27,600
+关于人体的距离，我实际上希望设备在识别到什么样的人物时发出警报：仅限上半身。
+The distance of the human subjects, I actually want the device to alert
+about what is the appearance of the subjects: full upper body only.
+
+55
+00:06:28,160 --> 00:06:37,840
+输入数据是一个摄像头，是视频数据流，720p RGB 图像，摄像机高度，当然还有目标平台。
+The input data is a camera, is a video data stream, 720p RGB images, the camera height, and of course the target platform.
+
+56
+00:06:37,960 --> 00:06:43,200
+我希望它能在一个 Cortex A53 ARM 核心上运行。
+I want it to run on one Cortex A53 ARM core.
+
+57
+00:06:44,078 --> 00:06:46,020
+延迟应该在 500 毫秒以内。
+The latency should be 500 milliseconds.
+
+58
+00:06:46,030 --> 00:06:48,840
+所以我们有了这些产品要求，好吗？
+And so we have this product requirements, OK?
+
+59
+00:06:50,040 --> 00:06:52,540
+这在某种程度上非常清晰。
+It's somehow very clear.
+
+60
+00:06:52,920 --> 00:06:59,080
+现在我们可以放开手来推进了，去关注剩下的步骤。
+Now we are actually free to move forward, OK, to focus on the rest of the steps.
+
+61
+00:06:59,160 --> 00:07:00,740
+那么我们来谈谈数据。
+So let's talk about the data.
+
+62
+00:07:01,262 --> 00:07:04,760
+让我们从数据采集开始。
+Let's start with the data collection.
+
+63
+00:07:05,486 --> 00:07:20,452
+所以，当我和大家聊到训练深度学习网络时，我收到的最常见的问题就是：我需要多少数据？
+So I think the most frequent question I get when I talk to people about training
+deep learning network is the main question they ask me is how much data do I need?
+
+64
+00:07:20,820 --> 00:07:27,300
+好，我觉得这其实不是一个正确的问题，让我们来看看原因。
+Okay, so I don't think that this is actually the right question, so let's see why.
+
+65
+00:07:27,960 --> 00:07:31,180
+数据采集是一个非常漫长且成本高昂的过程。
+Data collection is a very long and very expensive process.
+
+66
+00:07:31,340 --> 00:07:35,340
+之所以漫长，是因为有时它涉及专门的设备搭建。
+It's long because sometimes it involves a proprietary setup.
+
+67
+00:07:35,534 --> 00:07:42,200
+例如，如果你开发自己的摄像头或激光雷达，你没有任何参考标准，没有任何参考图像。
+For instance, if you develop your own camera or your own LiDAR, you don't have any reference, you don't have any reference images.
+
+68
+00:07:42,606 --> 00:07:46,564
+你实际上得从零开始去收集这些数据。
+You will actually have to go and collect this data from scratch.
+
+69
+00:07:47,080 --> 00:07:48,880
+它需要多样性。
+It does require variability.
+
+70
+00:07:49,160 --> 00:07:55,600
+比如对于门铃摄像头，你需要从不同来源、不同地点在不同时间段收集数据。
+For instance, for the doorbell camera, you would need to collect data over time in different sources, different locations.
+
+71
+00:07:55,760 --> 00:07:56,700
+这会耗费很多时间。
+It will take time.
+
+72
+00:07:57,200 --> 00:08:04,360
+如果你依赖其他公司的数据，你会惊讶于实际获取这些数据有多困难，明白吗？
+If you depend on another company's data, you will be surprised how difficult it is to actually get this data, okay?
+
+73
+00:08:04,718 --> 00:08:06,420
+所以这是一个非常、非常漫长的过程。
+So it's a very, very long process.
+
+74
+00:08:06,574 --> 00:08:12,560
+这是一个昂贵的流程，尤其是如果你想购买数据，或者想建立自己的设备时。
+It's an expensive process, especially if you want to buy the data, if you want to actually build your own setup.
+
+75
+00:08:13,038 --> 00:08:21,400
+例如对于自动驾驶汽车，他们必须去制造这些车辆，
+安装摄像头和所有传感器，并行驶数百万英里。
+For instance, for autonomous vehicles, they have to actually go and build these
+cars, mount these cameras and all these sensors, and drive millions of miles.
+
+76
+00:08:21,838 --> 00:08:23,320
+所以这是一个成本极高的操作；
+So it is very expensive operation;
+
+77
+00:08:23,320 --> 00:08:25,120
+他们需要很长时间才能获取到数据。
+it will take time till they get the data.
+
+78
+00:08:25,120 --> 00:08:32,760
+你还需要考虑存储、管理所有内容，因为这是一个漫长且昂贵的过程，所以你应该尽早开始。
+You need to think about storage, managing everything, so because it's a long process and very expensive, you should start early.
+
+79
+00:08:33,320 --> 00:08:37,419
+比如在 Brodmann 17，我们从第一天就开始收集数据。
+So at Boardman 17 for example For example, we started collecting the data from day one.
+
+80
+00:08:37,880 --> 00:08:44,080
+我们有能力、有技术诀窍、有之前的经验，还有资源。
+We had the capability, we had the know-how, we had the previous experience, we had the resources.
+
+81
+00:08:44,686 --> 00:08:46,220
+所以我们开始收集数据了。
+So we started collecting data.
+
+82
+00:08:46,420 --> 00:08:49,620
+我们最终真的收集到了 1 亿张图像。
+We ended up collecting 100 million images, truly.
+
+83
+00:08:52,060 --> 00:09:03,660
+但在你这样做之前，在你匆忙投入这个困难、漫长且昂贵的过程中之前，
+你应该花点时间去搞清楚你到底想做什么。
+But before you do that, before you rush into doing this very hard and long and expensive process,
+you should invest some time in understanding exactly what you want to do.
+
+84
+00:09:04,206 --> 00:09:08,940
+结果发现，我们最终根本没用到这 1 亿张图像中的很多。
+So it turns out that many of these 100 million images we ended up not using at all.
+
+85
+00:09:09,440 --> 00:09:18,920
+我们收集了大量图像，但因为没有明确的产品需求，最后这些数据全被扔掉了。
+So we collected many images, but because we didn't have these clear product requirements, we ended up throwing away all this data.
+
+86
+00:09:19,560 --> 00:09:28,900
+我们在那上面花了很多钱和时间，这是我们学到的一个非常重要的教训。
+So we spent a lot of money, a lot of time on that, so that's a very important lesson we learned.
+
+87
+00:09:29,358 --> 00:09:31,400
+所以，“我需要多少数据？”
+So how much data do I need?
+
+88
+00:09:31,598 --> 00:09:34,580
+好，正如我提到的，这是一个非常普遍的问题。
+Okay, so that's a very common question as I mentioned.
+
+89
+00:09:35,220 --> 00:09:40,160
+数量并不是问题。
+So quantity is not an issue.
+
+90
+00:09:40,800 --> 00:09:42,180
+这不是正确的问题。
+It's not the right question.
+
+91
+00:09:42,478 --> 00:09:54,480
+质量才是更重要的问题，尤其是当你是一家初创公司、资源有限时，
+你真正需要收集的是能满足产品需求的数据。
+Quality is the more important question, especially when you're a startup, you have low resources,
+you actually need to collect the data that will achieve your product requirements.
+
+92
+00:09:54,638 --> 00:09:56,340
+你不需要盲目地去收集数据。
+You don't have to just collect data.
+
+93
+00:09:56,878 --> 00:09:58,220
+你得收集正确的数据。
+You have to collect the right data.
+
+94
+00:09:58,478 --> 00:10:01,580
+好，你可能会问，什么是正确的数据？
+Okay, and you probably ask what is the right data?
+
+95
+00:10:01,838 --> 00:10:16,340
+我会在接下来的幻灯片以及整个演讲中讲解这种从简单开始、
+从极低水平开始并随时间增加的策略。
+I'll cover this in the next following slides and throughout this talk I will go through
+this methodology of starting simple, starting very low and increasing over time.
+
+96
+00:10:16,750 --> 00:10:28,140
+所以，我不会一开始就去收集一亿张图片，我会先从收集一小部分开始，然后提高采集率。
+一旦进入研究阶段，研究过程实际上会引导我准确了解我需要收集哪些数据。
+So I wouldn't start from collecting 100 million images I will start from collecting a small subset and then increase the collection
+rate and And once I get to the research phase, actually the research
+
+97
+00:10:28,140 --> 00:10:32,196
+所以，我不会一开始就去收集一亿张图片，我会先从收集一小部分开始，然后提高采集率。
+一旦进入研究阶段，研究过程实际上会引导我准确了解我需要收集哪些数据。
+phase will guide me to exactly understand which data I want to collect.
+
+98
+00:10:32,750 --> 00:10:36,850
+所以根据我们的经验，这个迭代过程非常、非常重要。
+So this iterative process turns out to be, from our experience, very, very important.
+
+99
+00:10:40,238 --> 00:10:42,630
+这里提一下，学术数据。
+Just putting it here, academic data.
+
+100
+00:10:42,950 --> 00:10:49,790
+我想初创公司我们都会去看看这些可用的学术数据源。
+I guess startups, we all look at these available academic data sources.
+
+101
+00:10:49,790 --> 00:10:55,410
+实际上，其中很多的数据授权并不允许用于任何商业用途。
+Actually, many of these have licenses that does not permit using them for any commercial application.
+
+102
+00:10:55,982 --> 00:10:56,932
+你应该知道这一点。
+You should know that.
+
+103
+00:10:57,750 --> 00:11:03,110
+但在咨询你的法律团队后，你可能可以用这些数据来进行研究。
+But you can probably use that for research after you consult your legal team.
+
+104
+00:11:03,830 --> 00:11:05,790
+那合成数据呢？
+What about synthesizing data?
+
+105
+00:11:06,510 --> 00:11:08,230
+简短的回答是：当然可以。
+So the short answer is, yeah, sure.
+
+106
+00:11:08,290 --> 00:11:11,590
+如果你能做到这一点，那会为你节省大量时间。
+If you can do that, that will save you a lot of time.
+
+107
+00:11:12,310 --> 00:11:14,532
+所以我不会去讨论这些方面。
+So I'm not going to touch these aspects.
+
+108
+00:11:14,590 --> 00:11:19,390
+我要讲的是实际的数据采集过程。
+I'm going to talk about the actual process of collecting data.
+
+109
+00:11:22,350 --> 00:11:24,750
+那么我们来谈谈数据的质量。
+So let's talk about the quality of the data.
+
+110
+00:11:25,410 --> 00:11:28,970
+正如我提到的，产品需求将贯穿整个过程并引导我们。
+So as I mentioned, the product requirements will guide us throughout the process.
+
+111
+00:11:29,550 --> 00:11:31,030
+它必须来自相同的模态。
+It has to be from the same modality.
+
+112
+00:11:31,250 --> 00:11:35,870
+如果我的摄像头是红外线的，我就收集红外线数据。
+If my camera is going to be infrared, I will collect infrared data.
+
+113
+00:11:35,990 --> 00:11:37,810
+如果是鱼眼镜头，就用鱼眼数据。
+If it's going to be fisheye, fisheye data.
+
+114
+00:11:37,910 --> 00:11:38,670
+这非常重要。
+That's very important.
+
+115
+00:11:38,730 --> 00:11:41,150
+如果你能做到这一点，就去做。
+If you can do that, do that.
+
+116
+00:11:41,518 --> 00:11:45,310
+它应该涵盖预期的数据分布。
+It should cover the expected distribution of the data.
+
+117
+00:11:45,966 --> 00:11:48,630
+你的实际应用场景会看到这些。
+Your real application will see.
+
+118
+00:11:49,070 --> 00:11:56,630
+相同的场景外观、物体外观、视角、一天中的时间、季节，你都应该考虑到这些。
+The same scene appearance, objects appearance, viewpoints, time of day, seasons, you should take this into consideration.
+
+119
+00:11:57,390 --> 00:12:06,510
+比如我们考虑智能门铃应用，假设我们可以使用 Cocoa。
+So if we consider the smart doorbell application, for instance, and we have this, let's say we can use cocoa.
+
+120
+00:12:06,510 --> 00:12:06,790
+好的。
+Okay.
+
+121
+00:12:07,342 --> 00:12:11,030
+那么，你会说这些实际上是适用于这个应用的好数据吗？
+So, would you say that that's actually a good data to use for this application?
+
+122
+00:12:13,134 --> 00:12:13,630
+是的。
+Yeah.
+
+123
+00:12:13,790 --> 00:12:22,770
+所以，你可以看到这些数据，物体的分布、类别的分布，那并不是很自然的，明白吗？
+So, you can see the data, the distribution of object, the distribution of classes, that's not something very natural, okay?
+
+124
+00:12:22,890 --> 00:12:26,270
+就从这里出现的物体来看。
+Just in terms of the presence of objects here.
+
+125
+00:12:26,542 --> 00:12:30,130
+比如，我不期望在我的门前看到一头大象。
+Like, I wouldn't expect an elephant to be on my doorstep.
+
+126
+00:12:30,210 --> 00:12:34,510
+虽然这里有很多人类，但对于这个应用来说，这听起来非常奇怪。
+It sounds, like, very weird for the application, although there are a lot of humans here.
+
+127
+00:12:34,830 --> 00:12:38,170
+所以你可能会说，好吧，我这里有很多人的数据。
+So you say, OK, so I have a lot of people here.
+
+128
+00:12:38,490 --> 00:12:38,650
+是的。
+Yes.
+
+129
+00:12:38,790 --> 00:12:42,390
+如果你看 Coco，你会发现这其实被标注为一个人，好吗？
+So if you look at Coco, you see that's actually tagged as a person, OK?
+
+130
+00:12:42,894 --> 00:12:44,324
+你看到一只狗，但那是个人的标签。
+You see a dog, but that's a person.
+
+131
+00:12:44,622 --> 00:12:53,310
+如果你把这些输入到你的训练算法中，在 Coco 里它们都被标记为人。
+If you input that to your training algorithms, that's also a person, that's a person, that's also a person in Coco.
+
+132
+00:12:53,518 --> 00:12:56,270
+你拥有一些非常、非常奇怪的类别。
+You have like very, very strange categories.
+
+133
+00:12:56,550 --> 00:13:02,470
+这听起来很简单，但人们通常不看这些示例，不看数据。
+So it sounds very simple, but people usually don't look at these examples, don't look at the data.
+
+134
+00:13:02,470 --> 00:13:09,670
+所以你应该查看你的数据，并理解使用这些数据是合理的，好吗？
+So you should look at your data and understand that it makes sense to use this data, okay?
+
+135
+00:13:10,062 --> 00:13:16,490
+那么也许最右边的那张图片在我们的应用中听起来是合理的，好吗？
+So maybe the right most image sounds reasonable to use in our application, okay?
+
+136
+00:13:17,166 --> 00:13:18,430
+让我们看看另一个应用。
+Let's look at another application.
+
+137
+00:13:18,570 --> 00:13:20,770
+让我们看看交通监控应用，好吗？
+Let's look at the traffic monitoring application, okay?
+
+138
+00:13:21,230 --> 00:13:34,970
+假设我们安装了一个交通摄像头，不知道是在电线杆上，
+而我们实际上想统计车辆数量或检测交通中的异常情况。
+So let's say we have a traffic camera mounted, I don't know, on a pole,
+and we actually want to count cars or detect abnormalities in the traffic.
+
+139
+00:13:35,510 --> 00:13:38,190
+这些也是来自 Coco 的场景。
+So these are also scenes coming from Coco.
+
+140
+00:13:38,766 --> 00:13:39,930
+你看，这些全都是汽车。
+See, these are all cars.
+
+141
+00:13:40,790 --> 00:13:44,450
+它不符合我们的用例。
+It does not fit our use case.
+
+142
+00:13:44,650 --> 00:13:46,050
+也许是最右边的那一个。
+Perhaps the rightmost one.
+
+143
+00:13:46,390 --> 00:13:50,690
+相同的模态，同样的样貌，相同的视角。
+Same modality, same appearance, same viewpoint.
+
+144
+00:13:51,022 --> 00:13:59,690
+如果你最后收集了六个月的数据且来自 Flickr，不要惊讶于它在最终应用中不起作用。
+If you ended up collecting data for six months and it's coming from
+Flickr, don't be surprised that it won't work on your final application.
+
+145
+00:14:00,462 --> 00:14:02,090
+顺便说一下，我们也遇到过这种情况。
+And it also happened to us, by the way.
+
+146
+00:14:03,910 --> 00:14:06,730
+所以这些是真正的教训。
+So these are actually real lessons.
+
+147
+00:14:07,670 --> 00:14:10,550
+并不是因为那些奇怪、古怪的例子。
+And it wasn't these strange, bizarre examples.
+
+148
+00:14:10,670 --> 00:14:25,310
+这实际上是由于不同的差异，但在收集你自己的数据过程中，你应该遵循同样的逻辑。
+This was actually like different differences, but it's the same logic you should make in the process collecting your own data.
+
+149
+00:14:25,310 --> 00:14:35,150
+因此，收集高质量数据的关键因素是收集具有多样性的数据。
+So, a key factor in actually collecting quality data is collect data with variability.
+
+150
+00:14:35,670 --> 00:14:39,410
+如今获取高度相关的数据集非常容易，好吗？
+Collecting a highly correlated data set is very easy these days, okay?
+
+151
+00:14:39,790 --> 00:14:40,910
+你有视频流。
+You have video streams.
+
+152
+00:14:41,470 --> 00:14:45,610
+对于我们的门铃摄像头，我们有这个，假设我们有一个单一的安装点。
+So for our doorbell camera, we have this, let's say we have a single installation.
+
+153
+00:14:46,190 --> 00:14:47,670
+我们把它开启一天。
+We turn it on for one day.
+
+154
+00:14:48,610 --> 00:14:53,764
+24 小时后，我们有大约 250 万帧。
+After 24 hours, we have 2.5, approximately 2.5 million frames.
+
+155
+00:14:54,430 --> 00:14:56,190
+这是很多数据，对吧？
+That's a lot of data, okay?
+
+156
+00:14:56,450 --> 00:15:08,710
+所以不，这些是很差的数据，因为环境是静态的，可能根本没人出现在门口，或者即便有，
+也是非常罕见的情况，同样的场景、同样的情况、相同的地点。
+So no, that's a really bad data because you have this static environment, probably nobody showed at the door,
+or perhaps it's a very rare event, same scenario, same condition, same location.
+
+157
+00:15:09,454 --> 00:15:12,990
+这很糟糕，尤其是如果你最终真的要去标注这些数据的话。
+It's bad, especially if you will end up actually annotating this.
+
+158
+00:15:13,050 --> 00:15:16,690
+我不相信有人会这么做，但你确实应该考虑到这一点。
+I don't believe anyone would, but you should actually think of that.
+
+159
+00:15:16,770 --> 00:15:24,410
+也许不是这种极端情况，但可能你并不是只有一个来
+源，而是有 20 个来源，然后你就觉得这就足够了。
+Perhaps not this extreme scenario, but perhaps you don't have a single
+source, but you have 20 sources and you think that's that's enough.
+
+160
+00:15:24,950 --> 00:15:28,190
+所以我们收到过一家大公司的请求。
+So we had a request for one big company actually.
+
+161
+00:15:30,798 --> 00:15:35,770
+他们在内部安装了一个摄像头，我不知道，就说是在一个房间里，好吗？
+So they had this camera mounted inside, I don't know, let's say a room, okay?
+
+162
+00:15:36,350 --> 00:15:41,150
+他们用的是非常特殊的摄像头，所以他们想把数据发给 Brodmann17，好吗？
+So they, a very special camera, so they wanted to send us data to Broadman17, okay?
+
+163
+00:15:42,798 --> 00:15:47,330
+他们先问了第一个问题：你们需要多少数据？
+So they started with the first question, how much data do you need?
+
+164
+00:15:47,854 --> 00:15:50,310
+于是我说，我不知道，把你的数据给我看看。
+So I said, I don't know, show me your data.
+
+165
+00:15:50,950 --> 00:15:53,350
+好的，他们说，那我们就这么做。
+OK, so they said, let's do that.
+
+166
+00:15:53,470 --> 00:15:55,010
+我们是一家欧洲公司。
+We are a European company.
+
+167
+00:15:55,130 --> 00:15:56,964
+我们在隐私方面有问题。
+We have a problem with privacy.
+
+168
+00:15:57,170 --> 00:15:58,230
+我们会选出这四个人。
+We'll take these four people.
+
+169
+00:15:58,638 --> 00:16:06,110
+我们实际上会签署 GDPR 豁免书，并提供给你们 100 个片段。
+We'll actually sign the GDPR waiver and we'll provide you with 100 clips.
+
+170
+00:16:07,502 --> 00:16:10,290
+这看起来不像是一个好的训练数据集，对吧？
+That doesn't seem like a good data set to train on, right?
+
+171
+00:16:10,370 --> 00:16:15,090
+除非你的应用就是要在这个房间里针对这四个人运行，好吗？
+Unless your application is going to work in this room with these four people, OK?
+
+172
+00:16:15,090 --> 00:16:17,250
+所以，你需要收集具有多样性的数据。
+Okay, so you need to collect data with variability.
+
+173
+00:16:17,550 --> 00:16:18,790
+这是为了交通监控。
+This is for traffic monitoring.
+
+174
+00:16:19,350 --> 00:16:22,210
+所以我们也确实收集过这类数据。
+So we also turn out to actually collect this kind of data.
+
+175
+00:16:22,638 --> 00:16:32,790
+当我们收集这些数据时，我们非常强调要为许多地
+点、许多不同的来源采集具有高度多样性的数据。
+So when we collected this data, we put a lot of emphasis on actually
+collecting very variable data for many locations, many different sources.
+
+176
+00:16:33,294 --> 00:16:35,190
+这听起来是个不错的起点，好吗？
+That sounds like a good starting point, okay?
+
+177
+00:16:36,494 --> 00:16:42,180
+也许你还需要对这些数据进行筛选步骤，但这是一个很好的起点。
+Perhaps you need another step of sorting for this data, but that's a good starting point.
+
+178
+00:16:43,054 --> 00:16:58,230
+所以，我们谈到了数据采集，在产品开发的流水线中，我们从小的开始，开始收集一些东西，
+但当然，在将其输入到算法之前，我们需要对其进行标注。
+So, we talked about the data collection, so in mind in the pipeline of developing the product we start small,
+we start collecting something, but of course we need to annotate it before filling it into the algorithm.
+
+179
+00:16:58,766 --> 00:17:05,310
+因此，标注步骤比实际的数据采集要耗时得多，也昂贵得多，好吗？
+So, annotation step is much more time consuming and expensive than the actual data collection, okay?
+
+180
+00:17:05,772 --> 00:17:11,690
+所以，当我们考虑这种细粒度标注，而你实际上需要进行语义分割时。
+So, if we consider this fine-grained annotation when you actually need to perform a semantic segmentation.
+
+181
+00:17:12,396 --> 00:17:18,750
+你可以假设对于普通人来说，完成这项工作可能需要几分钟，甚至一个小时，好吗？
+So you could assume that for a normal person it would take several minutes, perhaps even an hour, okay, to do that.
+
+182
+00:17:19,214 --> 00:17:25,089
+如果你考虑到他的时薪，你会发现每张图像实际上要花费好几个美元，好吗？
+If you consider his hourly rate, you will turn out that each image actually costs several dollars, okay?
+
+183
+00:17:25,678 --> 00:17:28,850
+好的，这就是那个数量级的成本。
+Okay, so that's the order of magnitude there.
+
+184
+00:17:29,550 --> 00:17:36,730
+所以，在真正搞清楚是否真的需要这种标注水平之前，你不能草率地去标注你的数据。
+So you cannot rush into annotating your data in such a way before you actually understand, do I really need this annotation level?
+
+185
+00:17:38,550 --> 00:17:41,050
+即便你确实需要这种标注水平，
+And even if I do need this annotation level.
+
+186
+00:17:41,390 --> 00:17:43,812
+你也得弄清楚到底哪些数据才真正需要标注？
+What data do I really need to annotate?
+
+187
+00:17:44,206 --> 00:17:51,890
+这很容易，尤其是当你和第三方供应商合作时，比如你们签了一份标注 10 万张图片的协议。
+It's very easy, especially if you work with a third party provider as you sign an agreement for annotating 100,000 images.
+
+188
+00:17:52,302 --> 00:18:05,170
+这听起来非常简单且诱人，直接把 10 万张图片发过去，然后你就拥有了一个包含 10 万张图像
+的数据集，但它很有可能毫无价值。
+It sounds like very easy and very tempting to just send in 100,000 images and then you have a data set of 100,000 images that perhaps
+with a strong probability it will be worth nothing.
+
+189
+00:18:05,710 --> 00:18:05,810
+明白吗？
+OK?
+
+190
+00:18:05,998 --> 00:18:08,130
+所以我们没这么做。
+So we didn't do that.
+
+191
+00:18:08,130 --> 00:18:11,890
+好，所以你需要选择你要标注的内容。
+OK, so you need to choose what you annotate.
+
+192
+00:18:11,990 --> 00:18:15,410
+从预算和时间的角度来看，你不可能把所有东西都标注一遍。
+You cannot, like budget wise, time wise, you cannot annotate everything.
+
+193
+00:18:16,050 --> 00:18:24,330
+即使是那些收集数十亿帧图像和视频的大公司，也没法通过砸钱来解决这个问题。
+Even not big companies, like big companies collecting billions of frames and videos,
+they cannot solve this problem by throwing money at it.
+
+194
+00:18:24,390 --> 00:18:25,830
+你必须加入一些逻辑。
+You have to actually put some logic.
+
+195
+00:18:26,330 --> 00:18:27,930
+而且你必须标注高质量的数据。
+And you have to annotate quality data.
+
+196
+00:18:28,070 --> 00:18:29,730
+再次强调，这里的“高质量数据”是什么？
+Again, what is quality data here?
+
+197
+00:18:29,810 --> 00:18:32,110
+也就是：我应该标注哪些数据？
+Like what data should I annotate?
+
+198
+00:18:32,570 --> 00:18:33,690
+这是一个很难的问题。
+That's a hard question.
+
+199
+00:18:33,850 --> 00:18:35,710
+所以，再次强调，从小的开始。
+So again, you start small.
+
+200
+00:18:35,790 --> 00:18:37,220
+先开始标注一些东西。
+You start annotating something.
+
+201
+00:18:37,270 --> 00:18:39,810
+比如，先标注一部分数据集。
+Like, start annotating a part of your data set.
+
+202
+00:18:40,330 --> 00:18:42,788
+通常是验证集或测试集的一部分。
+Usually it's part of the validation or test set.
+
+203
+00:18:43,770 --> 00:18:49,470
+你决定，比如，我想用不同的方式来标注它。
+You decide, like, I want to annotate it in a different way.
+
+204
+00:18:49,550 --> 00:18:52,090
+我有一套特定的标注方案。
+I have a specific annotation scheme.
+
+205
+00:18:52,814 --> 00:18:53,550
+从小的开始。
+You start small.
+
+206
+00:18:53,670 --> 00:18:59,270
+等你建立起信心后，你可以改变它，或者加快进度，好吗？
+After you gain confidence, you can change it, or you can increase the pace, OK?
+
+207
+00:19:02,126 --> 00:19:05,210
+那数据的质量呢？
+What about the quality of the data?
+
+208
+00:19:05,550 --> 00:19:05,710
+好的。
+OK.
+
+209
+00:19:05,710 --> 00:19:07,590
+我们处理的主要是监督学习。
+So we're dealing mostly with supervised learning.
+
+210
+00:19:07,730 --> 00:19:12,950
+我不知道你是否用过无监督方法来构建 AI 产品。
+I don't know if you ever built an AI product with unsupervised methodologies.
+
+211
+00:19:13,390 --> 00:19:15,350
+但在视觉领域，大部分都是监督学习。
+But mostly in vision, it's supervised.
+
+212
+00:19:16,526 --> 00:19:24,676
+所以数据的质量非常重要，因为只有标注过的数据才会真正用于训练你的算法。
+So the quality of the data is very important, because only the annotated data will be used to actually train your algorithms.
+
+213
+00:19:26,170 --> 00:19:30,850
+你的模型水平只能达到你数据质量的高度。
+Your model will be good only as the quality of your data.
+
+214
+00:19:31,230 --> 00:19:38,890
+你不能指望它能从你喂给它的数据质量中推导出来，如果数据很脏，性能就会很差。
+You cannot expect it to extrapolate from the quality of the data you feed it, if it's dirty, you will get bad performance.
+
+215
+00:19:39,310 --> 00:19:44,090
+如果你给它错误的标注，它至少会试图模仿这些错误的标注。
+If you give him the wrong annotation, it will at least try to mimic these wrong annotations.
+
+216
+00:19:45,930 --> 00:19:55,070
+所以我们发现的一个非常好的做法是，实际上要为如何进行标注制定非常严格的准则。
+So a very good practice we found is to actually set a very strict guideline on how to annotate.
+
+217
+00:19:56,670 --> 00:20:01,870
+例如，在门铃应用中，我该如何标注？
+So for instance, in the doorbell application, how do I want to annotate?
+
+218
+00:20:01,970 --> 00:20:03,730
+我是要做分割吗？
+Do I want to do a segmentation?
+
+219
+00:20:03,730 --> 00:20:07,830
+我是要像这样画边界框，还是那样画？
+Do I want to draw the bounding box like this, or like that?
+
+220
+00:20:08,142 --> 00:20:11,610
+这其实并不是产品需求中能直接给出的内容。
+That's actually not something that comes straightforward for the product requirements.
+
+221
+00:20:12,030 --> 00:20:18,450
+没人会告诉你你实际上需要开发一个目标检测算法。
+Nobody told you that you actually need to develop an object detection algorithm.
+
+222
+00:20:18,670 --> 00:20:22,170
+产品经理实际上只关心最终的结果。
+The product manager actually cares about the final outcome.
+
+223
+00:20:22,710 --> 00:20:25,690
+你实际上需要思考你想做什么。
+You actually need to think about what you want to do.
+
+224
+00:20:25,998 --> 00:20:30,810
+所以也许分类可以满足需求，也许是检测，或者可能是分割。
+So perhaps classification can solve the requirements, perhaps detection, perhaps segmentation.
+
+225
+00:20:31,406 --> 00:20:42,790
+当然，如果你选择了错误的方法，你将会投入完全不同数量的资源、时间和精力，明白吗？
+For sure, you will pay and invest a completely different amount of resources and time and efforts if you choose the wrong way, okay?
+
+226
+00:20:43,534 --> 00:20:58,468
+所以当你选择某种方式时，你需要用非常详尽的细节来描述它，比如你到底想要什么样的标注，
+随着研究的进展，你可以再进行更改。
+So you choose something, you need to describe it in very fine detail, like exactly how you want this annotation to come,
+and as the research progresses, you can change that.
+
+227
+00:20:58,862 --> 00:21:00,980
+一旦你有了信心，你就可以更改它。
+You can change that once you gain confidence.
+
+228
+00:21:02,400 --> 00:21:10,916
+所以从小开始，不要在没有初步想法或至少没有测试的情况下去标注成千上万甚至数十万张图片。
+So start small, don't annotate thousands or hundreds of thousands of images without giving it a photo or at least testing it.
+
+229
+00:21:11,726 --> 00:21:18,720
+关于定义这种标注方案的几个例子，比如对于人脸识别，你会如何标注这张脸？
+So a couple of examples on defining this annotation scheme, for example, for face recognition, how would you annotate this face?
+
+230
+00:21:19,120 --> 00:21:20,640
+是像这样，还是那样，或者是那样？
+Like this, like that, or like that?
+
+231
+00:21:20,718 --> 00:21:22,360
+听起来非常相似，对吧？
+So it sounds very similar, right?
+
+232
+00:21:22,766 --> 00:21:27,720
+就像你说的，没关系，它能用，我检测到了一张脸，其实并不重要。
+Like you say, it's okay, like it will work, like I detect a face, it doesn't really matter.
+
+233
+00:21:27,720 --> 00:21:44,740
+但是如果你不严格定义，比如我要一张脸，上边缘应该在眉毛上方，不要耳朵，只到下巴，
+不包含头发，否则你会得到各种各样的标注。
+But if, like, if you don't strictly define, I want a face, the upper line should be straight above the eyebrows, without the ears,
+just strict to the chin, not including the hair, you will get various annotations.
+
+234
+00:21:44,940 --> 00:21:54,340
+你的标注人员实际上不会对他们的操作负责，因为你并没有清晰地定义它，明白吗？
+Your annotators will actually, will have no responsibility to what they do because you didn't actually define it clearly, okay?
+
+235
+00:21:54,340 --> 00:22:03,420
+当然，我不会深入到非常极端的、奇怪且极端的案例中，但你也应该涵盖这些。
+Of course, I'm not going into very edge cases, very bizarre and extreme cases, but you should also cover these.
+
+236
+00:22:03,900 --> 00:22:04,080
+好吗？
+Okay?
+
+237
+00:22:04,238 --> 00:22:07,880
+所以你应该非常详细地定义它们，以免干扰你的学习过程。
+So you should define them very detailed in order not to confuse your learning process.
+
+238
+00:22:08,302 --> 00:22:12,160
+当你给算法喂数据时，你需要用一个一致的数据集来喂它。
+You feed your algorithms, you need to feed it with a consistent data set.
+
+239
+00:22:12,720 --> 00:22:16,036
+当你想要合并不同的数据集时，同样的规则也适用。
+The same rule applies when you actually want to combine different data sets.
+
+240
+00:22:16,462 --> 00:22:28,040
+你有一个从之前的产品中获得的数据集，还有一个新的数据集，
+你真的想把这两个标注方案融合进同一个学习过程中，还是你真的想去修正它？
+You have a data set that you had from your previous product, you have another data set,
+Do you really want to fuse these two annotation schemes into the same learning process or do you actually want to fix that?
+
+241
+00:22:28,120 --> 00:22:29,540
+你能不能自动修复它呢？
+Can you fix that automatically, perhaps?
+
+242
+00:22:32,110 --> 00:22:35,440
+有时你的研究评估指标可能会失败，这非常糟糕。
+Sometimes you can actually fail your research evaluation metric, which is really bad.
+
+243
+00:22:35,540 --> 00:22:43,540
+比如如果你的算法提供了一个非常紧凑的边界框，而
+地面真值就是那样，你就会产生重叠误差，明白吗？
+Like if your algorithm provides you with a very tight bounding box and
+the ground truth is that, you're going to get an overlap error, okay?
+
+244
+00:22:43,540 --> 00:22:48,480
+所以在评估中，你会遇到类似虚警的情况。
+So in the evaluation, you will get like false alarms.
+
+245
+00:22:51,374 --> 00:22:53,580
+有时候其他算法实际上是依赖这些数据的。
+Sometimes other algorithms are actually depending on this.
+
+246
+00:22:53,870 --> 00:23:01,444
+例如，如果你在做人脸识别，而算法是在标注过类似数据的数据集上训练的，
+你就应该用同样的数据集来适配它。
+For instance, if you're doing face recognition and the algorithm was trained on a
+data set that was annotated like that, you should fit it with the same data set.
+
+247
+00:23:03,054 --> 00:23:14,190
+所以这类问题通常出现在产品比较复杂，或者公司拥有多个产品、历史数据集或历史算法时，
+你实际上需要整合这些复杂的流水线。
+So this kind of problems actually arises when you have perhaps a complicated product or So when the company actually has several
+products, and it has historic data sets or historic algorithms, you
+
+248
+00:23:14,190 --> 00:23:18,340
+所以这类问题通常出现在产品比较复杂，或者公司拥有多个产品、历史数据集或历史算法时，
+你实际上需要整合这些复杂的流水线。
+actually want to combine or combine this kind of a complicated pipeline.
+
+249
+00:23:18,798 --> 00:23:21,700
+所以你应该考虑到这一点，因为它可能是一个影响因素。
+So you should take this under consideration because it might be a factor.
+
+250
+00:23:30,862 --> 00:23:31,876
+是自动补偿还是不补偿？
+Automatically compensates or not?
+
+251
+00:23:32,654 --> 00:23:32,870
+再说一遍？
+Again?
+
+252
+00:23:34,030 --> 00:23:43,430
+如果你有多种输入数据，比如既有人也有没人的情况，它能补偿这种错误吗？
+If you have a variety of input data, for example, you have both people also without him, will it compensate for that kind of error?
+
+253
+00:23:43,430 --> 00:23:44,090
+所以
+So
+
+254
+00:23:44,090 --> 00:23:47,890
+这其实是同一个人。
+it's actually the same person for this.
+
+255
+00:23:47,910 --> 00:23:49,630
+是的，但这里没有老人。
+Yeah, but you don't have an old person here.
+
+256
+00:23:50,446 --> 00:23:51,150
+对，对。
+Yes, yes.
+
+257
+00:23:51,290 --> 00:23:54,290
+我只是在谈论标注规范，当然。
+So I'm just talking about the annotation scheme, of course.
+
+258
+00:23:54,606 --> 00:24:06,330
+但是即使数据具有多样性，如果你应用这些严格的标注规则，
+你也应该能在学习过程和评估过程中看到一致的结果。
+But if you have a variability of data, even then, and if you apply these strict annotation rules,
+you should expect to see something consistent in your learning process, in your evaluation process.
+
+259
+00:24:06,670 --> 00:24:10,010
+并不是说你的标注到处乱放。
+It's not like you're having, you know, you have these annotations all over the place.
+
+260
+00:24:10,030 --> 00:24:13,670
+所以算法当然能够学到一些东西。
+So the algorithm, of course, will be able to learn something.
+
+261
+00:24:13,750 --> 00:24:14,750
+但这并不是最优的。
+But that's not the optimal.
+
+262
+00:24:15,470 --> 00:24:16,710
+这不是最优情况。
+That's not the optimal case.
+
+263
+00:24:16,790 --> 00:24:18,450
+在某些情况下，它会失败。
+In some scenarios, it will fail.
+
+264
+00:24:19,982 --> 00:24:23,790
+对于人脸这种更明确、更简单的任务，可能没问题。
+Perhaps for faces, which is a more distinct and easy problem, it will be OK.
+
+265
+00:24:24,550 --> 00:24:26,564
+但这只是个例子。
+But that's just an example.
+
+266
+00:24:27,090 --> 00:24:28,996
+换个场景，这个该怎么标注？
+Another scenario, how do you annotate that?
+
+267
+00:24:29,110 --> 00:24:30,628
+比如，这个人在后面。
+Like, this person's in the back.
+
+268
+00:24:31,054 --> 00:24:35,748
+我真的想标注这个从背面看过去的人脸吗？
+Do I really want to annotate this person from the back side face?
+
+269
+00:24:36,366 --> 00:24:44,670
+如果你在早期就决定，听着，我不打算标注小于 20x20 或 50x50 的人脸。
+If you actually decide early on, listen, I don't want to annotate faces smaller than 20 by 20 or smaller than 50 by 50.
+
+270
+00:24:45,166 --> 00:24:50,910
+这其实可以通过简单的预处理步骤来完成，能为你节省大量的时间和金钱。
+That can actually, in a simple preprocessing step, that can actually save you a lot of time, a lot of money.
+
+271
+00:25:08,846 --> 00:25:09,050
+是的。
+Yeah.
+
+272
+00:25:10,734 --> 00:25:20,250
+是的，当然，你可以把标注过程看作是为了优化你的 KPI 而必须定义的环节，好吗？
+Yeah, of course, you can think of the annotation process as something you should define in order to optimize your KPI, OK?
+
+273
+00:25:20,686 --> 00:25:21,870
+所以你要定义优化目标。
+So you define the optimization.
+
+274
+00:25:21,870 --> 00:25:30,370
+当然，如果你让算法在关键点上运行，对于那些非常、非常远的人来说，就会变得非常麻烦。
+Of course, perhaps if you train the algorithms on working on landmarks, it will be very problematic for people very, very far away.
+
+275
+00:25:30,766 --> 00:25:34,930
+如果你的产品确实需要识别这些极小的物体，模型就没法训练了。
+And if your product actually requires this very small object, it will not be able to train.
+
+276
+00:25:35,610 --> 00:25:35,810
+明白吗？
+OK?
+
+277
+00:25:36,622 --> 00:25:40,770
+所以我们需要确保质量保证，所以我得加快点速度了。
+So we need to ensure the quality assurance, so I'll start moving a bit faster.
+
+278
+00:25:41,614 --> 00:25:46,190
+所以多个人来标注是个不错的办法，但会花很多钱。
+So several annotators is good, is a good solution, but it will cost you a lot of money.
+
+279
+00:25:47,330 --> 00:25:48,370
+熟悉任务的标注员。
+Familiar annotators.
+
+280
+00:25:48,370 --> 00:25:51,530
+这些第三方供应商中的很多其实是提供一个平台给你。
+Many of these third-party providers actually provide you with a platform.
+
+281
+00:25:51,758 --> 00:25:52,510
+你把数据扔进去。
+You throw in your data.
+
+282
+00:25:52,974 --> 00:25:55,230
+然后由一些你根本不知道是谁的人来帮你标注。
+You get the data annotated from you don't know who.
+
+283
+00:25:55,598 --> 00:25:56,630
+这其实是个问题。
+So that's actually a problem.
+
+284
+00:25:56,730 --> 00:25:57,750
+这是一个责任风险问题。
+That's a liability problem.
+
+285
+00:25:57,870 --> 00:26:05,670
+那些你看不见的人，正如我们所见，他们根本不在乎你的问题。
+The person you're not seeing doesn't really, as we saw, it doesn't really care about your problem.
+
+286
+00:26:05,902 --> 00:26:07,844
+而且你得到的数据质量非常差。
+And you get a very lousy quality.
+
+287
+00:26:08,830 --> 00:26:16,590
+如果你知道对方的名字，或者至少能联系到这个人或有个 ID，你就能得到高质量得多的数据。
+If you got a name, if you can actually contact this person, or you have an ID at least,
+you can actually get a very much higher quality.
+
+288
+00:26:16,590 --> 00:26:29,470
+这听起来很简单，但很多供应商只有在你选择特殊选项时才会
+提供这个功能，他们知道这个选项，但在平台上并不公开展示。
+It sounds very simple, but many of these providers will only provide you with this option if you go to a special option,
+which they know about and they don't actually expose in their platform.
+
+289
+00:26:30,070 --> 00:26:31,810
+我们涵盖了任务的严格定义。
+A tight definition of the task we covered.
+
+290
+00:26:32,370 --> 00:26:33,188
+简单的任务。
+Simple task.
+
+291
+00:26:33,570 --> 00:26:35,310
+让你的标注任务保持简单。
+Keep your annotation task simple.
+
+292
+00:26:37,518 --> 00:26:40,630
+这些标注员，大多数人都没有博士学位。
+The annotators, most of them, they don't have PhD.
+
+293
+00:26:40,846 --> 00:26:41,476
+别介意我这么说。
+No offense.
+
+294
+00:26:42,062 --> 00:26:47,090
+他们需要非常具体、非常简单的任务，明白吗？
+They need a very specific, very simple task, OK?
+
+295
+00:26:47,830 --> 00:26:55,750
+如果你没有这种简单且具体的任务，试着把标注问题拆分成几个更简单的任务，好吗？
+If you don't have this simple, specific task, try to break your annotation problems into several simpler tasks, OK?
+
+296
+00:26:56,142 --> 00:27:09,450
+例如，当我们实际标注交通监控数据时，我们发现将
+相似场景合并在一起，在吞吐量和成本方面非常高效。
+For instance, when we actually annotated traffic monitoring data, so we actually found out that it's very efficient in terms of
+throughput and cost to actually merge together similar scenes.
+
+297
+00:27:09,646 --> 00:27:17,350
+这样标注人员的工作范围就一致了，或者说他们熟悉这些内容，所以一切都会更快、更准确。
+So the person annotating has the same scope or something he's familiar with, so everything is faster and more accurate.
+
+298
+00:27:17,838 --> 00:27:21,290
+如果你把随机的数据扔给他们，他们就会搞混。
+If you actually throw in random data, he actually gets confused.
+
+299
+00:27:21,774 --> 00:27:27,300
+如果你要做精细的检测任务，或许最好将其拆分为检测和分类。
+If you do a fine detail detection task, perhaps it's better to break it into detection and then classification.
+
+300
+00:27:28,398 --> 00:27:30,470
+所以始终尝试去拆分它。
+So always try to actually try to break it.
+
+301
+00:27:30,590 --> 00:27:32,170
+这可能会让事情变得非常简单。
+might make things very simple.
+
+302
+00:27:34,190 --> 00:27:36,630
+优化吞吐量和质量。
+Optimizing the throughput quality.
+
+303
+00:27:37,006 --> 00:27:38,390
+你应该始终尝试用引导方式开始。
+You should always try to bootstrap.
+
+304
+00:27:38,638 --> 00:27:42,660
+从一个初始算法开始，比如现有的算法。
+Start from an initial algorithm, like an existing algorithm.
+
+305
+00:27:42,850 --> 00:27:45,030
+你开始进行迭代。
+You start iteratively.
+
+306
+00:27:45,646 --> 00:27:47,170
+然后对数据进行标注。
+And then annotate your data.
+
+307
+00:27:47,570 --> 00:27:49,570
+让人工标注来解决这个问题。
+Let the human annotate actually fix that.
+
+308
+00:27:49,910 --> 00:27:52,390
+如果你有视频，就利用时域信息。
+If you have videos, use the temporal information.
+
+309
+00:27:52,550 --> 00:27:58,270
+你有车辆数据，还可以使用任何其他可用的传感器，比如激光雷达数据。
+You have vehicle data, you can use any other available sensor, like the LiDAR data.
+
+310
+00:27:58,730 --> 00:28:00,190
+正如我提到的，进行预处理。
+Pre-process, as I mentioned.
+
+311
+00:28:00,718 --> 00:28:02,130
+你也可以建立自己的基础设施。
+You can also build your own infrastructure.
+
+312
+00:28:02,390 --> 00:28:14,692
+我们发现，如果你在明确知道想要如何标注、标注什么
+内容之后再构建自己的基础设施，有时是非常合理的。
+We actually found out that if you build your own infrastructure, but only after you understand exactly how you want to annotate,
+what you want to annotate, sometimes it makes a lot of sense.
+
+313
+00:28:15,670 --> 00:28:19,590
+在 Brodmann17，这为我们节省了大约六倍的成本。
+At Bollman 17, it saves us around six times in terms of expense.
+
+314
+00:28:19,650 --> 00:28:22,884
+而且质量从 70% 提升到了 95%。
+And the quality went up from 70% to 95%.
+
+315
+00:28:23,598 --> 00:28:29,796
+所以这实际上是非常关键的一点，尤其是如果你在乎成本和质量的话。
+So that actually is something that is really critical, especially if you care about the money and quality.
+
+316
+00:28:32,850 --> 00:28:36,810
+或许你的数据供应商能为你提供更高的准确率和更好的吞吐量。
+Perhaps with your data provider, it can provide you with better accuracy and better throughput.
+
+317
+00:28:36,878 --> 00:28:38,110
+但我们没找到合适的人选。
+but we didn't find anyone.
+
+318
+00:28:39,230 --> 00:28:42,310
+所以我们讨论了需求，并确定了这些要求。
+So we talked about the requirements, we have them.
+
+319
+00:28:42,550 --> 00:28:46,190
+我们开始收集数据和进行标注。
+We started collection, the data, and the annotation.
+
+320
+00:28:46,350 --> 00:28:47,670
+我们没把这事儿搞砸，好吗？
+We didn't finish this, okay?
+
+321
+00:28:48,142 --> 00:28:52,870
+我们不是只是把这些数据堆在那儿，然后现在才去处理它们。
+We didn't just, we don't have just this data sitting aside and now we're doing that.
+
+322
+00:28:53,170 --> 00:28:55,490
+实际上所有这些都需要结合起来。
+That's actually everything need to be combined, so.
+
+323
+00:28:56,014 --> 00:28:58,390
+所以现在我们可以明确进入研究阶段了，好吗？
+But now we are clear to move to the research, okay?
+
+324
+00:29:00,334 --> 00:29:05,970
+所以在你开始实验之前，你需要准确了解你想优化的是什么，好吗？
+So before you start your experiments, you need to understand exactly what you want to optimize, okay?
+
+325
+00:29:05,970 --> 00:29:22,340
+直接开始训练神经网络并进行几十甚至上百次实验是非常容易且诱人的，
+但你必须明确你的优化目标，否则你会迷失方向。
+It's very easy, very tempting just to start training neural networks and have dozens or hundreds of experiments,
+but you need to understand what exactly you're optimized for and otherwise you will get lost.
+
+326
+00:29:22,890 --> 00:29:22,970
+明白吗？
+Okay?
+
+327
+00:29:23,374 --> 00:29:26,050
+评估实验的方法有很多种。
+There are many ways to actually evaluate an experiment.
+
+328
+00:29:26,330 --> 00:29:29,990
+在 Brodmann17，我们有成千上万次不同的实验。
+At Bollman 17, we have dozens, thousands of different experiments.
+
+329
+00:29:30,190 --> 00:29:31,268
+我们有很多研究人员。
+We have many, many researchers.
+
+330
+00:29:31,990 --> 00:29:41,690
+每个人可能都会在特定的时间点发现，不同的人对同一个问题有不同的看法。
+Each one might find, like, in a certain time, point in time, we actually
+found that the different people have a different perspective on the problem.
+
+331
+00:29:42,130 --> 00:29:45,630
+有些人更倾向于优化平均检测率。
+And one person would rather optimize for average detection rate.
+
+332
+00:29:45,710 --> 00:29:56,010
+而另一些人则更倾向于优化平均精度均值，因为，我不知道，
+可能是出于主观观点或者他们认为那是更好的指标。
+The other would actually rather optimize for mean average precision because, I don't know,
+because of subjective point of view or he thinks that that's the better metric.
+
+333
+00:29:56,390 --> 00:29:59,170
+但那实际上会导致混乱，好吗？
+But that's actually a chaos, OK?
+
+334
+00:29:59,170 --> 00:30:05,950
+你需要决定哪个指标对你的产品真正有好处，并且你要专注于那个指标。
+you need to decide what metric actually is good for your product and you need to focus on that one.
+
+335
+00:30:06,574 --> 00:30:16,030
+这是来自吴恩达的建议，而且在资源投入方面非常高效。
+So that's actually an advice coming from Andrew Ng and it turns out to be very efficient in terms of resources spent.
+
+336
+00:30:16,366 --> 00:30:34,052
+你可以看到，在每一个实验或研究周期中，遵循这一个
+评估指标，虽然听起来简单，但能保证你进步非常快。
+You can see that through each experiment or each research cycle you actually conduct following this single evaluation metric,
+even though it sounds simple, will I guarantee that you will improve over time very fast.
+
+337
+00:30:34,574 --> 00:30:42,020
+如果你不遵循这个，你可能也能收敛，但会消耗大量的资源，而且耗时很长。
+If you don't follow that, you might be able to converge, but that will drain you from resources, and it will take you a long time.
+
+338
+00:30:42,478 --> 00:30:43,930
+甚至可能最终失败。
+And perhaps you will even fail.
+
+339
+00:30:45,102 --> 00:30:47,090
+有时候问题非常复杂。
+Sometimes the problem is very complicated.
+
+340
+00:30:47,610 --> 00:30:53,170
+特别是在处理复杂问题时，人们往往会四处乱撞，因为有时他们会迷失方向。
+And especially in complicated problems, people look all over the place, because sometimes they are lost.
+
+341
+00:30:53,290 --> 00:30:54,550
+有时候他们会陷入僵局。
+Sometimes they get stuck.
+
+342
+00:30:54,670 --> 00:31:02,530
+所以他们实际上更倾向于去优化其他的评估指标，但原本的目标应该是那个核心指标。
+So they actually prefer to start to optimize for a different evaluation metric, but that should be the target.
+
+343
+00:31:02,958 --> 00:31:09,570
+现在来看这个门铃示例，第一步是定义产品需求。
+So going over the doorbell example here, so the step one was actually defining the product requirements.
+
+344
+00:31:10,030 --> 00:31:12,410
+接下来是数据采集。
+Then we have this data collection.
+
+345
+00:31:12,670 --> 00:31:18,148
+我们想要收集具有这些特征的 720p 视频。
+We want to collect 720p videos with these characteristics.
+
+346
+00:31:18,862 --> 00:31:22,830
+我们想收集 20% 没有物体的视频，80% 有物体的视频。
+We want to collect 20% no objects videos, 80% with objects.
+
+347
+00:31:22,958 --> 00:31:26,230
+这听起来是个合理的选择。
+So that sounds like a reasonable choice.
+
+348
+00:31:26,286 --> 00:31:32,510
+比如，我为什么要收集 89% 没有物体的数据呢？
+Like, why wouldn't I want to actually collect 89% of data without objects?
+
+349
+00:31:32,950 --> 00:31:39,070
+因为我推测在这种应用中，数据是相对静态的，好吗？
+Because I presume that in this application, the data is fairly static, OK?
+
+350
+00:31:39,090 --> 00:31:40,230
+没什么太多移动。
+Not a lot of movement.
+
+351
+00:31:40,390 --> 00:31:43,810
+所以我认为 20% 虽然可能有点过量，但也是合理的。
+So I guess 20%, even if it's perhaps even an overkill.
+
+352
+00:31:44,690 --> 00:31:47,810
+80% 的有物体视频，因为这些才是稀有事件。
+80% with object, because these are actually the rare events.
+
+353
+00:31:47,890 --> 00:31:50,930
+所以这些是特殊的，变数就在这些数据中。
+So these are the special, the variance is in this data.
+
+354
+00:31:51,054 --> 00:31:51,890
+所以我想要这些。
+So I want that.
+
+355
+00:31:52,990 --> 00:31:57,030
+关于标注，我想对边界框进行标注，好吗？
+The annotation, I want to annotate bounding boxes, OK?
+
+356
+00:31:57,134 --> 00:32:07,290
+所以我决定要标注全身体、上半身的边界框，用 5%
+的视频来进行这种追踪，剩下的 95% 是采样视频。
+So I decide I want to annotate bounding boxes, full body, upper body, 5% videos
+to doing this kind of tracking, and 95% sampled videos, sampled videos, OK?
+
+357
+00:32:07,330 --> 00:32:17,350
+评估指标将是 98% 的召回率，每周允许一次误报，且延迟应低于 500 毫秒，好吗？
+And the valuation metric will be 98% recall with one false positive
+per week, and the latency should be less than 500 milliseconds, OK?
+
+358
+00:32:17,350 --> 00:32:31,720
+这一点很重要，因为如果你开始训练算法，而它在 A53 Cortex 上的运行时间是每张图片 20 秒，
+而且你训练的是整套算法系列，那么当你真正需要把这些转化为生产环境时，你会非常困难。
+So that's important, because if you start training algorithms, which the runtime on A53 Cortex is, I don't know, 20 seconds per image,
+OK, and that's the entire family of algorithms you're actually training for, you
+
+359
+00:32:31,720 --> 00:32:37,230
+这一点很重要，因为如果你开始训练算法，而它在 A53 Cortex 上的运行时间是每张图片 20 秒，
+而且你训练的是整套算法系列，那么当你真正需要把这些转化为生产环境时，你会非常困难。
+will have a very hard time when you actually need to convert these into production.
+
+360
+00:32:37,614 --> 00:32:38,750
+甚至可能根本无法实现。
+Perhaps it's even impossible.
+
+361
+00:32:39,374 --> 00:32:45,190
+这样你就浪费了大量时间去训练错误类型的算法系列。
+So you actually wasted a lot of time training for the wrong kind of family of algorithms.
+
+362
+00:32:45,326 --> 00:32:50,290
+到那时你可能不得不考虑另一种算法，明白吗？
+Perhaps you need to, you had to consider a different algorithm, okay?
+
+363
+00:32:53,870 --> 00:32:55,190
+好了，这些都搞定了。
+So we're done with all that.
+
+364
+00:32:55,270 --> 00:33:01,290
+我们现在可以开始研究了，这是我们所有人都喜欢做的事情。
+We can now actually start with the research, which is what we all enjoy doing.
+
+365
+00:33:01,742 --> 00:33:06,890
+这就是应用研究，这是一个实证过程，好吗？
+So that's, applicative research, it's an empirical process, okay?
+
+366
+00:33:07,246 --> 00:33:17,410
+这是一个包含运行研究实验、进行分析以及更新或更改数据的迭代过程。
+It's an iterative process which actually involve running research experiments, doing analysis, and updating or changing your data.
+
+367
+00:33:17,678 --> 00:33:21,450
+好的，所以这部分应该作为一个整体来进行。
+Okay, so that's something that should be conducted as a whole.
+
+368
+00:33:21,970 --> 00:33:32,990
+好的，研究实验是我们都很熟悉的，包括探索不同的深度
+学习架构、学习超参数，以及进行这些数据处理等操作。
+Okay, so the research experiments is something we are all familiar with, exploring different deep learning architectures,
+learning hyperparameters, doing these data manipulations and all that.
+
+369
+00:33:33,070 --> 00:33:34,670
+所以这些就是研究实验。
+So these are the research experiments.
+
+370
+00:33:35,246 --> 00:33:47,390
+但是如果我们只是没完没了地进行研究实验，而不去停下来
+——比如停一秒或一天——来准确了解我们当前的状况和结果。
+But if we just go on and on with the research experience, without just putting a cut, like pausing for a second or for a day,
+understanding exactly our current status, current results.
+
+371
+00:33:47,886 --> 00:33:57,110
+只有在明确情况后才继续下一次迭代，否则我们将很难取得进展。
+and only after that continue with the next iteration, we will have a hard time moving forward.
+
+372
+00:33:57,270 --> 00:33:59,044
+好的，所以我们需要这个过程。
+Okay, so we need that.
+
+373
+00:33:59,790 --> 00:34:01,470
+好的，我们有一个分析阶段。
+Okay, so we have an analysis phase.
+
+374
+00:34:01,550 --> 00:34:14,650
+我们停下来，分析结果，利用我们早期选择的评估指标，这与我们想要构建的产品高度相关。
+We stop, we analyze our results, we have this evaluation matrix we chose early on,
+which is a very correlated to the product we want to build for.
+
+375
+00:34:15,022 --> 00:34:19,235
+所以我们遵循标准做法，将数据划分为训练、验证和测试集。
+So we do this standard practice, splitting data to train, validation, test.
+
+376
+00:34:19,810 --> 00:34:28,310
+我们可以针对机器学习中常见的因素进行测试，比如测试偏差、方差等，但都要以评估指标为准。
+We can test for, you know, for the usual things, machine learning, researchers,
+test for bias, variance, and so on, but with respect to the evaluation metric.
+
+377
+00:34:28,717 --> 00:34:42,270
+例如，如果我们发现问题中存在高偏差，我们可能会训练一个非常大的网络来过度拟合训练数据，
+但这可能与我们早期定义的评估指标相矛盾。
+For instance, if we discover a high bias in our problem, so we might run and train a very large network in order to overfeed to the
+training data, but then it turns out it's actually contradicting to the evaluation metric we defined early on.
+
+378
+00:34:42,893 --> 00:34:45,489
+那到最后我们该如何处理呢？
+So how are we going to get that at the end?
+
+379
+00:34:46,010 --> 00:35:02,150
+既然我们有评估指标，我们就可以做一些非常简单直接的事情，即根据不同因素对性能进行排序，
+看它们对我们定义的评估指标的影响程度。
+We have our evaluation metric, so we actually can do something fairly simple and straightforward,
+actually rank the different factors in our performance in accordance to how they impact the evaluation metrics we actually define.
+
+380
+00:35:02,606 --> 00:35:18,660
+例如，我们完成了一个研究迭代，结果发现错误的标注占了 25% 的误差。这就是一个警示信号，
+我们需要先处理这个问题，而不是去处理诸如「我们的应用无法识别带伞的人」这类问题。
+So for instance, we finished the research iteration, And it's and it turns out that the wrong annotation actually accounted for 25% of
+the error Okay, so that's that's a red flag like we need to actually deal with that first Not with the umbrellas for instance our
+
+381
+00:35:18,660 --> 00:35:21,850
+例如，我们完成了一个研究迭代，结果发现错误的标注占了 25% 的误差。这就是一个警示信号，
+我们需要先处理这个问题，而不是去处理诸如「我们的应用无法识别带伞的人」这类问题。
+application cannot detect person with umbrellas.
+
+382
+00:35:22,414 --> 00:35:36,030
+这可能会让你感到惊讶，但有些研究人员可能非常渴望解决这个问题，
+因为他遇到了这个非常罕见的情况，而且听起来像是他能解决的问题。
+So you would be surprised but Some researcher might be might be very eager to actually solve this problem Perhaps he encountered this
+very rare event and it sounds like something he can solve.
+
+383
+00:35:36,090 --> 00:35:37,370
+他确切知道该怎么做。
+He knows exactly how to do that.
+
+384
+00:35:37,630 --> 00:35:38,330
+他有相关的代码。
+He has the code.
+
+385
+00:35:38,830 --> 00:35:47,710
+结果他可能会花一个月时间去解决带伞的人的问题，虽然这很棒，但它只影响 1% 的情况。
+And he will turn out investing a month solving for people with Umbrellas and it will be great, but it will only affect 1%.
+
+386
+00:35:48,238 --> 00:35:52,590
+所以与其这样做，他应该投入更多时间来处理封闭物体。
+So instead of that, he should have invested more time to deal with closed objects.
+
+387
+00:35:52,750 --> 00:35:57,250
+那才会让我们更接近产品，明白吗？
+That would actually take us farther away to the product, okay?
+
+388
+00:35:58,710 --> 00:35:59,790
+那么数据呢？
+What about the data?
+
+389
+00:35:59,790 --> 00:36:03,970
+好的，正如我之前提到的，数据是研究中一个整体的一部分。
+Okay, so as I mentioned before, data is a holistic part of the research, okay?
+
+390
+00:36:04,430 --> 00:36:11,590
+它必须融入到研究过程中，而不是「一劳永逸」的。
+It has to be combined in the research process, it's not a launch and forget, if I can translate.
+
+391
+00:36:12,942 --> 00:36:21,730
+例如在这种情况中，我们发现正在开发的 ADAS 应用在这些场景下的事故检测表现很差。
+So for instance in this, so we discovered we're developing an ADAS
+application, we are very bad at detecting accidents in these scenarios.
+
+392
+00:36:22,286 --> 00:36:24,630
+我会去收集更多此类数据。
+I will go and collect more data of this kind.
+
+393
+00:36:25,294 --> 00:36:34,210
+假设我们的算法无法在特定数据类型或带有 2D 边界框的特定场景中进行训练。
+Let's say our algorithm actually, they cannot train in the specific data type, specific scenarios with 2D bounding boxes.
+
+394
+00:36:34,542 --> 00:36:43,010
+也许我们需要开始用 3D 边界框来标注数据，而且我们应该尽早开始这样做，
+因为我们已经意识到这是一个问题。
+Perhaps we need to go and start annotating our data in 3D bounding boxes and we
+should start doing that early on because we understood that this is a problem.
+
+395
+00:36:43,150 --> 00:36:45,910
+我们不想继续收集或标注这些数据了。
+We don't want to continue collecting the, annotating the data.
+
+396
+00:36:46,950 --> 00:36:49,410
+我们的标注存在问题。
+We have a problem in our annotation.
+
+397
+00:36:49,650 --> 00:36:56,996
+也许是因为我们的标注与算法训练不一致，导致评估矩阵出现偏差，
+或者你可能不太擅长处理微小的阶段差异。
+Perhaps we're getting a false evaluation matrix because our annotation are not
+consistent with how we train the algorithm, perhaps you're not good at small phases.
+
+398
+00:36:57,150 --> 00:37:01,668
+所以，也许你可以绕个弯，在较小的阶段中收集更多数据并进行标注。
+So perhaps you want to go around and collect more data with small phases and annotate it.
+
+399
+00:37:02,958 --> 00:37:03,910
+这就是一个阶段。
+So this is a phase.
+
+400
+00:37:03,990 --> 00:37:15,330
+只有在完成分析、数据采集、清洗和重新标注后，进入下一个迭代才是个明智的选择。
+So only after we finish the analysis and the data collection, cleaning, re-annotation,
+it is wise to move forward to the next iteration.
+
+401
+00:37:17,110 --> 00:37:22,884
+这样一来， hopefully，我们能更快达到产品要求。
+And that, hopefully, will take us very fast to achieve the requirements.
+
+402
+00:37:24,046 --> 00:37:29,550
+事实证明，要真正达到产品要求，需要经过多次这样的迭代。
+So it turns out that it takes many of these iterations to actually achieve the product requirements.
+
+403
+00:37:32,750 --> 00:37:36,210
+这需要大量的资源，尤其是研究人员。
+A lot of resources, especially researchers.
+
+404
+00:37:36,590 --> 00:37:39,590
+你需要很多人来做这些工作，而且需要投入大量的时间。
+You need a lot of people to actually do that, a lot of their time.
+
+405
+00:37:40,010 --> 00:37:42,350
+还需要计算资源，而且非常耗时。
+Compute resources, and it takes time.
+
+406
+00:37:42,910 --> 00:37:52,530
+因此在早期阶段，我们就决定要优化这个流程，目标是缩短产品研发周期。
+So very early on, we actually decided that you want to optimize this
+process in order to the optimal goal is to shorten the time for product.
+
+407
+00:37:52,890 --> 00:37:55,972
+我们需要快速获得应用型研究成果。
+So we need to get the product, applicative research, fast.
+
+408
+00:37:56,530 --> 00:37:59,610
+所以我们需要提高研究的生产力。
+So we need to increase the productivity of the research.
+
+409
+00:37:59,790 --> 00:38:04,710
+让我们分解一下研究人员实际在做什么，看看哪些环节最耗时。
+So let's break down what the researchers are actually doing, like what's consuming most of the time.
+
+410
+00:38:05,030 --> 00:38:10,290
+也许我们可以减轻他们的负担，让他们能把更多时间投入到核心研究中。
+Perhaps we can take off their shoulders and actually allow them to invest more time in the research.
+
+411
+00:38:10,730 --> 00:38:11,190
+计算资源。
+Compute.
+
+412
+00:38:11,598 --> 00:38:16,644
+训练神经网络，特别是在 Brodmann17，我们消耗了数百万小时的 GPU 算力。
+Training neural networks, especially at Boardman17, we train millions of hours of GPUs.
+
+413
+00:38:17,166 --> 00:38:18,350
+这涉及大量的资金。
+So that's a lot of money.
+
+414
+00:38:18,670 --> 00:38:26,670
+如果我们不针对这一点进行优化，我们就无法进行这么多关键的研究迭代。
+If we didn't optimize for that we actually wouldn't be able to actually
+explore this many research iteration, which is sometimes critical.
+
+415
+00:38:27,054 --> 00:38:32,610
+因为你并不是用一个数据集跑一次训练就结束了。
+Because it's not like you start with a single data set, you launch your training, and that's it.
+
+416
+00:38:32,770 --> 00:38:34,030
+这是一个迭代过程。
+It's an iterative process.
+
+417
+00:38:34,190 --> 00:38:35,310
+有时候这非常耗时。
+Sometimes it takes time.
+
+418
+00:38:37,870 --> 00:38:40,770
+那么研究人员到底在做什么呢？
+So what do the researchers do, actually?
+
+419
+00:38:41,230 --> 00:38:42,370
+他们承担了大量的额外工作。
+So they have a lot of overhead.
+
+420
+00:38:42,766 --> 00:38:47,670
+除了做研究，他们还有点像是在做微型 DevOps。
+So besides the fact that they do the research, they're also kind of mini DevOps.
+
+421
+00:38:47,790 --> 00:38:50,230
+好的，他们在搭建计算环境。
+Okay, so they they setting up the compute environment.
+
+422
+00:38:50,702 --> 00:38:57,050
+他们负责数据筛选、预处理、抓取，有时还要做标注，并且需要监控实验。
+They do the data selection pre-processing fetching sometimes the annotation They need to monitor the experiments.
+
+423
+00:38:57,210 --> 00:39:05,070
+有时候我们让研究人员在 10 台甚至 20 台不同的服务器上同时运行 10 到 20 个不同的实验；
+Sometimes we had the researchers running, I know, 10 different or 20 different experiments on 10, on I know 10 different servers;
+
+424
+00:39:05,166 --> 00:39:07,130
+有些是在本地，有些是在云端。
+some of them locally, some of them on the cloud.
+
+425
+00:39:09,350 --> 00:39:13,830
+有时我们必须管理非常复杂的算法流水线，所以这是一个非常……
+Sometimes we have to manage a very complicated pipeline of algorithms, so that's a very,
+
+426
+00:39:17,870 --> 00:39:20,452
+这是在 Brodmann17 非常常见的情况。
+so that's a very common scenario in Boardman 17.
+
+427
+00:39:20,910 --> 00:39:29,550
+我们面临一个非常复杂的算法流水线场景。他们有一个算法，然后我们需要训练第二个，
+接着是第三个，最后我们需要对最终产品进行评估。
+We have a very complicated scenario of pipeline of algorithms They have one algorithm and then we have to train another and then the
+third one and we need to evaluate Everything at the final product.
+
+428
+00:39:29,902 --> 00:39:33,190
+如果让人去手动操作这些，那几乎是不可能的。
+So if a person has to do that manually, that's almost impossible.
+
+429
+00:39:33,190 --> 00:39:39,940
+因为这个步骤中产生的错误太多了，而且我们……这确实是常态。
+It's the amount of errors that actually is going to produce in this step and and we and we did it's it's used.
+
+430
+00:39:41,870 --> 00:39:46,532
+所以随着时间的推移，这个问题实际上变得更严重了。
+So over time, we grew the —this problem actually got worse.
+
+431
+00:39:46,990 --> 00:39:52,550
+我们有了更多的数据、更多的研究人员，并且在运行更多的实验。
+We got more data, more researchers, running more experiments.
+
+432
+00:39:52,750 --> 00:39:54,430
+所以这根本无法扩展，明白吗？
+So it actually didn't scale up, okay?
+
+433
+00:39:55,086 --> 00:39:59,850
+所以实际上没法这么去做。
+So it's impossible to actually do that.
+
+434
+00:39:59,930 --> 00:40:02,950
+所以这就是纯粹的 DevOps 操作。
+So it's a pure DevOps operations.
+
+435
+00:40:03,438 --> 00:40:08,370
+所以我们决定建立专门的基础设施来管理这个系统，好吗？
+So actually we decided to build on a dedicated infrastructure to manage the system, okay?
+
+436
+00:40:08,942 --> 00:40:17,010
+所以我们发现，这种系统最重要的特性就是管理共享资源。
+so we found that the most important characteristics of such a system is manage the shared resources.
+
+437
+00:40:17,262 --> 00:40:18,830
+当然，你必须拥有这些共享资源。
+Of course, you need to have these shared resources.
+
+438
+00:40:18,990 --> 00:40:21,450
+你不能给每个研究员都分配一台 GPU。
+You can't just allocate a GPU per researcher.
+
+439
+00:40:21,742 --> 00:40:24,190
+如果你在本地工作，也许你会这样做。
+If you work locally, perhaps that's what you do.
+
+440
+00:40:24,290 --> 00:40:26,550
+每个研究员都有自己的 GPU 机器。
+You have each researcher has a GPU machine.
+
+441
+00:40:26,970 --> 00:40:27,630
+他非常喜欢它。
+He loves it.
+
+442
+00:40:27,690 --> 00:40:31,270
+他在上面贴上贴纸，不让任何人动它。
+He puts stickers on it and he doesn't let anyone else use it.
+
+443
+00:40:31,370 --> 00:40:32,490
+可你可能明天就需要用它。
+Perhaps you need it tomorrow.
+
+444
+00:40:33,110 --> 00:40:34,710
+这种情况非常普遍。
+So that's very common.
+
+445
+00:40:35,182 --> 00:40:40,330
+所以当你扩大规模时，你有共享资源，并希望它们能 24 小时全天候运行。
+So, when you scale up, you have the shared resources, you want them to work 24-7.
+
+446
+00:40:40,814 --> 00:40:45,370
+你实际上希望高效利用这些资源，所以你需要一些东西来管理它们。
+You actually want to use these resources very efficiently, so you need something to manage that.
+
+447
+00:40:45,630 --> 00:40:47,110
+你需要对这些进行编排，好吗？
+You need to orchestrate that, okay?
+
+448
+00:40:47,214 --> 00:40:50,850
+因为你有流水线中各个部分的训练。
+So you have training of various parts of the pipeline.
+
+449
+00:40:50,970 --> 00:40:54,610
+一个事件会导致另一个不同事件的发生。
+You have one event causing a different event.
+
+450
+00:40:54,710 --> 00:40:56,990
+然后它可能会分裂成许多个事件。
+perhaps then it splits to numerous events.
+
+451
+00:40:57,070 --> 00:40:57,750
+接着它们又会合并。
+then it merges.
+
+452
+00:40:57,930 --> 00:41:00,750
+然后你得导出算法并进行评估。
+then you have to export the algorithms and evaluate it.
+
+453
+00:41:00,790 --> 00:41:02,756
+所以你需要一些东西来编排这一切。
+so you need something to orchestrate it.
+
+454
+00:41:03,054 --> 00:41:15,790
+监控这些，并且当然，让研究人员在一个非常方便的环境中便捷地开发他们的算法。
+monitoring that, and of course, allow the researcher to develop his
+algorithms in a very convenient manner, in a very convenient environment.
+
+455
+00:41:15,970 --> 00:41:17,290
+这就是他们应该做的工作。
+So that's what they should do.
+
+456
+00:41:17,350 --> 00:41:20,110
+所以我们现在的状态就是，这就是我们的研究人员正在做的事情。
+So today we're in a status, so that's what our researchers are doing.
+
+457
+00:41:20,790 --> 00:41:30,090
+他们实际上是准备好这些配置，我们提供数据给他
+们，他们在配置中设置好，然后一切都是自动化的。
+They actually, they prepare this configuration, they have this data, we prepare the data for them,
+they set it up in the configuration, and everything is actually automatic.
+
+458
+00:41:30,090 --> 00:41:38,190
+甚至这类探索和不同的技术，我们也都在内部开发，目的是为了提高研究迭代的生产力。
+even this kind of exploration and different techniques we actually develop
+in-house in order to increase the productivity of the research iteration.
+
+459
+00:41:38,370 --> 00:41:39,390
+所以这是个很重要的点。
+So that's something important.
+
+460
+00:41:39,790 --> 00:41:44,910
+其实有一些第三方公司在做这些，所以你应该去探索一下这个机会。
+There are third-party companies actually doing that, so you should explore this opportunity.
+
+461
+00:41:45,090 --> 00:41:51,630
+因为我们的流水线复杂度很高，我们发现还是得由内部开发来搞定。
+We found out because of the high complexity of our pipeline that we should do it in-house.
+
+462
+00:41:51,750 --> 00:41:57,270
+实际上没花太长时间，大概一个月左右，我们就把这套东西搭建起来并跑通了。
+It actually didn't take us long, around a month, to actually set it up, get something to work.
+
+463
+00:41:59,502 --> 00:42:05,124
+所以如果你也遇到和我们一样的问题，你就应该考虑这一点。
+So you should consider that if you have the same problem like us.
+
+464
+00:42:06,318 --> 00:42:10,510
+在我们完成开发后，现在我们实际上遇到了相反的问题。
+After we finished developing that, now we actually encounter the opposite problem.
+
+465
+00:42:11,278 --> 00:42:15,110
+它太高效了。
+It's too effective.
+
+466
+00:42:15,790 --> 00:42:17,650
+结果我们浪费了太多钱。
+We turn out to waste too much money.
+
+467
+00:42:18,126 --> 00:42:31,350
+因为启动实验变得太容易了，它是全天候运行的，集群越来越大，账单也越来越高。
+Because launching an experiment is so easy, It's just 24-7 and the cluster gets bigger and bigger and the billing also gets higher.
+
+468
+00:42:31,758 --> 00:42:34,870
+所以现在你面临的是相反的问题，但这其实是个好问题。
+So now you have the opposite problem, which is actually a good problem.
+
+469
+00:42:34,926 --> 00:42:37,930
+如果你有闲置的计算资源，那是坏事。
+If you have these compute resources which are idle, it's bad.
+
+470
+00:42:38,190 --> 00:42:40,710
+如果你能让它们一直忙碌，那就意味着你的状态很好。
+If you keep them busy all the time, it means you're in a good state.
+
+471
+00:42:41,010 --> 00:42:42,610
+你只需要去优化它就行了。
+You just need to optimize that.
+
+472
+00:42:42,930 --> 00:42:44,810
+也许你需要优化其中的一部分问题。
+Perhaps you need to optimize part of the problem.
+
+473
+00:42:44,810 --> 00:42:55,110
+所以你需要更多地关注哪些实验是真正有用的，并更有效地去执行它们，但这正是正确的方向。
+So you need to focus more on what experiments you're using and doing that more effectively, but that's the right direction.
+
+474
+00:42:55,662 --> 00:42:57,330
+所以我涵盖了所有这些主题。
+So I covered all these topics.
+
+475
+00:42:57,710 --> 00:43:10,950
+我希望我成功向你们解释了需求和数据采集、数据标注的重要性，
+因为很多公司其实没考虑到这些，尤其是这种迭代式的做法。
+I hope I managed to actually explain you the importance of the requirements and data collection, data annotation,
+because these are parts that a lot of companies actually don't think about, especially not this aspect of doing that iteratively.
+
+476
+00:43:10,950 --> 00:43:14,390
+这是我们发现非常重要的一点。
+that's something we found to be very important.
+
+477
+00:43:16,090 --> 00:43:24,290
+我们正在招聘，如果你想了解更多细节，请查看我们的 LinkedIn 页面上的空缺职位。
+We're hiring, so if you're interested to hear more details, please check out our LinkedIn page for open position.
+
+478
+00:43:24,790 --> 00:43:31,330
+我们一直为优秀的科研人员提供机会，这个岗位一直开放着，谢谢大家。
+We always have open position for talented researchers, that's a job we always keep open and thank you.
+
