@@ -5,6 +5,7 @@
 | 视频 | 原作者 | 更新 |
 |---|---|---|
 | [Day 2 : Device Safety and Security \| Online Training on "Safety in CyberSpace"](medias/R2ACM/) | NCERT OFFICIAL | 2026-10-31 |
+| [AI Exploded Again: AI Singularity, Anthropic Quantum, OpenAI Breaks Math, Google Argon...](medias/A345R/) | AI Revolution | 2026-10-31 |
 | [Keynote + Panel: Advances in Continuous Learning, Reasoning, and Automated Research \| Day 1](medias/4JYPZ/) | Fellows Forum | 2026-10-31 |
 | [All Machine Learning algorithms explained in 17 min](medias/YWADE/) | Infinite Codes | 2026-10-30 |
 | [5 Practical Steps to a Successful Deep Learning Research \| Brodmann17](medias/9EKT3/) | Brodmann17 | 2026-10-30 |
