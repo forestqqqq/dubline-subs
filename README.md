@@ -5,6 +5,7 @@
 | 视频 | 原作者 | 更新 |
 |---|---|---|
 | [5 Practical Steps to a Successful Deep Learning Research \| Brodmann17](medias/9EKT3/) | Brodmann17 | 2026-10-30 |
+| [Power Pulse Episode 34 \| Frontiers of Grid Automation research—Working as One Hitachi](medias/8F56N/) | Hitachi Energy | 2026-10-30 |
 | [AI Transforming Research: Deep Learning & Transfer Learning Advancements](medias/5RVCY/) | AI-summarized AI Daily News | 2026-10-30 |
 | [Nobel Prize Experts on the Future of AI & Science](medias/56VKC/) | Perfology Clips | 2026-10-30 |
 | [How I Review AI Code - (Meta Senior Staff Engineer)](medias/4EZ6C/) | John Kim | 2026-10-30 |
