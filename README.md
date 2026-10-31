@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [All Machine Learning algorithms explained in 17 min](medias/YWADE/) | Infinite Codes | 2026-10-30 |
 | [5 Practical Steps to a Successful Deep Learning Research \| Brodmann17](medias/9EKT3/) | Brodmann17 | 2026-10-30 |
 | [Power Pulse Episode 34 \| Frontiers of Grid Automation research—Working as One Hitachi](medias/8F56N/) | Hitachi Energy | 2026-10-30 |
 | [AI Transforming Research: Deep Learning & Transfer Learning Advancements](medias/5RVCY/) | AI-summarized AI Daily News | 2026-10-30 |
