@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [Jeff Dean at AI Frontiers: Trends and Developments In Deep Learning Research](medias/RC4YG/) | AI Frontiers | 2026-10-31 |
 | [Day 2 : Device Safety and Security \| Online Training on "Safety in CyberSpace"](medias/R2ACM/) | NCERT OFFICIAL | 2026-10-31 |
 | [FDP-DAY 5- Recent Advancement in Deep Learning Research](medias/PNT1E/) | Dr MGR Learn SMART - First year B. Tech | 2026-10-31 |
 | [AI Exploded Again: AI Singularity, Anthropic Quantum, OpenAI Breaks Math, Google Argon...](medias/A345R/) | AI Revolution | 2026-10-31 |
