@@ -7,6 +7,7 @@
 | [Jeff Dean at AI Frontiers: Trends and Developments In Deep Learning Research](medias/RC4YG/) | AI Frontiers | 2026-10-31 |
 | [Day 2 : Device Safety and Security \| Online Training on "Safety in CyberSpace"](medias/R2ACM/) | NCERT OFFICIAL | 2026-10-31 |
 | [FDP-DAY 5- Recent Advancement in Deep Learning Research](medias/PNT1E/) | Dr MGR Learn SMART - First year B. Tech | 2026-10-31 |
+| [AI at 70 Award Presentation & Keynote: World Models: Enabling the Next AI Revolution](medias/C7R3E/) | Dartmouth | 2026-10-31 |
 | [AI Exploded Again: AI Singularity, Anthropic Quantum, OpenAI Breaks Math, Google Argon...](medias/A345R/) | AI Revolution | 2026-10-31 |
 | [Here’s How Biocomputing Works And Matters For AI \| Bloomberg Primer](medias/6H4FE/) | Bloomberg Originals | 2026-10-31 |
 | [Keynote + Panel: Advances in Continuous Learning, Reasoning, and Automated Research \| Day 1](medias/4JYPZ/) | Fellows Forum | 2026-10-31 |
