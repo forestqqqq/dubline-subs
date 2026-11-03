@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [Machine Learning and Artificial Intelligence Tools to Advance Genomic Translational Research](medias/6DM25/) | National Human Genome Research Institute | 2026-11-03 |
 | [Web RTC Full Course & More](medias/K7JKB/) | Traversy Media | 2026-11-02 |
 | [Jeff Dean at AI Frontiers: Trends and Developments In Deep Learning Research](medias/RC4YG/) | AI Frontiers | 2026-10-31 |
 | [Day 2 : Device Safety and Security \| Online Training on "Safety in CyberSpace"](medias/R2ACM/) | NCERT OFFICIAL | 2026-10-31 |
