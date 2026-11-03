@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [Why I Left Quantum Computing Research](medias/WBFTV/) | Looking Glass Universe | 2026-11-03 |
 | [Artificial Intelligence Was Supposed To Hit a Wall... Except It Didn't](medias/K2XZK/) | Interstellar Dreams | 2026-11-03 |
 | [Machine Learning and Artificial Intelligence Tools to Advance Genomic Translational Research](medias/6DM25/) | National Human Genome Research Institute | 2026-11-03 |
 | [Web RTC Full Course & More](medias/K7JKB/) | Traversy Media | 2026-11-02 |
