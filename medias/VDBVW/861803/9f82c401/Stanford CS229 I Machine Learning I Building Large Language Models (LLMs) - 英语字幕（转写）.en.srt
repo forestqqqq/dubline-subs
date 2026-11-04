@@ -1,0 +1,4884 @@
+1
+00:00:05,678 --> 00:00:06,640
+So let's get started.
+
+2
+00:00:07,040 --> 00:00:09,636
+So I'll be talking about building LLMs today.
+
+3
+00:00:10,080 --> 00:00:13,380
+So I think a lot of you have heard of LLMs before.
+
+4
+00:00:14,000 --> 00:00:22,880
+But just as a quick recap, LLMs standing for large language models are basically all the chatbots that you've been hearing about recently.
+
+5
+00:00:23,040 --> 00:00:31,120
+So uh ChatGPT from OpenAI, uh Cloud from Entropic, Gemini, and Lama and other type of models like this.
+
+6
+00:00:31,438 --> 00:00:34,400
+And today we'll be talking about how do they actually work.
+
+7
+00:00:34,766 --> 00:00:43,492
+So it's going to be an overview because it's only one lecture and it's hard to compress everything, but hopefully I'll touch a little bit about all the components that are needed to train some of these LLMs.
+
+8
+00:00:44,080 --> 00:00:47,204
+also if you have questions, please interrupt me and ask.
+
+9
+00:00:47,680 --> 00:00:53,732
+if you have a question, most likely other people in the room or on Zoom have the same question.
+
+10
+00:00:53,840 --> 00:00:54,564
+So please ask.
+
+11
+00:00:56,526 --> 00:00:56,800
+great.
+
+12
+00:00:57,006 --> 00:00:59,140
+So what matters when training LLMs?
+
+13
+00:01:00,000 --> 00:01:02,372
+so there are a few key components that matter.
+
+14
+00:01:02,880 --> 00:01:04,000
+one is the architecture.
+
+15
+00:01:04,160 --> 00:01:07,076
+So as you probably all know, LLMs are neural networks.
+
+16
+00:01:07,520 --> 00:01:11,332
+And when you think about neural networks, you have to think about what architecture you're using.
+
+17
+00:01:11,840 --> 00:01:16,068
+Another component which is really important is the training loss and the training algorithm.
+
+18
+00:01:17,198 --> 00:01:19,364
+so how you actually train these models.
+
+19
+00:01:19,662 --> 00:01:23,492
+Then it's data, so what do you train these models on?
+
+20
+00:01:24,590 --> 00:01:33,200
+the evaluation, which is how do you know whether you're actually making progress towards the goal of LLMs, and then the system component.
+
+21
+00:01:33,390 --> 00:01:40,580
+So that is like how do you actually make these models run on modern hardware, which is really important because these models are really large.
+
+22
+00:01:41,280 --> 00:01:46,468
+so now more than ever, systems are actually really an important topic for LLMs.
+
+23
+00:01:47,502 --> 00:01:56,708
+So those five components, you probably all know that LLMs, and if you don't know, LLMs are all based on transformers, or at least some version of transformers.
+
+24
+00:01:57,440 --> 00:02:00,612
+I'm actually not going to talk about the architecture today.
+
+25
+00:02:00,960 --> 00:02:10,480
+one because I gave us here a lecture on transformers a few weeks ago, and two because you can find so much information online on transformers.
+
+26
+00:02:10,640 --> 00:02:16,292
+But I think you can it's uh there's much less information about the other four topics, so I really want to talk about those.
+
+27
+00:02:17,600 --> 00:02:24,004
+another thing to say is that most of academia actually focuses on architecture and training algorithm and losses.
+
+28
+00:02:25,070 --> 00:02:36,800
+as academics, and I've done that for a big part of my career, is simply we like thinking that this is like we make new architectures, new models, and it seems like it's very important.
+
+29
+00:02:37,102 --> 00:02:41,520
+But in reality, honestly, what matters in practice is mostly the three other topics.
+
+30
+00:02:41,710 --> 00:02:47,492
+So data evaluation and systems, which is what most of industry actually focuses on.
+
+31
+00:02:48,590 --> 00:02:53,636
+so that's also one of the reasons why I don't want to talk too much about the architecture, because really the rest is super important.
+
+32
+00:02:55,040 --> 00:02:55,360
+great.
+
+33
+00:02:55,520 --> 00:02:56,960
+So overview of the lecture.
+
+34
+00:02:57,230 --> 00:02:58,480
+I'll be talking about pre-training.
+
+35
+00:02:58,638 --> 00:03:00,800
+So pre-training, you probably heard that word.
+
+36
+00:03:00,910 --> 00:03:10,052
+This is the general word, this is kind of the classical language modeling paradigm, where you basically train your language model to essentially model all of internet.
+
+37
+00:03:10,702 --> 00:03:17,380
+And then there's a post-training, which is a more recent paradigm, which is taking these large language models and making them essentially AI assistants.
+
+38
+00:03:18,160 --> 00:03:21,444
+so this is more of a recent trend since ChatGPT.
+
+39
+00:03:22,320 --> 00:03:26,600
+so if you ever heard of GPT 3 or GPT 2, that's really pre training land.
+
+40
+00:03:27,360 --> 00:03:31,340
+if you heard of ChatGPT, which you probably have, this is really post training land.
+
+41
+00:03:31,840 --> 00:03:34,596
+so I'll be talking about both, but I'll start with pre training.
+
+42
+00:03:35,182 --> 00:03:41,700
+And specifically, I'll talk about what is the task of pre training LLMs and what is the laws that people actually use.
+
+43
+00:03:43,406 --> 00:03:46,212
+So, language modeling, this is a quick recap.
+
+44
+00:03:46,992 --> 00:03:53,444
+Language models at a high level are simply models of probability distribution over sequences of tokens or of words.
+
+45
+00:03:53,774 --> 00:04:03,012
+So it's basically some model of P of X1 to XL, where X1 is basically word one and XL is the last word in the sequence or in the sentence.
+
+46
+00:04:04,112 --> 00:04:16,272
+so very concretely, if you have a sentence like the mouse ate the cheese, what the language model gives you is simply a probability of this sentence being uttered by a human or being found on on online.
+
+47
+00:04:17,072 --> 00:04:31,300
+so if you have another sentence like the the mouse ate cheese, here there's grammatical mistakes, so the model should know that this should have some syntactic knowledge, so it should know that this has less likelihood of appearing online.
+
+48
+00:04:32,432 --> 00:04:41,444
+if you have another sentence like the cheese ate the mouse, then the model should hopefully know about the fact that usually cheese don't eat mouse.
+
+49
+00:04:42,032 --> 00:04:45,124
+so there's some semantic knowledge, and this is less likely than the first sentence.
+
+50
+00:04:45,454 --> 00:04:47,972
+So this is basically at a high level what language models are.
+
+51
+00:04:49,998 --> 00:04:53,572
+one word that you probably have been hearing a lot in the news are generative models.
+
+52
+00:04:54,112 --> 00:04:59,300
+so this is just something that can generate models that can generate sentences or can generate some data.
+
+53
+00:04:59,632 --> 00:05:07,332
+the reason why we say language models are generative models is that once you have a model of a distribution, you can simply sample from this model and then we can generate data.
+
+54
+00:05:07,872 --> 00:05:11,300
+so you can generate sentences using a language model.
+
+55
+00:05:12,686 --> 00:05:18,468
+So the type of models that people are all currently using are what we call autoregressive language models.
+
+56
+00:05:19,118 --> 00:05:35,392
+And the key idea of auto-regressive language models is that you take this distribution over words, and you basically decompose it into the distribution of the first word, multiplied by the likelihood of the distribution of the second word.
+
+57
+00:05:35,566 --> 00:05:40,100
+given the first word, multiply it by p, of the third word, given the first two words.
+
+58
+00:05:41,326 --> 00:05:42,832
+so there's no approximation here.
+
+59
+00:05:42,912 --> 00:05:45,872
+This is just a chain rule of probability, which hopefully you all know about.
+
+60
+00:05:46,272 --> 00:05:47,232
+really no approximation.
+
+61
+00:05:47,312 --> 00:05:49,828
+This is just one way of modeling a distribution.
+
+62
+00:05:50,592 --> 00:05:59,044
+so slightly more concisely, you can write it as a product of p's of the next word given everything which happened in the past, so of the context.
+
+63
+00:05:59,712 --> 00:06:02,500
+so this is what we call autoregressive language models.
+
+64
+00:06:02,752 --> 00:06:06,272
+Again, this is really not the only way of modeling distribution.
+
+65
+00:06:06,352 --> 00:06:07,396
+This is just one way.
+
+66
+00:06:07,952 --> 00:06:10,272
+it has some benefits and some downsides.
+
+67
+00:06:10,512 --> 00:06:22,832
+One downside of autoregressive language models is that when you actually sample from this autoregressive language model, you basically have a for loop which generates the next word, then conditions on that next word, and then regenerate the other word.
+
+68
+00:06:22,958 --> 00:06:27,812
+So basically, if you have a longer sentence that you want to generate, you it takes more time to generate it.
+
+69
+00:06:28,272 --> 00:06:33,988
+so there are some downsides of this current paradigm, but that's what we currently have, so I'm going to talk about this one.
+
+70
+00:06:35,872 --> 00:06:36,352
+great.
+
+71
+00:06:36,814 --> 00:06:38,212
+So autoregressive language models.
+
+72
+00:06:38,352 --> 00:06:44,032
+At a high level, um, what the task of autoregressive language model is, is simply predicting the next word, as I just said.
+
+73
+00:06:44,334 --> 00:06:49,508
+So if you have a sentence like she likely prefers, uh one potential next word might be dogs.
+
+74
+00:06:50,542 --> 00:06:54,116
+And the what the way we do it is that we first tokenize.
+
+75
+00:06:54,574 --> 00:07:00,512
+So you take these words or subwords, you tokenize them, and then you give an ID for each token.
+
+76
+00:07:00,592 --> 00:07:02,020
+So here you have one, two, three.
+
+77
+00:07:03,072 --> 00:07:07,300
+then you pass it through this black box, as I already said, we're not going to talk about the architecture.
+
+78
+00:07:07,406 --> 00:07:15,812
+You just pass it through a model, and you then get a distribution, a probability distribution, over the next word over the next token.
+
+79
+00:07:16,814 --> 00:07:22,724
+And then you sample from this distribution, you get a new token, and then you detokenize.
+
+80
+00:07:22,990 --> 00:07:27,844
+So you get a new ID, you then detokenize, and that's how you basically sample from a language model.
+
+81
+00:07:28,352 --> 00:07:33,796
+one thing which is important to note is that the last two steps, uh, two steps were actually only needed during inference.
+
+82
+00:07:34,352 --> 00:07:46,884
+when you do training, you just need to predict the most likely token, and you can just compare to the real token, which happened in practice, and then you basically change the weights of your model to increase the probability of generating that token.
+
+83
+00:07:49,408 --> 00:07:49,728
+great.
+
+84
+00:07:50,158 --> 00:07:52,208
+So autoaggressive neural language models.
+
+85
+00:07:52,526 --> 00:07:58,448
+So to be slightly more specific, still without talking about the architecture, the first thing we do is that we have all of these.
+
+86
+00:07:58,734 --> 00:07:59,328
+Oh sorry, yes.
+
+87
+00:07:59,728 --> 00:08:09,168
+On the previous slide, when you're predicting the probability of the next token, does this mean that your final output vector has to be the same dimensionality as the number of tokens that you have?
+
+88
+00:08:09,408 --> 00:08:09,728
+Yes.
+
+89
+00:08:10,288 --> 00:08:15,492
+How do you deal with adding more tokens to your copies every time or something?
+
+90
+00:08:16,208 --> 00:08:16,288
+Yeah.
+
+91
+00:08:16,848 --> 00:08:19,408
+So we're going to talk about tokenization actually later.
+
+92
+00:08:19,728 --> 00:08:21,316
+so you will get some sense of this.
+
+93
+00:08:21,728 --> 00:08:24,676
+You basically can't deal with adding new tokens.
+
+94
+00:08:25,248 --> 00:08:26,368
+I'm kind of exaggerating.
+
+95
+00:08:26,448 --> 00:08:28,804
+There are methods for doing it, but essentially people don't do it.
+
+96
+00:08:29,888 --> 00:08:34,948
+so it's really important to think about how you tokenize your text, and that's why we'll talk about that later.
+
+97
+00:08:35,488 --> 00:08:43,076
+but it's a very good point to note is that you basically the vocabulary size, so the number of tokens that you have is essentially the output of your language model.
+
+98
+00:08:43,342 --> 00:08:44,740
+So it's actually pretty pretty large.
+
+99
+00:08:46,094 --> 00:08:48,132
+Okay, so auto-aggressive neural language models.
+
+100
+00:08:48,814 --> 00:08:57,284
+First thing you do is that you take every word or every token, you embed them, so you get uh um some vector representation for each of these tokens.
+
+101
+00:08:58,208 --> 00:09:09,028
+you pass them through some neural network, as we said it's the transformer, then you get a representation for all the word and all the words in the context, so it's basically representation of the entire sentence.
+
+102
+00:09:09,808 --> 00:09:18,692
+you pass it through a linear layer, as you just said, to basically map it to the number so that the output, the number of outputs is the number of tokens.
+
+103
+00:09:19,488 --> 00:09:29,008
+you then pass it through some softmax, and you basically get uh probability distribution over the next words given every word in the context.
+
+104
+00:09:30,606 --> 00:09:35,168
+And the loss that you use is basically it's essentially a task of classifying the next token.
+
+105
+00:09:35,408 --> 00:09:37,488
+So it's a very simple kind of machine learning task.
+
+106
+00:09:37,742 --> 00:09:51,648
+So you use the cross-entropy loss where you basically you look at the actual target that happened, which is a target distribution, which is a one-hot encoding, which here in this in this case says I saw uh the real word that happened is cat.
+
+107
+00:09:52,014 --> 00:09:55,488
+So that's a one-hot um distribution over cat.
+
+108
+00:09:55,728 --> 00:09:58,448
+And here this is the actual uh do you see my mouse?
+
+109
+00:09:58,528 --> 00:10:07,716
+Oh yeah, this is the distribution that you generated, and basically you do cross-entropy, which really just increases the probability of generating cat and decreases all the the probability of generating all the other tokens.
+
+110
+00:10:08,238 --> 00:10:26,368
+One thing to notice is that, as you all know, again, this is just equivalent to maximizing the text log likelihood, because you can just rewrite the max over the probability of this autoregressive language modeling task as just being this minimum over.
+
+111
+00:10:26,608 --> 00:10:31,620
+I just added the log here and minus, which is just the minimum of the loss, which is the cross entropy loss.
+
+112
+00:10:31,728 --> 00:10:36,100
+So basically minimizing the loss is the same thing as maximizing the likelihood of your text.
+
+113
+00:10:36,942 --> 00:10:37,540
+Any questions?
+
+114
+00:10:38,048 --> 00:10:38,372
+Questions?
+
+115
+00:10:43,182 --> 00:10:43,408
+Okay.
+
+116
+00:10:45,038 --> 00:10:45,668
+Tokenizer.
+
+117
+00:10:47,182 --> 00:10:50,768
+so this is one thing that people usually don't talk that much about.
+
+118
+00:10:50,990 --> 00:10:53,168
+Tokenizers are extremely important.
+
+119
+00:10:53,488 --> 00:10:57,540
+so it's really important that you kind of understand at least what they do at a high level.
+
+120
+00:10:58,126 --> 00:11:00,164
+So why do we need tokenizers in the first place?
+
+121
+00:11:01,088 --> 00:11:02,916
+first, it's more general than words.
+
+122
+00:11:03,088 --> 00:11:10,564
+So one simple thing that you might think is, oh, we're just gonna take every word that we all have, you just say every word is a token in its own.
+
+123
+00:11:11,248 --> 00:11:24,260
+but then what happens is if there's a typo in your word, then you might not have any token associated with this this word with a typo, and then you don't know how to actually pass this word with a typo into a large language model.
+
+124
+00:11:24,750 --> 00:11:25,540
+So what do you do next?
+
+125
+00:11:25,808 --> 00:11:38,916
+And also, even if you think about words, words is a very like words are fine with like Latin-based languages, but if you think about a language like Thai, you won't have a simple way of tokenizing by spaces because there are no spaces between words.
+
+126
+00:11:39,328 --> 00:11:42,916
+Um so really tokens are much more general than words.
+
+127
+00:11:43,790 --> 00:11:44,048
+It's first thing.
+
+128
+00:11:44,288 --> 00:11:49,248
+Second thing that you might think is that you might tokenize every sentence character by character.
+
+129
+00:11:49,486 --> 00:11:52,068
+You might say A is one token, B is another token.
+
+130
+00:11:52,768 --> 00:11:55,168
+that would actually work and probably very well.
+
+131
+00:11:55,470 --> 00:11:58,148
+The issue is that then your sequence becomes super long.
+
+132
+00:11:58,446 --> 00:12:06,660
+And as you probably remember from the lecture on on transformers, the complexity grows quadratically with the length of sequences.
+
+133
+00:12:06,928 --> 00:12:09,220
+So you really don't want to have a super long sequence.
+
+134
+00:12:09,806 --> 00:12:19,076
+Um so tokenizers basically try to deal with those two problems and give common sub sequences a certain token.
+
+135
+00:12:19,408 --> 00:12:25,348
+And usually how you should be thinking about it is around an average of every token is around three, four letters.
+
+136
+00:12:27,758 --> 00:12:30,192
+And there are many algorithms for tokenization.
+
+137
+00:12:30,272 --> 00:12:37,348
+I'll just talk about one of them to give you a high level, which is what we call bytepair encoding, which is actually pretty common, one of the two most common uh tokenizers.
+
+138
+00:12:37,902 --> 00:12:42,832
+And the way that you train a tokenizer is that first you start with a very large corpus of text.
+
+139
+00:12:42,912 --> 00:12:45,712
+And here I'm really not talking about training a large language model yet.
+
+140
+00:12:45,792 --> 00:12:47,332
+This is purely for the tokenization step.
+
+141
+00:12:48,032 --> 00:12:51,332
+so this is my large corpus of text with these five words.
+
+142
+00:12:51,952 --> 00:12:58,192
+Um then you associate every character in this corpus of text a different token.
+
+143
+00:12:58,672 --> 00:13:04,900
+so here I just split up every character with a different token and I just color-coded all of those tokens.
+
+144
+00:13:05,998 --> 00:13:15,072
+And then what you do is that you go through your text, and every time you see pairs of tokens that are very common, the most common pair of tokens, you just merge them.
+
+145
+00:13:15,310 --> 00:13:22,276
+So here you see three times the the tokens T and O next to each other, so you're just going to say this is a new token.
+
+146
+00:13:22,766 --> 00:13:24,228
+And then you continue, you repeat that.
+
+147
+00:13:24,462 --> 00:13:36,868
+So now you have tok, tok, which happens three times, tok, with an E that happens two times, and token, which happens twice, and then EX, which also happens twice.
+
+148
+00:13:37,230 --> 00:13:46,948
+So this is that if you were to train a tokenizer on this corpus of text, which is very small, that's how you would finish with a token with a pre like a train tokenizer.
+
+149
+00:13:47,632 --> 00:13:50,884
+in reality, you do it on much larger corpuses of text.
+
+150
+00:13:51,712 --> 00:13:57,604
+and this is the real tokenizer of actually I think this is GPT-3 or chat GPT.
+
+151
+00:13:57,806 --> 00:14:00,260
+Uh and here you see how it would actually separate these words.
+
+152
+00:14:00,430 --> 00:14:03,712
+So basically you see the same thing as what we gave in the previous example.
+
+153
+00:14:04,032 --> 00:14:06,116
+Token becomes its own token.
+
+154
+00:14:06,606 --> 00:14:11,392
+So tokenizer is actually split up into two tokens, token and Izer.
+
+155
+00:14:11,952 --> 00:14:14,788
+Um so yeah, that's all about tokenizers.
+
+156
+00:14:15,152 --> 00:14:15,876
+Any question on that?
+
+157
+00:14:16,112 --> 00:14:16,272
+Yeah.
+
+158
+00:14:16,910 --> 00:14:19,300
+How do you deal with spaces and how do you token punctuation to make token?
+
+159
+00:14:20,032 --> 00:14:27,552
+Yeah, so actually there's a step before tokenizers, which is what we call pre-tokenizers, which is exactly what you just said.
+
+160
+00:14:27,952 --> 00:14:34,112
+so this is mostly in theory, there's no reason to deal with spaces and punctuation separately.
+
+161
+00:14:34,272 --> 00:14:42,148
+You could just say every space gets its own token, every punctuation gets its own token, and you could just do all the merging.
+
+162
+00:14:42,432 --> 00:14:44,644
+The problem is that so there's an efficiency question.
+
+163
+00:14:44,942 --> 00:14:47,712
+Actually, training these tokenizers takes a long time.
+
+164
+00:14:48,192 --> 00:14:51,472
+so you're better because you have to consider every pair of token.
+
+165
+00:14:51,950 --> 00:14:56,912
+So what you end up doing is saying if there's a space, this is very like pre-tokenizers are very English specific.
+
+166
+00:14:57,134 --> 00:15:03,072
+You say if there's a space, we're not going to start looking at the token that came before and the token that came afterwards.
+
+167
+00:15:03,246 --> 00:15:05,828
+So you're not merging in between spaces.
+
+168
+00:15:06,094 --> 00:15:09,952
+But this is just like a optimization uh like a computational optimization.
+
+169
+00:15:10,112 --> 00:15:14,596
+You could theoretically just deal with it the same way as you deal with any other character.
+
+170
+00:15:16,718 --> 00:15:22,352
+When you merge tokens, do you delete the tokens that you merged away, or do you keep the smaller tokens that you merge?
+
+171
+00:15:22,832 --> 00:15:25,072
+Um you actually keep the smaller tokens.
+
+172
+00:15:25,232 --> 00:15:32,516
+I mean in reality it doesn't matter much because usually on large corpus of text you will have actually everything.
+
+173
+00:15:32,992 --> 00:15:44,772
+but you usually keep the small ones, and the reason why you want to do that is because if in case there's a, as we said before, you have some um some grammatical mistakes or some typos, you still want to be able to represent these words by character.
+
+174
+00:15:46,702 --> 00:15:47,108
+so yeah.
+
+175
+00:15:47,712 --> 00:15:48,112
+Yes.
+
+176
+00:16:01,872 --> 00:16:03,072
+Oh, oh, I see what you say.
+
+177
+00:16:03,232 --> 00:16:07,556
+No, no, it's every token has its own unique ID.
+
+178
+00:16:08,814 --> 00:16:10,912
+so a usual this is a great question.
+
+179
+00:16:11,072 --> 00:16:24,512
+For example, if you think about a bank, which could be bank for like money or bank like water, it will have the same token, but the model will learn, the transformer will learn that based on the words that are around it, it should associate that.
+
+180
+00:16:24,846 --> 00:16:34,340
+I'm saying I'm being very hand wavy here, but associate that with the with a with a representation that is either more like the bank money side or the bank water side.
+
+181
+00:16:34,832 --> 00:16:37,316
+but that's the transformer that does that, it's not a tokenizer.
+
+182
+00:16:38,300 --> 00:16:38,460
+Yes.
+
+183
+00:16:39,246 --> 00:16:43,120
+Yeah, so you mentioned during tokenization to the smaller token at every five.
+
+184
+00:16:43,600 --> 00:16:49,520
+Like if you start with a T, you keep the T and then you turn your tokenizer to expand like amount of token.
+
+185
+00:16:49,840 --> 00:16:54,960
+So let's say maybe you didn't train on token, but like in your data, you are trying to encode token.
+
+186
+00:16:55,280 --> 00:16:59,440
+So how does the tokenizer know to encode it with token or to read it?
+
+187
+00:17:00,240 --> 00:17:00,640
+Great question.
+
+188
+00:17:00,800 --> 00:17:10,916
+You basically when you tokenize, so that's after training of the tokenizer, when you actually apply the tokenizer, you basically always choose the largest token that you can apply.
+
+189
+00:17:11,520 --> 00:17:13,520
+so if you can do token, you will never do T.
+
+190
+00:17:13,760 --> 00:17:14,660
+You will always do token.
+
+191
+00:17:16,270 --> 00:17:26,692
+But there's actually so people don't usually talk that much about tokenizers, but there's a lot of computational benefits or computational tricks that you can do for making these things faster.
+
+192
+00:17:27,200 --> 00:17:36,516
+so I really don't think we and honestly, I think a lot of people think that we should just get away from tokenizers and just kind of tokenize character by character or bytes by bytes.
+
+193
+00:17:37,040 --> 00:17:39,332
+but as I said right now there's this issue of length.
+
+194
+00:17:39,920 --> 00:17:50,532
+but maybe one day, like in five or ten years, we'll have different architectures that don't scale quadratically with the length of the sequence, and maybe we'll move away from tokenizers.
+
+195
+00:17:53,070 --> 00:17:55,280
+Why do people want to move away from the tokenizer?
+
+196
+00:17:55,760 --> 00:18:07,040
+Oh, um yeah, so think one good example is math. If you think about math, actually numbers right now are not tokenized.
+
+197
+00:18:07,278 --> 00:18:15,204
+So for example, 327 might have its own token, which means that models, when they see numbers, they don't see them the same way as we do.
+
+198
+00:18:15,534 --> 00:18:30,596
+And this is very annoying because what I mean the reason why we can kind of generalize with math is because we can deal with every c every letter separately and we can then do composition, where you know that basically if you add stuff, it's just the same thing as adding every one separately plus like whatever the unit that you add.
+
+199
+00:18:30,880 --> 00:18:31,844
+so they can't do that.
+
+200
+00:18:32,560 --> 00:18:35,012
+so then you have to do like special tokenization.
+
+201
+00:18:35,360 --> 00:18:42,720
+And like one of the big changes that GPT-4 did is changing the way that they tokenize code.
+
+202
+00:18:43,022 --> 00:18:48,080
+So for example, if you have code, you know you have like often in Python these four spaces at the beginning.
+
+203
+00:18:48,240 --> 00:18:51,716
+Those were dealt with kind of strangely before.
+
+204
+00:18:52,160 --> 00:18:56,836
+and as a result, like the model couldn't really understand how to deal with code.
+
+205
+00:18:57,360 --> 00:18:59,236
+so tokenizers actually matter a lot.
+
+206
+00:19:00,814 --> 00:19:01,120
+okay.
+
+207
+00:19:01,582 --> 00:19:04,836
+So I'll move on right now, but we can come back later on tokenizers.
+
+208
+00:19:05,902 --> 00:19:06,160
+Great.
+
+209
+00:19:06,638 --> 00:19:08,720
+So we talked about the task, the loss, the tokenizer.
+
+210
+00:19:08,880 --> 00:19:10,500
+Let's talk a little bit about evaluation.
+
+211
+00:19:11,360 --> 00:19:16,196
+so the way that LLMs are usually evaluated is what we call is using what we call perplexity.
+
+212
+00:19:16,800 --> 00:19:19,300
+at a high level, it's basically just your validation loss.
+
+213
+00:19:20,174 --> 00:19:29,360
+the slight difference with perplexity is that we use something that is slightly more interpretable, which is that we use the average per token loss, and then you exponentiate it.
+
+214
+00:19:29,518 --> 00:19:40,676
+And the reason why you exponentiate it is because you want, I mean, the loss has a log inside, and you like one, humans are actually pretty bad at thinking in log space, but two, logs depend on the base of the log.
+
+215
+00:19:41,280 --> 00:19:47,620
+while when you exponentiate, you basically have everything in the kind of the vocabulary size unit.
+
+216
+00:19:48,654 --> 00:19:53,476
+and the average per token is just so that your perplexity is independent of the length of your sequence.
+
+217
+00:19:54,160 --> 00:19:58,692
+so perplexity is just two to the power average of the loss of the sequence.
+
+218
+00:20:00,000 --> 00:20:05,440
+so perplexity is between one and the length of the vocabulary of your tokenizer.
+
+219
+00:20:05,840 --> 00:20:14,052
+one it's simply, well, if you predict perfectly the thing which every word, then every word will have basically product of ones.
+
+220
+00:20:14,560 --> 00:20:16,400
+so the best perplexity you can have is one.
+
+221
+00:20:16,800 --> 00:20:21,892
+If you really have no idea, you basically predict with one divided by size of vocabulary.
+
+222
+00:20:22,320 --> 00:20:26,308
+and then you do simple math and you basically get perplexity of size of vocabulary.
+
+223
+00:20:26,800 --> 00:20:32,228
+so the intuition of perplexity is that it's basically the number of tokens that your model is kind of hesitating between.
+
+224
+00:20:32,800 --> 00:20:36,580
+so if your model is perfect, it doesn't hesitate, it knows exactly the word.
+
+225
+00:20:36,800 --> 00:20:41,892
+If it really has no idea, then it hesitates between all of the vocabulary.
+
+226
+00:20:43,760 --> 00:20:46,160
+so perplexity really improved.
+
+227
+00:20:46,240 --> 00:20:50,468
+That's perplexity on a standard data set between 2017 and 2023.
+
+228
+00:20:50,800 --> 00:20:56,400
+It went from a kind of 70 tokens to less than 10 tokens over these five, six years.
+
+229
+00:20:56,686 --> 00:21:04,740
+So that means that the models were previously as dating between 70 words every time it was generating a word, and now it's as dating between like less than 10 words.
+
+230
+00:21:05,038 --> 00:21:06,212
+Uh so that's much better.
+
+231
+00:21:06,800 --> 00:21:12,484
+perplexity is actually not used anymore in academic benchmarking, mostly because it depends on the tokenizers that you use.
+
+232
+00:21:12,960 --> 00:21:19,012
+it depends on the actual data that people are evaluating on, but it's still very important for development of LLMs.
+
+233
+00:21:19,246 --> 00:21:23,876
+So when you actually train your own LLM, people will still really look at the perplexity.
+
+234
+00:21:26,158 --> 00:21:38,692
+One common other way, and now more common in academia, of evaluating these LLMs is just by taking all the classical NLP benchmarks, and I'll give you a few examples later, and just kind of aggregating everything.
+
+235
+00:21:39,312 --> 00:21:44,996
+So collect as many automatically evaluatable benchmarks and just evaluate across all of them.
+
+236
+00:21:46,592 --> 00:21:59,300
+So one such or actually two such benchmarks are what we call uh Helm, which is from Stanford, another one is the Hugging Face Open LLM leaderboard, which are the probably the two two most common ones right now.
+
+237
+00:21:59,792 --> 00:22:09,712
+Um so just to give you an idea, in Helm there are all of these type of tasks, which are mostly things that can be easily evaluated, uh like question answering.
+
+238
+00:22:09,934 --> 00:22:12,900
+So think about many different question answering tasks.
+
+239
+00:22:13,552 --> 00:22:17,732
+and the benefit with question answering is that you usually know what is the real answer.
+
+240
+00:22:18,432 --> 00:22:30,308
+so you can the way that you evaluate these models, and I'll give you a concrete example in one second, is that you can just look at how likely the language model is to generate the real answer compared to some other answers.
+
+241
+00:22:30,542 --> 00:22:33,316
+And that's essentially at a high level how you evaluate these models.
+
+242
+00:22:33,872 --> 00:22:40,996
+so to give you a specific example, MMLU is probably the most common academic benchmark for LLMs.
+
+243
+00:22:42,352 --> 00:22:47,460
+and this is just a collection of many questions and answers in all of those domains.
+
+244
+00:22:47,632 --> 00:22:52,432
+For example, college medicine, college physics, astronomy, and these type of topics.
+
+245
+00:22:52,654 --> 00:22:58,192
+And the questions are things like so this is in astronomy, what is true for type 1a supernova?
+
+246
+00:22:58,352 --> 00:23:04,548
+Then you give four different potential answers, and you just ask the model which one is more likely.
+
+247
+00:23:04,782 --> 00:23:06,592
+So either there are many different ways of doing it.
+
+248
+00:23:06,798 --> 00:23:12,900
+Either you can look at the likelihood of generating all these answers, or you can ask the model which one is the most likely.
+
+249
+00:23:13,152 --> 00:23:18,724
+so there are different ways that you can prompt the model, but at a high level, you know which one is correct, and there are three other mistakes.
+
+250
+00:23:19,312 --> 00:23:24,832
+Um, we're kind of creating these like unconstrained text as an output.
+
+251
+00:23:24,912 --> 00:23:25,232
+Yeah.
+
+252
+00:23:25,552 --> 00:23:35,392
+How do you evaluate a model if it gives something that's semantically completely identical, but is not the exact token that's expecting?
+
+253
+00:23:35,792 --> 00:23:37,072
+Yeah, so that's a great question.
+
+254
+00:23:37,262 --> 00:23:38,752
+I'll talk more about that later.
+
+255
+00:23:39,054 --> 00:23:41,060
+Here in this case, we don't do unconstrained.
+
+256
+00:23:41,486 --> 00:23:53,552
+So the way you would evaluate MMLU is basically either you ask the first question, and then you look at the likelihood of the model, generating A, the likelihood of the model generating B, C, and D.
+
+257
+00:23:53,646 --> 00:23:55,332
+and you look at which one is the most likely.
+
+258
+00:23:55,552 --> 00:23:59,632
+or you can ask the model out of A, B, C, D, which one is the most likely.
+
+259
+00:23:59,792 --> 00:24:03,588
+and you look at whether the most likely next token is A, B, C, or D.
+
+260
+00:24:04,014 --> 00:24:07,652
+So you constrain the model to say it can only answer these four things.
+
+261
+00:24:08,672 --> 00:24:19,952
+When you say you constrain the model, so you constrain the prompt, or do you mean that of its whole probability distribution of your outputs, you only are comparing the outputs of like you're only comparing the A token.
+
+262
+00:24:21,152 --> 00:24:25,232
+So uh in the second case I gave you, you would do exactly the actually you would do both.
+
+263
+00:24:25,326 --> 00:24:31,716
+You would prompt the model saying A, B, C or D, plus you would constrain to only look at these four tokens.
+
+264
+00:24:32,142 --> 00:24:34,432
+In the first case, you don't even need to generate anything.
+
+265
+00:24:34,766 --> 00:24:40,032
+So in the first case, you literally just look, given that it's a language model, it can give a distribution over sentences.
+
+266
+00:24:40,192 --> 00:24:44,548
+You just look at what is the likelihood of generating all of these words?
+
+267
+00:24:45,166 --> 00:24:47,780
+What is the likelihood of generating the second choice?
+
+268
+00:24:48,366 --> 00:24:53,700
+And you just look at whether the most likely sentence is actually the real answer.
+
+269
+00:24:54,574 --> 00:24:59,268
+So you don't actually sample from it, you really just use P of X1 to XL.
+
+270
+00:24:59,790 --> 00:25:00,324
+Does that make sense?
+
+271
+00:25:01,392 --> 00:25:08,964
+that being said, evaluation of open-ended questions is something we're going to talk about later and is actually really important and really challenging.
+
+272
+00:25:09,902 --> 00:25:10,148
+Yes?
+
+273
+00:25:10,752 --> 00:25:20,752
+earlier you mentioned metrics like perplexity are not usually used because it depends on how you do your tokenization and some design choices.
+
+274
+00:25:20,912 --> 00:25:23,072
+I was wondering if you could speak more to that.
+
+275
+00:25:23,552 --> 00:25:24,912
+Oh, yeah.
+
+276
+00:25:25,134 --> 00:25:26,592
+So think about perplexity.
+
+277
+00:25:26,752 --> 00:25:29,764
+I told you perplexity is between one and vocabulary size.
+
+278
+00:25:30,254 --> 00:25:41,284
+So now imagine that Chat GPT uses a tokenizer that has like 10,000 tokens, but Gemini from Google uses a tokenizer that had a hundred thousand uh potential tokens.
+
+279
+00:25:41,678 --> 00:25:50,724
+Then actually the Gemini one will have like the upper bound of the the perplexity that you can get is actually worse for Gemini than for ChatGPT.
+
+280
+00:25:50,958 --> 00:25:51,556
+Does that make sense?
+
+281
+00:25:52,366 --> 00:25:53,712
+So that's just an idea.
+
+282
+00:25:54,030 --> 00:26:00,804
+It's actually a little bit more complicated than that, but there's just like one first or the bit of where you can see that the tokenizer actually matters.
+
+283
+00:26:03,086 --> 00:26:03,332
+great.
+
+284
+00:26:05,582 --> 00:26:08,432
+Okay, so evaluation challenges, there are many.
+
+285
+00:26:08,512 --> 00:26:10,308
+I'll just talk about two really briefly.
+
+286
+00:26:10,832 --> 00:26:14,752
+One, as I told you, there are two ways of doing evaluation for these MMLUs.
+
+287
+00:26:14,912 --> 00:26:17,316
+Actually, there are many more than two, but I gave you two examples.
+
+288
+00:26:17,646 --> 00:26:34,916
+And it happens that for a long time, even though that was a very classical benchmark, that everyone used Actually, different uh different companies and different organizations were actually using different ways of evaluating MMLU.
+
+289
+00:26:35,072 --> 00:26:37,792
+And as a result, you get completely different results.
+
+290
+00:26:37,952 --> 00:26:47,748
+For example, Lama 65B, which was the first model of Meta in the Lama series, had on Helm 63.7 accuracy.
+
+291
+00:26:48,032 --> 00:26:52,356
+but on this other benchmark had like, 48.8.
+
+292
+00:26:53,422 --> 00:26:57,152
+so really the way that you evaluate, and this is not even talking about prompting.
+
+293
+00:26:57,232 --> 00:27:01,152
+this is really just kind of the way that you evaluate the uh, the models.
+
+294
+00:27:01,312 --> 00:27:02,432
+Prompting is another issue.
+
+295
+00:27:02,702 --> 00:27:06,564
+So really there are a lot of inconsistencies, it's not as easy as it looks.
+
+296
+00:27:07,312 --> 00:27:07,872
+first thing.
+
+297
+00:27:08,078 --> 00:27:08,592
+Yeah, sorry.
+
+298
+00:27:12,352 --> 00:27:12,592
+Okay.
+
+299
+00:27:13,486 --> 00:27:15,072
+Second thing, this is a great question.
+
+300
+00:27:15,278 --> 00:27:16,996
+Uh train test contamination.
+
+301
+00:27:17,552 --> 00:27:22,180
+this is something which I would say is really important in academia.
+
+302
+00:27:23,072 --> 00:27:32,132
+In uh given that the talk is mostly about training large language models, uh, for companies it's maybe not that important because they know what they trained on.
+
+303
+00:27:32,592 --> 00:27:35,152
+Uh for us, we have no idea.
+
+304
+00:27:35,438 --> 00:27:36,836
+So for us, it's a real problem.
+
+305
+00:27:37,072 --> 00:27:45,188
+Uh so there are many different ways of trying to test whether uh the test set, uh sorry, whether the test set was actually in the training set.
+
+306
+00:27:45,552 --> 00:28:03,364
+Uh one kind of cute trick um that people uh in in the lab in Tatsu's lab have found is that what you can do is that given that most of the data set online are not randomized, you can just look at, and in that language models what they do is just predict the next word.
+
+307
+00:28:03,552 --> 00:28:06,148
+Um you can just look at the entire test set.
+
+308
+00:28:06,510 --> 00:28:13,668
+Uh, what if you generate all the examples in order versus all the examples in a different order?
+
+309
+00:28:13,998 --> 00:28:21,188
+And if it's more likely to generate a thing in order, given that there's no real order there, then it means that probably was in the training set.
+
+310
+00:28:21,550 --> 00:28:22,116
+Does that make sense?
+
+311
+00:28:22,734 --> 00:28:24,672
+Um so there are many, that's like one of them.
+
+312
+00:28:24,846 --> 00:28:26,032
+There are many other ways of doing it.
+
+313
+00:28:26,286 --> 00:28:32,112
+Train test contamination, again, not that important for development, really important for academic benchmarking.
+
+314
+00:28:32,992 --> 00:28:33,392
+Great.
+
+315
+00:28:33,806 --> 00:28:36,772
+So there are many other challenges, but I'll move on for now.
+
+316
+00:28:37,552 --> 00:28:37,952
+Great.
+
+317
+00:28:38,272 --> 00:28:38,692
+Data.
+
+318
+00:28:39,392 --> 00:28:42,832
+Um so data is another really big topic.
+
+319
+00:28:43,312 --> 00:28:48,260
+at a high level, people just say, Oh, you basically train large language models on all of internet.
+
+320
+00:28:48,686 --> 00:28:49,668
+What does that even mean?
+
+321
+00:28:50,032 --> 00:28:54,820
+Um so or people sometimes say all of clean internet, which is even less defined.
+
+322
+00:28:56,238 --> 00:29:00,676
+so internet is very dirty and really not representative of what we want in practice.
+
+323
+00:29:00,912 --> 00:29:05,952
+If I download a random website right now, you would be shocked at what is in there.
+
+324
+00:29:06,032 --> 00:29:07,524
+It's definitely not your Wikipedia.
+
+325
+00:29:09,006 --> 00:29:13,380
+so I'll go really briefly on like what people do.
+
+326
+00:29:13,952 --> 00:29:18,404
+I can answer some questions, but I mean data is on its own is a huge topic.
+
+327
+00:29:19,232 --> 00:29:22,192
+basically, first what you do is download all of internet.
+
+328
+00:29:22,574 --> 00:29:35,632
+What that means is that you use web crawlers that will go on every web page on internet or every web page that is on Google, and that is around 250 billion pages right now.
+
+329
+00:29:36,430 --> 00:29:39,232
+and that's around one petabyte of of data.
+
+330
+00:29:39,502 --> 00:29:42,832
+So this is actually a common common call, is one web crawler.
+
+331
+00:29:42,992 --> 00:29:44,932
+So people don't usually write their own web crawlers.
+
+332
+00:29:45,102 --> 00:29:59,972
+What they do is that they use standard web crawlers, and common crawl is one of them that basically every month adds all the new websites that were added on internet that are found by by Google and they put it in a big basically a big data set.
+
+333
+00:30:00,878 --> 00:30:07,364
+so that's on Common Crawl, you have around 250 billion pages right now, so 1e6 gigabytes of data.
+
+334
+00:30:08,110 --> 00:30:14,352
+Once you have this, so this is a random web page, like literally random, from this common crawl.
+
+335
+00:30:14,510 --> 00:30:20,996
+And what you see is that one, it really doesn't look at the type of things that you would usually see, but actually, so this is an HTML page.
+
+336
+00:30:21,552 --> 00:30:26,272
+it's hard to see, but if you look through, you will see some content.
+
+337
+00:30:26,446 --> 00:30:37,444
+For example, here, testkingworld is your ultimate source for the system X high performance server, and then you have three dots, so you don't even the sentence is not even finished.
+
+338
+00:30:37,792 --> 00:30:40,036
+That's how uh random internet looks like.
+
+339
+00:30:41,140 --> 00:30:45,476
+So of course it's not that useful if you just train a large language model to generate things like this.
+
+340
+00:30:46,200 --> 00:30:47,440
+So what are some of the steps that are needed?
+
+341
+00:30:48,336 --> 00:30:51,376
+First one, you extract the text from the HTML.
+
+342
+00:30:51,456 --> 00:30:54,724
+So that's what I just tried to do by looking at basically the correct tags.
+
+343
+00:30:55,182 --> 00:30:57,456
+Uh there are a lot of challenges by through this.
+
+344
+00:30:57,616 --> 00:31:03,236
+For example, extracting math is actually very complicated, but pretty important for training large language models.
+
+345
+00:31:03,856 --> 00:31:05,412
+or for example, boilerplates.
+
+346
+00:31:05,696 --> 00:31:09,696
+A lot of your forums will have the same type of headers, the same type of uh footers.
+
+347
+00:31:09,966 --> 00:31:12,036
+Uh you don't want to repeat all of this in your data.
+
+348
+00:31:13,934 --> 00:31:16,196
+then you will filter undesirable content.
+
+349
+00:31:16,816 --> 00:31:20,256
+so not safe for work, harmful content, PII.
+
+350
+00:31:20,576 --> 00:31:27,456
+so usually every company has basically a blacklist of websites that they don't want to train their models on.
+
+351
+00:31:27,694 --> 00:31:28,996
+That blacklist is very long.
+
+352
+00:31:29,198 --> 00:31:31,908
+And you basically say if it comes from there, we don't train on this.
+
+353
+00:31:32,142 --> 00:31:38,692
+There are other ways of doing these things, is that you can train a small model for classifying what is PII, removing these things.
+
+354
+00:31:39,854 --> 00:31:40,336
+it's hard.
+
+355
+00:31:40,496 --> 00:31:45,732
+Every point here that I'm going to show you is like a hard amount of work.
+
+356
+00:31:46,256 --> 00:31:48,176
+but I'm just gonna go quickly through it.
+
+357
+00:31:48,430 --> 00:31:49,764
+So filter undesirable content.
+
+358
+00:31:50,350 --> 00:31:53,700
+Second or fourth is the duplicate deduplication.
+
+359
+00:31:54,030 --> 00:31:59,696
+As I said, you might have things like headers and footers in forums that are always the same.
+
+360
+00:31:59,886 --> 00:32:00,868
+You want to remove that.
+
+361
+00:32:01,134 --> 00:32:06,948
+Another thing that you might have is a lot of URLs that are different but actually show the same website.
+
+362
+00:32:08,416 --> 00:32:18,016
+and you might also have a lot of like uh um paragraphs that come from like common books that are basically deduplicated a thousand times or ten thousand times on the internet.
+
+363
+00:32:18,446 --> 00:32:19,780
+So you have to deduplicate.
+
+364
+00:32:20,176 --> 00:32:23,524
+Also very challenging because you have to do that at scale.
+
+365
+00:32:24,176 --> 00:32:27,748
+Once you do deduplication, you will do some heuristic filtering.
+
+366
+00:32:28,078 --> 00:32:30,788
+You will try to remove low quality documents.
+
+367
+00:32:31,376 --> 00:32:34,976
+the way you do that are things like rules-based filtering.
+
+368
+00:32:35,246 --> 00:32:37,616
+For example, if you see that there are some outlier tokens.
+
+369
+00:32:37,776 --> 00:32:43,376
+If the distribution of tokens in the website is very different than the usual distribution of tokens, then it's probably some outlier.
+
+370
+00:32:43,536 --> 00:32:49,156
+If you see that the length of the words in this website is super long, there's something strange going on on that website.
+
+371
+00:32:49,456 --> 00:32:54,096
+If you see that the website has only three words, maybe is it worth training on it?
+
+372
+00:32:54,176 --> 00:32:54,496
+Maybe not.
+
+373
+00:32:54,656 --> 00:32:59,780
+If it has like 10 million words, maybe there's something also wrong going on that page.
+
+374
+00:33:00,336 --> 00:33:01,412
+so a lot of rules like this.
+
+375
+00:33:01,536 --> 00:33:01,696
+Yes.
+
+376
+00:33:07,726 --> 00:33:09,696
+Putting it as like a supervised loss.
+
+377
+00:33:10,766 --> 00:33:19,136
+Can we not just say like you know, here's this hate speech website, let's actively try to let's actively penalize and not forget it.
+
+378
+00:33:20,016 --> 00:33:22,532
+We'll do exactly that, but not at this step.
+
+379
+00:33:22,736 --> 00:33:24,708
+That's where the post-training will come from.
+
+380
+00:33:25,700 --> 00:33:33,700
+Pre-training, the idea is just to say, I want to model kind of how humans speak, essentially.
+
+381
+00:33:34,496 --> 00:33:38,372
+and I want to remove all these headers, photos, and and menus and things like this.
+
+382
+00:33:38,736 --> 00:33:43,300
+but it's a very good idea that you just had, and that's exactly what we'll do later.
+
+383
+00:33:45,390 --> 00:33:47,056
+Next step, model-based filtering.
+
+384
+00:33:47,216 --> 00:33:51,428
+So once you've filtered a lot of data, what you will do, uh that's actually a very cute trick.
+
+385
+00:33:52,016 --> 00:33:58,052
+you will take all of Wikipedia and you will look at all the links that are linked through Wikipedia pages.
+
+386
+00:33:58,638 --> 00:34:02,788
+Because probably if something is referenced by Wikipedia, it's probably some high quality website.
+
+387
+00:34:03,246 --> 00:34:15,044
+And you will train a classifier to predict whether something comes from whether a document comes from one of these references from Wikipedia or whether it's from the random web.
+
+388
+00:34:15,470 --> 00:34:21,252
+And you will try to basically say, I want more of the things that come from Wikipedia references.
+
+389
+00:34:21,870 --> 00:34:22,468
+Does that make sense?
+
+390
+00:34:23,536 --> 00:34:24,016
+So yeah.
+
+391
+00:34:24,174 --> 00:34:26,416
+So you will train a machine learning model.
+
+392
+00:34:26,576 --> 00:34:29,936
+Usually also very simple models because you need to do that really at scale.
+
+393
+00:34:30,016 --> 00:34:32,292
+And just think about the 250 billion pages.
+
+394
+00:34:34,016 --> 00:34:40,736
+next one, you will try to classify your data into different different um domains.
+
+395
+00:34:41,006 --> 00:34:46,180
+You will say, okay, this is entertainment, this is books, this is code, this is like these type of domains.
+
+396
+00:34:46,446 --> 00:34:51,972
+And then you will try to either up or downweight some of the domains.
+
+397
+00:34:52,576 --> 00:34:59,216
+for example, you might see that actually if you train more on code, then actually your model becomes better on reasoning.
+
+398
+00:34:59,296 --> 00:35:02,416
+So that's something that people usually say in a very hand-wavy way.
+
+399
+00:35:02,576 --> 00:35:05,456
+If you train your model more on code, actually it helps reasoning.
+
+400
+00:35:05,550 --> 00:35:11,140
+So you want to upweight the coding distribution because that helps for general language modeling skills.
+
+401
+00:35:11,696 --> 00:35:15,750
+books is usually also another one that people usually up-weight.
+
+402
+00:35:16,238 --> 00:35:17,930
+Entertainment, they usually down-weight.
+
+403
+00:35:18,736 --> 00:35:19,652
+so things like this.
+
+404
+00:35:19,856 --> 00:35:25,216
+Of course, you want to do it so people used to do it maybe kind of heuristically.
+
+405
+00:35:25,456 --> 00:35:31,748
+Now there's entire pipelines that will talk about of how to do these things slightly more automatically.
+
+406
+00:35:33,646 --> 00:35:47,460
+And then at the end of training, usually train um after training on all of this data that we saw, usually train on very high quality data at the end of training your large language model where you decrease your learning rate.
+
+407
+00:35:47,952 --> 00:35:52,672
+and that basically means that you're kind of overfitting your model on a very high quality data.
+
+408
+00:35:53,006 --> 00:35:55,172
+So usually what you do there is like Wikipedia.
+
+409
+00:35:55,632 --> 00:36:03,044
+You basically overfit on Wikipedia and you overfit on like hu uh human data that was collected.
+
+410
+00:36:04,558 --> 00:36:07,792
+the other things like continual pre-training for getting longer context.
+
+411
+00:36:07,886 --> 00:36:09,668
+I'm going to skip over all of these things.
+
+412
+00:36:10,112 --> 00:36:16,228
+but that's just to give you a sense of how hard it is when people just say, Oh, I'm going to train on internet, that's a lot of work.
+
+413
+00:36:17,614 --> 00:36:19,108
+and really we haven't figured it out yet.
+
+414
+00:36:20,174 --> 00:36:24,868
+So collecting well data is a huge part of practical large language model.
+
+415
+00:36:25,232 --> 00:36:26,692
+some might say that's actually the key.
+
+416
+00:36:26,832 --> 00:36:27,044
+Yes.
+
+417
+00:36:28,272 --> 00:36:28,992
+About the data.
+
+418
+00:36:29,072 --> 00:36:33,552
+So basically the question So usually when you start with like the teraperabyte of data.
+
+419
+00:36:33,712 --> 00:36:37,552
+After I go through all that steps, what's the typical amount of data I have remained in?
+
+420
+00:36:37,872 --> 00:36:43,152
+And then like how how large a team does it typically take to go through all the data steps you talked about?
+
+421
+00:36:43,670 --> 00:36:46,752
+Sorry, is the question how large is the data after you filter?
+
+422
+00:36:47,150 --> 00:36:53,828
+Yeah, after you filter, and then to go through all the steps, how large a team do you need to go through like the filter, the other features you mentioned?
+
+423
+00:36:54,832 --> 00:36:55,792
+how slow is it?
+
+424
+00:36:57,792 --> 00:37:01,072
+how many people would you need to be able to do this?
+
+425
+00:37:02,112 --> 00:37:03,472
+Uh okay, that's a great question.
+
+426
+00:37:03,552 --> 00:37:06,192
+I'm going to somewhat answer about the data.
+
+427
+00:37:06,672 --> 00:37:09,540
+how large is the data set at the end of this slide.
+
+428
+00:37:10,512 --> 00:37:13,252
+for the number of people that work on it.
+
+429
+00:37:14,592 --> 00:37:15,552
+that's a good question.
+
+430
+00:37:15,632 --> 00:37:18,276
+I'm actually not quite sure, but I would say.
+
+431
+00:37:19,502 --> 00:37:29,412
+Yeah, I actually don't quite know, but I would say it's probably even bigger than the number of people that work on kind of the tuning of the pre-training of the model.
+
+432
+00:37:29,952 --> 00:37:33,060
+so the data is bigger than kind of the modeling aspect.
+
+433
+00:37:33,552 --> 00:37:37,712
+Um yeah, I I don't think I have a good sense.
+
+434
+00:37:37,872 --> 00:37:43,588
+I would say probably in Lama's team, which have like 70-ish people, I would say maybe 15 work on data.
+
+435
+00:37:45,392 --> 00:37:45,668
+yeah.
+
+436
+00:37:46,830 --> 00:37:49,472
+All these things, you don't need that many people, you need a lot of compute also.
+
+437
+00:37:49,552 --> 00:37:51,172
+Because for data you need a lot of CPUs.
+
+438
+00:37:53,134 --> 00:37:55,780
+so yeah, and I'll answer the second question at the end of this slide.
+
+439
+00:37:56,718 --> 00:38:02,192
+So as I just kind of alluded to, really we haven't solved data at all for pre-training.
+
+440
+00:38:02,350 --> 00:38:04,228
+So there's a lot of research that has to be done.
+
+441
+00:38:04,526 --> 00:38:06,756
+First, how do you process these things super efficiently?
+
+442
+00:38:07,232 --> 00:38:10,276
+second, how do you balance the kind of like di all of these different domains?
+
+443
+00:38:10,752 --> 00:38:12,432
+can you do synthetic data generation?
+
+444
+00:38:12,512 --> 00:38:13,796
+That's actually a big one right now.
+
+445
+00:38:14,112 --> 00:38:19,792
+Uh and because we don't have we'll talk about that later, but we don't have enough data on the internet.
+
+446
+00:38:20,814 --> 00:38:23,712
+can you use multimodal data instead of just text data?
+
+447
+00:38:23,886 --> 00:38:26,564
+And how does that improve even your text performance?
+
+448
+00:38:28,334 --> 00:38:33,956
+there's a lot of secrecy, because really this is the key of most of the pre-trained large language models.
+
+449
+00:38:34,272 --> 00:38:41,632
+so for competitive dynamics, usually these companies don't talk about how they do the data collection.
+
+450
+00:38:41,934 --> 00:38:43,872
+And also there's a copyright liability issue.
+
+451
+00:38:44,078 --> 00:38:46,756
+They definitely don't want to tell you that they've trained on books even though they did.
+
+452
+00:38:47,312 --> 00:38:49,476
+because if not you can sue them.
+
+453
+00:38:50,512 --> 00:38:54,116
+common academic benchmarks, so that will kind of answer what you asked.
+
+454
+00:38:54,752 --> 00:38:57,124
+it started, so those are the smaller ones.
+
+455
+00:38:57,390 --> 00:39:04,420
+Uh it's the names are not that important, but it started from around 150 billion tokens, which around 800 gigabytes of data.
+
+456
+00:39:04,592 --> 00:39:12,112
+And now it's around 15 trillion of 15 trillion tokens, which is also the size of the models that are right now.
+
+457
+00:39:12,192 --> 00:39:14,340
+The best models are probably trained on that amount of data.
+
+458
+00:39:14,574 --> 00:39:20,580
+So 15 trillion tokens, which is probably I guess two order management bigger than that.
+
+459
+00:39:20,672 --> 00:39:23,556
+So 80 uh E3 gigabyte.
+
+460
+00:39:23,918 --> 00:39:31,620
+So that would be around 100 to 1000 times filtering of the common crawl, if I'm not mistaken.
+
+461
+00:39:33,134 --> 00:39:33,508
+so yeah.
+
+462
+00:39:33,902 --> 00:39:36,550
+One very famous one is the pile.
+
+463
+00:39:37,166 --> 00:39:42,432
+So this is an academic benchmark of the Pile, and we can just look at what distribution of data they have.
+
+464
+00:39:42,670 --> 00:39:49,252
+It's things like archive, PubMed Central, which is all the biology stuff.
+
+465
+00:39:50,446 --> 00:39:57,668
+here it's Wikipedia, you see stack exchange, some GitHub, and some books and things like this.
+
+466
+00:39:58,352 --> 00:39:59,952
+again, this is on the smaller side.
+
+467
+00:40:00,032 --> 00:40:02,752
+So this is if we look at here, this is on 280 B.
+
+468
+00:40:02,894 --> 00:40:04,592
+So in reality, it's like a hundred times bigger.
+
+469
+00:40:04,672 --> 00:40:07,588
+So you cannot have that much of GitHub and on of Wikipedia.
+
+470
+00:40:09,614 --> 00:40:16,736
+In terms of closed source models, just to give you an idea, Lamma 2, it was trained on 2 trillion tokens.
+
+471
+00:40:17,038 --> 00:40:29,136
+Lama 3, 15 trillion tokens, which is currently the best model that we know on how much it was trained on, which is the same thing as this the best academic or the biggest academic benchmark, which is 15 trillion tokens.
+
+472
+00:40:29,390 --> 00:40:32,292
+GPD4, we don't really know, but it's probably in the same order of magnitude.
+
+473
+00:40:32,622 --> 00:40:33,696
+Or it's probably around that, actually.
+
+474
+00:40:33,870 --> 00:40:34,724
+It's probably around 13.
+
+475
+00:40:35,296 --> 00:40:37,572
+Um from leaks, if the leaks are true.
+
+476
+00:40:40,014 --> 00:40:40,496
+great.
+
+477
+00:40:41,326 --> 00:40:42,628
+So scaling laws.
+
+478
+00:40:43,296 --> 00:40:45,636
+any other questions on data before you go to scaling laws?
+
+479
+00:40:49,230 --> 00:40:53,828
+Sorry, I know I'm giving you a lot of information, but there's a lot into training in large language models.
+
+480
+00:40:54,766 --> 00:40:55,056
+Great.
+
+481
+00:40:55,406 --> 00:40:56,132
+Scaling laws.
+
+482
+00:40:57,198 --> 00:41:12,196
+So the idea is that what people saw around 2020, or at least from a long time, but they've been able to kind of uh theoretically show it, or empirically show it since 2020, is that the more data you train your models on, and the larger the models, the better the performance.
+
+483
+00:41:12,814 --> 00:41:15,396
+This is actually pretty different than what you've seen in this class.
+
+484
+00:41:15,662 --> 00:41:17,572
+In this class we teach you about overfitting.
+
+485
+00:41:17,776 --> 00:41:20,036
+Overfitting doesn't happen with large language models.
+
+486
+00:41:20,878 --> 00:41:22,756
+larger models, better performance.
+
+487
+00:41:23,616 --> 00:41:29,188
+it's something that really took a long time for the community who took this type of class to realize.
+
+488
+00:41:30,016 --> 00:41:32,164
+but for the exam, overfitting exists.
+
+489
+00:41:33,696 --> 00:41:34,816
+So okay.
+
+490
+00:41:34,990 --> 00:41:49,380
+The idea of scaling loss is that if, given that you know that more data and larger models will always give you better performance, can we predict how much better your performance will be if you increase the amount of data and the size of your model?
+
+491
+00:41:50,446 --> 00:41:51,748
+And surprisingly, it works.
+
+492
+00:41:52,496 --> 00:41:56,868
+so here you see three plots from a very famous paper called scaling loss from OpenAI.
+
+493
+00:41:58,030 --> 00:41:59,844
+here you see on the x-axis compute.
+
+494
+00:42:00,096 --> 00:42:05,220
+So how much did you train, like how much compute did you spend for training, and here you see test loss.
+
+495
+00:42:05,390 --> 00:42:08,996
+So this is essentially, I mean it's not perplexity, but it's your validation loss.
+
+496
+00:42:09,710 --> 00:42:11,300
+so it's a log of the perplexity.
+
+497
+00:42:11,630 --> 00:42:22,052
+And if you put these two on log scale, then you see that uh the um the performance or like the the sorry the the scaling law is linear.
+
+498
+00:42:22,656 --> 00:42:29,732
+that means that if you increase your compute by a certain amount, you can you can say by how much your test loss will actually decrease.
+
+499
+00:42:30,510 --> 00:42:33,156
+Same thing with data and same thing for parameters.
+
+500
+00:42:33,456 --> 00:42:39,936
+If you increase the dataset size, your loss will inc will decrease by an amount that is somewhat predictable.
+
+501
+00:42:40,096 --> 00:42:45,380
+If you increase the number of parameters, it will decrease the loss will decrease by amount which is somewhat predictable.
+
+502
+00:42:45,776 --> 00:42:47,108
+This is really amazing.
+
+503
+00:42:48,142 --> 00:42:49,216
+very surprising.
+
+504
+00:42:49,550 --> 00:43:01,536
+I mean it looks innocuous when you look at these type of plots, but that's crazy because it means that you can predict how well we're going to perform in two, three years, depending on how much compute we will add, assuming that these things will hold.
+
+505
+00:43:01,616 --> 00:43:02,724
+There's nothing theoretical about it.
+
+506
+00:43:04,462 --> 00:43:04,740
+yes?
+
+507
+00:43:05,296 --> 00:43:06,256
+Uh two things.
+
+508
+00:43:06,446 --> 00:43:08,096
+One, what is the loss that they're using here?
+
+509
+00:43:08,176 --> 00:43:08,896
+Is this perplexity?
+
+510
+00:43:09,616 --> 00:43:16,736
+So it's it's you know, I said perplexity was like two to the power of the loss, so this is the the the power of the perplexity.
+
+511
+00:43:18,816 --> 00:43:24,896
+when you increase the number of parameters or you increase the total data set size a number of times.
+
+512
+00:43:25,056 --> 00:43:27,616
+Doesn't that just inherently increase your compute?
+
+513
+00:43:28,142 --> 00:43:32,260
+Like is all of this work on just how much something specific to the computer.
+
+514
+00:43:32,736 --> 00:43:33,616
+No, this is a great question.
+
+515
+00:43:33,774 --> 00:43:38,052
+So the compute here is actually a factor of two things the data and the parameter.
+
+516
+00:43:38,382 --> 00:43:46,692
+What I'm showing here is that you can well actually we're going to talk about that in details, but basically, if you increase the number of parameters, you should increase the number of data that you have.
+
+517
+00:43:48,590 --> 00:43:51,076
+so you actually don't go multiple times through the same data set.
+
+518
+00:43:51,470 --> 00:43:55,812
+No one does epochs in uh uh large uh at least not yet.
+
+519
+00:43:56,736 --> 00:43:59,364
+because we have in still kind of enough data.
+
+520
+00:43:59,936 --> 00:44:03,812
+so yeah, this is all the same trend, which is increase compute, decrease loss.
+
+521
+00:44:05,134 --> 00:44:05,348
+Yes?
+
+522
+00:44:06,670 --> 00:44:08,580
+Have we seen the numbers for the last two years?
+
+523
+00:44:09,070 --> 00:44:10,576
+Or is it still holding?
+
+524
+00:44:11,056 --> 00:44:12,196
+It is still holding.
+
+525
+00:44:12,656 --> 00:44:18,436
+I don't have good numbers to show you, but it is still holding, surprisingly.
+
+526
+00:44:20,880 --> 00:44:21,280
+Yes.
+
+527
+00:44:21,760 --> 00:44:24,800
+Is there no evidence, like empirical evidence, that it would ever plateau?
+
+528
+00:44:25,520 --> 00:44:27,280
+In theory, we would expect it plateau, right?
+
+529
+00:44:28,846 --> 00:44:31,780
+No empirical evidence of plateauing anytime soon.
+
+530
+00:44:33,326 --> 00:44:33,760
+why?
+
+531
+00:44:34,382 --> 00:44:34,884
+We don't know.
+
+532
+00:44:36,000 --> 00:44:37,028
+will it happen?
+
+533
+00:44:37,742 --> 00:44:38,000
+Probably.
+
+534
+00:44:38,318 --> 00:44:40,484
+I mean it doesn't need to because it's actually in log scale.
+
+535
+00:44:41,134 --> 00:44:45,680
+So it's not like as if it had to go, it had to plateau like mathematically.
+
+536
+00:44:45,760 --> 00:44:47,364
+It could continue decreasing like this.
+
+537
+00:44:47,920 --> 00:44:50,308
+I mean most people think that it will probably plateau at some point.
+
+538
+00:44:50,640 --> 00:44:51,268
+We don't know when.
+
+539
+00:44:54,254 --> 00:44:56,868
+okay, so that's I will talk more about scaling loss now.
+
+540
+00:44:57,614 --> 00:44:59,716
+So why are scaling loss really cool?
+
+541
+00:45:00,270 --> 00:45:05,124
+Imagine that I give you you're very fortunate, I give you 10,000 GPUs for this month.
+
+542
+00:45:05,902 --> 00:45:07,172
+What model will you train?
+
+543
+00:45:07,406 --> 00:45:09,252
+How do you even go about answering that question?
+
+544
+00:45:09,742 --> 00:45:14,788
+And I mean, this is a hypothetical, but that's exactly what these companies are faced with.
+
+545
+00:45:16,080 --> 00:45:21,412
+the old pipeline, which was basically you tune hype parameters on the big models.
+
+546
+00:45:21,806 --> 00:45:31,396
+So let's say I have 30 days, I will train 30 models for one day each, I will pick the best one, and that will be the final model that I will use in production.
+
+547
+00:45:32,080 --> 00:45:35,652
+that means that the model that I actually used was only trained for one day.
+
+548
+00:45:36,846 --> 00:45:40,164
+The new pipeline is that you first find a scaling recipe.
+
+549
+00:45:40,398 --> 00:45:47,140
+So you find something that tells you, for example, oh, like one common thing is that if you increase the size of your model, you should decrease your learning rate.
+
+550
+00:45:47,470 --> 00:45:54,596
+So you find a scaling recipe so that you know if I increase the num the the size of my model, here's what I should do with some hyperparameters.
+
+551
+00:45:55,310 --> 00:46:00,400
+Then you tune your high parameters on smaller models of different sizes.
+
+552
+00:46:00,640 --> 00:46:09,092
+Let's say I will say for three days of my 30 days, I will train many different models and I will do hyperparameter tuning on these small models, each of different sizes.
+
+553
+00:46:09,518 --> 00:46:19,172
+Then I will fit a scaling law and try to extrapolate from these smaller models which one will be the best if I if I train it for much longer.
+
+554
+00:46:20,014 --> 00:46:26,948
+Or sorry, if I train it for a larger model, and then I will train the final huge model for 27 days instead of just one day.
+
+555
+00:46:28,494 --> 00:46:42,628
+so the new pipeline is not train things or do high priority tuning on the real scale of the model that you're going to use in practice, but do things on smaller ones at different scales, try to predict how well they will perform once you make them bigger.
+
+556
+00:46:43,086 --> 00:46:45,956
+I will give the I will give you a very concrete example right now.
+
+557
+00:46:46,286 --> 00:46:49,092
+Uh let's say transformers versus LSTMs.
+
+558
+00:46:49,582 --> 00:46:53,520
+Uh let's say you're you have these 10,000 GPUs, you're not sure which one you should be using.
+
+559
+00:46:53,680 --> 00:46:56,484
+Should I be using a transformer-based model or an LCM-based model?
+
+560
+00:46:56,782 --> 00:46:59,680
+What I will do is I will train transformers at different scales.
+
+561
+00:47:00,142 --> 00:47:04,030
+So here you see different parameters on the x-axis, y-axis is my test loss.
+
+562
+00:47:04,430 --> 00:47:08,000
+I will then train different LSTMs at different scales.
+
+563
+00:47:08,526 --> 00:47:12,452
+Once I have these points, I will see, oh, it kind of fits a scaling law.
+
+564
+00:47:12,622 --> 00:47:20,080
+I will fit my scaling law, and then I will be able to predict, oh, if I had ten times more compute, here's how well I would perform.
+
+565
+00:47:20,270 --> 00:47:26,468
+For the LSTM, it's actually slightly less linear for the LSTM, but you could probably try to predict where you would end up.
+
+566
+00:47:26,702 --> 00:47:29,732
+And clearly from this plot you would see that transformers are better.
+
+567
+00:47:30,720 --> 00:47:34,916
+one thing to notice when you read these type of scaling laws is that there are two things that are important.
+
+568
+00:47:36,000 --> 00:47:41,040
+one is really your scaling rate, which is kind of
+
+569
+00:47:44,160 --> 00:47:45,636
+the slope of the scaling law.
+
+570
+00:47:45,920 --> 00:47:49,156
+The other thing is your intercept.
+
+571
+00:47:50,062 --> 00:47:53,360
+Like you could start worse but actually become better over time.
+
+572
+00:47:53,678 --> 00:47:55,588
+It just happens that LSTMs are worse for both.
+
+573
+00:47:56,160 --> 00:48:03,844
+but I could show you another one where things you can predict that actually after a certain scale you're better off using that type of model than others.
+
+574
+00:48:04,400 --> 00:48:07,204
+so that's why scaling laws are actually really useful.
+
+575
+00:48:08,718 --> 00:48:09,412
+Any questions on that?
+
+576
+00:48:12,366 --> 00:48:12,580
+Yeah.
+
+577
+00:48:13,038 --> 00:48:16,752
+So these are all kind of very how sensitive are these?
+
+578
+00:48:17,072 --> 00:48:18,756
+So like small differences of architecture.
+
+579
+00:48:18,992 --> 00:48:22,788
+Like one one like transformer architecture versus another transformer architecture.
+
+580
+00:48:23,726 --> 00:48:35,200
+Do you basically have to fit your own curve and basically say oh scaling law is telling me there should be some logarithmic function like let me extract it?
+
+581
+00:48:35,472 --> 00:48:35,712
+Yeah.
+
+582
+00:48:35,952 --> 00:48:44,912
+So usually, for example, if you're an academic and you want to now at least, that's like pretty recent, and you want to propose a new like activation, that's exactly what you will do.
+
+583
+00:48:45,134 --> 00:48:50,788
+You will fit a scaling law, show another scaling law with the standard like I don't know, Galoo, and you will say that it's better.
+
+584
+00:48:51,054 --> 00:49:04,580
+In reality, once you start thinking about it in scaling loss terms, you really realize that actually all the architecture differences that we can make, like the small minor ones, all they do is maybe change a little bit the intercept, but really that doesn't matter.
+
+585
+00:49:05,152 --> 00:49:11,952
+because just train it for 10 hours longer or like wait for the next uh for the next compute GPUs, and these things are really secondary.
+
+586
+00:49:12,112 --> 00:49:16,324
+Which is exactly why I was telling you originally, people spend too much time on the architecture and losses.
+
+587
+00:49:17,294 --> 00:49:18,912
+in reality, these things don't matter as much.
+
+588
+00:49:19,152 --> 00:49:24,260
+Data though, if you use good data, you will have much better scaling loss than if you use bad data.
+
+589
+00:49:24,462 --> 00:49:26,112
+So that really matters.
+
+590
+00:49:27,312 --> 00:49:34,820
+another really cool thing you can do with scaling loss is that you can ask yourself how to optimally allocate training resources.
+
+591
+00:49:35,152 --> 00:49:36,832
+Should I train larger models?
+
+592
+00:49:37,038 --> 00:49:42,148
+Because we saw that it's better when you train larger models, but we saw that it's also better when you use more data.
+
+593
+00:49:42,414 --> 00:49:43,552
+So which one should I do?
+
+594
+00:49:43,822 --> 00:49:48,004
+Should I just train on more data, a smaller model, or should I train a larger model on less data?
+
+595
+00:49:49,646 --> 00:49:53,412
+so Chinchilla is a very famous paper that first showed this.
+
+596
+00:49:53,872 --> 00:49:57,892
+the way they did it, I want to give you a little bit of a sense of what these plots are.
+
+597
+00:49:58,352 --> 00:49:59,792
+here you see training loss again.
+
+598
+00:49:59,918 --> 00:50:05,860
+On the x-axis, you see parameter, parameter differences, uh, sorry, parameter size, uh, number of parameters, so the size of the model.
+
+599
+00:50:06,254 --> 00:50:15,972
+And here all these curves are what we call isoflops, which is that all the models on this curve have been trained with the same amount of compute.
+
+600
+00:50:16,992 --> 00:50:26,820
+the way that you do that is that you train you change, sorry, you vary the number of tokens that were trained on and the size of the models, but you vary in such a way that a total compute is constant.
+
+601
+00:50:27,072 --> 00:50:27,232
+Okay?
+
+602
+00:50:27,726 --> 00:50:32,196
+So all these curves that you see with different colors have different amount of computes that were trained on.
+
+603
+00:50:32,654 --> 00:50:34,916
+Then you take the best one for each of those curves.
+
+604
+00:50:35,566 --> 00:50:50,532
+Once you have the best one for each of those curves, you can ask, you can plot how much flops it was and on which curve were you on, and how much parameters did you actually use for training that specific point.
+
+605
+00:50:50,832 --> 00:50:56,752
+You put that on the on the log log scale again, and now you fit a scaling law again.
+
+606
+00:50:57,038 --> 00:51:05,872
+So now I have something which tells me if I want to train a model of 10 to the power 23 flops, here's exactly the number of parameters that I should be using.
+
+607
+00:51:06,062 --> 00:51:07,428
+100 100b.
+
+608
+00:51:08,014 --> 00:51:10,148
+And you can do the same thing with flops and tokens.
+
+609
+00:51:11,598 --> 00:51:18,512
+So now you can predict if if I tell you exactly I have one month of compute, what size of model should I be training?
+
+610
+00:51:19,060 --> 00:51:20,516
+figure scaling law, and I tell you.
+
+611
+00:51:21,326 --> 00:51:23,552
+Um of course that all looks beautiful.
+
+612
+00:51:23,792 --> 00:51:28,992
+In reality, like there's like there's a lot of like small things of like should you be counting like embedding parameters?
+
+613
+00:51:29,166 --> 00:51:33,572
+Like there's there's a lot of complexities, but if you do things well, these things actually do hold.
+
+614
+00:51:34,798 --> 00:51:43,332
+Um so the optimal number of parameters that that Chinchilla Paper have found is to use 20 tokens for every parameter that you train.
+
+615
+00:51:44,032 --> 00:51:48,644
+so if you add one more parameter, you should add you should train your thing on your model on 20 more tokens.
+
+616
+00:51:49,742 --> 00:51:52,996
+So one caveat here is that this is optimal training resources.
+
+617
+00:51:53,326 --> 00:52:02,660
+So that is telling me if you have 10 to the power 23 flops, or if you have like a hundred, I don't know how much that is, a hundred million dollars, or ten no, that's much less actually.
+
+618
+00:52:02,862 --> 00:52:07,396
+Let's say I have five million dollars to train my best model that gets the lowest loss.
+
+619
+00:52:07,712 --> 00:52:09,476
+How how what would I train on?
+
+620
+00:52:09,934 --> 00:52:12,644
+In reality, these companies need to think about inference also.
+
+621
+00:52:12,974 --> 00:52:16,900
+If you have a smaller model, they will spend less over time.
+
+622
+00:52:18,030 --> 00:52:28,040
+so actually, if you consider the inference cost, you have other papers that try to show that it's around 150 uh parameters per sorry, tokens per parameters.
+
+623
+00:52:28,272 --> 00:52:37,252
+Because you prefer having a smaller model, because over time you're gonna you're gonna actually um spend less money on inference of these models.
+
+624
+00:52:37,710 --> 00:52:48,292
+So 150 to 1, that's around what the best models are trained on right now, at least the ones that are that are used um in practice for in production.
+
+625
+00:52:49,998 --> 00:52:50,276
+Great.
+
+626
+00:52:52,046 --> 00:52:52,940
+Any question on Chinchilla?
+
+627
+00:52:56,046 --> 00:52:56,324
+Great.
+
+628
+00:52:56,942 --> 00:52:57,360
+Oh, sorry.
+
+629
+00:52:58,640 --> 00:53:02,340
+How expensive is inference for these models when we live to train?
+
+630
+00:53:03,470 --> 00:53:04,516
+Actually, very expensive.
+
+631
+00:53:05,280 --> 00:53:09,040
+I will not talk about inference because that would be another entire lecture.
+
+632
+00:53:09,280 --> 00:53:16,772
+But just think about ChatGPT, where they have, I don't know how much it is now, like 600 million people that used it.
+
+633
+00:53:18,350 --> 00:53:20,452
+like that's a lot.
+
+634
+00:53:22,670 --> 00:53:24,480
+yeah, so it's actually very expensive.
+
+635
+00:53:24,640 --> 00:53:26,916
+There's a lot of optimization you can do for inference though.
+
+636
+00:53:27,440 --> 00:53:28,960
+and that's an entire other lecture.
+
+637
+00:53:29,102 --> 00:53:31,076
+So I'm going to skip that this time.
+
+638
+00:53:31,790 --> 00:53:32,516
+But it's very interesting.
+
+639
+00:53:33,710 --> 00:53:34,560
+Okay, tunings.
+
+640
+00:53:34,880 --> 00:53:38,480
+Um as I said, there are many things that you can answer with scaling laws.
+
+641
+00:53:38,560 --> 00:53:42,212
+I just tried to give you two examples, but really there are many things.
+
+642
+00:53:42,400 --> 00:53:57,924
+What data do you use, what data mixing weighting you use, the data mixtures, that's what we talked about before, what architecture you use, whether you should make your models wider or deeper, should you be paying for more GPUs or actually collecting more data?
+
+643
+00:53:59,022 --> 00:54:01,540
+all these things are things you can try to answer with scaling laws.
+
+644
+00:54:03,438 --> 00:54:05,520
+One thing I want to say is the bitter lesson.
+
+645
+00:54:05,710 --> 00:54:26,000
+If you ever heard of Richard Sutton's, uh, very famous blog post in 2019, what he realized, which I think not enough people realize, I definitely did not realize at that time, is that once you see these type of scaling laws, you know that the more compute you have, the better models you will get.
+
+646
+00:54:26,254 --> 00:54:27,760
+So with scale you will get better model.
+
+647
+00:54:28,174 --> 00:54:33,892
+And you also know by Moore's law or these type of variants of Moore's law that you will always have better compute.
+
+648
+00:54:34,160 --> 00:54:39,760
+Then the only thing that matters is just to have architectures that can leverage computation.
+
+649
+00:54:40,014 --> 00:54:48,996
+So what matters is basically systems, data, and less so the architecture, like the small architecture differences, like your your your activation and things like this.
+
+650
+00:54:49,680 --> 00:54:56,420
+so I think that's like one of the reasons why most of research focuses on some things that for industry matters less.
+
+651
+00:54:56,800 --> 00:55:00,804
+and I was one of those researchers for a large part of my career.
+
+652
+00:55:02,638 --> 00:55:04,484
+so don't spend time overcomplicating.
+
+653
+00:55:05,006 --> 00:55:07,844
+Do the simple things, do it well, seal them.
+
+654
+00:55:08,110 --> 00:55:14,240
+That's really what OpenAI taught us with um with ChatGPT and with all the GPTs before.
+
+655
+00:55:15,438 --> 00:55:18,720
+Okay, I want to give you some back of the envelope computation.
+
+656
+00:55:18,800 --> 00:55:24,676
+So I might be off by a few factors here, but I just want to give you a sense of how costly it is to train some of these models.
+
+657
+00:55:25,294 --> 00:55:30,820
+I'll give as an example uh Lamma3 400B, which is currently the best open source model that you can get.
+
+658
+00:55:31,470 --> 00:55:34,724
+Uh it was trained on 15.6 tokens.
+
+659
+00:55:35,040 --> 00:55:37,668
+It has 405 billion parameters.
+
+660
+00:55:37,920 --> 00:55:43,140
+So just now that you know what is like this uh optimal tokens per parameter, that's around 40.
+
+661
+00:55:43,310 --> 00:55:49,508
+So that's a little bit more than chinchilla, but less than this like inference optimal model.
+
+662
+00:55:50,400 --> 00:55:52,260
+So they went for training optimality.
+
+663
+00:55:53,440 --> 00:56:02,560
+flops for this model, so one simple way to compute flops is six times the number of parameters times the number of data you train on.
+
+664
+00:56:02,880 --> 00:56:07,172
+so if you do the simple calculation here, it's 3.8e25 flops.
+
+665
+00:56:07,758 --> 00:56:21,188
+The reason why this is important is that if you followed a little bit the news, there's an executive order from Biden that basically says that once you have 1e26 parameters, uh sorry, flops, then you have special scrutiny on your models.
+
+666
+00:56:21,440 --> 00:56:23,520
+So they went two x less than that.
+
+667
+00:56:23,600 --> 00:56:26,884
+So they really went right below this to not have special scrutiny.
+
+668
+00:56:27,342 --> 00:56:32,400
+So three eight I might be off by a little bit, but it's definitely under the uh one e twenty-six.
+
+669
+00:56:34,160 --> 00:56:41,444
+Uh oh so parameter p is parameters, n is data, number of tokens.
+
+670
+00:56:41,920 --> 00:56:44,932
+This is a this is just an approximation.
+
+671
+00:56:45,838 --> 00:56:46,340
+We yeah.
+
+672
+00:56:48,110 --> 00:56:48,320
+Okay.
+
+673
+00:56:49,040 --> 00:56:53,412
+compute and we know that they train it on sixteen thousand H100s.
+
+674
+00:56:54,000 --> 00:56:57,636
+Um and we know the throughput they said it too.
+
+675
+00:56:58,400 --> 00:57:01,796
+so if you do the computation, it takes around 70 days.
+
+676
+00:57:02,160 --> 00:57:05,200
+Um 26 million GPU hours.
+
+677
+00:57:05,454 --> 00:57:08,480
+At least that's with my back of the envelope computation.
+
+678
+00:57:08,560 --> 00:57:13,124
+They actually said that they use for 30 million instead of 26 million GPU hours.
+
+679
+00:57:13,440 --> 00:57:17,360
+Um so maybe they had like some uh some challenges.
+
+680
+00:57:17,614 --> 00:57:18,240
+I don't really know.
+
+681
+00:57:18,400 --> 00:57:21,348
+But if you follow the simple computation, it's around 70 days.
+
+682
+00:57:22,286 --> 00:57:36,160
+Um cost, uh I mean this it's hard to to approximate, but I'm just gonna say it's kind of the rent, like what if I were to rent H100s, that many H100s for that many days, how much will I pay?
+
+683
+00:57:36,640 --> 00:57:43,680
+H100, a lower bound on the renting cost of H100 is around two hours, two dollars per hour.
+
+684
+00:57:44,000 --> 00:57:50,880
+so if you multiply this by 26 million hours, you get 52 million dollars.
+
+685
+00:57:51,118 --> 00:58:00,356
+So they probably pay less than that, but not actually much less because all these all these services that actually rent GPUs, they don't make that much money.
+
+686
+00:58:00,560 --> 00:58:03,140
+So it's it's probably slightly less, but not that much less.
+
+687
+00:58:04,160 --> 00:58:09,028
+now salary, I said 50 employees, 500k per year.
+
+688
+00:58:10,640 --> 00:58:13,120
+yeah, it's probably the right ballpark, 25 million.
+
+689
+00:58:13,440 --> 00:58:20,548
+so if you put all together around 75 million dollars for training this slammer model.
+
+690
+00:58:21,242 --> 00:58:25,316
+I'm probably off by like 10 million, but but that's kind of right ballpark.
+
+691
+00:58:27,598 --> 00:58:28,640
+Carbon emitted.
+
+692
+00:58:29,120 --> 00:58:33,360
+a lot of people might ask, like, also the cost is not the only thing that is important.
+
+693
+00:58:33,646 --> 00:58:34,884
+So I did the computation.
+
+694
+00:58:35,950 --> 00:58:42,596
+it's around 4.4 uh 4,000 um tons of CO2 equivalent.
+
+695
+00:58:43,118 --> 00:58:47,492
+That is actually only 2,000 return tickets from JFK to London.
+
+696
+00:58:47,854 --> 00:58:56,452
+So right now carbon emitted is actually not I mean it's huge, but it's not like um meaningful yet.
+
+697
+00:58:56,720 --> 00:59:04,132
+I think in maybe GPT-6, GPT-7, once you multiply this by 100, that might become a real issue.
+
+698
+00:59:04,320 --> 00:59:08,676
+Right now it's still not I think an issue in the grand scheme of things.
+
+699
+00:59:09,582 --> 00:59:17,124
+Next model, the way you should be thinking about these models is that every new generation, the number of flops essentially multiplies 10x.
+
+700
+00:59:17,454 --> 00:59:18,372
+Or at least that's what they try.
+
+701
+00:59:18,960 --> 00:59:21,764
+if they have enough energy and if they can buy enough GPUs.
+
+702
+00:59:23,200 --> 00:59:23,600
+great.
+
+703
+00:59:23,854 --> 00:59:26,084
+Any question on these back of the envelope math?
+
+704
+00:59:29,600 --> 00:59:29,920
+No.
+
+705
+00:59:30,320 --> 00:59:30,596
+Okay.
+
+706
+00:59:32,000 --> 00:59:34,372
+So now we talked about pre-training.
+
+707
+00:59:34,800 --> 00:59:38,800
+I wanted to also chat about systems, because now we know compute is really important.
+
+708
+00:59:39,022 --> 00:59:42,852
+So there's a question of how do you optimize the how do you optimize your compute.
+
+709
+00:59:43,150 --> 00:59:46,160
+I will leave that for the end, because I'm not sure how much time we will have.
+
+710
+00:59:46,320 --> 00:59:50,240
+I think it's important, but hopefully I'll be able to to talk about it later.
+
+711
+00:59:50,400 --> 00:59:53,732
+It's slightly different than what we've been talking about right now.
+
+712
+00:59:54,158 --> 00:59:56,036
+So I'll move on to post-training for now.
+
+713
+00:59:56,750 --> 01:00:05,796
+So the task of post-training, the reason why we need to do post-training is as I told you before, it's to make AI assistance.
+
+714
+01:00:06,158 --> 01:00:11,748
+So language modeling is not really the thing that you want when you have an AI assistant.
+
+715
+01:00:12,480 --> 01:00:29,188
+for example, if you ask to GPT-3, which is a purely language model, a pure language model, not an aligned one, if you ask a question like explain the moon landing to a six-year-old, the completion that you would get is something like explain the theory of gravity to a six-year-old.
+
+716
+01:00:29,454 --> 01:00:36,612
+Because what it learned is that on on the internet, if you have one question, you usually have maybe another bullet point of other similar questions.
+
+717
+01:00:36,942 --> 01:00:38,884
+You don't usually have question and an answer later.
+
+718
+01:00:39,440 --> 01:00:42,148
+this is not what you want from an AI assistant.
+
+719
+01:00:43,054 --> 01:00:48,452
+So, how do we do this alignment, which is this post-training and making these models assistants?
+
+720
+01:00:49,326 --> 01:01:01,412
+Um so the goal of this alignment is to basically get LLMs, follow the instructions that are given by users, and maybe some designers' kind of desires.
+
+721
+01:01:02,446 --> 01:01:03,840
+so think about moderation.
+
+722
+01:01:03,920 --> 01:01:08,292
+You don't want the model like OpenAI definitely doesn't want their model to say stuff that is very toxic.
+
+723
+01:01:09,920 --> 01:01:15,360
+So here you see on the left hand side that when you ask a question, it actually provides a real answer.
+
+724
+01:01:15,440 --> 01:01:17,572
+So it's not like before the LLM.
+
+725
+01:01:17,920 --> 01:01:27,972
+And on the right hand side, you see that it would if you ask to write a tweet describing how a certain part of the population are evil, it will say that it cannot do that.
+
+726
+01:01:30,158 --> 01:01:31,652
+so that's kind of this alignment.
+
+727
+01:01:32,640 --> 01:01:45,956
+the background here is that basically the data that you want for training some of these models is like we know what we want, which is just asking humans this is a question, this is the answer that you want.
+
+728
+01:01:46,400 --> 01:01:50,720
+but the thing is that it's very expensive to collect that data and it's hard to find it online.
+
+729
+01:01:51,440 --> 01:01:55,684
+in contrast, pre-training data is not what you want, but there's a lot of it.
+
+730
+01:01:56,480 --> 01:02:07,140
+so what we will do, or the main idea, is simply take a pre-trained large language model, pre-trained on all of internet, and then you just fine-tune, so you just change a little bit the weights on the type of data that you actually want.
+
+731
+01:02:07,406 --> 01:02:21,284
+And hopefully, given it you're already pre-trained on all of internet, it basically learns or knows how to speak in English and knows standard language syntax, then you can really fine-tune it with very little data.
+
+732
+01:02:23,310 --> 01:02:24,356
+Okay, SFT.
+
+733
+01:02:24,846 --> 01:02:34,244
+So supervised fine-tuning is really exactly what I just said, which is the idea of fine-tuning the large language model on basically the desired answers that are collected from humans.
+
+734
+01:02:35,854 --> 01:02:37,760
+so why is it called supervised fine-tuning?
+
+735
+01:02:37,920 --> 01:02:41,520
+Because you basically want to do language modeling on the real answers.
+
+736
+01:02:41,600 --> 01:02:50,640
+So language modeling is this next word prediction, and that's the fine-tuning part, and then you want to do it on desired answers given by humans, so that's why we call it supervised.
+
+737
+01:02:51,470 --> 01:02:52,720
+So, how do we collect this data?
+
+738
+01:02:52,880 --> 01:03:00,644
+Well, I just said it, you just ask humans to tell you this is the this is a question, this is the answer that you would want from some of these models.
+
+739
+01:03:01,006 --> 01:03:02,320
+So this is an example.
+
+740
+01:03:02,510 --> 01:03:09,540
+Um I can't read very well on my computer, but my kid needs to do a science no, let's read this one.
+
+741
+01:03:09,774 --> 01:03:13,680
+Can you write a short introduction about the relevance of the term monopsony?
+
+742
+01:03:13,902 --> 01:03:17,764
+And then it says monopsony refers to market structure, blah blah blah, and it's a human that wrote that.
+
+743
+01:03:19,502 --> 01:03:27,076
+so actually, this is open assistant, which was a way to collect data online by humans.
+
+744
+01:03:28,398 --> 01:03:33,508
+So this type of supervised fine-tuning or alignment is really the key of Chat GPT.
+
+745
+01:03:33,966 --> 01:03:43,972
+This is what made the big jump from GPT-3, which was mostly something that was known by AI researchers, to ChatGPT, which became known by basically everyone.
+
+746
+01:03:47,342 --> 01:03:55,076
+So the problem with human data is that it's very slow to collect and very expensive.
+
+747
+01:03:56,558 --> 01:04:02,820
+so one possible simple idea is to use LLMs to scale data collection.
+
+748
+01:04:03,360 --> 01:04:06,640
+so that's exactly what we did with alpaca one year ago.
+
+749
+01:04:06,830 --> 01:04:11,920
+What we did is that we asked humans, or we use a data set of human question answers.
+
+750
+01:04:12,110 --> 01:04:22,052
+So there were 175 question answers here, and we asked the best model at the time, so Text Event, to basically generate many more of these questions and answers.
+
+751
+01:04:22,414 --> 01:04:27,300
+So all we did is like this is what humans would write, now write similar answers and similar questions.
+
+752
+01:04:27,600 --> 01:04:43,012
+And we collected uh 52,000 LLM generated question answers, and then what we did is simply we took Lamma 7B, which was the best pre-trained model at the time, and we just fine-tuned this with supervised fine-tuning as I told you, and that's how we got the alpaca 7b model.
+
+753
+01:04:45,102 --> 01:04:47,040
+and this is the type of data that we collected.
+
+754
+01:04:47,182 --> 01:04:49,280
+So things like what does algorithm mean?
+
+755
+01:04:49,440 --> 01:04:56,388
+An algorithm is a step by-step set of instruction used to solve a problem or achieve a goal, blah, blah, blah, blah.
+
+756
+01:04:56,560 --> 01:05:02,980
+So the data is not actually it's actually pretty good given it was LM generated by LLMs from essentially two generations ago.
+
+757
+01:05:05,198 --> 01:05:09,828
+so that really started, at least for us, kind of as an academic replication of ChatGPT.
+
+758
+01:05:10,160 --> 01:05:20,196
+Uh now it really there's a big field of like synthetic data generation of how to use LLMs to basically make development of LLMs faster.
+
+759
+01:05:20,560 --> 01:05:24,612
+Um and by basically by decreasing the amount of human hours that you need.
+
+760
+01:05:26,990 --> 01:05:28,004
+Quantity of data.
+
+761
+01:05:28,622 --> 01:05:31,108
+So we talked about what type of data and how we collect it.
+
+762
+01:05:31,584 --> 01:05:35,428
+One thing which is surprising with SFT is that you don't need that much data.
+
+763
+01:05:47,982 --> 01:05:49,604
+So here scaling laws definitely don't help.
+
+764
+01:06:05,744 --> 01:06:10,784
+One that might write bullet points, another one that might answer questi answer question with an answer.
+
+765
+01:06:11,118 --> 01:06:17,104
+So all you tell your model is like, wait, you should actually be optimizing more for this type of user than another one.
+
+766
+01:06:17,358 --> 01:06:24,516
+So you're not actually teaching it and you're not teaching anything through this, uh so supervised fine-tuning.
+
+767
+01:06:24,624 --> 01:06:30,468
+All you do is you tell the model to kind of optimize for one type of user that it saw already in a pre-trained data set.
+
+768
+01:06:31,024 --> 01:06:35,940
+So the knowledge is already in a pre-trained LLM and you basically just specialize to one type of user.
+
+769
+01:06:37,504 --> 01:06:37,824
+Great.
+
+770
+01:06:37,998 --> 01:06:39,076
+Any question on SFT?
+
+771
+01:06:41,166 --> 01:06:41,380
+Yes.
+
+772
+01:06:41,984 --> 01:06:53,904
+So I know it's a big issue with synthetic data where if you keep generating data from the same distribution, eventually you're not learning a new distribution, you're essentially playing with an edge, just bootstrapping that.
+
+773
+01:06:53,984 --> 01:06:57,744
+Yeah, surely you can't scale that forever, right?
+
+774
+01:06:57,824 --> 01:07:00,224
+You can't keep going on and generating from the same distribution.
+
+775
+01:07:00,432 --> 01:07:01,664
+and hope to learn something new.
+
+776
+01:07:01,744 --> 01:07:01,984
+Yeah.
+
+777
+01:07:02,144 --> 01:07:21,424
+Uh so are there it's an active area of research, but any thoughts that you have around how people are maybe thinking around this and better ways to bootstrap or to give up on this idea and and realize that the chart shows you don't need that many to just get humans to generate 2000 ratio uh that's a very good question.
+
+778
+01:07:21,824 --> 01:07:29,584
+so for the data stuff, so I'm saying it's not that important for SFT, but there will be another thing we'll talk about right after where actually data does matter.
+
+779
+01:07:30,064 --> 01:07:45,252
+My intuition based on not that much empirical results is that you can still get even though you use your LLMs, if you use purely LLM generated text and you do that for like three, four generations of LLMs, I agree with you that probably you won't improve much.
+
+780
+01:07:46,062 --> 01:07:49,540
+But for me, what is important is how do you use like human in the loop with LLMs.
+
+781
+01:07:49,984 --> 01:07:58,916
+Not purely LLMs, not purely humans, but maybe what you can do is just have the model regenerate some new text and just humans write a few edits.
+
+782
+01:07:59,278 --> 01:08:01,924
+Edits are much faster than writing the entire text.
+
+783
+01:08:02,158 --> 01:08:11,424
+And I think that if you have that type of collaboration, then from like kind of an information theoretical point of view, you still get additional information, but you're still much faster than if you use humans.
+
+784
+01:08:11,662 --> 01:08:26,468
+And I think that as a field we'll probably move towards these type of things, which is really just finding the examples that are important and asking humans, it's kind of active learning, just asking humans exactly when you need to get the inputs.
+
+785
+01:08:27,984 --> 01:08:28,304
+Yes?
+
+786
+01:08:36,464 --> 01:08:47,184
+Because the examples you showed, I think the important thing of the good examples that's like they're like superfactually accurate, there's these more complex things in that.
+
+787
+01:08:47,744 --> 01:08:48,624
+Still just like train things.
+
+788
+01:08:48,944 --> 01:08:49,344
+Same loss.
+
+789
+01:08:49,504 --> 01:08:52,384
+So that's why here yeah, I maybe didn't emphasize enough.
+
+790
+01:08:52,590 --> 01:08:53,584
+This is just language modeling.
+
+791
+01:08:53,838 --> 01:08:56,624
+Fine-tune the LM with language model on the desired answers.
+
+792
+01:08:56,704 --> 01:08:58,116
+So this is literally the same loss.
+
+793
+01:08:58,544 --> 01:09:01,508
+Um it will be different in two seconds.
+
+794
+01:09:01,824 --> 01:09:08,144
+But the first step of SFT is literally the same loss where you just say, okay, I want to actually specialize on that type of data.
+
+795
+01:09:08,430 --> 01:09:13,584
+So there's even a question of like what is pre-training, what is post-training, because in reality it's just like a different data that you use.
+
+796
+01:09:13,774 --> 01:09:17,380
+The reason why we usually call it post-training is that the way we collect that data is very different.
+
+797
+01:09:19,054 --> 01:09:20,292
+Great, great questions.
+
+798
+01:09:20,846 --> 01:09:21,316
+Uh yes.
+
+799
+01:09:22,030 --> 01:09:30,032
+Maybe it's the same question, but why would these 2000 examples have such an overweighted influence when you're doing fine-tuning?
+
+800
+01:09:30,384 --> 01:09:35,584
+So that's why we uh also that's another reason why we call it post-training, is that we use different types of hyperparameters.
+
+801
+01:09:35,758 --> 01:09:39,908
+So you know I told you basically at the end of pre-training, you essentially end up with a learning rate of zero.
+
+802
+01:09:40,312 --> 01:09:44,100
+and here you're going to increase your learning rate to like one e minus 5, 1e minus, yeah.
+
+803
+01:09:44,384 --> 01:09:49,104
+And so the weight that you give to them is actually different.
+
+804
+01:09:50,144 --> 01:09:52,800
+Um Okay.
+
+805
+01:09:54,080 --> 01:10:04,100
+Second step or second part of this post-training is what we call reinforcement learning from human feedback or RLHF, some of you might have heard of that.
+
+806
+01:10:05,550 --> 01:10:14,436
+The idea is that SFT has a problem, namely that you do behavioral cloning, which means that you just try to clone what the humans would say.
+
+807
+01:10:14,702 --> 01:10:16,356
+And that has many issues.
+
+808
+01:10:16,686 --> 01:10:18,948
+One of them is that you're bound by human abilities.
+
+809
+01:10:19,600 --> 01:10:28,260
+So if like humans actually humans won't generate the things that they think is actually the best thing to generate.
+
+810
+01:10:28,654 --> 01:10:32,240
+So if you ask me to write a book, I mean I can definitely enjoy a book.
+
+811
+01:10:32,320 --> 01:10:37,476
+I can probably say one book is better than another, but I'm definitely not gonna be as good as writing the book that I want to read.
+
+812
+01:10:38,000 --> 01:10:43,396
+so you're gonna be bound by the human ability to generate things, even though the humans might be better at distinguishing between things.
+
+813
+01:10:43,854 --> 01:10:44,516
+That's one issue.
+
+814
+01:10:44,910 --> 01:10:45,796
+Issue number two.
+
+815
+01:10:46,240 --> 01:10:50,960
+I find that actually pretty interesting, is that it might if you ever heard of the word hallucination.
+
+816
+01:10:51,040 --> 01:10:57,200
+so this is LLMs generating uh fake, like false information, hallucination might.
+
+817
+01:10:57,280 --> 01:11:01,956
+or these people have hypothesized that that can come from the supervised fine tuning.
+
+818
+01:11:02,160 --> 01:11:05,828
+even if you do supervised fine tuning on data that is correct.
+
+819
+01:11:06,350 --> 01:11:17,028
+And the reason why that is, is that if given I told you that basically SFT is with very little data and it's with data that the model doesn't learn anything new.
+
+820
+01:11:17,550 --> 01:11:22,916
+So what if the human gives an answer that the model didn't know was true?
+
+821
+01:11:23,566 --> 01:11:32,932
+From the model perspective, you the human basically is telling the the model uh generate this thing that seems plausible, but actually have no idea if it's true or not.
+
+822
+01:11:33,520 --> 01:11:41,412
+Um so just to give you a very concrete example, if we go back to this uh monopsony example, can you write blah blah blah about monopsony?
+
+823
+01:11:41,760 --> 01:11:45,668
+imagine that a human wrote a reference on this type of book.
+
+824
+01:11:46,638 --> 01:11:49,028
+and that book might exist, that might be a correct reference.
+
+825
+01:11:49,422 --> 01:11:52,560
+But what if the LLM never saw this reference during pre-training?
+
+826
+01:11:52,750 --> 01:11:54,436
+Then it doesn't know that it's a correct reference.
+
+827
+01:11:54,734 --> 01:12:04,812
+So really what you tell the model is to generate or make up some plausibly sounding reference rather than actually tell the real reference that it saw during pre-training.
+
+828
+01:12:05,614 --> 01:12:07,120
+so hallucination
+
+829
+01:12:10,670 --> 01:12:12,260
+might be caused by this SFT.
+
+830
+01:12:12,560 --> 01:12:13,680
+that's problem number two.
+
+831
+01:12:14,160 --> 01:12:15,044
+does that all make sense?
+
+832
+01:12:15,758 --> 01:12:16,004
+Great.
+
+833
+01:12:16,526 --> 01:12:17,988
+Problem number three, price.
+
+834
+01:12:18,510 --> 01:12:21,600
+Generating the ideal answers is very pricey.
+
+835
+01:12:21,680 --> 01:12:27,012
+And that comes back to your question of like humans writing the entire answer is actually pretty expensive.
+
+836
+01:12:28,320 --> 01:12:30,148
+so that's where LHF comes in.
+
+837
+01:12:30,400 --> 01:12:36,100
+The idea is that instead of cloning the behaviors of humans, we're going to maximize human preference.
+
+838
+01:12:37,120 --> 01:12:45,060
+and the way we're going to do that, so the pipeline, is that for a certain for every instruction, you're going to ask a model to generate two answers.
+
+839
+01:12:46,574 --> 01:12:48,080
+and usually use a pretty good model.
+
+840
+01:12:48,160 --> 01:12:56,516
+So you usually don't use an LLM here, you use uh uh SFT uh fine-tune, or you use a fine-tuned LLM already to give like pretty good answers.
+
+841
+01:12:57,198 --> 01:13:00,960
+And then you ask labelers which of these two answers was better.
+
+842
+01:13:01,294 --> 01:13:10,720
+So select the preferred one, and then with different type of algorithms, we're going to talk about the algorithms, And you just fine-tune the model to generate more of the green thing than the red thing.
+
+843
+01:13:10,926 --> 01:13:11,812
+So more of the good stuff.
+
+844
+01:13:12,720 --> 01:13:15,236
+so now the question is how, and we're going to talk about that right now.
+
+845
+01:13:17,358 --> 01:13:22,212
+So there are two ways that we're going to talk about, and two that are mainly used in the community.
+
+846
+01:13:22,560 --> 01:13:26,320
+Um the first one is simply the idea of using reinforcement learning.
+
+847
+01:13:26,446 --> 01:13:29,156
+So hopefully you all know what reinforcement learning is now.
+
+848
+01:13:30,350 --> 01:13:36,004
+so when you think about using reinforcement learning, one important question is like what is the reward that we're optimizing?
+
+849
+01:13:36,302 --> 01:13:39,680
+Uh so in this case, there are really two options that I could think about.
+
+850
+01:13:39,854 --> 01:13:51,680
+The first one, you could just say, I'm going to compare the output generated by some baseline, the output generated by my model, and I'm just gonna ask the human to say which one is better, and I'm going to use this as a reward.
+
+851
+01:13:51,854 --> 01:13:55,520
+So if I'm better than the baseline, this is a plus one, if not it's a minus one.
+
+852
+01:13:55,840 --> 01:13:57,360
+so now it's binary reward.
+
+853
+01:13:57,520 --> 01:14:01,444
+The problem with binary reward is that it's very sparse and you don't get much information out of it.
+
+854
+01:14:01,680 --> 01:14:10,148
+Uh like maybe your answer was slightly better, maybe it was like way better, and you don't really know from this um how much better it was.
+
+855
+01:14:11,118 --> 01:14:16,100
+So option two is that you can train what we call a reward model, which is simply a classifier.
+
+856
+01:14:16,720 --> 01:14:26,084
+So you use machine learning to classify how much better two outputs are from the preference from the perspective of the human.
+
+857
+01:14:26,560 --> 01:14:28,640
+Um so this is a little bit meta.
+
+858
+01:14:28,974 --> 01:14:35,840
+But what you basically do is that you train, uh, you take um reward model R, which is uh, uh, just a large line.
+
+859
+01:14:36,160 --> 01:14:39,140
+also a large um, a large classifier.
+
+860
+01:14:39,502 --> 01:14:41,520
+and you basically ask this reward model.
+
+861
+01:14:41,600 --> 01:14:48,320
+you give it the input and the actual output that you have, one of the two outputs, and you just exponentiate that.
+
+862
+01:14:48,400 --> 01:14:50,692
+so that's the softmax loss that you all know about.
+
+863
+01:14:50,894 --> 01:14:56,160
+and now you divide by um, the exponentiated reward.
+
+864
+01:14:56,320 --> 01:14:58,480
+uh, on the first example.
+
+865
+01:14:58,640 --> 01:15:01,280
+I'm sorry, on the first output, and this is on the second output.
+
+866
+01:15:01,422 --> 01:15:13,252
+And you basically train, so the reason why you do that is that you train your your model, you train this reward model to be able to classify how much better one output is to another one.
+
+867
+01:15:13,582 --> 01:15:22,372
+So another slightly less convoluted way of saying it is that your reward model will output some reward that will be used as the logits of your softmax.
+
+868
+01:15:22,800 --> 01:15:31,076
+So now if you have high logits in your softmax, it means that highly likely this output is better.
+
+869
+01:15:32,640 --> 01:15:34,532
+so that's what we call Bradley Terry model.
+
+870
+01:15:34,960 --> 01:15:35,200
+Yes?
+
+871
+01:15:35,886 --> 01:15:39,780
+Is this reward model going over the entire output or is it going by the right?
+
+872
+01:15:40,480 --> 01:15:41,360
+Um so
+
+873
+01:15:45,520 --> 01:15:46,880
+this takes the entire output at once.
+
+874
+01:15:46,960 --> 01:15:49,764
+So it takes all the input and all the output, and it gives one number.
+
+875
+01:15:50,734 --> 01:15:50,980
+Yes?
+
+876
+01:15:51,520 --> 01:15:54,960
+So um there's a lot of these over this reward model, where would a human be then?
+
+877
+01:15:55,200 --> 01:15:55,520
+Sorry?
+
+878
+01:15:55,760 --> 01:15:58,160
+With the reward model, where would a human be?
+
+879
+01:15:58,720 --> 01:15:59,280
+oh I see.
+
+880
+01:15:59,440 --> 01:16:00,080
+Uh huh.
+
+881
+01:16:00,400 --> 01:16:02,052
+Okay, sorry, maybe I wasn't clear.
+
+882
+01:16:03,040 --> 01:16:09,668
+you train this reward model to fit this green and red preference from humans.
+
+883
+01:16:10,062 --> 01:16:14,820
+So basically you train a classifier to say whether the humans prefer red or green.
+
+884
+01:16:15,920 --> 01:16:22,916
+but instead of using the binary reward, which is what the human would tell you, you basically use the logits of the softmax.
+
+885
+01:16:23,342 --> 01:16:26,468
+And the thing with the logits is that logits are continuous.
+
+886
+01:16:26,830 --> 01:16:34,916
+So now you know that if your reward model said it has high logits, then in some ways the human highly preferred this answer to some other answer.
+
+887
+01:16:37,166 --> 01:16:37,540
+Great.
+
+888
+01:16:39,118 --> 01:16:41,440
+so as I just said, continuous information says better.
+
+889
+01:16:41,582 --> 01:16:45,060
+So that's what people use in practice, or at least used to use in practice.
+
+890
+01:16:45,614 --> 01:16:47,940
+I'll tell you about the other algorithm later.
+
+891
+01:16:48,320 --> 01:16:53,520
+so what you do at the end is that you basically try to just use reinforcement learning that you know about.
+
+892
+01:16:53,680 --> 01:16:55,600
+Now we know we have our reward.
+
+893
+01:16:55,760 --> 01:16:59,332
+What you sample through is the generation from your large language model.
+
+894
+01:17:00,080 --> 01:17:02,122
+and then you just use some regularization terms.
+
+895
+01:17:02,160 --> 01:17:06,720
+So the reason why we do this regularization term is for avoiding what we call overoptimization.
+
+896
+01:17:06,862 --> 01:17:15,556
+So this reward model might not perfectly model human preferences, so you don't want to maximize this thing to essentially infinity.
+
+897
+01:17:17,326 --> 01:17:23,428
+and you do it using PPO, which is a common reinforcement learning algorithm.
+
+898
+01:17:24,480 --> 01:17:37,956
+one thing to note here, because it will be important for later, is that when we use maximum likelihood, um sorry, now the large language models are actually a policy for your reinforcement learning.
+
+899
+01:17:38,240 --> 01:17:43,812
+It's not maximizing maximum likelihood anymore, which means that you're not modeling any distribution anymore.
+
+900
+01:17:44,206 --> 01:17:52,548
+And the reason why this is important is that models that went through this type of PPO actually don't give you likelihoods of text that are meaningful.
+
+901
+01:17:52,720 --> 01:17:57,860
+Because what you optimize them to do is basically just optimize for generating the most likely thing.
+
+902
+01:17:58,400 --> 01:18:02,240
+Not optimize for modeling like all the answers that humans might say.
+
+903
+01:18:02,480 --> 01:18:11,332
+Another way of saying that is that there's nothing that incentivizes here the model to not give a like a um a single possible generation.
+
+904
+01:18:11,600 --> 01:18:16,036
+Nothing here says it's good if you have some distribution with some entropy.
+
+905
+01:18:18,000 --> 01:18:20,836
+if you haven't followed, it's not that important, but just good to know.
+
+906
+01:18:22,192 --> 01:18:22,436
+Great.
+
+907
+01:18:23,232 --> 01:18:27,152
+So PPO is exactly what ChatGPT did originally.
+
+908
+01:18:27,374 --> 01:18:29,152
+So here's the on their blog post.
+
+909
+01:18:29,472 --> 01:18:34,532
+Um what they have is step one, do supervised fine training, which now you all know about.
+
+910
+01:18:34,862 --> 01:18:37,668
+Step two, train a reward model on human preferences.
+
+911
+01:18:38,126 --> 01:18:43,072
+Step three, do PPO, multiple steps, which is where you see this this blue arrow.
+
+912
+01:18:43,278 --> 01:18:46,980
+So you continue you train the model once with the PPO, you collect new data, you continue.
+
+913
+01:18:47,552 --> 01:18:49,924
+And that's exactly what ChatGPT did.
+
+914
+01:18:50,592 --> 01:18:54,372
+That was the big breakthrough between GPT-3 and ChatGPT.
+
+915
+01:18:55,374 --> 01:18:58,692
+One thing to note is that PPO has many challenges.
+
+916
+01:18:59,054 --> 01:19:02,180
+Reinforcement learning is something that's super nice theoretically.
+
+917
+01:19:02,432 --> 01:19:05,956
+In practice, anyone who ever worked with reinforcement learning knows it's such a mess.
+
+918
+01:19:06,512 --> 01:19:10,788
+there's a lot of things like rollouts, outer loops, clipping, so many complications.
+
+919
+01:19:12,238 --> 01:19:12,900
+So it's messy.
+
+920
+01:19:13,152 --> 01:19:15,872
+This is the idealized PPO used for LM settings.
+
+921
+01:19:15,952 --> 01:19:19,044
+So that's already much more complicated than this expectation we saw before.
+
+922
+01:19:19,278 --> 01:19:20,992
+And in practice, it's actually much more complicated.
+
+923
+01:19:21,072 --> 01:19:31,712
+So we have one implementation of it that we had to do, and I'm not going to go through it, but basically you have so much stuff that you have to think about when you implement that type of PPO algorithm.
+
+924
+01:19:31,872 --> 01:19:37,124
+So you have clipping everywhere, you have a lot of complexities, and things are not well documented.
+
+925
+01:19:37,710 --> 01:19:48,324
+All this to say that there was a new method that was proposed also from Stanford one year ago called DPO, which is essentially a simplification of PPO.
+
+926
+01:19:49,902 --> 01:20:01,732
+and the way what they did, or the idea that they have is that instead of using reinforcement learning, you can just maximize the probability of generating the stuff that you like and minimizing the probability of the stuff that you don't like.
+
+927
+01:20:02,432 --> 01:20:07,716
+so if you think about the human preference, the red and green, maximize green, minimize red.
+
+928
+01:20:09,102 --> 01:20:16,352
+so the loss is actually this one, where what you see this is simply some log of the model.
+
+929
+01:20:16,718 --> 01:20:21,892
+So this is the likelihood of the model generating the things that the human preferred given the inputs.
+
+930
+01:20:23,502 --> 01:20:35,312
+and what you try to do is basically maximize the likelihood of generating the things that you like, minimize the likelihood of the things that you don't like, all the rest of the terms.
+
+931
+01:20:35,502 --> 01:20:39,748
+Here it's not too important, it's actually really not that complicated to understand.
+
+932
+01:20:40,014 --> 01:20:44,324
+But at a high level, it's really just maximizing the things you like, minimizing the rest.
+
+933
+01:20:45,632 --> 01:21:00,836
+and one thing to note, which I was going to say just here, is that actually all the rest is chosen such that the global minima of PPO and the global minima of like this DPO under some assumptions are essentially equivalent.
+
+934
+01:21:01,232 --> 01:21:04,272
+So this is the right thing to do mathematically.
+
+935
+01:21:04,494 --> 01:21:07,620
+I'm not going to go through the derivations, but that's the right thing to do.
+
+936
+01:21:08,112 --> 01:21:17,412
+it's pretty different with PPO in the sense that now with PPO, what you had to do is collect the human preferences, then train a uh reward model with maximum likelihood, then use reinforcement learning.
+
+937
+01:21:17,552 --> 01:21:19,300
+Now all you do is basically maximum likelihood.
+
+938
+01:21:19,822 --> 01:21:20,228
+Much simpler.
+
+939
+01:21:20,512 --> 01:21:20,752
+Yes?
+
+940
+01:21:21,102 --> 01:21:29,472
+I mean, yeah, so it seems like this is A, much simpler, and B like what you would just intuitively do with your why did they start with this reward model?
+
+941
+01:21:29,792 --> 01:21:31,472
+Like what led them to doing that?
+
+942
+01:21:31,792 --> 01:21:32,900
+I think it's a great question.
+
+943
+01:21:33,312 --> 01:21:34,192
+I don't really know.
+
+944
+01:21:34,510 --> 01:21:38,512
+What I can tell you is that at OpenAI, the people who did
+
+945
+01:21:42,992 --> 01:21:47,172
+Chat GPT initially are the ones who actually wrote PPO.
+
+946
+01:21:47,566 --> 01:21:50,692
+And I think there were just like there are a lot of reinforcement learning people.
+
+947
+01:21:51,022 --> 01:21:52,996
+And I think that for them it was very intuitive.
+
+948
+01:21:53,712 --> 01:21:58,212
+Um so there's also some additional like potential benefits.
+
+949
+01:21:58,446 --> 01:22:08,192
+For example, I don't want to yeah, for example, if you use the reward model, uh the cool thing here with reinforcement learning is that you can use unlabeled data with the reward model.
+
+950
+01:22:08,352 --> 01:22:11,524
+So here you can only use the label data for doing DPO.
+
+951
+01:22:12,046 --> 01:22:21,232
+Um for PPO for PPO, you first train your reward model, and then you can use unlabeled data uh where the reward model will basically label this unlabeled data.
+
+952
+01:22:21,390 --> 01:22:26,852
+So there's additional kind of potential there could be potential improvements.
+
+953
+01:22:27,118 --> 01:22:29,072
+In practice, it happens that they're on and on.
+
+954
+01:22:29,392 --> 01:22:36,922
+And I think it's just that a lot of people in this team were reinforcement learning experts, including the main author of PPO, John Shulman.
+
+955
+01:22:39,040 --> 01:22:42,788
+So much simpler in PPO, and it basically performs as well.
+
+956
+01:22:43,120 --> 01:22:45,892
+So now this is the standard thing that people use.
+
+957
+01:22:46,286 --> 01:22:51,108
+At least in the open source community, I believe it's actually the standard also in industry.
+
+958
+01:22:52,270 --> 01:22:53,508
+that's called DPO.
+
+959
+01:22:54,126 --> 01:22:57,600
+Gains, um, so those are all the papers on the left.
+
+960
+01:22:57,680 --> 01:22:59,460
+Here, this is on a summarization task.
+
+961
+01:22:59,680 --> 01:23:05,680
+You see, all I want to show you is that basically the pre-trained models uh were okay and they improved with scale.
+
+962
+01:23:05,870 --> 01:23:08,640
+If you do supervised fine-tuning, you improve them a little bit more.
+
+963
+01:23:08,800 --> 01:23:18,480
+If you do PPO or something with RLHF with human feedback, you get performance that are oftentimes, depending on a benchmark, even better than humans.
+
+964
+01:23:18,574 --> 01:23:20,964
+So this is the human reference summaries.
+
+965
+01:23:21,646 --> 01:23:35,680
+Same thing, this is on a paper that we have alpaca farm, where we see the evaluation here is not too important, but basically you see pre-trained model, you jump to SFT, and then you jump to PPO DPO and PPO DPO have the exact same performance.
+
+966
+01:23:36,910 --> 01:23:38,372
+So basically all HF helps.
+
+967
+01:23:38,830 --> 01:23:41,124
+That's kind of the conclusion, and DPO is simple.
+
+968
+01:23:42,480 --> 01:23:50,436
+data, the way that you collect that type of data, first idea is just use humans, as we already talked about.
+
+969
+01:23:50,960 --> 01:23:55,600
+guidelines are very complicated for what humans should be labeling, and it's really not that easy.
+
+970
+01:23:55,758 --> 01:24:01,200
+And actually, if you ever do some of the labeling, you will see that it's extremely complicated.
+
+971
+01:24:01,422 --> 01:24:04,960
+Like if I zoom into this, here I have a question.
+
+972
+01:24:05,134 --> 01:24:07,520
+Tell me about self-driving cars.
+
+973
+01:24:07,790 --> 01:24:11,920
+And you read both self-driving cars are vehicles that are capable of detecting their surroundings, blah blah blah.
+
+974
+01:24:12,142 --> 01:24:16,640
+Self-driving cars are cars that are equipped with sensors, blah blah blah, to navigate without the need for a driver.
+
+975
+01:24:16,800 --> 01:24:17,920
+I mean, both seem okay.
+
+976
+01:24:18,190 --> 01:24:19,120
+Like which one is better?
+
+977
+01:24:19,374 --> 01:24:20,932
+It's actually hard to say at a glance.
+
+978
+01:24:22,030 --> 01:24:28,480
+and as a result, the problem with humans is that you will start optimizing a lot of like high-level features.
+
+979
+01:24:28,640 --> 01:24:30,080
+For example, the second one is longer.
+
+980
+01:24:30,240 --> 01:24:33,028
+I can guarantee you that most humans will choose the second one.
+
+981
+01:24:33,440 --> 01:24:35,680
+Even though I mean maybe the first one is better.
+
+982
+01:24:35,760 --> 01:24:36,004
+I don't know.
+
+983
+01:24:36,494 --> 01:24:37,572
+I haven't read it carefully.
+
+984
+01:24:38,638 --> 01:24:41,476
+So, challenges with humans, first, slow and expensive.
+
+985
+01:24:42,734 --> 01:24:47,268
+second, as I just mentioned, it's hard to focus on things that matter, like correctness.
+
+986
+01:24:47,520 --> 01:24:52,420
+And people usually look at things that don't matter as much, like the form, like length.
+
+987
+01:24:53,440 --> 01:25:01,280
+and as a result, so what I show here is that when you do RHF, the more you do of LHF, the longer the output of the of the models become.
+
+988
+01:25:01,518 --> 01:25:07,140
+So if you've ever been annoyed at ChatGPT answering you super long sentences, this is because of RHF.
+
+989
+01:25:07,920 --> 01:25:10,084
+Umnotator distribution shift.
+
+990
+01:25:10,480 --> 01:25:14,660
+Uh like the distribution of annotators that you use matters a lot.
+
+991
+01:25:14,958 --> 01:25:19,428
+And you have to think like what is what is even the humans that we want to represent in these models.
+
+992
+01:25:19,982 --> 01:25:21,988
+another question is like crowdsourcing ethics.
+
+993
+01:25:22,480 --> 01:25:36,196
+Uh like usually these basically a lot of the labeling that is done, um, like the people who do them are not paid well, and they have to go through a lot of toxic data because you basically want the model to avoid saying the toxic data.
+
+994
+01:25:37,134 --> 01:25:38,980
+so crowdsourcing ethics too.
+
+995
+01:25:40,334 --> 01:25:42,340
+So many challenges with human data.
+
+996
+01:25:43,310 --> 01:25:51,268
+so what we did also last year is again the same thing as alpaca, just the idea of like, oh well, there are challenges with humans, maybe we can just replace them with LLMs.
+
+997
+01:25:52,000 --> 01:25:56,320
+so what we did is simply replace oh, I see that.
+
+998
+01:25:57,038 --> 01:25:58,788
+I'm just realizing that the slides are not centered.
+
+999
+01:25:58,960 --> 01:26:02,308
+Anyways, you replace uh human preference with LLM preferences.
+
+1000
+01:26:02,880 --> 01:26:09,200
+so here on this figure you see on the x-axis the price that we paid for collecting human data.
+
+1001
+01:26:09,280 --> 01:26:20,640
+It's around $300 for 1,000 examples, and this is on mechanical Turkers, which are usually like cheaper than maybe some of the other companies that you could go through.
+
+1002
+01:26:20,846 --> 01:26:26,692
+And on the y-axis, it's basically the agreement with other humans, with the mode of other humans.
+
+1003
+01:26:27,118 --> 01:26:30,560
+And what you see is that actually, as I told you before, labeling is really complicated.
+
+1004
+01:26:30,800 --> 01:26:35,812
+Humans agree with themselves only around 66% of the time on a binary task.
+
+1005
+01:26:36,160 --> 01:26:41,360
+And it's not that the humans are not good here because we were five main authors on this paper.
+
+1006
+01:26:41,520 --> 01:26:51,268
+We tried to label this data ourselves, and we only had like say 67 or 68% accuracy, even though we talked for like three hours of how we should be doing labeling.
+
+1007
+01:26:51,438 --> 01:26:53,668
+But really, it's complicated, it's not an easy task.
+
+1008
+01:26:54,320 --> 01:27:04,420
+and here I just showed many different models, and basically you see that models are much cheaper and they can actually get higher agreement with the mode of humans than humans themselves.
+
+1009
+01:27:04,782 --> 01:27:10,468
+And the reason why is because humans have a lot of variance, models have no variance, so they might be a little bit more biased but have less variance.
+
+1010
+01:27:11,054 --> 01:27:16,640
+Uh so it works surprisingly well, and now it's kind of the standard in open source community.
+
+1011
+01:27:16,720 --> 01:27:23,908
+I think even in an industry, a lot of people use both humans and LLMs for improving the collection of all HF data.
+
+1012
+01:27:25,198 --> 01:27:31,920
+and this is like this is the paper from last year, but honestly, now it's more like That LLMs would be around this agreement and this cost.
+
+1013
+01:27:32,000 --> 01:27:37,540
+So around, I would say, 50x cheaper than humans and better agreement with human than humans themselves.
+
+1014
+01:27:39,054 --> 01:27:43,172
+Okay, so that gets us to evaluation of post-training.
+
+1015
+01:27:44,270 --> 01:27:47,840
+Um that goes back to your initial question at the beginning of the lecture.
+
+1016
+01:27:48,000 --> 01:27:49,828
+How do you evaluate something like ChatGPT?
+
+1017
+01:27:50,190 --> 01:27:54,020
+Uh the answers that ChatGPT could give are basically unbounded.
+
+1018
+01:27:54,574 --> 01:27:56,320
+And it's not that there's one right answer.
+
+1019
+01:27:56,430 --> 01:27:58,244
+There are many answers that are just as good.
+
+1020
+01:27:59,406 --> 01:28:00,292
+so there are many challenges.
+
+1021
+01:28:00,640 --> 01:28:08,708
+One, you can't use validation loss because one method might use PPO, the other one might use DPO, validation loss is not comparable.
+
+1022
+01:28:09,198 --> 01:28:11,748
+Second, you can't use perplexity.
+
+1023
+01:28:11,918 --> 01:28:13,156
+That's the thing I told you before.
+
+1024
+01:28:13,520 --> 01:28:19,280
+These models are not calibrated, they don't give distributions, they just optimize for one thing.
+
+1025
+01:28:19,502 --> 01:28:23,780
+So you can't use perplexity for actually evaluating these type of models once they're aligned.
+
+1026
+01:28:24,526 --> 01:28:25,444
+Sorry, once they're aligned.
+
+1027
+01:28:26,734 --> 01:28:30,948
+Third, there's a large diversity of questions that humans might ask to these models.
+
+1028
+01:28:31,200 --> 01:28:35,920
+Generation, open QA, like some question answering, some summarization, and all of these things.
+
+1029
+01:28:36,014 --> 01:28:37,444
+So there's so many things you have to cover.
+
+1030
+01:28:39,118 --> 01:28:42,400
+then the tasks are really open-ended, so it's very hard to automate.
+
+1031
+01:28:42,480 --> 01:28:45,040
+So that's what you were alluding to before.
+
+1032
+01:28:45,518 --> 01:29:01,440
+So the idea is that instead of trying to come up with really easily automated benchmarks, it's just we're going to ask questions that users actually ask to these models in practice, and we're just going to ask annotators to say between these two models which one is better.
+
+1033
+01:29:01,614 --> 01:29:02,880
+Like what's the what's the better output?
+
+1034
+01:29:03,118 --> 01:29:09,988
+So you basically do the exact same thing as um basically the data from RLHF, but you use it now for evaluation.
+
+1035
+01:29:10,160 --> 01:29:10,320
+Yes?
+
+1036
+01:29:10,640 --> 01:29:14,320
+I'm not sure I understand what you mean by like you can't use perplexity and not calibrate it, right?
+
+1037
+01:29:14,400 --> 01:29:18,084
+Like LLM is still doing next token prediction, right?
+
+1038
+01:29:18,606 --> 01:29:21,040
+Um I can't complexity be good code.
+
+1039
+01:29:21,360 --> 01:29:36,612
+So think about the optimal solution after doing PPO is basically one model that gives you essentially a delta um, like basically says that there's only one sentence that could be generated for that question.
+
+1040
+01:29:37,070 --> 01:29:43,556
+So now if you use it on something that is slightly semantically different, it would actually give a likelihood of zero for that answer.
+
+1041
+01:29:44,430 --> 01:29:54,880
+So in reality, it's not that extreme, because as you say, it's still a distribution, but it just shows you that there's a fundamental issue with perplexity once these models are not LLMs anymore.
+
+1042
+01:29:54,960 --> 01:29:59,044
+They were not trained, at least with PPO, they were not trained to do maximum likelihood anymore.
+
+1043
+01:29:59,214 --> 01:30:00,292
+They were trained to be policies.
+
+1044
+01:30:03,150 --> 01:30:06,916
+Okay, um, so probably the most common or the the most.
+
+1045
+01:30:07,040 --> 01:30:07,360
+um.
+
+1046
+01:30:08,160 --> 01:30:08,480
+yeah.
+
+1047
+01:30:08,560 --> 01:30:15,200
+the most common benchmark or the most trusted one is what we call chatbot arena, which is basically go on.
+
+1048
+01:30:15,280 --> 01:30:17,360
+internet, have random users on the internet.
+
+1049
+01:30:17,710 --> 01:30:19,812
+blindly talk with two chatbots.
+
+1050
+01:30:20,000 --> 01:30:21,200
+just ask many questions.
+
+1051
+01:30:21,486 --> 01:30:23,716
+see the two answers, and rate, which one is better.
+
+1052
+01:30:23,920 --> 01:30:30,532
+And you do that over hundreds of thousands of users, and then you get the actual preferences and you get rankings of models.
+
+1053
+01:30:31,040 --> 01:30:35,140
+so you can go right now on chatbot arena and actually interact with these models.
+
+1054
+01:30:36,142 --> 01:30:47,204
+one potential issue, just to highlight, is that while people who want to do these type of things are usually more like tech driven or like tech savvy, so a lot of the questions that you will ask are more like tech stuff.
+
+1055
+01:30:47,470 --> 01:30:51,108
+Discussing software errors, inquiries about AI tools, and all of these things.
+
+1056
+01:30:53,006 --> 01:30:54,800
+So another issue is cost and speed.
+
+1057
+01:30:54,990 --> 01:31:02,532
+If you really want to use something like this for development process, it will be too costly because you will need to basically pay a lot of humans to do that.
+
+1058
+01:31:03,982 --> 01:31:09,508
+So, one simple idea is again, as we said many times, just use LM instead of humans.
+
+1059
+01:31:10,416 --> 01:31:12,452
+You probably know the drill at this point.
+
+1060
+01:31:13,198 --> 01:31:18,532
+Steps for every instruction generate outputs by some baseline and a model that you want to evaluate.
+
+1061
+01:31:19,376 --> 01:31:24,256
+So here you imagine that I'm comparing an answer from ChatGPT and from Mistral.
+
+1062
+01:31:24,656 --> 01:31:31,876
+I'm just asking a model, another model, which one is better, and I just basically average that out.
+
+1063
+01:31:32,270 --> 01:31:45,796
+Yeah, I ask GPT4 which one is better, I average that out over my entire distribution, over my entire benchmark or data set, and that gives me a win rate, so win probability for one model compared to another one, and now you can rank models.
+
+1064
+01:31:46,656 --> 01:31:49,316
+And this is the alpaca eval leaderboard.
+
+1065
+01:31:50,542 --> 01:31:57,572
+So the benefits of this is that actually we show we get 98% correlation with chatbot arena so very high correlation with humans.
+
+1066
+01:31:58,062 --> 01:32:05,284
+so this is yeah, comparison with correlation with other benchmarks, and it takes less than three minutes and less than $10 to run.
+
+1067
+01:32:05,616 --> 01:32:06,020
+So it's pretty cheap.
+
+1068
+01:32:07,136 --> 01:32:08,388
+there are downsides though.
+
+1069
+01:32:08,816 --> 01:32:10,532
+one of them is purus correlation.
+
+1070
+01:32:11,758 --> 01:32:16,576
+so as we already saw before, LMs prefer, this is one spurious correlation, not many.
+
+1071
+01:32:16,656 --> 01:32:17,456
+I'll just talk about one.
+
+1072
+01:32:17,646 --> 01:32:18,896
+LMs prefer longer outputs.
+
+1073
+01:32:18,976 --> 01:32:25,988
+Actually, humans also prefer longer outputs, but the problem or the issue once you use LLMs is that once there's bias, you will continue optimizing that.
+
+1074
+01:32:26,350 --> 01:32:32,336
+Humans at some point, I can guarantee you, if I ask a simple question and you give me five pages of answers, I'll be like, no, I don't like that answer.
+
+1075
+01:32:32,590 --> 01:32:36,836
+But LMs, if they have this bias and they were trained for that, they will continue preferring longer outputs.
+
+1076
+01:32:37,838 --> 01:32:45,060
+So here we see um the the preference just showing that like humans and models prefer longer outputs.
+
+1077
+01:32:46,446 --> 01:33:05,856
+and here is another view of the initial alpaca eval data set uh benchmark where when we asked um when we rank GPT-4, when we look at the rin rate of GPT-4 versus actually GPT-4 itself, if we use the standard GPT-4, it gets 50% kind of by definition, because we're comparing GPT-4 versus GPT-4.
+
+1078
+01:33:06,176 --> 01:33:14,308
+But if we ask GPT-4 to be slightly more verbose, so we just say in the prompt, be verbose in your answers, then it gets a rin rate of 64.4%.
+
+1079
+01:33:14,926 --> 01:33:16,496
+So really there's a huge variance.
+
+1080
+01:33:16,576 --> 01:33:18,496
+And if we ask it to be concise, it gets 20%.
+
+1081
+01:33:18,926 --> 01:33:23,972
+So there's a huge variance depending on whether you ask it to be concise or verbose.
+
+1082
+01:33:24,270 --> 01:33:25,092
+That's very annoying.
+
+1083
+01:33:26,158 --> 01:33:31,376
+so one possible solution, which is what we did, is just use some regression analysis.
+
+1084
+01:33:31,536 --> 01:33:35,748
+I'm not going to go into details, but basically use causal inference tools to control for length.
+
+1085
+01:33:36,096 --> 01:33:38,724
+And right now, actually length matters much less.
+
+1086
+01:33:38,896 --> 01:33:43,056
+So if you ask it to be verbose, you still get some gains, but much less.
+
+1087
+01:33:44,336 --> 01:33:44,816
+Great.
+
+1088
+01:33:45,102 --> 01:33:46,736
+So that's all about post-training.
+
+1089
+01:33:46,816 --> 01:33:51,108
+And now for the next eight minutes, I might talk about systems or just answer questions.
+
+1090
+01:33:51,456 --> 01:33:51,696
+Yes?
+
+1091
+01:33:54,126 --> 01:33:55,616
+Go back to your post-training.
+
+1092
+01:33:55,696 --> 01:34:05,216
+In terms of post training how did we tune those parameters using the small body of fine-tuning data and have such a big effect on the model?
+
+1093
+01:34:05,376 --> 01:34:08,656
+You mentioned earlier that it's a different set of hyperparameters.
+
+1094
+01:34:08,910 --> 01:34:12,576
+Are we changing just some of the weights, the later weights, or all of the weights?
+
+1095
+01:34:12,736 --> 01:34:13,696
+What's actually happening?
+
+1096
+01:34:14,096 --> 01:34:16,420
+Yeah, yeah, I kind of skimmed through all of this.
+
+1097
+01:34:16,686 --> 01:34:17,476
+You change all the weights.
+
+1098
+01:34:17,936 --> 01:34:20,388
+Actually, um, industry would change all the weights.
+
+1099
+01:34:20,750 --> 01:34:27,460
+In open source land, you might have heard of LoRa, which is going to change it basically only some of the weights.
+
+1100
+01:34:27,790 --> 01:34:33,124
+Or it actually, to be more specific, it's gonna add some differences to the output of every of every layer.
+
+1101
+01:34:33,358 --> 01:34:36,416
+But but in industry, you're gonna just fine-tune all the weights.
+
+1102
+01:34:36,816 --> 01:34:45,508
+Um and also to say something else about the data, actually this last step RHF, you're usually gonna collect a lot more data than with SFT.
+
+1103
+01:34:45,806 --> 01:34:55,296
+So if FSFT is like five thousand, ten thousand, maybe 50,000, with RHF, I think you're going to be more around like the one million order of magnitude.
+
+1104
+01:34:55,376 --> 01:34:57,060
+It's still much less than pre training though.
+
+1105
+01:34:57,582 --> 01:35:00,160
+Yeah, Because pre-training is 15 trillion tokens.
+
+1106
+01:35:00,320 --> 01:35:02,502
+I mean, this is like that's not even a drop.
+
+1107
+01:35:02,720 --> 01:35:04,720
+And yet you influence the weight a lot.
+
+1108
+01:35:04,880 --> 01:35:05,840
+So I guess you do it.
+
+1109
+01:35:06,000 --> 01:35:13,732
+I mean you have to think that how you do it is you use um I mean, as I said, the learning rate that you're going to use is going to be different.
+
+1110
+01:35:14,160 --> 01:35:16,080
+But also you only do that.
+
+1111
+01:35:16,240 --> 01:35:28,836
+So just imagine if I trained, even if I train on one sentence, but over and over again, all at some point my model will only generate that sentence, even if it was just one sentence instead of the 15 trillion tokens.
+
+1112
+01:35:29,230 --> 01:35:34,820
+So if you use a large enough learning rate and for enough time, you will basically overfit that sentence.
+
+1113
+01:35:35,246 --> 01:35:43,680
+So the key thing to remember is that the data is not I it's not as if you mix some post-training data and some pre-training data.
+
+1114
+01:35:43,918 --> 01:35:48,000
+You do pre-training, and then you just start fine-tuning only on the post-training.
+
+1115
+01:35:48,238 --> 01:35:53,732
+So another way, and maybe another perspective is that the post the pre-training is just an initialization of your model.
+
+1116
+01:35:54,158 --> 01:35:59,332
+And once you view it that way, that this is just initialization of weights, then there's nothing special.
+
+1117
+01:35:59,534 --> 01:36:02,480
+Like you don't need to remember that you trained a lot of data before.
+
+1118
+01:36:02,734 --> 01:36:06,212
+The only thing that matters is that you had initialization, and now I actually train a model.
+
+1119
+01:36:06,606 --> 01:36:07,652
+So maybe think about it that way.
+
+1120
+01:36:07,886 --> 01:36:10,400
+Like there's uh there's a mark of property in some ways.
+
+1121
+01:36:10,640 --> 01:36:13,860
+Just like you had your weights, this is my initialization, now I'm training that one.
+
+1122
+01:36:14,510 --> 01:36:15,748
+Does that kind of answer your question?
+
+1123
+01:36:16,814 --> 01:36:24,880
+Kind of, but you you said something just now about it's almost the equivalent of just rerunning the fine-tuning data many times.
+
+1124
+01:36:25,280 --> 01:36:30,276
+Is it actually is that what actually happens in order to give so much more preference?
+
+1125
+01:36:33,680 --> 01:36:37,600
+You might uh I actually don't know right now how they do it in industry.
+
+1126
+01:36:37,806 --> 01:36:39,982
+When we did our packet, we had to do three blocks.
+
+1127
+01:36:40,240 --> 01:36:42,116
+So you did run it three times through it.
+
+1128
+01:36:44,814 --> 01:36:48,480
+but I mean even the number of times that you run it through, it's actually not important.
+
+1129
+01:36:48,640 --> 01:36:52,484
+The only thing like the only thing is the imp is kind of the effective learning rate.
+
+1130
+01:36:52,720 --> 01:36:53,412
+That's what matters.
+
+1131
+01:36:54,080 --> 01:36:55,300
+Um yeah.
+
+1132
+01:36:57,070 --> 01:36:57,412
+Great.
+
+1133
+01:36:58,798 --> 01:37:01,028
+So I think I have five minutes, right?
+
+1134
+01:37:06,126 --> 01:37:06,400
+Okay.
+
+1135
+01:37:07,120 --> 01:37:13,732
+I might try to give a high-level overview, at least from one of the systems trick.
+
+1136
+01:37:14,894 --> 01:37:20,900
+Systems, as we said, uh for everyone, bottleneck is a huge uh sorry, compute is the huge bottleneck.
+
+1137
+01:37:21,422 --> 01:37:24,100
+Uh one question you might ask is why not buy more GPUs?
+
+1138
+01:37:24,558 --> 01:37:26,880
+Uh GPUs are expensive but also are scarce.
+
+1139
+01:37:27,040 --> 01:37:30,212
+Even if you have ten million dollars right now, you cannot buy the best GPUs.
+
+1140
+01:37:30,800 --> 01:37:35,204
+Um there's also some physical limitations.
+
+1141
+01:37:35,680 --> 01:37:39,012
+When you have when you have multiple GPUs, you have to communicate between them.
+
+1142
+01:37:39,200 --> 01:37:39,940
+That takes time.
+
+1143
+01:37:40,814 --> 01:37:43,044
+so just buying more GPUs is not that easy.
+
+1144
+01:37:43,760 --> 01:37:48,132
+so it's really important to think about how do you allocate resources and how do you optimize your pipeline.
+
+1145
+01:37:48,302 --> 01:37:48,800
+So system.
+
+1146
+01:37:49,614 --> 01:37:51,440
+101 on GPUs.
+
+1147
+01:37:51,520 --> 01:37:53,040
+I'm sorry, I'm going slightly faster.
+
+1148
+01:37:53,120 --> 01:37:55,236
+I hope that some of you at least can follow.
+
+1149
+01:37:55,760 --> 01:37:57,892
+GPUs are basically optimized for throughput.
+
+1150
+01:37:58,318 --> 01:38:01,188
+CPUs are optimized for latency.
+
+1151
+01:38:01,582 --> 01:38:10,052
+So GPUs, the way you have to think about it is that there's one command that is run on many, many cores at the same time on different type of data.
+
+1152
+01:38:11,406 --> 01:38:13,280
+so this is how you see a GPU.
+
+1153
+01:38:13,360 --> 01:38:20,240
+You see there are many different cores, we call them streaming pro uh multiprocessors, which is very different than the usual CPU architecture.
+
+1154
+01:38:20,334 --> 01:38:24,036
+So just think high throughput, parallelization for GPUs.
+
+1155
+01:38:24,800 --> 01:38:27,460
+GPUs are optimized for fast matrix multiplication.
+
+1156
+01:38:27,886 --> 01:38:36,036
+So every time you will do something on GPU, if you can do it with a matrix multiplication, it's going to be ten times faster than with anything else.
+
+1157
+01:38:36,720 --> 01:38:43,172
+that is a little bit annoying because it means that we are kind of bottlenecked to doing anything with matrix multiplications.
+
+1158
+01:38:44,160 --> 01:38:50,052
+another thing to note with GPUs is that compute has been improving faster than memory and communication.
+
+1159
+01:38:50,606 --> 01:39:00,388
+So right now, GPUs usually are hard to keep uh like the data that you send it, send it GPUs is actually hard to keep up with the process.
+
+1160
+01:39:00,846 --> 01:39:06,116
+So most of your GPUs are actually going to be idle if you just run normal code, if you don't optimize your code.
+
+1161
+01:39:06,414 --> 01:39:09,924
+So communication and this will continue over time.
+
+1162
+01:39:11,118 --> 01:39:13,744
+Another thing to know about GPUs is that there's a memory hierarchy.
+
+1163
+01:39:13,824 --> 01:39:20,388
+This is the same thing actually with CPUs, but basically the closer you are to your cause, the less memory there is, but the faster things run.
+
+1164
+01:39:20,686 --> 01:39:22,820
+If you're further, more memory, slower.
+
+1165
+01:39:25,006 --> 01:39:25,764
+Okay, I'm gonna skip that.
+
+1166
+01:39:26,286 --> 01:39:27,332
+Okay, actually I'm gonna say it.
+
+1167
+01:39:27,904 --> 01:39:30,628
+I told you about this uh the fact of communication.
+
+1168
+01:39:31,104 --> 01:39:34,244
+the metric that people usually look at is model flop utilization.
+
+1169
+01:39:34,542 --> 01:39:45,636
+So what is the theoretical maximum that uh GPU could run at, The number of flops that you could use per second, uh divide is sorry, the number of observed throughput divided by this theoretical maximum.
+
+1170
+01:39:46,094 --> 01:39:49,092
+And in general, if you reach 50%, you're very happy.
+
+1171
+01:39:49,422 --> 01:39:52,452
+Like Facebook, I looked at Lama was at 45 for something like this.
+
+1172
+01:39:52,878 --> 01:39:57,316
+So that means that data doesn't come fast enough, even for these big companies.
+
+1173
+01:39:59,054 --> 01:40:03,780
+So one simple trick, and that might be the only one I'm going to tell you about, is low precision.
+
+1174
+01:40:04,494 --> 01:40:12,356
+One simple idea is that well, if I'm going to put my floats in low precision, then there's gonna be fewer bits that I have to send to my GPUs.
+
+1175
+01:40:12,558 --> 01:40:17,092
+If there's fewer bits, it's faster communication, lower memory consumption, things are gonna go faster.
+
+1176
+01:40:17,824 --> 01:40:22,372
+and for deep learning, it just happens that decimal is not that important.
+
+1177
+01:40:23,150 --> 01:40:33,316
+so when you do matrix multiplication, when you do like for example SGD, there's already so much noise that if you update something by 0.01 or 0.015, who cares?
+
+1178
+01:40:33,824 --> 01:40:46,304
+so basically instead of using 32 bits per float, which is what people used to use, or 64, for example, which is what you would use in other domains, you use 16 bits for matrix multiplication.
+
+1179
+01:40:46,574 --> 01:40:48,464
+So for every float you use 16 bits.
+
+1180
+01:40:49,902 --> 01:40:59,556
+and for training you have this type of like uh what we call automatic mixed precision, which is that some of the things are in 32 bits, others are in 16 bits.
+
+1181
+01:41:00,144 --> 01:41:06,116
+generally the way you should be thinking about it is that your weights of your model are stored in 32 bits.
+
+1182
+01:41:07,182 --> 01:41:16,064
+but just before the computation you put everything in 16 bits like this, you do computation super fast, and at the end you update your weights in 32 bits.
+
+1183
+01:41:16,302 --> 01:41:24,516
+And the reason why you do all the updates in 32 bits is just think that if your learning weight, for example, is very small, you still want to be able to like make a difference in your weights.
+
+1184
+01:41:25,104 --> 01:41:30,500
+so all the computation is done in 16 bits, but the weights are actually stored in 32 bits.
+
+1185
+01:41:30,798 --> 01:41:32,772
+So that's like the standard way that people are doing it.
+
+1186
+01:41:33,744 --> 01:41:37,744
+Um, I'll actually talk just about this and then I'll skip all the rest.
+
+1187
+01:41:37,904 --> 01:41:39,844
+Operator fusion, because I think this is actually pretty cool.
+
+1188
+01:41:40,304 --> 01:41:42,532
+as I just said, communication is very slow.
+
+1189
+01:41:42,894 --> 01:41:48,804
+And actually, every time you use a PyTorch line, it basically moves variable to global memory of your GPU.
+
+1190
+01:41:49,134 --> 01:41:54,224
+So when you have something like this, x dot, uh, cosine, uh, equal x1.
+
+1191
+01:41:54,464 --> 01:41:56,356
+and then you do x1.cosine.
+
+1192
+01:41:56,544 --> 01:42:00,100
+what is happening behind the scenes is that you take the x, which is data.
+
+1193
+01:42:00,304 --> 01:42:03,940
+you ship it to your actual processors of your GPUs.
+
+1194
+01:42:04,064 --> 01:42:07,556
+you apply the cosine, you ship it back to the main memory of your GPU.
+
+1195
+01:42:07,694 --> 01:42:09,182
+and then you see the next line.
+
+1196
+01:42:09,390 --> 01:42:14,756
+you ship it back to the GPU processor, you apply another cosine, and you ship it back again.
+
+1197
+01:42:16,046 --> 01:42:23,972
+so another way to see that is that you go from your DRAM, which is your global memory in your GPU, and you ship it to compute, you ship it back for every line.
+
+1198
+01:42:24,174 --> 01:42:25,572
+This is a naive way of doing it.
+
+1199
+01:42:25,966 --> 01:42:27,236
+This seems very wasteful.
+
+1200
+01:42:28,558 --> 01:42:35,620
+so the simple idea of operator fusion is just communicate, do all the computation, ship it back once.
+
+1201
+01:42:36,110 --> 01:42:38,820
+And this is exactly what fused kernels are.
+
+1202
+01:42:39,504 --> 01:42:48,784
+so if you ever want to make your computations in pyTorch much faster, just apply torch.compile on your model.
+
+1203
+01:42:49,024 --> 01:42:51,904
+This is going to make your model around two times faster.
+
+1204
+01:42:52,064 --> 01:43:06,884
+And what it does is simply that it rewrites your code, like your PyTorch code basically in C and CUDA to do the communication only once, then do all the operations, then ship it back.
+
+1205
+01:43:07,918 --> 01:43:10,176
+Okay, I'm not going to have time to talk about tiling.
+
+1206
+01:43:10,510 --> 01:43:13,860
+Tiling is important, parallelization, parallelization is important.
+
+1207
+01:43:14,416 --> 01:43:18,660
+Um and mixture of experts, mixture of experts is important.
+
+1208
+01:43:18,976 --> 01:43:19,556
+Outlook.
+
+1209
+01:43:19,982 --> 01:43:22,736
+There are many things we haven't talked uh talked about.
+
+1210
+01:43:23,136 --> 01:43:26,628
+we haven't talked about architectures, we definitely haven't talked about inference.
+
+1211
+01:43:27,056 --> 01:43:29,796
+Um there are many other things that are important with LLMs.
+
+1212
+01:43:30,030 --> 01:43:31,296
+What is the UI that you use?
+
+1213
+01:43:31,376 --> 01:43:35,748
+I mean, arguably Chat GPT, the big novelty was just have a simple UI to use it.
+
+1214
+01:43:35,982 --> 01:43:44,964
+Multimodality, what are all the misuses you could have, the fact that there might not be enough data on the internet to train all these models, legality of data collection, so many other things.
+
+1215
+01:43:45,296 --> 01:43:49,216
+If you are interested in all these topics, I would suggest three classes.
+
+1216
+01:43:49,678 --> 01:44:01,376
+CS224N is probably the one that touches the least on uh LLMs, uh, but it gives some background and historical context of all the LLMs and gives kind of some adjacent material.
+
+1217
+01:44:01,774 --> 01:44:10,176
+CS324, I think it's called I think it's just called large language models, more in-depth reading and lectures on everything I talked about.
+
+1218
+01:44:10,478 --> 01:44:16,228
+CS336, which is large language Model from scratch, you actually build your own LLM.
+
+1219
+01:44:17,006 --> 01:44:20,416
+it's an amazing class, also given by my two supervisors.
+
+1220
+01:44:20,656 --> 01:44:22,244
+Very heavy workload, so be careful.
+
+1221
+01:44:23,950 --> 01:44:24,260
+great.
+

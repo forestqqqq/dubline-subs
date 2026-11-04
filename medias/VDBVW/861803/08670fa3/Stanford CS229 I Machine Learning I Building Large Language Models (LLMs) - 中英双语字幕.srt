@@ -1,0 +1,6609 @@
+1
+00:00:05,678 --> 00:00:06,640
+那我们开始吧。
+So let's get started.
+
+2
+00:00:07,040 --> 00:00:09,636
+今天我要讲的是关于如何构建 LLMs。
+So I'll be talking about building LLMs today.
+
+3
+00:00:10,080 --> 00:00:13,380
+我想你们很多人之前都听说过 LLMs。
+So I think a lot of you have heard of LLMs before.
+
+4
+00:00:14,000 --> 00:00:22,880
+不过简单回顾一下，LLMs 代表大语言模型，基本上就是你们最近一直在听到的那些聊天机器人。
+But just as a quick recap, LLMs standing for large language models are
+basically all the chatbots that you've been hearing about recently.
+
+5
+00:00:23,040 --> 00:00:31,120
+比如 OpenAI 的 ChatGPT，Anthropic 的 Claude，Gemini，还有 Llama，以及其他类似的模型。
+So uh ChatGPT from OpenAI, uh Cloud from Entropic, Gemini, and Lama and other type of models like this.
+
+6
+00:00:31,438 --> 00:00:34,400
+今天我们要聊的是它们到底是怎么工作的。
+And today we'll be talking about how do they actually work.
+
+7
+00:00:34,766 --> 00:00:43,492
+因为只有一节课，很难把所有内容都塞进去，所以这会是一个概览，
+但我希望能稍微涵盖一下训练这些 LLMs 所需的所有组件。
+So it's going to be an overview because it's only one lecture and it's hard to compress everything,
+but hopefully I'll touch a little bit about all the components that are needed to train some of these LLMs.
+
+8
+00:00:44,080 --> 00:00:47,204
+另外，如果你有任何问题，请随时打断我提问。
+also if you have questions, please interrupt me and ask.
+
+9
+00:00:47,680 --> 00:00:53,732
+如果你有问题，很可能在场或者在 Zoom 上的其他人也有同样的问题。
+if you have a question, most likely other people in the room or on Zoom have the same question.
+
+10
+00:00:53,840 --> 00:00:54,564
+所以请尽管提问。
+So please ask.
+
+11
+00:00:56,526 --> 00:00:56,800
+很好。
+great.
+
+12
+00:00:57,006 --> 00:00:59,140
+那么，训练 LLMs 时哪些因素最重要？
+So what matters when training LLMs?
+
+13
+00:01:00,000 --> 00:01:02,372
+这里有几个关键组件很重要。
+so there are a few key components that matter.
+
+14
+00:01:02,880 --> 00:01:04,000
+首先是架构。
+one is the architecture.
+
+15
+00:01:04,160 --> 00:01:07,076
+正如你们可能都知道的，LLMs 是神经网络。
+So as you probably all know, LLMs are neural networks.
+
+16
+00:01:07,520 --> 00:01:11,332
+当你想到神经网络时，你必须考虑你使用的是什么架构。
+And when you think about neural networks, you have to think about what architecture you're using.
+
+17
+00:01:11,840 --> 00:01:16,068
+另一个非常重要的组件是训练损失和训练算法。
+Another component which is really important is the training loss and the training algorithm.
+
+18
+00:01:17,198 --> 00:01:19,364
+也就是你实际上是如何训练这些模型的。
+so how you actually train these models.
+
+19
+00:01:19,662 --> 00:01:23,492
+然后是数据，也就是你用什么来训练这些模型？
+Then it's data, so what do you train these models on?
+
+20
+00:01:24,590 --> 00:01:33,200
+还有评估，也就是你如何知道自己是否真的在朝着 LLMs 的目标前进，最后是系统组件。
+the evaluation, which is how do you know whether you're actually making
+progress towards the goal of LLMs, and then the system component.
+
+21
+00:01:33,390 --> 00:01:40,580
+也就是你实际上如何让这些模型在现代硬件上运行，这非常重要，因为这些模型非常庞大。
+So that is like how do you actually make these models run on modern
+hardware, which is really important because these models are really large.
+
+22
+00:01:41,280 --> 00:01:46,468
+所以现在比以往任何时候都更重要的是，系统实际上是 LLMs 中一个非常重要的课题。
+so now more than ever, systems are actually really an important topic for LLMs.
+
+23
+00:01:47,502 --> 00:01:56,708
+所以这五个组件，你们可能都知道 LLMs，如果你不知道的话，LLMs 都是基于 Transformer，
+或者至少是 Transformer 的某种版本。
+So those five components, you probably all know that LLMs, and if you don't know,
+LLMs are all based on transformers, or at least some version of transformers.
+
+24
+00:01:57,440 --> 00:02:00,612
+实际上我今天不打算讲架构。
+I'm actually not going to talk about the architecture today.
+
+25
+00:02:00,960 --> 00:02:10,479
+原因一是几周前我在这里给你们讲过 Transformer 了，
+原因二是关于 Transformer 的信息在网上非常丰富。
+one because I gave us here a lecture on transformers a few weeks ago,
+and two because you can find so much information online on transformers.
+
+26
+00:02:10,639 --> 00:02:16,292
+但我认为关于其他四个话题的信息要少得多，所以我真的很想讲讲那些内容。
+But I think you can it's uh there's much less information about the other four topics, so I really want to talk about those.
+
+27
+00:02:17,600 --> 00:02:24,004
+还有一点要说的是，学术界大部分人的关注点其实都在架构、训练算法和损失函数上。
+another thing to say is that most of academia actually focuses on architecture and training algorithm and losses.
+
+28
+00:02:25,070 --> 00:02:36,800
+作为学者，我也在职业生涯的大部分时间里这样做，简单来说就是我们喜欢思考如何做出新的架
+构、新的模型，这看起来似乎非常重要。
+as academics, and I've done that for a big part of my career, is simply we like thinking that this is like we make new architectures,
+new models, and it seems like it's very important.
+
+29
+00:02:37,102 --> 00:02:41,520
+但实际上，说实话，实践中真正重要的是另外三个话题。
+But in reality, honestly, what matters in practice is mostly the three other topics.
+
+30
+00:02:41,710 --> 00:02:47,492
+也就是数据、评估和系统，这也是大多数工业界真正关注的重点。
+So data evaluation and systems, which is what most of industry actually focuses on.
+
+31
+00:02:48,590 --> 00:02:53,636
+所以这也是我不想过多谈论架构的原因之一，因为剩下的内容其实超级重要。
+so that's also one of the reasons why I don't want to talk too much
+about the architecture, because really the rest is super important.
+
+32
+00:02:55,040 --> 00:02:55,360
+太棒了。
+great.
+
+33
+00:02:55,520 --> 00:02:56,960
+接下来是讲座概览。
+So overview of the lecture.
+
+34
+00:02:57,230 --> 00:02:58,480
+我将要讲的是预训练。
+I'll be talking about pre-training.
+
+35
+00:02:58,638 --> 00:03:00,800
+关于预训练，你们可能听过这个词。
+So pre-training, you probably heard that word.
+
+36
+00:03:00,910 --> 00:03:10,052
+这是一个通用术语，也就是经典的语言建模范式，基本上是训练你的语言模型来建模整个互联网。
+This is the general word, this is kind of the classical language modeling paradigm,
+where you basically train your language model to essentially model all of internet.
+
+37
+00:03:10,702 --> 00:03:17,380
+然后还有后训练，这是一个更近期的范式，就是把这些大语言模型变成 AI 助手。
+And then there's a post-training, which is a more recent paradigm, which is
+taking these large language models and making them essentially AI assistants.
+
+38
+00:03:18,160 --> 00:03:21,444
+所以这是自 ChatGPT 以来的一个更近期的趋势。
+so this is more of a recent trend since ChatGPT.
+
+39
+00:03:22,320 --> 00:03:26,600
+所以如果你听过 GPT 3 或 GPT 2，那确实属于预训练领域。
+so if you ever heard of GPT 3 or GPT 2, that's really pre training land.
+
+40
+00:03:27,360 --> 00:03:31,340
+如果你听过 ChatGPT，你们大概都听过，那确实属于后训练领域。
+if you heard of ChatGPT, which you probably have, this is really post training land.
+
+41
+00:03:31,840 --> 00:03:34,596
+所以我会讲这两个，但我会从预训练开始讲起。
+so I'll be talking about both, but I'll start with pre training.
+
+42
+00:03:35,182 --> 00:03:41,700
+具体来说，我将讨论预训练 LLMs 的任务是什么，以及人们实际使用的规律是什么。
+And specifically, I'll talk about what is the task of pre training LLMs and what is the laws that people actually use.
+
+43
+00:03:43,406 --> 00:03:46,212
+那么，语言建模，这里快速回顾一下。
+So, language modeling, this is a quick recap.
+
+44
+00:03:46,992 --> 00:03:53,444
+从高层视角来看，语言模型就是对 Token 序列或单词序列的概率分布的模型。
+Language models at a high level are simply models of probability distribution over sequences of tokens or of words.
+
+45
+00:03:53,774 --> 00:04:03,012
+所以它基本上是 P(X1 到 XL) 的某种模型，其中 X1 是第一个词，
+XL 是序列或句子中的最后一个词。
+So it's basically some model of P of X1 to XL, where X1 is basically
+word one and XL is the last word in the sequence or in the sentence.
+
+46
+00:04:04,112 --> 00:04:16,272
+非常具体地说，如果你有一个句子比如“老鼠吃了奶酪”，语
+言模型给你的就是这个句子被人类说出或在网上出现的概率。
+so very concretely, if you have a sentence like the mouse ate the cheese, what the language model gives you is simply a probability of
+this sentence being uttered by a human or being found on on online.
+
+47
+00:04:17,072 --> 00:04:27,240
+如果你有另一个句子比如“老鼠吃奶酪”，这里有语法错误，
+所以模型应该知道这需要一些句法知识，它应该知道这在网上出现的似然较低。
+so if you have another sentence like the the mouse ate cheese, here there's grammatical mistakes,
+so the model should know that this should have some syntactic knowledge,
+
+48
+00:04:27,240 --> 00:04:31,300
+如果你有另一个句子比如“老鼠吃奶酪”，这里有语法错误，
+所以模型应该知道这需要一些句法知识，它应该知道这在网上出现的似然较低。
+so it should know that this has less likelihood of appearing online.
+
+49
+00:04:32,432 --> 00:04:41,444
+如果你有另一个句子比如“奶酪吃了老鼠”，那么模型最好知道通常是奶酪不会吃老鼠。
+if you have another sentence like the cheese ate the mouse, then the model
+should hopefully know about the fact that usually cheese don't eat mouse.
+
+50
+00:04:42,032 --> 00:04:45,124
+所以这里有一些语义知识，而且这比第一个句子出现的概率要低。
+so there's some semantic knowledge, and this is less likely than the first sentence.
+
+51
+00:04:45,454 --> 00:04:47,972
+所以这基本上就是语言模型的高层定义。
+So this is basically at a high level what language models are.
+
+52
+00:04:49,998 --> 00:04:53,572
+你们可能经常在新闻里听到一个词，那就是生成式模型。
+one word that you probably have been hearing a lot in the news are generative models.
+
+53
+00:04:54,112 --> 00:04:59,300
+这就是指能够生成句子或生成某些数据的模型。
+so this is just something that can generate models that can generate sentences or can generate some data.
+
+54
+00:04:59,632 --> 00:05:07,332
+我们之所以说语言模型是生成式模型，是因为一旦你有了分布模型，
+你就可以简单地从这个模型中进行采样，然后我们就可以生成数据。
+the reason why we say language models are generative models is that once you have a model of a distribution,
+you can simply sample from this model and then we can generate data.
+
+55
+00:05:07,872 --> 00:05:11,300
+所以你可以使用语言模型来生成句子。
+so you can generate sentences using a language model.
+
+56
+00:05:12,686 --> 00:05:18,468
+所以人们目前都在使用的模型类型就是我们所说的自回归语言模型。
+So the type of models that people are all currently using are what we call autoregressive language models.
+
+57
+00:05:19,118 --> 00:05:30,690
+自回归语言模型的核心思想是，你获取这个单词分布，基本上把它分解为第一个词的分布，
+乘以给定第一个词时第二个词分布的似然。
+And the key idea of auto-regressive language models is that you take this distribution over words,
+and you basically decompose it into the distribution of the first word,
+
+58
+00:05:30,690 --> 00:05:35,392
+自回归语言模型的核心思想是，你获取这个单词分布，基本上把它分解为第一个词的分布，
+乘以给定第一个词时第二个词分布的似然。
+multiplied by the likelihood of the distribution of the second word.
+
+59
+00:05:35,566 --> 00:05:40,100
+给定第一个词，再乘以给定前两个词时第三个词的分布似然。
+given the first word, multiply it by p, of the third word, given the first two words.
+
+60
+00:05:41,326 --> 00:05:42,832
+所以这里没有任何近似。
+so there's no approximation here.
+
+61
+00:05:42,912 --> 00:05:45,872
+这只是概率链式法则，希望你们大家都知道这个。
+This is just a chain rule of probability, which hopefully you all know about.
+
+62
+00:05:46,272 --> 00:05:47,232
+真的没有任何近似。
+really no approximation.
+
+63
+00:05:47,312 --> 00:05:49,828
+这只是建模概率分布的一种方法。
+This is just one way of modeling a distribution.
+
+64
+00:05:50,592 --> 00:05:59,044
+所以更简洁点说，你可以把它写成在给定过去发生的所有事
+情，也就是给定上下文的情况下，预测下一个词的概率乘积。
+so slightly more concisely, you can write it as a product of p's of the
+next word given everything which happened in the past, so of the context.
+
+65
+00:05:59,712 --> 00:06:02,500
+这就是我们所说的自回归语言模型。
+so this is what we call autoregressive language models.
+
+66
+00:06:02,752 --> 00:06:06,272
+再次强调，这并不是建模分布的唯一方法。
+Again, this is really not the only way of modeling distribution.
+
+67
+00:06:06,352 --> 00:06:07,396
+这只是其中一种方法。
+This is just one way.
+
+68
+00:06:07,952 --> 00:06:10,272
+它有一些优点，也有一些缺点。
+it has some benefits and some downsides.
+
+69
+00:06:10,512 --> 00:06:22,832
+自回归语言模型的一个缺点是，当你实际从这个自回归语言模型中进行采样时，
+基本上是一个 for 循环，先生成下一个词，然后以这个词为条件，再生成再下一个词。
+One downside of autoregressive language models is that when you actually sample from this autoregressive language model,
+you basically have a for loop which generates the next word, then conditions on that next word, and then regenerate the other word.
+
+70
+00:06:22,958 --> 00:06:27,812
+所以基本上，如果你想生成一个更长的句子，生成它就需要花费更多的时间。
+So basically, if you have a longer sentence that you want to generate, you it takes more time to generate it.
+
+71
+00:06:28,272 --> 00:06:33,988
+所以这种当前范式有一些缺点，但这是我们目前拥有的技术，所以我打算讲讲这个。
+so there are some downsides of this current paradigm, but that's what we currently have, so I'm going to talk about this one.
+
+72
+00:06:35,872 --> 00:06:36,352
+很好。
+great.
+
+73
+00:06:36,814 --> 00:06:38,212
+所以，自回归语言模型。
+So autoregressive language models.
+
+74
+00:06:38,352 --> 00:06:44,032
+从高层面上来说，嗯，自回归语言模型的任务很简单，就是像我刚才说的那样，预测下一个词。
+At a high level, um, what the task of autoregressive language model is, is simply predicting the next word, as I just said.
+
+75
+00:06:44,334 --> 00:06:49,508
+所以如果你有一个句子像「她可能更喜欢」，呃，一个潜在的下一个词可能是「狗」。
+So if you have a sentence like she likely prefers, uh one potential next word might be dogs.
+
+76
+00:06:50,542 --> 00:06:54,116
+而我们的做法是先进行分词。
+And the what the way we do it is that we first tokenize.
+
+77
+00:06:54,574 --> 00:07:00,512
+所以你把这些词或子词进行分词，然后给每个 Token 分配一个 ID。
+So you take these words or subwords, you tokenize them, and then you give an ID for each token.
+
+78
+00:07:00,592 --> 00:07:02,020
+所以这里你有 1、2、3。
+So here you have one, two, three.
+
+79
+00:07:03,072 --> 00:07:07,300
+然后你把它通过这个黑盒，正如我之前说的，我们现在不讨论架构。
+then you pass it through this black box, as I already said, we're not going to talk about the architecture.
+
+80
+00:07:07,406 --> 00:07:15,812
+你只需把它通过一个模型，然后你就会得到一个分布，
+一个关于下一个词、下一个 Token 的概率分布。
+You just pass it through a model, and you then get a distribution, a probability distribution, over the next word over the next token.
+
+81
+00:07:16,814 --> 00:07:22,724
+然后你从这个分布中采样，得到一个新的 Token，然后再进行反分词。
+And then you sample from this distribution, you get a new token, and then you detokenize.
+
+82
+00:07:22,990 --> 00:07:27,844
+所以你得到了一个新的 ID，然后进行反分词，这就是你基本上从语言模型中采样的方法。
+So you get a new ID, you then detokenize, and that's how you basically sample from a language model.
+
+83
+00:07:28,352 --> 00:07:33,796
+有一点很重要需要注意，最后这两步，呃，这两步实际上只在推理期间需要。
+one thing which is important to note is that the last two steps, uh, two steps were actually only needed during inference.
+
+84
+00:07:34,352 --> 00:07:43,450
+当你进行训练时，你只需要预测最可能的 Token，然后你可以直接与实际发生的真实 Token 进行
+比较，然后基本上是改变模型的权重，以增加生成该 Token 的概率。
+when you do training, you just need to predict the most likely token, and you can just compare to the real token,
+which happened in practice, and then you basically change the weights
+
+85
+00:07:43,450 --> 00:07:46,884
+当你进行训练时，你只需要预测最可能的 Token，然后你可以直接与实际发生的真实 Token 进行
+比较，然后基本上是改变模型的权重，以增加生成该 Token 的概率。
+of your model to increase the probability of generating that token.
+
+86
+00:07:49,408 --> 00:07:49,728
+很好。
+great.
+
+87
+00:07:50,158 --> 00:07:52,208
+所以，自回归语言模型。
+So autoaggressive neural language models.
+
+88
+00:07:52,526 --> 00:07:58,448
+所以更具体一点说，仍然不讨论架构，我们做的第一件事是拥有所有这些。
+So to be slightly more specific, still without talking about the architecture, the first thing we do is that we have all of these.
+
+89
+00:07:58,734 --> 00:07:59,328
+噢抱歉，是的。
+Oh sorry, yes.
+
+90
+00:07:59,728 --> 00:08:09,168
+在上一页幻灯片上，当你预测下一个 Token 的概率时，这是否
+意味着你的最终输出向量维度必须与你拥有的 Token 数量相同？
+On the previous slide, when you're predicting the probability of the next token, does this mean that your final output vector has to
+be the same dimensionality as the number of tokens that you have?
+
+91
+00:08:09,408 --> 00:08:09,728
+是的。
+Yes.
+
+92
+00:08:10,288 --> 00:08:15,492
+你如何处理每次添加更多 Token 到你的模型中之类的事情？
+How do you deal with adding more tokens to your copies every time or something?
+
+93
+00:08:16,208 --> 00:08:16,288
+是的。
+Yeah.
+
+94
+00:08:16,848 --> 00:08:19,408
+所以我们稍后会讨论分词问题。
+So we're going to talk about tokenization actually later.
+
+95
+00:08:19,728 --> 00:08:21,316
+这样你就能对这个有个大概的了解。
+so you will get some sense of this.
+
+96
+00:08:21,728 --> 00:08:24,676
+基本上你没法处理增加新 Token 的问题。
+You basically can't deal with adding new tokens.
+
+97
+00:08:25,248 --> 00:08:26,368
+我有点夸张了。
+I'm kind of exaggerating.
+
+98
+00:08:26,448 --> 00:08:28,804
+虽然有相关的方法，但本质上大家都不这么做。
+There are methods for doing it, but essentially people don't do it.
+
+99
+00:08:29,888 --> 00:08:34,948
+所以思考你如何对文本进行分词非常重要，这就是为什么我们稍后要讨论这个。
+so it's really important to think about how you tokenize your text, and that's why we'll talk about that later.
+
+100
+00:08:35,488 --> 00:08:43,076
+但有一个非常好的点需要注意，就是词表大小，也就
+是你拥有的 Token 数量，本质上是语言模型的输出。
+but it's a very good point to note is that you basically the vocabulary size, so
+the number of tokens that you have is essentially the output of your language model.
+
+101
+00:08:43,342 --> 00:08:44,740
+所以这个规模其实非常大。
+So it's actually pretty pretty large.
+
+102
+00:08:46,094 --> 00:08:48,132
+好了，现在讲自回归语言建模。
+Okay, so auto-aggressive neural language models.
+
+103
+00:08:48,814 --> 00:08:57,284
+第一步是你把每个单词或每个 Token 进行嵌入，这样你就为每个 Token 得到了某种向量表示。
+First thing you do is that you take every word or every token, you embed
+them, so you get uh um some vector representation for each of these tokens.
+
+104
+00:08:58,208 --> 00:09:09,028
+你把它们通过一些神经网络，就像我们说的，就是 Transformer，
+然后你得到了所有单词以及上下文中所有单词的表示，所以基本上就是整个句子的表示。
+you pass them through some neural network, as we said it's the transformer, then you get a representation for all the word and all the
+words in the context, so it's basically representation of the entire sentence.
+
+105
+00:09:09,808 --> 00:09:18,692
+你把它通过一个线性层，就像你刚才说的，基本上是把它映射到数值上，
+这样输出的数量就是 Token 的数量。
+you pass it through a linear layer, as you just said, to basically map it to the number so that the output,
+the number of outputs is the number of tokens.
+
+106
+00:09:19,488 --> 00:09:29,008
+然后你把它通过一些 Softmax，基本上就得到了在给定
+上下文中每个单词的情况下，对下一个单词的概率分布。
+you then pass it through some softmax, and you basically get uh probability
+distribution over the next words given every word in the context.
+
+107
+00:09:30,606 --> 00:09:35,168
+你使用的损失函数基本上就是预测下一个 Token 的任务。
+And the loss that you use is basically it's essentially a task of classifying the next token.
+
+108
+00:09:35,408 --> 00:09:37,488
+所以这是一个非常简单的机器学习任务。
+So it's a very simple kind of machine learning task.
+
+109
+00:09:37,742 --> 00:09:51,648
+所以你使用交叉熵损失，基本上是看实际发生的真实目标，也就是目标分布，这是一个独热编码，
+在这个例子中，它表示我看到的真实发生的单词是 cat。
+So you use the cross-entropy loss where you basically you look at the actual target that happened, which is a target distribution,
+which is a one-hot encoding, which here in this in this case says I saw uh the real word that happened is cat.
+
+110
+00:09:52,014 --> 00:09:55,488
+所以这是一个关于 cat 的独热分布。
+So that's a one-hot um distribution over cat.
+
+111
+00:09:55,728 --> 00:09:58,448
+而这里是实际的……你们看到我的鼠标了吗？
+And here this is the actual uh do you see my mouse?
+
+112
+00:09:58,528 --> 00:10:04,870
+噢对，这是你生成的分布，基本上你做交叉熵，其实就是增加生成 cat 的概率，
+并降低生成所有其他 Token 的概率。
+Oh yeah, this is the distribution that you generated, and basically you do cross-entropy,
+which really just increases the probability of generating cat and
+
+113
+00:10:04,870 --> 00:10:07,716
+噢对，这是你生成的分布，基本上你做交叉熵，其实就是增加生成 cat 的概率，
+并降低生成所有其他 Token 的概率。
+decreases all the the probability of generating all the other tokens.
+
+114
+00:10:08,238 --> 00:10:21,100
+有一点需要注意是，正如你们所知，这等同于最大化文本的对数似然，
+因为你可以把这个自回归语言建模任务中概率的最大化重写为对这里的最小化。
+One thing to notice is that, as you all know, again, this is just equivalent to maximizing the text log likelihood,
+because you can just rewrite the max over the probability of this
+
+115
+00:10:21,100 --> 00:10:26,368
+有一点需要注意是，正如你们所知，这等同于最大化文本的对数似然，
+因为你可以把这个自回归语言建模任务中概率的最大化重写为对这里的最小化。
+autoregressive language modeling task as just being this minimum over.
+
+116
+00:10:26,608 --> 00:10:31,620
+我刚才在这里加了对数和负号，这就是损失函数的最小值，也就是交叉熵损失。
+I just added the log here and minus, which is just the minimum of the loss, which is the cross entropy loss.
+
+117
+00:10:31,728 --> 00:10:36,100
+所以基本上最小化损失就等同于最大化文本的似然。
+So basically minimizing the loss is the same thing as maximizing the likelihood of your text.
+
+118
+00:10:36,942 --> 00:10:37,540
+有什么问题吗？
+Any questions?
+
+119
+00:10:38,048 --> 00:10:38,372
+有问题吗？
+Questions?
+
+120
+00:10:43,182 --> 00:10:43,408
+好的。
+Okay.
+
+121
+00:10:45,038 --> 00:10:45,668
+分词器。
+Tokenizer.
+
+122
+00:10:47,182 --> 00:10:50,768
+所以这是人们通常不太常谈论的一点。
+so this is one thing that people usually don't talk that much about.
+
+123
+00:10:50,990 --> 00:10:53,168
+分词器极其重要。
+Tokenizers are extremely important.
+
+124
+00:10:53,488 --> 00:10:57,540
+所以非常重要，你至少得从高层面上理解它们的作用。
+so it's really important that you kind of understand at least what they do at a high level.
+
+125
+00:10:58,126 --> 00:11:00,164
+那么，我们最初为什么需要分词器呢？
+So why do we need tokenizers in the first place?
+
+126
+00:11:01,088 --> 00:11:02,916
+首先，它比单词更通用。
+first, it's more general than words.
+
+127
+00:11:03,088 --> 00:11:10,564
+所以你可能会想，哦，我们只是把所有的词都拿出来，把每个词都当成一个独立的 Token。
+So one simple thing that you might think is, oh, we're just gonna take every word that we all have,
+you just say every word is a token in its own.
+
+128
+00:11:11,248 --> 00:11:24,260
+但问题是，如果你的单词里有拼写错误，那么可能就没有对应的 Token 了，
+你就不知道该怎么把带拼写错误的单词输入到大语言模型里了。
+but then what happens is if there's a typo in your word, then you might not have any token associated with this this word with a typo,
+and then you don't know how to actually pass this word with a typo into a large language model.
+
+129
+00:11:24,750 --> 00:11:25,540
+那接下来该怎么办呢？
+So what do you do next?
+
+130
+00:11:25,808 --> 00:11:35,120
+而且，即便你考虑到单词，对于像拉丁语系的语言，单词没问题，但如果你考虑泰语这样的语言，
+你就没法简单地通过空格来分词，因为单词之间没有空格。
+And also, even if you think about words, words is a very like words are fine with like Latin-based languages,
+but if you think about a language like Thai, you won't have a simple
+
+131
+00:11:35,120 --> 00:11:38,916
+而且，即便你考虑到单词，对于像拉丁语系的语言，单词没问题，但如果你考虑泰语这样的语言，
+你就没法简单地通过空格来分词，因为单词之间没有空格。
+way of tokenizing by spaces because there are no spaces between words.
+
+132
+00:11:39,328 --> 00:11:42,916
+所以，Token 其实比单词要通用得多。
+Um so really tokens are much more general than words.
+
+133
+00:11:43,790 --> 00:11:44,048
+这是第一点。
+It's first thing.
+
+134
+00:11:44,288 --> 00:11:49,248
+第二点你可能会想，也许可以把每个句子按字符一个一个地分词。
+Second thing that you might think is that you might tokenize every sentence character by character.
+
+135
+00:11:49,486 --> 00:11:52,068
+你可以说 A 是一个 Token，B 是另一个 Token。
+You might say A is one token, B is another token.
+
+136
+00:11:52,768 --> 00:11:55,168
+这确实可行，而且可能效果也不错。
+that would actually work and probably very well.
+
+137
+00:11:55,470 --> 00:11:58,148
+问题是，这样你的序列就会变得超级长。
+The issue is that then your sequence becomes super long.
+
+138
+00:11:58,446 --> 00:12:06,660
+而且正如你在 Transformer 讲座中记得的那样，复杂度是随序列长度呈平方级增长的。
+And as you probably remember from the lecture on on transformers, the complexity grows quadratically with the length of sequences.
+
+139
+00:12:06,928 --> 00:12:09,220
+所以你真的不想让序列变得超级长。
+So you really don't want to have a super long sequence.
+
+140
+00:12:09,806 --> 00:12:19,076
+所以分词器基本上就是为了解决这两个问题，给常见的子序列分配特定的 Token。
+Um so tokenizers basically try to deal with those two problems and give common sub sequences a certain token.
+
+141
+00:12:19,408 --> 00:12:25,348
+通常你应该这样理解：平均每个 Token 大约包含三个到四个字母。
+And usually how you should be thinking about it is around an average of every token is around three, four letters.
+
+142
+00:12:27,758 --> 00:12:30,192
+分词有很多种算法。
+And there are many algorithms for tokenization.
+
+143
+00:12:30,272 --> 00:12:37,348
+我只讲其中一种来给你们一个宏观的了解，那就是我们称之为字节对编码的算法，
+它实际上非常常见，是两种最常用的分词器之一。
+I'll just talk about one of them to give you a high level, which is what we call bytepair
+encoding, which is actually pretty common, one of the two most common uh tokenizers.
+
+144
+00:12:37,902 --> 00:12:42,832
+训练分词器的做法是，首先从一个非常大的文本语料库开始。
+And the way that you train a tokenizer is that first you start with a very large corpus of text.
+
+145
+00:12:42,912 --> 00:12:45,712
+这里我真的不是在说训练大语言模型。
+And here I'm really not talking about training a large language model yet.
+
+146
+00:12:45,792 --> 00:12:47,332
+这纯粹是为了分词步骤。
+This is purely for the tokenization step.
+
+147
+00:12:48,032 --> 00:12:51,332
+所以这是我包含这五个单词的大文本语料库。
+so this is my large corpus of text with these five words.
+
+148
+00:12:51,952 --> 00:12:58,192
+然后，你把这个文本语料库中的每个字符都关联到一个不同的 Token。
+Um then you associate every character in this corpus of text a different token.
+
+149
+00:12:58,672 --> 00:13:04,900
+所以这里我把每个字符都拆分成不同的 Token，并且给这些 Token 都做了颜色标注。
+so here I just split up every character with a different token and I just color-coded all of those tokens.
+
+150
+00:13:05,998 --> 00:13:15,072
+然后你做的操作是，遍历你的文本，每当你看到非常常见的 Token 对时，
+也就是最常见的 Token 对，你就把它们合并。
+And then what you do is that you go through your text, and every time you see pairs of tokens that are very common,
+the most common pair of tokens, you just merge them.
+
+151
+00:13:15,310 --> 00:13:22,276
+所以这里你可以看到 Token T 和 O 三次相邻出现，所以你只需说这是一个新 Token。
+So here you see three times the the tokens T and O next to each other, so you're just going to say this is a new token.
+
+152
+00:13:22,766 --> 00:13:24,228
+然后你继续，重复这个过程。
+And then you continue, you repeat that.
+
+153
+00:13:24,462 --> 00:13:36,868
+现在你有了 tok，它出现了三次；tok 后面带个 E，出现了两
+次；还有 token，出现了两次；然后是 EX，也出现了两次。
+So now you have tok, tok, which happens three times, tok, with an E that happens
+two times, and token, which happens twice, and then EX, which also happens twice.
+
+154
+00:13:37,230 --> 00:13:46,948
+所以这就是如果你在这个非常小的文本语料库上训练分词器，
+这就是你训练完分词器后得到的 Token。
+So this is that if you were to train a tokenizer on this corpus of text, which is very small,
+that's how you would finish with a token with a pre like a train tokenizer.
+
+155
+00:13:47,632 --> 00:13:50,884
+实际上，你是在规模大得多的文本语料库上进行这个操作。
+in reality, you do it on much larger corpuses of text.
+
+156
+00:13:51,712 --> 00:13:57,604
+而这是真正的分词器，我想这应该是 GPT-3 或者 ChatGPT 的。
+and this is the real tokenizer of actually I think this is GPT-3 or chat GPT.
+
+157
+00:13:57,806 --> 00:14:00,260
+呃，这里你可以看到它实际上是如何拆分这些单词的。
+Uh and here you see how it would actually separate these words.
+
+158
+00:14:00,430 --> 00:14:03,712
+所以基本上，你看到的就是和我们之前例子中一样的东西。
+So basically you see the same thing as what we gave in the previous example.
+
+159
+00:14:04,032 --> 00:14:06,116
+Token 变成了它自己的 Token。
+Token becomes its own token.
+
+160
+00:14:06,606 --> 00:14:11,392
+所以 分词器 实际上被拆分成了两个 Token，token 和 Izer。
+So tokenizer is actually split up into two tokens, token and Izer.
+
+161
+00:14:11,952 --> 00:14:14,788
+嗯，所以，这就是关于分词器的全部内容。
+Um so yeah, that's all about tokenizers.
+
+162
+00:14:15,152 --> 00:14:15,876
+关于这个有什么问题吗？
+Any question on that?
+
+163
+00:14:16,112 --> 00:14:16,272
+有的。
+Yeah.
+
+164
+00:14:16,910 --> 00:14:19,300
+你是如何处理空格和标点符号来生成 Token 的？
+How do you deal with spaces and how do you token punctuation to make token?
+
+165
+00:14:20,032 --> 00:14:27,552
+是的，实际上在分词器之前还有一个步骤，我们称之为预分词器，也就是你刚才说的那个。
+Yeah, so actually there's a step before tokenizers, which is what we call pre-tokenizers, which is exactly what you just said.
+
+166
+00:14:27,952 --> 00:14:34,112
+所以这大部分是理论上的，没有理由非要单独处理空格和标点符号。
+so this is mostly in theory, there's no reason to deal with spaces and punctuation separately.
+
+167
+00:14:34,272 --> 00:14:42,148
+你可以就说每个空格都有自己的 Token，每个标点符号都有自己的 Token，
+然后你就可以进行所有的合并了。
+You could just say every space gets its own token, every punctuation gets its own token, and you could just do all the merging.
+
+168
+00:14:42,432 --> 00:14:44,644
+问题是，这涉及到效率问题。
+The problem is that so there's an efficiency question.
+
+169
+00:14:44,942 --> 00:14:47,712
+实际上，训练这些分词器需要很长时间。
+Actually, training these tokenizers takes a long time.
+
+170
+00:14:48,192 --> 00:14:51,472
+所以你最好这样做，因为你必须考虑每一对 Token。
+so you're better because you have to consider every pair of token.
+
+171
+00:14:51,950 --> 00:14:56,912
+所以你最终的做法是，如果有空格，这非常像预分词器是针对英语特定的。
+So what you end up doing is saying if there's a space, this is very like pre-tokenizers are very English specific.
+
+172
+00:14:57,134 --> 00:15:03,072
+你说如果有空格，我们不会去查看之前的 Token 和之后的 Token。
+You say if there's a space, we're not going to start looking at the token that came before and the token that came afterwards.
+
+173
+00:15:03,246 --> 00:15:05,828
+所以你不会在空格之间进行合并。
+So you're not merging in between spaces.
+
+174
+00:15:06,094 --> 00:15:09,952
+但这只是像一种优化，呃，一种计算上的优化。
+But this is just like a optimization uh like a computational optimization.
+
+175
+00:15:10,112 --> 00:15:14,596
+理论上，你可以像处理任何其他字符一样来处理它。
+You could theoretically just deal with it the same way as you deal with any other character.
+
+176
+00:15:16,718 --> 00:15:22,352
+当你合并 Token 时，你是删除掉那些被合并掉的 Token，还是保留那些被合并的较小的 Token？
+When you merge tokens, do you delete the tokens that you merged away, or do you keep the smaller tokens that you merge?
+
+177
+00:15:22,832 --> 00:15:25,072
+嗯，你实际上是保留较小的 Token。
+Um you actually keep the smaller tokens.
+
+178
+00:15:25,232 --> 00:15:32,516
+我的意思是，实际上这没那么重要，因为通常在大规模语料库中，你实际上会拥有所有的内容。
+I mean in reality it doesn't matter much because usually on large corpus of text you will have actually everything.
+
+179
+00:15:32,992 --> 00:15:44,772
+但你通常会保留小的那些，原因是你之所以想这样做，是因为如果出现我们之前说过的，
+有一些语法错误或者拼写错误，你仍然希望能够通过字符来表示这些单词。
+but you usually keep the small ones, and the reason why you want to do that is because if in case there's a, as we said before,
+you have some um some grammatical mistakes or some typos, you still want to be able to represent these words by character.
+
+180
+00:15:46,702 --> 00:15:47,108
+所以，是的。
+so yeah.
+
+181
+00:15:47,712 --> 00:15:48,112
+是的。
+Yes.
+
+182
+00:16:01,872 --> 00:16:03,072
+噢，噢，我明白你的意思了。
+Oh, oh, I see what you say.
+
+183
+00:16:03,232 --> 00:16:07,556
+不，不，每个 Token 都有它自己唯一的 ID。
+No, no, it's every token has its own unique ID.
+
+184
+00:16:08,814 --> 00:16:10,912
+所以，这是一个很好的问题。
+so a usual this is a great question.
+
+185
+00:16:11,072 --> 00:16:24,512
+例如，如果你想到 bank 这个词，它可能是指钱的银行，也可能是指河岸，它会有相同的 Token，
+但模型会学习，Transformer 会根据它周围的词来学习，它应该把这个词与相关的词联系起来。
+For example, if you think about a bank, which could be bank for like money or bank like water, it will have the same token,
+but the model will learn, the transformer will learn that based on the words that are around it, it should associate that.
+
+186
+00:16:24,846 --> 00:16:34,340
+我的意思是，我现在的解释比较笼统，但它是要把这个词与
+更偏向于钱的银行或者更偏向于河岸的银行的表示联系起来。
+I'm saying I'm being very hand wavy here, but associate that with the with a with a
+representation that is either more like the bank money side or the bank water side.
+
+187
+00:16:34,832 --> 00:16:37,316
+但那是 Transformer 在做这件事，不是分词器。
+but that's the transformer that does that, it's not a tokenizer.
+
+188
+00:16:38,300 --> 00:16:38,460
+是的。
+Yes.
+
+189
+00:16:39,246 --> 00:16:43,120
+对，你刚才提到在分词过程中，每五个词就有一个较小的 token。
+Yeah, so you mentioned during tokenization to the smaller token at every five.
+
+190
+00:16:43,600 --> 00:16:49,520
+比如如果你从一个 T 开始，你保留 T，然后让你的分词器去扩展 token 的数量。
+Like if you start with a T, you keep the T and then you turn your tokenizer to expand like amount of token.
+
+191
+00:16:49,840 --> 00:16:54,960
+假设你没在 token 上进行训练，但在你的数据中，你正试图对 token 进行编码。
+So let's say maybe you didn't train on token, but like in your data, you are trying to encode token.
+
+192
+00:16:55,280 --> 00:16:59,440
+那分词器怎么知道是该用 token 来编码，还是该去读取它？
+So how does the tokenizer know to encode it with token or to read it?
+
+193
+00:17:00,240 --> 00:17:00,640
+好问题。
+Great question.
+
+194
+00:17:00,800 --> 00:17:10,915
+基本上当你分词时——也就是在分词器训练好之后，当你实际应
+用分词器时——你基本上总是选择你能应用的最大的那个 token。
+You basically when you tokenize, so that's after training of the tokenizer, when you actually apply the tokenizer,
+you basically always choose the largest token that you can apply.
+
+195
+00:17:11,520 --> 00:17:13,520
+所以如果你能用 token，你就永远不会用 T。
+so if you can do token, you will never do T.
+
+196
+00:17:13,760 --> 00:17:14,660
+你永远都会用 token。
+You will always do token.
+
+197
+00:17:16,270 --> 00:17:26,692
+不过实际上，人们通常不太讨论分词器，但有很多计算上的优势或技巧可以用来让这些东西变快。
+But there's actually so people don't usually talk that much about tokenizers, but there's a lot of computational benefits or
+computational tricks that you can do for making these things faster.
+
+198
+00:17:27,200 --> 00:17:36,516
+所以我真的不觉得……说实话，我觉得很多人认为我
+们应该摆脱分词器，直接按字符或按字节来分词。
+so I really don't think we and honestly, I think a lot of people think that we should just get away from tokenizers and just kind of
+tokenize character by character or bytes by bytes.
+
+199
+00:17:37,040 --> 00:17:39,332
+但正如我刚才说的，现在存在长度问题。
+but as I said right now there's this issue of length.
+
+200
+00:17:39,920 --> 00:17:50,532
+但也许有一天，比如五年或十年后，我们将拥有不同架构，它们不会随序列长度呈平方级增长，
+到那时也许我们就不用分词器了。
+but maybe one day, like in five or ten years, we'll have different architectures that don't scale quadratically with the length of the
+sequence, and maybe we'll move away from tokenizers.
+
+201
+00:17:53,070 --> 00:17:55,280
+为什么人们想摆脱分词器？
+Why do people want to move away from the tokenizer?
+
+202
+00:17:55,760 --> 00:18:07,040
+哦，嗯，是的，一个很好的例子是数学。如果你考虑数学，实际上现在的数字并没有被分词。
+Oh, um yeah, so think one good example is math. If you think about math, actually numbers right now are not tokenized.
+
+203
+00:18:07,278 --> 00:18:15,204
+例如，327 可能有它自己的 token，这意味着模型在看到数字时，看到的并不是我们看到的那样。
+So for example, 327 might have its own token, which means that models,
+when they see numbers, they don't see them the same way as we do.
+
+204
+00:18:15,534 --> 00:18:26,160
+这非常烦人，我的意思是，我们之所以能泛化数学，是因为我们可以单独处理每一个字母，
+然后进行组合，你知道，如果你加东西，它本质上
+And this is very annoying because what I mean the reason why we can kind of generalize with math is because we can deal with every c
+every letter separately and we can then do composition, where you know that basically if you add stuff,
+
+205
+00:18:26,160 --> 00:18:26,520
+这非常烦人，我的意思是，我们之所以能泛化数学，是因为我们可以单独处理每一个字母，
+然后进行组合，你知道，如果你加东西，它本质上
+it's just the same thing as adding every one separately plus like whatever the unit that you add.
+
+206
+00:18:26,520 --> 00:18:30,596
+就是把每一个单位分开加，再加上你加的那个单位。
+it's just the same thing as adding every one separately plus like whatever the unit that you add.
+
+207
+00:18:30,880 --> 00:18:31,844
+所以它们没法做到这一点。
+so they can't do that.
+
+208
+00:18:32,560 --> 00:18:35,012
+所以你必须做一些特殊的分词。
+so then you have to do like special tokenization.
+
+209
+00:18:35,360 --> 00:18:42,720
+GPT-4 做出的重大变化之一就是改变了他们对代码的分词方式。
+And like one of the big changes that GPT-4 did is changing the way that they tokenize code.
+
+210
+00:18:43,022 --> 00:18:48,080
+例如，如果你有代码，你知道在 Python 中经常开头会有这四个空格。
+So for example, if you have code, you know you have like often in Python these four spaces at the beginning.
+
+211
+00:18:48,240 --> 00:18:51,716
+以前这些处理得挺奇怪的。
+Those were dealt with kind of strangely before.
+
+212
+00:18:52,160 --> 00:18:56,836
+结果就是，模型没法真正理解如何处理代码。
+and as a result, like the model couldn't really understand how to deal with code.
+
+213
+00:18:57,360 --> 00:18:59,236
+所以分词器实际上非常重要。
+so tokenizers actually matter a lot.
+
+214
+00:19:00,814 --> 00:19:01,120
+好的。
+okay.
+
+215
+00:19:01,582 --> 00:19:04,836
+那我现在就继续往下讲，但我们稍后可以再回到分词器的话题上。
+So I'll move on right now, but we can come back later on tokenizers.
+
+216
+00:19:05,902 --> 00:19:06,160
+太好了。
+Great.
+
+217
+00:19:06,638 --> 00:19:08,720
+所以我们谈到了任务、损失函数和分词器。
+So we talked about the task, the loss, the tokenizer.
+
+218
+00:19:08,880 --> 00:19:10,500
+让我们来聊聊评估。
+Let's talk a little bit about evaluation.
+
+219
+00:19:11,360 --> 00:19:16,196
+所以 LLMs 通常的评估方式是使用我们所谓的困惑度。
+so the way that LLMs are usually evaluated is what we call is using what we call perplexity.
+
+220
+00:19:16,800 --> 00:19:19,300
+从宏观上讲，它基本上就是你的验证损失。
+at a high level, it's basically just your validation loss.
+
+221
+00:19:20,174 --> 00:19:29,360
+困惑度与它的微小区别在于，我们使用一个稍微更具可解释性的指标，
+也就是我们使用每个 Token 的平均损失，然后对其取指数。
+the slight difference with perplexity is that we use something that is slightly more interpretable,
+which is that we use the average per token loss, and then you exponentiate it.
+
+222
+00:19:29,518 --> 00:19:40,676
+之所以要取指数，是因为损失函数内部包含对数，而且第一，人
+类其实不太擅长用对数空间思考；第二，对数取决于对数的底数。
+And the reason why you exponentiate it is because you want, I mean, the loss has a log inside, and you like one,
+humans are actually pretty bad at thinking in log space, but two, logs depend on the base of the log.
+
+223
+00:19:41,280 --> 00:19:47,620
+而当你取指数时，基本上所有内容都会转换到词表大小的单位上。
+while when you exponentiate, you basically have everything in the kind of the vocabulary size unit.
+
+224
+00:19:48,654 --> 00:19:53,476
+而每个 Token 的平均值，就是为了让你的困惑度与序列的长度无关。
+and the average per token is just so that your perplexity is independent of the length of your sequence.
+
+225
+00:19:54,160 --> 00:19:58,692
+所以困惑度就是序列损失平均值的 2 的幂。
+so perplexity is just two to the power average of the loss of the sequence.
+
+226
+00:20:00,000 --> 00:20:05,440
+因此，困惑度介于 1 和分词器的词表长度之间。
+so perplexity is between one and the length of the vocabulary of your tokenizer.
+
+227
+00:20:05,840 --> 00:20:14,052
+1 是因为，嗯，如果你完美预测了每一个词，那么每个词的乘积基本上就是 1。
+one it's simply, well, if you predict perfectly the thing which every word, then every word will have basically product of ones.
+
+228
+00:20:14,560 --> 00:20:16,400
+所以你能获得的最佳困惑度就是 1。
+so the best perplexity you can have is one.
+
+229
+00:20:16,800 --> 00:20:21,892
+如果你真的毫无头绪，你基本上就是以 1 除以词表大小来预测。
+If you really have no idea, you basically predict with one divided by size of vocabulary.
+
+230
+00:20:22,320 --> 00:20:26,308
+然后通过简单的数学计算，你基本上会得到等于词表大小的困惑度。
+and then you do simple math and you basically get perplexity of size of vocabulary.
+
+231
+00:20:26,800 --> 00:20:32,228
+所以困惑度的直观理解是，它基本上是你的模型在多个 Token 之间犹豫的数量。
+so the intuition of perplexity is that it's basically the number of tokens that your model is kind of hesitating between.
+
+232
+00:20:32,800 --> 00:20:36,580
+所以如果你的模型是完美的，它就不会犹豫，它确切知道那个词。
+so if your model is perfect, it doesn't hesitate, it knows exactly the word.
+
+233
+00:20:36,800 --> 00:20:41,892
+如果它真的毫无头绪，那么它就会在整个词表之间犹豫。
+If it really has no idea, then it hesitates between all of the vocabulary.
+
+234
+00:20:43,760 --> 00:20:46,160
+所以困惑度确实得到了改善。
+so perplexity really improved.
+
+235
+00:20:46,240 --> 00:20:50,468
+这是 2017 年到 2023 年间标准数据集上的困惑度。
+That's perplexity on a standard data set between 2017 and 2023.
+
+236
+00:20:50,800 --> 00:20:56,400
+在这些五到六年里，它从大约 70 个 Token 降到了不到 10 个 Token。
+It went from a kind of 70 tokens to less than 10 tokens over these five, six years.
+
+237
+00:20:56,686 --> 00:21:04,740
+这意味着模型以前每次生成词时都会在 70 个词之间犹豫，而现在是在不到 10 个词之间犹豫。
+So that means that the models were previously as dating between 70 words every time it was generating a word,
+and now it's as dating between like less than 10 words.
+
+238
+00:21:05,038 --> 00:21:06,212
+呃，所以这好多了。
+Uh so that's much better.
+
+239
+00:21:06,800 --> 00:21:12,484
+困惑度实际上不再用于学术基准测试了，主要是因为它取决于你使用的分词器。
+perplexity is actually not used anymore in academic benchmarking, mostly because it depends on the tokenizers that you use.
+
+240
+00:21:12,960 --> 00:21:19,012
+它取决于人们评估时使用的实际数据，但它对于 LLMs 的开发仍然非常重要。
+it depends on the actual data that people are evaluating on, but it's still very important for development of LLMs.
+
+241
+00:21:19,246 --> 00:21:23,876
+所以当你实际训练自己的 LLM 时，人们仍然会非常关注困惑度。
+So when you actually train your own LLM, people will still really look at the perplexity.
+
+242
+00:21:26,158 --> 00:21:38,692
+另一种常见的方法，而且现在在学术界更常见，是使用所有的经典 NLP 基准测试，
+稍后我会给你们几个例子，就是把所有内容汇总起来。
+One common other way, and now more common in academia, of evaluating these LLMs is just by taking all the classical NLP benchmarks,
+and I'll give you a few examples later, and just kind of aggregating everything.
+
+243
+00:21:39,312 --> 00:21:44,996
+所以收集尽可能多的可自动评估的基准测试，并在所有这些测试上进行评估。
+So collect as many automatically evaluatable benchmarks and just evaluate across all of them.
+
+244
+00:21:46,592 --> 00:21:59,300
+其中一个，或者说有两个这样的基准测试是所谓的 Helm，它是来自斯坦福的；
+另一个是 Hugging Face Open LLM leaderboard，这可能是目前最常用的两个。
+So one such or actually two such benchmarks are what we call uh Helm, which is from Stanford,
+another one is the Hugging Face Open LLM leaderboard, which are the probably the two two most common ones right now.
+
+245
+00:21:59,792 --> 00:22:09,712
+嗯，只是为了让你们有个概念，在 Helm 中有所有这些
+类型的任务，它们大多是容易评估的内容，比如问答。
+Um so just to give you an idea, in Helm there are all of these type of tasks,
+which are mostly things that can be easily evaluated, uh like question answering.
+
+246
+00:22:09,934 --> 00:22:12,900
+所以想想许多不同的问答任务。
+So think about many different question answering tasks.
+
+247
+00:22:13,552 --> 00:22:17,732
+问答的好处是，你通常知道什么是真实答案。
+and the benefit with question answering is that you usually know what is the real answer.
+
+248
+00:22:18,432 --> 00:22:30,308
+所以你可以这样评估这些模型，我马上给你们一个具体的例子，
+就是你可以查看语言模型生成真实答案的概率与生成其他答案的概率相比如何。
+so you can the way that you evaluate these models, and I'll give you a concrete example in one second,
+is that you can just look at how likely the language model is to generate the real answer compared to some other answers.
+
+249
+00:22:30,542 --> 00:22:33,316
+这就是从高层面上看，你是如何评估这些模型的。
+And that's essentially at a high level how you evaluate these models.
+
+250
+00:22:33,872 --> 00:22:40,996
+举个具体的例子，MMLU 可能是目前最常用的 LLMs 学术基准测试。
+so to give you a specific example, MMLU is probably the most common academic benchmark for LLMs.
+
+251
+00:22:42,352 --> 00:22:47,460
+它包含了所有这些领域的许多问题和答案。
+and this is just a collection of many questions and answers in all of those domains.
+
+252
+00:22:47,632 --> 00:22:52,432
+例如，大学医学、大学物理、天文学，以及这类话题。
+For example, college medicine, college physics, astronomy, and these type of topics.
+
+253
+00:22:52,654 --> 00:22:58,192
+问题是这样的，比如在天文学中，关于 1a 型超新星，哪项是正确的？
+And the questions are things like so this is in astronomy, what is true for type 1a supernova?
+
+254
+00:22:58,352 --> 00:23:04,548
+然后你给出四个不同的潜在答案，你只需要问模型哪一个更可能。
+Then you give four different potential answers, and you just ask the model which one is more likely.
+
+255
+00:23:04,782 --> 00:23:06,592
+所以，做这件事有很多种不同的方法。
+So either there are many different ways of doing it.
+
+256
+00:23:06,798 --> 00:23:12,900
+你要么可以查看生成所有这些答案的似然，要么可以问模型哪一个最可能。
+Either you can look at the likelihood of generating all these answers, or you can ask the model which one is the most likely.
+
+257
+00:23:13,152 --> 00:23:18,724
+所以你可以用不同的方式来提示模型，但从高层面
+上看，你知道哪一个是正确的，另外三个是错误的。
+so there are different ways that you can prompt the model, but at a high
+level, you know which one is correct, and there are three other mistakes.
+
+258
+00:23:19,312 --> 00:23:24,832
+嗯，我们实际上是把这些作为输出的无约束文本。
+Um, we're kind of creating these like unconstrained text as an output.
+
+259
+00:23:24,912 --> 00:23:25,232
+是的。
+Yeah.
+
+260
+00:23:25,552 --> 00:23:35,392
+如果模型给出的内容在语义上完全相同，但不是预期的那个精确 Token，你该如何评估模型？
+How do you evaluate a model if it gives something that's semantically
+completely identical, but is not the exact token that's expecting?
+
+261
+00:23:35,792 --> 00:23:37,072
+是的，这是一个很好的问题。
+Yeah, so that's a great question.
+
+262
+00:23:37,262 --> 00:23:38,752
+我稍后会详细讨论这一点。
+I'll talk more about that later.
+
+263
+00:23:39,054 --> 00:23:41,060
+在这种情况下，我们不使用无约束。
+Here in this case, we don't do unconstrained.
+
+264
+00:23:41,486 --> 00:23:53,552
+所以评估 MMLU 的方法基本上是：你要么问第一个
+问题，然后查看模型生成 A、B、C 和 D 的似然。
+So the way you would evaluate MMLU is basically either you ask the first question, and then you look at the likelihood of the model,
+generating A, the likelihood of the model generating B, C, and D.
+
+265
+00:23:53,646 --> 00:23:55,332
+然后你看哪一个最可能。
+and you look at which one is the most likely.
+
+266
+00:23:55,552 --> 00:23:59,632
+或者你可以问模型，在 A、B、C、D 中，哪一个最可能。
+or you can ask the model out of A, B, C, D, which one is the most likely.
+
+267
+00:23:59,792 --> 00:24:03,588
+然后你看最可能的下一个 Token 是 A、B、C 还是 D。
+and you look at whether the most likely next token is A, B, C, or D.
+
+268
+00:24:04,014 --> 00:24:07,652
+也就是说，你限制模型只能回答这四个选项中的一个。
+So you constrain the model to say it can only answer these four things.
+
+269
+00:24:08,672 --> 00:24:19,952
+当你提到限制模型时，你是指限制提示词，还是指在
+输出的整个概率分布中，你只比较 A Token 的输出？
+When you say you constrain the model, so you constrain the prompt, or do you mean that of its whole probability distribution of your
+outputs, you only are comparing the outputs of like you're only comparing the A token.
+
+270
+00:24:21,152 --> 00:24:25,232
+所以，在我给出的第二个例子中，你实际上是两种做法都要做。
+So uh in the second case I gave you, you would do exactly the actually you would do both.
+
+271
+00:24:25,326 --> 00:24:31,716
+你会提示模型选择 A、B、C 或 D，同时你还会限制只查看这四个 Token。
+You would prompt the model saying A, B, C or D, plus you would constrain to only look at these four tokens.
+
+272
+00:24:32,142 --> 00:24:34,432
+在第一个例子中，你甚至不需要生成任何内容。
+In the first case, you don't even need to generate anything.
+
+273
+00:24:34,766 --> 00:24:40,032
+所以在第一个例子中，你只需要看，既然它是语言模型，它可以给出句子的分布。
+So in the first case, you literally just look, given that it's a language model, it can give a distribution over sentences.
+
+274
+00:24:40,192 --> 00:24:44,548
+你只需要看生成所有这些词的似然是多少？
+You just look at what is the likelihood of generating all of these words?
+
+275
+00:24:45,166 --> 00:24:47,780
+生成第二个选项的似然是多少？
+What is the likelihood of generating the second choice?
+
+276
+00:24:48,366 --> 00:24:53,700
+然后你只需要看最可能的句子是否真的是正确答案。
+And you just look at whether the most likely sentence is actually the real answer.
+
+277
+00:24:54,574 --> 00:24:59,268
+所以你实际上并不是从中进行采样，你只是真的使用了 P(X1 到 XL)。
+So you don't actually sample from it, you really just use P of X1 to XL.
+
+278
+00:24:59,790 --> 00:25:00,324
+这好理解吗？
+Does that make sense?
+
+279
+00:25:01,392 --> 00:25:08,964
+话虽如此，开放式问题的评估是我们要稍后讨论的内容，而且它非常重要，也极具挑战性。
+that being said, evaluation of open-ended questions is something we're going
+to talk about later and is actually really important and really challenging.
+
+280
+00:25:09,902 --> 00:25:10,148
+是的？
+Yes?
+
+281
+00:25:10,752 --> 00:25:20,752
+你刚才提到，像困惑度这样的指标通常不被使用，因为它们取决于你的分词方式和一些设计选择。
+earlier you mentioned metrics like perplexity are not usually used because
+it depends on how you do your tokenization and some design choices.
+
+282
+00:25:20,912 --> 00:25:23,072
+我想请您多聊聊这一点。
+I was wondering if you could speak more to that.
+
+283
+00:25:23,552 --> 00:25:24,912
+噢，好的。
+Oh, yeah.
+
+284
+00:25:25,134 --> 00:25:26,592
+那么想想困惑度。
+So think about perplexity.
+
+285
+00:25:26,752 --> 00:25:29,764
+我告诉过你们，困惑度在 1 到词表大小之间。
+I told you perplexity is between one and vocabulary size.
+
+286
+00:25:30,254 --> 00:25:41,284
+现在想象一下，ChatGPT 使用的分词器包含大约 10,000 个 Token，
+但 Google 的 Gemini 使用的分词器包含 10 万个潜在的 Token。
+So now imagine that Chat GPT uses a tokenizer that has like 10,000 tokens, but
+Gemini from Google uses a tokenizer that had a hundred thousand uh potential tokens.
+
+287
+00:25:41,678 --> 00:25:50,724
+那么实际上，Gemini 的困惑度上限实际上会比 ChatGPT 更差。
+Then actually the Gemini one will have like the upper bound of the the
+perplexity that you can get is actually worse for Gemini than for ChatGPT.
+
+288
+00:25:50,958 --> 00:25:51,556
+明白了吗？
+Does that make sense?
+
+289
+00:25:52,366 --> 00:25:53,712
+这只是一个思路。
+So that's just an idea.
+
+290
+00:25:54,030 --> 00:26:00,804
+实际上情况比这复杂一点，但这就是一个最直观的例子，能让你看到分词器确实很重要。
+It's actually a little bit more complicated than that, but there's just like
+one first or the bit of where you can see that the tokenizer actually matters.
+
+291
+00:26:03,086 --> 00:26:03,332
+太棒了。
+great.
+
+292
+00:26:05,582 --> 00:26:08,432
+好的，关于评估的挑战，有很多。
+Okay, so evaluation challenges, there are many.
+
+293
+00:26:08,512 --> 00:26:10,308
+我简单聊两点。
+I'll just talk about two really briefly.
+
+294
+00:26:10,832 --> 00:26:14,752
+第一，正如我告诉你们的，评估这些 MMLU 有两种方法。
+One, as I told you, there are two ways of doing evaluation for these MMLUs.
+
+295
+00:26:14,912 --> 00:26:17,316
+实际上，方法不止两种，但我给出了两个例子。
+Actually, there are many more than two, but I gave you two examples.
+
+296
+00:26:17,646 --> 00:26:34,916
+而且情况是，虽然这是一个非常经典的基准测试，而且大家都在用，
+但实际上不同的公司和组织在评估 MMLU 时使用的是不同的方法。
+And it happens that for a long time, even though that was a very classical benchmark, that everyone used Actually,
+different uh different companies and different organizations were actually using different ways of evaluating MMLU.
+
+297
+00:26:35,072 --> 00:26:37,792
+结果就是，你会得到完全不同的结果。
+And as a result, you get completely different results.
+
+298
+00:26:37,952 --> 00:26:47,748
+例如，Meta 的 Llama 系列首款模型 Llama 65B，在 Helm 上的准确率是 63.7%。
+For example, Lama 65B, which was the first model of Meta in the Lama series, had on Helm 63.7 accuracy.
+
+299
+00:26:48,032 --> 00:26:52,356
+但在另一个基准测试上，准确率只有 48.8%。
+but on this other benchmark had like, 48.8.
+
+300
+00:26:53,422 --> 00:26:57,152
+所以，评估的方法非常关键，而且这甚至还没涉及到提示词工程。
+so really the way that you evaluate, and this is not even talking about prompting.
+
+301
+00:26:57,232 --> 00:27:01,152
+这仅仅是评估模型的方法。
+this is really just kind of the way that you evaluate the uh, the models.
+
+302
+00:27:01,312 --> 00:27:02,432
+提示词工程是另一个问题。
+Prompting is another issue.
+
+303
+00:27:02,702 --> 00:27:06,564
+所以实际上有很多不一致的地方，这并不像看起来那么简单。
+So really there are a lot of inconsistencies, it's not as easy as it looks.
+
+304
+00:27:07,312 --> 00:27:07,872
+第一件事。
+first thing.
+
+305
+00:27:08,078 --> 00:27:08,592
+对不起。
+Yeah, sorry.
+
+306
+00:27:12,352 --> 00:27:12,592
+好的。
+Okay.
+
+307
+00:27:13,486 --> 00:27:15,072
+第二件事，这是一个很好的问题。
+Second thing, this is a great question.
+
+308
+00:27:15,278 --> 00:27:16,996
+呃，训练集与测试集污染。
+Uh train test contamination.
+
+309
+00:27:17,552 --> 00:27:22,180
+这是我可以说在学术界非常重要的一点。
+this is something which I would say is really important in academia.
+
+310
+00:27:23,072 --> 00:27:32,132
+考虑到这次讲座主要是关于训练大语言模型，对于公司来说，这可能没那么重要，
+因为他们知道自己用什么数据进行了训练。
+In uh given that the talk is mostly about training large language models, uh, for
+companies it's maybe not that important because they know what they trained on.
+
+311
+00:27:32,592 --> 00:27:35,152
+但对于我们来说，我们根本不知道。
+Uh for us, we have no idea.
+
+312
+00:27:35,438 --> 00:27:36,836
+所以对我们来说，这是一个真实的问题。
+So for us, it's a real problem.
+
+313
+00:27:37,072 --> 00:27:45,188
+所以有很多不同的方法来测试，呃，抱歉，测试集是否实际上就在训练集中。
+Uh so there are many different ways of trying to test whether uh the test set, uh sorry,
+whether the test set was actually in the training set.
+
+314
+00:27:45,552 --> 00:28:03,364
+呃，一种挺巧妙的技巧是，嗯，Tatsu实验室的人发现，既然网上大部分数据集不是随机的，
+你可以这样做：考虑到语言模型只是在预测下一个词，
+Uh one kind of cute trick um that people uh in in the lab in Tatsu's lab have found is that what you can do is that given that most of
+the data set online are not randomized, you can just look at, and in that language models what they do is just predict the next word.
+
+315
+00:28:03,552 --> 00:28:06,148
+嗯，你可以直接看整个测试集。
+Um you can just look at the entire test set.
+
+316
+00:28:06,510 --> 00:28:13,668
+呃，如果你按顺序生成所有示例，对比按不同顺序生成所有示例，结果会怎样？
+Uh, what if you generate all the examples in order versus all the examples in a different order?
+
+317
+00:28:13,998 --> 00:28:21,188
+如果按顺序生成某件事的概率更高，而实际上那里并没有特定的顺序，
+那就意味着它可能就在训练集中。
+And if it's more likely to generate a thing in order, given that there's no real order there,
+then it means that probably was in the training set.
+
+318
+00:28:21,550 --> 00:28:22,116
+这好理解吗？
+Does that make sense?
+
+319
+00:28:22,734 --> 00:28:24,672
+嗯，所以有很多方法，这只是其中一种。
+Um so there are many, that's like one of them.
+
+320
+00:28:24,846 --> 00:28:26,032
+还有很多其他的方法。
+There are many other ways of doing it.
+
+321
+00:28:26,286 --> 00:28:32,112
+训练集与测试集污染，再次强调，对开发来说没那么重要，但对学术基准测试非常重要。
+Train test contamination, again, not that important for development, really important for academic benchmarking.
+
+322
+00:28:32,992 --> 00:28:33,392
+很好。
+Great.
+
+323
+00:28:33,806 --> 00:28:36,772
+所以还有很多其他挑战，但我现在先跳过去。
+So there are many other challenges, but I'll move on for now.
+
+324
+00:28:37,552 --> 00:28:37,952
+很好。
+Great.
+
+325
+00:28:38,272 --> 00:28:38,692
+数据。
+Data.
+
+326
+00:28:39,392 --> 00:28:42,832
+嗯，所以数据是另一个非常大的话题。
+Um so data is another really big topic.
+
+327
+00:28:43,312 --> 00:28:48,260
+从高层次上说，人们就说，哦，你基本上是在整个互联网上训练大语言模型。
+at a high level, people just say, Oh, you basically train large language models on all of internet.
+
+328
+00:28:48,686 --> 00:28:49,668
+这到底是什么意思？
+What does that even mean?
+
+329
+00:28:50,032 --> 00:28:54,820
+嗯，或者人们有时说整个干净的互联网，这甚至定义得更模糊。
+Um so or people sometimes say all of clean internet, which is even less defined.
+
+330
+00:28:56,238 --> 00:29:00,676
+所以互联网非常脏，而且根本不能代表我们实践中想要的东西。
+so internet is very dirty and really not representative of what we want in practice.
+
+331
+00:29:00,912 --> 00:29:05,952
+如果我现在下载一个随机的网站，你会对里面包含的内容感到震惊。
+If I download a random website right now, you would be shocked at what is in there.
+
+332
+00:29:06,032 --> 00:29:07,524
+它绝对不是你的 Wikipedia。
+It's definitely not your Wikipedia.
+
+333
+00:29:09,006 --> 00:29:13,380
+所以我会非常简要地讲讲人们是怎么做的。
+so I'll go really briefly on like what people do.
+
+334
+00:29:13,952 --> 00:29:18,404
+我可以回答一些问题，但我的意思是，数据本身就是一个巨大的话题。
+I can answer some questions, but I mean data is on its own is a huge topic.
+
+335
+00:29:19,232 --> 00:29:22,192
+基本上，你首先要做的是下载整个互联网。
+basically, first what you do is download all of internet.
+
+336
+00:29:22,574 --> 00:29:35,632
+这意味着你要使用网络爬虫，去访问互联网上的每一个网页，
+或者 Google 上的每一个网页，目前大约有 2500 亿个页面。
+What that means is that you use web crawlers that will go on every web page on internet or every web page that is on Google,
+and that is around 250 billion pages right now.
+
+337
+00:29:36,430 --> 00:29:39,232
+那大约是 1 PB 的数据。
+and that's around one petabyte of of data.
+
+338
+00:29:39,502 --> 00:29:42,832
+所以这实际上是一个常见的，Common Crawl 就是其中一个网络爬虫。
+So this is actually a common common call, is one web crawler.
+
+339
+00:29:42,992 --> 00:29:44,932
+所以人们通常不会自己写网络爬虫。
+So people don't usually write their own web crawlers.
+
+340
+00:29:45,102 --> 00:29:56,690
+他们是使用标准的网络爬虫，Common Crawl 就是其中之一，
+它基本上每个月都会把 Google 发现的所有新加入互联网的网站都加上，
+What they do is that they use standard web crawlers, and common crawl is one of them that basically every month adds all the new
+websites that were added on internet that are found by by Google and they put it in a big basically a big data set.
+
+341
+00:29:56,690 --> 00:29:59,972
+并把它们放入一个巨大的数据集里。
+What they do is that they use standard web crawlers, and common crawl is one of them that basically every month adds all the new
+websites that were added on internet that are found by by Google and they put it in a big basically a big data set.
+
+342
+00:30:00,878 --> 00:30:07,364
+所以 Common Crawl 现在大约有 2500 亿个页面，也就是 100 万 GB 的数据。
+so that's on Common Crawl, you have around 250 billion pages right now, so 1e6 gigabytes of data.
+
+343
+00:30:08,110 --> 00:30:14,352
+一旦你有了这些，比如这个是来自 Common Crawl 的一个随机网页，真的是完全随机的。
+Once you have this, so this is a random web page, like literally random, from this common crawl.
+
+344
+00:30:14,510 --> 00:30:20,996
+你看到的这个页面，看起来并不像你通常会看到的内容，但实际上，这是一个 HTML 页面。
+And what you see is that one, it really doesn't look at the type of
+things that you would usually see, but actually, so this is an HTML page.
+
+345
+00:30:21,552 --> 00:30:26,272
+虽然不太好辨认，但如果你仔细看，你会看到一些内容。
+it's hard to see, but if you look through, you will see some content.
+
+346
+00:30:26,446 --> 00:30:37,444
+例如这里，testkingworld 是您获取系统 X 高性能服务
+器的终极来源，然后还有三个点，甚至连句子都没写完。
+For example, here, testkingworld is your ultimate source for the system X high performance server, and then you have three dots,
+so you don't even the sentence is not even finished.
+
+347
+00:30:37,792 --> 00:30:40,036
+这就是互联网上的随机内容长什么样。
+That's how uh random internet looks like.
+
+348
+00:30:41,140 --> 00:30:45,476
+所以，如果你只是用它来训练大语言模型去生成这类内容，那肯定没啥用。
+So of course it's not that useful if you just train a large language model to generate things like this.
+
+349
+00:30:46,200 --> 00:30:47,440
+那么需要哪些步骤呢？
+So what are some of the steps that are needed?
+
+350
+00:30:48,336 --> 00:30:51,376
+第一步，从 HTML 中提取文本。
+First one, you extract the text from the HTML.
+
+351
+00:30:51,456 --> 00:30:54,724
+这就是我刚才尝试做的，基本上是根据正确的标签来提取。
+So that's what I just tried to do by looking at basically the correct tags.
+
+352
+00:30:55,182 --> 00:30:57,456
+呃，在这个过程中有很多挑战。
+Uh there are a lot of challenges by through this.
+
+353
+00:30:57,616 --> 00:31:03,236
+例如，提取数学公式其实非常复杂，但对于训练大语言模型来说非常重要。
+For example, extracting math is actually very complicated, but pretty important for training large language models.
+
+354
+00:31:03,856 --> 00:31:05,412
+或者比如模板代码。
+or for example, boilerplates.
+
+355
+00:31:05,696 --> 00:31:09,696
+很多论坛都会有相同类型的页眉和页脚。
+A lot of your forums will have the same type of headers, the same type of uh footers.
+
+356
+00:31:09,966 --> 00:31:12,036
+呃，你不想在你的数据中重复这些内容。
+Uh you don't want to repeat all of this in your data.
+
+357
+00:31:13,934 --> 00:31:16,196
+然后你会过滤掉不想要的内容。
+then you will filter undesirable content.
+
+358
+00:31:16,816 --> 00:31:20,256
+比如不适合在工作场合看的内容、有害内容、PII。
+so not safe for work, harmful content, PII.
+
+359
+00:31:20,576 --> 00:31:27,456
+所以通常每家公司基本上都有一个黑名单，列出他们不想用来训练模型的网站。
+so usually every company has basically a blacklist of websites that they don't want to train their models on.
+
+360
+00:31:27,694 --> 00:31:28,996
+那个黑名单非常长。
+That blacklist is very long.
+
+361
+00:31:29,198 --> 00:31:31,908
+你基本上就是说，如果内容来自那里，我们就不用它来训练。
+And you basically say if it comes from there, we don't train on this.
+
+362
+00:31:32,142 --> 00:31:38,692
+还有其他处理这些的方法，比如你可以训练一个小模型来识别什么是 PII，然后移除这些内容。
+There are other ways of doing these things, is that you can train a small model for classifying what is PII, removing these things.
+
+363
+00:31:39,854 --> 00:31:40,336
+这很难。
+it's hard.
+
+364
+00:31:40,496 --> 00:31:45,732
+我要展示的每一个点，其实都是非常繁重的工作。
+Every point here that I'm going to show you is like a hard amount of work.
+
+365
+00:31:46,256 --> 00:31:48,176
+但我打算快速过一遍。
+but I'm just gonna go quickly through it.
+
+366
+00:31:48,430 --> 00:31:49,764
+所以，过滤不想要的内容。
+So filter undesirable content.
+
+367
+00:31:50,350 --> 00:31:53,700
+第二或第四步是去重。
+Second or fourth is the duplicate deduplication.
+
+368
+00:31:54,030 --> 00:31:59,696
+正如我所说的，论坛里可能会有一些总是相同的页眉和页脚。
+As I said, you might have things like headers and footers in forums that are always the same.
+
+369
+00:31:59,886 --> 00:32:00,868
+你想把那些删掉。
+You want to remove that.
+
+370
+00:32:01,134 --> 00:32:06,948
+还有一种情况是，有很多不同的 URL，但实际上显示的都是同一个网站。
+Another thing that you might have is a lot of URLs that are different but actually show the same website.
+
+371
+00:32:08,416 --> 00:32:18,016
+而且你可能还会看到很多段落，它们来自常见的书籍，基本上在互联网上被重复了成千上万次。
+and you might also have a lot of like uh um paragraphs that come from like common books
+that are basically deduplicated a thousand times or ten thousand times on the internet.
+
+372
+00:32:18,446 --> 00:32:19,780
+所以你必须进行去重。
+So you have to deduplicate.
+
+373
+00:32:20,176 --> 00:32:23,524
+这也非常有挑战性，因为你必须大规模地去处理它。
+Also very challenging because you have to do that at scale.
+
+374
+00:32:24,176 --> 00:32:27,748
+完成去重后，你会进行一些启发式过滤。
+Once you do deduplication, you will do some heuristic filtering.
+
+375
+00:32:28,078 --> 00:32:30,788
+你会尝试剔除低质量的文档。
+You will try to remove low quality documents.
+
+376
+00:32:31,376 --> 00:32:34,976
+实现这一点的办法就是像基于规则的过滤。
+the way you do that are things like rules-based filtering.
+
+377
+00:32:35,246 --> 00:32:37,616
+例如，如果你看到有一些离群词元。
+For example, if you see that there are some outlier tokens.
+
+378
+00:32:37,776 --> 00:32:43,376
+如果网站中的 Token 分布与通常的 Token 分布非常不同，那它可能就是某些离群项。
+If the distribution of tokens in the website is very different than the usual distribution of tokens, then it's probably some outlier.
+
+379
+00:32:43,536 --> 00:32:49,156
+如果你看到这个网站里的单词长度超级长，那这个网站肯定有问题。
+If you see that the length of the words in this website is super long, there's something strange going on on that website.
+
+380
+00:32:49,456 --> 00:32:54,096
+如果你看到这个网站只有三个词，那它值得拿来训练吗？
+If you see that the website has only three words, maybe is it worth training on it?
+
+381
+00:32:54,176 --> 00:32:54,496
+可能不值得。
+Maybe not.
+
+382
+00:32:54,656 --> 00:32:59,780
+如果它有 1000 万个词，那这个页面可能也有问题。
+If it has like 10 million words, maybe there's something also wrong going on that page.
+
+383
+00:33:00,336 --> 00:33:01,412
+所以有很多类似的规则。
+so a lot of rules like this.
+
+384
+00:33:01,536 --> 00:33:01,696
+是的。
+Yes.
+
+385
+00:33:07,726 --> 00:33:09,696
+把它作为一种监督损失。
+Putting it as like a supervised loss.
+
+386
+00:33:10,766 --> 00:33:19,136
+我们难道不能直接说，比如这里有一个仇恨言论网站，让我们主动去惩罚它，别忘了它。
+Can we not just say like you know, here's this hate speech website, let's actively try to let's actively penalize and not forget it.
+
+387
+00:33:20,016 --> 00:33:22,532
+我们确实会这么做，但不是在这一步。
+We'll do exactly that, but not at this step.
+
+388
+00:33:22,736 --> 00:33:24,708
+那是后训练阶段要做的事。
+That's where the post-training will come from.
+
+389
+00:33:25,700 --> 00:33:33,700
+预训练的思路只是想去建模人类基本上是怎么说话的。
+Pre-training, the idea is just to say, I want to model kind of how humans speak, essentially.
+
+390
+00:33:34,496 --> 00:33:38,372
+而且我想去掉所有这些页眉、照片、菜单之类的东西。
+and I want to remove all these headers, photos, and and menus and things like this.
+
+391
+00:33:38,736 --> 00:33:43,300
+不过你刚才提到的这个主意非常好，那正是我们稍后要做的事情。
+but it's a very good idea that you just had, and that's exactly what we'll do later.
+
+392
+00:33:45,390 --> 00:33:47,056
+下一步是基于模型的过滤。
+Next step, model-based filtering.
+
+393
+00:33:47,216 --> 00:33:51,428
+所以当你过滤掉大量数据后，你会做的——这其实是个很巧妙的技巧。
+So once you've filtered a lot of data, what you will do, uh that's actually a very cute trick.
+
+394
+00:33:52,016 --> 00:33:58,052
+你会拿走所有的 Wikipedia，并查看所有通过 Wikipedia 页面链接到的链接。
+you will take all of Wikipedia and you will look at all the links that are linked through Wikipedia pages.
+
+395
+00:33:58,638 --> 00:34:02,788
+因为如果某些内容被 Wikipedia 引用了，它可能就是个高质量网站。
+Because probably if something is referenced by Wikipedia, it's probably some high quality website.
+
+396
+00:34:03,246 --> 00:34:15,043
+你会训练一个分类器，来预测一个文档是来自这些 Wikipedia 引用，还是来自随机的互联网。
+And you will train a classifier to predict whether something comes from whether a document comes from one of these references from
+Wikipedia or whether it's from the random web.
+
+397
+00:34:15,469 --> 00:34:21,252
+基本上你会说，我想要更多来自 Wikipedia 引用的内容。
+And you will try to basically say, I want more of the things that come from Wikipedia references.
+
+398
+00:34:21,870 --> 00:34:22,467
+这好理解吗？
+Does that make sense?
+
+399
+00:34:23,536 --> 00:34:24,016
+所以，是的。
+So yeah.
+
+400
+00:34:24,174 --> 00:34:26,416
+所以你会训练一个机器学习模型。
+So you will train a machine learning model.
+
+401
+00:34:26,576 --> 00:34:29,936
+通常也是非常简单的模型，因为你需要在超大规模上运行。
+Usually also very simple models because you need to do that really at scale.
+
+402
+00:34:30,016 --> 00:34:32,292
+想想那 2500 亿页的内容。
+And just think about the 250 billion pages.
+
+403
+00:34:34,016 --> 00:34:40,735
+接下来，你会尝试把数据分类到不同的领域。
+next one, you will try to classify your data into different different um domains.
+
+404
+00:34:41,005 --> 00:34:46,179
+你会说，好，这是娱乐，这是书籍，这是代码，就是这些类型的领域。
+You will say, okay, this is entertainment, this is books, this is code, this is like these type of domains.
+
+405
+00:34:46,446 --> 00:34:51,972
+然后你会尝试对某些领域进行上权重或下权重。
+And then you will try to either up or downweight some of the domains.
+
+406
+00:34:52,576 --> 00:34:59,216
+例如，你可能会发现，如果增加代码的训练量，模型的推理能力实际上会变强。
+for example, you might see that actually if you train more on code, then actually your model becomes better on reasoning.
+
+407
+00:34:59,296 --> 00:35:02,416
+所以这是人们通常用非常模糊的方式描述的事情。
+So that's something that people usually say in a very hand-wavy way.
+
+408
+00:35:02,576 --> 00:35:05,456
+如果你增加代码的训练量，实际上有助于推理。
+If you train your model more on code, actually it helps reasoning.
+
+409
+00:35:05,550 --> 00:35:11,140
+所以你想上权重代码分布，因为这有助于通用的语言建模能力。
+So you want to upweight the coding distribution because that helps for general language modeling skills.
+
+410
+00:35:11,696 --> 00:35:15,750
+书籍通常也是人们经常上权重的领域。
+books is usually also another one that people usually up-weight.
+
+411
+00:35:16,238 --> 00:35:17,930
+娱乐内容，他们通常会下权重。
+Entertainment, they usually down-weight.
+
+412
+00:35:18,736 --> 00:35:19,652
+就是这类事情。
+so things like this.
+
+413
+00:35:19,856 --> 00:35:25,216
+当然，你想这么做，以前人们可能只是用启发式的方法来做。
+Of course, you want to do it so people used to do it maybe kind of heuristically.
+
+414
+00:35:25,456 --> 00:35:31,748
+现在已经有了完整的流水线，可以讨论如何稍微自动化地完成这些事情。
+Now there's entire pipelines that will talk about of how to do these things slightly more automatically.
+
+415
+00:35:33,646 --> 00:35:47,460
+然后在训练结束时，通常在看到的所有这些数据训练完后，会在降低学习率的最后阶段，
+用非常高质量的数据来训练你的大语言模型。
+And then at the end of training, usually train um after training on all of this data that we saw,
+usually train on very high quality data at the end of training your large language model where you decrease your learning rate.
+
+416
+00:35:47,952 --> 00:35:52,672
+这基本上意味着你是在用非常高质量的数据让模型产生某种程度的过拟合。
+and that basically means that you're kind of overfitting your model on a very high quality data.
+
+417
+00:35:53,006 --> 00:35:55,172
+所以通常你用的就是像 Wikipedia 这样的数据。
+So usually what you do there is like Wikipedia.
+
+418
+00:35:55,632 --> 00:36:03,044
+你基本上是在 Wikipedia 上过拟合，或者在收集到的高质量人类数据上过拟合。
+You basically overfit on Wikipedia and you overfit on like hu uh human data that was collected.
+
+419
+00:36:04,558 --> 00:36:07,792
+其他事情比如为了获得更长的上下文而进行的持续预训练。
+the other things like continual pre-training for getting longer context.
+
+420
+00:36:07,886 --> 00:36:09,668
+我打算跳过所有这些内容。
+I'm going to skip over all of these things.
+
+421
+00:36:10,112 --> 00:36:16,228
+但这只是为了让你了解，当人们说「哦，我要在互
+联网数据上训练」时，这其实是一项巨大的工程。
+but that's just to give you a sense of how hard it is when people just say, Oh, I'm going to train on internet, that's a lot of work.
+
+422
+00:36:17,614 --> 00:36:19,108
+而且事实上我们还没完全搞定它。
+and really we haven't figured it out yet.
+
+423
+00:36:20,174 --> 00:36:24,868
+所以收集高质量数据是实际构建大语言模型的重要组成部分。
+So collecting well data is a huge part of practical large language model.
+
+424
+00:36:25,232 --> 00:36:26,692
+有些人甚至会说，这才是关键。
+some might say that's actually the key.
+
+425
+00:36:26,832 --> 00:36:27,044
+是的。
+Yes.
+
+426
+00:36:28,272 --> 00:36:28,992
+就是关于数据的问题。
+About the data.
+
+427
+00:36:29,072 --> 00:36:33,552
+所以基本上问题是，通常当你从 terabyte 级别的数据开始时……
+So basically the question So usually when you start with like the teraperabyte of data.
+
+428
+00:36:33,712 --> 00:36:37,552
+在走完所有这些步骤后，通常剩下的数据量是多少？
+After I go through all that steps, what's the typical amount of data I have remained in?
+
+429
+00:36:37,872 --> 00:36:43,152
+然后，通常需要多大的团队才能完成你提到的所有数据处理步骤？
+And then like how how large a team does it typically take to go through all the data steps you talked about?
+
+430
+00:36:43,670 --> 00:36:46,752
+抱歉，你的问题是过滤之后的数据量有多大吗？
+Sorry, is the question how large is the data after you filter?
+
+431
+00:36:47,150 --> 00:36:53,828
+对，过滤之后，而且要完成所有步骤，需要多大的团队来处理过滤以及你提到的其他特征？
+Yeah, after you filter, and then to go through all the steps, how large a team
+do you need to go through like the filter, the other features you mentioned?
+
+432
+00:36:54,832 --> 00:36:55,792
+速度有多慢？
+how slow is it?
+
+433
+00:36:57,792 --> 00:37:01,072
+需要多少人才能完成这些工作？
+how many people would you need to be able to do this?
+
+434
+00:37:02,112 --> 00:37:03,472
+呃，好的，这是个很好的问题。
+Uh okay, that's a great question.
+
+435
+00:37:03,552 --> 00:37:06,192
+我先简单回答一下关于数据的问题。
+I'm going to somewhat answer about the data.
+
+436
+00:37:06,672 --> 00:37:09,540
+这页幻灯片最后的数据集有多大？
+how large is the data set at the end of this slide.
+
+437
+00:37:10,512 --> 00:37:13,252
+至于参与工作的人数。
+for the number of people that work on it.
+
+438
+00:37:14,592 --> 00:37:15,552
+这是个好问题。
+that's a good question.
+
+439
+00:37:15,632 --> 00:37:18,276
+其实我不太确定，但我可以说：
+I'm actually not quite sure, but I would say.
+
+440
+00:37:19,502 --> 00:37:29,412
+对，我确实不太清楚，但我认为可能比负责模型预训练微调的人数还要多。
+Yeah, I actually don't quite know, but I would say it's probably even bigger than the
+number of people that work on kind of the tuning of the pre-training of the model.
+
+441
+00:37:29,952 --> 00:37:33,060
+也就是说，数据量比建模方面的人数要多。
+so the data is bigger than kind of the modeling aspect.
+
+442
+00:37:33,552 --> 00:37:37,712
+嗯，是的，我觉得我没把握给出准确的数字。
+Um yeah, I I don't think I have a good sense.
+
+443
+00:37:37,872 --> 00:37:43,588
+我想在 Llama 团队里，大概有 70 多个人，其中可能有 15 人负责数据。
+I would say probably in Lama's team, which have like 70-ish people, I would say maybe 15 work on data.
+
+444
+00:37:45,392 --> 00:37:45,668
+是的。
+yeah.
+
+445
+00:37:46,830 --> 00:37:49,472
+这些事情并不需要那么多人的参与，你还需要大量的算力。
+All these things, you don't need that many people, you need a lot of compute also.
+
+446
+00:37:49,552 --> 00:37:51,172
+因为处理数据需要大量的 CPUs。
+Because for data you need a lot of CPUs.
+
+447
+00:37:53,134 --> 00:37:55,780
+所以，是的，我会在这页幻灯片的最后回答第二个问题。
+so yeah, and I'll answer the second question at the end of this slide.
+
+448
+00:37:56,718 --> 00:38:02,192
+正如我刚才提到的，实际上我们还没有完全解决预训练中的数据问题。
+So as I just kind of alluded to, really we haven't solved data at all for pre-training.
+
+449
+00:38:02,350 --> 00:38:04,228
+所以还有很多研究工作要做。
+So there's a lot of research that has to be done.
+
+450
+00:38:04,526 --> 00:38:06,756
+首先，你如何高效地处理这些内容？
+First, how do you process these things super efficiently?
+
+451
+00:38:07,232 --> 00:38:10,276
+其次，你如何平衡所有这些不同的领域？
+second, how do you balance the kind of like di all of these different domains?
+
+452
+00:38:10,752 --> 00:38:12,432
+你能不能进行合成数据生成？
+can you do synthetic data generation?
+
+453
+00:38:12,512 --> 00:38:13,796
+这其实是目前的一个重点。
+That's actually a big one right now.
+
+454
+00:38:14,112 --> 00:38:19,792
+呃，因为我们——稍后会讨论——但我们互联网上的数据已经不够用了。
+Uh and because we don't have we'll talk about that later, but we don't have enough data on the internet.
+
+455
+00:38:20,814 --> 00:38:23,712
+你能不能使用多模态数据，而不仅仅是文本数据？
+can you use multimodal data instead of just text data?
+
+456
+00:38:23,886 --> 00:38:26,564
+而且这如何能提升你的文本性能？
+And how does that improve even your text performance?
+
+457
+00:38:28,334 --> 00:38:33,956
+这方面有很多保密信息，因为这实际上是大多数预训练大语言模型的核心。
+there's a lot of secrecy, because really this is the key of most of the pre-trained large language models.
+
+458
+00:38:34,272 --> 00:38:41,632
+所以考虑到竞争动态，这些公司通常不会透露他们是如何收集数据的。
+so for competitive dynamics, usually these companies don't talk about how they do the data collection.
+
+459
+00:38:41,934 --> 00:38:43,872
+而且还有版权责任问题。
+And also there's a copyright liability issue.
+
+460
+00:38:44,078 --> 00:38:46,756
+他们肯定不想告诉你他们用了书籍进行训练，尽管他们确实用了。
+They definitely don't want to tell you that they've trained on books even though they did.
+
+461
+00:38:47,312 --> 00:38:49,476
+因为如果不说，你就可以起诉他们。
+because if not you can sue them.
+
+462
+00:38:50,512 --> 00:38:54,116
+常见的学术基准，所以这就能回答你的问题了。
+common academic benchmarks, so that will kind of answer what you asked.
+
+463
+00:38:54,752 --> 00:38:57,124
+它开始了，所以那些是较小的规模。
+it started, so those are the smaller ones.
+
+464
+00:38:57,390 --> 00:39:04,420
+呃，名字没那么重要，但它是从大约 1500 亿 Token 开始的，大约是 800 GB 的数据。
+Uh it's the names are not that important, but it started from around 150 billion tokens, which around 800 gigabytes of data.
+
+465
+00:39:04,592 --> 00:39:12,112
+而现在大约是 15 万亿 Token，这也是目前模型的规模。
+And now it's around 15 trillion of 15 trillion tokens, which is also the size of the models that are right now.
+
+466
+00:39:12,192 --> 00:39:14,340
+最好的模型可能都是用这么多数据训练出来的。
+The best models are probably trained on that amount of data.
+
+467
+00:39:14,574 --> 00:39:20,580
+所以是 15 万亿 Token，我想大概比那个大两个数量级。
+So 15 trillion tokens, which is probably I guess two order management bigger than that.
+
+468
+00:39:20,672 --> 00:39:23,556
+所以是 800 GB。
+So 80 uh E3 gigabyte.
+
+469
+00:39:23,918 --> 00:39:31,620
+如果我没记错的话，那大约是 Common Crawl 过滤了 100 到 1000 倍。
+So that would be around 100 to 1000 times filtering of the common crawl, if I'm not mistaken.
+
+470
+00:39:33,134 --> 00:39:33,508
+所以，是的。
+so yeah.
+
+471
+00:39:33,902 --> 00:39:36,550
+一个非常著名的就是 The Pile。
+One very famous one is the pile.
+
+472
+00:39:37,166 --> 00:39:42,432
+这是 The Pile 的学术基准，我们可以看看他们的数据分布。
+So this is an academic benchmark of the Pile, and we can just look at what distribution of data they have.
+
+473
+00:39:42,670 --> 00:39:49,252
+包括 Archive、PubMed Central，也就是所有的生物学内容。
+It's things like archive, PubMed Central, which is all the biology stuff.
+
+474
+00:39:50,446 --> 00:39:57,668
+这里有 Wikipedia，你还能看到 Stack Exchange、一些 GitHub，还有一些书籍之类的。
+here it's Wikipedia, you see stack exchange, some GitHub, and some books and things like this.
+
+475
+00:39:58,352 --> 00:39:59,952
+再次强调，这只是较小的规模。
+again, this is on the smaller side.
+
+476
+00:40:00,032 --> 00:40:02,752
+所以如果我们看这里，这是 2800 亿。
+So this is if we look at here, this is on 280 B.
+
+477
+00:40:02,894 --> 00:40:04,592
+实际上，它要大上百倍。
+So in reality, it's like a hundred times bigger.
+
+478
+00:40:04,672 --> 00:40:07,588
+所以你不可能有那么多 GitHub 和 Wikipedia 的数据。
+So you cannot have that much of GitHub and on of Wikipedia.
+
+479
+00:40:09,614 --> 00:40:16,736
+关于闭源模型，只是给你们一个概念，Llama 2 是用 2 万亿 Token 训练的。
+In terms of closed source models, just to give you an idea, Lamma 2, it was trained on 2 trillion tokens.
+
+480
+00:40:17,038 --> 00:40:29,136
+Llama 3 是 15 万亿 Token，这是目前我们已知训练数据最多的模型，
+也就是和最好的学术基准一样，都是 15 万亿 Token。
+Lama 3, 15 trillion tokens, which is currently the best model that we know on how much it was trained on,
+which is the same thing as this the best academic or the biggest academic benchmark, which is 15 trillion tokens.
+
+481
+00:40:29,390 --> 00:40:32,292
+GPT-4 我们不太清楚，但可能在同一个数量级。
+GPD4, we don't really know, but it's probably in the same order of magnitude.
+
+482
+00:40:32,622 --> 00:40:33,696
+或者实际上可能就在那个左右。
+Or it's probably around that, actually.
+
+483
+00:40:33,870 --> 00:40:34,724
+可能在 13 万亿左右。
+It's probably around 13.
+
+484
+00:40:35,296 --> 00:40:37,572
+嗯，根据泄露的消息，如果那些消息是真的的话。
+Um from leaks, if the leaks are true.
+
+485
+00:40:40,014 --> 00:40:40,496
+太棒了。
+great.
+
+486
+00:40:41,326 --> 00:40:42,628
+所以是缩放定律。
+So scaling laws.
+
+487
+00:40:43,296 --> 00:40:45,636
+在进入缩放定律之前，关于数据还有其他问题吗？
+any other questions on data before you go to scaling laws?
+
+488
+00:40:49,230 --> 00:40:53,828
+抱歉，我知道我给你们的信息很多，但训练大语言模型确实有很多细节。
+Sorry, I know I'm giving you a lot of information, but there's a lot into training in large language models.
+
+489
+00:40:54,766 --> 00:40:55,056
+太棒了。
+Great.
+
+490
+00:40:55,406 --> 00:40:56,132
+缩放定律。
+Scaling laws.
+
+491
+00:40:57,198 --> 00:41:08,220
+所以这个核心思想是，人们在 2020 年左右，或者至少是很久以前就开始注意到，
+而且他们已经能够从理论上或实证上证明，就是训练数据越多、模型越大，性能就越好。
+So the idea is that what people saw around 2020, or at least from a long time, but they've been able to kind of uh theoretically show
+it, or empirically show it since 2020, is that the more data you train
+
+492
+00:41:08,220 --> 00:41:12,196
+所以这个核心思想是，人们在 2020 年左右，或者至少是很久以前就开始注意到，
+而且他们已经能够从理论上或实证上证明，就是训练数据越多、模型越大，性能就越好。
+your models on, and the larger the models, the better the performance.
+
+493
+00:41:12,814 --> 00:41:15,396
+这其实和你们在这门课上学到的内容挺不一样的。
+This is actually pretty different than what you've seen in this class.
+
+494
+00:41:15,662 --> 00:41:17,572
+在这门课里，我们教你们关于过拟合的内容。
+In this class we teach you about overfitting.
+
+495
+00:41:17,776 --> 00:41:20,036
+但在大语言模型中，不会出现过拟合。
+Overfitting doesn't happen with large language models.
+
+496
+00:41:20,878 --> 00:41:22,756
+模型越大，性能越好。
+larger models, better performance.
+
+497
+00:41:23,616 --> 00:41:29,188
+这是那些上过这类课程的社区成员花了很长时间才意识到的。
+it's something that really took a long time for the community who took this type of class to realize.
+
+498
+00:41:30,016 --> 00:41:32,164
+但为了考试，过拟合是存在的。
+but for the exam, overfitting exists.
+
+499
+00:41:33,696 --> 00:41:34,816
+好的，那我们继续。
+So okay.
+
+500
+00:41:34,990 --> 00:41:49,380
+缩放定律的核心思想是，既然已知更多的数据和更大的模型总是能带来更好的性能，
+那我们能不能预测，如果增加数据量和模型规模，性能会提升多少？
+The idea of scaling loss is that if, given that you know that more data and larger models will always give you better performance,
+can we predict how much better your performance will be if you increase the amount of data and the size of your model?
+
+501
+00:41:50,446 --> 00:41:51,748
+令人惊讶的是，它是有效的。
+And surprisingly, it works.
+
+502
+00:41:52,496 --> 00:41:56,868
+所以这里你们可以看到来自 OpenAI 一篇非常著名的论文《缩放定律》中的三个图表。
+so here you see three plots from a very famous paper called scaling loss from OpenAI.
+
+503
+00:41:58,030 --> 00:41:59,844
+这里横轴是算力。
+here you see on the x-axis compute.
+
+504
+00:42:00,096 --> 00:42:05,220
+也就是你训练了多少，花了多少算力来训练，而这里看到的是测试损失。
+So how much did you train, like how much compute did you spend for training, and here you see test loss.
+
+505
+00:42:05,390 --> 00:42:08,996
+这本质上就是，我的意思是，它不是困惑度，而是你的验证损失。
+So this is essentially, I mean it's not perplexity, but it's your validation loss.
+
+506
+00:42:09,710 --> 00:42:11,300
+所以它是困惑度的对数。
+so it's a log of the perplexity.
+
+507
+00:42:11,630 --> 00:42:22,052
+如果你把这两个放在对数尺度上，你就会看到，
+呃，那个，性能或者说，抱歉，缩放定律是线性的。
+And if you put these two on log scale, then you see that uh the um
+the performance or like the the sorry the the scaling law is linear.
+
+508
+00:42:22,656 --> 00:42:29,732
+这意味着，如果你增加一定数量的算力，你可以预测出测试损失实际上会减少多少。
+that means that if you increase your compute by a certain amount,
+you can you can say by how much your test loss will actually decrease.
+
+509
+00:42:30,510 --> 00:42:33,156
+数据和参数也是同样的情况。
+Same thing with data and same thing for parameters.
+
+510
+00:42:33,456 --> 00:42:39,936
+如果你增加数据集大小，你的损失就会减少一个大致可预测的数值。
+If you increase the dataset size, your loss will inc will decrease by an amount that is somewhat predictable.
+
+511
+00:42:40,096 --> 00:42:45,380
+如果你增加参数数量，损失也会减少一个大致可预测的数值。
+If you increase the number of parameters, it will decrease the loss will decrease by amount which is somewhat predictable.
+
+512
+00:42:45,776 --> 00:42:47,108
+这真的很神奇。
+This is really amazing.
+
+513
+00:42:48,142 --> 00:42:49,216
+非常令人惊讶。
+very surprising.
+
+514
+00:42:49,550 --> 00:42:59,010
+我的意思是，看这些图表时它看起来平淡无奇，但其实非常疯狂，
+因为它意味着只要这些规律成立，我们就可以根据将要投入多少算力，
+I mean it looks innocuous when you look at these type of plots, but that's crazy because it means that you can predict how well we're
+going to perform in two, three years, depending on how much compute we will add, assuming that these things will hold.
+
+515
+00:42:59,010 --> 00:43:01,536
+来预测两三年后我们的表现会如何。
+I mean it looks innocuous when you look at these type of plots, but that's crazy because it means that you can predict how well we're
+going to perform in two, three years, depending on how much compute we will add, assuming that these things will hold.
+
+516
+00:43:01,616 --> 00:43:02,724
+这完全不是什么理论推导。
+There's nothing theoretical about it.
+
+517
+00:43:04,462 --> 00:43:04,740
+对吗？
+yes?
+
+518
+00:43:05,296 --> 00:43:06,256
+呃，两件事。
+Uh two things.
+
+519
+00:43:06,446 --> 00:43:08,096
+第一，他们这里用的是什么损失？
+One, what is the loss that they're using here?
+
+520
+00:43:08,176 --> 00:43:08,896
+这是困惑度吗？
+Is this perplexity?
+
+521
+00:43:09,616 --> 00:43:16,736
+所以它是，你知道，我说过困惑度是损失的 2 的幂次方，所以这是困惑度的对数。
+So it's it's you know, I said perplexity was like two to the power of the loss, so this is the the the power of the perplexity.
+
+522
+00:43:18,816 --> 00:43:24,896
+当你增加参数数量，或者增加总数据集规模的倍数时。
+when you increase the number of parameters or you increase the total data set size a number of times.
+
+523
+00:43:25,056 --> 00:43:27,616
+这难道不是本质上增加了你的算力吗？
+Doesn't that just inherently increase your compute?
+
+524
+00:43:28,142 --> 00:43:32,260
+也就是说，所有的这些工作是不是只取决于电脑上的某些特定指标？
+Like is all of this work on just how much something specific to the computer.
+
+525
+00:43:32,736 --> 00:43:33,616
+不，这是一个很好的问题。
+No, this is a great question.
+
+526
+00:43:33,774 --> 00:43:38,052
+所以这里的算力实际上是两个因素的乘积：数据和参数。
+So the compute here is actually a factor of two things the data and the parameter.
+
+527
+00:43:38,382 --> 00:43:46,692
+我在这里展示的是，嗯，实际上我们稍后会详细讨论，
+但基本上，如果你增加参数数量，你也应该增加数据量。
+What I'm showing here is that you can well actually we're going to talk about that in details, but basically,
+if you increase the number of parameters, you should increase the number of data that you have.
+
+528
+00:43:48,590 --> 00:43:51,076
+所以你实际上不需要多次遍历相同的数据集。
+so you actually don't go multiple times through the same data set.
+
+529
+00:43:51,470 --> 00:43:55,812
+目前还没有人在大规模模型上做训练轮数，至少目前还没有。
+No one does epochs in uh uh large uh at least not yet.
+
+530
+00:43:56,736 --> 00:43:59,364
+因为我们目前仍有足够的数据。
+because we have in still kind of enough data.
+
+531
+00:43:59,936 --> 00:44:03,812
+所以没错，这都是同样的趋势：增加算力，降低损失。
+so yeah, this is all the same trend, which is increase compute, decrease loss.
+
+532
+00:44:05,134 --> 00:44:05,348
+对吧？
+Yes?
+
+533
+00:44:06,670 --> 00:44:08,580
+我们看到过去两年的数据了吗？
+Have we seen the numbers for the last two years?
+
+534
+00:44:09,070 --> 00:44:10,576
+还是说它依然有效？
+Or is it still holding?
+
+535
+00:44:11,056 --> 00:44:12,196
+它依然有效。
+It is still holding.
+
+536
+00:44:12,656 --> 00:44:18,436
+我没法给你们展示精确的数字，但令人惊讶的是，它依然有效。
+I don't have good numbers to show you, but it is still holding, surprisingly.
+
+537
+00:44:20,880 --> 00:44:21,280
+是的。
+Yes.
+
+538
+00:44:21,760 --> 00:44:24,800
+难道就没有证据，比如经验证据，表明它最终会达到平台期吗？
+Is there no evidence, like empirical evidence, that it would ever plateau?
+
+539
+00:44:25,520 --> 00:44:27,280
+从理论上讲，我们预期它会达到平台期，对吧？
+In theory, we would expect it plateau, right?
+
+540
+00:44:28,846 --> 00:44:31,780
+目前还没有任何经验证据表明它很快就会达到平台期。
+No empirical evidence of plateauing anytime soon.
+
+541
+00:44:33,326 --> 00:44:33,760
+为什么？
+why?
+
+542
+00:44:34,382 --> 00:44:34,884
+我们不知道。
+We don't know.
+
+543
+00:44:36,000 --> 00:44:37,028
+它会发生吗？
+will it happen?
+
+544
+00:44:37,742 --> 00:44:38,000
+可能会。
+Probably.
+
+545
+00:44:38,318 --> 00:44:40,484
+我的意思是，它不需要，因为它实际上是在对数尺度上。
+I mean it doesn't need to because it's actually in log scale.
+
+546
+00:44:41,134 --> 00:44:45,680
+所以并不是说它在数学上就必须达到平台期。
+So it's not like as if it had to go, it had to plateau like mathematically.
+
+547
+00:44:45,760 --> 00:44:47,364
+它可能会继续像这样下降。
+It could continue decreasing like this.
+
+548
+00:44:47,920 --> 00:44:50,308
+我是说，大多数人认为它可能在某个点达到平台期。
+I mean most people think that it will probably plateau at some point.
+
+549
+00:44:50,640 --> 00:44:51,268
+我们不知道是什么时候。
+We don't know when.
+
+550
+00:44:54,254 --> 00:44:56,868
+好，那我现在会更多地讨论缩放定律。
+okay, so that's I will talk more about scaling loss now.
+
+551
+00:44:57,614 --> 00:44:59,716
+那么为什么缩放定律真的很酷呢？
+So why are scaling loss really cool?
+
+552
+00:45:00,270 --> 00:45:05,124
+想象一下，我给你一个非常幸运的机会，这个月给你 10,000 个 GPUs。
+Imagine that I give you you're very fortunate, I give you 10,000 GPUs for this month.
+
+553
+00:45:05,902 --> 00:45:07,172
+你会训练什么样的模型？
+What model will you train?
+
+554
+00:45:07,406 --> 00:45:09,252
+你甚至该如何去回答这个问题？
+How do you even go about answering that question?
+
+555
+00:45:09,742 --> 00:45:14,788
+我的意思是，这只是个假设，但这些公司正是面临这样的问题。
+And I mean, this is a hypothetical, but that's exactly what these companies are faced with.
+
+556
+00:45:16,080 --> 00:45:21,412
+旧的流程基本上是，你在大型模型上进行超参数调优。
+the old pipeline, which was basically you tune hype parameters on the big models.
+
+557
+00:45:21,806 --> 00:45:31,396
+所以假设我有 30 天时间，我每天训练一个模型，
+然后选出最好的那个，作为我最终投入生产的模型。
+So let's say I have 30 days, I will train 30 models for one day each, I will pick the best one,
+and that will be the final model that I will use in production.
+
+558
+00:45:32,080 --> 00:45:35,652
+这意味着我实际使用的模型只训练了一天。
+that means that the model that I actually used was only trained for one day.
+
+559
+00:45:36,846 --> 00:45:40,164
+新的流程是，你首先要找到一个缩放配方。
+The new pipeline is that you first find a scaling recipe.
+
+560
+00:45:40,398 --> 00:45:47,140
+也就是说，你要找到一些规律，比如一个常见的规律
+是，如果你增加模型的尺寸，你就应该降低学习率。
+So you find something that tells you, for example, oh, like one common thing is
+that if you increase the size of your model, you should decrease your learning rate.
+
+561
+00:45:47,470 --> 00:45:54,596
+所以你要找到一个缩放配方，这样你就知道，如果我增加模型的尺寸，我该如何调整一些超参数。
+So you find a scaling recipe so that you know if I increase the num the the size of my model,
+here's what I should do with some hyperparameters.
+
+562
+00:45:55,310 --> 00:46:00,400
+然后你在不同尺寸的小模型上进行超参数调优。
+Then you tune your high parameters on smaller models of different sizes.
+
+563
+00:46:00,640 --> 00:46:09,092
+假设在我的 30 天里，我用其中 3 天来训练许多不同模型，
+并在这些不同尺寸的小模型上进行超参数调优。
+Let's say I will say for three days of my 30 days, I will train many different models
+and I will do hyperparameter tuning on these small models, each of different sizes.
+
+564
+00:46:09,518 --> 00:46:19,172
+然后我会拟合一个缩放定律，并尝试从这些小模型中外
+推，看看如果我训练得更久，哪一个模型会是最好的。
+Then I will fit a scaling law and try to extrapolate from these smaller
+models which one will be the best if I if I train it for much longer.
+
+565
+00:46:20,014 --> 00:46:26,948
+或者，抱歉，如果我训练一个更大的模型，然后我
+会把最终的巨大模型训练 27 天，而不是仅仅一天。
+Or sorry, if I train it for a larger model, and then I will train the final huge model for 27 days instead of just one day.
+
+566
+00:46:28,494 --> 00:46:42,628
+所以新的流程不是在你要实际使用的模型规模上进行训练或超参数调优，
+而是在不同规模的小模型上做这些，尝试预测它们变大后表现如何。
+so the new pipeline is not train things or do high priority tuning on the real scale of the model that you're going to use in
+practice, but do things on smaller ones at different scales, try to predict how well they will perform once you make them bigger.
+
+567
+00:46:43,086 --> 00:46:45,956
+我现在给你们一个非常具体的例子。
+I will give the I will give you a very concrete example right now.
+
+568
+00:46:46,286 --> 00:46:49,092
+呃，假设是 Transformer 对比 LSTMs。
+Uh let's say transformers versus LSTMs.
+
+569
+00:46:49,582 --> 00:46:53,520
+呃，假设你有这些 10,000 个 GPUs，但不确定该用哪一种。
+Uh let's say you're you have these 10,000 GPUs, you're not sure which one you should be using.
+
+570
+00:46:53,680 --> 00:46:56,484
+我应该用基于 Transformer 的模型，还是基于 LSTM 的模型？
+Should I be using a transformer-based model or an LCM-based model?
+
+571
+00:46:56,782 --> 00:46:59,680
+我会做的操作是，在不同规模上训练 Transformer。
+What I will do is I will train transformers at different scales.
+
+572
+00:47:00,142 --> 00:47:04,030
+所以在这里你可以看到 X 轴是不同的参数，Y 轴是我的测试损失。
+So here you see different parameters on the x-axis, y-axis is my test loss.
+
+573
+00:47:04,430 --> 00:47:08,000
+然后我会训练不同规模的各种 LSTMs。
+I will then train different LSTMs at different scales.
+
+574
+00:47:08,526 --> 00:47:12,452
+一旦我有了这些点，我就会看到，哦，它基本符合一个缩放定律。
+Once I have these points, I will see, oh, it kind of fits a scaling law.
+
+575
+00:47:12,622 --> 00:47:20,080
+我会拟合我的缩放定律，然后我就能预测，哦，如果我有十倍更多的算力，我的表现会如何。
+I will fit my scaling law, and then I will be able to predict, oh, if I had ten times more compute, here's how well I would perform.
+
+576
+00:47:20,270 --> 00:47:26,468
+对于 LSTM，其实它的线性程度稍微低一点，但你大概也能预测出最终结果。
+For the LSTM, it's actually slightly less linear for the LSTM, but you could probably try to predict where you would end up.
+
+577
+00:47:26,702 --> 00:47:29,732
+而且从这个图表可以清楚地看到，Transformer 更好。
+And clearly from this plot you would see that transformers are better.
+
+578
+00:47:30,720 --> 00:47:34,916
+阅读这类缩放定律时有一点需要注意，就是有两个因素很重要。
+one thing to notice when you read these type of scaling laws is that there are two things that are important.
+
+579
+00:47:36,000 --> 00:47:41,040
+一个是你的缩放速率，也就是
+one is really your scaling rate, which is kind of
+
+580
+00:47:44,160 --> 00:47:45,636
+缩放定律的斜率。
+the slope of the scaling law.
+
+581
+00:47:45,920 --> 00:47:49,156
+另一个就是你的截距。
+The other thing is your intercept.
+
+582
+00:47:50,062 --> 00:47:53,360
+比如你一开始可能表现更差，但实际上随着时间的推移会变得更好。
+Like you could start worse but actually become better over time.
+
+583
+00:47:53,678 --> 00:47:55,588
+只是碰巧 LSTMs 在这两方面表现都更差。
+It just happens that LSTMs are worse for both.
+
+584
+00:47:56,160 --> 00:48:03,844
+但我也可以给你们展示另一个例子，在那里你可以预测到，在达到一定规模后，
+使用那种类型的模型比其他模型更好。
+but I could show you another one where things you can predict that actually
+after a certain scale you're better off using that type of model than others.
+
+585
+00:48:04,400 --> 00:48:07,204
+这就是为什么缩放定律实际上非常有用。
+so that's why scaling laws are actually really useful.
+
+586
+00:48:08,718 --> 00:48:09,412
+关于这一点有什么问题吗？
+Any questions on that?
+
+587
+00:48:12,366 --> 00:48:12,580
+是的。
+Yeah.
+
+588
+00:48:13,038 --> 00:48:16,752
+所以这些都是……这些对这些因素有多敏感？
+So these are all kind of very how sensitive are these?
+
+589
+00:48:17,072 --> 00:48:18,756
+比如架构上的微小差异。
+So like small differences of architecture.
+
+590
+00:48:18,992 --> 00:48:22,788
+比如一种 Transformer 架构对比另一种 Transformer 架构。
+Like one one like transformer architecture versus another transformer architecture.
+
+591
+00:48:23,726 --> 00:48:35,200
+你基本上必须拟合出你自己的曲线，然后基本上说：哦，缩
+放定律告诉我这里应该有一个对数函数，让我把它提取出来？
+Do you basically have to fit your own curve and basically say oh scaling law
+is telling me there should be some logarithmic function like let me extract it?
+
+592
+00:48:35,472 --> 00:48:35,712
+是的。
+Yeah.
+
+593
+00:48:35,952 --> 00:48:44,912
+所以通常情况下，比如如果你是学术界的，你想现在——这
+还挺近的——你想提出一个新的激活函数，你就会这样做。
+So usually, for example, if you're an academic and you want to now at least, that's like pretty recent,
+and you want to propose a new like activation, that's exactly what you will do.
+
+594
+00:48:45,134 --> 00:48:50,788
+你会拟合一个缩放定律，展示另一个带有标准……我
+不知道，Galoo 的缩放定律，然后你会说它更好。
+You will fit a scaling law, show another scaling law with the standard like I don't know, Galoo, and you will say that it's better.
+
+595
+00:48:51,054 --> 00:49:04,580
+实际上，一旦你开始用缩放定律的术语来思考，你就会发现，我们能做的所有架构差异，
+比如那些微小的差异，它们所做的可能只是稍微改变一点截距，但实际上那并不重要。
+In reality, once you start thinking about it in scaling loss terms, you really realize that actually all the architecture differences
+that we can make, like the small minor ones, all they do is maybe change a little bit the intercept, but really that doesn't matter.
+
+596
+00:49:05,152 --> 00:49:11,952
+因为只要多训练 10 个小时，或者等下一批 GPU 算力出来，这些事情其实都是次要的。
+because just train it for 10 hours longer or like wait for the next
+uh for the next compute GPUs, and these things are really secondary.
+
+597
+00:49:12,112 --> 00:49:16,324
+这就是我最初告诉你们的原因，人们花太多时间在架构和损失函数上。
+Which is exactly why I was telling you originally, people spend too much time on the architecture and losses.
+
+598
+00:49:17,294 --> 00:49:18,912
+实际上，这些事情没那么重要。
+in reality, these things don't matter as much.
+
+599
+00:49:19,152 --> 00:49:24,260
+但是数据，如果你使用好的数据，你的缩放定律会比使用差的数据好得多。
+Data though, if you use good data, you will have much better scaling loss than if you use bad data.
+
+600
+00:49:24,462 --> 00:49:26,112
+所以那真的很重要。
+So that really matters.
+
+601
+00:49:27,312 --> 00:49:34,820
+用缩放定律还能做到的另一件很酷的事情是，你可以问自己如何最优地分配训练资源。
+another really cool thing you can do with scaling loss is that you can ask yourself how to optimally allocate training resources.
+
+602
+00:49:35,152 --> 00:49:36,832
+我应该训练更大的模型吗？
+Should I train larger models?
+
+603
+00:49:37,038 --> 00:49:42,148
+因为我们看到训练更大的模型效果更好，但我们也看到使用更多数据效果更好。
+Because we saw that it's better when you train larger models, but we saw that it's also better when you use more data.
+
+604
+00:49:42,414 --> 00:49:43,552
+那我该选哪一个呢？
+So which one should I do?
+
+605
+00:49:43,822 --> 00:49:48,004
+我应该只是用更多的数据训练一个小模型，还是用更少的数据训练一个大模型？
+Should I just train on more data, a smaller model, or should I train a larger model on less data?
+
+606
+00:49:49,646 --> 00:49:53,412
+所以 Chinchilla 是一篇非常著名的论文，它第一次展示了这一点。
+so Chinchilla is a very famous paper that first showed this.
+
+607
+00:49:53,872 --> 00:49:57,892
+关于他们做到的方式，我想让你们对这些图表有个大概的了解。
+the way they did it, I want to give you a little bit of a sense of what these plots are.
+
+608
+00:49:58,352 --> 00:49:59,792
+这里你们可以看到训练损失。
+here you see training loss again.
+
+609
+00:49:59,918 --> 00:50:05,860
+在 X 轴上，你们看到的是参数，参数差异，呃，抱
+歉，参数规模，呃，参数数量，也就是模型的规模。
+On the x-axis, you see parameter, parameter differences, uh, sorry,
+parameter size, uh, number of parameters, so the size of the model.
+
+610
+00:50:06,254 --> 00:50:15,972
+而这里的这些曲线就是我们所谓的等算力曲线，也就是说
+这条曲线上的所有模型都是用相同数量的算力训练出来的。
+And here all these curves are what we call isoflops, which is that all the
+models on this curve have been trained with the same amount of compute.
+
+611
+00:50:16,992 --> 00:50:26,820
+实现方法是，你改变，抱歉，你改变训练使用的 Token 数量和模型的规模，
+但改变的方式是让总算力保持不变。
+the way that you do that is that you train you change, sorry, you vary the number of tokens that were trained on and the size of the
+models, but you vary in such a way that a total compute is constant.
+
+612
+00:50:27,072 --> 00:50:27,232
+好吗？
+Okay?
+
+613
+00:50:27,726 --> 00:50:32,196
+所以这些不同颜色的曲线，代表了不同数量的训练算力。
+So all these curves that you see with different colors have different amount of computes that were trained on.
+
+614
+00:50:32,654 --> 00:50:34,916
+然后你从每条曲线上选出表现最好的一个。
+Then you take the best one for each of those curves.
+
+615
+00:50:35,566 --> 00:50:50,532
+一旦你拿到了每条曲线上的最优模型，你就可以绘制出它的浮点运算次数、它在哪个曲线上，
+以及训练那个特定点时实际使用了多少参数。
+Once you have the best one for each of those curves, you can ask, you can plot how much flops it was and on which curve were you on,
+and how much parameters did you actually use for training that specific point.
+
+616
+00:50:50,832 --> 00:50:56,752
+你把这些数据再次放入对数尺度，然后再次拟合缩放定律。
+You put that on the on the log log scale again, and now you fit a scaling law again.
+
+617
+00:50:57,038 --> 00:51:05,872
+这样我就能得到一个结论：如果我想训练一个 10 的 23 次方的浮点运算次数的模型，
+这里就是我应该使用的确切参数数量。
+So now I have something which tells me if I want to train a model of 10 to the power 23 flops,
+here's exactly the number of parameters that I should be using.
+
+618
+00:51:06,062 --> 00:51:07,428
+100，1000亿。
+100 100b.
+
+619
+00:51:08,014 --> 00:51:10,148
+你也可以对浮点运算次数和 Token 做同样的事情。
+And you can do the same thing with flops and tokens.
+
+620
+00:51:11,598 --> 00:51:18,512
+所以现在你可以预测，如果我告诉你我正好有一个月的算力，我应该训练什么规模的模型？
+So now you can predict if if I tell you exactly I have one month of compute, what size of model should I be training?
+
+621
+00:51:19,060 --> 00:51:20,516
+通过计算缩放定律，我就能告诉你。
+figure scaling law, and I tell you.
+
+622
+00:51:21,326 --> 00:51:23,552
+嗯，当然，这些看起来都很完美。
+Um of course that all looks beautiful.
+
+623
+00:51:23,792 --> 00:51:28,992
+但在现实中，有很多细节问题，比如你是否应该计算嵌入参数？
+In reality, like there's like there's a lot of like small things of like should you be counting like embedding parameters?
+
+624
+00:51:29,166 --> 00:51:33,572
+有很多复杂的情况，但如果你处理得当，这些规律确实是成立的。
+Like there's there's a lot of complexities, but if you do things well, these things actually do hold.
+
+625
+00:51:34,798 --> 00:51:43,332
+嗯，所以 Chinchilla 论文发现的最优参数数量是，每训练一个参数对应使用 20 个 Token。
+Um so the optimal number of parameters that that Chinchilla Paper have found is to use 20 tokens for every parameter that you train.
+
+626
+00:51:44,032 --> 00:51:48,644
+也就是说，如果你增加一个参数，你就应该让你的模型多训练 20 个 Token。
+so if you add one more parameter, you should add you should train your thing on your model on 20 more tokens.
+
+627
+00:51:49,742 --> 00:51:52,996
+这里有一个前提，这是最优的训练资源分配。
+So one caveat here is that this is optimal training resources.
+
+628
+00:51:53,326 --> 00:52:02,660
+也就是说，如果我有 10 的 23 次方的算力，或者我有，我
+不知道那是多少，一亿美元，或者十……不，实际上要少得多。
+So that is telling me if you have 10 to the power 23 flops, or if you have like a hundred, I don't know how much that is,
+a hundred million dollars, or ten no, that's much less actually.
+
+629
+00:52:02,862 --> 00:52:07,396
+假设我有 500 万美元来训练我那个损失最低的最佳模型。
+Let's say I have five million dollars to train my best model that gets the lowest loss.
+
+630
+00:52:07,712 --> 00:52:09,476
+那我该用什么去训练呢？
+How how what would I train on?
+
+631
+00:52:09,934 --> 00:52:12,644
+实际上，这些公司还需要考虑推理成本。
+In reality, these companies need to think about inference also.
+
+632
+00:52:12,974 --> 00:52:16,900
+如果你拥有更小的模型，长期来看他们花的钱就会更少。
+If you have a smaller model, they will spend less over time.
+
+633
+00:52:18,030 --> 00:52:28,040
+所以实际上，如果你考虑推理成本，还有其他论文试图表明，
+这个比例大约是每参数 150 个 Token。
+so actually, if you consider the inference cost, you have other papers that try
+to show that it's around 150 uh parameters per sorry, tokens per parameters.
+
+634
+00:52:28,272 --> 00:52:37,252
+因为你更倾向于拥有更小的模型，因为从长远来看，你实际上会花更少的钱在这些模型的推理上。
+Because you prefer having a smaller model, because over time you're gonna
+you're gonna actually um spend less money on inference of these models.
+
+635
+00:52:37,710 --> 00:52:48,292
+所以 150 比 1，这就是目前最优秀的模型所采用的比例，至少是那些在实际生产中使用的模型。
+So 150 to 1, that's around what the best models are trained on right now,
+at least the ones that are that are used um in practice for in production.
+
+636
+00:52:49,998 --> 00:52:50,276
+太棒了。
+Great.
+
+637
+00:52:52,046 --> 00:52:52,940
+关于 Chinchilla 有任何问题吗？
+Any question on Chinchilla?
+
+638
+00:52:56,046 --> 00:52:56,324
+太棒了。
+Great.
+
+639
+00:52:56,942 --> 00:52:57,360
+噢，抱歉。
+Oh, sorry.
+
+640
+00:52:58,640 --> 00:53:02,340
+当我们训练这些模型时，它们的推理成本有多高？
+How expensive is inference for these models when we live to train?
+
+641
+00:53:03,470 --> 00:53:04,516
+实际上，非常昂贵。
+Actually, very expensive.
+
+642
+00:53:05,280 --> 00:53:09,040
+我不打算讲推理，因为那得专门拿出一整场讲座来讲。
+I will not talk about inference because that would be another entire lecture.
+
+643
+00:53:09,280 --> 00:53:16,772
+但想想 ChatGPT，现在不知道有多少人用了，大概有 6 亿人。
+But just think about ChatGPT, where they have, I don't know how much it is now, like 600 million people that used it.
+
+644
+00:53:18,350 --> 00:53:20,452
+这可是个巨大的数字。
+like that's a lot.
+
+645
+00:53:22,670 --> 00:53:24,480
+没错，所以实际上成本非常高。
+yeah, so it's actually very expensive.
+
+646
+00:53:24,640 --> 00:53:26,916
+不过在推理方面，有很多可以做的优化。
+There's a lot of optimization you can do for inference though.
+
+647
+00:53:27,440 --> 00:53:28,960
+那又是另一场完整的讲座了。
+and that's an entire other lecture.
+
+648
+00:53:29,102 --> 00:53:31,076
+所以这次我就跳过这一块了。
+So I'm going to skip that this time.
+
+649
+00:53:31,790 --> 00:53:32,516
+但这确实非常有趣。
+But it's very interesting.
+
+650
+00:53:33,710 --> 00:53:34,560
+好，接下来是调优。
+Okay, tunings.
+
+651
+00:53:34,880 --> 00:53:38,480
+嗯，就像我说的，有很多问题可以用缩放定律来回答。
+Um as I said, there are many things that you can answer with scaling laws.
+
+652
+00:53:38,560 --> 00:53:42,212
+我刚才只是给出了两个例子，但实际上有很多方面。
+I just tried to give you two examples, but really there are many things.
+
+653
+00:53:42,400 --> 00:53:53,340
+你要用什么数据，用什么样的权重进行数据混合，这就是我们之前讨论过的，你要用什么架构，
+是该让模型更宽还是更深，是该花钱买更多 GPUs 还是去收集更多数据？
+What data do you use, what data mixing weighting you use, the data mixtures, that's what we talked about before,
+what architecture you use, whether you should make your models wider or
+
+654
+00:53:53,340 --> 00:53:57,924
+你要用什么数据，用什么样的权重进行数据混合，这就是我们之前讨论过的，你要用什么架构，
+是该让模型更宽还是更深，是该花钱买更多 GPUs 还是去收集更多数据？
+deeper, should you be paying for more GPUs or actually collecting more data?
+
+655
+00:53:59,022 --> 00:54:01,540
+所有这些问题，你都可以尝试用缩放定律来寻找答案。
+all these things are things you can try to answer with scaling laws.
+
+656
+00:54:03,438 --> 00:54:05,520
+有一件事我想说，就是「苦涩的教训」。
+One thing I want to say is the bitter lesson.
+
+657
+00:54:05,710 --> 00:54:20,630
+如果你听过 Richard Sutton 在 2019 年发表的那篇非常有名的博客，
+他意识到的一点——我觉得很多人还没意识到，我当时肯定也没意识到——就是一旦你看到了这类缩
+If you ever heard of Richard Sutton's, uh, very famous blog post in 2019, what he realized, which I think not enough people realize,
+I definitely did not realize at that time, is that once you see these type of scaling
+
+658
+00:54:20,630 --> 00:54:20,680
+如果你听过 Richard Sutton 在 2019 年发表的那篇非常有名的博客，
+他意识到的一点——我觉得很多人还没意识到，我当时肯定也没意识到——就是一旦你看到了这类缩
+laws, you know that the more compute you have, the better models you will get.
+
+659
+00:54:20,680 --> 00:54:26,000
+放定律，你就知道拥有更多的算力就能得到更好的模型。
+laws, you know that the more compute you have, the better models you will get.
+
+660
+00:54:26,254 --> 00:54:27,760
+所以通过规模化，你就能得到更好的模型。
+So with scale you will get better model.
+
+661
+00:54:28,174 --> 00:54:33,892
+而且你也知道，通过 Moore's law 或者这类变体的 Moore's law，你永远能获得更好的算力。
+And you also know by Moore's law or these type of variants of Moore's law that you will always have better compute.
+
+662
+00:54:34,160 --> 00:54:39,760
+那么唯一重要的事情，就是拥有能够利用这些算力的架构。
+Then the only thing that matters is just to have architectures that can leverage computation.
+
+663
+00:54:40,014 --> 00:54:48,996
+所以核心在于系统和数据，而架构的影响相对较小，
+比如一些微小的架构差异，比如你的激活函数之类的。
+So what matters is basically systems, data, and less so the architecture, like the small architecture differences,
+like your your your activation and things like this.
+
+664
+00:54:49,680 --> 00:54:56,420
+所以我认为，这就是为什么大多数研究都集中在一些对工业界来说不太重要的东西上的原因之一。
+so I think that's like one of the reasons why most of research focuses on some things that for industry matters less.
+
+665
+00:54:56,800 --> 00:55:00,804
+而且在我职业生涯的大大部分时间里，我就是那些研究人员之一。
+and I was one of those researchers for a large part of my career.
+
+666
+00:55:02,638 --> 00:55:04,484
+所以不要把事情搞复杂。
+so don't spend time overcomplicating.
+
+667
+00:55:05,006 --> 00:55:07,844
+把简单的事情做好，把它们做透。
+Do the simple things, do it well, seal them.
+
+668
+00:55:08,110 --> 00:55:14,240
+这正是 OpenAI 通过 ChatGPT 以及之前所有的 GPT 模型教会我们的。
+That's really what OpenAI taught us with um with ChatGPT and with all the GPTs before.
+
+669
+00:55:15,438 --> 00:55:18,720
+好，我想给你们做一些粗略估算。
+Okay, I want to give you some back of the envelope computation.
+
+670
+00:55:18,800 --> 00:55:24,676
+这里我的计算可能差几个数量级，但我只是想让你们大概了解一下训练这些模型成本有多高。
+So I might be off by a few factors here, but I just want to give you a sense of how costly it is to train some of these models.
+
+671
+00:55:25,294 --> 00:55:30,820
+我举个例子，比如 Lamma3 400B，这是目前你能获得的最好的开源模型。
+I'll give as an example uh Lamma3 400B, which is currently the best open source model that you can get.
+
+672
+00:55:31,470 --> 00:55:34,724
+嗯，它是用 15.6 万亿个 Token 训练出来的。
+Uh it was trained on 15.6 tokens.
+
+673
+00:55:35,040 --> 00:55:37,668
+它有 4050 亿个参数。
+It has 405 billion parameters.
+
+674
+00:55:37,920 --> 00:55:43,140
+所以现在你知道每参数对应的最优 Token 数是多少了，大约是 40。
+So just now that you know what is like this uh optimal tokens per parameter, that's around 40.
+
+675
+00:55:43,310 --> 00:55:49,508
+所以这比 Chinchilla 稍微多一点，但比推理最优模型要少。
+So that's a little bit more than chinchilla, but less than this like inference optimal model.
+
+676
+00:55:50,400 --> 00:55:52,260
+所以他们追求的是训练最优。
+So they went for training optimality.
+
+677
+00:55:53,440 --> 00:56:02,560
+这个模型的浮点运算次数，计算浮点运算次数的一
+个简单方法就是参数数量乘以训练数据量的 6 倍。
+flops for this model, so one simple way to compute flops is six times the number of parameters times the number of data you train on.
+
+678
+00:56:02,880 --> 00:56:07,172
+所以如果你按这个简单的计算方法，就是 3.8e25 次浮点运算。
+so if you do the simple calculation here, it's 3.8e25 flops.
+
+679
+00:56:07,758 --> 00:56:17,300
+之所以这很重要，是因为如果你关注过新闻，拜登发布了一项行政命令，
+基本上说一旦你的模型达到 1e26 次浮点运算，呃，
+The reason why this is important is that if you followed a little bit the news, there's an executive order from Biden that basically
+says that once you have 1e26 parameters, uh sorry, flops, then you have special scrutiny on your models.
+
+680
+00:56:17,300 --> 00:56:21,188
+抱歉，是浮点运算，你的模型就会受到特殊审查。
+The reason why this is important is that if you followed a little bit the news, there's an executive order from Biden that basically
+says that once you have 1e26 parameters, uh sorry, flops, then you have special scrutiny on your models.
+
+681
+00:56:21,440 --> 00:56:23,520
+所以他们做得比那个少两倍。
+So they went two x less than that.
+
+682
+00:56:23,600 --> 00:56:26,884
+所以他们确实压在这一条线以下，就是为了避免特殊审查。
+So they really went right below this to not have special scrutiny.
+
+683
+00:56:27,342 --> 00:56:32,400
+所以 3.8 这个数字我可能稍微有点偏差，但肯定低于 1e26。
+So three eight I might be off by a little bit, but it's definitely under the uh one e twenty-six.
+
+684
+00:56:34,160 --> 00:56:41,444
+呃，所以参数 p 是参数，n 是数据，也就是 Token 数量。
+Uh oh so parameter p is parameters, n is data, number of tokens.
+
+685
+00:56:41,920 --> 00:56:44,932
+这只是一个近似值。
+This is a this is just an approximation.
+
+686
+00:56:45,838 --> 00:56:46,340
+是的。
+We yeah.
+
+687
+00:56:48,110 --> 00:56:48,320
+好的。
+Okay.
+
+688
+00:56:49,040 --> 00:56:53,412
+算力，而且我们知道他们是在 16000 块 H100 上训练的。
+compute and we know that they train it on sixteen thousand H100s.
+
+689
+00:56:54,000 --> 00:56:57,636
+嗯，而且我们知道吞吐量，他们也说了。
+Um and we know the throughput they said it too.
+
+690
+00:56:58,400 --> 00:57:01,796
+所以如果你计算一下，大约需要 70 天。
+so if you do the computation, it takes around 70 days.
+
+691
+00:57:02,160 --> 00:57:05,200
+嗯，2600 万 GPU 小时。
+Um 26 million GPU hours.
+
+692
+00:57:05,454 --> 00:57:08,480
+至少按照我的粗略估算是这样的。
+At least that's with my back of the envelope computation.
+
+693
+00:57:08,560 --> 00:57:13,124
+他们实际上说他们用了 3000 万 GPU 小时，而不是 2600 万。
+They actually said that they use for 30 million instead of 26 million GPU hours.
+
+694
+00:57:13,440 --> 00:57:17,360
+嗯，所以也许他们遇到了一些挑战。
+Um so maybe they had like some uh some challenges.
+
+695
+00:57:17,614 --> 00:57:18,240
+我不太清楚。
+I don't really know.
+
+696
+00:57:18,400 --> 00:57:21,348
+但如果你按简单的计算方法，大约是 70 天。
+But if you follow the simple computation, it's around 70 days.
+
+697
+00:57:22,286 --> 00:57:36,160
+嗯，成本，呃，我是说这很难估算，但我就按租金来说，
+比如如果我要租这么多 H100，租这么多天，我要付多少钱？
+Um cost, uh I mean this it's hard to to approximate, but I'm just gonna say it's kind of the rent, like what if I were to rent H100s,
+that many H100s for that many days, how much will I pay?
+
+698
+00:57:36,640 --> 00:57:43,680
+H100，租用 H100 的成本下限大约是每小时 2 美元。
+H100, a lower bound on the renting cost of H100 is around two hours, two dollars per hour.
+
+699
+00:57:44,000 --> 00:57:50,880
+所以如果你把这个乘以 2600 万小时，你就会得到 5200 万美元。
+so if you multiply this by 26 million hours, you get 52 million dollars.
+
+700
+00:57:51,118 --> 00:58:00,356
+所以他们付的钱可能比这少，但其实不会少太多，因为
+所有这些实际出租 GPU 的服务商，他们赚得并不多。
+So they probably pay less than that, but not actually much less because all these
+all these services that actually rent GPUs, they don't make that much money.
+
+701
+00:58:00,560 --> 00:58:03,140
+所以可能稍微少一点，但不会少太多。
+So it's it's probably slightly less, but not that much less.
+
+702
+00:58:04,160 --> 00:58:09,028
+现在是工资，我说 50 名员工，每人每年 50 万。
+now salary, I said 50 employees, 500k per year.
+
+703
+00:58:10,640 --> 00:58:13,120
+是的，大概在 2500 万这个区间。
+yeah, it's probably the right ballpark, 25 million.
+
+704
+00:58:13,440 --> 00:58:20,548
+所以如果你把这些加在一起，训练这个模型大约需要 7500 万美元。
+so if you put all together around 75 million dollars for training this slammer model.
+
+705
+00:58:21,242 --> 00:58:25,316
+我可能偏差了 1000 万左右，但大致就在这个区间。
+I'm probably off by like 10 million, but but that's kind of right ballpark.
+
+706
+00:58:27,598 --> 00:58:28,640
+碳排放量。
+Carbon emitted.
+
+707
+00:58:29,120 --> 00:58:33,360
+很多人可能会问，成本并不是唯一重要的因素。
+a lot of people might ask, like, also the cost is not the only thing that is important.
+
+708
+00:58:33,646 --> 00:58:34,884
+所以我做了计算。
+So I did the computation.
+
+709
+00:58:35,950 --> 00:58:42,596
+大约是 4.4，呃，4000 吨二氧化碳当量。
+it's around 4.4 uh 4,000 um tons of CO2 equivalent.
+
+710
+00:58:43,118 --> 00:58:47,492
+这实际上只相当于从 JFK 到伦敦的 2000 张往返机票。
+That is actually only 2,000 return tickets from JFK to London.
+
+711
+00:58:47,854 --> 00:58:56,452
+所以目前碳排放量其实并不，我是说虽然很大，但还没到，嗯，有意义的程度。
+So right now carbon emitted is actually not I mean it's huge, but it's not like um meaningful yet.
+
+712
+00:58:56,720 --> 00:59:04,132
+我觉得在 GPT-6 或 GPT-7 时，一旦这个数值乘以 100 倍，那可能就会变成一个真正的问题。
+I think in maybe GPT-6, GPT-7, once you multiply this by 100, that might become a real issue.
+
+713
+00:59:04,320 --> 00:59:08,676
+目前从宏观角度来看，我认为这还不是个问题。
+Right now it's still not I think an issue in the grand scheme of things.
+
+714
+00:59:09,582 --> 00:59:17,124
+下一个模型，你们思考这些模型的方式应该是，每一代新模型，
+浮点运算次数 基本上都会翻 10 倍。
+Next model, the way you should be thinking about these models is that every new generation,
+the number of flops essentially multiplies 10x.
+
+715
+00:59:17,454 --> 00:59:18,372
+或者至少他们是这么尝试的。
+Or at least that's what they try.
+
+716
+00:59:18,960 --> 00:59:21,764
+如果他们有足够的能源，并且能买到足够的 GPUs。
+if they have enough energy and if they can buy enough GPUs.
+
+717
+00:59:23,200 --> 00:59:23,600
+那就太棒了。
+great.
+
+718
+00:59:23,854 --> 00:59:26,084
+关于这些粗略估算的计算，有什么问题吗？
+Any question on these back of the envelope math?
+
+719
+00:59:29,600 --> 00:59:29,920
+没有。
+No.
+
+720
+00:59:30,320 --> 00:59:30,596
+好的。
+Okay.
+
+721
+00:59:32,000 --> 00:59:34,372
+现在我们谈完了预训练。
+So now we talked about pre-training.
+
+722
+00:59:34,800 --> 00:59:38,800
+我还想聊聊系统，因为我们现在知道算力非常重要。
+I wanted to also chat about systems, because now we know compute is really important.
+
+723
+00:59:39,022 --> 00:59:42,852
+所以问题是，你如何优化你的算力。
+So there's a question of how do you optimize the how do you optimize your compute.
+
+724
+00:59:43,150 --> 00:59:46,160
+我把这个留到最后，因为我不确定我们还有多少时间。
+I will leave that for the end, because I'm not sure how much time we will have.
+
+725
+00:59:46,320 --> 00:59:50,240
+我觉得这很重要，但希望我稍后能聊到它。
+I think it's important, but hopefully I'll be able to to talk about it later.
+
+726
+00:59:50,400 --> 00:59:53,732
+它和我们现在讨论的内容略有不同。
+It's slightly different than what we've been talking about right now.
+
+727
+00:59:54,158 --> 00:59:56,036
+所以现在我先进入后训练部分。
+So I'll move on to post-training for now.
+
+728
+00:59:56,750 --> 01:00:05,796
+后训练的任务，我们之所以需要做后训练，正如我之前告诉你们的，是为了让 AI 变得更像助手。
+So the task of post-training, the reason why we need to do post-training is as I told you before, it's to make AI assistance.
+
+729
+01:00:06,158 --> 01:00:11,748
+所以当你想要一个 AI 助手时，语言建模并不是你真正想要的。
+So language modeling is not really the thing that you want when you have an AI assistant.
+
+730
+01:00:12,480 --> 01:00:24,070
+例如，如果你问 GPT-3，它是一个纯粹的语言模型，不是对齐过的模型，如果你问一个问题，
+比如“给六岁的孩子解释登月”，你得到的补全可能是“给六岁的孩子解释引力理论”。
+for example, if you ask to GPT-3, which is a purely language model, a pure language model, not an aligned one,
+if you ask a question like explain the moon landing to a six-year-old, the completion
+
+731
+01:00:24,070 --> 01:00:29,188
+例如，如果你问 GPT-3，它是一个纯粹的语言模型，不是对齐过的模型，如果你问一个问题，
+比如“给六岁的孩子解释登月”，你得到的补全可能是“给六岁的孩子解释引力理论”。
+that you would get is something like explain the theory of gravity to a six-year-old.
+
+732
+01:00:29,454 --> 01:00:36,612
+因为它学到的是，在互联网上，如果你有一个问题，通常还会跟着另一个类似的提问。
+Because what it learned is that on on the internet, if you have one question,
+you usually have maybe another bullet point of other similar questions.
+
+733
+01:00:36,942 --> 01:00:38,884
+你通常不会看到问题后面紧跟着答案。
+You don't usually have question and an answer later.
+
+734
+01:00:39,440 --> 01:00:42,148
+这并不是你想要 AI 助手给你的结果。
+this is not what you want from an AI assistant.
+
+735
+01:00:43,054 --> 01:00:48,452
+那么，我们如何进行这种对齐，也就是这种后训练，让这些模型变成助手呢？
+So, how do we do this alignment, which is this post-training and making these models assistants?
+
+736
+01:00:49,326 --> 01:01:01,412
+嗯，这种对齐的目标基本上是让 LLMs 遵循用户给出的指令，以及一些设计者的意图。
+Um so the goal of this alignment is to basically get LLMs, follow the
+instructions that are given by users, and maybe some designers' kind of desires.
+
+737
+01:01:02,446 --> 01:01:03,840
+所以考虑一下内容审核。
+so think about moderation.
+
+738
+01:01:03,920 --> 01:01:08,292
+你肯定不希望模型，OpenAI 肯定也不希望他们的模型说出非常有害的话。
+You don't want the model like OpenAI definitely doesn't want their model to say stuff that is very toxic.
+
+739
+01:01:09,920 --> 01:01:15,360
+所以在这里你可以看到，左边当你提问时，它实际上提供了一个真实的答案。
+So here you see on the left hand side that when you ask a question, it actually provides a real answer.
+
+740
+01:01:15,440 --> 01:01:17,572
+所以它不像之前的 LLM 那样。
+So it's not like before the LLM.
+
+741
+01:01:17,920 --> 01:01:27,972
+而在右边，你可以看到如果你要求写一条推文来描
+述某一部分人群是邪恶的，它会说它不能这样做。
+And on the right hand side, you see that it would if you ask to write a tweet describing
+how a certain part of the population are evil, it will say that it cannot do that.
+
+742
+01:01:30,158 --> 01:01:31,652
+所以这就是所谓的对齐。
+so that's kind of this alignment.
+
+743
+01:01:32,640 --> 01:01:45,956
+这里的背景是，基本上你想用来训练这些模型的数据，我们知道我们想要什么，
+也就是让人类回答：这是一个问题，这是你想要的答案。
+the background here is that basically the data that you want for training some of these models is like we know what we want,
+which is just asking humans this is a question, this is the answer that you want.
+
+744
+01:01:46,400 --> 01:01:50,720
+但问题是，收集这些数据非常昂贵，而且很难在网上找到。
+but the thing is that it's very expensive to collect that data and it's hard to find it online.
+
+745
+01:01:51,440 --> 01:01:55,684
+相比之下，预训练数据并不是你想要的，但数量非常庞大。
+in contrast, pre-training data is not what you want, but there's a lot of it.
+
+746
+01:01:56,480 --> 01:02:07,140
+所以我们要做的，或者说核心思路是，简单地拿一个在整个互联网上预训练过的预训练大语言模
+型，然后你只需要微调，也就是在你真正想要的那类数据上稍微改变一点权重。
+so what we will do, or the main idea, is simply take a pre-trained large language model, pre-trained on all of internet,
+and then you just fine-tune, so you just change a little bit the weights on the type of data that you actually want.
+
+747
+01:02:07,406 --> 01:02:21,284
+而且由于它已经在整个互联网上预训练过了，它基本上已经学会或知道如何用英语交流，
+并且知道标准的语言语法，那么你就可以用极少的数据来对其进行微调。
+And hopefully, given it you're already pre-trained on all of internet, it basically learns or knows how to speak in English and knows
+standard language syntax, then you can really fine-tune it with very little data.
+
+748
+01:02:23,310 --> 01:02:24,356
+好的，SFT。
+Okay, SFT.
+
+749
+01:02:24,846 --> 01:02:34,244
+所以监督微调其实就是我刚才说的，也就是在从人
+类那里收集到的期望答案上对大语言模型进行微调。
+So supervised fine-tuning is really exactly what I just said, which is the idea of fine-tuning the large language model on basically
+the desired answers that are collected from humans.
+
+750
+01:02:35,854 --> 01:02:37,760
+那为什么它叫监督微调呢？
+so why is it called supervised fine-tuning?
+
+751
+01:02:37,920 --> 01:02:41,520
+因为你基本上是想在真实的答案上做语言建模。
+Because you basically want to do language modeling on the real answers.
+
+752
+01:02:41,600 --> 01:02:50,640
+所以语言建模就是预测下一个词，这就是微调部分，然后你希望
+在人类提供的期望答案上进行，这就是为什么我们称之为监督。
+So language modeling is this next word prediction, and that's the fine-tuning part,
+and then you want to do it on desired answers given by humans, so that's why we call it supervised.
+
+753
+01:02:51,470 --> 01:02:52,720
+那么，我们如何收集这些数据呢？
+So, how do we collect this data?
+
+754
+01:02:52,880 --> 01:03:00,644
+嗯，我刚才说了，你只需要让人类告诉你：这是问题，这是你希望从这些模型中得到的答案。
+Well, I just said it, you just ask humans to tell you this is the this is a question,
+this is the answer that you would want from some of these models.
+
+755
+01:03:01,006 --> 01:03:02,320
+这是一个例子。
+So this is an example.
+
+756
+01:03:02,510 --> 01:03:09,540
+嗯，我电脑上看不太清楚，但我孩子需要做一个科学……不，我们读这一条。
+Um I can't read very well on my computer, but my kid needs to do a science no, let's read this one.
+
+757
+01:03:09,774 --> 01:03:13,680
+“你能写一段关于‘买方垄断’一词相关性的简短介绍吗？”
+Can you write a short introduction about the relevance of the term monopsony?
+
+758
+01:03:13,902 --> 01:03:17,764
+然后它说“买方垄断是指市场结构，等等等等”，这是人类写的。
+And then it says monopsony refers to market structure, blah blah blah, and it's a human that wrote that.
+
+759
+01:03:19,502 --> 01:03:27,076
+所以实际上，这是 Open Assistant，这是一种由人类在网上收集数据的方法。
+so actually, this is open assistant, which was a way to collect data online by humans.
+
+760
+01:03:28,398 --> 01:03:33,508
+所以这种类型的监督微调或对齐，正是 ChatGPT 的关键。
+So this type of supervised fine-tuning or alignment is really the key of Chat GPT.
+
+761
+01:03:33,966 --> 01:03:43,972
+这就是让它从 GPT-3（主要是 AI 研究人员知道的东西）跨
+越到 ChatGPT（基本上每个人都知道的东西）的巨大飞跃。
+This is what made the big jump from GPT-3, which was mostly something that was
+known by AI researchers, to ChatGPT, which became known by basically everyone.
+
+762
+01:03:47,342 --> 01:03:55,076
+所以人类数据的问题在于收集速度非常慢，而且非常昂贵。
+So the problem with human data is that it's very slow to collect and very expensive.
+
+763
+01:03:56,558 --> 01:04:02,820
+所以一个可能的简单思路是利用 LLMs 来扩展数据收集。
+so one possible simple idea is to use LLMs to scale data collection.
+
+764
+01:04:03,360 --> 01:04:06,640
+这就是我们一年前在 Alpaca 上做的。
+so that's exactly what we did with alpaca one year ago.
+
+765
+01:04:06,830 --> 01:04:11,920
+我们做的做法是，我们询问人类，或者我们使用人类的问答数据集。
+What we did is that we asked humans, or we use a data set of human question answers.
+
+766
+01:04:12,110 --> 01:04:22,052
+这里有 175 个问答，我们让当时最好的模型，也就是 GPT-3，来生成更多这样的问题和答案。
+So there were 175 question answers here, and we asked the best model at the time, so Text Event,
+to basically generate many more of these questions and answers.
+
+767
+01:04:22,414 --> 01:04:27,300
+所以我们做的就是：这是人类会写的，现在请写出类似的答案和问题。
+So all we did is like this is what humans would write, now write similar answers and similar questions.
+
+768
+01:04:27,600 --> 01:04:38,430
+然后我们收集了 52,000 条 LLM 生成的问答，接着我们直接拿当时最强的预训练模型 Llama 7B，
+按照我刚才说的，用监督微调来进行微调，这就是我们得到 Alpaca 7B 模型的方法。
+And we collected uh 52,000 LLM generated question answers, and then what we did is simply we took Lamma 7B,
+which was the best pre-trained model at the time, and we just fine-tuned this with
+
+769
+01:04:38,430 --> 01:04:43,012
+然后我们收集了 52,000 条 LLM 生成的问答，接着我们直接拿当时最强的预训练模型 Llama 7B，
+按照我刚才说的，用监督微调来进行微调，这就是我们得到 Alpaca 7B 模型的方法。
+supervised fine-tuning as I told you, and that's how we got the alpaca 7b model.
+
+770
+01:04:45,102 --> 01:04:47,040
+这就是我们收集到的数据类型。
+and this is the type of data that we collected.
+
+771
+01:04:47,182 --> 01:04:49,280
+比如“算法是什么意思？”
+So things like what does algorithm mean?
+
+772
+01:04:49,440 --> 01:04:56,388
+“算法是用于解决问题或实现目标的步骤指令集，等等，等等。”
+An algorithm is a step by-step set of instruction used to solve a problem or achieve a goal, blah, blah, blah, blah.
+
+773
+01:04:56,560 --> 01:05:02,980
+所以这些数据其实挺不错的，考虑到它们是基本上由两代之前的 LLM 生成的。
+So the data is not actually it's actually pretty good given it was LM generated by LLMs from essentially two generations ago.
+
+774
+01:05:05,198 --> 01:05:09,828
+所以这对我们来说，起码是作为 ChatGPT 的学术复现开始的。
+so that really started, at least for us, kind of as an academic replication of ChatGPT.
+
+775
+01:05:10,160 --> 01:05:20,196
+现在有一个很大的领域是合成数据生成，即如何利用 LLMs 来加速 LLMs 的开发。
+Uh now it really there's a big field of like synthetic data generation
+of how to use LLMs to basically make development of LLMs faster.
+
+776
+01:05:20,560 --> 01:05:24,612
+嗯，基本上就是减少所需的个人工时。
+Um and by basically by decreasing the amount of human hours that you need.
+
+777
+01:05:26,990 --> 01:05:28,004
+数据的数量。
+Quantity of data.
+
+778
+01:05:28,622 --> 01:05:31,108
+所以我们讨论了数据类型以及如何收集数据。
+So we talked about what type of data and how we collect it.
+
+779
+01:05:31,584 --> 01:05:35,428
+关于 SFT 有个令人惊讶的一点是，你不需要那么多数据。
+One thing which is surprising with SFT is that you don't need that much data.
+
+780
+01:05:47,982 --> 01:05:49,604
+所以这里缩放定律肯定不起作用。
+So here scaling laws definitely don't help.
+
+781
+01:06:05,744 --> 01:06:10,784
+一个可能写出要点，另一个可能用答案来回答问题。
+One that might write bullet points, another one that might answer questi answer question with an answer.
+
+782
+01:06:11,118 --> 01:06:17,104
+所以你告诉模型，等等，你实际上应该针对这一类用户进行更多优化，而不是另一类。
+So all you tell your model is like, wait, you should actually be optimizing more for this type of user than another one.
+
+783
+01:06:17,358 --> 01:06:24,516
+所以你并不是在真正教它，你也没通过这个……呃，监督微调教它任何东西。
+So you're not actually teaching it and you're not teaching anything through this, uh so supervised fine-tuning.
+
+784
+01:06:24,624 --> 01:06:30,468
+你所做的只是告诉模型，针对它已经在预训练数据集中见过的某种用户类型进行优化。
+All you do is you tell the model to kind of optimize for one type of user that it saw already in a pre-trained data set.
+
+785
+01:06:31,024 --> 01:06:35,940
+所以知识已经存在于预训练的 LLM 中了，你基本上只是针对某一类用户进行特化。
+So the knowledge is already in a pre-trained LLM and you basically just specialize to one type of user.
+
+786
+01:06:37,504 --> 01:06:37,824
+很好。
+Great.
+
+787
+01:06:37,998 --> 01:06:39,076
+关于 SFT 有什么问题吗？
+Any question on SFT?
+
+788
+01:06:41,166 --> 01:06:41,380
+有的。
+Yes.
+
+789
+01:06:41,984 --> 01:06:53,904
+我知道合成数据有一个大问题，就是如果你一直从相同的分布中生成数据，
+最终你不会学到新的分布，你本质上只是在边缘徘徊，只是在做这种自举。
+So I know it's a big issue with synthetic data where if you keep generating data from the same distribution,
+eventually you're not learning a new distribution, you're essentially playing with an edge, just bootstrapping that.
+
+790
+01:06:53,984 --> 01:06:57,744
+是的，你肯定不能永远这样扩展下去，对吧？
+Yeah, surely you can't scale that forever, right?
+
+791
+01:06:57,824 --> 01:07:00,224
+你不能一直从相同的分布中生成数据
+You can't keep going on and generating from the same distribution.
+
+792
+01:07:00,432 --> 01:07:01,664
+并希望学到新东西。
+and hope to learn something new.
+
+793
+01:07:01,744 --> 01:07:01,984
+是的。
+Yeah.
+
+794
+01:07:02,144 --> 01:07:15,970
+呃，这是一个活跃的研究领域，但关于人们可能如何思考这个问题，或者更好的自举方法，
+或者放弃这个想法并意识到图表显示你不需要那么多数据，
+Uh so are there it's an active area of research, but any thoughts that you have around how people are maybe thinking around this and
+better ways to bootstrap or to give up on this idea and and realize that the chart shows you don't need that many to just get humans
+
+795
+01:07:15,970 --> 01:07:18,070
+只要让人类生成 2000 条数据就行，这是一个非常好的问题。
+Uh so are there it's an active area of research, but any thoughts that you have around how people are maybe thinking around this and
+better ways to bootstrap or to give up on this idea and and realize that the chart shows you don't need that many to just get humans
+
+796
+01:07:18,070 --> 01:07:21,424
+只要让人类生成 2000 条数据就行，这是一个非常好的问题。
+to generate 2000 ratio uh that's a very good question.
+
+797
+01:07:21,824 --> 01:07:29,584
+关于数据方面，我的意思是对于 SFT 来说它没那么重要，
+但接下来我们要讨论的另一件事，数据确实很重要。
+so for the data stuff, so I'm saying it's not that important for SFT, but there
+will be another thing we'll talk about right after where actually data does matter.
+
+798
+01:07:30,064 --> 01:07:42,020
+我的直觉是，虽然你使用了 LLMs，但如果你纯粹使用 LLM 生成的文本，
+并且连续做了三到四代 LLM，我同意你的看法，模型可能不会有太大提升。
+My intuition based on not that much empirical results is that you can still get even though you use your LLMs,
+if you use purely LLM generated text and you do that for like three, four generations of LLMs,
+
+799
+01:07:42,020 --> 01:07:45,252
+我的直觉是，虽然你使用了 LLMs，但如果你纯粹使用 LLM 生成的文本，
+并且连续做了三到四代 LLM，我同意你的看法，模型可能不会有太大提升。
+I agree with you that probably you won't improve much.
+
+800
+01:07:46,062 --> 01:07:49,540
+但对我来说，重要的是你如何将人机协同与 LLMs 结合起来。
+But for me, what is important is how do you use like human in the loop with LLMs.
+
+801
+01:07:49,984 --> 01:07:58,916
+不是纯靠 LLMs，也不是纯靠人类，而是你可以让模
+型重新生成一些新文本，然后让人类进行少量修改。
+Not purely LLMs, not purely humans, but maybe what you can do is just
+have the model regenerate some new text and just humans write a few edits.
+
+802
+01:07:59,278 --> 01:08:01,924
+修改比重写整篇文本要快得多。
+Edits are much faster than writing the entire text.
+
+803
+01:08:02,158 --> 01:08:11,424
+而且我认为，如果你采用这种协作方式，从信息论的角度来
+看，你仍然能获得额外的信息，而且速度比纯靠人类快得多。
+And I think that if you have that type of collaboration, then from like kind of an information theoretical point of view,
+you still get additional information, but you're still much faster than if you use humans.
+
+804
+01:08:11,662 --> 01:08:26,468
+而且我认为作为一个领域，我们可能会向这类方向发展，也就是找出重要的样本并请人类协助，
+这有点像主动学习，就是在需要输入的时候精准地请人类帮忙。
+And I think that as a field we'll probably move towards these type of things, which is really just finding the examples that are
+important and asking humans, it's kind of active learning, just asking humans exactly when you need to get the inputs.
+
+805
+01:08:27,984 --> 01:08:28,304
+是的？
+Yes?
+
+806
+01:08:36,464 --> 01:08:47,184
+因为你展示的那些例子，我认为好的例子之所以重要，是因
+为它们在事实上极其准确，而且包含了一些更复杂的东西。
+Because the examples you showed, I think the important thing of the good examples that's
+like they're like superfactually accurate, there's these more complex things in that.
+
+807
+01:08:47,743 --> 01:08:48,624
+依然只是在训练东西。
+Still just like train things.
+
+808
+01:08:48,944 --> 01:08:49,344
+同样的损失函数。
+Same loss.
+
+809
+01:08:49,504 --> 01:08:52,384
+这就是为什么这里，嗯，我可能没强调清楚。
+So that's why here yeah, I maybe didn't emphasize enough.
+
+810
+01:08:52,590 --> 01:08:53,584
+这仅仅是语言建模。
+This is just language modeling.
+
+811
+01:08:53,837 --> 01:08:56,624
+用目标答案上的语言模型来微调 LM。
+Fine-tune the LM with language model on the desired answers.
+
+812
+01:08:56,703 --> 01:08:58,116
+所以这字面上就是同样的损失函数。
+So this is literally the same loss.
+
+813
+01:08:58,544 --> 01:09:01,508
+嗯，两秒钟后就会变得不同。
+Um it will be different in two seconds.
+
+814
+01:09:01,823 --> 01:09:08,144
+但 SFT 的第一步字面上就是同样的损失函数，你只是说，好，我想针对这类数据进行专门训练。
+But the first step of SFT is literally the same loss where you just say, okay, I want to actually specialize on that type of data.
+
+815
+01:09:08,430 --> 01:09:13,584
+所以甚至存在关于什么是预训练、什么是后训练的问题，因为实际上这只是你使用的不同数据。
+So there's even a question of like what is pre-training, what is post-training,
+because in reality it's just like a different data that you use.
+
+816
+01:09:13,774 --> 01:09:17,380
+我们通常称之为后训练的原因是，我们收集这些数据的方式非常不同。
+The reason why we usually call it post-training is that the way we collect that data is very different.
+
+817
+01:09:19,054 --> 01:09:20,292
+好，很好的问题。
+Great, great questions.
+
+818
+01:09:20,845 --> 01:09:21,316
+呃，是的。
+Uh yes.
+
+819
+01:09:22,029 --> 01:09:30,032
+也许是同一个问题，但为什么这 2000 个样本在微调时会有如此过高的权重影响？
+Maybe it's the same question, but why would these 2000 examples have such an overweighted influence when you're doing fine-tuning?
+
+820
+01:09:30,384 --> 01:09:35,584
+这就是为什么我们，呃，这也是我们称之为后训练的另一个原因，
+是因为我们使用了不同类型的超参数。
+So that's why we uh also that's another reason why we call it post-training, is that we use different types of hyperparameters.
+
+821
+01:09:35,758 --> 01:09:39,908
+所以你知道，我基本上告诉过你们，在预训练结束时，你的学习率基本上会变成零。
+So you know I told you basically at the end of pre-training, you essentially end up with a learning rate of zero.
+
+822
+01:09:40,312 --> 01:09:44,100
+而在这里，你要把学习率提高到比如 1e-5，1e-，是的。
+and here you're going to increase your learning rate to like one e minus 5, 1e minus, yeah.
+
+823
+01:09:44,384 --> 01:09:49,104
+所以你给它们的权重实际上是不同的。
+And so the weight that you give to them is actually different.
+
+824
+01:09:50,144 --> 01:09:52,800
+嗯，好的。
+Um Okay.
+
+825
+01:09:54,080 --> 01:10:04,100
+后训练的第二步或第二部分是我们称之为基于人类反馈的
+强化学习，也就是 RLHF，你们中有些人可能听过这个。
+Second step or second part of this post-training is what we call reinforcement
+learning from human feedback or RLHF, some of you might have heard of that.
+
+826
+01:10:05,550 --> 01:10:14,436
+这个想法是 SFT 有个问题，即你是在做行为克隆，这意味着你只是在尝试模仿人类会说的话。
+The idea is that SFT has a problem, namely that you do behavioral cloning,
+which means that you just try to clone what the humans would say.
+
+827
+01:10:14,702 --> 01:10:16,356
+而这有很多问题。
+And that has many issues.
+
+828
+01:10:16,686 --> 01:10:18,948
+其中一个问题是你受限于人类的能力。
+One of them is that you're bound by human abilities.
+
+829
+01:10:19,600 --> 01:10:28,260
+所以如果人类，人类实际上不会生成他们认为最完美的产出。
+So if like humans actually humans won't generate the things that they think is actually the best thing to generate.
+
+830
+01:10:28,654 --> 01:10:32,240
+所以如果你让我写一本书，我是说，我肯定能享受一本书。
+So if you ask me to write a book, I mean I can definitely enjoy a book.
+
+831
+01:10:32,320 --> 01:10:37,476
+我大概能说出哪本书更好，但我肯定没法写出我想读的那种好书。
+I can probably say one book is better than another, but I'm definitely not gonna be as good as writing the book that I want to read.
+
+832
+01:10:38,000 --> 01:10:43,396
+所以你会受限于人类生成内容的能力，尽管人类可能更擅长分辨事物。
+so you're gonna be bound by the human ability to generate things, even
+though the humans might be better at distinguishing between things.
+
+833
+01:10:43,854 --> 01:10:44,516
+这是第一个问题。
+That's one issue.
+
+834
+01:10:44,910 --> 01:10:45,796
+第二个问题。
+Issue number two.
+
+835
+01:10:46,240 --> 01:10:50,960
+我觉得这其实挺有意思的，如果你听过「幻觉」这个词的话。
+I find that actually pretty interesting, is that it might if you ever heard of the word hallucination.
+
+836
+01:10:51,040 --> 01:10:57,200
+也就是 LLMs 生成虚假信息，幻觉可能就是这样。
+so this is LLMs generating uh fake, like false information, hallucination might.
+
+837
+01:10:57,280 --> 01:11:01,956
+或者有些人假设这可能源于监督微调。
+or these people have hypothesized that that can come from the supervised fine tuning.
+
+838
+01:11:02,160 --> 01:11:05,828
+即使你是在正确的数据上进行监督微调。
+even if you do supervised fine tuning on data that is correct.
+
+839
+01:11:06,350 --> 01:11:17,028
+原因在于，如果我告诉你 SFT 使用的数据量非常少，而且模型并没有从中学习到任何新东西。
+And the reason why that is, is that if given I told you that basically SFT is with
+very little data and it's with data that the model doesn't learn anything new.
+
+840
+01:11:17,550 --> 01:11:22,916
+那如果人类给出了模型不知道是真理的答案呢？
+So what if the human gives an answer that the model didn't know was true?
+
+841
+01:11:23,566 --> 01:11:32,932
+从模型的角度来看，你这个人类基本上是在告诉模型去生成这个看起来很合理的东西，
+但实际上模型根本不知道它是不是真的。
+From the model perspective, you the human basically is telling the the model uh generate this thing that seems plausible,
+but actually have no idea if it's true or not.
+
+842
+01:11:33,520 --> 01:11:41,412
+嗯，举个非常具体的例子，如果我们回到那个买方垄断的例子，你能写点关于买方垄断的内容吗？
+Um so just to give you a very concrete example, if we go back to this uh monopsony example,
+can you write blah blah blah about monopsony?
+
+843
+01:11:41,760 --> 01:11:45,668
+想象一下，如果人类写了一本关于这类书籍的参考书。
+imagine that a human wrote a reference on this type of book.
+
+844
+01:11:46,638 --> 01:11:49,028
+那本书可能确实存在，那可能是一个正确的引用。
+and that book might exist, that might be a correct reference.
+
+845
+01:11:49,422 --> 01:11:52,560
+但如果 LLM 在预训练期间从未见过这个引用呢？
+But what if the LLM never saw this reference during pre-training?
+
+846
+01:11:52,750 --> 01:11:54,436
+那它就不知道这是一个正确的引用。
+Then it doesn't know that it's a correct reference.
+
+847
+01:11:54,734 --> 01:12:04,812
+所以你实际上是告诉模型去生成或编造一些听起来合理的引用，
+而不是告诉它在预训练中见过的真实引用。
+So really what you tell the model is to generate or make up some plausibly sounding
+reference rather than actually tell the real reference that it saw during pre-training.
+
+848
+01:12:05,614 --> 01:12:07,120
+所以幻觉
+so hallucination
+
+849
+01:12:10,670 --> 01:12:12,260
+可能是由这种 SFT 引起的。
+might be caused by this SFT.
+
+850
+01:12:12,560 --> 01:12:13,680
+这就是第二个问题。
+that's problem number two.
+
+851
+01:12:14,160 --> 01:12:15,044
+这些都讲清楚了吗？
+does that all make sense?
+
+852
+01:12:15,758 --> 01:12:16,004
+太棒了。
+Great.
+
+853
+01:12:16,526 --> 01:12:17,988
+第三个问题，价格。
+Problem number three, price.
+
+854
+01:12:18,510 --> 01:12:21,600
+生成理想的答案是非常昂贵的。
+Generating the ideal answers is very pricey.
+
+855
+01:12:21,680 --> 01:12:27,012
+这就回到了你的问题，也就是人类写出完整的答案其实非常贵。
+And that comes back to your question of like humans writing the entire answer is actually pretty expensive.
+
+856
+01:12:28,320 --> 01:12:30,148
+这就是 LHF 发挥作用的地方。
+so that's where LHF comes in.
+
+857
+01:12:30,400 --> 01:12:36,100
+核心思想是，我们不是在模仿人类的行为，而是要最大化人类偏好。
+The idea is that instead of cloning the behaviors of humans, we're going to maximize human preference.
+
+858
+01:12:37,120 --> 01:12:45,060
+我们的做法，也就是整个流程是：对于每一个指令，你让模型生成两个答案。
+and the way we're going to do that, so the pipeline, is that for a certain for every instruction,
+you're going to ask a model to generate two answers.
+
+859
+01:12:46,574 --> 01:12:48,080
+通常使用一个相当不错的模型。
+and usually use a pretty good model.
+
+860
+01:12:48,160 --> 01:12:56,516
+所以你通常不在这里用一个原始的 LLM，而是用 SFT 微调，
+或者用已经微调过的 LLM 来提供相当不错的答案。
+So you usually don't use an LLM here, you use uh uh SFT uh fine-tune,
+or you use a fine-tuned LLM already to give like pretty good answers.
+
+861
+01:12:57,198 --> 01:13:00,960
+然后你让标注员判断这两个答案哪个更好。
+And then you ask labelers which of these two answers was better.
+
+862
+01:13:01,294 --> 01:13:10,720
+所以选出更优的那一个，然后通过不同类型的算法——我们待会儿会讲这些算法——你只需要微调模
+型，让它生成更多绿色的内容，而不是红色的内容。
+So select the preferred one, and then with different type of algorithms, we're going to talk about the algorithms,
+And you just fine-tune the model to generate more of the green thing than the red thing.
+
+863
+01:13:10,926 --> 01:13:11,812
+也就是生成更多好的内容。
+So more of the good stuff.
+
+864
+01:13:12,720 --> 01:13:15,236
+所以现在的问题是该怎么做，我们现在就来聊聊这个。
+so now the question is how, and we're going to talk about that right now.
+
+865
+01:13:17,358 --> 01:13:22,212
+我们要讨论两种方法，这也是社区里主要使用的两种方法。
+So there are two ways that we're going to talk about, and two that are mainly used in the community.
+
+866
+01:13:22,560 --> 01:13:26,320
+嗯，第一种就是简单地使用强化学习。
+Um the first one is simply the idea of using reinforcement learning.
+
+867
+01:13:26,446 --> 01:13:29,156
+希望你们现在都知道什么是强化学习。
+So hopefully you all know what reinforcement learning is now.
+
+868
+01:13:30,350 --> 01:13:36,004
+所以当你考虑使用强化学习时，一个重要的问题是：我们要优化的奖励是什么？
+so when you think about using reinforcement learning, one important question is like what is the reward that we're optimizing?
+
+869
+01:13:36,302 --> 01:13:39,680
+呃，在这种情况下，我能想到两种选择。
+Uh so in this case, there are really two options that I could think about.
+
+870
+01:13:39,854 --> 01:13:51,680
+第一种，你可以说，我要对比基准模型生成的输出和我的模型生成的输出，
+然后我只需让人类说哪个更好，我就用这个作为奖励。
+The first one, you could just say, I'm going to compare the output generated by some baseline, the output generated by my model,
+and I'm just gonna ask the human to say which one is better, and I'm going to use this as a reward.
+
+871
+01:13:51,854 --> 01:13:55,520
+所以如果我比基准模型好，这就是加一，否则就是减一。
+So if I'm better than the baseline, this is a plus one, if not it's a minus one.
+
+872
+01:13:55,840 --> 01:13:57,360
+所以这就是二元奖励。
+so now it's binary reward.
+
+873
+01:13:57,520 --> 01:14:01,444
+二元奖励的问题在于它非常稀疏，你从中获取的信息不多。
+The problem with binary reward is that it's very sparse and you don't get much information out of it.
+
+874
+01:14:01,680 --> 01:14:10,148
+呃，比如你的答案可能只是稍微好一点，也可能是好得多，但你无法通过这个知道它到底好多少。
+Uh like maybe your answer was slightly better, maybe it was like way
+better, and you don't really know from this um how much better it was.
+
+875
+01:14:11,118 --> 01:14:16,100
+所以第二种选择是你可以训练我们所谓的奖励模型，它本质上就是一个分类器。
+So option two is that you can train what we call a reward model, which is simply a classifier.
+
+876
+01:14:16,720 --> 01:14:26,084
+也就是说，你利用机器学习来根据人类的偏好，对两个输出的优劣程度进行分类。
+So you use machine learning to classify how much better two outputs are from the preference from the perspective of the human.
+
+877
+01:14:26,560 --> 01:14:28,640
+嗯，这有点 Meta。
+Um so this is a little bit meta.
+
+878
+01:14:28,974 --> 01:14:35,840
+但你基本上做的就是训练，呃，你拿奖励模型 R，它就是一个大模型。
+But what you basically do is that you train, uh, you take um reward model R, which is uh, uh, just a large line.
+
+879
+01:14:36,160 --> 01:14:39,140
+也是一个大型分类器。
+also a large um, a large classifier.
+
+880
+01:14:39,502 --> 01:14:41,520
+你基本上是让这个奖励模型。
+and you basically ask this reward model.
+
+881
+01:14:41,600 --> 01:14:48,320
+你给它输入和现有的实际输出（两个输出中的一个），然后对其进行指数运算。
+you give it the input and the actual output that you have, one of the two outputs, and you just exponentiate that.
+
+882
+01:14:48,400 --> 01:14:50,692
+这就是你们都知道的 Softmax损失。
+so that's the softmax loss that you all know about.
+
+883
+01:14:50,894 --> 01:14:56,160
+然后你除以……指数化的奖励。
+and now you divide by um, the exponentiated reward.
+
+884
+01:14:56,320 --> 01:14:58,480
+呃，在第一个例子上。
+uh, on the first example.
+
+885
+01:14:58,640 --> 01:15:01,280
+抱歉，是在第一个输出上，而这是在第二个输出上。
+I'm sorry, on the first output, and this is on the second output.
+
+886
+01:15:01,422 --> 01:15:13,252
+你基本上就是这样训练的，之所以这样做，是因为你要训练你的模型，训练这个奖励模型，
+使其能够分类出一个输出比另一个输出好多少。
+And you basically train, so the reason why you do that is that you train your your model,
+you train this reward model to be able to classify how much better one output is to another one.
+
+887
+01:15:13,582 --> 01:15:22,372
+另一种稍微没那么复杂的说法是，你的奖励模型会输出一些奖励，
+这些奖励将作为你 Softmax 的 logits。
+So another slightly less convoluted way of saying it is that your reward
+model will output some reward that will be used as the logits of your softmax.
+
+888
+01:15:22,800 --> 01:15:31,076
+所以现在，如果你的 Softmax 中有较高的 logits，就意味着这个输出极有可能是更好的。
+So now if you have high logits in your softmax, it means that highly likely this output is better.
+
+889
+01:15:32,640 --> 01:15:34,532
+这就是我们所说的 Bradley-Terry 模型。
+so that's what we call Bradley Terry model.
+
+890
+01:15:34,960 --> 01:15:35,200
+对吗？
+Yes?
+
+891
+01:15:35,886 --> 01:15:39,780
+这个奖励模型是针对整个输出，还是按词生成的？
+Is this reward model going over the entire output or is it going by the right?
+
+892
+01:15:40,480 --> 01:15:41,360
+嗯，那个
+Um so
+
+893
+01:15:45,520 --> 01:15:46,880
+它是一次性处理整个输出。
+this takes the entire output at once.
+
+894
+01:15:46,960 --> 01:15:49,764
+所以它接收所有的输入和输出，然后给出一个数值。
+So it takes all the input and all the output, and it gives one number.
+
+895
+01:15:50,734 --> 01:15:50,980
+对吧？
+Yes?
+
+896
+01:15:51,520 --> 01:15:54,960
+所以，嗯，关于这个奖励模型，人类在哪个环节出现？
+So um there's a lot of these over this reward model, where would a human be then?
+
+897
+01:15:55,200 --> 01:15:55,520
+抱歉，您说什么？
+Sorry?
+
+898
+01:15:55,760 --> 01:15:58,160
+有了奖励模型，人类在哪个环节出现？
+With the reward model, where would a human be?
+
+899
+01:15:58,720 --> 01:15:59,280
+噢，我明白了。
+oh I see.
+
+900
+01:15:59,440 --> 01:16:00,080
+嗯哼。
+Uh huh.
+
+901
+01:16:00,400 --> 01:16:02,052
+好的，抱歉，可能我没表达清楚。
+Okay, sorry, maybe I wasn't clear.
+
+902
+01:16:03,040 --> 01:16:09,668
+你是训练这个奖励模型来拟合人类给出的绿色和红色的偏好。
+you train this reward model to fit this green and red preference from humans.
+
+903
+01:16:10,062 --> 01:16:14,820
+所以基本上你是训练一个分类器，来判断人类更喜欢红色还是绿色。
+So basically you train a classifier to say whether the humans prefer red or green.
+
+904
+01:16:15,920 --> 01:16:22,916
+但你不是用人类直接告诉你的二元奖励，而是基本上使用 softmax 的 logits。
+but instead of using the binary reward, which is what the human would tell you, you basically use the logits of the softmax.
+
+905
+01:16:23,342 --> 01:16:26,468
+而 logits 的特点就是它们是连续的。
+And the thing with the logits is that logits are continuous.
+
+906
+01:16:26,830 --> 01:16:34,916
+所以现在你知道，如果你的奖励模型给出了很高的 logits，那么在某种程度上，
+人类更偏好这个答案而非其他答案。
+So now you know that if your reward model said it has high logits, then
+in some ways the human highly preferred this answer to some other answer.
+
+907
+01:16:37,166 --> 01:16:37,540
+太棒了。
+Great.
+
+908
+01:16:39,118 --> 01:16:41,440
+所以就像我刚才说的，连续信息意味着更好。
+so as I just said, continuous information says better.
+
+909
+01:16:41,582 --> 01:16:45,060
+这就是人们在实践中使用的，或者至少以前在实践中是这么用的。
+So that's what people use in practice, or at least used to use in practice.
+
+910
+01:16:45,614 --> 01:16:47,940
+我稍后会告诉你们其他的算法。
+I'll tell you about the other algorithm later.
+
+911
+01:16:48,320 --> 01:16:53,520
+所以最后你要做的，基本上是尝试使用你所知道的强化学习。
+so what you do at the end is that you basically try to just use reinforcement learning that you know about.
+
+912
+01:16:53,680 --> 01:16:55,600
+现在我们有了奖励。
+Now we know we have our reward.
+
+913
+01:16:55,760 --> 01:16:59,332
+你采样的内容是你的大语言模型的生成结果。
+What you sample through is the generation from your large language model.
+
+914
+01:17:00,080 --> 01:17:02,122
+然后你只需要加入一些正则化项。
+and then you just use some regularization terms.
+
+915
+01:17:02,160 --> 01:17:06,720
+我们之所以加入这些正则化项，是为了避免我们所谓的过度优化。
+So the reason why we do this regularization term is for avoiding what we call overoptimization.
+
+916
+01:17:06,862 --> 01:17:15,556
+这个奖励模型可能无法完美模拟人类的偏好，所以你不想把这个东西最大化到无穷大。
+So this reward model might not perfectly model human preferences, so you don't want to maximize this thing to essentially infinity.
+
+917
+01:17:17,326 --> 01:17:23,428
+你使用 PPO 来实现，这是一个常见的强化学习算法。
+and you do it using PPO, which is a common reinforcement learning algorithm.
+
+918
+01:17:24,480 --> 01:17:37,956
+这里有一点需要注意，因为这对后面很重要：当我们使用最大似然时，嗯，抱歉，
+现在的大语言模型实际上是强化学习中的策略。
+one thing to note here, because it will be important for later, is that when we use maximum likelihood, um sorry,
+now the large language models are actually a policy for your reinforcement learning.
+
+919
+01:17:38,240 --> 01:17:43,812
+它不再是最大化最大似然了，这意味着你不再是在建模任何分布了。
+It's not maximizing maximum likelihood anymore, which means that you're not modeling any distribution anymore.
+
+920
+01:17:44,206 --> 01:17:52,548
+之所以这很重要，是因为经过这种 PPO 处理的模型，实际上不会给你提供有意义的文本似然。
+And the reason why this is important is that models that went through this
+type of PPO actually don't give you likelihoods of text that are meaningful.
+
+921
+01:17:52,720 --> 01:17:57,860
+因为你优化它们的目标，基本上只是为了生成最可能的东西。
+Because what you optimize them to do is basically just optimize for generating the most likely thing.
+
+922
+01:17:58,400 --> 01:18:02,240
+而不是为了建模人类可能说的所有答案。
+Not optimize for modeling like all the answers that humans might say.
+
+923
+01:18:02,480 --> 01:18:11,332
+换句话说，这里没有任何机制去激励模型不要只给出一个可能的生成结果。
+Another way of saying that is that there's nothing that incentivizes
+here the model to not give a like a um a single possible generation.
+
+924
+01:18:11,600 --> 01:18:16,036
+这里没有任何东西说，拥有某些熵的分布就是好的。
+Nothing here says it's good if you have some distribution with some entropy.
+
+925
+01:18:18,000 --> 01:18:20,836
+如果你没跟上，这不重要，但知道一下挺好的。
+if you haven't followed, it's not that important, but just good to know.
+
+926
+01:18:22,192 --> 01:18:22,436
+很好。
+Great.
+
+927
+01:18:23,232 --> 01:18:27,152
+所以 PPO 正是 ChatGPT 最初采用的方法。
+So PPO is exactly what ChatGPT did originally.
+
+928
+01:18:27,374 --> 01:18:29,152
+这就是他们在博客文章里写的。
+So here's the on their blog post.
+
+929
+01:18:29,472 --> 01:18:34,532
+嗯，他们列出的第一步是进行监督微调，这一点你们都知道。
+Um what they have is step one, do supervised fine training, which now you all know about.
+
+930
+01:18:34,862 --> 01:18:37,668
+第二步，在人类偏好上训练一个奖励模型。
+Step two, train a reward model on human preferences.
+
+931
+01:18:38,126 --> 01:18:43,072
+第三步，进行多步 PPO，也就是你们看到的这个蓝色箭头。
+Step three, do PPO, multiple steps, which is where you see this this blue arrow.
+
+932
+01:18:43,278 --> 01:18:46,980
+所以你继续用 PPO 训练一次模型，收集新数据，然后继续循环。
+So you continue you train the model once with the PPO, you collect new data, you continue.
+
+933
+01:18:47,552 --> 01:18:49,924
+这正是 ChatGPT 所做的。
+And that's exactly what ChatGPT did.
+
+934
+01:18:50,592 --> 01:18:54,372
+这是 GPT-3 和 ChatGPT 之间的重大突破。
+That was the big breakthrough between GPT-3 and ChatGPT.
+
+935
+01:18:55,374 --> 01:18:58,692
+有一点要注意，PPO 面临很多挑战。
+One thing to note is that PPO has many challenges.
+
+936
+01:18:59,054 --> 01:19:02,180
+强化学习在理论上是非常完美的。
+Reinforcement learning is something that's super nice theoretically.
+
+937
+01:19:02,432 --> 01:19:05,956
+但在实践中，任何接触过强化学习的人都知道它非常混乱。
+In practice, anyone who ever worked with reinforcement learning knows it's such a mess.
+
+938
+01:19:06,512 --> 01:19:10,788
+有很多复杂因素，比如 rollout、外层循环、裁剪，非常复杂。
+there's a lot of things like rollouts, outer loops, clipping, so many complications.
+
+939
+01:19:12,238 --> 01:19:12,900
+所以它很乱。
+So it's messy.
+
+940
+01:19:13,152 --> 01:19:15,872
+这是用于语言模型设置的理想化 PPO。
+This is the idealized PPO used for LM settings.
+
+941
+01:19:15,952 --> 01:19:19,044
+所以这已经比我们之前看到的期望要复杂得多。
+So that's already much more complicated than this expectation we saw before.
+
+942
+01:19:19,278 --> 01:19:20,992
+而且在实践中，它实际上还要复杂得多。
+And in practice, it's actually much more complicated.
+
+943
+01:19:21,072 --> 01:19:31,712
+所以我们必须去做一个实现版本，我不会详细讲解，但基
+本上在实现这种 PPO 算法时，你得考虑非常多的东西。
+So we have one implementation of it that we had to do, and I'm not going to go through it,
+but basically you have so much stuff that you have to think about when you implement that type of PPO algorithm.
+
+944
+01:19:31,872 --> 01:19:37,124
+所以到处都有裁剪，有很多复杂性，而且相关文档也不完善。
+So you have clipping everywhere, you have a lot of complexities, and things are not well documented.
+
+945
+01:19:37,710 --> 01:19:48,324
+总之，一年前斯坦福也提出了一种新方法叫 DPO，它本质上是 PPO 的简化版。
+All this to say that there was a new method that was proposed also from Stanford one year ago called DPO,
+which is essentially a simplification of PPO.
+
+946
+01:19:49,902 --> 01:19:58,310
+他们的方法或者说思路是，与其使用强化学习，不如直接最大化生成你喜欢的内容的概率，
+并最小化生成你不喜欢的内容的概率。
+and the way what they did, or the idea that they have is that instead of using reinforcement learning,
+you can just maximize the probability of generating the stuff that you
+
+947
+01:19:58,310 --> 01:20:01,732
+他们的方法或者说思路是，与其使用强化学习，不如直接最大化生成你喜欢的内容的概率，
+并最小化生成你不喜欢的内容的概率。
+like and minimizing the probability of the stuff that you don't like.
+
+948
+01:20:02,432 --> 01:20:07,716
+所以如果你考虑人类偏好，也就是红色和绿色，最大化绿色，最小化红色。
+so if you think about the human preference, the red and green, maximize green, minimize red.
+
+949
+01:20:09,102 --> 01:20:16,352
+所以损失函数实际上是这个，你看到的这个只是模型的一些对数。
+so the loss is actually this one, where what you see this is simply some log of the model.
+
+950
+01:20:16,718 --> 01:20:21,892
+这就是模型在给定输入的情况下，生成人类偏好的内容的似然。
+So this is the likelihood of the model generating the things that the human preferred given the inputs.
+
+951
+01:20:23,502 --> 01:20:35,312
+你尝试做的基本上就是最大化生成你喜欢内容的似然，
+最小化你不喜欢内容的似然，剩下的就是这些项了。
+and what you try to do is basically maximize the likelihood of generating the things that you like,
+minimize the likelihood of the things that you don't like, all the rest of the terms.
+
+952
+01:20:35,502 --> 01:20:39,748
+这里不太重要，其实理解起来没那么复杂。
+Here it's not too important, it's actually really not that complicated to understand.
+
+953
+01:20:40,014 --> 01:20:44,324
+但从宏观上来说，其实就是最大化你喜欢的东西，最小化其他的东西。
+But at a high level, it's really just maximizing the things you like, minimizing the rest.
+
+954
+01:20:45,632 --> 01:21:00,836
+有一点需要注意，我本来打算就在这儿说，其实所有其他项都是这样选择的，使得在某些假设下，
+PPO 的全局最小值和 DPO 的全局最小值基本上是等价的。
+and one thing to note, which I was going to say just here, is that actually all the rest is chosen such that the global minima of PPO
+and the global minima of like this DPO under some assumptions are essentially equivalent.
+
+955
+01:21:01,232 --> 01:21:04,272
+所以从数学上讲，这是正确的做法。
+So this is the right thing to do mathematically.
+
+956
+01:21:04,494 --> 01:21:07,620
+我不会去推导过程，但这就是正确的做法。
+I'm not going to go through the derivations, but that's the right thing to do.
+
+957
+01:21:08,112 --> 01:21:17,412
+PPO 有点不同，因为在 PPO 中，你必须先收集人类偏好，
+然后用最大似然训练一个奖励模型，接着再用强化学习。
+it's pretty different with PPO in the sense that now with PPO, what you had to do is collect the human preferences,
+then train a uh reward model with maximum likelihood, then use reinforcement learning.
+
+958
+01:21:17,552 --> 01:21:19,300
+而现在你基本上只需要做最大似然。
+Now all you do is basically maximum likelihood.
+
+959
+01:21:19,822 --> 01:21:20,228
+简单多了。
+Much simpler.
+
+960
+01:21:20,512 --> 01:21:20,752
+对吧？
+Yes?
+
+961
+01:21:21,102 --> 01:21:29,472
+我的意思是，没错，所以这看起来像是 A，简单得多；而 B 就像是你直觉上会做的，
+那他们为什么要从这个奖励模型开始呢？
+I mean, yeah, so it seems like this is A, much simpler, and B like what you
+would just intuitively do with your why did they start with this reward model?
+
+962
+01:21:29,792 --> 01:21:31,472
+是什么原因让他们这样做？
+Like what led them to doing that?
+
+963
+01:21:31,792 --> 01:21:32,900
+我觉得这是一个很好的问题。
+I think it's a great question.
+
+964
+01:21:33,312 --> 01:21:34,192
+我其实不太清楚。
+I don't really know.
+
+965
+01:21:34,510 --> 01:21:38,512
+我能告诉你们的是，在 OpenAI，最初做
+What I can tell you is that at OpenAI, the people who did
+
+966
+01:21:42,992 --> 01:21:47,172
+ChatGPT 的人就是那些真正编写 PPO 的人。
+Chat GPT initially are the ones who actually wrote PPO.
+
+967
+01:21:47,566 --> 01:21:50,692
+而且我觉得那里有很多强化学习专家。
+And I think there were just like there are a lot of reinforcement learning people.
+
+968
+01:21:51,022 --> 01:21:52,996
+而且我觉得对他们来说，这样做非常符合直觉。
+And I think that for them it was very intuitive.
+
+969
+01:21:53,712 --> 01:21:58,212
+嗯，所以还有一些额外的潜在好处。
+Um so there's also some additional like potential benefits.
+
+970
+01:21:58,446 --> 01:22:08,192
+例如，我不想……比如，如果你使用奖励模型，强化学习这里很酷的一点是，
+你可以使用带奖励模型的无标签数据。
+For example, I don't want to yeah, for example, if you use the reward model, uh the cool thing here with reinforcement learning is
+that you can use unlabeled data with the reward model.
+
+971
+01:22:08,352 --> 01:22:11,524
+所以在这里，你只能用带标签的数据来做 DPO。
+So here you can only use the label data for doing DPO.
+
+972
+01:22:12,046 --> 01:22:21,232
+嗯，对于 PPO，你先训练奖励模型，然后你可以使用无标签数据，
+奖励模型基本上会给这些无标签数据打标签。
+Um for PPO for PPO, you first train your reward model, and then you can use
+unlabeled data uh where the reward model will basically label this unlabeled data.
+
+973
+01:22:21,390 --> 01:22:26,852
+所以这里还有额外的潜在改进空间。
+So there's additional kind of potential there could be potential improvements.
+
+974
+01:22:27,118 --> 01:22:29,072
+在实践中，结果往往是旗鼓相当的。
+In practice, it happens that they're on and on.
+
+975
+01:22:29,392 --> 01:22:36,922
+而且我觉得是因为这个团队里有很多强化学习专家，包括 PPO 的主要作者 John Shulman。
+And I think it's just that a lot of people in this team were reinforcement
+learning experts, including the main author of PPO, John Shulman.
+
+976
+01:22:39,040 --> 01:22:42,788
+所以 PPO 简单得多，而且效果基本上一样好。
+So much simpler in PPO, and it basically performs as well.
+
+977
+01:22:43,120 --> 01:22:45,892
+所以现在这是大家常用的标准做法。
+So now this is the standard thing that people use.
+
+978
+01:22:46,286 --> 01:22:51,108
+至少在开源社区是这样，我相信在工业界也是标准做法。
+At least in the open source community, I believe it's actually the standard also in industry.
+
+979
+01:22:52,270 --> 01:22:53,508
+这就是所谓的 DPO。
+that's called DPO.
+
+980
+01:22:54,126 --> 01:22:57,600
+收益，嗯，所以左边全都是相关的论文。
+Gains, um, so those are all the papers on the left.
+
+981
+01:22:57,680 --> 01:22:59,460
+这里，这是关于摘要任务的。
+Here, this is on a summarization task.
+
+982
+01:22:59,680 --> 01:23:05,680
+你看，我只想说明的是，预训练模型基本上表现尚可，而且随着规模扩大会有提升。
+You see, all I want to show you is that basically the pre-trained models uh were okay and they improved with scale.
+
+983
+01:23:05,870 --> 01:23:08,640
+如果你进行监督微调，它们还会进一步提升一点。
+If you do supervised fine-tuning, you improve them a little bit more.
+
+984
+01:23:08,800 --> 01:23:18,480
+如果你用 RLHF 结合人类反馈去做 PPO 之类的操作，
+其表现往往会根据基准测试的不同，甚至优于人类。
+If you do PPO or something with RLHF with human feedback, you get performance
+that are oftentimes, depending on a benchmark, even better than humans.
+
+985
+01:23:18,574 --> 01:23:20,964
+所以这是人类参考的摘要。
+So this is the human reference summaries.
+
+986
+01:23:21,646 --> 01:23:35,680
+同样的情况，这是关于我们 Alpaca Farm 的论文，我们可以看到这里的评估并不太重要，
+但基本上你可以看到预训练模型，跳到 SFT，然后再跳到 PPO DPO，而 PPO DPO 的表现完全一样。
+Same thing, this is on a paper that we have alpaca farm, where we see the evaluation here is not too important,
+but basically you see pre-trained model, you jump to SFT, and then you jump to PPO DPO and PPO DPO have the exact same performance.
+
+987
+01:23:36,910 --> 01:23:38,372
+所以基本上所有的 HF 都有帮助。
+So basically all HF helps.
+
+988
+01:23:38,830 --> 01:23:41,124
+这就是结论，而且 DPO 很简单。
+That's kind of the conclusion, and DPO is simple.
+
+989
+01:23:42,480 --> 01:23:50,436
+关于数据，收集这类数据的方法，第一个想法就是使用人类，正如我们之前讨论过的。
+data, the way that you collect that type of data, first idea is just use humans, as we already talked about.
+
+990
+01:23:50,960 --> 01:23:55,600
+人类应该如何标注的准则非常复杂，而且真的没那么简单。
+guidelines are very complicated for what humans should be labeling, and it's really not that easy.
+
+991
+01:23:55,758 --> 01:24:01,200
+而且实际上，如果你真的去做一些标注工作，你会发现它极其复杂。
+And actually, if you ever do some of the labeling, you will see that it's extremely complicated.
+
+992
+01:24:01,422 --> 01:24:04,960
+比如如果我放大这一块，这里我有一个问题。
+Like if I zoom into this, here I have a question.
+
+993
+01:24:05,134 --> 01:24:07,520
+给我讲讲自动驾驶汽车。
+Tell me about self-driving cars.
+
+994
+01:24:07,790 --> 01:24:11,920
+然后你读到两条：自动驾驶汽车是能够感知周围环境的车辆，等等等等。
+And you read both self-driving cars are vehicles that are capable of detecting their surroundings, blah blah blah.
+
+995
+01:24:12,142 --> 01:24:16,640
+自动驾驶汽车是配备了传感器的汽车，等等等等，以便在不需要驾驶员的情况下导航。
+Self-driving cars are cars that are equipped with sensors, blah blah blah, to navigate without the need for a driver.
+
+996
+01:24:16,800 --> 01:24:17,920
+我的意思是，两个看起来都没问题。
+I mean, both seem okay.
+
+997
+01:24:18,190 --> 01:24:19,120
+比如哪一个更好？
+Like which one is better?
+
+998
+01:24:19,374 --> 01:24:20,932
+实际上很难一眼看出。
+It's actually hard to say at a glance.
+
+999
+01:24:22,030 --> 01:24:28,480
+结果就是，人类标注的问题在于，你会开始优化很多高层特征。
+and as a result, the problem with humans is that you will start optimizing a lot of like high-level features.
+
+1000
+01:24:28,640 --> 01:24:30,080
+例如，第二个更长。
+For example, the second one is longer.
+
+1001
+01:24:30,240 --> 01:24:33,028
+我可以保证你，大多数人类会选择第二个。
+I can guarantee you that most humans will choose the second one.
+
+1002
+01:24:33,440 --> 01:24:35,680
+尽管我的意思是，也许第一个更好。
+Even though I mean maybe the first one is better.
+
+1003
+01:24:35,760 --> 01:24:36,004
+我不知道。
+I don't know.
+
+1004
+01:24:36,494 --> 01:24:37,572
+我还没仔细读。
+I haven't read it carefully.
+
+1005
+01:24:38,638 --> 01:24:41,476
+所以，人类标注的挑战，首先是慢且昂贵。
+So, challenges with humans, first, slow and expensive.
+
+1006
+01:24:42,734 --> 01:24:47,268
+其次，正如我刚才提到的，很难专注于真正重要的事情，比如正确性。
+second, as I just mentioned, it's hard to focus on things that matter, like correctness.
+
+1007
+01:24:47,520 --> 01:24:52,420
+而且人们通常会关注那些没那么重要的东西，比如形式，比如长度。
+And people usually look at things that don't matter as much, like the form, like length.
+
+1008
+01:24:53,440 --> 01:25:01,280
+结果就是，所以我这里展示的是，当你做 RHF 时，你做的 LHF 越多，模型的输出就变得越长。
+and as a result, so what I show here is that when you do RHF, the more you do of LHF,
+the longer the output of the of the models become.
+
+1009
+01:25:01,518 --> 01:25:07,140
+所以如果你曾被 ChatGPT 回答超长句子给烦到过，这就是因为 RHF。
+So if you've ever been annoyed at ChatGPT answering you super long sentences, this is because of RHF.
+
+1010
+01:25:07,920 --> 01:25:10,084
+Annotator 分布偏移。
+Umnotator distribution shift.
+
+1011
+01:25:10,480 --> 01:25:14,660
+呃，比如你使用的标注员分布非常重要。
+Uh like the distribution of annotators that you use matters a lot.
+
+1012
+01:25:14,958 --> 01:25:19,428
+而且你还得思考，我们到底想在这些模型中代表什么样的人类。
+And you have to think like what is what is even the humans that we want to represent in these models.
+
+1013
+01:25:19,982 --> 01:25:21,988
+另一个问题是众包伦理。
+another question is like crowdsourcing ethics.
+
+1014
+01:25:22,480 --> 01:25:36,196
+呃，通常情况下，大部分标注工作，嗯，做这些的人报酬不高，
+而且他们必须接触大量的有毒数据，因为你基本上是想让模型避免说出这些有毒数据。
+Uh like usually these basically a lot of the labeling that is done, um, like the people who do them are not paid well,
+and they have to go through a lot of toxic data because you basically want the model to avoid saying the toxic data.
+
+1015
+01:25:37,134 --> 01:25:38,980
+所以众包伦理也是个问题。
+so crowdsourcing ethics too.
+
+1016
+01:25:40,334 --> 01:25:42,340
+人类数据面临很多挑战。
+So many challenges with human data.
+
+1017
+01:25:43,310 --> 01:25:51,268
+所以我们去年做的也是同样的事情，就像 Alpaca 那样，就是考虑到人类数据有挑战，
+也许我们可以用 LLMs 来代替他们。
+so what we did also last year is again the same thing as alpaca, just the idea of like,
+oh well, there are challenges with humans, maybe we can just replace them with LLMs.
+
+1018
+01:25:52,000 --> 01:25:56,320
+所以我们做的就是简单地用 LLMs 替换，噢，我看到了。
+so what we did is simply replace oh, I see that.
+
+1019
+01:25:57,038 --> 01:25:58,788
+我才发现幻灯片没居中。
+I'm just realizing that the slides are not centered.
+
+1020
+01:25:58,960 --> 01:26:02,308
+总之，你用 LLM 的偏好来代替人类偏好。
+Anyways, you replace uh human preference with LLM preferences.
+
+1021
+01:26:02,880 --> 01:26:09,200
+所以在这张图上，你可以看到 x 轴是我们收集人类数据支付的价格。
+so here on this figure you see on the x-axis the price that we paid for collecting human data.
+
+1022
+01:26:09,280 --> 01:26:20,640
+大约是 1000 个样本花费 300 美元，这是在 Mechanical Turkers 上做的，
+通常比你可能会找的其他公司要便宜。
+It's around $300 for 1,000 examples, and this is on mechanical Turkers, which are
+usually like cheaper than maybe some of the other companies that you could go through.
+
+1023
+01:26:20,846 --> 01:26:26,692
+而在 y 轴上，基本上是与其他人类的一致性，也就是与人类众数的一致性。
+And on the y-axis, it's basically the agreement with other humans, with the mode of other humans.
+
+1024
+01:26:27,118 --> 01:26:30,560
+你看到的是，正如我之前告诉过你的，标注其实非常复杂。
+And what you see is that actually, as I told you before, labeling is really complicated.
+
+1025
+01:26:30,800 --> 01:26:35,812
+在二元任务中，人类自身的一致性只有大约 66%。
+Humans agree with themselves only around 66% of the time on a binary task.
+
+1026
+01:26:36,160 --> 01:26:41,360
+这不是因为人类水平不够，因为我们是这篇论文的五位主要作者。
+And it's not that the humans are not good here because we were five main authors on this paper.
+
+1027
+01:26:41,520 --> 01:26:51,268
+我们尝试自己标注这些数据，即使我们讨论了三小时该如何标注，
+准确率也只有 67% 或 68% 左右。
+We tried to label this data ourselves, and we only had like say 67 or 68% accuracy,
+even though we talked for like three hours of how we should be doing labeling.
+
+1028
+01:26:51,438 --> 01:26:53,668
+但实际上，这很复杂，不是个简单的任务。
+But really, it's complicated, it's not an easy task.
+
+1029
+01:26:54,320 --> 01:27:04,420
+这里我展示了许多不同的模型，基本上你可以看到模型便宜得多，
+而且它们实际上能获得比人类自身更高的人类众数一致性。
+and here I just showed many different models, and basically you see that models are much cheaper and they can actually get higher
+agreement with the mode of humans than humans themselves.
+
+1030
+01:27:04,782 --> 01:27:10,468
+原因是因为人类有很多方差，而模型没有方差，所以它们可能稍微有一点偏置，但方差更小。
+And the reason why is because humans have a lot of variance, models have no variance,
+so they might be a little bit more biased but have less variance.
+
+1031
+01:27:11,054 --> 01:27:16,640
+呃，所以效果好得令人惊讶，现在这在开源社区里已经成了标准。
+Uh so it works surprisingly well, and now it's kind of the standard in open source community.
+
+1032
+01:27:16,720 --> 01:27:23,908
+我认为即使在工业界，很多人也会同时使用人类和 LLMs 来改进所有 HF 数据的收集。
+I think even in an industry, a lot of people use both humans and LLMs for improving the collection of all HF data.
+
+1033
+01:27:25,198 --> 01:27:31,920
+这是去年的论文，但老实说，现在 LLMs 的一致性和成本更接近这个水平。
+and this is like this is the paper from last year, but honestly, now
+it's more like That LLMs would be around this agreement and this cost.
+
+1034
+01:27:32,000 --> 01:27:37,540
+所以我想说，大约比人类便宜 50 倍，而且比人类自身更符合人类的一致性。
+So around, I would say, 50x cheaper than humans and better agreement with human than humans themselves.
+
+1035
+01:27:39,054 --> 01:27:43,172
+好，那我们就进入到后训练的评估。
+Okay, so that gets us to evaluation of post-training.
+
+1036
+01:27:44,270 --> 01:27:47,840
+嗯，这回到了你讲座开始时的最初问题。
+Um that goes back to your initial question at the beginning of the lecture.
+
+1037
+01:27:48,000 --> 01:27:49,828
+你如何评估像 ChatGPT 这样的东西？
+How do you evaluate something like ChatGPT?
+
+1038
+01:27:50,190 --> 01:27:54,020
+呃，ChatGPT 能给出的答案基本上是无限的。
+Uh the answers that ChatGPT could give are basically unbounded.
+
+1039
+01:27:54,574 --> 01:27:56,320
+而且并不是说只有一个正确答案。
+And it's not that there's one right answer.
+
+1040
+01:27:56,430 --> 01:27:58,244
+有很多同样好的答案。
+There are many answers that are just as good.
+
+1041
+01:27:59,406 --> 01:28:00,292
+所以这里有很多挑战。
+so there are many challenges.
+
+1042
+01:28:00,640 --> 01:28:08,708
+第一，你不能用验证损失，因为一种方法可能用 PPO，另一种可能用 DPO，验证损失是不可比的。
+One, you can't use validation loss because one method might use PPO, the other one might use DPO, validation loss is not comparable.
+
+1043
+01:28:09,198 --> 01:28:11,748
+第二，你不能用困惑度。
+Second, you can't use perplexity.
+
+1044
+01:28:11,918 --> 01:28:13,156
+这就是我之前告诉过你们的。
+That's the thing I told you before.
+
+1045
+01:28:13,520 --> 01:28:19,280
+这些模型没有经过校准，它们不提供分布，它们只是为了优化某一方面。
+These models are not calibrated, they don't give distributions, they just optimize for one thing.
+
+1046
+01:28:19,502 --> 01:28:23,780
+所以一旦这些模型经过对齐，你就不能用困惑度来实际评估这类模型了。
+So you can't use perplexity for actually evaluating these type of models once they're aligned.
+
+1047
+01:28:24,526 --> 01:28:25,444
+抱歉，是说一旦它们经过对齐。
+Sorry, once they're aligned.
+
+1048
+01:28:26,734 --> 01:28:30,948
+第三，人类可能会向这些模型提出的问题具有很大的多样性。
+Third, there's a large diversity of questions that humans might ask to these models.
+
+1049
+01:28:31,200 --> 01:28:35,920
+生成、开放式问答，比如一些问答，一些摘要，所有这些内容。
+Generation, open QA, like some question answering, some summarization, and all of these things.
+
+1050
+01:28:36,014 --> 01:28:37,444
+所以有很多事情你必须涵盖。
+So there's so many things you have to cover.
+
+1051
+01:28:39,118 --> 01:28:42,400
+而且这些任务真的是开放式的，所以很难自动化。
+then the tasks are really open-ended, so it's very hard to automate.
+
+1052
+01:28:42,480 --> 01:28:45,040
+这就是你之前提到的。
+So that's what you were alluding to before.
+
+1053
+01:28:45,518 --> 01:28:56,130
+所以核心思路是，与其试图想出很容易自动化的基准测试，
+不如我们直接提问用户在实践中实际向这些模型提出的问题，
+So the idea is that instead of trying to come up with really easily automated benchmarks,
+it's just we're going to ask questions that users actually ask to these models in practice,
+
+1054
+01:28:56,130 --> 01:28:56,920
+所以核心思路是，与其试图想出很容易自动化的基准测试，
+不如我们直接提问用户在实践中实际向这些模型提出的问题，
+and we're just going to ask annotators to say between these two models which one is better.
+
+1055
+01:28:56,920 --> 01:29:01,440
+然后请标注人员判断这两个模型中哪一个更好。
+and we're just going to ask annotators to say between these two models which one is better.
+
+1056
+01:29:01,614 --> 01:29:02,880
+比如，哪一个输出更好？
+Like what's the what's the better output?
+
+1057
+01:29:03,118 --> 01:29:09,988
+所以你基本上做的和 RLHF 的数据收集是一样的，只不过你现在把它用于评估。
+So you basically do the exact same thing as um basically the data from RLHF, but you use it now for evaluation.
+
+1058
+01:29:10,160 --> 01:29:10,320
+对吗？
+Yes?
+
+1059
+01:29:10,640 --> 01:29:14,320
+我不确定我是否理解了你的意思，比如你不能用困惑度且不进行校准，对吧？
+I'm not sure I understand what you mean by like you can't use perplexity and not calibrate it, right?
+
+1060
+01:29:14,400 --> 01:29:18,084
+比如 LLM 仍然在做下一个 token 预测，对吧？
+Like LLM is still doing next token prediction, right?
+
+1061
+01:29:18,606 --> 01:29:21,040
+嗯，困惑度能反映出代码好不好吗？
+Um I can't complexity be good code.
+
+1062
+01:29:21,360 --> 01:29:36,612
+所以想想在做完 PPO 之后的最佳方案，基本上就是一个模型，它给你的本质上是一个 delta，
+就像是说对于那个问题，只有一句话是可以生成的。
+So think about the optimal solution after doing PPO is basically one model that gives you essentially a delta um,
+like basically says that there's only one sentence that could be generated for that question.
+
+1063
+01:29:37,070 --> 01:29:43,556
+所以现在如果你把它用在语义上略有不同的东西上，它实际上会给那个答案给出一个零的似然。
+So now if you use it on something that is slightly semantically
+different, it would actually give a likelihood of zero for that answer.
+
+1064
+01:29:44,430 --> 01:29:54,880
+所以实际上，情况没那么极端，因为正如你所说，它仍然是一个分布，
+但这只是说明一旦这些模型不再是纯粹的 LLMs，困惑度就存在根本问题。
+So in reality, it's not that extreme, because as you say, it's still a distribution,
+but it just shows you that there's a fundamental issue with perplexity once these models are not LLMs anymore.
+
+1065
+01:29:54,960 --> 01:29:59,044
+它们不再是按照最大似然来训练的，至少在用 PPO 训练的时候不是。
+They were not trained, at least with PPO, they were not trained to do maximum likelihood anymore.
+
+1066
+01:29:59,214 --> 01:30:00,292
+它们是作为策略模型来训练的。
+They were trained to be policies.
+
+1067
+01:30:03,150 --> 01:30:06,916
+好的，嗯，所以最常见或者最……
+Okay, um, so probably the most common or the the most.
+
+1068
+01:30:07,040 --> 01:30:07,360
+嗯。
+um.
+
+1069
+01:30:08,160 --> 01:30:08,480
+是的。
+yeah.
+
+1070
+01:30:08,560 --> 01:30:15,200
+最常见的或者最受信任的基准测试是我们所谓的聊天机器人竞技场，基本上就是去……
+the most common benchmark or the most trusted one is what we call chatbot arena, which is basically go on.
+
+1071
+01:30:15,280 --> 01:30:17,360
+互联网上，让随机用户在互联网上……
+internet, have random users on the internet.
+
+1072
+01:30:17,710 --> 01:30:19,812
+盲测与两个聊天机器人对话。
+blindly talk with two chatbots.
+
+1073
+01:30:20,000 --> 01:30:21,200
+就提很多问题。
+just ask many questions.
+
+1074
+01:30:21,486 --> 01:30:23,716
+看看这两个答案，并给出一个哪个更好评分。
+see the two answers, and rate, which one is better.
+
+1075
+01:30:23,920 --> 01:30:30,532
+如果你在成千上万的用户身上这样做，你就能得到真实的偏好，并对模型进行排名。
+And you do that over hundreds of thousands of users, and then you get the actual preferences and you get rankings of models.
+
+1076
+01:30:31,040 --> 01:30:35,140
+所以你现在就可以去聊天机器人竞技场，实际与这些模型进行交互。
+so you can go right now on chatbot arena and actually interact with these models.
+
+1077
+01:30:36,142 --> 01:30:47,204
+我想强调一个潜在问题，就是想要做这类事情的人通常更倾向于技术驱动或精通技术，
+所以你提出的很多问题可能更偏向技术内容。
+one potential issue, just to highlight, is that while people who want to do these type of things are usually more like tech driven or
+like tech savvy, so a lot of the questions that you will ask are more like tech stuff.
+
+1078
+01:30:47,470 --> 01:30:51,108
+比如讨论软件错误、咨询 AI 工具，还有所有这些事情。
+Discussing software errors, inquiries about AI tools, and all of these things.
+
+1079
+01:30:53,006 --> 01:30:54,800
+所以另一个问题是成本和速度。
+So another issue is cost and speed.
+
+1080
+01:30:54,990 --> 01:31:02,532
+如果你真的想在开发过程中使用类似的东西，那成本就太高了，
+因为你基本上需要支付大量的人力去完成。
+If you really want to use something like this for development process, it will
+be too costly because you will need to basically pay a lot of humans to do that.
+
+1081
+01:31:03,982 --> 01:31:09,508
+所以，一个简单的想法是，就像我们多次提到的那样，用 LM 代替人类。
+So, one simple idea is again, as we said many times, just use LM instead of humans.
+
+1082
+01:31:10,416 --> 01:31:12,452
+到目前为止，你可能已经知道这个流程了。
+You probably know the drill at this point.
+
+1083
+01:31:13,198 --> 01:31:18,532
+每条指令的步骤是：由一个基准模型和一个你想评估的模型生成输出。
+Steps for every instruction generate outputs by some baseline and a model that you want to evaluate.
+
+1084
+01:31:19,376 --> 01:31:24,256
+所以这里你可以想象，我正在比较来自 ChatGPT 和 Mistral 的答案。
+So here you imagine that I'm comparing an answer from ChatGPT and from Mistral.
+
+1085
+01:31:24,656 --> 01:31:31,876
+我只是在询问另一个模型，哪一个更好，然后我基本上把这些结果取个平均值。
+I'm just asking a model, another model, which one is better, and I just basically average that out.
+
+1086
+01:31:32,270 --> 01:31:43,270
+是的，我问 GPT-4 哪个更好，然后在我的整个分布、整个基准或数据集上取平均值，
+这就能给我一个胜率，也就是一个模型相对于另一个模型的胜率，
+Yeah, I ask GPT4 which one is better, I average that out over my entire distribution, over my entire benchmark or data set,
+and that gives me a win rate, so win probability for one model compared to another one, and now you can rank models.
+
+1087
+01:31:43,270 --> 01:31:45,796
+现在你就可以对模型进行排名了。
+Yeah, I ask GPT4 which one is better, I average that out over my entire distribution, over my entire benchmark or data set,
+and that gives me a win rate, so win probability for one model compared to another one, and now you can rank models.
+
+1088
+01:31:46,656 --> 01:31:49,316
+这就是 alpaca eval 排行榜。
+And this is the alpaca eval leaderboard.
+
+1089
+01:31:50,542 --> 01:31:57,572
+这样做的好处是，我们实际上展示了它与聊天机器人竞
+技场有 98% 的相关性，也就是说与人类的高度相关。
+So the benefits of this is that actually we show we get 98% correlation with chatbot arena so very high correlation with humans.
+
+1090
+01:31:58,062 --> 01:32:05,284
+所以这是，是的，与其他基准的相关性对比，而且运行它只需要不到三分钟，不到 10 美元。
+so this is yeah, comparison with correlation with other benchmarks, and it takes less than three minutes and less than $10 to run.
+
+1091
+01:32:05,616 --> 01:32:06,020
+所以它非常便宜。
+So it's pretty cheap.
+
+1092
+01:32:07,136 --> 01:32:08,388
+不过也有缺点。
+there are downsides though.
+
+1093
+01:32:08,816 --> 01:32:10,532
+其中之一就是虚假相关。
+one of them is purus correlation.
+
+1094
+01:32:11,758 --> 01:32:16,576
+正如我们之前看到的，LM 偏好……这是一个虚假相关，不是很多。
+so as we already saw before, LMs prefer, this is one spurious correlation, not many.
+
+1095
+01:32:16,656 --> 01:32:17,456
+我只讲其中一个。
+I'll just talk about one.
+
+1096
+01:32:17,646 --> 01:32:18,896
+LM 偏好更长的输出。
+LMs prefer longer outputs.
+
+1097
+01:32:18,976 --> 01:32:25,988
+实际上，人类也偏好更长的输出，但问题在于一旦你使
+用 LLMs，一旦存在偏差，你就会继续优化那个偏差。
+Actually, humans also prefer longer outputs, but the problem or the issue once
+you use LLMs is that once there's bias, you will continue optimizing that.
+
+1098
+01:32:26,350 --> 01:32:32,336
+我可以保证，人类在某些时候，如果我问一个简单的问题而
+你给了我五页纸的答案，我会说，不，我不喜欢那个答案。
+Humans at some point, I can guarantee you, if I ask a simple question and you
+give me five pages of answers, I'll be like, no, I don't like that answer.
+
+1099
+01:32:32,590 --> 01:32:36,836
+但对于 LM，如果它们有这种偏见并且是为此训练的，它们将继续偏好更长的输出。
+But LMs, if they have this bias and they were trained for that, they will continue preferring longer outputs.
+
+1100
+01:32:37,838 --> 01:32:45,060
+所以这里我们看到，嗯，偏好显示，人类和模型都偏好更长的输出。
+So here we see um the the preference just showing that like humans and models prefer longer outputs.
+
+1101
+01:32:46,446 --> 01:33:00,000
+这里是初始 alpaca eval 数据集的另一个视角，也就是基准，当我们对 GPT-4 进行排名，
+当我们查看 GPT-4 与实际 GPT-4 的胜率时，如果我们使用标准的 GPT-4，它按定义得 50% 左右，
+and here is another view of the initial alpaca eval data set uh benchmark where when we asked um when we rank GPT-4,
+when we look at the rin rate of GPT-4 versus actually GPT-4 itself, if we use the standard
+
+1102
+01:33:00,000 --> 01:33:02,700
+这里是初始 alpaca eval 数据集的另一个视角，也就是基准，当我们对 GPT-4 进行排名，
+当我们查看 GPT-4 与实际 GPT-4 的胜率时，如果我们使用标准的 GPT-4，它按定义得 50% 左右，
+GPT-4, it gets 50% kind of by definition, because we're comparing GPT-4 versus GPT-4.
+
+1103
+01:33:02,700 --> 01:33:05,856
+因为我们是在拿 GPT-4 对比 GPT-4。
+GPT-4, it gets 50% kind of by definition, because we're comparing GPT-4 versus GPT-4.
+
+1104
+01:33:06,176 --> 01:33:14,308
+但如果我们要求 GPT-4 稍微冗长一点，也就是说我们在提示
+词中说，在你的回答中要冗长，那么它的胜率就是 64.4%。
+But if we ask GPT-4 to be slightly more verbose, so we just say in the
+prompt, be verbose in your answers, then it gets a rin rate of 64.4%.
+
+1105
+01:33:14,926 --> 01:33:16,496
+所以实际上存在巨大的方差。
+So really there's a huge variance.
+
+1106
+01:33:16,576 --> 01:33:18,496
+如果我们要求它简洁一点，它就只有 20%。
+And if we ask it to be concise, it gets 20%.
+
+1107
+01:33:18,926 --> 01:33:23,972
+所以根据你是要求它简洁还是冗长，结果会有巨大的差异。
+So there's a huge variance depending on whether you ask it to be concise or verbose.
+
+1108
+01:33:24,270 --> 01:33:25,092
+这非常烦人。
+That's very annoying.
+
+1109
+01:33:26,158 --> 01:33:31,376
+所以一个可能的解决方案，也就是我们采取的方法，就是使用一些回归分析。
+so one possible solution, which is what we did, is just use some regression analysis.
+
+1110
+01:33:31,536 --> 01:33:35,748
+我不打算深入细节，但基本上是使用因果推断工具来控制长度。
+I'm not going to go into details, but basically use causal inference tools to control for length.
+
+1111
+01:33:36,096 --> 01:33:38,724
+而且现在，实际上长度的影响要小得多。
+And right now, actually length matters much less.
+
+1112
+01:33:38,896 --> 01:33:43,056
+所以如果你要求它冗长，你仍然能获得一些提升，但要少得多。
+So if you ask it to be verbose, you still get some gains, but much less.
+
+1113
+01:33:44,336 --> 01:33:44,816
+太棒了。
+Great.
+
+1114
+01:33:45,102 --> 01:33:46,736
+好了，这就是关于后训练的所有内容。
+So that's all about post-training.
+
+1115
+01:33:46,816 --> 01:33:51,108
+接下来的八分钟，我可能会讲讲系统，或者直接回答问题。
+And now for the next eight minutes, I might talk about systems or just answer questions.
+
+1116
+01:33:51,456 --> 01:33:51,696
+是的？
+Yes?
+
+1117
+01:33:54,126 --> 01:33:55,616
+回到你的后训练部分。
+Go back to your post-training.
+
+1118
+01:33:55,696 --> 01:34:05,216
+关于后训练，我们是如何利用少量的微调数据来调整那些参数，并对模型产生如此大的影响的？
+In terms of post training how did we tune those parameters using the
+small body of fine-tuning data and have such a big effect on the model?
+
+1119
+01:34:05,376 --> 01:34:08,656
+你之前提到那是另一套超参数。
+You mentioned earlier that it's a different set of hyperparameters.
+
+1120
+01:34:08,910 --> 01:34:12,576
+我们是只改变一部分权重，是后面的权重，还是所有的权重？
+Are we changing just some of the weights, the later weights, or all of the weights?
+
+1121
+01:34:12,736 --> 01:34:13,696
+实际上发生了什么？
+What's actually happening?
+
+1122
+01:34:14,096 --> 01:34:16,420
+是的，是的，我刚才大概略过了这些内容。
+Yeah, yeah, I kind of skimmed through all of this.
+
+1123
+01:34:16,686 --> 01:34:17,476
+你会改变所有的权重。
+You change all the weights.
+
+1124
+01:34:17,936 --> 01:34:20,388
+实际上，嗯，工业界会改变所有的权重。
+Actually, um, industry would change all the weights.
+
+1125
+01:34:20,750 --> 01:34:27,460
+在开源领域，你可能听说过 LoRa，它基本上只改变一部分权重。
+In open source land, you might have heard of LoRa, which is going to change it basically only some of the weights.
+
+1126
+01:34:27,790 --> 01:34:33,124
+或者更准确地说，它会给每一层的输出增加一些差异。
+Or it actually, to be more specific, it's gonna add some differences to the output of every of every layer.
+
+1127
+01:34:33,358 --> 01:34:36,416
+但在工业界，你会直接微调所有的权重。
+But but in industry, you're gonna just fine-tune all the weights.
+
+1128
+01:34:36,816 --> 01:34:45,508
+嗯，另外关于数据，实际上在最后这个 RHF 步骤中，你通常会收集比 SFT 更多的数据。
+Um and also to say something else about the data, actually this last
+step RHF, you're usually gonna collect a lot more data than with SFT.
+
+1129
+01:34:45,806 --> 01:34:55,296
+所以如果 SFT 是五千、一万，甚至五万，那么在 RHF 中，我认为你会达到百万数量级。
+So if FSFT is like five thousand, ten thousand, maybe 50,000, with RHF, I
+think you're going to be more around like the one million order of magnitude.
+
+1130
+01:34:55,376 --> 01:34:57,060
+不过这仍然比预训练少得多。
+It's still much less than pre training though.
+
+1131
+01:34:57,582 --> 01:35:00,160
+是的，因为预训练是 15 万亿个 Token。
+Yeah, Because pre-training is 15 trillion tokens.
+
+1132
+01:35:00,320 --> 01:35:02,502
+我的意思是，这甚至不算什么。
+I mean, this is like that's not even a drop.
+
+1133
+01:35:02,720 --> 01:35:04,720
+然而你对权重的影响却很大。
+And yet you influence the weight a lot.
+
+1134
+01:35:04,880 --> 01:35:05,840
+所以我猜你是这么做的。
+So I guess you do it.
+
+1135
+01:35:06,000 --> 01:35:13,732
+我的意思是，你得考虑到你是怎么做的，也就是，正如我所说，你将要使用的学习率会不同。
+I mean you have to think that how you do it is you use um I mean, as I
+said, the learning rate that you're going to use is going to be different.
+
+1136
+01:35:14,160 --> 01:35:16,080
+但你也只这样做。
+But also you only do that.
+
+1137
+01:35:16,240 --> 01:35:28,836
+所以想象一下，就算我只训练一句话，但反复训练很多次，到最后我的模型就只会生成那句话，
+哪怕它只是其中一句话，而不是那15万亿个Token。
+So just imagine if I trained, even if I train on one sentence, but over and over again,
+all at some point my model will only generate that sentence, even if it was just one sentence instead of the 15 trillion tokens.
+
+1138
+01:35:29,230 --> 01:35:34,820
+所以如果你用足够大的学习率跑足够长的时间，你基本上就会让模型对那句话过拟合。
+So if you use a large enough learning rate and for enough time, you will basically overfit that sentence.
+
+1139
+01:35:35,246 --> 01:35:43,680
+所以要记住的关键是，数据并不是，并不是把一些后训练数据和一些预训练数据混在一起。
+So the key thing to remember is that the data is not I it's not as if you mix some post-training data and some pre-training data.
+
+1140
+01:35:43,918 --> 01:35:48,000
+你是先做预训练，然后才开始只针对后训练数据进行微调。
+You do pre-training, and then you just start fine-tuning only on the post-training.
+
+1141
+01:35:48,238 --> 01:35:53,732
+所以另一种方式，或者说另一种视角是，预训练只是你模型的初始化。
+So another way, and maybe another perspective is that the post the pre-training is just an initialization of your model.
+
+1142
+01:35:54,158 --> 01:35:59,332
+一旦你这样看待它，认为这只是权重的初始化，那它就没什么特别的了。
+And once you view it that way, that this is just initialization of weights, then there's nothing special.
+
+1143
+01:35:59,534 --> 01:36:02,480
+就像你不需要去记得你之前训练了那么多数据。
+Like you don't need to remember that you trained a lot of data before.
+
+1144
+01:36:02,734 --> 01:36:06,212
+唯一重要的事情是你有初始化，现在我实际上是在训练模型。
+The only thing that matters is that you had initialization, and now I actually train a model.
+
+1145
+01:36:06,606 --> 01:36:07,652
+所以你可以这样去思考。
+So maybe think about it that way.
+
+1146
+01:36:07,886 --> 01:36:10,400
+就像，呃，在某种程度上，它有一种属性。
+Like there's uh there's a mark of property in some ways.
+
+1147
+01:36:10,640 --> 01:36:13,860
+就像你有了权重，这就是我的初始化，现在我正在训练那一个。
+Just like you had your weights, this is my initialization, now I'm training that one.
+
+1148
+01:36:14,510 --> 01:36:15,748
+这能回答你的问题吗？
+Does that kind of answer your question?
+
+1149
+01:36:16,814 --> 01:36:24,880
+有点，但你刚才说，这几乎相当于只是把微调数据重复运行很多次。
+Kind of, but you you said something just now about it's almost the equivalent of just rerunning the fine-tuning data many times.
+
+1150
+01:36:25,280 --> 01:36:30,276
+为了获得更多的偏好，实际上发生的真的是那样吗？
+Is it actually is that what actually happens in order to give so much more preference?
+
+1151
+01:36:33,680 --> 01:36:37,600
+你可能，呃，我其实现在不知道工业界是怎么做的。
+You might uh I actually don't know right now how they do it in industry.
+
+1152
+01:36:37,806 --> 01:36:39,982
+当我们写那篇 paper 的时候，我们得做三个 block。
+When we did our packet, we had to do three blocks.
+
+1153
+01:36:40,240 --> 01:36:42,116
+所以你确实把它运行了三次。
+So you did run it three times through it.
+
+1154
+01:36:44,814 --> 01:36:48,480
+但我的意思是，甚至连你运行的次数其实也不重要。
+but I mean even the number of times that you run it through, it's actually not important.
+
+1155
+01:36:48,640 --> 01:36:52,484
+唯一重要的，或者说关键的，是有效学习率。
+The only thing like the only thing is the imp is kind of the effective learning rate.
+
+1156
+01:36:52,720 --> 01:36:53,412
+这才是重要的。
+That's what matters.
+
+1157
+01:36:54,080 --> 01:36:55,300
+嗯，是的。
+Um yeah.
+
+1158
+01:36:57,070 --> 01:36:57,412
+太好了。
+Great.
+
+1159
+01:36:58,798 --> 01:37:01,028
+所以我想我还有五分钟，对吧？
+So I think I have five minutes, right?
+
+1160
+01:37:06,126 --> 01:37:06,400
+好的。
+Okay.
+
+1161
+01:37:07,120 --> 01:37:13,732
+我可能会尝试给出一个高层级的概述，至少是从系统技巧的角度出发。
+I might try to give a high-level overview, at least from one of the systems trick.
+
+1162
+01:37:14,894 --> 01:37:20,900
+系统方面，正如我们对大家说的，呃，巨大的瓶颈是，抱歉，算力是巨大的瓶颈。
+Systems, as we said, uh for everyone, bottleneck is a huge uh sorry, compute is the huge bottleneck.
+
+1163
+01:37:21,422 --> 01:37:24,100
+呃，你可能会问，为什么不买更多的 GPUs？
+Uh one question you might ask is why not buy more GPUs?
+
+1164
+01:37:24,558 --> 01:37:26,880
+呃，GPUs 很贵，而且也很稀缺。
+Uh GPUs are expensive but also are scarce.
+
+1165
+01:37:27,040 --> 01:37:30,212
+即使你现在有一千万美元，你也买不到最好的 GPUs。
+Even if you have ten million dollars right now, you cannot buy the best GPUs.
+
+1166
+01:37:30,800 --> 01:37:35,204
+嗯，还有一些物理上的限制。
+Um there's also some physical limitations.
+
+1167
+01:37:35,680 --> 01:37:39,012
+当你拥有多个 GPUs 时，你必须在它们之间进行通信。
+When you have when you have multiple GPUs, you have to communicate between them.
+
+1168
+01:37:39,200 --> 01:37:39,940
+这需要时间。
+That takes time.
+
+1169
+01:37:40,814 --> 01:37:43,044
+所以仅仅购买更多的 GPUs 并不是那么简单。
+so just buying more GPUs is not that easy.
+
+1170
+01:37:43,760 --> 01:37:48,132
+因此，思考如何分配资源以及如何优化你的流水线非常重要。
+so it's really important to think about how do you allocate resources and how do you optimize your pipeline.
+
+1171
+01:37:48,302 --> 01:37:48,800
+所以是系统方面。
+So system.
+
+1172
+01:37:49,614 --> 01:37:51,440
+GPU 入门基础知识。
+101 on GPUs.
+
+1173
+01:37:51,520 --> 01:37:53,040
+抱歉，我讲得稍微快了一点。
+I'm sorry, I'm going slightly faster.
+
+1174
+01:37:53,120 --> 01:37:55,236
+我希望你们中至少有些人能听懂。
+I hope that some of you at least can follow.
+
+1175
+01:37:55,760 --> 01:37:57,892
+GPUs 基本上是为吞吐量优化的。
+GPUs are basically optimized for throughput.
+
+1176
+01:37:58,318 --> 01:38:01,188
+CPUs 是为延迟优化的。
+CPUs are optimized for latency.
+
+1177
+01:38:01,582 --> 01:38:10,052
+所以关于 GPUs，你的思考方式应该是：有一个指令
+同时在许多许多核心上运行，处理不同类型的数据。
+So GPUs, the way you have to think about it is that there's one command that is run on many,
+many cores at the same time on different type of data.
+
+1178
+01:38:11,406 --> 01:38:13,280
+这就是你该如何看待 GPU。
+so this is how you see a GPU.
+
+1179
+01:38:13,360 --> 01:38:20,240
+你会看到有很多不同的核心，我们称它们为流式多处理器，这与通常的 CPU 架构非常不同。
+You see there are many different cores, we call them streaming pro uh multiprocessors,
+which is very different than the usual CPU architecture.
+
+1180
+01:38:20,334 --> 01:38:24,036
+所以对于 GPU，只需记住高吞吐量和并行化。
+So just think high throughput, parallelization for GPUs.
+
+1181
+01:38:24,800 --> 01:38:27,460
+GPUs 是为快速矩阵乘法优化的。
+GPUs are optimized for fast matrix multiplication.
+
+1182
+01:38:27,886 --> 01:38:36,036
+所以每当你用 GPU 做任何事情时，如果你能用矩阵乘法来实现，它会比任何其他方式快十倍。
+So every time you will do something on GPU, if you can do it with a matrix multiplication,
+it's going to be ten times faster than with anything else.
+
+1183
+01:38:36,720 --> 01:38:43,172
+这有点烦人，因为它意味着我们被限制在只能用矩阵乘法来做任何事情。
+that is a little bit annoying because it means that we are kind of bottlenecked to doing anything with matrix multiplications.
+
+1184
+01:38:44,160 --> 01:38:50,052
+关于 GPU 还要注意的一点是，算力的提升速度快于内存和通信。
+another thing to note with GPUs is that compute has been improving faster than memory and communication.
+
+1185
+01:38:50,606 --> 01:39:00,388
+所以目前，GPU 通常很难保持……就像你发送给它的数
+据，发送给 GPU 的数据实际上很难跟上处理速度。
+So right now, GPUs usually are hard to keep uh like the data that you
+send it, send it GPUs is actually hard to keep up with the process.
+
+1186
+01:39:00,846 --> 01:39:06,116
+所以如果你只是运行普通代码，而不优化你的代码，大部分 GPU 实际上都会处于闲置状态。
+So most of your GPUs are actually going to be idle if you just run normal code, if you don't optimize your code.
+
+1187
+01:39:06,414 --> 01:39:09,924
+所以通信问题在未来还会持续存在。
+So communication and this will continue over time.
+
+1188
+01:39:11,118 --> 01:39:13,744
+关于 GPU 还要知道的一点是，它有内存层级。
+Another thing to know about GPUs is that there's a memory hierarchy.
+
+1189
+01:39:13,824 --> 01:39:20,388
+这其实和 CPUs 是一样的，但基本上你离核心越近，内存就越少，但运行速度就越快。
+This is the same thing actually with CPUs, but basically the closer you
+are to your cause, the less memory there is, but the faster things run.
+
+1190
+01:39:20,686 --> 01:39:22,820
+如果你离得越远，内存就越多，速度就越慢。
+If you're further, more memory, slower.
+
+1191
+01:39:25,006 --> 01:39:25,764
+好，我跳过那部分。
+Okay, I'm gonna skip that.
+
+1192
+01:39:26,286 --> 01:39:27,332
+好吧，其实我还是说一下。
+Okay, actually I'm gonna say it.
+
+1193
+01:39:27,904 --> 01:39:30,628
+我刚才跟你们提到了通信这个事实。
+I told you about this uh the fact of communication.
+
+1194
+01:39:31,104 --> 01:39:34,244
+人们通常关注的指标是模型算力利用率。
+the metric that people usually look at is model flop utilization.
+
+1195
+01:39:34,542 --> 01:39:45,636
+那么 GPU 能达到的理论最大值是多少，也就是你每秒能使用的 浮点运算次数 数，然后除以……
+抱歉，是观测到的吞吐量除以这个理论最大值。
+So what is the theoretical maximum that uh GPU could run at, The number of flops that you could use per second, uh divide is sorry,
+the number of observed throughput divided by this theoretical maximum.
+
+1196
+01:39:46,094 --> 01:39:49,092
+通常情况下，如果你能达到 50%，你就非常开心了。
+And in general, if you reach 50%, you're very happy.
+
+1197
+01:39:49,422 --> 01:39:52,452
+就像 Facebook，我看到 Llama 在类似情况下的数值是 45。
+Like Facebook, I looked at Lama was at 45 for something like this.
+
+1198
+01:39:52,878 --> 01:39:57,316
+这意味着即使是这些大公司，数据获取的速度也不够快。
+So that means that data doesn't come fast enough, even for these big companies.
+
+1199
+01:39:59,054 --> 01:40:03,780
+所以有一个简单的技巧，这可能是我要告诉你们的唯一一个技巧，就是低精度。
+So one simple trick, and that might be the only one I'm going to tell you about, is low precision.
+
+1200
+01:40:04,494 --> 01:40:12,356
+一个简单的想法是，如果我把浮点数设为低精度，那么发送到 GPU 的位数就会减少。
+One simple idea is that well, if I'm going to put my floats in low
+precision, then there's gonna be fewer bits that I have to send to my GPUs.
+
+1201
+01:40:12,558 --> 01:40:17,092
+如果位数减少了，通信就会变快，内存消耗也会降低，整体速度就会变快。
+If there's fewer bits, it's faster communication, lower memory consumption, things are gonna go faster.
+
+1202
+01:40:17,824 --> 01:40:22,372
+而且对于深度学习来说，恰好小数点后的位数并不是那么重要。
+and for deep learning, it just happens that decimal is not that important.
+
+1203
+01:40:23,150 --> 01:40:33,316
+所以当你做矩阵乘法，或者比如做 SGD 时，已经有很多噪声了，
+如果你更新的值是 0.01 或 0.015，谁在乎呢？
+so when you do matrix multiplication, when you do like for example SGD, there's
+already so much noise that if you update something by 0.01 or 0.015, who cares?
+
+1204
+01:40:33,824 --> 01:40:46,304
+所以基本上，与其像以前人们那样每个浮点数用 32 位，或者在其他领域常用的 64 位，
+你可以在矩阵乘法中使用 16 位。
+so basically instead of using 32 bits per float, which is what people used to use, or 64, for example,
+which is what you would use in other domains, you use 16 bits for matrix multiplication.
+
+1205
+01:40:46,574 --> 01:40:48,464
+也就是说，每个浮点数你只用 16 位。
+So for every float you use 16 bits.
+
+1206
+01:40:49,902 --> 01:40:59,556
+而在训练中，你会用到我们称之为自动混合精度的方法，就是有些东西用 32 位，有些用 16 位。
+and for training you have this type of like uh what we call automatic mixed precision,
+which is that some of the things are in 32 bits, others are in 16 bits.
+
+1207
+01:41:00,144 --> 01:41:06,116
+通常你应该这样思考：你的模型权重是存储为 32 位的。
+generally the way you should be thinking about it is that your weights of your model are stored in 32 bits.
+
+1208
+01:41:07,182 --> 01:41:16,064
+但在计算之前，你把所有内容都转成 16 位，这样计算速度极快，最后你再用 32 位更新权重。
+but just before the computation you put everything in 16 bits like this, you do computation super fast,
+and at the end you update your weights in 32 bits.
+
+1209
+01:41:16,302 --> 01:41:24,516
+之所以要把所有更新都用 32 位做，是因为如果你的学习权重非常小，
+你仍然希望能够让权重产生变化。
+And the reason why you do all the updates in 32 bits is just think that if your learning weight, for example, is very small,
+you still want to be able to like make a difference in your weights.
+
+1210
+01:41:25,104 --> 01:41:30,500
+所以所有的计算都是用 16 位完成的，但权重实际上是存储为 32 位的。
+so all the computation is done in 16 bits, but the weights are actually stored in 32 bits.
+
+1211
+01:41:30,798 --> 01:41:32,772
+这就是目前人们常用的标准做法。
+So that's like the standard way that people are doing it.
+
+1212
+01:41:33,744 --> 01:41:37,744
+嗯，我实际上就讲讲这个，然后跳过剩下的内容。
+Um, I'll actually talk just about this and then I'll skip all the rest.
+
+1213
+01:41:37,904 --> 01:41:39,844
+算子融合，因为我觉得这其实挺酷的。
+Operator fusion, because I think this is actually pretty cool.
+
+1214
+01:41:40,304 --> 01:41:42,532
+正如我刚才说的，通信非常慢。
+as I just said, communication is very slow.
+
+1215
+01:41:42,894 --> 01:41:48,804
+实际上，每当你使用一行 PyTorch 代码时，它基本上是将变量移动到 GPU 的全局内存中。
+And actually, every time you use a PyTorch line, it basically moves variable to global memory of your GPU.
+
+1216
+01:41:49,134 --> 01:41:54,224
+所以当你有类似这样的操作，x 点余弦，等于 x1 时。
+So when you have something like this, x dot, uh, cosine, uh, equal x1.
+
+1217
+01:41:54,464 --> 01:41:56,356
+然后你再做 x1 的余弦。
+and then you do x1.cosine.
+
+1218
+01:41:56,544 --> 01:42:00,100
+幕后的实际情况是，你取出 x，也就是数据。
+what is happening behind the scenes is that you take the x, which is data.
+
+1219
+01:42:00,304 --> 01:42:03,940
+你把它发送到 GPU 的实际处理器上。
+you ship it to your actual processors of your GPUs.
+
+1220
+01:42:04,064 --> 01:42:07,556
+你应用余弦函数，然后把它传回 GPU 的主内存。
+you apply the cosine, you ship it back to the main memory of your GPU.
+
+1221
+01:42:07,694 --> 01:42:09,182
+然后你看到下一行。
+and then you see the next line.
+
+1222
+01:42:09,390 --> 01:42:14,756
+你把它传回 GPU 处理器，再应用一次余弦函数，然后再次传回来。
+you ship it back to the GPU processor, you apply another cosine, and you ship it back again.
+
+1223
+01:42:16,046 --> 01:42:23,972
+另一种理解方式是，你从 DRAM（也就是 GPU 的全局内
+存）出发，每行代码都要传给计算单元，然后再传回来。
+so another way to see that is that you go from your DRAM, which is your global
+memory in your GPU, and you ship it to compute, you ship it back for every line.
+
+1224
+01:42:24,174 --> 01:42:25,572
+这是最原始的处理方式。
+This is a naive way of doing it.
+
+1225
+01:42:25,966 --> 01:42:27,236
+这看起来非常浪费。
+This seems very wasteful.
+
+1226
+01:42:28,558 --> 01:42:35,620
+所以算子融合的简单思路就是：通信一次，完成所有计算，然后传回一次。
+so the simple idea of operator fusion is just communicate, do all the computation, ship it back once.
+
+1227
+01:42:36,110 --> 01:42:38,820
+这就是融合算子的核心原理。
+And this is exactly what fused kernels are.
+
+1228
+01:42:39,504 --> 01:42:48,784
+所以如果你想让 PyTorch 的计算速度变快，只需对你的模型应用 torch.compile。
+so if you ever want to make your computations in pyTorch much faster, just apply torch.compile on your model.
+
+1229
+01:42:49,024 --> 01:42:51,904
+这会让你的模型速度提升大约两倍。
+This is going to make your model around two times faster.
+
+1230
+01:42:52,064 --> 01:43:06,884
+它的原理很简单，就是重写你的代码，比如把你的 PyTorch 代码基本上重写成 C 和 CUDA，
+从而只进行一次通信，然后完成所有操作，最后再传回去。
+And what it does is simply that it rewrites your code, like your PyTorch code basically in C and CUDA to do the communication only
+once, then do all the operations, then ship it back.
+
+1231
+01:43:07,918 --> 01:43:10,176
+好了，我没时间讲分块了。
+Okay, I'm not going to have time to talk about tiling.
+
+1232
+01:43:10,510 --> 01:43:13,860
+分块很重要，并行化，并行化也很重要。
+Tiling is important, parallelization, parallelization is important.
+
+1233
+01:43:14,416 --> 01:43:18,660
+嗯，还有混合专家模型，混合专家模型也很重要。
+Um and mixture of experts, mixture of experts is important.
+
+1234
+01:43:18,976 --> 01:43:19,556
+展望。
+Outlook.
+
+1235
+01:43:19,982 --> 01:43:22,736
+还有很多我们还没……还没聊到的话题。
+There are many things we haven't talked uh talked about.
+
+1236
+01:43:23,136 --> 01:43:26,628
+我们还没聊到架构，肯定也没聊到推理。
+we haven't talked about architectures, we definitely haven't talked about inference.
+
+1237
+01:43:27,056 --> 01:43:29,796
+嗯，还有很多关于 LLMs 的重要内容。
+Um there are many other things that are important with LLMs.
+
+1238
+01:43:30,030 --> 01:43:31,296
+你使用的是什么样的 UI？
+What is the UI that you use?
+
+1239
+01:43:31,376 --> 01:43:35,748
+我的意思是，可以说 ChatGPT 的重大创新就在于提供了一个简单的 UI 来使用它。
+I mean, arguably Chat GPT, the big novelty was just have a simple UI to use it.
+
+1240
+01:43:35,982 --> 01:43:44,964
+多模态，各种可能的误用，互联网上可能不足以训练所有
+这些模型的数据，数据收集的合法性，还有很多其他事情。
+Multimodality, what are all the misuses you could have, the fact that there might not be enough data on the internet to train all
+these models, legality of data collection, so many other things.
+
+1241
+01:43:45,296 --> 01:43:49,216
+如果你对这些话题感兴趣，我建议修读这三门课。
+If you are interested in all these topics, I would suggest three classes.
+
+1242
+01:43:49,678 --> 01:44:01,376
+CS224N 可能涉及 LLMs 的内容最少，但它提供了一些关于
+所有 LLMs 的背景和历史脉络，并提供了一些相关的材料。
+CS224N is probably the one that touches the least on uh LLMs, uh, but it gives some
+background and historical context of all the LLMs and gives kind of some adjacent material.
+
+1243
+01:44:01,774 --> 01:44:10,176
+CS324，我想它就叫大语言模型，它会对我提到的所有内容进行更深入的阅读和讲座。
+CS324, I think it's called I think it's just called large language
+models, more in-depth reading and lectures on everything I talked about.
+
+1244
+01:44:10,478 --> 01:44:16,228
+CS336，是“从零开始构建大语言模型”，你实际上会构建自己的 LLM。
+CS336, which is large language Model from scratch, you actually build your own LLM.
+
+1245
+01:44:17,006 --> 01:44:20,416
+这是一门很棒的课，而且也是由我的两位导师授课的。
+it's an amazing class, also given by my two supervisors.
+
+1246
+01:44:20,656 --> 01:44:22,244
+工作量非常大，所以要小心。
+Very heavy workload, so be careful.
+
+1247
+01:44:23,950 --> 01:44:24,260
+太棒了。
+great.
+
