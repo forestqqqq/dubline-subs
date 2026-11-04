@@ -8,6 +8,7 @@
 | [Stanford CS229 I Machine Learning I Building Large Language Models (LLMs)](medias/VDBVW/) | Stanford Online | 2026-11-03 |
 | [Artificial Intelligence Was Supposed To Hit a Wall... Except It Didn't](medias/K2XZK/) | Interstellar Dreams | 2026-11-03 |
 | [Machine Learning and Artificial Intelligence Tools to Advance Genomic Translational Research](medias/6DM25/) | National Human Genome Research Institute | 2026-11-03 |
+| [Stanford CS230 \| Autumn 2025 \| Lecture 8: Agents, Prompts, and RAG](medias/3YKWP/) | Stanford Online | 2026-11-03 |
 | [Web RTC Full Course & More](medias/K7JKB/) | Traversy Media | 2026-11-02 |
 | [Jeff Dean at AI Frontiers: Trends and Developments In Deep Learning Research](medias/RC4YG/) | AI Frontiers | 2026-10-31 |
 | [Day 2 : Device Safety and Security \| Online Training on "Safety in CyberSpace"](medias/R2ACM/) | NCERT OFFICIAL | 2026-10-31 |

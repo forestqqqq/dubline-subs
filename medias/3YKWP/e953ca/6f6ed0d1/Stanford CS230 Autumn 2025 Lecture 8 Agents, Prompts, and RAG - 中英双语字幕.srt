@@ -1,0 +1,6096 @@
+1
+00:00:05,454 --> 00:00:10,980
+大家好，欢迎来到 CS230 深度学习的又一讲课。
+Hi everyone, welcome to another lecture for CS230 deep learning.
+
+2
+00:00:11,534 --> 00:00:18,480
+今天我们要讨论如何增强大语言模型应用。
+Today we're going to talk about enhancing large language model applications.
+
+3
+00:00:19,118 --> 00:00:22,160
+我把这一讲命名为「超越 LLM」。
+And I call this lecture Beyond LLM.
+
+4
+00:00:23,886 --> 00:00:26,320
+它包含很多较新的内容。
+it has a lot of newer content.
+
+5
+00:00:27,040 --> 00:00:38,160
+这一讲的核心思路是：我们已经开始学习神经元，然后学习了层，接着学习了深度神经网络。
+And the idea behind this lecture is we started to learn about neurons, and then we learned about layers,
+and then we learned about deep neural networks.
+
+6
+00:00:38,414 --> 00:00:44,320
+然后我们还稍微学习了如何在 CS230 中构建项目。
+and then we learned a little bit about how to structure projects in C3.
+
+7
+00:00:44,814 --> 00:00:56,964
+现在我们要更进一步，看看如果你在工作、在创业公
+司或在企业中构建智能体AI系统，它会是什么样子的。
+and now we're going one level beyond into what would it look like if you
+were building uh agentic AI systems at work, in a startup, in a company.
+
+8
+00:00:58,560 --> 00:01:02,480
+这可能是最实用的课程之一。
+and it's probably one of the more practical lectures.
+
+9
+00:01:02,640 --> 00:01:15,520
+再次强调，我们的目标不是在接下来的一个小时内构建一个端到端的成品，
+而是告诉你们 AI 工程师已经破解、搞清楚或正在探索的所有技术，这样在课程结束后，
+Again, the goal is not to build a product end-to-end in the next hour or so, but rather to tell you all the techniques that AI
+engineers have cracked, figured out, or exploring so that after the class,
+
+10
+00:01:15,520 --> 00:01:16,520
+再次强调，我们的目标不是在接下来的一个小时内构建一个端到端的成品，
+而是告诉你们 AI 工程师已经破解、搞清楚或正在探索的所有技术，这样在课程结束后，
+you have sort of the breadth of view of different prompting techniques.
+
+11
+00:01:16,520 --> 00:01:20,240
+你们会对不同的提示方法有全局性的了解。
+you have sort of the breadth of view of different prompting techniques.
+
+12
+00:01:20,400 --> 00:01:25,200
+包括不同的智能体工作流、多智能体系统和评估。
+different agentic workflows, multi-agent systems, evals.
+
+13
+00:01:25,358 --> 00:01:30,404
+这样当你想要深入研究时，你就有了基础知识，可以更快地深入学习。
+And then when you want to dive deeper, you have the baggage to dive deeper and learn faster about it.
+
+14
+00:01:30,800 --> 00:01:36,960
+好了，像往常一样，我们尽量让课堂互动性强一些。
+Okay, let's try to make it as interactive as possible, as usual.
+
+15
+00:01:37,600 --> 00:01:48,324
+看我们的议程，议程将从增强 LLM 的挑战和机遇背后的核心思想开始。
+when we look at the agenda, the agenda is going to start with the core idea behind challenges and opportunities for augmenting LLMs.
+
+16
+00:01:48,640 --> 00:01:50,720
+所以我们从基础模型开始。
+So we start from a base model.
+
+17
+00:01:50,800 --> 00:01:54,756
+我们如何最大化这个基础模型的性能？
+How do we maximize the performance of that base model?
+
+18
+00:01:55,440 --> 00:02:02,480
+然后我们深入探讨第一条优化路径，即提示方法，我们将看到各种不同的方法。
+then we dive deep into the first line of optimization, which is prompting methods, and we'll see a variety of them.
+
+19
+00:02:02,798 --> 00:02:04,400
+接着我们再深入一点。
+Then we go slightly deeper.
+
+20
+00:02:04,480 --> 00:02:09,038
+如果我们深入底层进行一些微调，那会是什么样子的？
+If we were to get our hands under the hood and do some fine tuning, what would it look like?
+
+21
+00:02:09,358 --> 00:02:17,920
+我不怎么喜欢微调，我也经常谈到这一点，但我会解释我为什么尽量避免微调。
+I'm not a fan of fine tuning, and I talk a lot about that, but I'll explain why I try to avoid fine tuning as much as possible.
+
+22
+00:02:18,400 --> 00:02:26,400
+然后我们将进行第四部分，关于检索增强生成，也就是 RAG，你们可能在新闻中听过。
+and then we'll do a section four on retrieval augmented generation or rag, which you've probably heard of in the news.
+
+23
+00:02:26,560 --> 00:02:28,800
+也许你们中有些人玩过 RAG。
+Maybe some of you have played with RAGs.
+
+24
+00:02:28,880 --> 00:02:36,640
+我们将拆解什么是 RAG，它是如何工作的，以及 RAG 内部的不同方法。
+We're going to sort of unpack what a RAG is and how it works, and then the different methods within RAGs.
+
+25
+00:02:36,960 --> 00:02:39,920
+然后我们将讨论智能体AI工作流。
+And then we'll talk about agentic AI workflows.
+
+26
+00:02:40,160 --> 00:02:41,760
+嗯，我会给它下个定义。
+Um, I'll define it.
+
+27
+00:02:42,320 --> 00:02:56,240
+Andrew Ng 是最早称这种趋势为智能体AI工作流的人之一，
+所以我们来看看 Andrew 给出的智能体工作流定义，然后我们开始看一些例子。
+Andrew Eng is one of the first ones who have called this trend agentic AI workflows,
+and so we look at the definition that Andrew gives to agentic workflows, and then we start seeing examples.
+
+28
+00:02:56,480 --> 00:02:59,280
+第六部分非常实操。
+The section six is very practical.
+
+29
+00:02:59,502 --> 00:03:16,560
+这是一个案例研究，我们将思考一个智能体工作流，并要求你们测量智能体是否真的有效，
+我们还会头脑风暴如何衡量智能体工作流是否按你想要的方式运行。
+It's a case study where we will think about an agentic workflow and we'll ask you to measure if the agent actually works,
+and we brainstorm how we can measure if an agentic workflow is working the way you want it to work.
+
+30
+00:03:16,640 --> 00:03:21,840
+有很多被称为评估的方法来解决那个问题。
+There's plenty of methods called evals that um uh solve that problem.
+
+31
+00:03:22,160 --> 00:03:30,884
+然后我们将简要看看多智能体工作流，接着我们可以进行一些开放式讨论，
+我将分享一些关于 AI 未来发展的想法。
+and then we'll look briefly at multi-agent workflow, and then we can have a sort
+of open-ended discussion where I'll share some thoughts on what's next in AI.
+
+32
+00:03:31,840 --> 00:03:35,012
+我也期待听到你们对这一点的看法。
+and I'm looking forward to hearing from you all as well on that one.
+
+33
+00:03:35,662 --> 00:03:41,920
+好了，让我们开始讨论如何增强 LLM 的问题。
+Okay, so let's get started with the problem of augmenting LLM.
+
+34
+00:03:42,000 --> 00:03:44,004
+那么，给你们提一个开放性的问题。
+So, open-ended question for you.
+
+35
+00:03:44,526 --> 00:03:50,960
+你们都很熟悉像 GPT-3.5 Turbo 或 GPT-4.0 这样的预训练模型。
+You are all familiar with pre-trained models like GPT 3.5 turbo or GPT-4.0.
+
+36
+00:03:52,142 --> 00:03:55,600
+仅仅使用基础模型有什么局限性？
+What's the limitation of using just a base model?
+
+37
+00:03:56,174 --> 00:04:03,780
+在使用原生预训练模型时，通常会出现哪些问题？
+What are the typical issues that might arise as you're using a vanilla pre-trained model?
+
+38
+00:04:07,918 --> 00:04:08,144
+是的。
+Yes.
+
+39
+00:04:10,478 --> 00:04:11,744
+缺乏一些领域知识。
+Lacks some domain knowledge.
+
+40
+00:04:11,824 --> 00:04:12,704
+你说得完全正确。
+You're perfectly right.
+
+41
+00:04:12,864 --> 00:04:15,904
+你知道，几年前我们有一组学生。
+You know, we had a group of students a few years ago.
+
+42
+00:04:15,984 --> 00:04:30,480
+那不是跟 LLM 相关的，但是，呃，你知道，他们正在构建一个自主的，呃，农业设备或车辆，
+底部装有摄像头，拍摄农作物的照片来判断作物是否生病，是否应该扔掉，或者说是否可以使用。
+it was not LLM related, but uh, you know, they were building an autonomous uh farming,
+uh device or vehicle that had a camera underneath, taking pictures of crops to determine if the crop is sick or not,
+
+43
+00:04:30,480 --> 00:04:35,904
+那不是跟 LLM 相关的，但是，呃，你知道，他们正在构建一个自主的，呃，农业设备或车辆，
+底部装有摄像头，拍摄农作物的照片来判断作物是否生病，是否应该扔掉，或者说是否可以使用。
+if it should be thrown away, like if it should be, if it should be used or not.
+
+44
+00:04:36,064 --> 00:04:47,184
+而且，呃，那个数据集不是你能随便找出来的，当然，
+基础模型或预训练的计算机视觉模型会缺乏那些知识。
+And um and that data set is not a data set you find out there, and the base model
+or a pre trained computer vision model would lack that knowledge, of course.
+
+45
+00:04:47,630 --> 00:04:48,324
+还有什么？
+What else?
+
+46
+00:04:49,742 --> 00:04:49,984
+是的。
+Yes.
+
+47
+00:04:57,134 --> 00:05:08,292
+好的，也许你是想说，为了让在线的同学听清，你是在说模型可能是在高质量数据上训练的，
+但现实世界中的数据其实并没有那么高质量。
+Okay, maybe the you're saying, so just to repeat for people online, you're saying the model might have been trained on high quality
+data, but the data in the wild is actually not that high quality.
+
+48
+00:05:08,464 --> 00:05:20,460
+事实上，是的，正如我们在 GANs 中看到的，现实世界的分布可能与训练集不同，
+这可能会给预训练模型带来问题，尽管预训练的 LLM 在处理各种数据输入方面正变得越来越出色。
+And in fact, yes, the distribution of the real world might differ as we've seen with GANs from the training set,
+and that might create an issue with pre-trained models, although pre-trained
+
+49
+00:05:20,460 --> 00:05:24,868
+事实上，是的，正如我们在 GANs 中看到的，现实世界的分布可能与训练集不同，
+这可能会给预训练模型带来问题，尽管预训练的 LLM 在处理各种数据输入方面正变得越来越出色。
+LLMs are getting better at you know handling all sorts of data inputs.
+
+50
+00:05:25,424 --> 00:05:26,064
+是的。
+yes.
+
+51
+00:05:28,366 --> 00:05:28,704
+比如什么？
+like what?
+
+52
+00:05:30,224 --> 00:05:32,144
+缺乏当前信息。
+Lacks current information.
+
+53
+00:05:32,464 --> 00:05:34,144
+LLM 没有更新到最新状态。
+the LLM is not up to date.
+
+54
+00:05:34,304 --> 00:05:35,344
+事实上，你说得对。
+And in fact, you're right.
+
+55
+00:05:35,504 --> 00:05:39,584
+想象一下，如果你每隔几个月就得从头开始重新训练你的 LLM。
+Imagine you have to retrain from scratch your LLM every couple of months.
+
+56
+00:05:39,984 --> 00:05:53,744
+我发现一个很有意思的故事，大概是三年前，或者可能更久，大概五年前，
+在特朗普的第一任总统任期内，他有一天在推特上发了 Covfefe。
+one story that I found funny, it's from probably three years ago, or maybe more five years ago, where during his first presidency,
+President Trump one day tweeted uh Cove Fefe.
+
+57
+00:05:54,064 --> 00:05:55,332
+你还记得那条推文吗？
+You remember that tweet or no?
+
+58
+00:05:56,238 --> 00:06:00,864
+就是 COVID，那可能是个笔误，或者他当时在口袋里，我不知道。
+Just COVID, and it was probably a typo or it was in his pocket, I don't know.
+
+59
+00:06:01,104 --> 00:06:03,184
+但那个词当时并不存在。
+But that word did not exist.
+
+60
+00:06:03,424 --> 00:06:08,144
+事实上，当时运行的推特 LLM 无法识别那个词。
+the LLMs, in fact, that Twitter was running at the time could not recognize that word.
+
+61
+00:06:08,384 --> 00:06:19,904
+所以推荐系统有点失控了，因为突然所有人都在用 Covfefe 这个词来嘲笑那条推文，
+而 LLM 对「那是什么意思？」感到非常困惑。
+And so the recommender system sort of went wide because suddenly everybody was making fun of that tweet using the word Kofife,
+and the LLM was so confused on you know, what does that mean?
+
+62
+00:06:20,064 --> 00:06:21,024
+我们该把它展示在哪里？
+Where should we show it?
+
+63
+00:06:21,198 --> 00:06:22,304
+我们该把它展示给谁看？
+To whom should we show it?
+
+64
+00:06:22,464 --> 00:06:34,704
+这就是现在的例子，特别是在社交媒体上，有这么多新趋势，
+而且很难重新训练 LLM 来匹配新趋势并理解那些新词。
+And this is an example of nowadays, especially on social media, there's so many new trends,
+and it's very hard to retrain an LLM to match the new trend and understand the new words out there.
+
+65
+00:06:34,784 --> 00:06:41,584
+我的意思是，你知道，你经常听到 Z 世代的词，比如 reas 或者 mid 之类的，我也不全知道。
+I mean, you know, you oftentimes hear Gen Z words like reas or mid or whatever, I don't know all of them.
+
+66
+00:06:41,824 --> 00:06:50,276
+但你可能想找一种方法，让 LLM 能够理解这些趋势，而不需要从头开始重新训练 LLM。
+But you probably want to find a way that can allow the LLM to understand those trends without retraining the LLM from scratch.
+
+67
+00:06:51,534 --> 00:06:52,196
+还有什么？
+What else?
+
+68
+00:06:53,934 --> 00:06:56,132
+它是为了拥有广博的知识而训练的，
+It's trained to have a breadth of knowledge,
+
+69
+00:06:59,984 --> 00:07:08,464
+是的，它可能是在广博的知识上训练的，但在某些定
+义非常明确的狭窄任务上，它可能会失败或表现不足。
+yeah, it might be trained on a breadth of knowledge, but it might fail
+or not perform adequately on a narrow task that is very well defined.
+
+70
+00:07:09,024 --> 00:07:20,304
+想想企业应用，没错，企业应用，你需要高精度、高保真度、低延迟，
+而模型可能在那个特定方面表现得并不出色。
+think about enterprise applications that yeah, enterprise application, you need high precision, high fidelity, low latency,
+and maybe the model is not great at that specific thing.
+
+71
+00:07:20,384 --> 00:07:22,304
+它可能表现尚可，但就是不够好。
+It might do fine, but just not good enough.
+
+72
+00:07:22,464 --> 00:07:24,704
+而你可能想以某种方式来增强它。
+And you might want to augment it in a certain way.
+
+73
+00:07:24,784 --> 00:07:24,944
+是的。
+Yeah.
+
+74
+00:07:28,974 --> 00:07:32,864
+所以这会让模型变得比原来的模型重得多，慢得多。
+So it makes the model a lot heavier, a lot slower than the model.
+
+75
+00:07:33,614 --> 00:07:39,024
+所以它可能拥有很多广泛的领域知识，但你的应用可能并不需要这些。
+So maybe it has a lot of broad domain knowledge that might not be needed for your application.
+
+76
+00:07:39,104 --> 00:07:45,424
+所以你正在使用一个巨大的沉重模型，但实际上你只使用了模型 2% 的能力，你说得完全正确。
+And so you're using a massive heavy model when you actually are only using 2% of the model capability, you're perfectly right.
+
+77
+00:07:45,614 --> 00:07:46,624
+你可能不需要全部内容。
+You might not need all of it.
+
+78
+00:07:46,704 --> 00:07:50,884
+所以你可能会找到剪枝、量化或修改模型的方法。
+So you might find ways to prune, quantize the model, modify it.
+
+79
+00:07:51,264 --> 00:07:53,024
+这些都是很好的观点。
+All of these are good points.
+
+80
+00:07:53,104 --> 00:07:55,344
+我还要再补充几点。
+I'm going to add a few more as well.
+
+81
+00:07:55,950 --> 00:07:58,384
+LLM 非常难以控制。
+LLMs are very difficult to control.
+
+82
+00:07:58,784 --> 00:08:00,784
+你最后提到的这一点其实就是个例子。
+your last point is actually an example of that.
+
+83
+00:08:00,864 --> 00:08:06,384
+你想控制 LLM 使用它的一部分知识，但它并没有，事实上它反而搞混了。
+You want to control the LLM to use a part of its knowledge, but it's not, it's in fact getting confused.
+
+84
+00:08:06,704 --> 00:08:08,064
+我们在历史上见过这种情况。
+we've seen that in history.
+
+85
+00:08:08,144 --> 00:08:17,904
+2016 年，微软创建了一个臭名昭著的 Twitter 机器人，它从用户那里学习，
+并迅速变成了一个种族主义的混蛋。
+In 2016, Microsoft created a notorious Twitter bot that learned from users and it quickly became a racist jerk.
+
+86
+00:08:18,144 --> 00:08:22,784
+微软最终在发布 16 小时后就撤销了该机器人。
+Microsoft ended up removing the bot 16 hours after launching it.
+
+87
+00:08:22,990 --> 00:08:27,504
+社区非常迅速地判定出这是一个种族主义机器人。
+The community was really fast at determining that this was a racist bot.
+
+88
+00:08:28,974 --> 00:08:33,904
+而且你知道，你可以理解微软的处境，因为控制 LLM 确实很难。
+And you know, you can empathize with Microsoft in the sense that it is actually hard to control an LLM.
+
+89
+00:08:34,094 --> 00:08:40,144
+他们可能在发布前做得更好一些，但控制 LLM 确实非常困难。
+They might have done a better job to qualify before launching, but it is really hard to control an LLM.
+
+90
+00:08:40,384 --> 00:08:57,024
+甚至就在最近，这是 Sam Altman 去年 11 月的一条推文，
+当时 Elon Musk 和 Sam Altman 在争论谁的 LLM 是左翼宣传机器还是右翼宣传机器。
+Even more recently, this is a tweet from Sam Altman last November, where there was this debate between Elon Musk and Sam Altman on
+whose LLM is the left-wing propaganda machine or the right wing propaganda machine.
+
+91
+00:08:57,104 --> 00:08:59,344
+他们都在互相攻击对方的 LLM。
+And they were hating on each other's LLMs.
+
+92
+00:08:59,584 --> 00:09:11,588
+但到头来，这告诉你即使是那两个团队，Grok 和 OpenAI，它们可能是资金最充足、
+人才最多的团队，但在控制他们的 LLM 方面也没做得很好。
+But that tells you at the end of the day that even those two teams, Grok and OpenAI,
+which are probably the best-funded team with a lot of talent, are not doing a great job at controlling their LLMs.
+
+93
+00:09:13,210 --> 00:09:32,864
+而且偶尔如果你逛 X，你可能会看到用户与 LLM 互动的截图，
+而 LLM 说了一些非常具有争议或种族主义的内容，或者你知道，一些不符合社交标准的言论。
+And From time to time, if you hang out on X, you might see screenshots of users interacting with LLMs and the LLM saying something
+really controversial or racist, or you know, something that would not be considered great by social standards.
+
+94
+00:09:32,944 --> 00:09:33,344
+我想是的。
+I guess.
+
+95
+00:09:33,504 --> 00:09:37,264
+这说明模型真的很难控制。
+And that tells you that the model is really hard to control.
+
+96
+00:09:39,344 --> 00:09:43,024
+第二个方面就是你之前提到的。
+The second aspect of it is something that you've mentioned earlier.
+
+97
+00:09:43,264 --> 00:09:46,704
+LLM 在你的任务中表现可能不佳。
+LLMs may underperform in your task.
+
+98
+00:09:47,104 --> 00:09:51,504
+这可能包括特定的知识空白，比如医学诊断。
+And that might include specific knowledge gaps, such as medical diagnosis.
+
+99
+00:09:51,664 --> 00:09:56,544
+如果你在做医学诊断，你更希望有一个专门针对该领域且表现出色的 LLM。
+If you're doing medical diagnosis, you would rather have an LLM that is specialized for that and is great at it.
+
+100
+00:09:56,624 --> 00:10:00,304
+事实上，还有一点我们之前没提到，就是有来源。
+And in fact, something that we haven't mentioned as a group has sources.
+
+101
+00:10:00,430 --> 00:10:03,024
+所以答案是特定来源的。
+So the answer is sourced specifically.
+
+102
+00:10:03,406 --> 00:10:09,184
+除非你有支撑它的实际研究来源，否则很难相信某些内容。
+You have a hard time believing something unless you have the actual source of the research that backs it up.
+
+103
+00:10:10,318 --> 00:10:12,224
+风格和格式上的不一致。
+Inconsistencies in style and format.
+
+104
+00:10:12,384 --> 00:10:16,704
+所以想象一下，你正在构建一个法律 AI 智能体工作流。
+So imagine you're building a legal AI agentic workflow.
+
+105
+00:10:17,344 --> 00:10:22,704
+法律领域有非常特定的写作和阅读方式，每一个词都很重要。
+Legal has a very specific way to write and read where every word counts.
+
+106
+00:10:22,798 --> 00:10:29,610
+你知道，如果你在谈判一份大型合同，合同上的每一个词在法庭上可能都有不同的含义。
+You know, if you're negotiating a large contract, every word on that contract might mean something else when it comes to the court.
+
+107
+00:10:29,984 --> 00:10:33,476
+所以使用一个非常擅长这一领域的 LLM 至关重要。
+And so it's very important that you use an LLM that is very good at it.
+
+108
+00:10:34,064 --> 00:10:35,424
+精准度很重要。
+The precision matters.
+
+109
+00:10:35,584 --> 00:10:40,544
+然后，还有针对特定任务的理解，比如对某个小众领域的分类。
+And then, you know, task-specific understanding, such as doing a classification on a niche field.
+
+110
+00:10:40,704 --> 00:10:52,704
+这里我举个例子，比如一家生物技术公司试图用 LLM 将用户评论分类为正面、中立或负面。
+Here I pulled an example where, you know, let's say a biotech product is trying
+to use an LLM to categorize user reviews into positive, neutral, or negative.
+
+111
+00:10:53,710 --> 00:11:09,664
+你知道，对于那家公司来说，通常被认为是负面的评论实际上可能被视为中立评论，
+因为假设该行业的 NPS 往往比其他行业低得多。
+you know, maybe for that company, something that would be considered a negative review typically is actually considered a neutral
+review because the NPS of that industry tends to be way lower than other industries, let's say.
+
+112
+00:11:10,144 --> 00:11:17,156
+这就是针对特定任务的理解，LLM 需要与公司认同的分类标准保持一致。
+that's a task-specific understanding, and the LLM needs to be aligned
+to what the company believes is the categorization that it wants.
+
+113
+00:11:17,966 --> 00:11:21,264
+我们稍后会看到如何解决这个问题的例子。
+We will see an example of how to solve that problem in a second.
+
+114
+00:11:21,504 --> 00:11:23,584
+然后是有限的上下文处理。
+And then limited context handling.
+
+115
+00:11:24,384 --> 00:11:32,384
+许多 AI 应用，尤其是企业级应用，需要处理具有大量上下文的数据。
+a lot of AI applications, especially in the enterprise, have required data that has a lot of context.
+
+116
+00:11:32,544 --> 00:11:40,464
+举个简单的例子，知识管理是一个重要的领域，企业购买了大量的知识管理工具。
+Like just to give you a simple example, knowledge management is an
+important space that enterprises buy a lot of knowledge management tools.
+
+117
+00:11:40,624 --> 00:11:46,944
+嗯，当你打开你的云端硬盘，里面有所有的文档，理想情况下，
+你可以让一个 LLM 在这些文档之上运行。
+Um, when you go on your drive and you have all your documents, ideally you could have an LLM running on top of that drive.
+
+118
+00:11:47,104 --> 00:11:55,824
+你可以问任何问题，它会立即阅读成千上万份文档并回答：我们第四季度的销售业绩是多少？
+You can ask any question and it will read immediately thousands of documents and answer what was our Q4 performance in sales?
+
+119
+00:11:56,224 --> 00:11:57,904
+它是 X 美元。
+it was X dollars.
+
+120
+00:11:58,224 --> 00:11:59,664
+它能超级快速地找到答案。
+it finds it super quickly.
+
+121
+00:11:59,744 --> 00:12:08,464
+在实践中，因为 LLM 的上下文不够大，你不能仅靠一个独立的原生预训练 LLM 来解决这个问题。
+In practice, because LLMs do not have a large enough context, you
+cannot use a standalone vanilla pre trained LLM to solve that problem.
+
+122
+00:12:08,624 --> 00:12:09,796
+你必须对其进行增强。
+You will have to augment it.
+
+123
+00:12:11,662 --> 00:12:12,912
+这好理解吗？
+Does that make sense?
+
+124
+00:12:13,392 --> 00:12:17,152
+关于上下文窗口的另一个方面是，它们实际上是有限的。
+The other aspect around context windows is they are in fact limited.
+
+125
+00:12:17,232 --> 00:12:36,420
+如果你看过去五年模型的上下文窗口，即使是现在的最强模型，
+其上下文窗口或能接收的输入 Token 数，最多也就在几十万 Token 左右。
+If you look at the context windows of the models from the last five years, even the best models today will range in context window or
+number of tokens it can take as input, somewhere in the hundreds of thousands of tokens max.
+
+126
+00:12:36,672 --> 00:12:41,412
+大概给你个概念，200,000 Token 大约相当于两本书。
+Just to give you a sense, 200,000 tokens is roughly two books.
+
+127
+00:12:42,290 --> 00:12:46,910
+所以这就是你能上传并让它读取的内容上限。
+So that's how much you can upload and it can read pretty much.
+
+128
+00:12:46,992 --> 00:12:55,108
+你可以想象，当你处理视频理解或更庞大的数据文件时，这当然是个问题。
+And you can imagine that when you're dealing with video understanding or heavier data files, that is of course an issue.
+
+129
+00:12:56,432 --> 00:13:04,352
+所以你可能得对它进行分块，或者进行嵌入，或者找其他办法让 LLM 处理更大的上下文。
+So you might have to chunk it, you might have to embed it, you might have to find other ways to get the LLM to handle larger contexts.
+
+130
+00:13:06,574 --> 00:13:16,100
+注意力机制虽然强大，但也有问题，因为它在处理非常大的上下文时，表现并不理想。
+the attention mechanism is also powerful but problematic because it does not do a great job at attending in very large contexts.
+
+131
+00:13:16,352 --> 00:13:21,312
+实际上有一个很有意思的问题，叫做「大海捞针」。
+There is actually an interesting problem called needle in a haystack.
+
+132
+00:13:21,392 --> 00:13:39,472
+这是一个 AI 问题，或者叫它是一个基准测试，为了测试你的 LLM 是否擅长注意力机制，
+即在巨大的语料库中关注某个非常具体的细节，研究人员可能会在书中随机插入一句话。
+It's an AI problem where uh, or call it a benchmark, where in order to test, if your LLM is good at attending,
+at putting attention on a very specific fact within a large corpus, researchers might randomly insert in a book.
+
+133
+00:13:39,792 --> 00:13:50,672
+比如在《圣经》中间插入一句话，说明 Arun 和 Max 在 Blue Bottle 喝咖啡。
+one sentence that outlines a certain fact, such as Arun and Max, are having coffee at Blue Bottle in the middle of the Bible.
+
+134
+00:13:50,752 --> 00:13:53,220
+或者是一些非常长的文本。
+let's say, or some very long texts.
+
+135
+00:13:54,032 --> 00:14:04,912
+然后你问 LLM，Arun 和 Max 在 Blue Bottle 喝什么，看看它是否记得是咖啡。
+and then you ask the LLM, what were Arun and Max having you know, at Blue Bottle, and you see if it remembers it was coffee.
+
+136
+00:14:05,006 --> 00:14:13,476
+这其实是个复杂的问题，不是因为问题本身复杂，而是因为
+你要求模型在巨大的语料库中寻找一个事实，这非常困难。
+It's actually a complex problem, not because the question is complex, but because you're
+asking the model to find a fact within a very large corpus, and that's complicated.
+
+137
+00:14:16,112 --> 00:14:19,792
+所以，这又是 LLM 的一个限制因素。
+So again, this is a limiting factor for LLMs.
+
+138
+00:14:19,952 --> 00:14:29,872
+我们稍后会讲 RAG，但我先预告一下，关于 RAG 是
+否是 AI 系统正确的长期方案，目前存在一些争议。
+We we'll talk about RAG in a second, but I want to preview you know, the the there
+is uh debate around whether RAG is the right uh long-term approach for AI systems.
+
+139
+00:14:29,952 --> 00:14:44,112
+从高层概念来说，RAG 是一种机制，它将文档嵌入，让 LLM 可以检索出来，
+然后作为初始提示词的上下文来回答问题。
+So as a high-level idea, a rag is a mechanism, if you will, that embeds documents that
+an LLM can retrieve and then add as context to its initial prompt and answer a question.
+
+140
+00:14:44,432 --> 00:14:45,552
+它有很多应用场景。
+it has lots of application.
+
+141
+00:14:45,712 --> 00:14:47,072
+知识管理就是一个例子。
+Knowledge management is an example.
+
+142
+00:14:47,152 --> 00:14:58,032
+想象一下你又有你的云端硬盘，但每个文档都被压缩成某种表示形式，
+而 LLM 可以访问这种低维度的表示。
+So imagine you have your drive again, but every document is sort of compressed in representation,
+and the LLM has access to that lower dimensional representation.
+
+143
+00:14:59,022 --> 00:15:14,992
+姚富的这条推文概述的争论是：理论上，如果我们拥有无限的算力，那么 RAG 就没用了，
+因为你可以直接阅读海量语料库并回答你的问题。
+the debate that this tweet from Yao Fu um outlines is in theory, if we have infinite compute,
+then RAG is useless because you can just read a massive corpus immediately and answer your question.
+
+144
+00:15:15,312 --> 00:15:18,992
+但即使在这种情况下，延迟也可能是个问题。
+But even in that case, latency might be an issue.
+
+145
+00:15:19,152 --> 00:15:25,392
+想象一下，每当你提问时，AI 都要花多少时间去阅读你所有的云端硬盘，这根本不现实。
+Imagine the time it takes for an AI to read all your drive every single time you ask a question, it doesn't make sense.
+
+146
+00:15:25,678 --> 00:15:30,752
+所以 RAG 除了准确性之外，还有其他优势。
+So RAG has other advantages beyond even the accuracy.
+
+147
+00:15:30,992 --> 00:15:33,552
+此外，信息来源也很重要。
+On top of that, the sourcing matters as well.
+
+148
+00:15:33,632 --> 00:15:35,712
+所以 RAG 允许你溯源。
+So it might RAG allows you to source.
+
+149
+00:15:36,654 --> 00:15:38,272
+我们稍后会讨论所有这些内容。
+we'll talk about all that later.
+
+150
+00:15:38,432 --> 00:15:46,020
+但在社区里，总会有这种争论，即某种方法是否真的能经受住未来的考验。
+But there are there's always this debate in the community whether a certain method is actually future proof.
+
+151
+00:15:46,192 --> 00:15:54,180
+因为在实践中，随着算力每年翻倍，假设我们现在学到的一些方法，到三年后可能就没用了。
+Because in practice, as compute power doubles every year, let's say some of the
+methods we're learning right now might not be relevant three years from now.
+
+152
+00:15:54,832 --> 00:15:56,580
+本质上，我们现在还不知道。
+we don't know, essentially.
+
+153
+00:16:00,384 --> 00:16:09,744
+他关于上下文窗口的类比，以及为什么 RAG 方法即使在很久以后仍然相关，就是搜索。
+And the analogy that he makes on context windows and why rag approaches might be relevant even a long time from now is search.
+
+154
+00:16:09,930 --> 00:16:14,944
+你知道，当你用搜索引擎搜索时，你仍然能找到信息的来源。
+You know, When you search on a search engine, you still find sources of information.
+
+155
+00:16:15,104 --> 00:16:26,384
+实际上，在后台有非常详细的遍历算法，用来对可能最适合展示给你的特定链接进行排序和查找。
+And in fact, in the background, there is very detailed traversal algorithms
+that rank and find the specific links that might be the best to present you.
+
+156
+00:16:27,184 --> 00:16:40,324
+相比之下，如果你必须去阅读，想象一下，如果你每次进行搜索查询时都必须阅读整个互联网，
+而又无法缩小到某些特定区域，这显然是不合理的。
+Versus if you had to read, imagine you had to read the entire web every single time you're doing a search query without being able to
+narrow to certain portion of the space that might again not be reasonable.
+
+157
+00:16:41,824 --> 00:16:49,984
+好了，当我们思考如何改进 LLM 时，我们认为最简单的思考方式是两个维度。
+Okay, when we're thinking of improving LLMs, the easiest way we think of it is two dimensions.
+
+158
+00:16:50,144 --> 00:16:54,064
+一个维度是我们去改进基础模型本身。
+One dimension is we are going to improve the foundation model itself.
+
+159
+00:16:54,224 --> 00:17:03,744
+例如，我们从 GPT 3.5 turbo 移动到 GPT-4，再到 GPT-4.0，最后到 GPT-5。
+So for example, we move from GPT 3.5 turbo to GPT-4 to GPT-4.0 to GPT-5.
+
+160
+00:17:04,300 --> 00:17:06,944
+每一个版本都旨在改进基础模型。
+Each of that is supposed to improve the base model.
+
+161
+00:17:07,374 --> 00:17:12,624
+关于 GPT-5 还有一些争议，因为它在某种程度上是将其他模型打包在自己内部。
+GPT-5 is another debate because it's sort of packaging other models within itself.
+
+162
+00:17:12,784 --> 00:17:16,944
+但你知道，如果你考虑到 3.5、4 和 4.0，那确实就是它的本质。
+But you know, if you're thinking about 3.5, 4 and 4.0, that's really what it is.
+
+163
+00:17:17,022 --> 00:17:22,223
+预训练模型得到了改进，因此你应该能看到你在任务上的表现有所提升。
+The pre-trained model improves, and so you should see your performance improve on your tasks.
+
+164
+00:17:22,784 --> 00:17:30,304
+但另一个维度是我们实际上可以通过工程手段，以一种更好的方式来利用 LLM。
+but the other dimension is we can actually engineer, leverage the LLM in a way that makes it better.
+
+165
+00:17:30,384 --> 00:17:39,904
+所以你可以简单地对 GPT-4.0 进行提示，你可以更改一些提示词并优化提示，这就会提高性能。
+So you can prompt simply GPT-4.0, you can change some prompts and improve the prompt, and it will improve the performance.
+
+166
+00:17:40,064 --> 00:17:40,864
+这已经得到了证实。
+It's shown.
+
+167
+00:17:41,184 --> 00:17:52,324
+你甚至可以在它周围加上 RAG，或者加上智能体工作流，甚
+至可以加上多智能体系统，这是你提升性能的另一个维度。
+you can even put a rag around it, you can put an agentic workflow around it, you can even put a multi-agent system around it,
+and that is another dimension for you to improve performance.
+
+168
+00:17:52,750 --> 00:17:54,384
+这就是我希望你们思考的方式。
+So that's how I want you to think about it.
+
+169
+00:17:54,544 --> 00:17:58,212
+我正在使用哪个 LLM，以及我如何最大限度地发挥这个 LLM 的性能？
+Which LLM I'm using, and then how can I maximize the performance of that LLM?
+
+170
+00:17:59,344 --> 00:18:02,544
+这堂课就是关于纵轴的内容。
+This lecture is about the vertical axis.
+
+171
+00:18:02,704 --> 00:18:05,156
+这些是我们将一起看到的各种方法。
+Those are the methods that we will see with it together.
+
+172
+00:18:08,910 --> 00:18:11,184
+作为开场白，听起来不错。
+Sounds good for the introduction.
+
+173
+00:18:11,344 --> 00:18:13,540
+那么让我们进入提示工程部分。
+So let's move to prompt engineering.
+
+174
+00:18:13,744 --> 00:18:19,984
+嗯，我将从一项有趣的研究所开始，以此说明提示工程为什么很重要。
+Um, I'm going to start with an interesting study just to motivate why prompt engineering matters.
+
+175
+00:18:20,942 --> 00:18:37,476
+有一项来自 HPS、UPenn，以及 Harvard Business School 等机构的研究，还涉及 Wharton，
+他们选取了一部分 BCG 顾问，作为个人贡献者，并将他们分成三组。
+there is a study from you know HPS, UPenn, as well as Harvard Business School and others also involved Wharton that took a subset of
+BCG consultants, individual contributors, split them into three groups.
+
+176
+00:18:37,744 --> 00:18:43,720
+一组无法使用 AI，一组可以使用 AI，我想应该是 GPT-4。
+One group had no access to AI, one group had access to I think it was GPT-4.
+
+177
+00:18:44,624 --> 00:18:50,304
+然后还有一组可以使用 LLM，但同时也接受了关于如何更好地进行提示的培训。
+and then one group had access to the LLM, but also a training on how to prompt better.
+
+178
+00:18:50,704 --> 00:18:55,652
+接着他们观察了这些顾问在各种不同任务中的表现。
+and then they observed the performance of these consultants across a wide variety of tasks.
+
+179
+00:18:56,144 --> 00:18:59,184
+他们注意到了一些我觉得很有意思的事情。
+There's a few things that they noticed that I thought was interesting.
+
+180
+00:18:59,424 --> 00:19:14,624
+其中一点是他们称之为 Jag 前沿，意思是顾问做的某些
+任务超出了 Jag 前沿，也就是说 AI 的能力还不够强。
+One is something they call the Jag Frontier, meaning that certain tasks that
+consultants are doing fall beyond the Jag Frontier, meaning AI is uh is not good enough.
+
+181
+00:19:15,504 --> 00:19:18,064
+它并没有提高人类的表现。
+It's not improving human performance.
+
+182
+00:19:18,224 --> 00:19:20,384
+事实上，它反而让表现变差了。
+In fact, it's actually making it worse.
+
+183
+00:19:20,784 --> 00:19:31,184
+而有些任务在边界之内，这意味着 AI 实际上显著提高了顾问的表现、速度和质量。
+and some tasks are within the frontier, meaning that AI is actually significantly
+improving the performance, the speed, the quality of the consultant.
+
+184
+00:19:32,078 --> 00:19:37,424
+许多任务落在边界内，许多任务落在边界外，他们分享了他们的见解。
+many tasks fell within and many tasks fell without, and they shared their insights.
+
+185
+00:19:37,614 --> 00:19:52,784
+但简而言之，在 AI 能发挥作用的范围内，它确实很有帮助，而他们也指出了这种行为，
+即在超出 AI 能力范围的任务上，人们过度依赖 AI 导致结果变差。
+But the TLDR is, there is a frontier within which AI is absolutely helping, and one where they call out this behavior of falling
+asleep at the will, where people relied on AI on a task that was beyond the frontier.
+
+186
+00:19:52,944 --> 00:19:59,344
+事实上，结果反而变糟了，因为人类没有仔细检查输出内容。
+and in fact, it ended up going worse because the human was not reviewing the outputs carefully enough.
+
+187
+00:19:59,694 --> 00:20:12,160
+嗯，他们注意到接受过培训的团队表现最好，比没接受过提示工程培训的团队表现更好，
+这也是这门课很重要的原因之一。
+Um They did note that the group that was trained was the best, better than the group that was not trained on prompt engineering,
+which also motivates why this lecture matters.
+
+188
+00:20:12,302 --> 00:20:15,520
+嗯，所以之后你就会进入那个表现更好的团队。
+Um, so that you're you're you're within that group afterwards.
+
+189
+00:20:15,920 --> 00:20:19,920
+另一个发现是「半人马」和「赛博格」。
+one other insights were the centaurs and the cyborgs.
+
+190
+00:20:20,320 --> 00:20:28,960
+他们注意到顾问在与 AI 协作时往往有两种倾向，你可能也属于其中一类。
+they noticed that consultants had the tendency to work with AI in one of two ways,
+and you might yourself be part of one of these groups.
+
+191
+00:20:29,120 --> 00:20:38,640
+「半人马」是神话中的生物，一半是人，另一半是……呃，是什么？马？
+The centaurs are mythical creatures that are half human, half I think half uh uh what horses?
+
+192
+00:20:38,720 --> 00:20:41,440
+对，马，一半是马，一半是别的什么。
+Yeah, horses, half horses, half something.
+
+193
+00:20:42,240 --> 00:20:45,760
+那些人会采取划分任务并委派给 AI 的做法。
+and those were individuals that would divide and delegate.
+
+194
+00:20:45,920 --> 00:20:48,320
+他们可能会把一个相当大的任务交给 AI。
+They might give a pretty big task to the AI.
+
+195
+00:20:48,400 --> 00:20:52,480
+想象一下你在做 PowerPoint，这是顾问经常要做的工作。
+So imagine you're working on a PowerPoint, which consultants are known to do.
+
+196
+00:20:52,800 --> 00:20:59,920
+你可能会写一段很长的提示词，说明你想要怎么做这个
+PPT，然后让它运行一段时间，最后回来一看就完成了。
+you might actually write a very long prompt on how you wanted to do your
+PowerPoint and then let it work for some time and then come back and it's done.
+
+197
+00:21:00,080 --> 00:21:10,240
+而其他人则表现得像「赛博格」，赛博格是完全融合的仿生人类机器人，
+就是人类机器人或者带有机器人零件的机器人。
+When others would act as cyborgs, cyborgs are fully blended bionic uh human robots,
+a human robot and robots uh augmented with robotic parts.
+
+198
+00:21:10,560 --> 00:21:17,120
+那些人不会完全委派任务，他们实际上会与模型快速互动，来回沟通。
+and those individuals will not delegate fully a task, they would actually work super quickly with the model and like back and forth.
+
+199
+00:21:17,360 --> 00:21:28,080
+我发现很多学生实际上更像赛博格而不是半人马，但在企业中，
+当你试图自动化工作流时，你可能更倾向于半人马的思维。
+I find that a lot of students are actually more working like cyborgs than centaurs,
+but while maybe in the enterprise when you're trying to automate the workflow, you're thinking more like a centaur.
+
+200
+00:21:28,526 --> 00:21:31,040
+是的，这只是值得记住的一点。
+Yeah, that's just something good to keep in mind.
+
+201
+00:21:31,200 --> 00:21:34,720
+此外，很多公司会告诉你，哦，我们要招聘提示工程师等等。
+Also, a lot of companies will tell you, oh, we're hiring prompt engineers, etc.
+
+202
+00:21:34,880 --> 00:21:35,650
+那是个职业。
+It's a curer.
+
+203
+00:21:35,920 --> 00:21:36,960
+我不买账。
+I don't buy that.
+
+204
+00:21:37,040 --> 00:21:39,120
+我认为这只是每个人都应该具备的技能。
+I think it's just a skill that everybody should have.
+
+205
+00:21:39,360 --> 00:21:46,756
+你不会因为提示工程就成就一个职业，但你可能会在
+你的职业生涯中把它作为一项非常强大的技能来使用。
+you're not going to make a curer out of prompt engineering, but you're
+probably going to use it as a very powerful skill in your curer.
+
+206
+00:21:49,600 --> 00:21:52,640
+所以让我们来谈谈基础的提示设计原则。
+so let's talk about basic prompt design principles.
+
+207
+00:21:52,880 --> 00:21:55,520
+我在这里给出一个非常简单的提示。
+I'm giving you a very simple prompt here.
+
+208
+00:21:56,000 --> 00:22:00,160
+「总结这份文档」，然后文档就和它一起上传了。
+summarize this document, and then the document is uploaded alongside it.
+
+209
+00:22:00,240 --> 00:22:05,840
+模型并没有太多关于「总结应该是怎样的」的上下文。
+And the model has not much context around you know, what should be the summary?
+
+210
+00:22:05,920 --> 00:22:07,440
+比如，总结应该有多长？
+Well, how long should be the summary?
+
+211
+00:22:07,520 --> 00:22:09,360
+我们应该谈论什么，等等？
+What should we talk about, etc.?
+
+212
+00:22:09,680 --> 00:22:24,720
+你实际上可以通过这样做来改进这些提示：比如「用五个要点总结这篇关于可再生能源的 10 页
+科学论文，重点关注关键发现以及对政策制定者的影响」。
+You can actually improve these prompts by doing you know something like summarize this 10-page scientific paper on renewable energy in
+five bullet points, focusing on key findings and implications for policymakers.
+
+213
+00:22:24,880 --> 00:22:26,160
+这已经更好了吧？
+That's already better, right?
+
+214
+00:22:26,320 --> 00:22:30,160
+你分享了受众，它会根据受众来量身定制内容。
+You're sharing the audience and it's going to tailor it to the audience.
+
+215
+00:22:30,320 --> 00:22:35,280
+你是在说，你想要五个要点，并且只想关注核心发现。
+You're saying that you want five bullet points and you want to focus only on key findings.
+
+216
+00:22:35,600 --> 00:22:38,240
+你知道，你会认为这是一个更好的提示词。
+you know, that's a better prompt, you would argue.
+
+217
+00:22:39,086 --> 00:22:41,520
+你还能怎么让这些提示词变得更好呢？
+how could you even make these prompts better?
+
+218
+00:22:41,840 --> 00:22:48,388
+除了这个单次提示，你还听说过或亲自尝试过哪些能让它更好的技术？
+what are other techniques that you've heard of or tried yourself that could make this one shot prompt better?
+
+219
+00:22:53,262 --> 00:22:53,600
+是的。
+Yeah.
+
+220
+00:22:57,454 --> 00:22:58,960
+好，举个例子。
+Okay, right example.
+
+221
+00:22:59,120 --> 00:23:02,720
+比如你可以说，这里有一个优秀的摘要示例。
+So say you mean here is an example of a great summary.
+
+222
+00:23:02,958 --> 00:23:04,880
+没错，你说的对，这是个好主意。
+Yeah, you're right, that's a good idea.
+
+223
+00:23:08,974 --> 00:23:16,720
+这是一个非常流行的技术，比如说，扮演一位在 Davos 举行会议的可再生能源专家。
+Very popular technique, act like a renewable energy experts giving a conference at Davos, let's say.
+
+224
+00:23:16,800 --> 00:23:17,920
+是的，这很棒。
+Yeah, that's great.
+
+225
+00:23:18,190 --> 00:23:22,160
+嗯，或者说你非常擅长这个。
+Umone where to say like you're really good at it.
+
+226
+00:23:23,406 --> 00:23:25,520
+你是这方面的世界第一。
+You are the best in the world at this.
+
+227
+00:23:25,680 --> 00:23:26,160
+解释一下。
+Explain.
+
+228
+00:23:26,400 --> 00:23:28,320
+是的，实际上，我是说，这些方法确实有效。
+Yeah, actually, I mean, these things work.
+
+229
+00:23:28,480 --> 00:23:32,880
+挺有意思的，但是，呃，说“扮演 XYZ”确实有效。
+It's it's funny, but uh it does work to to say act like XYZ.
+
+230
+00:23:32,960 --> 00:23:34,560
+这是一个非常流行的提示词模板。
+It's a very popular prompt template.
+
+231
+00:23:34,800 --> 00:23:35,920
+我们来看看几个例子。
+we see a few examples.
+
+232
+00:23:36,160 --> 00:23:37,156
+还能做什么？
+What else could you do?
+
+233
+00:23:41,102 --> 00:23:41,328
+是的。
+Yes.
+
+234
+00:23:44,688 --> 00:23:44,928
+好的。
+Okay.
+
+235
+00:23:46,286 --> 00:23:48,848
+批评你自己的项目，也就是你正在使用反思。
+Critique your own project so you're using reflection.
+
+236
+00:23:48,928 --> 00:23:52,768
+所以你可能会先生成一个输出，然后让它去批评这个输出，然后再把它给回去。
+So you might actually do one output and then ask it to critique it and then give it back.
+
+237
+00:23:53,008 --> 00:23:53,968
+是的，我们待会儿会看到这个。
+Yeah, we'll see that.
+
+238
+00:23:54,128 --> 00:23:54,768
+这是一个很棒的例子。
+That's a great one.
+
+239
+00:23:54,848 --> 00:23:59,408
+这就是在这些通常情况下效果最好的方法，但我们待会儿会看一些例子。
+That's that's the one that probably works best within those typically, but we'll we'll see some examples.
+
+240
+00:23:59,568 --> 00:24:00,128
+还有别的吗？
+What else?
+
+241
+00:24:00,288 --> 00:24:00,996
+呃，是的。
+Uh yeah.
+
+242
+00:24:03,328 --> 00:24:03,488
+好的。
+Okay.
+
+243
+00:24:03,648 --> 00:24:05,248
+把任务分解成步骤。
+Break the task down into steps.
+
+244
+00:24:05,328 --> 00:24:06,756
+你知道这叫什么吗？
+Do you know how that is called?
+
+245
+00:24:07,342 --> 00:24:07,568
+不是。
+No.
+
+246
+00:24:07,808 --> 00:24:07,968
+好的。
+Okay.
+
+247
+00:24:08,288 --> 00:24:09,328
+思维链。
+Chain of thoughts.
+
+248
+00:24:09,568 --> 00:24:15,408
+所以这其实是一种非常流行的方法，研究表明它能提高效果。
+So this is actually a popular method that's been shown in research that it improves.
+
+249
+00:24:15,488 --> 00:24:20,288
+你实际上可以给出清晰的指令，并鼓励模型一步步思考。
+You could actually give clear instruction and also encourage the model to think step by step.
+
+250
+00:24:20,448 --> 00:24:24,208
+按步骤处理任务，不要跳过任何步骤。
+Approach the task step by step and do not skip any step.
+
+251
+00:24:24,288 --> 00:24:29,168
+然后你给它一些步骤，比如第一步，识别出最重要的三个发现。
+And then you give it some steps, such as step one, identify the three most important findings.
+
+252
+00:24:29,390 --> 00:24:33,408
+第二步，解释每个发现如何影响可再生能源政策。
+Step two, explain how key each finding impact renewable energy policy.
+
+253
+00:24:33,582 --> 00:24:39,408
+第三步，写出五个要点的总结，每个点对应一个发现，等等。
+Step three, write the five-bullet summary with each point addressing a finding, etc.
+
+254
+00:24:39,728 --> 00:24:41,408
+所以就是思维链。
+So chain of thoughts.
+
+255
+00:24:41,488 --> 00:24:46,528
+我链接了那篇让思维链流行的 2023 年的论文。
+I linked the paper from 2023 that popularized chain of thoughts.
+
+256
+00:24:46,688 --> 00:24:51,812
+思维链现在非常非常流行，特别是那些试图控制其 LLM 的 AI 初创公司。
+Chain of thoughts is very very popular right now, especially in AI startups that are trying to control their LLMs.
+
+257
+00:24:54,928 --> 00:24:55,248
+好的。
+Okay.
+
+258
+00:24:56,368 --> 00:25:00,208
+回到你们关于「扮演 XYZ」的例子。
+to go back to your examples about ACT like XYZ.
+
+259
+00:25:01,088 --> 00:25:06,020
+我喜欢的做法，Andrew 也提到过这一点，就是去看看别人的提示词。
+what I like to do, Andrew also talks about that, is to look at other people's prompts.
+
+260
+00:25:06,208 --> 00:25:11,808
+事实上，在网上，你可以免费在 GitHub 上找到很多提示词仓库。
+And in fact, in in online, you have a lot of prompt repositories for free on GitHub.
+
+261
+00:25:12,014 --> 00:25:20,356
+事实上，我链接了 GitHub 上一个很棒的提示词模板仓库，
+那里有很多工程师构建的优秀提示词示例。
+In fact, I linked the awesome prompt template repo on GitHub, where
+you have so many examples of great prompt that engineers have built.
+
+262
+00:25:20,558 --> 00:25:23,408
+他们说这对我们效果很好，而且他们把它发布到了网上。
+They said it works great for us, and they published it online.
+
+263
+00:25:23,790 --> 00:25:26,848
+其中很多都是以「扮演」开头的。
+And a lot of them start with Act As.
+
+264
+00:25:27,088 --> 00:25:34,436
+你知道，扮演 Linux 终端，扮演英语翻译，扮演职位面试官等等。
+you know, act as a Linux terminal, act as an English translator, act like a position interviewer, etc.
+
+265
+00:25:36,848 --> 00:25:44,688
+提示词模板的优势在于，你可以把它放入代码中，并针对大量的用户请求进行扩展。
+The advantage of a prompt template is that you can actually put it in your code and scale it for many user requests.
+
+266
+00:25:44,848 --> 00:25:47,408
+所以让我给你们一个来自 Workera 的例子。
+So let me give you an example from Workera.
+
+267
+00:25:47,968 --> 00:25:56,208
+嗯，你知道，Workera 评估技能，你们中有些人已
+经参加过评估了，它试图为用户提供个性化服务。
+Um, you know, Workera evaluates skills, some of you have taken the assessments already and tries to personalize it to the user.
+
+268
+00:25:56,528 --> 00:26:10,372
+事实上，如果你读一下企业中的 HR 系统，在 HR 系统里，你可
+能会看到 Jane 是三级产品经理，她在美国，首选语言是英语。
+and in fact, if you actually read in an HR system in an enterprise, in the HR system,
+you might have Jane is a product manager level three, and she is in the US, and her preferred language is English.
+
+269
+00:26:10,702 --> 00:26:16,688
+实际上，这些元数据可以插入到我们为 Jane 定制的提示词模板中。
+And actually, that metadata can be inserted in a prompt template that we personalize for Jane.
+
+270
+00:26:16,814 --> 00:26:25,860
+同样地，对于 Joe，他的首选语言是西班牙语，它会为 Joe 量身定制，这就是所谓的提示词模板。
+And similarly, for Joe, whose favorite language is uh preferred language is Spanish,
+it will uh uh it will tailor it to Joe, and that's called the prompt template.
+
+271
+00:26:30,768 --> 00:26:30,848
+所以
+So
+
+272
+00:26:36,208 --> 00:26:42,688
+问题是，基础模型是使用提示词模板，还是你必须自己去集成？
+the question is do the foundation models use a prompt templates or do you have to integrate it yourself?
+
+273
+00:26:42,928 --> 00:26:47,248
+所以基础模型可能使用你看不见的系统提示词。
+So the foundation models probably use a system prompt that you don't see.
+
+274
+00:26:47,408 --> 00:26:59,488
+就像当你实际在 Chat GPT 上输入时，虽然不是公开的，
+但 OpenAI 在幕后可能设置了「扮演这个用户的得力助手」。
+Like when actually you type on Chat GPT, it is possible, it's not public, that
+OpenAI behind the scene has like act like a very helpful assistance for this user.
+
+275
+00:26:59,568 --> 00:27:04,676
+顺便说一下，这是我们保存在数据库里的关于用户的记忆。
+And by the way, here is your memories about the user that we kept in a database.
+
+276
+00:27:05,168 --> 00:27:09,968
+实际上你可以检查你的记忆，然后你的提示词就会跟在后面，接着就开始生成了。
+you can actually check your memories, and then your prompt goes under, and then the generation starts.
+
+277
+00:27:10,048 --> 00:27:15,648
+所以他们可能就在用类似的东西，但这并不意味着你不能自己添加一个。
+So probably they're using something like that, but it doesn't mean you can't add one yourself.
+
+278
+00:27:15,808 --> 00:27:25,750
+所以，事实上，如果你思考一下我刚才展示的这个工作的提示词模板，
+也许它从你调用 OpenAI 时开始，比如“扮演一个得力的助手”，
+So, in fact, if you you if you think about a prompt template for for the work here example I was showing,
+maybe it starts when you call OpenAI by act like a helpful assistant, and then
+
+279
+00:27:25,750 --> 00:27:26,260
+然后下面接着“扮演一个优秀的 AI 导师，帮助人们在职业生涯中进步”。
+So, in fact, if you you if you think about a prompt template for for the work here example I was showing,
+maybe it starts when you call OpenAI by act like a helpful assistant, and then
+
+280
+00:27:26,260 --> 00:27:31,076
+然后下面接着“扮演一个优秀的 AI 导师，帮助人们在职业生涯中进步”。
+underneath it's like act like a great AI mentor that helps people in their career.
+
+281
+00:27:31,374 --> 00:27:36,928
+而且 OpenAI 的提示词模板里可能还有“遵循创作者的指令”之类的要求。
+And OpenAI's prompt template also has follow the instruction from the creator or something like that.
+
+282
+00:27:37,008 --> 00:27:38,128
+你知道，这是有可能的。
+You know, it's possible.
+
+283
+00:27:41,056 --> 00:27:42,816
+关于提示词模板还有问题吗？
+Questions about prompt templates?
+
+284
+00:27:42,990 --> 00:27:45,776
+再次强调，我鼓励你们去阅读一些提示词的示例。
+Again, I would encourage you to go and read examples of prompts.
+
+285
+00:27:45,856 --> 00:27:47,696
+其中有些设计得非常周到。
+Some of them are quite thoughtful.
+
+286
+00:27:48,576 --> 00:27:51,776
+让我们来聊聊零样本提示与少样本提示的区别。
+Let's talk about zero shot versus few shot prompting.
+
+287
+00:27:51,936 --> 00:27:53,216
+这个话题之前提过。
+It came up earlier.
+
+288
+00:27:53,536 --> 00:27:58,576
+再举个例子，回到产品评论分类这个例子。
+Here's an example again, going back to the categorization of product reviews.
+
+289
+00:27:58,736 --> 00:28:13,380
+假设我们正在处理一个任务，提示词是“将句子的语气分类为正面、负面或中立”，
+然后你粘贴评论：“产品还可以，但我原本期待更多的。”
+Let's say that we're working on a task where the prompt is classify the tone of the sentence as positive, negative, or neutral,
+and then you paste the review, which is the product is fine, but I was expecting more.
+
+290
+00:28:16,046 --> 00:28:23,012
+如果我扫视全场，我敢打赌你们中有些人会说这是负面的，有些人会说这是中立的。
+If I were to survey the room, I would bet that some of you would say it's negative, some of you would say it's neutral.
+
+291
+00:28:23,342 --> 00:28:27,856
+因为你实际上有一部分是相对正面的，“还可以”。
+Because you actually have a first part that is relatively positive, it's fine.
+
+292
+00:28:28,416 --> 00:28:31,776
+然后第二部分是“但我原本期待更多的”，这部分是相对负面的。
+And then the second part I was expecting more, which is relatively negative.
+
+293
+00:28:31,856 --> 00:28:32,976
+那么你们的结论是什么？
+So where do you land?
+
+294
+00:28:33,296 --> 00:28:35,136
+这可能是一个主观的问题。
+This can be a subjective question.
+
+295
+00:28:35,216 --> 00:28:43,012
+也许在某个行业，这会被认为是极好的，而在另一个行业，它会被认为是真的很糟糕，
+因为人们习惯了非常赞美的评论。
+And maybe in one industry this would be considered amazing, and another one it would
+be considered really bad because people are used to really flourishing reviews.
+
+296
+00:28:43,856 --> 00:28:49,216
+所以，你可以通过将那个零样本提示转换为少样本提示，来让模型符合你的任务要求。
+And so the way you can actually align the model to your task is by converting that zero shot prompt.
+
+297
+00:28:49,456 --> 00:29:01,572
+零样本是指在不给任何示例的情况下，而少样本提示是在提
+示词中给模型提供一组示例，让它符合你想要它做的目标。
+Zero shot refers to the fact that it's not beginning given any example into a few short prompts where the model is given in the prompt
+a set of examples to align it to what you want it to do.
+
+298
+00:29:01,776 --> 00:29:10,180
+所以这里的例子是，你再次粘贴之前同样的提示词和用户评论，
+然后在这里加上“以下是语气分类的示例”。
+So the example here is you again you paste the same prompt as before with the user review,
+and then you add here are examples of tone classifications.
+
+299
+00:29:10,496 --> 00:29:12,804
+“这完全超出了我的预期。”
+This exceeded my expectation completely.
+
+300
+00:29:13,056 --> 00:29:13,668
+“正面。”
+Positive.
+
+301
+00:29:14,062 --> 00:29:18,170
+“还可以，但我希望它有更多功能。”“负面。”
+It's okay, but I wish it had more features negative.
+
+302
+00:29:18,816 --> 00:29:23,524
+“服务很周到，不坏也不好。”“中立。”
+The service was adequate, neither good nor bad, neutral.
+
+303
+00:29:23,696 --> 00:29:31,296
+现在，在你听完这些例子后，再要求它“分类这个句子的语气”，模型随后就会说“负面”。
+Now classify the tone of this sentence you know, after you've heard about these things, and the model then says negative.
+
+304
+00:29:31,776 --> 00:29:42,520
+它之所以说负面，当然很可能是因为第二个例子，“还可以，但我希望它有更多功能”，
+我们告诉模型那是负面的，因为模型现在看到它与你的预期一致了。
+And the reason it says negative, of course, is likely because of the second example, which was it's okay,
+but I wish it had more features, which we told the model that was negative,
+
+305
+00:29:42,520 --> 00:29:46,660
+它之所以说负面，当然很可能是因为第二个例子，“还可以，但我希望它有更多功能”，
+我们告诉模型那是负面的，因为模型现在看到它与你的预期一致了。
+because the model saw that it's aligned now with your expectations.
+
+306
+00:29:47,456 --> 00:29:49,636
+少样本提示非常流行。
+Few shot prompts are very popular.
+
+307
+00:29:50,576 --> 00:29:57,776
+事实上，对于那些稍微成熟一点的 AI 初创公司，你可能会看到他们不断更新提示词。
+and in fact, for AI startups that are slightly more sophisticated, you might see them keep a prompt up to date.
+
+308
+00:29:57,936 --> 00:30:07,140
+每当用户说点什么时，人工可能会给它打上标签，
+然后把它作为少样本加入到代码库中相关的提示里。
+Whenever a user says something and they might have a human label it and
+then add it as a few shots in the relevant prompt in their code base.
+
+309
+00:30:07,696 --> 00:30:19,136
+嗯，你可以把它看作是几乎在构建一个数据集，但不同于我们之前看到的监督微调那样去构建独
+立的数据集并对模型进行微调，你只是直接把它放进提示里。
+Um, you can think of that as almost building a data set, but instead of actually building a separate data set like we've seen with
+supervised fine-tuning and then trade fine-tuning the model on it, you're just putting it directly in the prompt.
+
+310
+00:30:19,456 --> 00:30:27,216
+而且事实证明，如果你想快速实验，这样做可能更快，
+因为你不需要动模型参数，只需要更新你的提示就行。
+And turns out it's probably faster to do that if you want to experiment quickly
+because you don't touch the model parameters, you just update your prompts.
+
+311
+00:30:27,376 --> 00:30:34,496
+而且你知道，如果是文本示例，你实际上可以在单个提示中拼接很多例子。
+And you know, if it's text examples, you can actually you know concatenate so many examples in a single prompt.
+
+312
+00:30:34,736 --> 00:30:43,456
+到一定程度时，它会变得太长，导致你没有足够的上下文窗口，
+但这是一个快速对齐 LLM 的非常强有力的方法。
+At some point it will be too long and you will not have the necessary context window,
+but it's a pretty strong approach that is quick to align an LLM.
+
+313
+00:30:48,878 --> 00:30:50,244
+好的，是的。
+Okay, yes.
+
+314
+00:30:57,216 --> 00:31:06,256
+所以问题是，有没有研究关于提示能有多长，模型才会基本失去自我或者不再遵循指令？
+So question was Is there any research on how long the prompt can be before
+the model essentially loses itself or doesn't follow instructions anymore?
+
+315
+00:31:08,558 --> 00:31:13,696
+问题是，这些研究每隔几个月就会过时，因为模型一直在变强。
+the problem is that research is outdated every few months because models get better.
+
+316
+00:31:14,256 --> 00:31:16,896
+所以我不知道目前的最高水平在哪里。
+and so I don't know where the state of the art is.
+
+317
+00:31:16,976 --> 00:31:18,896
+你可能可以在网上的基准测试中找到。
+You can probably find it online on benchmarks.
+
+318
+00:31:18,976 --> 00:31:22,180
+就像我们看到的，我举个例子。
+On like we see that I I give an example.
+
+319
+00:31:22,542 --> 00:31:33,216
+呃，在 Workero 产品上，对于一些试用过的人来说，你们有语音对话，
+比如你们被要求解释什么是提示，然后你们解释，后面还有一个评分算法。
+Uh on the Workero product, you have a voice conversation for some of you that have tried it, where you you're asked, like,
+explain what is a prompt, and then you explain, and then there's a scoring algorithm in behind.
+
+320
+00:31:33,536 --> 00:31:38,020
+我们知道在八轮对话之后，模型就会失去自我。
+We know that after eight turns, the model loses itself.
+
+321
+00:31:38,382 --> 00:31:44,496
+在八轮对话之后，因为你总是粘贴之前的用户回复，它就开始胡言乱语了。
+After eight turns, because you always paste the previous user response, it just starts going wild.
+
+322
+00:31:44,656 --> 00:31:49,376
+所以我们在后台使用的技术是，我们实际上为对话创建章节。
+And so the techniques we use in the background is we actually create chapters of the conversation.
+
+323
+00:31:49,536 --> 00:31:53,456
+也许一个章节是前八个提示，然后你实际上从另一个提示开始重新开始。
+Maybe one chapter is the first eight prompt, and then you actually start over from another prompt.
+
+324
+00:31:53,536 --> 00:31:59,056
+你可以总结对话的第一部分，插入摘要，然后继续下去。
+You you can summarize the first part of the conversation, insert the summary, and then keep going.
+
+325
+00:31:59,136 --> 00:32:03,056
+你知道，这些是工程师可能在后台摸索出来的工程技巧。
+You know, those are engineering hacks that engineers might have figured out in the background.
+
+326
+00:32:03,374 --> 00:32:03,620
+是的。
+Yeah.
+
+327
+00:32:04,398 --> 00:32:07,140
+因为没错，八轮对话确实会让提示变得相当长。
+Because yeah, eight turns makes a prompt quite long, actually.
+
+328
+00:32:13,518 --> 00:32:15,248
+让我们进入链式调用。
+Let's move on to chaining.
+
+329
+00:32:15,568 --> 00:32:22,208
+链式调用是我们目前在提示工程中看到的所有技术中最流行的一种。
+Chaining is the most popular technique out of everything we've seen so far in uh uh in prompt engineering.
+
+330
+00:32:22,688 --> 00:32:23,808
+它不是思维链。
+it's not chain of thought.
+
+331
+00:32:23,888 --> 00:32:28,848
+所以，我们看到的思维链是：一步步思考，第一步，第二步，第三步，不要跳过任何步骤。
+So, chain of thought we've seen is think step by step, step one, step two, step three, do not skip any step.
+
+332
+00:32:29,008 --> 00:32:29,968
+这是不同的。
+This is different.
+
+333
+00:32:30,208 --> 00:32:35,808
+这是通过链式调用复杂的提示来提高性能，它的样子是这样的。
+This is chaining complex prompt to improve performance, and this is what it looks like.
+
+334
+00:32:36,974 --> 00:32:49,540
+你拿一个单步提示，比如：阅读这个客户评论，并写一封专业的回复，承认他们的担忧，
+解释问题，提供解决方案，然后你粘贴客户评论，内容
+you take a single-step prompt, such as read this customer review and write a professional response that acknowledges their concern,
+explains the issue, offers a resolution, and then you paste the customer review, which is I ordered a laptop,
+
+335
+00:32:49,540 --> 00:32:51,280
+是：我订了一台笔记本电脑，晚到了三天，包装破损了。
+you take a single-step prompt, such as read this customer review and write a professional response that acknowledges their concern,
+explains the issue, offers a resolution, and then you paste the customer review, which is I ordered a laptop,
+
+336
+00:32:51,280 --> 00:32:54,528
+是：我订了一台笔记本电脑，晚到了三天，包装破损了。
+it arrived three days late, the packaging was damaged.
+
+337
+00:32:54,894 --> 00:32:56,048
+非常令人失望。
+Very disappointing.
+
+338
+00:32:56,208 --> 00:32:58,768
+我工作急需它。
+I needed that urgently for work.
+
+339
+00:32:58,928 --> 00:33:05,636
+然后的输出就是 LLM 在阅读提示后立即给你的邮件。
+And then the output is an email that is immediately given to you by the LLM after it reads the prompt.
+
+340
+00:33:07,918 --> 00:33:20,528
+所以这样做可能行得通，但可能很难控制，因为你想想，你列出了多个步骤，
+而所有内容都塞进同一个提示词里。
+so this might work, but it might be hard to control, you know, because think about it, there's multiple steps that you have listed,
+and everything is embedded in the same prompt.
+
+341
+00:33:21,008 --> 00:33:25,488
+如果你想一步步调试，看看哪一步做得不好，你就没法做到。
+And if you wanted to debug step by step and know which step is weaker, you couldn't.
+
+342
+00:33:25,648 --> 00:33:27,648
+所有的内容都会混在一起。
+You would have everything mixed together.
+
+343
+00:33:27,918 --> 00:33:40,608
+所以，链式调用的一个优势是，你可以把提示词分开，这样就能分别调试，
+而且也能更轻松地改进你的工作流。
+So, one advantage of chaining is you know, you would you would separate the prompts so that you can debug them separately,
+and it will also lead to an easier manner to improve your workflow.
+
+344
+00:33:41,390 --> 00:33:49,088
+假设第一个提示词是：提取关键问题，识别出这篇
+客户评论中提到的核心顾虑，然后粘贴客户评论。
+let's say a first prompt is extract the key issues, identify the key
+concerns mentioned in this customer review, paste the customer review.
+
+345
+00:33:49,678 --> 00:34:01,284
+第二个提示词是：利用这些问题，所以你要把问题贴回去，为一份专业的回复拟定大纲，
+要求承认顾虑、解释可能的原因并提供解决方案。
+Second prompt, using these issues, so you paste back the issues, draft an outline for a professional response that acknowledges
+concerns, explains possible reasons, and offer a resolution.
+
+346
+00:34:04,334 --> 00:34:09,007
+然后是第三个提示词：写出完整的回复。
+So this is not, you know, prompt number three, write the full response.
+
+347
+00:34:09,088 --> 00:34:13,764
+所以是：根据大纲，写出专业的回复。
+So using the outline, write the professional response.
+
+348
+00:34:14,926 --> 00:34:16,900
+最后你就得到了最终的输出。
+And then you get your final output.
+
+349
+00:34:18,190 --> 00:34:23,648
+所以理论上，你可以告诉我，哦，最初第二种方法比第一种好。
+So in theory, you can tell me, oh, the second approach is better than the first one at first.
+
+350
+00:34:23,808 --> 00:34:39,487
+但你能注意到的是，我们实际上可以分别测试这三个提示词，
+确定我们是该通过优化第一个提示词、第二个还是第三个提示词来获得最大的收益。
+But what you can notice is that we can actually test those three prompts separately from each other and determine if we will get the
+most gains out of engineering the first prompt, optimizing it, or the second one, or the third one.
+
+351
+00:34:39,648 --> 00:34:52,160
+现在我们有了三个相互独立的提示词，而且你知道，如果大纲做得更好，邮件的表现，
+比如打开率，或者用户对回复的满意度，实际上都会更高。
+We now have three prompts that are independent from each other, and you know, maybe if the outline was better,
+the performance of uh the email, the email, how much it will oh the open rate will be,
+
+352
+00:34:52,160 --> 00:34:57,168
+现在我们有了三个相互独立的提示词，而且你知道，如果大纲做得更好，邮件的表现，
+比如打开率，或者用户对回复的满意度，实际上都会更高。
+or the user satisfaction on the response will actually get higher, you know.
+
+353
+00:34:57,328 --> 00:35:05,892
+所以链式调用提高了性能，但最重要的是，它能帮你更好地控制工作流，并更顺畅地进行调试。
+And so chaining improves performance, but most importantly helps you control your workflow and debug it more seamlessly.
+
+354
+00:35:07,982 --> 00:35:08,388
+是的。
+Yes.
+
+355
+00:35:28,750 --> 00:35:29,968
+让我试着换个说法。
+So let me try to rephrase.
+
+356
+00:35:30,208 --> 00:35:35,844
+你的意思是，假设我们看第一个提示词，它把所有三个任务都包含在里面。
+You say, let's say we look at the first prompt, which has all three tasks built in that prompt.
+
+357
+00:35:36,608 --> 00:35:39,008
+嗯，你具体是什么意思？
+Um what exactly do you mean?
+
+358
+00:35:39,088 --> 00:35:50,768
+你的意思是，如果我们评估输出并衡量用户洞察满意度等指标，
+为什么不直接修改那个提示词，看看它如何提高用户满意度呢？
+You mean like if we evaluate the output and we measure some user insight satisfaction, etc.
+why don't we just modify that prompt and essentially see how it improves user satisfaction?
+
+359
+00:35:55,150 --> 00:35:55,408
+我明白。
+I see.
+
+360
+00:35:55,488 --> 00:35:56,996
+你看，我们为什么需要这三个步骤？
+See, why do we need the three steps?
+
+361
+00:35:57,102 --> 00:35:59,088
+对，对，我的意思是，你想想。
+Yeah, yeah, I mean, think about it.
+
+362
+00:35:59,168 --> 00:36:01,888
+中间的输出才是你想要看到的。
+The intermediate output is what you want to see.
+
+363
+00:36:02,158 --> 00:36:09,168
+比如如果我在调试第一种方法，我的做法是捕捉用户洞察。
+Like if I'm debugging the first approach, the way I would do it is I would capture user insights.
+
+364
+00:36:09,248 --> 00:36:11,488
+比如，这是邮件，回复做得怎么样？
+Like, here's the email, how good was the response?
+
+365
+00:36:11,648 --> 00:36:12,928
+点赞，点踩。
+Thumbs up, thumbs down.
+
+366
+00:36:13,934 --> 00:36:15,968
+你的问题解决了吗？
+was your issue resolved?
+
+367
+00:36:16,368 --> 00:36:17,568
+点赞，点踩。
+thumbs up, thumbs down.
+
+368
+00:36:17,742 --> 00:36:23,008
+这些能告诉我我的提示词做得好不好，我可以针对那
+个提示词进行工程优化，而且大概能带来一些提升。
+Those would tell me how good is my prompt, and I can engineer that prompt, optimize it, and I would probably drive some gains.
+
+369
+00:36:23,568 --> 00:36:28,036
+但我没法轻易地追溯到问题到底出在哪里。
+but I will not be able easily to trace back to what the problem was.
+
+370
+00:36:28,398 --> 00:36:35,168
+而在第二种方法中，我不仅可以用端到端的指标来改进流程，还可以利用中间步骤。
+While in the second approach, not only I can use the end-to-end metrics to improve my process, I can also use the intermediate steps.
+
+371
+00:36:35,328 --> 00:36:41,508
+例如，如果我看了第二个提示词，看了大纲，发现大纲其实一般般，没那么好。
+For example, if I look at prompt two and I look at the outline and I see the outline is actually meh, it's not great.
+
+372
+00:36:41,808 --> 00:36:44,772
+那我就觉得从大纲这一步可以获得很大的提升。
+Then I think I can get a lot of gains out of the outline.
+
+373
+00:36:45,648 --> 00:36:51,168
+或者大纲其实非常好，但最后一个提示词没能很好地把它转化成邮件。
+or the outline is actually really good, but the last prompt doesn't do a good job at translating it into an email.
+
+374
+00:36:51,248 --> 00:36:58,128
+所以大纲正是我想让 LLM 做出的内容，但转化成面向客户的邮件效果不好。
+So the outline is exactly what I want the LLM to do, but the translation in a customer facing email is not good.
+
+375
+00:36:58,288 --> 00:37:05,168
+事实上，它没有遵循我们内部的词汇，那我就知道第三个提示词是提升空间最大的地方。
+In fact, it doesn't follow our vocabulary internally, then I know the third prompt is where I would get the most gains.
+
+376
+00:37:06,094 --> 00:37:09,284
+这就是它能让我做的，就是有中间步骤可以去审查。
+So that's what it allows me to do have intermediate steps to review.
+
+377
+00:37:13,696 --> 00:37:14,550
+我们稍后会讨论这个。
+We'll talk about it.
+
+378
+00:37:14,576 --> 00:37:16,176
+有没有关于延迟的顾虑？
+Are there any latency concerns?
+
+379
+00:37:16,256 --> 00:37:16,816
+有的。
+Yes.
+
+380
+00:37:17,216 --> 00:37:24,516
+在某些应用中，你不想使用链式调用，或者不想使用很长的链式调用，因为它会增加延迟。
+In certain applications, you don't want to use a chain or you don't want to use a long chain because it adds latency.
+
+381
+00:37:26,158 --> 00:37:27,056
+我们稍后会讨论那个。
+We'll talk about that later.
+
+382
+00:37:27,216 --> 00:37:27,748
+好点。
+Good point.
+
+383
+00:37:28,816 --> 00:37:33,056
+所以实际上，这就是复杂提示词链式调用的样子。
+So practically, this is what chaining complex prompts look like.
+
+384
+00:37:33,390 --> 00:37:41,056
+你有第一个提示词和第一个任务，它的输出被粘贴到定义了第二个任务的第二个提示词中。
+You have your first prompt with your first task, it outputs the output
+is pasted in the second prompt with the second task being defined.
+
+385
+00:37:41,262 --> 00:37:45,860
+然后输出被粘贴到定义了第三个任务的第三个提示词中，以此类推。
+The output is then pasted into the third prompt with the third task being defined, and so on.
+
+386
+00:37:46,496 --> 00:37:48,292
+这就是实际操作中的样子。
+That's what it looks like in practice.
+
+387
+00:37:52,462 --> 00:37:53,056
+太棒了。
+Super.
+
+388
+00:37:55,950 --> 00:38:00,576
+我们稍后会更多地讨论如何测试你的提示词，但现在已经有方法可以这么做了。
+We'll talk more later about testing your prompts, but there are methods now to do it.
+
+389
+00:38:00,656 --> 00:38:06,096
+稍后我们会在本讲的案例研究中看到我们如何测试提示词。
+And we will see later in this lecture with our case study how we can test our prompts.
+
+390
+00:38:06,496 --> 00:38:10,816
+但这里有一个关于你可能如何操作的例子。
+but here is an example of how you might do it.
+
+391
+00:38:12,016 --> 00:38:19,296
+你可能有一个摘要工作流，你知道，那个提示词就是基准。
+you might have a summarization workflow, you know, prompt that is the baseline.
+
+392
+00:38:19,376 --> 00:38:21,056
+它是一个单步提示词。
+It's a single prompt.
+
+393
+00:38:21,376 --> 00:38:28,708
+你可能有一个改进后的摘要，它是这个提示词的修改版，或者是一个带有链式调用的工作流。
+You might have a refined summarization, which is a modified prompt of this, or a workflow with a chain.
+
+394
+00:38:30,542 --> 00:38:36,656
+然后你有你的测试用例，比如就是你想总结的输入内容。
+and then you have your test case, which is the input that you want to summarize, let's say.
+
+395
+00:38:36,878 --> 00:38:42,496
+然后你有生成的输出，你可以让人去给这些输出打分。
+and then you have the generated output, and you can have humans go and rate these outputs.
+
+396
+00:38:42,576 --> 00:38:47,616
+你会注意到基准比改进后的提示词更好还是更差。
+and you would notice that the baseline is better or worse than the refined prompt.
+
+397
+00:38:47,856 --> 00:38:53,456
+当然，这种手动方法很耗时，但它是一个很好的开始。
+Of course, this manual approach takes time, but it's a good way to start.
+
+398
+00:38:53,536 --> 00:39:02,980
+通常的建议是一开始就动手实践，因为你会很快发现一些问题，
+这能让你更好地直观了解哪些调整能带来更好的性能。
+And usually the advice is get hands-on at the beginning because you would quickly notice some issues and it will give you better
+intuition on what tweaks can lead to better performance.
+
+399
+00:39:03,456 --> 00:39:14,816
+然而，如果你想把那个系统扩展到很多产品、很多代码库的部分，呃，
+你可能想找一种自动化的方法，而不需要让人去审查和给摘要打分，对吧？
+However, if you wanted to scale that system across many products, many parts of your code base, uh,
+you might want to find a way to do that automatically without asking humans to review and grade summaries, right?
+
+400
+00:39:15,216 --> 00:39:26,496
+嗯，一种方法是使用像 at work 这样的平台，我们的团队使用一个叫 Prompt Food 的平台，
+它允许你实际上自动化其中的一部分测试。
+Um, one approach is to use platforms like at Porquera, we our team uses a platform
+called Prompt Food that allows you to actually automate part of this testing.
+
+401
+00:39:26,896 --> 00:39:40,336
+简而言之，它的功能是让你能立即用五个不同的 LLM 运行相同的提示词，
+并将所有内容放入一个表格中，这样人类就非常容易进行评分了。
+in a nutshell, what it does is it can allow you to run the same prompts with five different LLMs immediately,
+put everything in a table that makes it super easy for a human to grade, let's say.
+
+402
+00:39:40,526 --> 00:39:46,148
+或者，它也可以让你定义 LLM 评判器。
+Or alternatively, it might allow you to define uh define LLM judges.
+
+403
+00:39:46,896 --> 00:39:49,856
+LLM 评判器有不同的形式。
+LLM judges can come in different flavors.
+
+404
+00:39:50,176 --> 00:39:54,496
+例如，我可以有一个 LLM 评判器来进行两两比较。
+for example, I can have an LLM judge that does a pairwise comparison.
+
+405
+00:39:54,656 --> 00:40:00,484
+也就是说，LLM 被要求做的是：这里有两个摘要，只需告诉我哪一个更好。
+So, what the LLM is asked to do is here are two summaries, just tell me which one is better than the other one.
+
+406
+00:40:01,056 --> 00:40:07,908
+这就是 LLM 所做的，它可以作为衡量基准摘要与优化版本好坏的代理。
+that's what the LLM does, and that can be used as a proxy for how good the summarization baseline versus the refined version is.
+
+407
+00:40:08,256 --> 00:40:14,336
+另一种使用 LLM 评判器的方法是针对单一答案评分。
+Another way to do an LLM judge is if you do it for a single answer grading.
+
+408
+00:40:14,416 --> 00:40:18,052
+比如，这里有一个摘要，按 1 到 5 分进行评分。
+So here's a summary, rated from one to five, you know.
+
+409
+00:40:18,416 --> 00:40:24,496
+然后你可以更深入一点，进行参考引导的两两比较。
+And then you can go even deeper and do a reference guided pairwise comparison.
+
+410
+00:40:24,576 --> 00:40:30,656
+或者你还可以加入评分标准，比如你说 5 分是指摘要少于 100 个字符。
+Or you add also a rubric, you say a five is when a summary is below a hundred characters.
+
+411
+00:40:30,816 --> 00:40:31,456
+我只是随便举个例子。
+I'm just making up.
+
+412
+00:40:31,616 --> 00:40:40,336
+少于 100 个字符，提到至少三个不同的关键点，第一句话展示概览，然后进入细节。
+Below a hundred characters mentions at least three key points that are distinct and
+starts with a first sentence that displays the overview and then goes into detail.
+
+413
+00:40:40,416 --> 00:40:42,656
+这是一个很棒的摘要，5 分满分。
+That's a great summary number, five out of five.
+
+414
+00:40:42,896 --> 00:40:49,456
+0 分是指 LLM 没能完成摘要，反而非常啰嗦，比方说。
+Zero is the LLM failed to summarize and actually was very verbose, let's say.
+
+415
+00:40:49,616 --> 00:40:54,896
+所以你把它放在评分标准后面，让 LLM 去匹配评分标准。
+And so you put a rubric behind it, and you have an LLM as just finding the rubric.
+
+416
+00:40:55,086 --> 00:40:57,136
+当然，你现在可以组合不同的技术。
+Of course, you can now pair different techniques.
+
+417
+00:40:57,216 --> 00:40:58,896
+你可以对评分标准使用少样本提示。
+You can do a few shots for the rubric.
+
+418
+00:40:58,976 --> 00:41:05,604
+你实际上可以给出 5 分、4 分、3 分的例子，因为你现在掌握了多种技术。
+You can actually give examples of five out of fives, four out of fours, three out of threes, because now you know multiple techniques.
+
+419
+00:41:06,446 --> 00:41:09,696
+好，明白了吗？
+Okay, does that make sense?
+
+420
+00:41:11,822 --> 00:41:12,128
+好的。
+Okay.
+
+421
+00:41:12,528 --> 00:41:18,916
+这就是关于提示工程或第一阶段优化的第二部分。
+So that was the second section on prompt engineering or the first line of optimization.
+
+422
+00:41:19,328 --> 00:41:30,448
+现在，假设你已经用尽了提示工程的所有机会，并且在考
+虑实际动模型、修改它的权重，或者换句话说，是微调它。
+Now, let's say you've exhausted all your chances for prompt engineering and you're thinking about actually touching the model,
+modifying its weights, or fine-tuning it, in other words.
+
+423
+00:41:31,438 --> 00:41:34,768
+我之前告诉过你们，我不太喜欢微调。
+I was telling you I'm not a fan of fine-tuning.
+
+424
+00:41:34,928 --> 00:41:36,768
+原因有几个。
+There's a few reasons why.
+
+425
+00:41:37,968 --> 00:41:52,208
+首先，微调通常需要大量的标注数据，尽管现在有一
+些微调方法越来越像少样本提示，而不是传统的微调。
+One, it requires substantial label data typically to fine-tune, although now there are approaches that are getting better at
+fine-tuning that look more like few shot prompting, actually, than fine-tuning.
+
+426
+00:41:52,288 --> 00:41:57,728
+它们有点融合了，虽然一个是修改权重，另一个不修改权重。
+It's sort of merging, although one modifies the weight, the other doesn't modify the weights.
+
+427
+00:41:58,450 --> 00:42:01,008
+微调后的模型也可能过度拟合到特定数据上。
+Fine-tune models may also overfeed to specific data.
+
+428
+00:42:01,088 --> 00:42:03,168
+我们实际上会看到一个有趣的例子。
+We're going to see a funny example actually.
+
+429
+00:42:03,328 --> 00:42:06,528
+嗯，失去它们的通用用途。
+Um losing uh their general purpose utility.
+
+430
+00:42:06,638 --> 00:42:12,448
+所以你可能微调了一个模型，结果当有人问一个非常通用的问题时，它就不再表现很好了。
+So you might fine-tune a model, and actually, when someone asks a pretty generic question, it doesn't do well anymore.
+
+431
+00:42:12,622 --> 00:42:15,568
+你知道，它可能在你的任务上表现很好，所以它可能相关，也可能不相关。
+You know, it might do well on your task, so it might be relevant or not.
+
+432
+00:42:15,728 --> 00:42:17,648
+而且它非常耗时且成本高昂。
+And then it's it's time and cost intensive.
+
+433
+00:42:17,728 --> 00:42:18,928
+这就是我的主要问题。
+That's my main problem.
+
+434
+00:42:19,248 --> 00:42:26,128
+而且，你知道，在工作中，我们尽可能避免微调。
+And uh, you know, at work, we we don't we don't we steer away from fine-tuning as much as possible.
+
+435
+00:42:26,448 --> 00:42:33,060
+因为等你完成模型的微调时，下一个模型就出来了，而且它实际上甚至能打败你微调后的旧模型。
+because by the time you're done fine-tuning your model, the next model is
+out and it's actually beating your fine-tuned version of the previous model.
+
+436
+00:42:33,488 --> 00:42:36,528
+所以，只要可能，我就建议尽量避免微调。
+So I would steer away from fine-tuning as much as you can.
+
+437
+00:42:36,688 --> 00:42:46,288
+我们看到的提示工程方法的优势是，你可以直接把最
+新的预训练模型放入代码中，它会立即更新所有内容。
+The advantage of the prompt engineering methods we've seen is you can put the next
+best pre-trained model directly in your code, it will update everything immediately.
+
+438
+00:42:46,368 --> 00:42:47,844
+微调就不是那样的。
+Fine-tuning doesn't work like that.
+
+439
+00:42:50,208 --> 00:42:53,088
+不过，它仍然有一些合理的优势。
+There are advantages though, where it still makes sense.
+
+440
+00:42:53,248 --> 00:43:02,788
+如果任务需要重复的高精度输出，比如法律或科学解
+释，而且通用型 LLM 在特定领域的语言上表现不佳。
+If the task requires repeated high precision outputs such as legal, scientific explanation,
+and if the general purpose LLM struggles with domain-specific language.
+
+441
+00:43:03,502 --> 00:43:16,528
+那我们一起来看一个简单的例子，这是 Ross Lazarovitz
+的一个例子，我想是几年前，2023年9月，当时
+So let's look at a quick example together, which is an example from Ross
+Lazarovitz, um, I think it was a couple of years ago, September 23, where
+
+442
+00:43:19,728 --> 00:43:22,768
+Ross 尝试做 Slack 微调。
+Ross tried to do Slack fine-tuning.
+
+443
+00:43:22,848 --> 00:43:33,168
+他查看了公司内大量的 Slack 消息，他想，我要微调一个说话方式或运作方式像我们的模型，
+因为这就是我们的工作方式，对吧？
+So he looked at a lot of Slack messages within his company, and he was like, I'm going to fine tune a model that speaks like us or
+operates like us, because this is how we work, right?
+
+444
+00:43:33,248 --> 00:43:36,928
+这些数据代表了公司里人们的工作方式。
+This is the data that represents how people work at the company.
+
+445
+00:43:38,030 --> 00:43:50,288
+于是，他真的去微调了模型，给它一个提示，比如，“嘿，写一篇……”，他是在把任务交给模型，
+“写一篇关于提示工程的 500 字博客文章”。
+and so it it he actually went ahead and fine-tuned the model, gave it a prompt like, hey, write a, you know,
+he was delegating to the model, write a 500-word blog post on prompt engineering.
+
+446
+00:43:50,448 --> 00:43:54,208
+模型回答说：“我将在早上开始处理。”
+And the model responded, I shall work on that in the morning.
+
+447
+00:43:56,014 --> 00:44:01,248
+然后他试着进一步推动模型，说：“现在已经是早上了。”
+and and then he tries to push the model a little further and say, it's morning now.
+
+448
+00:44:01,808 --> 00:44:06,020
+模型说：“我正在写，这里现在是早上 6:30。”
+and the model said, I'm writing right now, it's 6:30 a.m. here.
+
+449
+00:44:06,768 --> 00:44:08,768
+“现在就写，好吗？”
+write it now, okay.
+
+450
+00:44:09,088 --> 00:44:09,808
+“拜托。”
+Please.
+
+451
+00:44:10,528 --> 00:44:12,048
+“好的，我现在就写。”
+Okay, I shall write it now.
+
+452
+00:44:12,208 --> 00:44:15,488
+“我其实不知道你希望我关于提示工程说什么。”
+I actually don't know what you would like me to say about prompt engineering.
+
+453
+00:44:15,648 --> 00:44:17,088
+“我只能描述这个过程。”
+I can only describe the process.
+
+454
+00:44:17,168 --> 00:44:20,448
+“唯一能想到作为标题的内容是，我们如何构建提示？”
+The only thing that comes to mind for a headline is how do we build prompt?
+
+455
+00:44:21,038 --> 00:44:27,568
+你知道，这是一个挺有趣的微调例子，因为它确实搞砸了。
+You know, it's kind of a funny uh example for fine-tuning because it's true that it went wrong.
+
+456
+00:44:27,728 --> 00:44:36,740
+就像他原本想让模型像我们在工作中一样思考，结
+果它却表现得像个真人，而不是真的在遵循指令。
+Like he was supposed to think like I want the model to speak like us at work,
+and it ended up acting like people and not actually following instructions.
+
+457
+00:44:40,270 --> 00:44:42,980
+所以，这就是我建议避免微调的一个例子。
+So, one example why I would steer away from fine-tuning.
+
+458
+00:44:47,406 --> 00:44:47,940
+太棒了。
+Super.
+
+459
+00:44:51,726 --> 00:44:53,168
+让我们来聊聊 RAG。
+Let's talk about rags.
+
+460
+00:44:54,128 --> 00:44:55,328
+RAG 很重要。
+Rags is important.
+
+461
+00:44:55,488 --> 00:44:58,368
+了解这些并掌握基础知识是很重要的。
+It's important to know out there and at least having the basics.
+
+462
+00:44:58,448 --> 00:45:00,528
+顺便说一下，这是一个非常常见的面试题。
+It's a very common interview question, by the way.
+
+463
+00:45:00,608 --> 00:45:06,368
+如果你去参加工作面试，他们可能会要求你用给五岁小孩解释的方式，简要说明什么是 RAG。
+If you go interview for a job, they might ask you to explain in a nutshell to a five-year-old what is a rag.
+
+464
+00:45:06,670 --> 00:45:08,768
+希望在那之后，你就能做到这一点。
+And hopefully after that, you'll be able to do it.
+
+465
+00:45:09,582 --> 00:45:14,052
+所以我们已经看到了一些独立 LLM 面临的挑战。
+So we've seen some of the challenges with standalone LLMs.
+
+466
+00:45:14,848 --> 00:45:27,888
+这些挑战包括上下文窗口太小，很难记住大上下文窗
+口中的细节，知识空白，还有你之前提到的截止日期。
+Those challenges include the context window being small, the fact that it's hard to remember details within a large context window,
+knowledge gaps, you know, cutoff dates you mentioned earlier.
+
+467
+00:45:28,048 --> 00:45:32,448
+模型可能只训练到某个日期，然后就无法跟上趋势或获取最新信息了。
+The model might be trained up to a date and then it cannot follow the trends or be up to date.
+
+468
+00:45:33,008 --> 00:45:34,208
+还有幻觉。
+Hallucinations.
+
+469
+00:45:34,448 --> 00:45:39,088
+在某些领域，比如医学诊断，幻觉的代价是非常高昂的。
+There are some fields, think about medical diagnosis where hallucinations are very costly.
+
+470
+00:45:39,168 --> 00:45:40,676
+你承担不起幻觉带来的后果。
+You can't afford a hallucination.
+
+471
+00:45:41,488 --> 00:45:51,648
+即使在教育领域，想象一下为美国青少年教育部署一个模型，
+如果它产生幻觉并教给数百万人完全错误的内容，这就是个大问题。
+Even in education, imagine deploying a model for the US youth education and it
+hallucinates and it teaches millions of people something completely wrong, it's a problem.
+
+472
+00:45:52,782 --> 00:45:54,208
+还有缺乏来源的问题。
+And then lack of sources.
+
+473
+00:45:54,848 --> 00:46:04,368
+很多领域都非常看重来源，研究领域、教育领域，甚至法律领域也同样如此。
+A lot of fields love sources, research fields love sources, education love sources, legal loves sources as well.
+
+474
+00:46:04,608 --> 00:46:08,928
+而预训练的 LLM 在提供来源方面做得并不好。
+And so the pre-trained LLM doesn't do a good job to source.
+
+475
+00:46:09,008 --> 00:46:15,168
+事实上，如果你尝试在纯 LLM 上寻找来源，它实际上会产生很多幻觉。
+And in fact, if you if you have tried to find sources on a plain LLM, it actually hallucinates a lot.
+
+476
+00:46:15,248 --> 00:46:16,608
+它会编造研究论文。
+It makes up research papers.
+
+477
+00:46:16,688 --> 00:46:19,488
+它只是列出一些完全虚假的东西。
+It just lists like completely fake stuff.
+
+478
+00:46:20,048 --> 00:46:21,488
+那么我们该如何解决这个问题呢？
+So how do we solve that?
+
+479
+00:46:22,318 --> 00:46:23,088
+用 RAG。
+with a RAG.
+
+480
+00:46:23,566 --> 00:46:30,528
+RAG 与外部知识源、数据库、文档和 API 相结合。
+RAG integrates with external knowledge sources, databases, documents, APIs.
+
+481
+00:46:31,008 --> 00:46:38,128
+它确保答案更准确、更及时且基于事实，因为你可以实际更新你的文档。
+It ensures that answers are more accurate, up to date, and grounded because you can actually update your document.
+
+482
+00:46:38,528 --> 00:46:40,528
+你的驱动器始终是更新的。
+Your drive is always up to date.
+
+483
+00:46:40,688 --> 00:46:43,648
+我的意思是，理想情况下，你一直在向其中推送新文档。
+I mean, ideally, you're always pushing new documents to it.
+
+484
+00:46:43,728 --> 00:46:47,488
+当你查询“我们第四季度的销售业绩如何？”时
+And when you query, what is our Q4 performance in sales?
+
+485
+00:46:47,694 --> 00:46:52,868
+希望驱动器里有最新的董事会报告，并且它能读取这份最新的报告。
+Hopefully, there is the last board deck in the drive and it can read the last board deck.
+
+486
+00:46:54,528 --> 00:46:56,048
+此外还有更多的开发者控制权。
+And more developer control.
+
+487
+00:46:56,288 --> 00:47:02,688
+我们将看到为什么 RAG 允许针对性的定制，而不需要重新训练模型。
+We'll see why rags allow for targeted customization without actually requiring the retraining of the model.
+
+488
+00:47:02,768 --> 00:47:04,868
+事实上，使用 RAG 时你不需要动模型。
+In fact, you don't touch the model with rags.
+
+489
+00:47:05,294 --> 00:47:08,448
+它实际上是一种叠加在模型之上的技术。
+It's really a technique that is put on top of the model.
+
+490
+00:47:08,910 --> 00:47:24,292
+为了看一个 RAG 的例子，这是一个医疗领域的问答应用，用户正在提问：药物 X 有什么副作用？
+So, to see an example of a rag, this is a question answering application where we're
+in the medical field and a user is asking a query, what are the side effects of drug X?
+
+491
+00:47:25,990 --> 00:47:27,328
+这是一个重要的问题。
+This is an important question.
+
+492
+00:47:27,488 --> 00:47:31,008
+你不能产生幻觉，你需要引用来源，还需要保持信息更新。
+You can't hallucinate, you need to source, you need to be up to date.
+
+493
+00:47:31,168 --> 00:47:37,648
+也许数据库里现在有了关于该药物的新更新，你需要去阅读它。
+Maybe there is a new update to that drug that is now in the database and you need to read that.
+
+494
+00:47:37,728 --> 00:47:41,568
+所以，RAG 就是在这种情况下非常理想的解决方案。
+So you have to like a rag is a great example of what you would want to use here.
+
+495
+00:47:41,838 --> 00:47:46,128
+它的工作原理是，你拥有一个包含大量文档的知识库。
+The way it works is you have your knowledge base of a bunch of documents.
+
+496
+00:47:46,862 --> 00:47:53,828
+你所做的就是使用嵌入，将这些文档嵌入到低维表示中。
+what you do is you use uh an embedding to embed those documents into lower-dimensional representations.
+
+497
+00:47:54,448 --> 00:48:03,808
+例如，如果文档是一个很长的 PDF，你可能会先阅读并理解它，然后再进行嵌入。
+so for example, if the document is a PDF, a long PDF, you might you know read the PDF, understand it, and then embed it.
+
+498
+00:48:03,888 --> 00:48:08,768
+我们之前看过很多嵌入方法，比如三元组损失等等，你们还记得吗？
+We've seen plenty of embedding approaches together, triplet loss, etc., you remember?
+
+499
+00:48:09,088 --> 00:48:14,928
+所以想象一下，对于 LLM 来说，其中一种方法就是将这些文档嵌入到低维表示中。
+so imagine one of them here for LLMs is embedding those documents into lower representation.
+
+500
+00:48:15,568 --> 00:48:19,648
+如果表示维度太小，你就会丢失信息。
+if the representation is too small, you will lose information.
+
+501
+00:48:19,808 --> 00:48:22,448
+如果太大，你就会增加延迟，对吧？
+If it's too big, you will add latency, right?
+
+502
+00:48:22,970 --> 00:48:24,170
+这是一个权衡问题。
+It's a trade off.
+
+503
+00:48:25,806 --> 00:48:31,728
+通常你会把这些表示存储到一种叫做向量数据库的数据库中。
+you will store typically those representations into a database called a vector database.
+
+504
+00:48:31,950 --> 00:48:35,408
+现在有很多向量数据库供应商。
+There's a lot of vector database providers out there.
+
+505
+00:48:35,728 --> 00:48:41,648
+嗯，我想我列举了几个非常常用的。
+Um uh, you know, I I think I've listed a couple that are very common.
+
+506
+00:48:41,728 --> 00:48:44,208
+不，我还没列出来，但我稍后可以分享一下。
+No, I haven't listed, but I can I can share afterwards.
+
+507
+00:48:44,368 --> 00:48:52,768
+向量数据库本质上是以非常高效的方式存储这些向
+量，从而允许通过特定的距离度量进行快速检索。
+Um a vector database is essentially storing those vectors in a very efficient manner,
+allowing the fast retrieval with a certain distance metric.
+
+508
+00:48:53,008 --> 00:49:08,820
+所以你还要对用户提示词进行嵌入，通常使用相同的算法，然后运行检索过程，
+这本质上是根据用户查询的嵌入和向量数据库，根据这些嵌入之间的距离来寻找相关的文档。
+So what you do is you also embed, usually with the same algorithm, the user prompts, and you run a retrieval process,
+which is essentially saying, based on the embedding from the user query and the vector database,
+
+509
+00:49:08,820 --> 00:49:14,628
+所以你还要对用户提示词进行嵌入，通常使用相同的算法，然后运行检索过程，
+这本质上是根据用户查询的嵌入和向量数据库，根据这些嵌入之间的距离来寻找相关的文档。
+find the relevant documents based on the distance between those embeddings.
+
+510
+00:49:15,328 --> 00:49:24,128
+一旦找到相关的文档，你就把它们提取出来，然后
+加上系统提示词或提示词模板，添加到用户查询中。
+Once you've found the relevant documents, you pull them and then you add
+them to the user query with a system prompt or a prompt template on top.
+
+511
+00:49:24,288 --> 00:49:31,968
+所以提示词模板可以是：根据文档列表回答用户查询。
+So the prompt template can be answer user query based on list of documents.
+
+512
+00:49:32,974 --> 00:49:36,292
+如果答案不在文档中，就说我不知道。
+If answer not in the document, say I don't know.
+
+513
+00:49:36,878 --> 00:49:47,008
+这就是你的提示词模板，把用户查询和文档粘贴进去，然
+后你的输出应该是你想要的，因为它现在是基于文档的。
+That's your prompt template where the user query is pasted, the documents are pasted,
+and then your output should be what you want because it's now grounded in the document.
+
+514
+00:49:47,408 --> 00:49:57,572
+你还可以添加到这个提示词模板里，要求它告诉我相关文档的具体页码、章节、行数，
+甚至还可以加上链接，为了更精确一点。
+You can also add to this prompt template, tell me the exact page, chapter, line of
+the document that was relevant, and in fact, link it as well, just to be more precise.
+
+515
+00:50:02,254 --> 00:50:03,488
+关于 RAG 有什么问题吗？
+Any question on rags?
+
+516
+00:50:04,020 --> 00:50:06,084
+这是一个简单的基础RAG。
+This is a simple vanilla rag.
+
+517
+00:50:07,520 --> 00:50:07,560
+是的。
+Yeah.
+
+518
+00:50:08,302 --> 00:50:08,768
+没错。
+Yes.
+
+519
+00:50:15,568 --> 00:50:24,208
+问题是，文档嵌入是否还能保留信息在文档中的位置信息，特别是在大型文档中？
+Question is do the document embeddings still retain information of the
+location of the information within that document, especially in big documents?
+
+520
+00:50:24,846 --> 00:50:25,648
+好问题。
+great question.
+
+521
+00:50:25,742 --> 00:50:27,728
+嗯，我们马上就讲到这个。
+Uh we'll get to it in a second.
+
+522
+00:50:28,048 --> 00:50:32,208
+因为你是对的，基础RAG在处理超大型文档时可能效果不佳。
+because you're right that the vanilla rag might not do a good job with very large documents.
+
+523
+00:50:32,288 --> 00:50:45,888
+比如，当你打开一个药品包装盒，里面有一份包含所有
+信息且非常长的巨型白皮书，基础RAG可能就搞不定了。
+So let's say you know, when you open a medication box and you have this gigantic white
+paper with all the information and it's very long, maybe a vanilla rag would not cut it.
+
+524
+00:50:45,968 --> 00:50:49,568
+所以人们研究出了一系列改进RAG的技术。
+So what people have figured out is a bunch of techniques to improve rags.
+
+525
+00:50:49,808 --> 00:50:53,008
+事实上，分块是一项非常流行且出色的技术。
+And in fact, chunking is a great technique that is very popular.
+
+526
+00:50:53,168 --> 00:50:57,250
+所以你实际上可以在向量数据库中存储整篇文档的嵌入。
+So you might actually store in the vector database the embedding of the full documents.
+
+527
+00:50:57,678 --> 00:51:02,048
+除此之外，你还会存储章节级别的向量。
+and on top of that, you will also store a chapter level vector.
+
+528
+00:51:02,768 --> 00:51:08,928
+当你检索时，你检索到了文档，又检索到了章节，这能让你更精确地定位来源。
+and when you retrieve, you've retrieved the document, you retrieve
+the chapter, and that allows you to be more precise with the sourcing.
+
+529
+00:51:09,198 --> 00:51:10,608
+这只是一个例子。
+It's one example.
+
+530
+00:51:11,488 --> 00:51:28,688
+另一个流行的技术是假设性文档嵌入，有一群研究人员发表了一篇论文，
+指出当你获得用户查询时，主要问题之一是用户查询
+another technique that's popular is hide, um, uh, hypothetical document embeddings,
+where a group of researchers published a paper showing that when you get your user query, one of the main problem is the user.
+
+531
+00:51:28,688 --> 00:51:31,908
+实际上并不像你的文档那样。
+query actually does not look like your documents.
+
+532
+00:51:32,462 --> 00:51:42,500
+例如，用户查询可能是“药物X的副作用是什么？”，而实际
+上在向量数据库中的文档向量是包含非常长内容的文档。
+For example, the user query might be what are the side effects of drug X when actually in the document in the vector database,
+the vectors will present very long documents.
+
+533
+00:51:43,182 --> 00:51:47,408
+那么，你如何保证向量嵌入能靠近文档嵌入呢？
+So, how do you guarantee that the vector embedding is going to be close to the document embedding?
+
+534
+00:51:47,662 --> 00:51:52,772
+他们的做法是利用用户查询来生成一个虚构的、幻觉式的文档。
+What they do is they use the user query to generate a fake hallucinated document.
+
+535
+00:51:53,870 --> 00:52:00,548
+他们对这个文档进行嵌入，然后将其与向量数据库中的向量进行比较。
+They embed that document and then they compare to the vector in the vector database.
+
+536
+00:52:01,486 --> 00:52:02,208
+这好理解吗？
+Does that make sense?
+
+537
+00:52:02,448 --> 00:52:06,596
+比如，用户说：“药物X的副作用是什么？”
+So, for example, the user says, What is the side effect of drug X?
+
+538
+00:52:06,926 --> 00:52:15,428
+有一个提示词发给另一个提示词，内容是：“基于这个用户查询，
+生成一份五页的报告来回答用户查询。”
+There's a prompt that this is given to another prompt that says, based on this user query,
+generate uh five-page reports answering the user query.
+
+539
+00:52:15,648 --> 00:52:20,448
+它可能会生成一个完全虚构的答案。
+It generates potentially a completely fake answer.
+
+540
+00:52:21,038 --> 00:52:26,116
+你对这个答案进行嵌入，它很可能就更接近你正在寻找的那个文档了。
+You embed that, and it will be closer to the document that you're looking for, likely.
+
+541
+00:52:26,862 --> 00:52:27,332
+是的。
+Yeah.
+
+542
+00:52:29,102 --> 00:52:31,568
+这是RAG方法的一个例子。
+It's one example of a RAG approach.
+
+543
+00:52:31,822 --> 00:52:45,800
+再次强调，这堂课的目的不是要讲完这三项，也不是要解释出人们为RAG发现的每一个方法，
+我只是想向你们展示在2020年到2025年期间，RAG领域做了多少研究，
+Again, the purpose of this lecture is not to go through all these three and explain you every single method that has been discovered
+for rags, but I just wanted to show you how much research has been done between 2020 and 2025 in RAGs and how many branches of
+
+544
+00:52:45,800 --> 00:52:46,640
+以及现在有多少研究分支可以供你们学习。
+Again, the purpose of this lecture is not to go through all these three and explain you every single method that has been discovered
+for rags, but I just wanted to show you how much research has been done between 2020 and 2025 in RAGs and how many branches of
+
+545
+00:52:46,640 --> 00:52:49,540
+以及现在有多少研究分支可以供你们学习。
+research you you now have that you can learn from.
+
+546
+00:52:50,528 --> 00:52:54,212
+顺便说一下，综述论文的链接就在幻灯片里，我会在讲座结束后分享给大家。
+the survey paper is linked in the slides, by the way, and I'll share them after the lecture.
+
+547
+00:53:01,810 --> 00:53:02,110
+太棒了。
+Super.
+
+548
+00:53:05,616 --> 00:53:08,496
+所以我们取得了一些进展。
+So we've made some progress.
+
+549
+00:53:08,878 --> 00:53:16,610
+希望现在你们觉得，如果你要开始开发一个LLM应用，你知道如何写更好的提示词，
+知道如何做链式调用，知道如何做微调。
+Hopefully, now you feel like if you were to start an LLM application, you know how
+to do better prompts, you know how to do chains, you know how to do fine tuning.
+
+550
+00:53:17,296 --> 00:53:18,896
+你也知道如何做检索。
+you also know how to do retrieval.
+
+551
+00:53:19,214 --> 00:53:26,788
+而且你掌握了这些技术储备，你可以去阅读、寻找代码
+库、拉取代码、去调试代码，但现在你已经掌握了广度。
+And you have the baggage of techniques that you can go and read and find
+the code base, pull the code, vibe code it, but you have the breadth now.
+
+552
+00:53:30,286 --> 00:53:46,084
+接下来我们要看的课题是关于如何扩展LLM的能力，从执行
+增强了外部知识的单项任务，到处理多步骤的自主工作流。
+the next set of topics we're going to see is around the question of how could we extend the capabilities of LLMs from performing
+single tasks enhanced with external knowledge to handling multi-step autonomous workflows.
+
+553
+00:53:47,438 --> 00:53:50,372
+这就是我们进入真正的agentic AI的地方。
+And this is where we get into proper uh agent tI.
+
+554
+00:53:53,056 --> 00:53:59,140
+所以让我们来聊聊面向自主和专业化系统的 agentic AI 工作流。
+So let's talk about agent tI workflows towards autonomous and specialized systems.
+
+555
+00:54:00,206 --> 00:54:09,668
+然后我们会聊聊评估，接着看多智能体系统，最后聊聊关于 AI 未来发展的一些思考。
+Then we'll talk about evals, then we'll see multi-agent systems, and we'll end with uh with a little thoughts on what's next in AI.
+
+556
+00:54:11,854 --> 00:54:19,856
+Andrew Ng 实际上提出了 agentic AI 工作流这个术语。
+So Andrew Eng actually coined the term um agentic AI workflows.
+
+557
+00:54:20,416 --> 00:54:28,132
+他的理由是，很多公司到处都在说智能体，到处都在用智能体。
+and his reason was that a lot of companies use say agents, agents, agents everywhere, agents everywhere.
+
+558
+00:54:28,750 --> 00:54:33,536
+如果你去这些公司工作，你会发现他们对智能体的定义完全不同。
+If you go and work at these companies, you would notice that they mean very different things by agents.
+
+559
+00:54:33,616 --> 00:54:36,068
+有些人其实只是写了个提示词，就管它叫智能体。
+Some people actually have a prompt and they call it an agent.
+
+560
+00:54:36,334 --> 00:54:42,416
+你知道，还有些人拥有非常复杂的多智能体系统，他们也管它叫智能体。
+You know, other people they have a very complex multi-agency system, they call it an agent.
+
+561
+00:54:42,576 --> 00:54:45,376
+所以把所有东西都叫智能体，其实并不准确。
+And so calling everything an agent doesn't do it justice.
+
+562
+00:54:45,536 --> 00:55:02,096
+所以 Andrew 说，让我们称之为 agentic 工作流，因为在实践中，它是一系列带有工具、
+额外资源和 API 调用的提示词，最终被放入一个工作流中，你可以把这个工作流称为 agentic。
+So Andrew says, let's call it agentic workflows, because in practice it's a bunch of prompts with tools, with additional resources,
+API calls that ultimately are put in a workflow, and you can call that workflow agentic.
+
+563
+00:55:02,576 --> 00:55:08,356
+所以核心在于完成任务的多步过程。
+So it's all about the multi-step process to complete the task.
+
+564
+00:55:11,136 --> 00:55:19,216
+此外，称之为 agentic 工作流可以让我们避免与我
+上一讲中提到的、与强化学习相关的智能体混淆。
+Also, calling it agent workflow allows us to not mix it up with what I called agent in the last lecture with reinforcement learning.
+
+565
+00:55:19,296 --> 00:55:26,736
+因为在强化学习中，智能体有一个非常具体的定义：与环
+境交互，从一个状态转换到另一个状态，有奖励和观测。
+Because in RL, agent has a very specific definition, interacts with an
+environment, passes from one state to the other, has a reward and an observation.
+
+566
+00:55:26,816 --> 00:55:27,972
+你们还记得那个概念吧？
+You remember that sharp, right?
+
+567
+00:55:31,536 --> 00:55:39,216
+这里有一个例子，展示我们如何从单步提示转向多步 agentic 工作流。
+So here's an example of how we move from a one-step prompt to a multi-step agentic workflow.
+
+568
+00:55:39,616 --> 00:55:44,816
+假设用户查询一个产品。
+let's say a user queries a product.
+
+569
+00:55:44,976 --> 00:55:47,616
+“你们聊天机器人的退款政策是什么？”
+What is your refund policy on a chatbot?
+
+570
+00:55:48,096 --> 00:55:56,676
+使用 RAG 的回答是：购买后 30 天内可退款，而且 RAG 可能还能链接到政策文档。
+and the response using a rag says refunds are available within 30 days of purchase,
+and maybe the rag can even look linked to the policy documents.
+
+571
+00:55:57,296 --> 00:55:59,056
+这就是我们目前学到的内容。
+That's what we learned so far.
+
+572
+00:55:59,616 --> 00:56:03,776
+相反，agentic 工作流可以这样运作。
+instead, an agentic workflow can function like this.
+
+573
+00:56:04,016 --> 00:56:07,376
+用户说：“我的订单可以退款吗？”
+The user says, Can I get a refund for my order?
+
+574
+00:56:07,536 --> 00:56:14,016
+通过 agentic 工作流给出的响应是：智能体使用 RAG 获取退款政策。
+And the response via the agentic workflow is the agent retrieves the refund policy using a rag.
+
+575
+00:56:14,336 --> 00:56:19,136
+智能体接着跟进询问用户：“您能提供您的订单号吗？”
+The agent then follows up with the users and says, Can you provide your order number?
+
+576
+00:56:19,616 --> 00:56:28,096
+然后智能体查询 API 来检查订单详情，最后回复用户：“您的订单符合退款条件。”
+then the agent queries an API to check the order details, and finally it
+comes back to the user and confirms your order qualifies for a refund.
+
+577
+00:56:28,176 --> 00:56:30,884
+“退款金额将在 3 到 5 个工作日内处理。”
+The amount will be processed in three to five business days.
+
+578
+00:56:31,136 --> 00:56:36,576
+这比第一个版本要周到得多，第一个版本有点太基础了，对吧？
+This is much more thoughtful than the first version, which is sort of vanilla, right?
+
+579
+00:56:38,158 --> 00:56:43,076
+所以接下来几页幻灯片我们要讨论的就是：我们如何从第一个版本过渡到第二个版本？
+So that's what we're going to talk about in the next couple of slides is how do we get from the first one to the second one?
+
+580
+00:56:46,496 --> 00:56:49,856
+网上有很多专门的 agentic 工作流。
+there are plenty of specialized agency workflows online.
+
+581
+00:56:50,016 --> 00:56:54,256
+你知道，你可能听过这些，如果你在 SF 晃悠，你可能会看到很多广告牌。
+You know, you've heard, and if you hang out in SF, you probably see a bunch of billboards.
+
+582
+00:56:54,656 --> 00:57:07,524
+比如 AI 软件工程师、AI 技能导师（你们在课上互
+动过的）、AI SDR、AI 律师、AI 专门的云工程师。
+you know, AI software engineer, AI skills mentor you've interacted with in the
+class to work era, AI SDR, AI lawyers, AI, you know, specialized cloud engineer.
+
+583
+00:57:08,016 --> 00:57:12,740
+虽然说所有这些都已经完美运行可能有点夸张，但确实有人在朝着这个方向努力。
+you know, it would be a stretch to say that everything works, but there's work being done towards that.
+
+584
+00:57:13,550 --> 00:57:13,828
+就是说，
+You know.
+
+585
+00:57:17,934 --> 00:57:20,752
+我个人并不喜欢在这些东西后面放一个人的脸。
+I'm not personally a fan of putting a face behind those things.
+
+586
+00:57:20,832 --> 00:57:21,792
+我觉得这有点花哨。
+I think it's gimmicky.
+
+587
+00:57:22,032 --> 00:57:27,472
+而且我觉得几年后，实际上很少有产品会在背后放一个人的脸。
+And I think in a few years from now, actually very few products will have a human face behind it.
+
+588
+00:57:27,952 --> 00:57:30,660
+但这可能是某些初创公司的营销手段。
+But might be a marketing tactic from some startups.
+
+589
+00:57:32,110 --> 00:57:34,752
+坦白说，这比让人感兴趣更让人害怕。
+It's more scary than it is engaging, frankly.
+
+590
+00:57:36,014 --> 00:57:38,192
+好了，我想谈谈范式转变。
+Okay, I want to talk about the pirating shift.
+
+591
+00:57:38,672 --> 00:57:39,952
+这特别有用。
+That's especially useful.
+
+592
+00:57:40,142 --> 00:57:52,060
+假设你是一名软件工程师，或者计划成为一名软件工程师，
+因为软件工程作为一个学科正在发生转变，或者至少我合作过的最优秀的工程师都能从确定性的
+Let's say you're a software engineer or you're planning to be a software engineer,
+because software engineering as a discipline is sort of shifting, or at least the best engineers I've worked with are able to move
+
+593
+00:57:52,060 --> 00:57:53,000
+假设你是一名软件工程师，或者计划成为一名软件工程师，
+因为软件工程作为一个学科正在发生转变，或者至少我合作过的最优秀的工程师都能从确定性的
+from a deterministic mindset to a fuzzy mindset and balance between the two whenever they need to get something done.
+
+594
+00:57:53,000 --> 00:57:58,672
+思维转变到模糊的思维，并在需要完成任务时在两者之间取得平衡。
+from a deterministic mindset to a fuzzy mindset and balance between the two whenever they need to get something done.
+
+595
+00:57:58,832 --> 00:58:04,192
+所以，这是传统软件和代理 AI 软件之间的范式转变。
+So here's the pirating shift between traditional software and agent TKI software.
+
+596
+00:58:04,592 --> 00:58:07,552
+第一点是你处理数据的方式。
+The first one is the way you handle data.
+
+597
+00:58:07,758 --> 00:58:10,112
+传统软件处理的是结构化数据。
+Traditional software deals with structured data.
+
+598
+00:58:10,192 --> 00:58:20,740
+你有 JSON，你有数据库，它们以非常结构化的方式放入数据工程流水线中，
+然后被用来显示在特定的界面上。
+You have JSONs, you have databases, they're pasted in a very structured manner in a data engineering pipeline,
+and then they're used to be displayed on a certain interface.
+
+599
+00:58:21,072 --> 00:58:25,392
+用户可能会填写一个表单，然后该表单被检索并放入数据库中。
+the user might fill a form that is then retrieved and pasted in the database.
+
+600
+00:58:25,472 --> 00:58:28,032
+从历史上看，所有这些都是结构化数据。
+All of that historically has been structured data.
+
+601
+00:58:28,272 --> 00:58:40,912
+现在越来越多的公司在处理自由文本、图像，所有这些都需要动态解释来将输入转换为输出。
+Now more and more companies are handling free-form text, images, and all of
+that requires dynamic interpretation to transform an input into an output.
+
+602
+00:58:41,712 --> 00:58:45,312
+软件本身以前是确定性的。
+the software itself used to be deterministic.
+
+603
+00:58:45,472 --> 00:58:47,472
+现在有很多软件是模糊的。
+Now you have a lot of software that is fuzzy.
+
+604
+00:58:47,552 --> 00:58:50,916
+而且模糊的软件会产生很多问题。
+And fuzzy software creates so many issues.
+
+605
+00:58:51,342 --> 00:58:55,396
+我是说，想象一下如果你让用户在你的网站上问任何问题。
+I mean, imagine if you let your user ask anything on your website.
+
+606
+00:58:56,112 --> 00:59:03,072
+它崩溃的概率是巨大的，被攻击的概率也是巨大的，而且情况真的非常、非常复杂。
+The chances that it breaks is tremendous, the chances that you're attacked is tremendous, the chances it's really, really complicated.
+
+607
+00:59:03,152 --> 00:59:06,672
+这比人们在 Twitter 上表现出来的要复杂得多。
+It's more complicated than people make it seem on Twitter.
+
+608
+00:59:07,726 --> 00:59:09,444
+模糊工程真的很难。
+fuzzy engineering is truly hard.
+
+609
+00:59:10,958 --> 00:59:20,912
+作为一家公司，你可能会受到抨击，因为一个用户做了你授权他做的事情，结果导致数据库崩溃，
+你知道的，我们在过去几年里看到很多公司都遇到了这种情况。
+you might get hate as a company because one user did something that you authorized them to do that ended up breaking the database and
+ended up, you know, we've seen that with many companies in the last couple of years.
+
+610
+00:59:21,072 --> 00:59:27,588
+所以做模糊工程需要非常专业的工程思维，但同时也得知道什么时候需要确定性。
+So it takes a very specialized engineering mindset to do fuzzy engineering, but also know when you need to be deterministic.
+
+611
+00:59:28,752 --> 00:59:38,820
+嗯，我说的另一件事是关于代理 AI 软件，嗯，你得把你的软件想象成你的经理。
+Um, the other thing I call is with agency AI software, um, you you you sort of want to think about your software as like your manager.
+
+612
+00:59:39,086 --> 00:59:54,992
+你熟悉软件中的单体架构或者微服务方法，你知道，就是把软件结构化到不同的框里，
+它们可以互相通信，这允许团队一次调试一个部分。
+So you're familiar with the monolith or or um uh uh you know microservices approaches in software, you know,
+where you structure your software in different boxes that can talk to each other and it allows teams to debug one section at a time.
+
+613
+00:59:55,214 --> 00:59:58,992
+你知道，嗯，现在代理 AI 的对应做法是你要像经理一样思考。
+You know, uh now the equivalent with Agenc AI is you think as a manager.
+
+614
+00:59:59,072 --> 01:00:05,872
+所以你要想，好，如果我要把我的产品交给一群人去完成，那些角色会是什么？
+So you think, okay, if I was to delegate my product to be done by a group of humans, what would be those roles?
+
+615
+01:00:06,032 --> 01:00:16,480
+我是不是需要一个平面设计师，然后，你知道，把图表拼凑在一起，然后发给营销经理，
+由他把它转换成一篇漂亮的博客文章，然后再交给绩效营销专家，由他发布作品，
+Would I have a graphic designer that then, you know, puts together a chart and then sends it to a marketing manager that converts it
+into a nice blog post that then gives it to the performance marketing expert
+
+616
+01:00:16,480 --> 01:00:17,640
+我是不是需要一个平面设计师，然后，你知道，把图表拼凑在一起，然后发给营销经理，
+由他把它转换成一篇漂亮的博客文章，然后再交给绩效营销专家，由他发布作品，
+that then publishes the work, uh, the blog post, and then optimizes an A-B test.
+
+617
+01:00:17,640 --> 01:00:20,512
+也就是那篇博客，然后优化一个 A-B test。
+that then publishes the work, uh, the blog post, and then optimizes an A-B test.
+
+618
+01:00:20,832 --> 01:00:27,232
+然后交给数据科学家去分析数据，提出假设，并验证或推翻这些假设。
+then to a data scientist that analyzes the data and then puts hypotheses and validates them or invalidates them.
+
+619
+01:00:27,392 --> 01:00:31,268
+如果你在构建代理 AI 软件，通常就是这样思考的。
+That's how you typically think if you're building an agency AI software.
+
+620
+01:00:32,309 --> 01:00:36,992
+但实际上，在传统软件中，对应的逻辑可能完全不同。
+When actually the equivalent of that in traditional software might be completely different.
+
+621
+01:00:37,072 --> 01:00:50,912
+可能我们这里有一个数据工程师模块来处理所有数据工程，这里有 UI UX 相关的东西，
+所有 UIUX 相关的内容都放在这里，而且不同公司可能有不同的架构方式。
+It might be we have a data engineer box right here that handles all our data engineering, and then here we have the UI UX stuff,
+everything UIUX related goes here, and you know, companies might structure it in very different ways.
+
+622
+01:00:50,992 --> 01:00:56,420
+这里是我们想要关注的业务逻辑，假设有五个工程师在负责业务逻辑。
+And here is the business logic that we want to care about, and there's five engineers working on the business logic, let's say.
+
+623
+01:00:59,152 --> 01:00:59,472
+好的。
+Okay.
+
+624
+01:01:01,072 --> 01:01:03,716
+测试和调试也是非常不同的。
+testing and debugging is also very different.
+
+625
+01:01:04,432 --> 01:01:06,628
+我们将在下一节讨论这个内容。
+and we'll talk about it in the next section.
+
+626
+01:01:09,392 --> 01:01:18,992
+我觉得另一个重要的点是，在 AI 工程中，实验的成本正在大幅下降。
+the other thing that I feel matters is with AI in engineering, the cost of experimentation is going down drastically.
+
+627
+01:01:19,152 --> 01:01:23,332
+所以我觉得，人们应该更放心地丢弃代码。
+And so people, I feel, should be more comfortable throwing away codes.
+
+628
+01:01:23,694 --> 01:01:29,392
+你知道，在传统软件工程中，你可能不会频繁丢弃代码。
+You know, it's it's like in traditional software engineering, you probably don't throw away code a ton.
+
+629
+01:01:29,472 --> 01:01:34,432
+你写一段代码，它很稳健，而且无懈可击，然后你随着时间的推移去更新它。
+You build a code and it's solid and it's bulletproof, and then you update it over time.
+
+630
+01:01:34,672 --> 01:01:49,412
+而我们看到 AI 公司更放心地丢弃代码，这在移动速度上很
+有优势，但在软件质量方面也有劣势，因为它更容易出错。
+When we've seen AI companies be more comfortable throwing away codes, which has advantages in terms of the speed at which you move,
+but also disadvantages in terms of the quality of your software that can break more.
+
+631
+01:01:52,400 --> 01:01:59,076
+好了，总之，我只是想单独谈谈从确定性到模糊工程的范式转变。
+Okay, so anyway, just wanted to do an aparte on the the the pirating shift from deterministic to fuzzy engineering.
+
+632
+01:02:01,440 --> 01:02:11,520
+嗯，实际上我可以举一个我们可能在过去 12 个月里从 Workera 学到的例子。
+Um and actually I can give you an example from uh from workera that we learned probably over the last 12 months.
+
+633
+01:02:11,680 --> 01:02:25,120
+如果你用过 Workera，你可能看到过界面有时要求你做多选题，有时要求你多选，
+有时要求你拖拽、排序、匹配，对吧？
+It's like if you if you've used Workera, you might have seen that the interface has asked you sometimes multiple choice questions,
+and sometimes it asks you multiple select, and sometimes it asks you drag and drop, ordering, matching, whatever, right?
+
+634
+01:02:25,422 --> 01:02:34,320
+这些是确定性项目类型的例子，意味着你在多选题
+中回答，只有一个正确答案，它是完全确定性的。
+Those are examples of deterministic item types, meaning you answer the question
+on a multiple choice, there's one correct answer, it's fully deterministic.
+
+635
+01:02:34,480 --> 01:02:45,440
+另一方面，有时你会遇到语音问题，比如进入角色扮演，
+或者有语音加代码的问题，你的代码被界面读取之类的。
+On the other hand, you sometimes have voice questions where you go to a role play,
+or you have voice plus coding questions where your code is being read by the interface or whatever.
+
+636
+01:02:45,840 --> 01:02:53,440
+这些就是模糊的，意味着评分算法实际上可能会出错，而这些错误可能是代价高昂的。
+those are fuzzy, meaning the scoring algorithm might actually make mistakes, and those mistakes might be costly.
+
+637
+01:02:53,600 --> 01:03:00,560
+因此公司必须设计一套人机协同系统，你可能在最后的申诉功能中看到了这一点。
+And so companies have to figure out a human in the loop system, which you might have seen with the appeal feature at the end.
+
+638
+01:03:00,640 --> 01:03:08,610
+所以在评估结束时，有一个申诉功能，它允许你说：我想对智能体提出申诉，
+因为我想挑战智能体对我的答案给出的评价，因为我觉得我做得比智能体认为的要好。
+So at the end of the assessment, you have an appeal feature where it allows you to say,
+I want to appeal the agent because I want to challenge what the agent said
+
+639
+01:03:08,610 --> 01:03:12,240
+所以在评估结束时，有一个申诉功能，它允许你说：我想对智能体提出申诉，
+因为我想挑战智能体对我的答案给出的评价，因为我觉得我做得比智能体认为的要好。
+on my answer because I thought I was better than what the agent thought.
+
+640
+01:03:12,400 --> 01:03:19,440
+然后你引入人机协同，由人工来修复智能体，告诉智能体：你对这个人的答案给分太严了。
+And then you bring a human in the loop that then can fix the agent, can
+tell the agent actually you were too harsh on the answer of this person.
+
+641
+01:03:20,334 --> 01:03:27,908
+这就是模糊工程系统的一个例子，它通过加入人机协同来使其更符合预期。
+and you know, that's an example of a fuzzy engineered system that then adds a human in the loop to make it more aligned.
+
+642
+01:03:28,160 --> 01:03:34,880
+所以如果你在建立公司，我会鼓励你思考哪些任务
+可以用确定性来完成，那就用确定性去搞定它们。
+And so if you're building a company, I would encourage you to think
+about what can I get done with determinism and let's get that done.
+
+643
+01:03:35,040 --> 01:03:43,680
+至于模糊的部分，我想做模糊处理是因为它允许更多的交
+互，允许更多的来回沟通，但我需要在它周围加上护栏。
+And then the fuzzy stuff, I want to do fuzzy because it allows more interaction,
+it allows more back and forth, but I need to put guardrails around it.
+
+644
+01:03:43,760 --> 01:03:46,212
+那么我该如何设计这些护栏呢？
+And how am I going to design those guardrails, pretty much?
+
+645
+01:03:49,040 --> 01:03:57,040
+这是企业工作流的另一个例子，这些工作流很可能会因为 agent tech 而发生变化。
+here's another example from enterprise workflows which are likely to change due to agent TKI.
+
+646
+01:03:57,440 --> 01:04:10,000
+这是麦肯锡的一篇论文，我想是去年的，他们研究了一家金融机构，
+他们说我们观察到他们通常花费一到四周来创建一份信用风险备忘录。
+this is a paper from McKinsey, I believe from last year, where they looked at a financial institution and they said that you know we
+observed that they often spend one to four weeks to create a credit risk memo.
+
+647
+01:04:10,160 --> 01:04:22,240
+这是流程：客户经理从 15 个甚至超过 15 个来源收集借款人、贷款类型和其他因素的数据。
+And here's the process: a relationship manager gathers data from 15
+and more than 15 sources on the borrower, loan type, other factors.
+
+648
+01:04:22,640 --> 01:04:28,560
+然后客户经理和信用分析师协作分析来自这些来源的数据。
+then the relationship manager and the credit analyst collaboratively analyze that data from these sources.
+
+649
+01:04:28,846 --> 01:04:41,440
+然后信用分析师通常还要花，呃，你知道，20 小时甚至更多来写备忘录，然后再交给客户经理，
+他们提供反馈，然后就这样循环往复。
+Then the credit analyst typically spends uh you know 20 more, 20 hours or more writing a memo and then goes back to the relationship
+manager, they give feedback, and then they go through this loop again and again.
+
+650
+01:04:41,760 --> 01:04:44,900
+而且要花很长时间才能出一份信用备忘录。
+And it takes a long time to get a credit memo out.
+
+651
+01:04:46,094 --> 01:04:50,560
+然后他们做了一项研究，改变了这一流程。
+Then run a research study where they change the process.
+
+652
+01:04:50,720 --> 01:04:58,080
+他们说生成式 AI 智能体实际上可以将信用风险备忘录的耗时减少 20% 到 60%。
+They said Gen AI agents could actually cut time by 20 to 60 percent on credit risk memos.
+
+653
+01:04:58,480 --> 01:05:07,040
+而且流程变了，客户经理直接与生成式 AI 智能体系统协作，
+提供制作备忘录所需的各种相关材料。
+And the process has changed to the relationship manager directly work with the Gen AI agent system,
+provides relevant materials that needs to produce the memo.
+
+654
+01:05:07,200 --> 01:05:20,170
+智能体会把项目细分为任务并分配给专门的智能体，收集并分析来自多个来源的数据，
+起草备忘录，然后客户经理和信用分析师坐在一起，审查备忘录，给智能体提供反馈，
+The agent subdivises the project into tasks that are assigned to specialist agents,
+gathers and analyzes the data from multiple sources, drafts a memo, then the relationship manager and the credit analyst sit down
+
+655
+01:05:20,170 --> 01:05:22,640
+智能体会把项目细分为任务并分配给专门的智能体，收集并分析来自多个来源的数据，
+起草备忘录，然后客户经理和信用分析师坐在一起，审查备忘录，给智能体提供反馈，
+together, review the memo, give feedback to the agent, and within you know 20 to 60% less time are done.
+
+656
+01:05:22,640 --> 01:05:26,308
+这样就能在减少 20% 到 60% 的时间内完成。
+together, review the memo, give feedback to the agent, and within you know 20 to 60% less time are done.
+
+657
+01:05:26,720 --> 01:05:38,400
+所以这是一个例子，你实际上并没有改变人类相关方，你只是改变了流程，
+并加入生成式 AI 来缩短产出信用备忘录的时间。
+And so this is an example where you're actually not changing the human stakeholders,
+you're just changing the process and adding Gen AI to reduce the time it takes to get a credit memo out.
+
+658
+01:05:38,702 --> 01:05:49,584
+结果是，想象一下你是一家企业，拥有，呃，你知道，10 万名员工，
+现在有很多企业都有 10 万名员工。
+It turns out that Imagine you're an enterprise and you have uh you know 100,000 employees,
+and there's a lot of enterprises with 100,000 employees out there.
+
+659
+01:05:50,382 --> 01:05:54,224
+你目前在重新设计工作流方面面临危机。
+you are currently under crisis in terms of redesigning your workflows.
+
+660
+01:05:54,384 --> 01:06:07,024
+你，呃，你知道，结果是如果你真的从 HR 系统中提取职位描述并进行解读，
+同时提取你在云端存储的业务流程工作流。
+You uh you are, you know, it turns out that if you actually pull the job descriptions from the HR system and you interpret them,
+you also pull the business process workflows that you have encoded in your drive.
+
+661
+01:06:07,214 --> 01:06:10,784
+你实际上可以在多个地方找到优化空间。
+You actually can find gains in multiple places.
+
+662
+01:06:11,024 --> 01:06:16,464
+在接下来的几年里，你可能会看到工作流被更多地优化以加入生成式 AI。
+And in the next few years, you're probably going to see workflows being more optimized to add Gen AI.
+
+663
+01:06:17,024 --> 01:06:19,984
+即便如此，最难的部分还是改变人的观念。
+even if that happens, the hardest part is changing people.
+
+664
+01:06:20,144 --> 01:06:31,424
+我们知道这在理论上很棒，但现在让我们试着为 1 万
+名信用风险分析师和客户经理适配那个第二工作流。
+What we know this is this is great in theory, but now let's try to fit that
+second workflow for 10,000 credits risk analysts and relationship managers.
+
+665
+01:06:31,758 --> 01:06:33,264
+我的猜测是这需要好几年。
+My guess is it will take years.
+
+666
+01:06:33,424 --> 01:06:41,824
+要在组织内大规模实现这一点可能需要 10 到 20 年，因为变革是如此困难。
+It will take 10, 20 years to get to this being actually done at scale within an organization because change is so hard.
+
+667
+01:06:42,030 --> 01:06:50,864
+你知道，重构业务工作流、职位描述，激励人们做
+出改变、变得不同并对他们进行培训，这些都很难。
+You know, so hard to rewire business workflows, job descriptions, incentivize people to do different and be different and train them.
+
+668
+01:06:50,944 --> 01:06:56,804
+所以，呃，你知道，这就是世界的发展方向，但我认为这需要很长时间。
+And so, so, you know, this is what the world is going towards, but it's going to take a long time, I think.
+
+669
+01:06:58,510 --> 01:07:05,904
+嗯，好，然后我想谈谈智能体实际上是如何工作的，以及智能体的核心组件是什么。
+Um okay, then I want to talk about how the agent actually works and what are the core core components of an agent.
+
+670
+01:07:06,064 --> 01:07:09,984
+呃，想象一个旅游预订 AI 智能体。
+Uh imagine um a travel booking AI agent.
+
+671
+01:07:10,064 --> 01:07:11,024
+这是一个简单的例子。
+That's an easy example.
+
+672
+01:07:11,184 --> 01:07:20,544
+你们都考虑过，我至今还没能让智能体帮我订好旅行，或者我有点害怕，
+因为它可能会订一个非常昂贵或很长的行程。
+You've all thought about, I still haven't been able to get an agent to book a trip for me,
+or I was scared because it was going to book a very expensive or long trip.
+
+673
+01:07:20,704 --> 01:07:26,180
+但理论上，呃，呃，你可以有一个带有提示词的旅游预订智能体。
+But in theory, uh uh you you can you can have a travel booking agent that has prompts.
+
+674
+01:07:26,384 --> 01:07:30,224
+所以我们看到的提示词，我们知道优化这些提示词的方法。
+So the prompts we've seen, we know the methods to optimize those prompts.
+
+675
+01:07:30,464 --> 01:07:38,064
+那个旅游智能体还有一个上下文管理系统，这本质上是它所知道的关于用户的记忆。
+That travel agent also has a context management system, which is essentially the memory of what it knows about the user.
+
+676
+01:07:38,384 --> 01:07:45,604
+那个上下文管理系统可能包括核心记忆或工作记忆，以及存档记忆。
+that context management system might include a core memory or working memory and an archival memory.
+
+677
+01:07:45,824 --> 01:07:46,144
+好的。
+Okay.
+
+678
+01:07:46,926 --> 01:07:54,404
+记忆内部的区别在于，并不是所有的记忆都需要快速访问。
+What the difference is within memory is not every memory needs to be fast to access.
+
+679
+01:07:54,990 --> 01:07:56,064
+就像，想想看。
+Like, think about it.
+
+680
+01:07:56,224 --> 01:08:00,384
+你正在试用一个产品，第一个问题是：嗨，你叫什么名字？
+You you're morning on a product, and the first question is, hi, what's your name?
+
+681
+01:08:00,590 --> 01:08:02,389
+然后我说，我的名字叫 Kion。
+And I say, My name is Kion.
+
+682
+01:08:02,958 --> 01:08:09,024
+这大概会存在工作记忆里，因为智能体每次跟我说话时，它都会想用我的名字，对吧？
+That's probably going to sit in the working memory because the agent, every
+time he's going to talk to me, he's going to want to use my name, right?
+
+683
+01:08:09,264 --> 01:08:12,304
+但接下来的第二个问题可能是，呃 Kion，你的生日是什么时候？
+But then maybe the second question is uh Keon, what's your birthday?
+
+684
+01:08:12,384 --> 01:08:13,572
+然后我告诉它我的生日。
+And I give it my birthday.
+
+685
+01:08:13,838 --> 01:08:15,424
+它每天都需要知道我的生日吗？
+Does it need my birthday every day?
+
+686
+01:08:15,584 --> 01:08:16,064
+大概不需要。
+Probably not.
+
+687
+01:08:16,224 --> 01:08:20,772
+所以它可能会把它存到长期记忆或者存档记忆里。
+So it's probably going to park it on the long-term memory or the archival memory.
+
+688
+01:08:21,037 --> 01:08:26,624
+而那些记忆的访问速度较慢，它们在更深层的架构里。
+And those memories are slower to access, they're farther down the stack.
+
+689
+01:08:26,798 --> 01:08:35,743
+而且你知道，这种结构能让智能体判断什么是工作记
+忆，什么是长期记忆，这让智能体能超快地检索信息。
+And you know, that structure allows the agent to determine what's a working memory and what's a long-term memory, you know,
+and that makes it easier for the agent to retrieve super fast.
+
+690
+01:08:36,064 --> 01:08:41,264
+因为想想看，当你和 Chat GPT 交互时，你有时会觉得它非常个性化，对吧？
+Because think about it when you interact with Chat GPT, you feel that it's very personal at times, right?
+
+691
+01:08:41,424 --> 01:08:43,024
+你会觉得它懂你。
+You feel like it understands you.
+
+692
+01:08:43,822 --> 01:08:47,504
+想象一下，如果你每次调用它时，它都得去读所有的记忆，对吧？
+imagine every time you call it, it has to read the memories, right?
+
+693
+01:08:47,584 --> 01:08:48,624
+那可能会非常昂贵。
+And that can be costly.
+
+694
+01:08:48,703 --> 01:08:54,544
+这是一种非常沉重的成本，因为它在你每次说话时都会发生。
+It's like a very burdensome cost because it happens every time you talk to it.
+
+695
+01:08:54,670 --> 01:08:57,892
+所以你希望工作记忆是高度优化的。
+So you want to be highly optimized with the working memory.
+
+696
+01:08:58,862 --> 01:09:04,804
+你知道，如果查阅记忆要花三秒钟，那你每次跟 LLM 说话都要等三秒，这是你不想要的。
+You know, if it takes three seconds to look in the memory, every time you're going to talk to your LLM,
+it's going to take three seconds, which you don't want.
+
+697
+01:09:05,424 --> 01:09:07,984
+总之，接下来你还有工具。
+So, anyway, and then you have the tools.
+
+698
+01:09:08,144 --> 01:09:18,304
+工具可以包括各种 API，比如航班查询 API、酒店预
+订 API、租车 API、天气 API，还有支付处理 API。
+The tools can include APIs like a flight search API, hotel booking API,
+car rental API, weather API, and then the payment processing API.
+
+699
+01:09:18,510 --> 01:09:23,184
+通常你会告诉你的智能体这些 API 是如何工作的。
+And typically you would want to tell your agent how that API works.
+
+700
+01:09:23,424 --> 01:09:29,344
+事实证明，智能体或者我该说是 LLM，非常擅长阅读 API 文档。
+It turns out that agents or LLMs, I should say, are very good at reading API documentation.
+
+701
+01:09:29,424 --> 01:09:40,772
+所以你给它 API 文档，它会读取 JSON，读取 GET 请求长什么样，以及我需要推送的格式是什么，
+然后它就按那个格式推送，比如说这样。
+So you give it the API documentation and it reads the JSON and it reads what does a GET request look like,
+and this is the format that I need to push, and then it pushes it in that format, let's say.
+
+702
+01:09:41,518 --> 01:09:43,140
+然后它就获取到某些内容。
+And then it retrieves something.
+
+703
+01:09:44,974 --> 01:09:45,840
+这好理解吗？
+Does that make sense?
+
+704
+01:09:45,920 --> 01:09:47,268
+这些不同的组件。
+Those different components.
+
+705
+01:09:49,279 --> 01:09:51,680
+Anthropic 也会提到资源。
+Enthropic also talks about resources.
+
+706
+01:09:51,840 --> 01:09:57,200
+资源就是存在某些地方的数据，你可以让你的智能体去读取。
+Resources is data that is sitting somewhere that you might let your agent read.
+
+707
+01:09:57,360 --> 01:10:00,640
+例如，如果你在经营创业公司，你有一个 CRM。
+For example, if you're building your startups, you have a CRM.
+
+708
+01:10:00,814 --> 01:10:04,880
+CRM 里有数据，你想在这些数据中进行查询。
+A CRM has data in it, and you want to use lookups in that data.
+
+709
+01:10:05,040 --> 01:10:12,676
+你可能会提供一个查询工具并授予对资源的访问权
+限，它就能在你需要的时候随时进行超快速查询。
+You will probably give a lookup tool and you will give access to the resource and it will do lookups whenever you want, super fast.
+
+710
+01:10:16,399 --> 01:10:23,179
+这种架构可以构建出不同程度的自主性，从最不自主到最自主。
+This type of architecture can be built with different degrees of autonomy from the least autonomous to the most autonomous.
+
+711
+01:10:23,839 --> 01:10:25,360
+我给你们举几个例子。
+And I'll give you a few examples.
+
+712
+01:10:26,318 --> 01:10:29,439
+自主程度较低的情况是，你把步骤硬编码了。
+Less autonomous would be you've hard coded the steps.
+
+713
+01:10:29,520 --> 01:10:45,120
+比如，我告诉旅游智能体，先识别意图，然后去数据库里
+查询这个客户的记录和偏好，接着去调用航班 API，等等。
+So let's say I tell the travel agent first identify the intent, then look up in the database the history of this customer with us and
+their preferences, then go to the flight API, blah, blah, blah.
+
+714
+01:10:45,200 --> 01:10:47,300
+然后去……我是说，我会把这些步骤硬编码。
+Then go to the I would hard code the steps.
+
+715
+01:10:47,630 --> 01:10:47,920
+好的。
+Okay.
+
+716
+01:10:48,302 --> 01:10:50,000
+这就是自主程度最低的情况。
+That's the least autonomous.
+
+717
+01:10:50,400 --> 01:10:56,644
+半自主的情况是，我可能会硬编码工具，但我不硬编码步骤。
+The semi-autonomous is I might hard code the tools, but I'm not going to hard code the steps.
+
+718
+01:10:56,960 --> 01:11:02,720
+所以我会告诉智能体，嗯，你现在的角色是旅游智能体，
+So I'm going to tell the agent um you're acting like a travel agent, and
+
+719
+01:11:06,880 --> 01:11:13,040
+你的任务是帮助用户预订旅行，而这些是你可以使用的工具。
+your task is to help the person book a travel, and these are the tools that you have accessible to yourself.
+
+720
+01:11:13,200 --> 01:11:18,480
+所以我不硬编码步骤，我只是硬编码你可以访问的工具。
+And so I'm not hard coding the steps, I'm just hard coding the tools that you have access to for yourself.
+
+721
+01:11:18,880 --> 01:11:24,356
+而更高自主性的情况是，智能体自己决定步骤，并且能创建工具。
+the more autonomous is the agent decides the steps and can create the tools.
+
+722
+01:11:24,640 --> 01:11:28,880
+在这种情况下，你实际上可能会给智能体提供代码编辑器的访问权限。
+So that's where you might give actually access to a code editor to the agent.
+
+723
+01:11:28,960 --> 01:11:34,720
+智能体实际上可能能够请求网络上的任何 API，或者进行一些网络搜索。
+And the agent might actually be able to ping any API in the web, perform some web search.
+
+724
+01:11:34,880 --> 01:11:38,960
+它甚至可能能够编写一些代码来向用户展示数据。
+It might even be able to create some code to display data to the user.
+
+725
+01:11:39,120 --> 01:11:52,320
+它甚至可能能够进行一些计算，比如，哦，我要计算从旧金山到纽约的最快路线，
+以及哪条路线最符合用户的需求。
+It might even be able to perform some calculations, like, oh, I'm going to calculate the fastest route to get from San Francisco to
+New York, and which one might be the most appropriate for what the user is looking for.
+
+726
+01:11:52,480 --> 01:11:58,436
+然后我想计算机场到那家酒店与另一家酒店的距离，我将编写代码来完成这个操作。
+And then I want to calculate the distance between the airport and
+that hotel versus that hotel, and I'm going to write code to do that.
+
+727
+01:11:58,720 --> 01:12:02,320
+所以从这个角度来看，它实际上是完全自主的。
+So it's actually fully autonomous from that perspective.
+
+728
+01:12:05,198 --> 01:12:12,800
+好的，所以，记住那些关键词：记忆、提示词、工具等等。
+Okay, so yeah, remember those keywords, memory, prompts, tools, etc.
+
+729
+01:12:14,286 --> 01:12:19,600
+呃，刚才我展示了航班 API，但它不一定非得是 API。
+Uh now I presented the flight API, but it does not have to be an API.
+
+730
+01:12:19,840 --> 01:12:25,149
+你们可能听过 MCP 或者模型上下文协议这个术语，这是由 Anthropic 提出的。
+you probably have heard the term MCP or model context protocol that was coined by Anthropic.
+
+731
+01:12:25,280 --> 01:12:29,520
+我把关于 MCP 的核心文章放在了这张幻灯片的底部。
+I pasted the seminal article on MCP at the bottom of this slide.
+
+732
+01:12:29,680 --> 01:12:33,040
+但让我简要解释一下，为什么这些东西会有所不同。
+But let me explain in a nutshell why those things would differ.
+
+733
+01:12:34,560 --> 01:12:42,640
+在 API 的情况下，你实际上是教你的 LLM 去请求一个 API。
+in the API case, you would actually teach your LLM to ping an API.
+
+734
+01:12:42,766 --> 01:12:48,000
+所以你会说，这是请求这个 API 的方法，这是它返回给你的数据。
+So you would say this is how you ping this API, and this is the data that it will send you back.
+
+735
+01:12:48,240 --> 01:12:51,360
+而且你必须以一种单次任务的方式去做。
+And you would have to do that in a one off manner.
+
+736
+01:12:51,440 --> 01:13:04,960
+所以你必须构建或者提供你的航班 API、酒店预订 API、租车 API 的文档，
+然后提供工具让你的模型与这些 API 通信。
+So you would have to build or sort of give the API documentation of your flight API, your booking hotel API, your car rental API,
+and then you would give tools for your model to communicate with those APIs.
+
+737
+01:13:06,702 --> 01:13:10,960
+这种方式扩展性不太好，相比之下 MCP 就好多了。
+it doesn't scale very well, you know, versus MCP.
+
+738
+01:13:11,200 --> 01:13:23,520
+MCP 的核心其实是，你知道，在中间放一个系统，让你的 LLM 与那个端点通信变得更简单。
+MCP it's really about you know putting a system in the middle sort of
+that would make it simpler for your LLM to communicate with that endpoint.
+
+739
+01:13:23,854 --> 01:13:37,710
+例如，你可能有一个 MCP 服务端，一个 MCP 客户端，你正试图与那个旅游数据库或航班 API 进
+行通信，而你的智能体实际上可能只需与它通信并说：
+So for instance, you might you know have an MCP server, an MCP client where you're trying to communicate with that travel database or
+the flight API or MCP, and your agent might actually just communicate with it and say, Hey,
+
+740
+01:13:37,710 --> 01:13:38,890
+嘿，为了给我提供更多航班信息，你需要我提供什么？
+So for instance, you might you know have an MCP server, an MCP client where you're trying to communicate with that travel database or
+the flight API or MCP, and your agent might actually just communicate with it and say, Hey,
+
+741
+01:13:38,890 --> 01:13:42,960
+嘿，为了给我提供更多航班信息，你需要我提供什么？
+what do you need in order to give me more flight information?
+
+742
+01:13:43,200 --> 01:13:51,280
+然后那个智能体会回答：我想请你告诉我出发地在
+哪里，目的地在哪里，以及你高层级的需求是什么。
+And that that agent will respond by I would like you to tell me where is the origin
+flight, where is the destination, and what you're looking for at a high level.
+
+743
+01:13:51,360 --> 01:13:52,320
+这就是我的要求。
+This is my requirement.
+
+744
+01:13:52,494 --> 01:13:54,852
+好的，让我把我的要求反馈给你。
+Okay, let me get back to you with my requirements.
+
+745
+01:13:55,214 --> 01:13:57,920
+噢，你忘了告诉我你的预算，等等。
+Oh, you forgot to tell me your budget, whatever.
+
+746
+01:13:58,094 --> 01:14:06,720
+噢，让我把我的预算等信息给你，这就是智能体到智能体通信，它能提供更好的扩展性。
+Oh, let me give you my budget, etc. and it's it's it's agent-to-agent communication, which allows more scalability.
+
+747
+01:14:06,800 --> 01:14:08,960
+你不需要把所有东西都硬编码。
+You don't need to hard code everything.
+
+748
+01:14:09,134 --> 01:14:16,720
+公司已经把它们的 MCP 发布出来了，你的智能体可以与它们通信，
+并搞清楚如何获取它需要的数据。
+Companies have displayed their MCPs out there, and you can your agent
+can communicate with them and figure out how to get the data it needs.
+
+749
+01:14:16,942 --> 01:14:17,732
+这好理解吗？
+Does that make sense?
+
+750
+01:14:32,238 --> 01:14:32,480
+是的。
+Yes.
+
+751
+01:14:36,160 --> 01:14:38,960
+呃，我觉得最终是这样的。
+Uh I think it is ultimately.
+
+752
+01:14:39,600 --> 01:14:41,360
+问题是，这难道不是在转移问题吗？
+the question is isn't it shifting issue?
+
+753
+01:14:41,440 --> 01:14:44,560
+因为无论如何，如果 API 需要更新，MCP 也必须更新。
+Because anyway, if an API has to be updated, the MCP has to be updated.
+
+754
+01:14:44,649 --> 01:14:45,508
+这就是你的观点，对吧？
+is what you say, right?
+
+755
+01:14:45,870 --> 01:14:46,880
+是的，没错。
+Yes, that's correct.
+
+756
+01:14:46,960 --> 01:14:52,720
+但至少它允许智能体进行来回沟通，并搞清楚具体要求是什么。
+But at least it allows the agent to sort of go back and forth and figure out what the requirements are.
+
+757
+01:14:52,880 --> 01:15:03,840
+但说到底，理想情况下，如果你是一家创业公司，你有一些文档，
+然后自动有一个智能体或 LLM 工作流去读取这些文档，并相应地更新代码。
+But at the end of the day, ideally, if you're a startup, you have some documentation and automatically you have an agent or an LLM
+workflow that reads that documentation and updates the code accordingly.
+
+758
+01:15:04,590 --> 01:15:07,524
+但我同意，这并不是完全自主的。
+But I agree, it's not something that is fully autonomous.
+
+759
+01:15:09,870 --> 01:15:12,480
+我看到我们还要谈一些安全问题。
+I've seen that we'll just speak on some security issues.
+
+760
+01:15:12,654 --> 01:15:16,356
+为什么这在……具体是哪方面的安全问题？
+Why is that possible for the Which security specifically?
+
+761
+01:15:19,040 --> 01:15:19,280
+是的。
+Yeah.
+
+762
+01:15:19,360 --> 01:15:22,480
+所以 MCP 存在安全问题吗？
+So are there security issues with MCPs?
+
+763
+01:15:23,342 --> 01:15:24,640
+所以你可以这样思考。
+so think about it this way.
+
+764
+01:15:25,760 --> 01:15:31,840
+MCP 根据你获取的数据，可能有不同的要求，可能是低风险，也可能是高风险。
+MCPs, depending on the data that you get access to, might have different requirements, lower stake or higher stake.
+
+765
+01:15:31,920 --> 01:15:45,520
+我不是那个领域的专家，不知道全貌，但如果把 MCP 暴露给 AI，我不会感到意外，
+我想很多 MCP 都会有身份验证。
+I'm not an expert that, you know the full range, but it wouldn't surprise me that you know when you when you when you expose an MCP to
+an I think you would a lot of MCPs have authentication.
+
+766
+01:15:45,600 --> 01:15:51,360
+所以你可能确实需要一段代码来与其通信，就像你使用 API 或密钥一样。
+So you know you might actually need a code to actually talk to it, just like you would with an API or a key.
+
+767
+01:15:51,920 --> 01:15:53,360
+是的，但这是一个很好的问题。
+yeah, but that's a good question.
+
+768
+01:15:53,440 --> 01:15:58,820
+嗯，你知道，我不是这些系统安全方面的专家，但是，呃，好，我们可以研究一下。
+Um you know I'm not an expert at the security of these systems, but uh good uh you know we can look into it.
+
+769
+01:16:02,640 --> 01:16:09,732
+关于我们看到的智能体工作流、API、工具、MCP、记忆，还有其他问题吗？
+any other questions on what we've seen with the agentic workflows, APIs, tools, MCPs, memory.
+
+770
+01:16:10,542 --> 01:16:14,240
+所有这些都在不断发展中，所以甚至记忆也不是一个已经解决的问题。
+All of that is under progress, so even memory is not a solved problem by any means.
+
+771
+01:16:14,320 --> 01:16:16,964
+实际上挺难的，是的。
+It's pretty hard actually Yes.
+
+772
+01:16:42,400 --> 01:16:45,280
+MCP 是关于效率还是获取更多数据？
+Is MCP about efficiency or accessing more data?
+
+773
+01:16:45,360 --> 01:16:46,560
+这是关于效率的。
+It's about efficiency.
+
+774
+01:16:46,926 --> 01:16:57,040
+就像，比如说你有一个编程智能体，你知道它有 MCP 客户端，
+而且外面还有多个暴露出来的 MCP 服务端。
+It's like, you know, let's say you have a coding agent and you know it has an MCP clients,
+and there's multiple MCP servers that are exposed out there.
+
+775
+01:16:57,870 --> 01:17:02,240
+那个智能体可以非常高效地与它们通信，并找到它需要的东西。
+that agent can communicate very efficiently with them and find what it needs.
+
+776
+01:17:03,360 --> 01:17:11,760
+这是一个更高效的流程，实际上是展示 API，以及那
+边的 API，以及如何 ping 它们，以及协议是什么。
+and it's a more efficient process and actually displaying APIs and
+the APIs on that side and how to ping them and what the protocol is.
+
+777
+01:17:12,240 --> 01:17:17,200
+但这并不是关于被暴露的数据，因为最终你控制着被暴露的数据。
+but it's not about the data that is being exposed because ultimately you control the data that is being exposed.
+
+778
+01:17:18,960 --> 01:17:34,080
+根据 MCP 的构建方式，我猜你可能会暴露自己面临其他风险，
+因为你的 MCP 服务端几乎可以看到来自另一个 LLM 的任何输入，所以它必须足够健壮。
+You probably, depending on how the MCP is built, my guess is you probably expose yourself to other risks because your MCP server can
+can see any input pretty much from another LLM, and so it has to be robust.
+
+779
+01:17:34,560 --> 01:17:36,516
+嗯，是的。
+Um but yeah.
+
+780
+01:17:37,520 --> 01:17:38,160
+太棒了。
+Super.
+
+781
+01:17:39,120 --> 01:17:45,040
+所以让我们看看旅游智能体的逐步工作流示例。
+so let's look at an example of a step by step workflow for the travel agent.
+
+782
+01:17:45,120 --> 01:18:01,508
+假设用户说，我想计划从 12 月 15 日到 20 日去巴黎的旅行，包含机票、
+埃菲尔铁塔附近的酒店，以及必去景点的行程。
+So let's say the user says, I want to plan a trip to Paris from December 15th to 20th
+with flights, hotels near the Eiffel Tower, and then an itinerary of must visit places.
+
+783
+01:18:01,838 --> 01:18:03,680
+这就是交给旅游智能体的任务。
+That's the task to the travel agent.
+
+784
+01:18:03,920 --> 01:18:06,148
+第二步，智能体规划步骤。
+Step two, the agent plans the steps.
+
+785
+01:18:06,606 --> 01:18:12,388
+它会说，我要找机票，使用机票搜索 API 获取 12 月 15 日的选项。
+So it says, I'm going to find flights, use the flight search API to get option for December 15th.
+
+786
+01:18:12,480 --> 01:18:19,760
+搜索酒店，生成景点推荐，验证偏好、预算等。
+Search hotels, generate recommendation for places to visit, validate preferences, budget, etc.
+
+787
+01:18:20,080 --> 01:18:22,724
+使用支付处理 API 预订旅行。
+Book the trip with the payment processing API.
+
+788
+01:18:23,182 --> 01:18:25,600
+顺便说一下，第三步只是规划。
+Step three, that's just the planning, by the way.
+
+789
+01:18:25,760 --> 01:18:27,360
+第三步，执行计划。
+Step three, execute the plan.
+
+790
+01:18:27,520 --> 01:18:33,200
+使用你的工具，整合结果，然后进行主动的用户交互和预订。
+Use your tools, combine the results, and then proactive user interaction and booking.
+
+791
+01:18:33,360 --> 01:18:41,796
+它可能会先给用户一个初步提议，并要求用户确认或否定，然后可能会重复这个规划和执行过程。
+It might make a first proposal to the user and ask the user to validate or invalidate,
+and then may repeat that planning and execution process.
+
+792
+01:18:42,560 --> 01:18:46,000
+最后，它可能会更新记忆。
+And then finally, it might actually update the memory.
+
+793
+01:18:46,160 --> 01:18:51,076
+它可能会说，哦，通过这次交互我了解到用户只喜欢直飞航班。
+It might say, Oh, I just learned through this interaction that the user only likes direct flights.
+
+794
+01:18:51,950 --> 01:18:54,084
+下次我只会提供直飞航班。
+Next time I'll only give direct flights.
+
+795
+01:18:55,726 --> 01:19:01,680
+或者我注意到用户接受三星级或四星级酒店。
+Or I notice users are fine with three star hotels or four star hotels.
+
+796
+01:19:01,760 --> 01:19:05,284
+事实上，他们不想超出预算之类的。
+And in fact, they don't want to go above budget or something like that.
+
+797
+01:19:08,046 --> 01:19:11,680
+所以到目前为止，关于你可能如何操作，希望大家能理解了。
+So that hopefully makes sense by now on you know, how you might do that.
+
+798
+01:19:11,840 --> 01:19:16,240
+我想问你们的是，你如何知道这是否奏效？
+My question for you is how would you know if this works?
+
+799
+01:19:16,400 --> 01:19:20,708
+如果你有一个这样的系统在生产环境中运行，你会如何改进它？
+And if you had such a system running in production, how would you improve it?
+
+800
+01:19:28,400 --> 01:19:28,720
+是的。
+Yeah.
+
+801
+01:19:31,920 --> 01:19:33,440
+这就是一个例子。
+So that's an example.
+
+802
+01:19:33,600 --> 01:19:36,324
+所以让用户在最后对他们的体验进行评分。
+So let users rate their experience at the end.
+
+803
+01:19:37,360 --> 01:19:39,680
+那这就是端到端测试，对吧？
+That would be an end-to-end test, right?
+
+804
+01:19:39,760 --> 01:19:45,440
+你是通过这些步骤来观察用户体验，然后说从 1 到 5 分，体验有多好？
+You're looking at the user experience through the steps and say how good was it from one to five?
+
+805
+01:19:45,520 --> 01:19:45,920
+假设一下。
+Let's say.
+
+806
+01:19:46,000 --> 01:19:47,280
+是的，这是个好办法。
+Yeah, it's a good way.
+
+807
+01:19:47,360 --> 01:19:53,956
+然后如果你发现用户打了 1 分，你该怎么改进工作流呢？
+And then if you learn that a user says one, what how do you improve the workflow?
+
+808
+01:20:00,000 --> 01:20:06,000
+好，那你会沿着决策树往下走，说：好的，你打了 1 分，呃，你的问题是什么？
+Okay, so you would go down a tree and say, okay, you said one, uh, what what was your issue?
+
+809
+01:20:06,080 --> 01:20:10,052
+然后用户说，呃，价格太高了，假设是这样。
+And then the user says uh the prices were too high, let's say.
+
+810
+01:20:10,286 --> 01:20:15,600
+然后你就会回去修复那个特定的，呃，工具或者提示词，对，就这样。
+And then you would go back and fix that specific uh uh tool or prompt or yeah, okay.
+
+811
+01:20:15,760 --> 01:20:16,804
+还有别的想法吗？
+Any other ideas?
+
+812
+01:20:29,120 --> 01:20:29,600
+是的，很好。
+yeah, good.
+
+813
+01:20:29,680 --> 01:20:30,800
+这是一个很好的见解。
+So that's a good insight.
+
+814
+01:20:30,960 --> 01:20:41,028
+把 LLM 相关的内容和非 LLM 相关的内容，也就是确定性的内容分开，
+确定性的内容你可能能够更，呃，基本上是更客观地去修复它。
+Separate the LLM related stuff from the non-LLM related stuff, the deterministic stuff,
+the deterministic stuff you might be able to fix it uh you know more objectively, essentially.
+
+815
+01:20:41,550 --> 01:20:41,956
+是的。
+Yeah.
+
+816
+01:20:42,446 --> 01:20:44,228
+还有什么呢？
+There was what else?
+
+817
+01:20:56,750 --> 01:21:04,772
+所以给我举个你能察觉到的客观问题的例子，以及你如何修复它，再对比一个主观问题。
+So give me an example of an objective issue that you can notice and how you would fix it versus a subjective issue.
+
+818
+01:21:06,318 --> 01:21:06,560
+好的。
+Yeah.
+
+819
+01:21:16,160 --> 01:21:22,880
+好，假设有两个相同的航班，但其中一个比另一个便宜，假设这就是客观上更差的情况。
+Okay, so let's say you say there's the same flight, but one is cheaper than the other, let's say it's objectively worst.
+
+820
+01:21:23,040 --> 01:21:25,680
+所以你可以几乎自动地捕捉到这一点。
+And so you can capture that almost automatically.
+
+821
+01:21:25,840 --> 01:21:26,080
+是的。
+Yeah.
+
+822
+01:21:26,160 --> 01:21:32,400
+所以你实际上可以构建客观的评估，并在所有用户中进行追踪。
+So you could actually build evals that are objective, that are tracked across your users.
+
+823
+01:21:32,560 --> 01:21:43,440
+然后你可能在之后进行分析，发现对于客观问题，我们注
+意到我们的 LLM AI 智能体工作流在定价方面表现很差。
+And you might actually run an analysis after and see that for the objective stuff,
+we notice that our LLM AI agentic AI workflow is bad with pricing.
+
+824
+01:21:43,662 --> 01:21:47,600
+它就是没能很好地读取价格，因为它总是给出更贵的选项。
+It just doesn't read price as well because it always gives a more expensive option.
+
+825
+01:21:48,270 --> 01:21:49,440
+是的，你完全正确。
+Yeah, you're perfectly right.
+
+826
+01:21:49,600 --> 01:21:51,920
+那主观问题呢？
+How about the subjective stuff?
+
+827
+01:21:58,286 --> 01:21:58,692
+是的。
+Yeah.
+
+828
+01:21:59,310 --> 01:22:04,292
+比如，如果转机航班稍微便宜一点，你会选择直飞还是转机？
+Like do you choose a direct or indirect flight if the indirect is a little bit cheaper?
+
+829
+01:22:05,294 --> 01:22:05,920
+是的，好例子。
+Yeah, good one.
+
+830
+01:22:06,000 --> 01:22:12,240
+如果你选择直飞还是转机，如果转机更便宜但直飞更舒服呢？
+Do you do you choose a direct flight or an indirect flight if the indirect is cheaper but the direct is more comfortable?
+
+831
+01:22:12,880 --> 01:22:14,628
+是的，这其实是个很好的例子。
+yeah, that's a good one actually.
+
+832
+01:22:16,078 --> 01:22:18,560
+那你会如何捕捉到这个信息呢？
+so how would you capture that information?
+
+833
+01:22:18,720 --> 01:22:21,092
+假设这个被成千上万的用户使用。
+Let's say this is used by thousands of users.
+
+834
+01:22:23,600 --> 01:22:26,640
+嗯，你能输入一些关于用户偏好的信息吗？
+Um could you feed something in about the user preferences?
+
+835
+01:22:27,920 --> 01:22:30,080
+呃，你能输入点什么吗？
+Uh could you feed something in?
+
+836
+01:22:30,160 --> 01:22:36,080
+是的，我的意思是，你能……你能输入一些关于用户偏好的信息吗？
+Yeah, I mean you could you could uh could you feed something in uh about the user preferences?
+
+837
+01:22:36,366 --> 01:22:40,480
+嗯，你可以构建一个包含这些信息的数据集。
+Well, you could build a data set that has some of that information.
+
+838
+01:22:40,640 --> 01:22:50,560
+比如，你构建 10 个提示词，用户明确要求直飞，
+或者说我更倾向于直飞，因为我更在意我的时间。
+So you build 10 prompts where the user is asking specifically for direct is
+saying that I prefer direct flights because I care about my time, let's say.
+
+839
+01:22:51,022 --> 01:23:02,560
+然后你看输出结果，并给出一个好的输出示例，你可能
+就能捕捉到你的智能体工作流在这一特定评估中的表现。
+And then you look at the output and you actually give a good the example of a good output,
+and you probably are able to capture the performance of your agentic workflow on this specific eval.
+
+840
+01:23:03,040 --> 01:23:06,880
+它是否优先考虑了这些？它是否理解价格敏感？
+Whether does it prioritize, does it understand price conscious?
+
+841
+01:23:07,200 --> 01:23:10,052
+本质上，它是否考虑了价格敏感和舒适度？
+Is it price conscious essentially and comfort conscious?
+
+842
+01:23:10,638 --> 01:23:10,880
+是的。
+Yeah.
+
+843
+01:23:13,390 --> 01:23:14,320
+那语气呢？
+What about the tone?
+
+844
+01:23:14,480 --> 01:23:18,468
+假设，假设现在的 LLM 不是很友好。
+Let's say let's say the LLM right now is not very friendly.
+
+845
+01:23:18,830 --> 01:23:22,756
+你会怎么发现这一点，又怎么修复它？
+How would you notice that and how would you fix it?
+
+846
+01:23:33,070 --> 01:23:36,864
+好，让测试用户运行提示词，看看是不是出了什么问题。
+Okay, have a test user run the prompt and see if there's something wrong with that.
+
+847
+01:23:37,024 --> 01:23:38,064
+跟我说说最后一步。
+Tell me about the last step.
+
+848
+01:23:38,144 --> 01:23:40,100
+你会怎么发现出错了？
+How would you notice that something is wrong?
+
+849
+01:23:40,846 --> 01:23:50,884
+所以做几个测试，比如用一个 LLM 类别来评估响应，看看用户是否满意。
+So have a couple of tests like probably an LM class that would evaluate the response and see if it's like satisfied.
+
+850
+01:23:51,824 --> 01:23:53,424
+是的，我同意你的方法。
+Yeah, I agree with your approach.
+
+851
+01:23:53,584 --> 01:23:58,532
+使用 LLM 评判器，根据特定的礼貌评分标准来评估响应。
+Have LLM judges that evaluate the response against a certain rubric of what politeness looks like.
+
+852
+01:23:58,784 --> 01:24:02,724
+所以在这种情况下，你实际上可以从错误分析开始。
+So here in this case, you could actually start with error analysis.
+
+853
+01:24:02,944 --> 01:24:08,864
+也就是说，你开始时有 1000 个用户，你可以抽取出 20 个用户交互记录并通读一遍。
+So you start, you have a thousand users, and you know, you can pull up 20 user interaction and read through it.
+
+854
+01:24:09,038 --> 01:24:14,372
+你可能一眼就能发现 LLM 看起来非常粗鲁。
+And you might notice at first sight the LLM seems to be very rude.
+
+855
+01:24:14,574 --> 01:24:19,904
+你知道，它的回答超级、超级简短，而且没什么帮助。
+You know, it's just super, super short in its answers and it's not very helpful.
+
+856
+01:24:20,464 --> 01:24:23,184
+你通过手动错误分析发现了这一点。
+you notice that with your error analysis manually.
+
+857
+01:24:23,406 --> 01:24:24,544
+然后你进入下一个阶段。
+Then you go to the next stage.
+
+858
+01:24:24,624 --> 01:24:26,464
+你实际上在后面加上评估。
+You actually put evals behind it.
+
+859
+01:24:26,544 --> 01:24:40,388
+你说，我要创建一个 LLM 评判器集合，去查看用户交互
+并给它的礼貌程度打分，而且我会给它一个评分标准。
+You say, I'm going to create a set of um a set of uh LLM judges that are going to look at the user interaction and are going to rate
+how polite it is, and I'm going to give it a rubric.
+
+860
+01:24:40,686 --> 01:24:43,024
+然后我要做的就是更换我的 LLM。
+Then what I'm going to do is I'm going to flip my LLM.
+
+861
+01:24:43,104 --> 01:24:45,504
+我不使用 GPT-4，我要改用 Grok。
+Instead of using GPT-4, I'm going to use Grok.
+
+862
+01:24:45,870 --> 01:24:47,744
+而且我不用 Grok，我要用 Lama。
+And instead of using Grok, I'm gonna use Lama.
+
+863
+01:24:48,110 --> 01:25:02,464
+然后我会把这三个 LLM 并列运行，交给我的 LLM 评判
+器，最后拿到主观评分，看看哪个模型平均来说更礼貌。
+And then I'm going to run those three LLMs side by side, give it to my LLM judges, and
+then get my subjective score at the end to say, oh, X model was more polite on average.
+
+864
+01:25:02,606 --> 01:25:03,584
+没错，完全正确。
+Yeah, perfectly right.
+
+865
+01:25:03,664 --> 01:25:07,664
+这就是一个非常具体的评估例子，可以让你在不同的 LLM 之间做选择。
+That's an example of an eval that is very specific and allows you to choose between LLMs.
+
+866
+01:25:07,824 --> 01:25:12,704
+你实际上也可以做同样的评估，不是在不同 LLM 之间对比，而是固定 LLM，改变提示词。
+You could actually do the same eval, not across LLMs, but fix the LLM, change the prompt.
+
+867
+01:25:13,024 --> 01:25:22,464
+你实际上不用说「扮演一个旅游智能体」，而是说「扮演一个乐于助人的旅游智能体」，
+然后看看这个词对 LLM 评判器给出的评估结果有什么影响。
+You actually instead of saying act like a travel agent, you say act like a helpful travel agent,
+and then you see the influence of that word on your eval with the LLM as judges.
+
+868
+01:25:22,544 --> 01:25:23,172
+明白了吗？
+Does that make sense?
+
+869
+01:25:24,206 --> 01:25:24,464
+好的。
+Okay.
+
+870
+01:25:25,838 --> 01:25:26,224
+呃，太棒了。
+Uh super.
+
+871
+01:25:26,544 --> 01:25:32,944
+那我们继续往下走，做一个关于评估的案例研究，然后今天的课程就快结束了。
+So let's let's move forward and do a case study with evals, and then we're we're almost done for today.
+
+872
+01:25:33,104 --> 01:25:40,100
+呃，假设你的产品经理的经理要求你为客户支持构建一个 AI 智能体。
+Uh let's say your product manager's uh manager asks you to build an AI agent for customer support.
+
+873
+01:25:40,944 --> 01:25:42,704
+好，你会从哪里开始？
+Okay, where do you start?
+
+874
+01:25:42,864 --> 01:25:44,932
+这是用户提示词的一个例子。
+And here is an example of the user prompt.
+
+875
+01:25:45,184 --> 01:25:48,464
+我需要更改订单的送货地址，等等等等。
+I need to change my shipping address for order, blah blah blah.
+
+876
+01:25:48,624 --> 01:25:50,180
+我搬到新地址了。
+I move to a new address.
+
+877
+01:25:51,822 --> 01:25:55,104
+如果我把这个项目交给你，你会从哪开始？
+So what would you start if I'm giving you that project?
+
+878
+01:25:55,310 --> 01:25:55,584
+你知道的。
+You know.
+
+879
+01:26:04,718 --> 01:26:05,104
+是的。
+Yes.
+
+880
+01:26:16,270 --> 01:26:23,104
+好，先做些调研，看看基准测试，看看不同模型在客户支持方面的表现，然后选一个模型。
+Okay, so do some research, see benchmarks, and how different models perform at customer support, and then pick a model.
+
+881
+01:26:23,374 --> 01:26:23,984
+这就是你的意思。
+That's what you mean.
+
+882
+01:26:24,174 --> 01:26:25,904
+对，确实可以这样做。
+Yeah, you could it's true you could do that.
+
+883
+01:26:25,984 --> 01:26:27,744
+那还有什么别的做法？
+What what what else could you do?
+
+884
+01:26:28,046 --> 01:26:28,304
+对。
+Yeah.
+
+885
+01:26:34,464 --> 01:26:35,664
+好，我喜欢这个。
+Okay, yeah, I like that.
+
+886
+01:26:35,744 --> 01:26:45,024
+呃，尝试把它需要的不同任务进行分解，并试着预测哪些
+任务会更困难，哪些应该是模糊的，哪些应该是确定性的。
+Uh try to uh decompose the different tasks that it will need and try to guess which ones will be more of a struggle,
+which ones should be fuzzy, which ones should be deterministic.
+
+887
+01:26:45,104 --> 01:26:45,824
+对，你说得对。
+Yeah, you're right.
+
+888
+01:26:56,014 --> 01:26:59,984
+对，和你说的类似，这也是我推荐的做法。
+Yeah, similar to what you said, that's what I would recommend as well.
+
+889
+01:27:00,144 --> 01:27:05,744
+你说你会和客户支持人员一起待上一两天，然后分解他们正在处理的任务。
+You say I would sit down with a customer support agent for a day or two, and I would decompose the task they're going through.
+
+890
+01:27:05,824 --> 01:27:08,704
+我会问他们在哪方面感到困难，花了多少时间。
+I will ask them where do they struggle, how much time it takes.
+
+891
+01:27:08,910 --> 01:27:12,464
+是的，这通常是开始任务分解的最佳切入点。
+Yes, that's usually where you want to start with task decomposition.
+
+892
+01:27:12,624 --> 01:27:16,420
+假设我们已经完成了这些工作，现在有了这个列表。
+So let's say we've done that work and we have this list.
+
+893
+01:27:16,654 --> 01:27:17,504
+我把内容简化一下。
+I'm simplifying.
+
+894
+01:27:17,584 --> 01:27:27,184
+但是人工客服通常会先提取信息，然后在数据库中查找客户记录，接着核对政策。
+But the customer support agent, human, typically would extract info, then look
+up in the database to retrieve the customer record, then check the policy.
+
+895
+01:27:27,438 --> 01:27:31,824
+比如，我们是否被允许更新地址，还是说这是一个固定数据点？
+You know, are we allowed to update the address or is it a fixed data point?
+
+896
+01:27:31,984 --> 01:27:34,724
+嗯，然后起草回复邮件并发送邮件。
+Um, and then draft a response email and send the email.
+
+897
+01:27:35,374 --> 01:27:37,284
+好，所以我们已经完成了任务分解。
+Okay, so we've decomposed that task.
+
+898
+01:27:38,830 --> 01:27:45,412
+呃，一旦你完成了任务分解，呃，你该如何设计你的智能体工作流呢？
+Uh once you've decomposed that task, uh how do you design your agentic workflow?
+
+899
+01:28:04,069 --> 01:28:04,209
+是的，
+Yes,
+
+900
+01:28:17,838 --> 01:28:18,224
+没错。
+Exactly.
+
+901
+01:28:18,384 --> 01:28:31,264
+所以重复一遍，你要查看任务的分解，直观判断哪些是模
+糊的，哪些是确定性的，然后确定哪一环节将使用 LLM。
+So to repeat, you're going to look at the decomposition of tasks, get an instinct of what's fuzzy, what's deterministic,
+and then determine which line is going to be an LLM.
+
+902
+01:28:31,438 --> 01:28:38,384
+哪一个是一次性提示，哪一个可能需要 RAG，哪一个需要工具，哪一个需要记忆，哪一个。
+one shot, which one will require maybe a rag, which one will require a tool, which one will require memory, which one.
+
+903
+01:28:38,464 --> 01:28:41,824
+所以你会开始完整地设计那个地图，对吧。
+So you will start designing that map completely right.
+
+904
+01:28:41,904 --> 01:28:43,184
+这也是我推荐的做法。
+That's also what I would recommend.
+
+905
+01:28:43,264 --> 01:28:54,144
+你实际上可以先起草出来，然后说，好，我拿到用户的提示，嗯，
+我任务分解的第一步是提取信息。
+You might actually draft it and say, okay, I take the user prompt, um,
+and the first step of my task decomposition was extract information.
+
+906
+01:28:54,384 --> 01:28:57,424
+这看起来像是基础LLM。
+That seems to be a vanilla LLM.
+
+907
+01:28:57,984 --> 01:29:06,784
+你可以推测基础LLM可能足以提取出用户想更改地址，这是订单号，这是新地址。
+you can guess that the vanilla LLM would probably be good enough at extracting the user wants to change their address,
+and this is the order number, and this is the new address.
+
+908
+01:29:06,864 --> 01:29:10,544
+除了LLM之外，你可能不需要太多技术。
+You probably don't need too much technology there other than the LLM.
+
+909
+01:29:11,424 --> 01:29:20,356
+下一步，感觉你需要一个工具，因为你实际上需要去数据库中查询并更新地址。
+the next step, it feels like you need a tool because you're actually
+going to have to look up in the database and also update the address.
+
+910
+01:29:21,184 --> 01:29:30,180
+所以那可能是一个工具，你可能需要为LLM构建一个自定义工具，让它说，让我连接到那个数据库，
+或者让我通过MCP给你访问那个资源。
+So that might be a tool, and you might have to build a custom tool for the LLM to say,
+let me connect you to that database or let me give you access to that resource with an MCP.
+
+911
+01:29:32,846 --> 01:29:38,304
+在那之后，你可能又需要一个LLM来起草邮件，但你可能会粘贴确认信息。
+After that, you probably need an LLM again to draft the email, but you would probably paste confirmation.
+
+912
+01:29:38,464 --> 01:29:44,464
+你粘贴地址已从X更新为Y的确认信息，然后LLM就会起草答案。
+You paste the confirmation that your address has been updated from X to Y, and then the LLM will draft an answer.
+
+913
+01:29:44,544 --> 01:29:48,548
+当然，为了不遗漏，你可能还需要一个工具来发送邮件。
+And of course, just to not forget, you might need a tool to send the email.
+
+914
+01:29:49,006 --> 01:29:56,036
+你知道，你可能实际上需要，呃，你知道，发布点什么东西，让邮件发出。
+You know, you might actually need to uh you know post something to for the email to go out.
+
+915
+01:29:57,486 --> 01:29:58,628
+然后你就会得到输出。
+And then you'll get the output.
+
+916
+01:29:59,214 --> 01:29:59,744
+这讲得通吗？
+Does that make sense?
+
+917
+01:29:59,982 --> 01:30:01,664
+所以正是你描述的那样。
+So exactly what you described.
+
+918
+01:30:02,286 --> 01:30:03,904
+好，现在进入下一步。
+Okay, now moving to the next step.
+
+919
+01:30:03,984 --> 01:30:09,104
+一旦我们完成了任务分解，我们就围绕它设计了一个智能体工作流。
+Once we have decomposed our tasks, then we have designed an agentic workflow around it.
+
+920
+01:30:09,264 --> 01:30:10,544
+我们花了五分钟。
+It took us five minutes.
+
+921
+01:30:10,944 --> 01:30:13,424
+在实践中，如果你要基于此建立你的创业项目，那会花更多时间。
+In practice, it would take you more if you're building your startup on that.
+
+922
+01:30:13,504 --> 01:30:24,840
+你要确保任务分解是准确的，这里的逻辑是准确的，然后你就可以针对每个工具进行大量工作，
+优化延迟和成本。但假设现在我们要知道它是否有效，你懂的。
+You want to make sure your task decomposition is accurate, your thing is accurate here,
+and then you can have a lot of work done on every tool and optimize it and latency and cost But let's say,
+
+923
+01:30:24,840 --> 01:30:27,664
+你要确保任务分解是准确的，这里的逻辑是准确的，然后你就可以针对每个工具进行大量工作，
+优化延迟和成本。但假设现在我们要知道它是否有效，你懂的。
+and now we want to know how if it works, you know.
+
+924
+01:30:27,854 --> 01:30:31,024
+我假设你拥有 LLM 链路追踪。
+And I'm going to assume that you have LLM traces.
+
+925
+01:30:31,184 --> 01:30:33,104
+LLM 链路追踪非常重要。
+LLM traces are very important.
+
+926
+01:30:33,550 --> 01:30:40,784
+实际上，如果你去参加 AI 初创公司的面试，我建议
+你在面试过程中问他们：你们有 LLM 链路追踪吗？
+Actually, if you're interviewing with an AI startup, I would recommend
+you in the interview process to ask them, do you have LLM traces?
+
+927
+01:30:40,944 --> 01:30:52,144
+因为如果没有 LLM 链路追踪，调试 LLM 系统就非常困难，
+因为你无法看到调用的一系列复杂提示词的链条，也找不到 Bug 在哪。
+Because if they don't have LLM traces, it is pretty hard to debug an LLM system, you know,
+because you don't have visibility on the chain of complex prompts that were called and where the bug is.
+
+928
+01:30:52,304 --> 01:30:59,908
+所以，拥有 LLM 链路追踪是 AI 初创公司技术栈中的基础部分。
+And you know, so it's a basic sort of part of an AI startup stack to have LLM traces.
+
+929
+01:31:00,704 --> 01:31:02,544
+所以假设你有了链路追踪。
+So let's assume you have traces.
+
+930
+01:31:02,784 --> 01:31:04,784
+你该如何知道你的系统是否有效？
+How would you know if your system works?
+
+931
+01:31:04,944 --> 01:31:10,464
+你知道，我，我，你知道，我要总结一下我之前听到的一些内容。
+You know, we I I you know, I'm going to summarize some of the things I heard earlier.
+
+932
+01:31:11,374 --> 01:31:15,424
+你给我们举了一个端到端的指标例子。
+you gave us an example of an end-to-end uh metric.
+
+933
+01:31:15,504 --> 01:31:17,984
+你在最后看用户满意度。
+You look at the user satisfaction at the end.
+
+934
+01:31:18,384 --> 01:31:31,984
+你也可以采用基于组件的方法，也就是实际查看工具、数据库更新，然后手动进行错误分析，
+看看，哦，工具实际上总是忘记更新邮件。
+you can also do a component-based approach where you actually will look at the tool, the database updates,
+and you will manually do an error analysis and see, oh, the tool actually always forgets to update the email.
+
+935
+01:31:32,064 --> 01:31:33,744
+它只是在写入时失败了，你懂的。
+It just fails at writing, you know.
+
+936
+01:31:33,824 --> 01:31:34,784
+那我就去修复它。
+And I'm going to fix that.
+
+937
+01:31:34,864 --> 01:31:36,944
+这基本上是确定性的。
+This is deterministic, pretty much.
+
+938
+01:31:37,584 --> 01:31:46,784
+或者，你知道，当它尝试发送邮件并通知负责发送邮件的系统时，它没有以正确的格式发送。
+or you know, when it tries to send the email and ping the system that
+is supposed to send the email, it doesn't send it in the right format.
+
+939
+01:31:46,894 --> 01:31:48,612
+所以它就在那个点出 Bug 了。
+And so it bugs at that point.
+
+940
+01:31:48,878 --> 01:31:50,464
+同样，你也可以修复那个。
+Again, you could fix that.
+
+941
+01:31:51,438 --> 01:31:52,384
+邮件草稿。
+draft of the email.
+
+942
+01:31:52,464 --> 01:31:56,164
+LLM 做得不是很好，在起草邮件时不够礼貌。
+The LLM doesn't do a great job, it's not very polite at drafting the email.
+
+943
+01:31:56,398 --> 01:32:02,224
+你知道，所以你可以逐个组件地查看，这实际上比端到端地查看更容易调试。
+You know, so you could look at component by component, and it's actually easier to debug than to look at it end to end.
+
+944
+01:32:02,318 --> 01:32:03,824
+你可能两种方法都会结合使用。
+You probably do a mix of both.
+
+945
+01:32:05,806 --> 01:32:10,400
+另一种看待方式是区分什么是客观的，什么是主观的。
+Another way to look at it is what is objective versus what is subjective.
+
+946
+01:32:10,560 --> 01:32:17,924
+例如，一个客观的例子是 LLM 提取了错误的订单 ID。
+So for example, an objective example would be a DLLM extracted the wrong order ID.
+
+947
+01:32:18,286 --> 01:32:26,160
+你知道，用户说我的订单 ID 是 X，而 LLM 在实际粘贴并查询数据库时，使用了错误的订单 ID。
+You know, the user said my order ID is X, and DLLM, when it actually pasted uh looked up in the database, it used the wrong order ID.
+
+948
+01:32:26,320 --> 01:32:27,680
+这是客观上的错误。
+This is objectively wrong.
+
+949
+01:32:27,840 --> 01:32:37,220
+你实际上可以写一段 Python 代码来检查这一点，检查用户提到
+的内容与实际粘贴到数据库或用于查询的内容之间的对齐情况。
+You can actually write a Python code that checks that, checks just the alignment between
+what the user mentioned and what was actually pasted in the database or for the lookup.
+
+950
+01:32:38,080 --> 01:32:44,080
+你还有我们讨论过的客观指标，其中你可能需要进行人工评分或使用 LLM 作为评判者。
+You also have subjective stop, which we talked about, where you probably want to do either human rating or LLM as judges.
+
+951
+01:32:44,160 --> 01:32:48,004
+这对于主观评估非常相关。
+It's very relevant for subjective evals.
+
+952
+01:32:49,440 --> 01:32:56,000
+最后，你会发现自己既有定量评估，也有更多定性的评估。
+And finally, you will find yourself having quantitative evals and more qualitative evals.
+
+953
+01:32:56,080 --> 01:32:59,940
+所以定量评估就是成功更新地址的百分比。
+So quantitative would be percentage of successful address updates.
+
+954
+01:33:00,320 --> 01:33:05,380
+延迟方面，你实际上可以按组件追踪延迟，看看哪个环节最慢。
+the latency, you could actually track the latency component-based and see which one is the slowest.
+
+955
+01:33:05,742 --> 01:33:07,920
+假设发送邮件需要五秒钟。
+Let's say sending the email is five seconds.
+
+956
+01:33:08,960 --> 01:33:09,520
+这太长了。
+it's too long.
+
+957
+01:33:09,600 --> 01:33:12,836
+假设你会注意到是某个组件的问题，还是整个工作流的问题。
+Let's say you would notice component-based or the full workflow.
+
+958
+01:33:13,120 --> 01:33:17,380
+然后你就会决定在哪里优化延迟，以及该如何优化。
+And then you will decide where am I optimizing my latency and how am I going to do that.
+
+959
+01:33:17,680 --> 01:33:26,916
+最后是定性评估，你可能会做一些错误分析，看看，你知道的，幻觉出现在哪里？
+And then finally, qualitative, you might actually do some error analysis and look at you know, where are the hallucinations?
+
+960
+01:33:27,920 --> 01:33:30,660
+语气不匹配出现在哪里？
+where are the tone mismatches?
+
+961
+01:33:31,040 --> 01:33:34,800
+呃，你知道的，用户是否感到困惑，以及他们被什么搞糊涂了？
+Uh, you know, are the user confused and by what they're confused?
+
+962
+01:33:34,880 --> 01:33:41,604
+你知道的，这些更偏向定性，通常需要更……呃，更精细的手段来完成。
+You know, that would be more qualitative, and typically it would take more um uh you know, white glove approaches to do that.
+
+963
+01:33:42,320 --> 01:33:44,480
+好，这就是它可能呈现的样子。
+Okay, so here's what it could look like.
+
+964
+01:33:44,640 --> 01:33:58,916
+我给了一些例子，但你会构建评估体系，从客观、主观、基于组件、端到端，
+以及定量和定性等维度，来判断你的 LLM 在哪里失败了，又在哪些地方表现良好。
+I gave you some examples, but you would build evals to determine objectively, subjectively, component-based, end-to-end based,
+and then quantitatively and qualitatively where is your LLM failing and where it's doing well.
+
+965
+01:34:02,798 --> 01:34:08,100
+这是否让你对如何改进那个智能体工作流的操作有了点概念？
+Does that give you a sense of the type of stuff you could do to fix improve that agentic workflow?
+
+966
+01:34:09,840 --> 01:34:10,400
+太棒了。
+Super.
+
+967
+01:34:10,734 --> 01:34:12,359
+好了，这就是我们关于评估的案例研究。
+Well, that was our case study on evals.
+
+968
+01:34:12,560 --> 01:34:24,292
+我们不会深入探讨它，但希望它让你对使用 LLM 评判器，以及客观、主观、基于组件、
+端到端等方面的操作有了大致了解。
+We're not going to delve deeper into it, but hopefully it gave you a sense of the type of stuff you can do with LLM judges,
+with you know objective, subjective, component-based, end-to-end, etc.
+
+969
+01:34:25,294 --> 01:34:28,132
+呃，最后一部分是关于多智能体工作流。
+Uh, last section on multi-agent workflows.
+
+970
+01:34:29,120 --> 01:34:42,400
+所以你可能会问，嘿，既然工作流已经包含多个步骤、已经多次调用 LLM、
+并且已经给它们提供了工具，那为什么还需要多智能体工作流呢？
+So you might you might ask hey, why do we need a multi-agent workflow when we are when the workflow already has multiple steps,
+already calls the LLM multiple times, already gives them tools?
+
+971
+01:34:42,480 --> 01:34:44,960
+为什么需要多个智能体？
+Why do we need multiple agents?
+
+972
+01:34:45,120 --> 01:34:47,748
+现在网上很多人都在谈论多智能体系统。
+And so many people are talking about multi agent system online.
+
+973
+01:34:47,840 --> 01:34:48,960
+坦白说，这甚至不是什么新事物。
+It's not even a new thing, frankly.
+
+974
+01:34:49,040 --> 01:34:51,600
+我的意思是，多智能体系统已经存在很久了。
+I mean, multi-agent systems have been around for a long time.
+
+975
+01:34:52,480 --> 01:34:57,280
+多智能体系统的主要优势在于并行性。
+the main advantage of a multi-agent system is going to be parallelism.
+
+976
+01:34:57,454 --> 01:35:07,200
+就像是，有没有什么东西是我希望能并行运行、相对独立运行，但中间可能有一些同步点？
+It's like, is there something that I wish I would run in parallel, sort of independently,
+but maybe there are some sinks in the middle?
+
+977
+01:35:07,440 --> 01:35:09,840
+但那正是你想部署多智能体系统的地方。
+but that's where you want to put a multi-agent system.
+
+978
+01:35:10,000 --> 01:35:12,080
+就是当它是并行的时候。
+It's when it's parallel.
+
+979
+01:35:12,334 --> 01:35:18,756
+一些公司在多智能体系统上的另一个优势是，智能体是可以复用的。
+The other advantage that some companies have with multi-agent system is an agent can be reused.
+
+980
+01:35:19,310 --> 01:35:26,948
+比如在一家公司里，如果你有一个为设计部门构建的智能体，
+那个智能体也可以给营销团队用，也可以给产品团队用。
+So let's say in a company you have an agent that's been built for design, that
+agent can be used in the marketing team and it can be used in the product team.
+
+981
+01:35:27,840 --> 01:35:36,000
+这样一来，你就在优化一个拥有多个利益相关者的智能体，
+他们可以与其交流并从它的性能中获益。
+and so now you're optimizing an agent which has multiple stakeholders that can communicate with it and benefit from its performance.
+
+982
+01:35:38,670 --> 01:35:42,880
+实际上，我要问大家一个问题，请花一分钟左右思考一下。
+actually, I'm going to ask you a question and take a few maybe a minute to think about it.
+
+983
+01:35:43,040 --> 01:35:49,220
+假设你要为你的公寓或房子构建智能家居自动化系统。
+Let's say you were building smart home automation for your apartment or your home.
+
+984
+01:35:50,222 --> 01:35:51,748
+你会想构建哪些智能体？
+What agents would you want to build?
+
+985
+01:35:52,782 --> 01:36:00,000
+是的，把它写下来，然后我会在一分钟后请你分享一些你打算构建的智能体。
+Yeah, write it down, and then I'm going to ask you in a minute to share some of the agents that you will build.
+
+986
+01:36:00,320 --> 01:36:07,460
+另外，思考一下你打算如何在这些智能体之间建立层级，
+或者你打算如何组织它们，或者谁应该和谁进行沟通。
+Also, think about how you would put a hierarchy between these agents
+or how you would organize them or who should communicate with who.
+
+987
+01:36:07,790 --> 01:36:08,080
+好吗？
+Okay?
+
+988
+01:36:08,526 --> 01:36:10,020
+好的，花一分钟时间思考一下。
+Okay, take a minute for that.
+
+989
+01:36:12,160 --> 01:36:17,284
+发挥点创意，因为我要问出你们所有的智能体，也许你有一个没人想到的智能体。
+Be creative, also, because I'm gonna ask all of your agents, and maybe you have an agent that nobody has thought of.
+
+990
+01:36:21,712 --> 01:36:23,632
+好了，我们开始吧。
+Okay, let's get started.
+
+991
+01:36:24,174 --> 01:36:28,580
+谁想给我展示一下你想要为家里准备的一套智能体？
+Who wants to give me a set of agents that you would want for your home?
+
+992
+01:36:28,878 --> 01:36:29,540
+智能家居。
+Smart home.
+
+993
+01:36:29,872 --> 01:36:30,180
+是的。
+Yes.
+
+994
+01:37:00,672 --> 01:37:02,032
+好的，让我重复一下。
+Okay, so let me repeat.
+
+995
+01:37:05,134 --> 01:37:12,388
+一个追踪生物特征的，比如你在家里的什么位置，你在移动到哪里，你怎么移动，诸如此类的。
+One that tracks biometric, like you're where are you in the home, where are you moving, how you're moving, things like that.
+
+996
+01:37:12,814 --> 01:37:14,752
+那个大概知道你的位置。
+That sorts of knows your location.
+
+997
+01:37:15,214 --> 01:37:23,012
+第二个是确定房间的温度，并且有能力改变温度。
+The second one determines the temperature of the rooms and has the ability to change it.
+
+998
+01:37:23,950 --> 01:37:30,992
+第三个是追踪能源效率，可能会提供关于能源和能源使用的反馈。
+The Third one tracks energy efficiency and might be feedback on energy and energy usage.
+
+999
+01:37:31,072 --> 01:37:34,752
+它可能，我不知道，也许它也拥有对温度的控制权。
+It might be, I don't know, maybe it has the control over the temperature as well.
+
+1000
+01:37:34,912 --> 01:37:36,032
+我其实也不知道。
+I don't know actually.
+
+1001
+01:37:36,432 --> 01:37:39,232
+或者是煤气或者水。
+Or the gas or the water.
+
+1002
+01:37:39,712 --> 01:37:41,792
+可能在某个时刻切断你的水。
+might cut your water at some point.
+
+1003
+01:37:42,192 --> 01:37:44,832
+呃，然后你有一个编排器智能体。
+Uh the and then you have an orchestrator agent.
+
+1004
+01:37:44,912 --> 01:37:46,756
+编排器具体在做什么？
+What is exactly the orchestrator doing?
+
+1005
+01:37:53,472 --> 01:37:54,832
+好的，传递指令。
+Okay, passes instructions.
+
+1006
+01:37:54,992 --> 01:37:59,152
+所以那是主要与用户沟通的智能体吗？
+So is that the agent that communicates mainly with the user?
+
+1007
+01:38:00,046 --> 01:38:09,792
+好的，如果我正要回到家，我说我想让烤箱预热，我就与编排器沟通，
+然后它会将其分发给另一个智能体。
+Okay, so if I have I'm coming back home and I'm saying I want the oven to be preheated,
+I communicate with the orchestrator and then it would funnel to another agent.
+
+1008
+01:38:09,952 --> 01:38:10,272
+好的。
+Okay.
+
+1009
+01:38:10,670 --> 01:38:11,472
+听起来不错，对吧？
+Sounds good, yeah?
+
+1010
+01:38:11,632 --> 01:38:17,828
+所以这是一个，我想说，一个层级式的多智能体系统的例子。
+So that's an example of a, I want to say a hierarchical um agent multi-agent system.
+
+1011
+01:38:19,854 --> 01:38:21,312
+嗯，还有什么？
+Um what else?
+
+1012
+01:38:21,582 --> 01:38:22,432
+还有别的想法吗？
+Any other ideas?
+
+1013
+01:38:22,512 --> 01:38:23,844
+你还会增加点什么？
+What would you add to that?
+
+1014
+01:38:24,206 --> 01:38:24,592
+嗯。
+Yeah.
+
+1015
+01:38:55,406 --> 01:38:56,112
+噢，我喜欢这个。
+Oh, I like that.
+
+1016
+01:38:56,192 --> 01:38:57,232
+这个真的很不错。
+That's a really good one.
+
+1017
+01:38:57,454 --> 01:38:58,752
+那让我总结一下。
+So let me summarize.
+
+1018
+01:38:58,990 --> 01:39:02,992
+你有一个安全智能体，用来判断你是否可以进入。
+You have a security agent that determines if you can enter or not.
+
+1019
+01:39:03,214 --> 01:39:16,080
+当你进入时，它能识别你的身份，然后给你授予特定的权限，
+这些权限可能因你是家长还是孩子而异，或者你知道，你可能可以进入某些车但不能进入其他的，
+And when you enter, it understands who you are, and then it gives you certain sets of permissions that might be different depending on
+if you're a parent or a kid, or you know, you might have access to certain cars and not
+
+1020
+01:39:16,080 --> 01:39:16,180
+或者孩子不能打开冰箱，或者我不知道，就是类似这样的东西。
+And when you enter, it understands who you are, and then it gives you certain sets of permissions that might be different depending on
+if you're a parent or a kid, or you know, you might have access to certain cars and not
+
+1021
+01:39:16,180 --> 01:39:21,232
+或者孩子不能打开冰箱，或者我不知道，就是类似这样的东西。
+others, or the kid cannot open the fridge, or I don't know, like something like that.
+
+1022
+01:39:21,312 --> 01:39:21,552
+对。
+Yeah.
+
+1023
+01:39:21,792 --> 01:39:23,152
+或者好，我喜欢这个。
+Or okay, I like that.
+
+1024
+01:39:23,232 --> 01:39:23,872
+这个不错。
+That's a good one.
+
+1025
+01:39:23,952 --> 01:39:24,192
+对。
+Yeah.
+
+1026
+01:39:24,272 --> 01:39:32,112
+而且感觉这确实是一个足够复杂的流程，你想为它绑定一个特定的工作流。
+And it does feel like it's a complex enough workflow where you want a specific workflow tied to that.
+
+1027
+01:39:32,272 --> 01:39:33,348
+我同意。
+I agree.
+
+1028
+01:39:35,072 --> 01:39:35,780
+还有别的吗？
+what else?
+
+1029
+01:39:39,822 --> 01:39:40,032
+是的。
+Yes.
+
+1030
+01:39:40,558 --> 01:39:50,592
+嗯，环境相关的 stuff 会更复杂，所以买任何带 AMU 的东西，但你可以看到你想要的东西。
+Well, the ambient stuff would be like more complicated, so buy anything with AMU, but you can see what you want.
+
+1031
+01:40:12,942 --> 01:40:14,144
+嗯，其实这个真的很棒。
+Well, that's really good, actually.
+
+1032
+01:40:14,304 --> 01:40:16,064
+所以你提到了其中的两个。
+So you mentioned two of them.
+
+1033
+01:40:16,304 --> 01:40:32,864
+一个是可能拥有访问外部 API 权限的智能体，它可以了解外面的天气、风力、阳光，
+然后还能控制家里的某些设备，比如温度、百叶窗之类的，并且还能了解你的偏好。
+One is maybe an agent that has access to external APIs that can understand the weather out there, the wind, the sun,
+and then has control over certain devices at home, temperature, blinds, things like that, and also understand your preferences for it.
+
+1034
+01:40:33,104 --> 01:40:40,064
+这确实感觉是个很好的用例，因为你可以把它交给编排器，
+但它可能会因为承担太多任务而失去重心。
+That does feel like it's a good use case because you could give that to the orchestrator,
+but it might lose itself because it's doing too much.
+
+1035
+01:40:40,224 --> 01:40:49,424
+所以你可能……而且这些问题是相互关联的，比如通过天气
+API 获取的室外温度可能会影响你想要的室内温度等等。
+So you probably, and also these problems are tied together, like temperature outdoor
+with the weather API might influence the temperature inside, how you want it, etc.
+
+1036
+01:40:49,664 --> 01:40:50,064
+我同意。
+I agree.
+
+1037
+01:40:50,318 --> 01:41:03,790
+然后第二个，我也很喜欢，是你可能有一个智能体来查看你的冰箱以及里面有什么，例如，
+它可能真的有权访问冰箱里的摄像头，了解你的偏好，
+And then the second one, which I also like, is you might have an agent that looks at your fridge and what's inside,
+and it might actually have access to the camera in the fridge, for example, and know your preferences,
+
+1038
+01:41:03,790 --> 01:41:03,940
+然后第二个，我也很喜欢，是你可能有一个智能体来查看你的冰箱以及里面有什么，例如，
+它可能真的有权访问冰箱里的摄像头，了解你的偏好，
+and also has access to the e-commerce API to order Amazon groceries ahead of time.
+
+1039
+01:41:03,940 --> 01:41:08,944
+并且还能访问电子商务 API 来提前订购 Amazon 的杂货。
+and also has access to the e-commerce API to order Amazon groceries ahead of time.
+
+1040
+01:41:09,424 --> 01:41:10,064
+我同意。
+I agree.
+
+1041
+01:41:10,224 --> 01:41:17,504
+而且也许编排器是与用户沟通的线路，但它可能会与那个智能体进行通信以完成任务。
+And maybe the orchestrator will be the communication line with the user,
+but it might communicate with that agent in order to get it done.
+
+1042
+01:41:18,064 --> 01:41:19,024
+对，我喜欢这些。
+yeah, I like those.
+
+1043
+01:41:19,104 --> 01:41:21,344
+所以这些都是非常好的例子。
+So those are all really good examples.
+
+1044
+01:41:21,744 --> 01:41:25,024
+这是我上面列出的清单。
+here is the list I had up there.
+
+1045
+01:41:25,424 --> 01:41:35,344
+所以有气候控制、照明、安全、能源管理、娱乐、
+通知智能体、系统更新警报、节能，还有编排器。
+So climate control, lighting, security, energy management, entertainment,
+notification agent, alerts about the system updates, energy saving, and orchestrator.
+
+1046
+01:41:35,424 --> 01:41:37,424
+所以你提到的其实全都在里面。
+So all of them you mentioned actually.
+
+1047
+01:41:37,984 --> 01:41:48,464
+然后我们还没聊到不同的交互模式，但组织多智能
+体系统确实有不同的方式，比如扁平式和层级式。
+and then we didn't talk about the different interaction patterns, but you
+do have different ways to organize a multi-agent system, flat, hierarchical.
+
+1048
+01:41:48,624 --> 01:41:51,984
+听起来这应该是层级式的，我同意。
+It sounds like this would be hierarchical, I agree.
+
+1049
+01:41:52,144 --> 01:42:01,264
+原因在于 UIUX 方面，我更倾向于只和编排器交流，而不是为了做某件事而去专门的应用里。
+And the reason is UIUX is I would rather have to only talk to the orchestrator
+rather than have to go to a specialized application to do something.
+
+1050
+01:42:01,454 --> 01:42:04,224
+看起来编排器可以负责那部分工作。
+Like it seems like the orchestrator could be responsible for that.
+
+1051
+01:42:04,384 --> 01:42:08,064
+所以我同意，这里我可能会选择层级式的架构。
+And so I agree, I would probably go for a hierarchical setup here.
+
+1052
+01:42:08,304 --> 01:42:14,784
+但也许你也可以在其他智能体之间增加一些连接，就像在全连接的扁平式系统中那样。
+But maybe you might also add some connections between other agents, like in the flat system where it's all-to-all.
+
+1053
+01:42:15,184 --> 01:42:21,664
+例如，在气候控制和能源方面，如果你想把这两个连接起来，你实际上可以允许它们互相交流。
+For example, with climate control and energy, if you want to connect
+those two, you might actually allow them to speak with each other.
+
+1054
+01:42:21,904 --> 01:42:26,784
+顺便说一下，当你允许智能体互相交流时，这基本上就是 MCP 协议。
+When you allow agents to speak with each other, it is basically an MCP protocol, by the way.
+
+1055
+01:42:27,024 --> 01:42:30,384
+所以你把智能体当成一个工具，就像一个工具一样。
+So you treat the agent like a tool, exactly like a tool.
+
+1056
+01:42:30,544 --> 01:42:36,388
+基本上就是：这是你如何与这个智能体交互，这是它能告诉你什么，这是它需要你提供什么。
+Here is how you interact with this agent, here is what it can tell you, here is what it needs from you, essentially.
+
+1057
+01:42:37,454 --> 01:42:38,464
+好的，太棒了。
+Okay, super.
+
+1058
+01:42:38,862 --> 01:42:47,584
+然后不用深入细节的话，多智能体工作流相比于单智能体有一些优势，比如调试。
+And then without going into the details, there are advantages to
+multi-agent workflows versus uh you know single agents, such as debugging.
+
+1059
+01:42:47,664 --> 01:42:52,544
+调试一个专门的智能体比调试整个系统要容易得多。
+It's easier to debug a specialized agent than to debug an entire system.
+
+1060
+01:42:52,864 --> 01:42:58,784
+还有并行化，让事情并行运行更容易，而且你可以节省时间。
+Parallelization as well, it's easier to have things run in parallel and you can earn time.
+
+1061
+01:42:58,944 --> 01:43:04,388
+嗯，这样做有一些优势，如果你们想深入了解，我就把幻灯片留给你们。
+Um, you know, there are some advantages to doing that, and I leave you with the slide if you want to go deeper.
+
+1062
+01:43:04,784 --> 01:43:05,264
+太棒了。
+Super.
+
+1063
+01:43:05,344 --> 01:43:14,384
+所以我们已经学习了这么多优化 LLM 的技术，从提示
+词到链式调用，到微调、检索，以及多智能体系统。
+So we've learned so many techniques to optimize LLMs from prompts to
+chains to fine-tuning, retrieval, and to multi-agent system as well.
+
+1064
+01:43:14,606 --> 01:43:19,140
+最后我想让你们关注几个趋势。
+And then just to end on a couple of trends I want you to watch.
+
+1065
+01:43:19,504 --> 01:43:21,104
+我想下周是感恩节。
+I think next week is Thanksgiving.
+
+1066
+01:43:21,184 --> 01:43:21,424
+就这些了吗？
+Is that it?
+
+1067
+01:43:21,504 --> 01:43:22,628
+是感恩节假期吗？
+Is Thanksgiving break?
+
+1068
+01:43:22,958 --> 01:43:23,824
+不，是再往后一周。
+No, the week after.
+
+1069
+01:43:23,984 --> 01:43:24,304
+好的。
+Okay.
+
+1070
+01:43:24,464 --> 01:43:26,064
+嗯，就在感恩节假期之前。
+Well, ahead of the Thanksgiving break.
+
+1071
+01:43:26,144 --> 01:43:28,304
+所以如果你在旅途中，你可以思考一下这些事情。
+So if you're traveling, you can think about these things.
+
+1072
+01:43:29,422 --> 01:43:31,344
+接下来是 AI 领域的情况。
+what's next is in AI.
+
+1073
+01:43:31,566 --> 01:43:33,744
+我想提几个趋势。
+I wanted to call out a couple of trends.
+
+1074
+01:43:34,144 --> 01:43:45,664
+所以 Ilya Sutskever，作为 LLM 的元老之一，也就是 OpenAI 的联合创始人，
+提出了一个关于我们是否正在进入平台期的问题。
+so Ilias Iskever, one of the OGs of uh uh you know LLM's and you know,
+OpenAI co-founder raised that question about are we plateauing or not?
+
+1075
+01:43:45,824 --> 01:43:54,464
+也就是说，问题是，在未来的几年里，我们是否会看到 LLM 的进步速度不如过去那么快？
+You know, the question of are we going to see in the coming years LLM sort of not improve as fast as we've seen in the past?
+
+1076
+01:43:54,784 --> 01:44:07,010
+社区里可能有一种感觉，就是你知道，最后一个版本的 GPT 没有达到人们预期的性能水平，
+尽管它确实让消费者更容易使用，因为你不需要与不同的模型交互，它们都在同一个引擎下运行。
+It's been the feeling in the community probably that you know the last version of GPT did not bring the level of performance that
+people were expecting, although it did make it so much easier to use for consumers
+
+1077
+01:44:07,010 --> 01:44:12,144
+社区里可能有一种感觉，就是你知道，最后一个版本的 GPT 没有达到人们预期的性能水平，
+尽管它确实让消费者更容易使用，因为你不需要与不同的模型交互，它们都在同一个引擎下运行。
+because you don't need to interact with different models, it's all under the same hood.
+
+1078
+01:44:12,366 --> 01:44:16,784
+所以看起来是在进步，但平台期尚不明确。
+So it seems that it's progressing, but the plateau is unclear.
+
+1079
+01:44:17,184 --> 01:44:28,192
+我的想法是，LLM 缩放定律告诉我们，如果我们继续提高算力和能源，那么 LLM 就应该继续进步。
+The way I would think about it is the LLM scaling laws tell us that if we
+continue to improve compute and energy, then LLMs should continue to improve.
+
+1080
+01:44:28,352 --> 01:44:29,872
+但在某个时刻，它就会进入平台期。
+But at some point it's gonna plateau.
+
+1081
+01:44:29,952 --> 01:44:31,952
+那么，是什么能带我们进入下一步？
+So what's going to take us to the next step?
+
+1082
+01:44:32,352 --> 01:44:34,672
+可能就是架构搜索。
+it's probably architecture search.
+
+1083
+01:44:35,182 --> 01:44:40,112
+尽管我们可能不了解内部原理，但目前很多 LLM 仍然是基于 Transformer 的。
+Still, a lot of LLMs, even if we don't understand what's under the hood, are probably transformer-based today.
+
+1084
+01:44:40,352 --> 01:44:43,392
+但我们知道人类大脑的运作方式并非如此。
+But we know that the human brain does not operate the same way.
+
+1085
+01:44:43,552 --> 01:44:47,552
+有些事情我们做得更高效、更快。
+There's just certain things that we do that are much more efficient, much faster.
+
+1086
+01:44:47,712 --> 01:44:49,072
+我们不需要那么多数据。
+We don't need as much data.
+
+1087
+01:44:49,232 --> 01:44:54,432
+所以从理论上讲，在架构搜索方面，我们还有很多尚未解决的问题。
+So theoretically, we have so much to learn in terms of architecture search that we haven't figured out.
+
+1088
+01:44:54,766 --> 01:44:58,752
+所以看到那些实验室雇佣这么多工程师并不奇怪。
+It's not a surprise that you see those labs hire so many engineers.
+
+1089
+01:44:59,072 --> 01:45:11,360
+因为在接下来的几年里，可能有成千上万名工程师在尝试寻找各种工程上的技巧、
+策略和架构搜索，来促成更好的模型，而其中某个人可能会突然发现下一个 Transformer，
+Because it is possible that in the next few years, you're going to have thousands of engineers trying to figure out the different
+engineering hacks and tactics and architectural searches that are going to lead to better models,
+
+1090
+01:45:11,360 --> 01:45:14,710
+因为在接下来的几年里，可能有成千上万名工程师在尝试寻找各种工程上的技巧、
+策略和架构搜索，来促成更好的模型，而其中某个人可能会突然发现下一个 Transformer，
+and one of them suddenly will find the next transformer and it will reduce by 10x the need for compute and the need for energy.
+
+1091
+01:45:14,710 --> 01:45:18,032
+从而将算力和能源的需求降低 10 倍。
+and one of them suddenly will find the next transformer and it will reduce by 10x the need for compute and the need for energy.
+
+1092
+01:45:18,432 --> 01:45:28,964
+你知道，就像如果你读过艾萨克·阿西莫夫的《基地》系列，
+个人的决策就能对未来产生巨大的影响。
+you know, it's sort of if you've read Isaac Asimov's foundation series,
+individuals can have an amazing impact on the future because of their decisions.
+
+1093
+01:45:29,358 --> 01:45:34,992
+你知道，谁发现了 Transformer，谁就对 AI 的发展方向产生了巨大的影响。
+You know, whoever discovered transformers had a tremendous impact on the direction of AI.
+
+1094
+01:45:35,152 --> 01:45:47,312
+我认为在未来几年，我们会看到更多这样的情况，即某些快速迭代的研究小组可能会发现某些事
+物，突然突破那个平台期，带我们进入下一步，并且以此类推继续进步。
+I think we're going to see more of that in the coming years, where some group of researchers that is iterating fast might discover
+certain things that would suddenly unlock that plateau and take us to the next step, and it's going to continue to improve like that.
+
+1095
+01:45:47,472 --> 01:45:55,152
+所以现在有很多公司雇佣工程师来研究这些技巧和技术，这并不让我感到意外。
+And so it doesn't surprise me that there's so many companies hiring
+engineers right now to figure out those hacks and those techniques.
+
+1096
+01:45:56,272 --> 01:45:59,392
+我们可能看到的另一类收益来自于多模态。
+the other set of gains that we might see is from multimodality.
+
+1097
+01:45:59,552 --> 01:46:06,592
+所以思考方式是，我们先有了基于文本的 LLM，然后加入了图像。
+So the way to think about it is we've we've we've had LLMs first, text-based, and then we've added imaging.
+
+1098
+01:46:06,752 --> 01:46:10,592
+而今天，你知道，模型在图像方面表现很好，在文本方面也表现很好。
+And today, you know, models are very good at images, they're very good at text.
+
+1099
+01:46:10,832 --> 01:46:15,472
+结果证明，擅长图像和擅长文本会让整个模型变得更好。
+Turns out that being good at images and being good at text makes the whole model better.
+
+1100
+01:46:15,632 --> 01:46:21,220
+所以，如果你擅长理解猫的图像，你也会更擅长描述猫相关的文本。
+So the fact that you're good at understanding a cat image makes you better at text as well for a cat.
+
+1101
+01:46:21,392 --> 01:46:26,032
+现在你再加入另一种模态，比如音频或视频，整个系统就会变得更好。
+Now you add another modality like audio or video, the whole system gets better.
+
+1102
+01:46:26,126 --> 01:46:31,872
+如果你知道猫叫什么声音，而且还能看到图像里的猫，你写关于猫的内容就会更好。
+So you're better at writing about a cat if you know what a cat sounds like, if you can look at a cat on an image as well.
+
+1103
+01:46:32,032 --> 01:46:32,592
+这好理解吗？
+Does that make sense?
+
+1104
+01:46:32,672 --> 01:46:43,380
+所以我们看到收益从一种模态转化到另一种模态，这可能导致机器人领域的巅峰，
+在那里所有这些模态汇聚在一起，机器人突然变得更擅长躲
+So we see gains that are translated from one modality to another, and that might lead in the pinnacle of robotics where all these
+modalities come together, and suddenly the robot is better at running away from a cat
+
+1105
+01:46:43,380 --> 01:46:43,690
+避猫，因为它理解什么是猫，它叫什么样，长什么样等等。
+So we see gains that are translated from one modality to another, and that might lead in the pinnacle of robotics where all these
+modalities come together, and suddenly the robot is better at running away from a cat
+
+1106
+01:46:43,690 --> 01:46:47,872
+避猫，因为它理解什么是猫，它叫什么样，长什么样等等。
+because it understands what a cat is, how it sounds like, what it looks like, etc.
+
+1107
+01:46:48,270 --> 01:46:49,312
+这好理解吗？
+Does that make sense?
+
+1108
+01:46:49,792 --> 01:46:52,912
+另一个方面是多种方法协同工作。
+the other one is the multiple methods working in harmony.
+
+1109
+01:46:53,152 --> 01:47:01,872
+在周二的课程中，我们看到了监督学习、无监督学
+习、自监督学习、强化学习、提示工程、RAG 等等。
+In the Tuesday lectures, we've seen supervised learning, unsupervised learning,
+self-supervised learning, reinforcement learning, prompt engineering, rags, etc.
+
+1110
+01:47:02,272 --> 01:47:09,152
+如果你观察婴儿的学习过程，它可能是这些不同方法的混合。
+If you look at how babies learn, it is probably a mix of those different approaches.
+
+1111
+01:47:09,312 --> 01:47:18,912
+比如，婴儿可能有一些元学习，这意味着它可能有一些编码在 DNA 中的生存本能。
+Like a baby might have some meta-learning, meaning it you know it has
+some survival instinct that is in the encoded in the DNA, most likely.
+
+1112
+01:47:19,392 --> 01:47:22,432
+那就像是婴儿的预训练，如果可以这么说的话。
+and that's like the baby's pre-training, if you will.
+
+1113
+01:47:22,672 --> 01:47:30,592
+除此之外，爸爸或妈妈会指着东西说，坏的、好的，坏的、好的，这就是监督学习。
+On top of that, the mom or the dad is pointing at stuff and saying, bad, good, bad, good, supervised learning.
+
+1114
+01:47:30,752 --> 01:47:36,752
+除此之外，婴儿摔倒在地上受伤，这就是强化学习的奖励信号。
+On top of that, the baby's falling on the ground and getting hurt, and that's a reward signal for reinforcement learning.
+
+1115
+01:47:36,942 --> 01:47:43,392
+除此之外，婴儿还在观察其他人或其他婴儿在做什么，这就是无监督学习。
+On top of that, the baby's observing other people doing stuff or other babies, you know, doing stuff unsupervised learning.
+
+1116
+01:47:43,472 --> 01:47:44,272
+你们明白我的意思了吗？
+You see what I mean?
+
+1117
+01:47:44,432 --> 01:47:58,150
+我们可能是所有这些方法的结合，而且，我认为趋势就在于，
+将你在 CS230 中看到的这些方法结合起来，去构建一个学习快、低延迟、便宜、节能，
+It's we're probably a mix of all these methods, and um, and I think that's where the trend is going,
+is where those methods that you've seen in CS230 come together in order to build an AI system that learns fast, is low latency,
+
+1118
+01:47:58,150 --> 01:47:58,750
+我们可能是所有这些方法的结合，而且，我认为趋势就在于，
+将你在 CS230 中看到的这些方法结合起来，去构建一个学习快、低延迟、便宜、节能，
+is cheap, energy efficient, and makes the most out of all of these methods.
+
+1119
+01:47:58,750 --> 01:48:02,752
+并且能充分利用所有这些方法的 AI 系统。
+is cheap, energy efficient, and makes the most out of all of these methods.
+
+1120
+01:48:03,232 --> 01:48:13,632
+最后，这一点在斯坦福尤其明显，这里有一些被认为
+是以人为中心的科研，还有一些非以人为中心的科研。
+finally, and this is especially true at Stanford, you have research going on that
+you would consider human-centric and some research that is non-human-centric.
+
+1121
+01:48:13,902 --> 01:48:24,352
+我应该说，以人为中心是指模仿大脑的人类方法，而有些方法
+不是模仿人类的，因为事实证明，人类的身体是非常受限的。
+By human-centric, I should say human approaches that are modeled after the brain and approaches that are not modeled after humans,
+because it turns out that the human body is very limiting.
+
+1122
+01:48:24,432 --> 01:48:34,992
+所以，如果你真的只研究人类大脑长什么样，你可能会错过计算、能源等等，
+这些甚至可以超越大脑神经连接进行优化的东西。
+And so, if you actually only do research on what the human brain looks like, you're probably missing out on compute and energy and
+stuff like that that you can optimize even beyond neuronal connections in the brain.
+
+1123
+01:48:35,152 --> 01:48:37,312
+但你仍然可以从人类大脑中学到很多东西。
+But you still can learn a lot from the human brain.
+
+1124
+01:48:37,392 --> 01:48:44,992
+这就是为什么现在有一些教授在经营实验室，试图理解人类的“反向传播”是如何运作的。
+And that's why there are professors that are running labs right now that try to understand how back propagation works for humans.
+
+1125
+01:48:45,152 --> 01:48:48,144
+事实上，我们可能根本就没有反向传播。
+And in fact, It's probably that we don't have backpropagation.
+
+1126
+01:48:48,224 --> 01:48:49,584
+我们不使用反向传播。
+We don't use backpropagation.
+
+1127
+01:48:49,664 --> 01:48:51,744
+我们可以说，我们只做前向传播。
+We only do forward propagation, let's say.
+
+1128
+01:48:51,950 --> 01:48:58,756
+所以这类内容是很有意思的研究，如果你对 AI 的发展方向感兴趣，我鼓励你去读读。
+So this type of stuff is interesting research that I would encourage you to read if you're curious about the direction of of AI.
+
+1129
+01:48:59,424 --> 01:49:06,704
+最后，有一件事非常明确，我经常提到它，那就是事物发展的速度。
+And then finally, one thing that's going to be pretty clear, I call it all the time, but it's the velocity at which things are moving.
+
+1130
+01:49:06,864 --> 01:49:12,704
+你们可能注意到，我们在 CS230 中给你们提供广度的部分原因就是因为这些方法变化太快了。
+You're noticing part of the reason we're giving you a breath in CS230 is because these methods are changing so fast.
+
+1131
+01:49:12,784 --> 01:49:20,544
+所以我不想费劲去教你们 17 种优化 RAG 的 RAG 方法，因为两年后你可能就不需要它们了。
+So I don't want to bother going and teaching you the number 17 methods on
+RAG that optimizes the RAG because in two years you're not going to need it.
+
+1132
+01:49:20,629 --> 01:49:20,829
+明白吗？
+you know?
+
+1133
+01:49:21,038 --> 01:49:25,504
+所以我更希望你们思考自己想要理解的知识广度是什么。
+So I would rather you think about what is the breadth of things you want to understand.
+
+1134
+01:49:25,646 --> 01:49:31,664
+当你需要时，你可以快速冲刺并学习你需要的确切内容，因为技能半衰期非常短。
+And when you need it, you are sprinting and learning the exact thing you need faster because the half-life of skill is so low.
+
+1135
+01:49:31,744 --> 01:49:37,984
+你知道，你希望从这门课中获得良好的广度，然后在课后需要时有能力深入研究。
+You know, you want to come out of the class with a good breath and then have the ability to go deep whenever you need after the class.
+
+1136
+01:49:38,064 --> 01:49:40,784
+这就是这门课的设计思路。
+And so that's sort of how that class is designed as well.
+
+1137
+01:49:41,344 --> 01:49:43,172
+好，今天就到这里。
+yeah, that's it for today.
+
+1138
+01:49:43,630 --> 01:49:44,784
+谢谢大家。
+So thank you.
+
+1139
+01:49:45,934 --> 01:49:48,144
+感谢你们的参与。
+thank you for participating.
+
