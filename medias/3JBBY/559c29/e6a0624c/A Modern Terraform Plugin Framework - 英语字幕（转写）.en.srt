@@ -1,0 +1,1108 @@
+1
+00:00:00,238 --> 00:00:04,484
+Hello everyone and welcome to a talk by the Terraform Plugin SDK team.
+
+2
+00:00:04,960 --> 00:00:10,404
+This is a modern Terraform plugin framework enabling the next generation of Terraform providers.
+
+3
+00:00:13,038 --> 00:00:19,268
+My name is Katie Mo and I'm a senior software engineer on the Terraform Plugin SDK team at HashiCorp.
+
+4
+00:00:22,286 --> 00:00:30,180
+I'm going to tell you a bit about the history of Terraform plugin development, how we got here, and how we designed the plugin SDK if we built it today.
+
+5
+00:00:31,022 --> 00:00:35,492
+I'll then introduce the new experimental framework we've built that follows those design principles.
+
+6
+00:00:36,686 --> 00:00:44,480
+Then Brian Flad will demo some example provider code and finally Patty Carver will talk about the future of provider development.
+
+7
+00:00:46,382 --> 00:00:52,548
+The Terraform Plugin SDK is behind almost every Terraform provider in existence today, and it's seven years old.
+
+8
+00:00:53,262 --> 00:01:01,220
+It started out as a package in the Terraform Go module, and we split it out into a separate Go module shortly after I joined HashiCorp in 2019.
+
+9
+00:01:02,766 --> 00:01:06,180
+Since then, the Terraform provider ecosystem has grown massively.
+
+10
+00:01:06,766 --> 00:01:11,716
+Terraform itself has changed a lot and added new features and capabilities.
+
+11
+00:01:12,366 --> 00:01:19,268
+The plugin SDK's abstractions aren't a match for those abstractions anymore, and we're constantly trying to catch up while dealing with legacy code.
+
+12
+00:01:20,206 --> 00:01:27,972
+If you'd like to know more about the history of provider development, Paddy and I gave a talk at HashiConf Digital 2020 called The History of Terraform Providers.
+
+13
+00:01:29,934 --> 00:01:35,364
+Sometime last year we started talking about what it would look like if the plugin SDK were written today.
+
+14
+00:01:36,142 --> 00:01:41,476
+So using that, I'm going to take you through the design goals we think a framework written today would have.
+
+15
+00:01:43,150 --> 00:01:46,020
+Firstly, we want provider code to be unit testable.
+
+16
+00:01:46,638 --> 00:01:52,804
+When working on a Terraform provider today, our feedback loop most likely involves running acceptance tests.
+
+17
+00:01:53,518 --> 00:01:57,700
+These tests can be expensive, quite literally, costing time and money to run.
+
+18
+00:01:58,766 --> 00:02:04,676
+Allowing for unit testable components means quicker feedback loops, more test coverage, and a more solid foundation.
+
+19
+00:02:07,118 --> 00:02:09,348
+The second principle we're calling adaptability.
+
+20
+00:02:10,446 --> 00:02:15,440
+We should be able to add features to the SDK and adapt to new capabilities in Terraform.
+
+21
+00:02:15,600 --> 00:02:16,900
+It needs to be forward compatible.
+
+22
+00:02:17,870 --> 00:02:24,292
+This is difficult in today's SDK since its underlying abstractions no longer match Terraforms and it involves a lot of shims.
+
+23
+00:02:26,382 --> 00:02:29,380
+An SDK written today would be easy to learn.
+
+24
+00:02:30,030 --> 00:02:32,900
+We want to enable anyone to build a Terraform provider.
+
+25
+00:02:33,550 --> 00:02:36,644
+Learning Terraform provider development shouldn't be a second job.
+
+26
+00:02:37,198 --> 00:02:41,760
+You should be able to pick up provider development alongside learning Go and alongside your day job.
+
+27
+00:02:41,840 --> 00:02:42,852
+It doesn't need to be hard.
+
+28
+00:02:45,198 --> 00:02:47,268
+The provider code should be concise.
+
+29
+00:02:48,142 --> 00:02:53,540
+Less verbosity, less typing, less code, and fewer places for bugs to hide.
+
+30
+00:02:56,046 --> 00:02:58,308
+Today's SDK would be more Go idiomatic.
+
+31
+00:02:58,894 --> 00:03:06,852
+As much as possible, a Terraform provider should use standard Go code, so no empty interfaces as function parameters, for example.
+
+32
+00:03:09,326 --> 00:03:12,516
+The SDK would fail early and loudly with less branching.
+
+33
+00:03:13,166 --> 00:03:17,360
+With less branching, errors would be easier to catch and fewer tests would be needed.
+
+34
+00:03:19,086 --> 00:03:25,860
+Finally, we think that if the Terraform plugin SDK were designed today, it would be with automated code generation and other tooling in mind.
+
+35
+00:03:27,470 --> 00:03:32,164
+Provider generation and provider development shouldn't be a huge unassisted human effort.
+
+36
+00:03:32,558 --> 00:03:39,620
+We're constantly trying to find the interfaces that allow us to specify exactly what is necessary in our provider code and no more.
+
+37
+00:03:40,398 --> 00:03:46,724
+We're also designing with an eye for where tooling can hook in and how to expose provider semantics to that tooling.
+
+38
+00:03:49,454 --> 00:03:55,620
+We're pleased to announce the release of the Terraform Plugin Framework, a next generation SDK for Terraform Provider Development.
+
+39
+00:03:56,366 --> 00:04:00,548
+An experimental version of Terraform Plugin Framework is available right now.
+
+40
+00:04:00,974 --> 00:04:06,148
+This is an early iteration that we don't have full feature parity with version 2 of the plugin SDK yet.
+
+41
+00:04:06,542 --> 00:04:09,412
+However, it can be used today to build a Terraform provider.
+
+42
+00:04:09,582 --> 00:04:17,540
+And please do, because we want as much feedback as possible so we can find out what works and what doesn't, and make all those breaking changes as soon as possible.
+
+43
+00:04:19,758 --> 00:04:23,620
+I'm going to show you quickly how we've put those design goals into practice so far.
+
+44
+00:04:24,846 --> 00:04:30,820
+To make the provider code unit testable, we've focused on making the CRUD function arguments and basic types as simple as possible.
+
+45
+00:04:32,654 --> 00:04:36,356
+So you can mock them in tests and they're easy to construct.
+
+46
+00:04:36,768 --> 00:04:39,364
+Here are two basic types, config and state.
+
+47
+00:04:40,046 --> 00:04:45,956
+In the provider's unit tests, you can just make instances of the struct to test how the CRUD functions respond to different inputs.
+
+48
+00:04:46,448 --> 00:04:51,076
+This means you don't have to call your acceptance tests if you just want to test your create function, for example.
+
+49
+00:04:52,718 --> 00:04:55,108
+The create function itself might look a bit like this.
+
+50
+00:04:55,726 --> 00:05:00,100
+So you'll see there are three parameters context, a request, and a response.
+
+51
+00:05:01,102 --> 00:05:04,608
+These contain the config and state values, and it's clear which is which.
+
+52
+00:05:04,942 --> 00:05:10,116
+The request contains the prior state, and you'll set the updated state in the response.
+
+53
+00:05:12,462 --> 00:05:14,528
+The second principle is adaptability.
+
+54
+00:05:18,830 --> 00:05:19,168
+Excuse me.
+
+55
+00:05:19,854 --> 00:05:24,164
+Here you'll see one of those request types that is the argument for the create function I showed you before.
+
+56
+00:05:25,134 --> 00:05:30,756
+In future the framework can add more data here, and so we can make backwards compatible changes to the SDK.
+
+57
+00:05:33,294 --> 00:05:35,620
+Here's what a resource looks like in the framework code.
+
+58
+00:05:35,888 --> 00:05:38,212
+It's an interface you fill in the provider code.
+
+59
+00:05:40,208 --> 00:05:47,876
+So if in the future we wanted to add a new resource interface, say resource with import, we could do that without the provider code needing to change.
+
+60
+00:05:50,254 --> 00:05:51,940
+Thirdly, we think it's easy to learn.
+
+61
+00:05:52,302 --> 00:05:53,860
+Here's an example resource schema.
+
+62
+00:05:54,350 --> 00:05:56,964
+You'll see it's similar to SDKB2, which is fine.
+
+63
+00:05:57,390 --> 00:06:02,980
+We've taken the opportunity to make the type system even easier to use and also clearer while making it more expressive.
+
+64
+00:06:05,102 --> 00:06:06,660
+The provider code is concise.
+
+65
+00:06:07,054 --> 00:06:09,088
+This is all you need to implement delete.
+
+66
+00:06:09,408 --> 00:06:12,228
+You'll get the attribute value from the request state.
+
+67
+00:06:13,518 --> 00:06:21,220
+You call your API client delete function, and then you call a function on the response argument to remove the resource from the state.
+
+68
+00:06:24,622 --> 00:06:30,276
+Now we've made things more go idiomatic and remove the empty interface from CRUD function signatures.
+
+69
+00:06:31,182 --> 00:06:40,740
+In SDK v2, the empty interface meta parameter was there to give the resource access to the API client we configure on the provider inside the resource CRUD functions.
+
+70
+00:06:41,358 --> 00:06:52,356
+In Terraform Plugin Framework, you just store that API client on your own provider struct with your own API provider client type, and then you have it available strongly typed inside your resource functions.
+
+71
+00:06:55,182 --> 00:06:58,052
+Next, the code should be reliable and it should fail fast.
+
+72
+00:06:59,054 --> 00:07:01,252
+Here's one way to get a value from the config.
+
+73
+00:07:02,158 --> 00:07:10,852
+You can define your own strongly typed resource data struct, my resource data, and marshal the config into that, kind of like marshalling JSON.
+
+74
+00:07:11,566 --> 00:07:15,844
+Then you'll handle any error, and afterwards you don't need to make any type assertions.
+
+75
+00:07:16,622 --> 00:07:23,968
+We're relying so when we write provider code, we can rely on the compiler more now so we don't have to test as much in our provider code.
+
+76
+00:07:26,542 --> 00:07:34,528
+We're enabling both provider generation and other tooling by building things in that we know tools like the language server and docs generator will need.
+
+77
+00:07:37,294 --> 00:07:42,116
+Finally, I want to highlight some of the features of the Terraform plugin framework we think are particularly important.
+
+78
+00:07:43,182 --> 00:07:48,964
+There's better visibility of config state and plan values, which are separately and unambiguously accessible.
+
+79
+00:07:49,774 --> 00:08:02,052
+There's first class support at last for null and unknown values, so we can tell when a user has omitted a value from config, when they've set it to an empty or zero value, or if the value isn't known yet, for example, if it's computed.
+
+80
+00:08:03,342 --> 00:08:11,076
+The type system of the new framework is more powerful, so we can use the new nested attributes just added to Terraform and future Terraform type changes.
+
+81
+00:08:11,502 --> 00:08:15,812
+Finally, there's support for custom types which fill that type interface from the framework.
+
+82
+00:08:16,174 --> 00:08:22,820
+So for example, you could define a timestamp type in the provider code, or you could import another Go module that provides it.
+
+83
+00:08:25,902 --> 00:08:30,020
+I've talked about the design goals for the framework and I've shown you how we've aimed to meet them.
+
+84
+00:08:30,574 --> 00:08:35,332
+Now I'm going to hand over to Brian Fladd, who will build an example provider using this framework.
+
+85
+00:08:37,934 --> 00:08:38,880
+Thanks so much, Katie.
+
+86
+00:08:39,278 --> 00:08:42,980
+Let's dive right into what a real world example using this framework would look like.
+
+87
+00:08:43,758 --> 00:08:46,308
+Let's say you wanted to create a service to manage this conference.
+
+88
+00:08:46,894 --> 00:08:53,508
+Call it the HashiTalks API, which we then build a Terraform provider on top of for managing this conference's configuration.
+
+89
+00:08:54,350 --> 00:08:56,676
+What concepts would we want to see in this provider?
+
+90
+00:08:57,230 --> 00:09:01,284
+How about talks, presentation sessions like the one you're attending right now?
+
+91
+00:09:02,062 --> 00:09:06,692
+Speakers, the people presenting these talks, like such as myself and some information about us.
+
+92
+00:09:07,438 --> 00:09:11,620
+And workshops, educational sessions that you might have attended before.
+
+93
+00:09:12,878 --> 00:09:21,668
+But before we take a look at the actual provider code, let's take a look at an NTREform configuration so we can get a sense of what we're trying to accomplish with this example provider.
+
+94
+00:09:24,014 --> 00:09:28,400
+Here we have the provider configuration that's taking in an API endpoint.
+
+95
+00:09:28,640 --> 00:09:31,044
+We'll be running an API server here locally.
+
+96
+00:09:33,102 --> 00:09:39,332
+Speaker information, such as Katie, Patty, and I, you know, some information about us, mostly strings.
+
+97
+00:09:41,454 --> 00:09:43,108
+A talk such as this one.
+
+98
+00:09:43,760 --> 00:09:46,276
+You know, we're passing in all of our speakers.
+
+99
+00:09:47,310 --> 00:09:50,660
+And, there's a title and description and duration.
+
+100
+00:09:52,400 --> 00:10:00,880
+And workshop, which looks pretty similar, but it's also providing some more advanced type information, like this map of objects here, as we'll see.
+
+101
+00:10:02,222 --> 00:10:08,804
+So once we make sure our API is running here, which it is, what happens if we apply this configuration?
+
+102
+00:10:10,382 --> 00:10:13,520
+From the practitioner standpoint, there's actually not too much different here.
+
+103
+00:10:13,806 --> 00:10:16,996
+Terraform plan looks mostly the same as it did before.
+
+104
+00:10:18,080 --> 00:10:23,716
+But really, there is some differences and more capabilities that are being provided under a hood.
+
+105
+00:10:24,270 --> 00:10:26,660
+So let's start taking a look at what those are.
+
+106
+00:10:28,430 --> 00:10:31,520
+So here we're actually looking at the provider code itself.
+
+107
+00:10:31,600 --> 00:10:35,236
+This is for the actual creating the provider as an instance.
+
+108
+00:10:35,760 --> 00:10:46,052
+And the provider has a client in it, and this is the HashiTalks API client that we're going to take the provider configuration and use to configure the API client.
+
+109
+00:10:47,470 --> 00:10:51,040
+And how we do that is by providing a configuration to Terraform.
+
+110
+00:10:51,440 --> 00:10:57,680
+And with how to get that information into the provider itself, we declare it schema.
+
+111
+00:10:57,760 --> 00:11:03,588
+We want to say there's an API endpoint attribute, it's a string type, it's optional, and a token as well.
+
+112
+00:11:03,822 --> 00:11:08,420
+And they're optional just because we want to allow environment variable configuration.
+
+113
+00:11:10,574 --> 00:11:12,740
+Here's where the more interesting parts come in.
+
+114
+00:11:13,230 --> 00:11:19,460
+You can see we have this new Go data type that has type string and this endpoint and token information.
+
+115
+00:11:20,080 --> 00:11:30,116
+And you'll see this type string here has some information that's more than just the actual string itself, such as these unknown and null fields.
+
+116
+00:11:31,438 --> 00:11:44,772
+Unknown is an interesting case, and we'll discuss this a little bit later, but null is really easy to describe, you know, it's this the configuration is missing, and this is possible in Terraform 012 and later, which introduced the concept of null.
+
+117
+00:11:45,680 --> 00:11:53,732
+This wasn't available previously to Terraform provider developers in the previous framework, but now we can surface this information.
+
+118
+00:11:55,534 --> 00:12:00,000
+So, how is this actually getting applied and how is this API client being created?
+
+119
+00:12:00,560 --> 00:12:03,140
+Usually this happens in the provider configure method.
+
+120
+00:12:03,680 --> 00:12:09,680
+So here we're reading information from the configuration into our custom type.
+
+121
+00:12:10,094 --> 00:12:15,840
+Now you can see that we're passing in this request that has this configuration.
+
+122
+00:12:15,920 --> 00:12:23,204
+And this configuration has all of the information that we could want provided from the Terraform configuration that we saw earlier.
+
+123
+00:12:23,918 --> 00:12:37,188
+And what we're doing is we're passing in our custom type so all of this information, such as the endpoint and the token, can actually come from Terraform and be put into native GoTypes that we've declared here.
+
+124
+00:12:38,702 --> 00:12:44,624
+So once we've checked an error for that and made sure it's happened, we can see now that we can do this unknown checking.
+
+125
+00:12:44,704 --> 00:12:58,436
+And unknown is a more advanced concept to talk about, but in general, just means that you know there might be a resource that was providing the attribute value that was being passed into the configuration.
+
+126
+00:12:58,624 --> 00:13:01,924
+And the same example of this, let's actually show that.
+
+127
+00:13:03,054 --> 00:13:07,556
+So here we have a random pet information that gets created.
+
+128
+00:13:08,144 --> 00:13:23,972
+We're taking the basically the name that comes out of that, the identifier in this case, and passing that in as our token value, which when Terraform is running, you would think that this resource would get applied, and then the provider configuration would actually happen.
+
+129
+00:13:24,430 --> 00:13:27,424
+But in reality, that's actually not what happens.
+
+130
+00:13:28,558 --> 00:13:29,984
+And this has caused problems.
+
+131
+00:13:30,304 --> 00:13:36,036
+This is a situation that can arise if you're creating multiple levels of infrastructure, for example.
+
+132
+00:13:37,024 --> 00:13:59,524
+A common case that this can occur in, for example, is Kubernetes, where you create a Kubernetes cluster in a cloud provider, and then all of a sudden, when you go to try to manage your Kubernetes configuration in the same Terraform configuration, it gets a little weird, and Terraform doesn't seem to be doing the right things.
+
+133
+00:14:00,144 --> 00:14:05,764
+So now this is a situation where Terraform provider developers can actually handle it.
+
+134
+00:14:06,638 --> 00:14:16,964
+And if we run this configuration here, we now can see that we've caught this error as we defined in our provider here.
+
+135
+00:14:17,518 --> 00:14:27,044
+and we can provide much more information about what they can possibly try as a practitioner to work around this situation or understand it better, which is pretty neat.
+
+136
+00:14:28,046 --> 00:14:39,184
+So let's say, for example, that there wasn't actually information provided for the token or the API endpoint.
+
+137
+00:14:39,630 --> 00:14:44,624
+So in this case, you know, we provided the token as a environment variable.
+
+138
+00:14:46,286 --> 00:14:54,144
+But we can also see that now Terraform understands that, oh, okay, maybe this information isn't available.
+
+139
+00:14:54,384 --> 00:14:56,544
+We can see that it wasn't provided config.
+
+140
+00:14:56,784 --> 00:15:03,044
+We can check that the API endpoint might be an environment variable or the token might be an environment variable.
+
+141
+00:15:03,726 --> 00:15:07,824
+And okay, if we've exhausted all of our options, now we can return errors.
+
+142
+00:15:08,224 --> 00:15:13,024
+it's also possible for these diagnostics to return warnings as well.
+
+143
+00:15:13,134 --> 00:15:28,324
+So if we wanted to provide different situational context about what the provider configuration might be or might be changing in the future, or have different semantics, that information could be provided back to practitioners.
+
+144
+00:15:29,678 --> 00:15:40,224
+So once we've taken all of this and we've passed it through to our HashiTalks client creation, we now have this available to all the resources and the data sources.
+
+145
+00:15:41,134 --> 00:15:54,564
+And real briefly, providers also need the ability to return back their list of resources and data sources, which looks mostly similar to as it did before, but now is using these interface methods.
+
+146
+00:15:57,134 --> 00:16:00,132
+So let's take a look at a resource itself.
+
+147
+00:16:00,526 --> 00:16:03,584
+And you'll notice you'll start seeing some patterns here.
+
+148
+00:16:03,904 --> 00:16:10,628
+again, you know, we have this custom resource type that we're providing and a get schema method as well.
+
+149
+00:16:11,022 --> 00:16:17,668
+And you can see, as from our configuration here, this is mostly string information that's being provided along.
+
+150
+00:16:19,566 --> 00:16:34,116
+But you know, it's similar to before, where we have values that may not be known until after they're applied, such as an identifier that gets created for a resource, and you know, optional required fields, just as before.
+
+151
+00:16:34,670 --> 00:16:42,032
+And now we can see where this gets even more powerful with this new framework with the advanced go types.
+
+152
+00:16:42,574 --> 00:16:51,044
+So in this case, we're taking all this string information and encoding it in a few different ways, uh, and so it's actually accessible in our code natively.
+
+153
+00:16:51,662 --> 00:16:58,948
+You can see that we have, you know, same strings type here, which might be unknown because it is when it's first being created.
+
+154
+00:16:59,792 --> 00:17:03,620
+we actually have names set here as like an actual string.
+
+155
+00:17:05,102 --> 00:17:14,116
+we have these titles and other things as string pointers, which also allows us to see that they're nil in this case in the go sense.
+
+156
+00:17:15,552 --> 00:17:24,132
+and if we take a look at the create code, you know, this will look very similar to what we saw with the provider, except this time we're taking a look at a plan.
+
+157
+00:17:24,752 --> 00:17:28,100
+But in reality, it looks exactly the same.
+
+158
+00:17:28,512 --> 00:17:44,196
+And the nice part is is that as we'll see later on, you can access different levels of information that's being provided to these resource operations, such as you know, configuration, plan, and previous state.
+
+159
+00:17:46,798 --> 00:17:51,952
+We're taking the plan information and we're creating speakers with it.
+
+160
+00:17:52,272 --> 00:17:57,412
+we can return errors, and then you know, set the information back in the state.
+
+161
+00:17:59,534 --> 00:18:06,884
+For read, you know, this is looking very similar, except here we're showing an example of just getting a single attribute from the state.
+
+162
+00:18:07,438 --> 00:18:11,748
+And you know, we wanted to go fetch the ID that we that was created.
+
+163
+00:18:12,752 --> 00:18:22,628
+we can use this just like the old framework where we can take that information and go call the API to go read the actual resource from the remote system.
+
+164
+00:18:23,214 --> 00:18:35,012
+And we can do similar things as before where we can remove a resource if it's no longer found and return errors and do everything that you would expect a Terraform resource to do.
+
+165
+00:18:37,326 --> 00:18:45,028
+We can also see update here, which I'll breeze through because you know it looks very similar, and delete.
+
+166
+00:18:45,582 --> 00:18:46,832
+All looks very similar.
+
+167
+00:18:46,992 --> 00:18:51,876
+Where we're either fetching information from the plan or the state and making an API call.
+
+168
+00:18:54,446 --> 00:18:57,060
+So let's take a look at a more advanced example.
+
+169
+00:18:58,766 --> 00:19:00,580
+Here we have the talk resource.
+
+170
+00:19:01,102 --> 00:19:04,992
+And the talk resource you'll see looks, you know, very similar.
+
+171
+00:19:05,072 --> 00:19:09,892
+It has a schema, but it has more advanced type information, as we're starting to see.
+
+172
+00:19:10,574 --> 00:19:14,628
+We have the speaker IDs, for example, that is a list of strings.
+
+173
+00:19:15,472 --> 00:19:17,956
+And what is this list of strings?
+
+174
+00:19:18,352 --> 00:19:26,112
+Well, hey, we can go store this as a slice of strings in our Go type when we go fetch this information.
+
+175
+00:19:26,382 --> 00:19:27,072
+That's wonderful.
+
+176
+00:19:27,232 --> 00:19:36,196
+That makes it very easy for us in the code itself to actually go reference that information, as we can see here.
+
+177
+00:19:39,630 --> 00:19:42,340
+How about something not possible in the previous framework?
+
+178
+00:19:42,830 --> 00:19:49,220
+Let's take a look at this advanced attribute that was created here.
+
+179
+00:19:50,766 --> 00:19:53,392
+So here we actually have a map of objects.
+
+180
+00:19:53,552 --> 00:19:59,172
+This is not something that was previously possible to create before with the previous framework.
+
+181
+00:20:00,334 --> 00:20:19,780
+This is a very advanced example, but what we can see here is that even when we get into more complicated and advanced situations, we can still follow similar patterns for actually creating and receiving the information and storing it back within Terraform.
+
+182
+00:20:21,838 --> 00:20:24,164
+How about some other types, such as nested attributes?
+
+183
+00:20:24,814 --> 00:20:29,732
+If we take a look at the workshop configuration from earlier, did you notice there was an equal sign here?
+
+184
+00:20:31,086 --> 00:20:34,660
+The new framework uses attributes for advanced configurations instead of blocks.
+
+185
+00:20:35,790 --> 00:20:41,156
+We feel this will offer practitioners a better configuration experience, especially when composing modules.
+
+186
+00:20:42,670 --> 00:20:45,344
+Under the hood though, there's some technical benefits to this as well.
+
+187
+00:20:45,678 --> 00:20:47,904
+Behaviors such as sensitivity just work.
+
+188
+00:20:48,270 --> 00:20:49,508
+So what does this look like?
+
+189
+00:20:51,470 --> 00:20:54,884
+Here we can see the schema for this, which is much simplified from before.
+
+190
+00:20:55,566 --> 00:21:05,764
+If we take a look at the data being passed to the functionality for the resource, we'll see that it's also very native and then Go types, just as the other attributes were previously.
+
+191
+00:21:07,310 --> 00:21:08,132
+It's pretty neat, right?
+
+192
+00:21:09,838 --> 00:21:13,636
+So before we forget, let's go ahead and destroy our infrastructure.
+
+193
+00:21:15,022 --> 00:21:20,516
+Luckily, we're in development environments, so no need to worry about destroying production.
+
+194
+00:21:25,742 --> 00:21:26,304
+And there you have it.
+
+195
+00:21:26,464 --> 00:21:30,532
+We have an end example of a Terraform provider written the new framework.
+
+196
+00:21:31,566 --> 00:21:33,860
+We're very excited to see what you'll build with this.
+
+197
+00:21:34,670 --> 00:21:47,184
+What I just showed was only pieces of what is available for the very first release of the framework, but very soon there will be support for provider data source, resource, and schema level validation, as well as resource and schema level plan modifications.
+
+198
+00:21:47,758 --> 00:21:50,884
+Patty Carver will go much further into the future of the framework.
+
+199
+00:21:51,278 --> 00:21:54,064
+I'm also sure you're wondering how to get started with all this.
+
+200
+00:21:54,350 --> 00:21:56,644
+With that, Patty, why don't you tell us some more?
+
+201
+00:21:59,662 --> 00:22:00,388
+Thanks, Brian.
+
+202
+00:22:00,942 --> 00:22:02,624
+Hey everyone, my name is Patty Carver.
+
+203
+00:22:02,704 --> 00:22:05,956
+I'm the engineering lead for the Terraform Plugin SDK team here at HashiCorp.
+
+204
+00:22:06,144 --> 00:22:09,828
+I use he him pronouns, and you can hack on me on Twitter as at Patty Carver.
+
+205
+00:22:10,606 --> 00:22:18,948
+So Katie started us off today giving us an overview of this new framework, the design principles that went into it, and some of the background around why we felt it was necessary.
+
+206
+00:22:19,566 --> 00:22:26,116
+Brian then showed us how we were going to build a provider with it, and so my job here today is to tell you about what's next.
+
+207
+00:22:26,574 --> 00:22:31,460
+And the first question I'm sure is on everyone's mind when can I use this?
+
+208
+00:22:32,206 --> 00:22:34,084
+I want to get started, when can I use this?
+
+209
+00:22:34,958 --> 00:22:38,116
+And the answer is that depends.
+
+210
+00:22:38,894 --> 00:22:39,972
+That's for you to answer.
+
+211
+00:22:40,494 --> 00:22:41,892
+What's your risk tolerance like?
+
+212
+00:22:42,414 --> 00:22:43,664
+When are you ready to use it?
+
+213
+00:22:43,758 --> 00:22:45,124
+When does it meet your needs?
+
+214
+00:22:45,664 --> 00:22:47,904
+We built a guide to help you answer that question.
+
+215
+00:22:48,014 --> 00:22:51,424
+It goes into some of the features that we currently haven't implemented yet.
+
+216
+00:22:51,598 --> 00:22:54,692
+We talk about some of the requirements that the new framework has.
+
+217
+00:22:55,086 --> 00:23:01,796
+But fundamentally, this is a decision you need to make that's based in your context and is best for you and your practitioners.
+
+218
+00:23:03,662 --> 00:23:05,316
+We hope you'll consider the framework though.
+
+219
+00:23:07,950 --> 00:23:10,864
+We've built some documentation here to help you get started with that.
+
+220
+00:23:10,990 --> 00:23:13,984
+If you do decide to consider the framework, we're excited about it.
+
+221
+00:23:14,158 --> 00:23:15,664
+We hope you're excited about it.
+
+222
+00:23:15,886 --> 00:23:24,804
+I think that there's going to be a lot of really great information in those documents, and we hope it's a really gentle and easy introduction to provider development using the framework.
+
+223
+00:23:25,646 --> 00:23:27,904
+Next question is what about SDKV2?
+
+224
+00:23:28,064 --> 00:23:29,424
+Does this mean it's deprecated?
+
+225
+00:23:29,504 --> 00:23:30,564
+Is it going away?
+
+226
+00:23:31,374 --> 00:23:32,864
+It's not going anywhere for a while.
+
+227
+00:23:33,166 --> 00:23:39,236
+SDKV2 is built over a thousand providers and it's relied on by some of the largest companies in the world.
+
+228
+00:23:40,014 --> 00:23:42,224
+We're not going to pull the rug out from under it.
+
+229
+00:23:42,304 --> 00:23:45,892
+It's not deprecated, it's not going away anytime soon.
+
+230
+00:23:46,222 --> 00:23:52,068
+It is still safe to build with that in production, and we will still continue to support it as per our support policies.
+
+231
+00:23:54,158 --> 00:23:54,948
+What's next?
+
+232
+00:23:55,470 --> 00:23:56,516
+What's coming next?
+
+233
+00:23:56,704 --> 00:23:58,596
+Well, let's talk about a roadmap a little bit.
+
+234
+00:23:59,086 --> 00:24:00,784
+First, we want to close the grap, the gap.
+
+235
+00:24:00,864 --> 00:24:04,544
+There are some things that SDKv2 can do right now that the framework can't.
+
+236
+00:24:04,782 --> 00:24:12,464
+There are things the framework can do that SDKv2 can't, as we've shown you today, but there are still a few features that we have not that have not made their way into the framework yet.
+
+237
+00:24:12,624 --> 00:24:17,828
+We would like to implement those and kind of close that gap so there's no reason left not to use the framework.
+
+238
+00:24:18,798 --> 00:24:19,984
+We want a smooth migration.
+
+239
+00:24:20,144 --> 00:24:23,984
+As I mentioned, there are over a thousand providers built on SDKV2.
+
+240
+00:24:24,302 --> 00:24:27,236
+And right now the migration story for them is a little bit rough.
+
+241
+00:24:27,566 --> 00:24:32,932
+It's going to involve some breaking changes, it's going to involve breaking changes your practitioners will see.
+
+242
+00:24:33,198 --> 00:24:37,584
+It's not a story that is ready to be used by everybody yet.
+
+243
+00:24:37,744 --> 00:24:40,100
+If you're adventurous, I hope you'll give it a shot.
+
+244
+00:24:40,334 --> 00:24:46,944
+But for everyone else, if you're not building a green field provider, know that there's going to be some rough bumps there, and we want to make those go away.
+
+245
+00:24:47,024 --> 00:24:52,868
+We want to make that as easy and intuitive as possible for provider developers to increase adoption.
+
+246
+00:24:53,326 --> 00:24:55,104
+And then finally, we want to polish.
+
+247
+00:24:55,184 --> 00:24:59,332
+There are some abstractions that are not up to the design goals that we set for ourselves.
+
+248
+00:24:59,598 --> 00:25:06,464
+There are things that we set out to do that we didn't have time to do just yet, but we wanted to get your feedback on the stuff that we had started.
+
+249
+00:25:06,702 --> 00:25:11,748
+So now we're going to set about to polishing some of those decisions and some of those missing pieces.
+
+250
+00:25:13,870 --> 00:25:16,704
+And eventually we would like this to be SDKV3.
+
+251
+00:25:17,024 --> 00:25:18,064
+That's not happening today.
+
+252
+00:25:18,254 --> 00:25:20,420
+That's not even probably happening this year.
+
+253
+00:25:21,422 --> 00:25:23,812
+we need to get a little bit more mileage on it first.
+
+254
+00:25:24,174 --> 00:25:25,188
+We need your help.
+
+255
+00:25:26,446 --> 00:25:27,556
+How do you get involved?
+
+256
+00:25:28,782 --> 00:25:29,344
+How can you help?
+
+257
+00:25:29,504 --> 00:25:29,904
+How can you?
+
+258
+00:25:30,224 --> 00:25:37,316
+This is a really exciting time to be a provider developer, and we're defining the next five or ten years of provider development right now.
+
+259
+00:25:37,614 --> 00:25:40,932
+And that's super exciting, and we want your help with it.
+
+260
+00:25:42,062 --> 00:25:45,828
+You can join us on Discussion to use the plugin SDK section.
+
+261
+00:25:46,766 --> 00:25:47,652
+talk to us there.
+
+262
+00:25:47,886 --> 00:25:51,140
+All of those posts go directly into our Team Slack channel.
+
+263
+00:25:51,344 --> 00:25:53,924
+I know that sometimes we don't respond for a few days.
+
+264
+00:25:54,478 --> 00:25:56,944
+We've been a little bit busy, as you can see.
+
+265
+00:25:57,184 --> 00:26:08,676
+But that is something that we are paying attention to and a place that we're trying to gather our community so that we can send announcements, so that we can tell you about all the neat things that we're doing and get your opinions and get your feedback.
+
+266
+00:26:09,678 --> 00:26:10,532
+Build providers.
+
+267
+00:26:10,944 --> 00:26:13,104
+We need people to build providers with this.
+
+268
+00:26:13,264 --> 00:26:25,476
+We've got all of the evidence in the world that SDKV2 is sufficient for building providers and the subtractions will stand up to real production workloads because, again, the largest companies in the world are relying on it.
+
+269
+00:26:25,984 --> 00:26:35,780
+We need that same kind of confidence about the framework before we're comfortable calling it SDK V3, before we're comfortable standing behind it as the interface for building providers for the next seven years.
+
+270
+00:26:36,590 --> 00:26:38,544
+And then finally, join us on GitHub.
+
+271
+00:26:38,734 --> 00:26:41,344
+Submit issues and PRs to the GitHub repository.
+
+272
+00:26:41,454 --> 00:26:45,264
+Tell us what was hard, what didn't work, what didn't work how you expected it to.
+
+273
+00:26:45,614 --> 00:26:48,004
+Tell us your hopes, dreams, give us feature requests.
+
+274
+00:26:48,558 --> 00:26:57,476
+We can't promise that we're going to implement all of them, we can't promise that we're going to be able to fix everything, but we definitely want to hear about it, and we can't fix it if we don't know about it.
+
+275
+00:26:58,606 --> 00:27:00,356
+Here's to the next thousand providers.
+
+276
+00:27:00,878 --> 00:27:02,704
+Thank you so much for joining us today.
+
+277
+00:27:02,926 --> 00:27:08,132
+Thank you so much for joining us on the journey of the last seven years, and happy terraforming everyone.
+
