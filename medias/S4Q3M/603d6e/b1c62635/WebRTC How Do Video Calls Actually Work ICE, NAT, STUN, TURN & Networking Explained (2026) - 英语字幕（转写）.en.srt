@@ -1,0 +1,452 @@
+1
+00:00:00,160 --> 00:00:05,600
+Any distance, one click, and that's the video call from the other side of the planet.
+
+2
+00:00:05,870 --> 00:00:07,012
+You ever wondered how?
+
+3
+00:00:07,342 --> 00:00:08,560
+What goes under the hood?
+
+4
+00:00:08,720 --> 00:00:10,640
+Today we're gonna debunk it all.
+
+5
+00:00:10,800 --> 00:00:13,988
+Now let's rewind to before 2011.
+
+6
+00:00:14,190 --> 00:00:17,200
+There was no browser-to-browser video sharing.
+
+7
+00:00:17,440 --> 00:00:23,360
+Each browser would require its own custom plugin added that you would pack it together.
+
+8
+00:00:23,620 --> 00:00:27,120
+But you wouldn't know if a Chrome plugin will work with a Firefox plugin.
+
+9
+00:00:27,600 --> 00:00:32,228
+added more complexity, but a lot of uncertainty if the call will even connect.
+
+10
+00:00:32,400 --> 00:00:33,188
+But don't worry.
+
+11
+00:00:33,520 --> 00:00:39,012
+Because in 2011, Google open sourced VebRTC.
+
+12
+00:00:39,566 --> 00:00:43,140
+And the fun fact, Chrome wasn't even the first implementation.
+
+13
+00:00:43,534 --> 00:00:47,172
+It was a Swedish telecommunication company called Erixin.
+
+14
+00:00:47,854 --> 00:00:51,840
+Seven different protocols behind one single API.
+
+15
+00:00:52,000 --> 00:00:54,720
+No plugins, no add-ins required.
+
+16
+00:00:54,960 --> 00:01:01,124
+You can directly connect with anyone around the globe like they're standing right next to you.
+
+17
+00:01:01,742 --> 00:01:04,676
+Now, enough of selling the topic.
+
+18
+00:01:05,006 --> 00:01:06,660
+Let's get down to the mechanics.
+
+19
+00:01:06,880 --> 00:01:15,680
+By the end, you'll have a complete in-depth knowledge of WebRTC and its associated protocols and frameworks.
+
+20
+00:01:15,840 --> 00:01:20,708
+In an ideal world, we would only have two browsers, A and B.
+
+21
+00:01:21,294 --> 00:01:28,836
+They would connect directly, no plugins, no add-ins, no extra hops, zero latency.
+
+22
+00:01:29,134 --> 00:01:32,612
+The problem becomes we don't have any public addresses anymore.
+
+23
+00:01:33,006 --> 00:01:44,260
+Now you might have a lot of smart devices inside your network, and you might also feel like because they're communicating with the internet, they would have a public IP address.
+
+24
+00:01:44,654 --> 00:01:49,444
+That is not true because they all get assigned a private IP address.
+
+25
+00:01:50,382 --> 00:02:05,600
+And when and only when they try and communicate to the outer internet, our router, which is provided by the ISB, assigns a publicly reachable IP address to that device.
+
+26
+00:02:05,840 --> 00:02:12,720
+The problem becomes when the remote connection tries to reach out, the inbound might be blocked.
+
+27
+00:02:12,974 --> 00:02:17,540
+Now it could be the router, it could also be the firewall which will talk ahead.
+
+28
+00:02:17,966 --> 00:02:26,720
+Now every network or at least the secure networks are equipped with a firewall which determines which protocols and ports are allowed.
+
+29
+00:02:26,880 --> 00:02:37,920
+Now, in simple terms, a protocol is a set of rules that determines how the bytes and data must be structured so that two systems can communicate with each other.
+
+30
+00:02:38,240 --> 00:02:46,852
+Port is the number that gets assigned to an endpoint that determines which network traffic is meant for that endpoint.
+
+31
+00:02:47,886 --> 00:02:54,160
+Now, most of the UDP ports, which is use the Datagram protocol, they're all blocked.
+
+32
+00:02:54,414 --> 00:03:02,884
+And UDP ports 3478, which are mostly used by stun and turn servers, are often blocked, depends on how restrictive the network might be.
+
+33
+00:03:03,406 --> 00:03:08,720
+One port that is rarely blocked is the web traffic port, which is port 443.
+
+34
+00:03:09,102 --> 00:03:15,680
+So we just bound to mask our traffic as 443 in case the first two options fail.
+
+35
+00:03:15,900 --> 00:03:22,980
+All right, let's suppose we've been able to successfully mask our traffic and it can bypass the firewall.
+
+36
+00:03:23,406 --> 00:03:30,500
+We run into our next problem is the devices would not know what their own public IP address is.
+
+37
+00:03:30,990 --> 00:03:37,280
+That's where stun comes into picture, which is Session Transversal Utilities for NAT.
+
+38
+00:03:37,678 --> 00:03:39,600
+Now there's several stun servers.
+
+39
+00:03:39,680 --> 00:03:44,240
+There's one for Google that mostly gets used, which is publicly accessible.
+
+40
+00:03:44,400 --> 00:03:53,924
+What it does basically is your device will reach out to the stun server with one specific message, what is my public IP address?
+
+41
+00:03:54,160 --> 00:04:04,320
+And based on the incoming address that the stun server sees, it responds back by telling our device, hey, you look like this public IP address.
+
+42
+00:04:04,480 --> 00:04:07,460
+There are cases where stun is not enough.
+
+43
+00:04:07,982 --> 00:04:11,360
+There's something we call symmetric NAT.
+
+44
+00:04:12,590 --> 00:04:20,000
+What symmetric NAT does is for every endpoint that you try to reach, it will assign them a different port number.
+
+45
+00:04:20,160 --> 00:04:32,560
+So when we reach the or our device rather reaches the stun server, it responds by saying, Hey, you seem to be this specific IP address with a port number 52001.
+
+46
+00:04:33,070 --> 00:04:40,964
+Now you take your IP address with a port number, you send that through to your friend you're trying to make the video call with.
+
+47
+00:04:42,094 --> 00:04:51,620
+And when your friend tries to reach out, because your friend is not a stun server, there'll be a different port number that gets opened for that connection.
+
+48
+00:04:51,854 --> 00:04:59,492
+Now, to solve that problem, we get to turn, which is transversal using relay around NAT.
+
+49
+00:05:00,014 --> 00:05:06,064
+It's a fancy acronym to say, hey, I can't get to you, let's meet in the middle.
+
+50
+00:05:06,190 --> 00:05:12,868
+So what happens is all the media that we have gets relayed from a middleman, if you may.
+
+51
+00:05:13,646 --> 00:05:21,540
+So all the data from me and my friend gets sent to this cloud relay, which carries out the communication between us two.
+
+52
+00:05:22,510 --> 00:05:28,784
+There is a trade-off that it is carrying all of the media, so there might be some security concerns around it.
+
+53
+00:05:28,974 --> 00:05:34,864
+Not to mention it adds an additional hop, causing latency and higher costs as well.
+
+54
+00:05:35,104 --> 00:05:35,824
+Now, perfect.
+
+55
+00:05:35,984 --> 00:05:38,948
+So this resolves how we can communicate.
+
+56
+00:05:39,664 --> 00:05:47,268
+What decides, like based on circumstances between me and my friend and our setup?
+
+57
+00:05:48,814 --> 00:05:55,344
+Who decides which connections can be made, which one is successful, which one's most viable?
+
+58
+00:05:55,504 --> 00:05:57,860
+That's where ice come into play.
+
+59
+00:05:58,304 --> 00:06:10,944
+Interactive connectivity establishment is the orchestrator which decides how we're gonna connect or which path are we gonna take if there's three different ways to get to the destination.
+
+60
+00:06:11,184 --> 00:06:13,264
+Ice is that framework.
+
+61
+00:06:13,614 --> 00:06:20,580
+Framework is what uses a tool call or different protocols to carry out a certain functionality.
+
+62
+00:06:21,582 --> 00:06:27,876
+So in this case, ICE is a framework that uses both stun and turn protocols together.
+
+63
+00:06:28,144 --> 00:06:46,308
+It basically calculates the cost of each of the connection and the best possible connection if me and the person I'm trying to connect to, if we exist on the same network, then we can connect directly without any hop, latency, or additional cost.
+
+64
+00:06:47,424 --> 00:06:58,544
+And if the connection is being successful by using the returned IP address and port number through the stun server, we should be able to do it.
+
+65
+00:06:58,704 --> 00:07:06,384
+But in cases where there's symmetric NAT at play, we will have to use turn server, which will add additional cost.
+
+66
+00:07:06,766 --> 00:07:09,744
+So chronologically, it'll go from one, two, three.
+
+67
+00:07:09,966 --> 00:07:15,172
+Whichever connection it sees viable first is the connection is gonna go ahead with.
+
+68
+00:07:15,726 --> 00:07:17,664
+Now all this works perfectly.
+
+69
+00:07:17,904 --> 00:07:25,264
+The most important question is how do two devices even locate each other on the public internet?
+
+70
+00:07:25,424 --> 00:07:27,104
+There's thousands of devices.
+
+71
+00:07:27,470 --> 00:07:33,188
+How do you know you're connecting with your friends mobile and friends mobile only, not a stranger?
+
+72
+00:07:33,614 --> 00:07:35,984
+The answer is a signaling server.
+
+73
+00:07:36,144 --> 00:07:38,436
+In simple terms, is a matchmaker.
+
+74
+00:07:38,766 --> 00:07:46,148
+It allows you to find your friend's device on this public internet that's filled with billions and billions of devices.
+
+75
+00:07:46,544 --> 00:07:55,584
+It does that by using something we call SDP, which is a session description protocol.
+
+76
+00:07:56,366 --> 00:08:03,172
+It takes your SDP offer from your phone and sends it to your friend's phone.
+
+77
+00:08:03,502 --> 00:08:09,984
+It goes through all the specifications and responses with an SDP answer.
+
+78
+00:08:10,222 --> 00:08:14,020
+Now let's understand what SDP actually encapsulates.
+
+79
+00:08:14,318 --> 00:08:19,524
+Right at the top we have the version number for SDP, which is most of the cases zero.
+
+80
+00:08:19,822 --> 00:08:30,084
+Then we have different attributes which start off with the user ID, which is blank in this case, followed by a session ID and a session version number.
+
+81
+00:08:31,182 --> 00:08:44,580
+This is for internet, type of address IPv4, and a placeholder for IP address, because we haven't fully authenticated to each device to figure out their actual IP address that can be included.
+
+82
+00:08:45,486 --> 00:08:48,132
+S is the session ID, in this case is blank.
+
+83
+00:08:49,198 --> 00:08:53,056
+T is here for the timestamp, so start and stop.
+
+84
+00:08:53,216 --> 00:09:02,576
+We can see both start and stop are zero, which basically means no timestamps or session duration were mentioned in this specific message.
+
+85
+00:09:02,896 --> 00:09:08,036
+M is for, as you can see, a media line, so it opens a media channel.
+
+86
+00:09:08,526 --> 00:09:11,332
+The first line is for audio, then a video.
+
+87
+00:09:12,558 --> 00:09:16,176
+This here is a placeholder for the port number.
+
+88
+00:09:16,256 --> 00:09:21,536
+It carries no meaning until we receive the ICE candidates, then it gets mapped to it.
+
+89
+00:09:21,696 --> 00:09:24,100
+The protocol being followed, which is UDP.
+
+90
+00:09:24,942 --> 00:09:26,320
+Transport their security.
+
+91
+00:09:26,320 --> 00:09:33,300
+It uses DTLS, which is basically TLS for insecure protocols like UDP.
+
+92
+00:09:33,536 --> 00:09:47,216
+RTP is for real-time transport protocol, which is for audio video packets, audio video, profile feedback, basically a feedback loop on the RTP protocol, so the packets that you're sending.
+
+93
+00:09:47,456 --> 00:09:58,096
+Our payload ID, which gets mapped to something we receive from a prefix of A, which is attribute, which is RTP map.
+
+94
+00:09:58,256 --> 00:10:06,176
+So speaking of attribute, which is RTP map, it basically maps a payload to a coda decoder.
+
+95
+00:10:06,446 --> 00:10:11,844
+As we saw, 111 and 96 were the payloads in the media lines.
+
+96
+00:10:12,302 --> 00:10:21,476
+Now we're binding 111 to Opus, which is for audio, and 96 to VP8, which is for video.
+
+97
+00:10:22,126 --> 00:10:26,148
+This number here is the RTP timestamp.
+
+98
+00:10:26,670 --> 00:10:33,216
+So the receiver knows how to receive them and order them correctly with correct time spacing.
+
+99
+00:10:33,376 --> 00:10:36,036
+So next up we have the ice credentials.
+
+100
+00:10:36,366 --> 00:10:41,856
+So these are the credentials that we use later to authenticate between phone A and phone B.
+
+101
+00:10:42,016 --> 00:10:46,096
+This is the username, and that is the password we're going to use to authenticate.
+
+102
+00:10:46,360 --> 00:10:48,496
+A Couple of other attributes worth mentioning.
+
+103
+00:10:48,656 --> 00:10:58,576
+A hash of the certificate, which is used during DTLS handcheck, so we know this is the correct entity that we negotiated with initially.
+
+104
+00:10:58,736 --> 00:11:05,956
+The second one is A equals send receive, which signifies this is for a two-way call.
+
+105
+00:11:06,478 --> 00:11:10,500
+If this would have been send only, that means you're broadcasting.
+
+106
+00:11:10,766 --> 00:11:15,136
+If it would have been receive only, that means you only a viewer or a listener.
+
+107
+00:11:15,598 --> 00:11:21,376
+If it would have been inactive, it means none of the communication was happening through this specific channel.
+
+108
+00:11:21,550 --> 00:11:36,816
+Alright, perfect, and then SDP message is being sent to the phone B, which creates its answers on what all technologies it can support and why the signaling server that message is then transported back to the phone A.
+
+109
+00:11:36,976 --> 00:11:53,444
+Alright, so once the SDP negotiations have been carried out, then it goes through the process of chronologically figuring out what is the most viable ice candidate, whether that's host, stun, or turn, and then chooses the most viable one.
+
+110
+00:11:54,254 --> 00:12:08,068
+Once it's done that, obviously WebRTC is a peer to peer connection, then the two peers can directly transfer audio, video, data packets to communicate with each other.
+
+111
+00:12:08,590 --> 00:12:09,764
+I hope it all made sense.
+
+112
+00:12:09,966 --> 00:12:13,380
+If you guys have any questions, just leave them in the comments below.
+
+113
+00:12:13,838 --> 00:12:15,396
+I'll see you in the next one.
+

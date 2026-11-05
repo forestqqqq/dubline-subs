@@ -1,0 +1,597 @@
+1
+00:00:00,160 --> 00:00:05,600
+无论多远的距离，只需点一下，就能和地球另一端的人进行视频通话。
+Any distance, one click, and that's the video call from the other side of the planet.
+
+2
+00:00:05,870 --> 00:00:07,012
+你有没有想过这是怎么实现的？
+You ever wondered how?
+
+3
+00:00:07,342 --> 00:00:08,560
+它的底层原理是什么？
+What goes under the hood?
+
+4
+00:00:08,720 --> 00:00:10,640
+今天我们就来彻底揭开它的神秘面纱。
+Today we're gonna debunk it all.
+
+5
+00:00:10,800 --> 00:00:13,988
+现在让我们回到 2011 年之前。
+Now let's rewind to before 2011.
+
+6
+00:00:14,190 --> 00:00:17,200
+那时候还没有浏览器到浏览器之间的视频共享。
+There was no browser-to-browser video sharing.
+
+7
+00:00:17,440 --> 00:00:23,360
+每个浏览器都需要安装专门的自定义插件，而且你还得自己去搞定这些。
+Each browser would require its own custom plugin added that you would pack it together.
+
+8
+00:00:23,620 --> 00:00:27,120
+但你根本不知道 Chrome 的插件能不能和 Firefox 的插件兼容。
+But you wouldn't know if a Chrome plugin will work with a Firefox plugin.
+
+9
+00:00:27,600 --> 00:00:32,228
+这增加了更多复杂性，而且甚至不知道通话能不能连通。
+added more complexity, but a lot of uncertainty if the call will even connect.
+
+10
+00:00:32,400 --> 00:00:33,188
+但别担心。
+But don't worry.
+
+11
+00:00:33,520 --> 00:00:39,012
+因为在 2011 年，Google 开源了 WebRTC。
+Because in 2011, Google open sourced VebRTC.
+
+12
+00:00:39,566 --> 00:00:43,140
+有趣的是，Chrome 甚至不是第一个实现它的。
+And the fun fact, Chrome wasn't even the first implementation.
+
+13
+00:00:43,534 --> 00:00:47,172
+那是一家叫 Erixin 的瑞典电信公司。
+It was a Swedish telecommunication company called Erixin.
+
+14
+00:00:47,854 --> 00:00:51,840
+在单一的 API 背后，包含了七种不同的协议。
+Seven different protocols behind one single API.
+
+15
+00:00:52,000 --> 00:00:54,720
+不需要任何插件，也不需要任何附加组件。
+No plugins, no add-ins required.
+
+16
+00:00:54,960 --> 00:01:01,124
+你可以直接与全球任何地方的人连接，就像他们就在你身边一样。
+You can directly connect with anyone around the globe like they're standing right next to you.
+
+17
+00:01:01,742 --> 00:01:04,676
+好了，介绍就到此为止。
+Now, enough of selling the topic.
+
+18
+00:01:05,006 --> 00:01:06,660
+让我们进入核心机制。
+Let's get down to the mechanics.
+
+19
+00:01:06,880 --> 00:01:15,680
+到最后，你将对 WebRTC 及其相关的协议和框架拥有完整的深度知识。
+By the end, you'll have a complete in-depth knowledge of WebRTC and its associated protocols and frameworks.
+
+20
+00:01:15,840 --> 00:01:20,708
+在理想情况下，我们只需要两个浏览器，A 和 B。
+In an ideal world, we would only have two browsers, A and B.
+
+21
+00:01:21,294 --> 00:01:28,836
+它们将直接连接，无需插件、无需附加组件、无需额外跳转，零延迟。
+They would connect directly, no plugins, no add-ins, no extra hops, zero latency.
+
+22
+00:01:29,134 --> 00:01:32,612
+问题在于，我们现在不再拥有任何公共地址了。
+The problem becomes we don't have any public addresses anymore.
+
+23
+00:01:33,006 --> 00:01:44,260
+现在你的网络里可能有许多智能设备，你可能觉得既然
+它们在与互联网通信，它们就应该拥有公共 IP 地址。
+Now you might have a lot of smart devices inside your network, and you might also feel like because they're communicating with the
+internet, they would have a public IP address.
+
+24
+00:01:44,654 --> 00:01:49,444
+事实并非如此，因为它们都被分配了私有 IP 地址。
+That is not true because they all get assigned a private IP address.
+
+25
+00:01:50,382 --> 00:02:05,600
+只有当它们尝试与外部互联网通信时，由 ISP 提供的路
+由器才会给该设备分配一个可从公网访问的 IP 地址。
+And when and only when they try and communicate to the outer internet, our router, which is provided by the ISB,
+assigns a publicly reachable IP address to that device.
+
+26
+00:02:05,840 --> 00:02:12,720
+问题在于，当远程连接尝试建立时，入站连接可能会被拦截。
+The problem becomes when the remote connection tries to reach out, the inbound might be blocked.
+
+27
+00:02:12,974 --> 00:02:17,540
+这可能是路由器造成的，也可能是防火墙在前面拦截。
+Now it could be the router, it could also be the firewall which will talk ahead.
+
+28
+00:02:17,966 --> 00:02:26,720
+现在，每个网络，或者至少是安全网络，都配备了防火墙，用来决定允许哪些协议和端口。
+Now every network or at least the secure networks are equipped with a firewall which determines which protocols and ports are allowed.
+
+29
+00:02:26,880 --> 00:02:37,920
+简单来说，协议就是一套规则，决定了字节和数据必须如何结构化，以便两个系统能够互相通信。
+Now, in simple terms, a protocol is a set of rules that determines how the bytes
+and data must be structured so that two systems can communicate with each other.
+
+30
+00:02:38,240 --> 00:02:46,852
+端口是分配给端点的编号，用来确定哪些网络流量是发给那个端点的。
+Port is the number that gets assigned to an endpoint that determines which network traffic is meant for that endpoint.
+
+31
+00:02:47,886 --> 00:02:54,160
+现在，大多数使用数据报协议的 UDP 端口都是被封锁的。
+Now, most of the UDP ports, which is use the Datagram protocol, they're all blocked.
+
+32
+00:02:54,414 --> 00:03:02,884
+而且 UDP 3478 端口，也就是 STUN 和 TURN 服务器主要
+使用的端口，也经常被封锁，这取决于网络的限制程度。
+And UDP ports 3478, which are mostly used by stun and turn servers, are often blocked,
+depends on how restrictive the network might be.
+
+33
+00:03:03,406 --> 00:03:08,720
+有一个很少被封锁的端口是 Web 流量端口，也就是 443 端口。
+One port that is rarely blocked is the web traffic port, which is port 443.
+
+34
+00:03:09,102 --> 00:03:15,680
+所以，如果前两种方案失败了，我们就只能把我们的流量伪装成 443 端口。
+So we just bound to mask our traffic as 443 in case the first two options fail.
+
+35
+00:03:15,900 --> 00:03:22,980
+好了，假设我们已经成功伪装了流量，并且能够绕过防火墙。
+All right, let's suppose we've been able to successfully mask our traffic and it can bypass the firewall.
+
+36
+00:03:23,406 --> 00:03:30,500
+我们遇到的下一个问题是，设备不知道自己的公网 IP 地址是多少。
+We run into our next problem is the devices would not know what their own public IP address is.
+
+37
+00:03:30,990 --> 00:03:37,280
+这就是 STUN 发挥作用的地方，它的全称是 NAT 的会话穿越工具。
+That's where stun comes into picture, which is Session Transversal Utilities for NAT.
+
+38
+00:03:37,678 --> 00:03:39,600
+现在有好几个 STUN 服务器。
+Now there's several stun servers.
+
+39
+00:03:39,680 --> 00:03:44,240
+有一个是 Google 的，最常被使用，而且是公开可访问的。
+There's one for Google that mostly gets used, which is publicly accessible.
+
+40
+00:03:44,400 --> 00:03:53,924
+它的基本原理是，你的设备会向 STUN 服务器发送一条特定的消息：我的公网 IP 地址是什么？
+What it does basically is your device will reach out to the stun server with one specific message, what is my public IP address?
+
+41
+00:03:54,160 --> 00:04:04,320
+然后根据 STUN 服务器看到的入站地址，它会回复我们的设备：嘿，
+你看起来就像这个公网 IP 地址。
+And based on the incoming address that the stun server sees, it responds
+back by telling our device, hey, you look like this public IP address.
+
+42
+00:04:04,480 --> 00:04:07,460
+有些情况下，仅靠 STUN 是不够的。
+There are cases where stun is not enough.
+
+43
+00:04:07,982 --> 00:04:11,360
+有一种情况我们称之为对称 NAT。
+There's something we call symmetric NAT.
+
+44
+00:04:12,590 --> 00:04:20,000
+对称 NAT 的做法是，对于你尝试连接的每一个端点，它都会分配一个不同的端口号。
+What symmetric NAT does is for every endpoint that you try to reach, it will assign them a different port number.
+
+45
+00:04:20,160 --> 00:04:32,560
+所以当我们或者说我们的设备连接到 STUN 服务器时，它会回复说：嘿，
+你看起来像是这个特定的 IP 地址，端口号是 52001。
+So when we reach the or our device rather reaches the stun server, it responds by saying, Hey,
+you seem to be this specific IP address with a port number 52001.
+
+46
+00:04:33,070 --> 00:04:40,964
+现在，你把带有端口号的 IP 地址发给你要打视频电话的朋友。
+Now you take your IP address with a port number, you send that through to your friend you're trying to make the video call with.
+
+47
+00:04:42,094 --> 00:04:51,620
+当你的朋友尝试连接时，因为你的朋友不是 STUN 服务器，
+所以那个连接会打开一个不同的端口号。
+And when your friend tries to reach out, because your friend is not a stun server,
+there'll be a different port number that gets opened for that connection.
+
+48
+00:04:51,854 --> 00:04:59,492
+为了解决这个问题，我们有了 TURN，也就是通过中继绕过 NAT。
+Now, to solve that problem, we get to turn, which is transversal using relay around NAT.
+
+49
+00:05:00,014 --> 00:05:06,064
+这是一个花哨的缩写，意思就是：嘿，我联系不到你，那我们就在中间碰个头吧。
+It's a fancy acronym to say, hey, I can't get to you, let's meet in the middle.
+
+50
+00:05:06,190 --> 00:05:12,868
+所以发生的情况是，我们所有的媒体数据都会通过一个中间人进行中继，如果你愿意的话。
+So what happens is all the media that we have gets relayed from a middleman, if you may.
+
+51
+00:05:13,646 --> 00:05:21,540
+也就是说，我和我朋友的所有数据都会发送到这个云端中继服务器，
+由它来负责我们两个之间的通信。
+So all the data from me and my friend gets sent to this cloud relay, which carries out the communication between us two.
+
+52
+00:05:22,510 --> 00:05:28,784
+这里有一个权衡，因为它承载了所有的媒体数据，所以可能会有一些安全方面的担忧。
+There is a trade-off that it is carrying all of the media, so there might be some security concerns around it.
+
+53
+00:05:28,974 --> 00:05:34,864
+更不用说它增加了一个额外的跳数，会导致延迟增加，成本也会更高。
+Not to mention it adds an additional hop, causing latency and higher costs as well.
+
+54
+00:05:35,104 --> 00:05:35,824
+现在，完美了。
+Now, perfect.
+
+55
+00:05:35,984 --> 00:05:38,948
+所以这解决了我们如何通信的问题。
+So this resolves how we can communicate.
+
+56
+00:05:39,664 --> 00:05:47,268
+那么，根据我和我朋友之间的情况以及我们的设置，谁来做决定呢？
+What decides, like based on circumstances between me and my friend and our setup?
+
+57
+00:05:48,814 --> 00:05:55,344
+谁来决定哪些连接可以建立，哪一个成功了，哪一个最可行？
+Who decides which connections can be made, which one is successful, which one's most viable?
+
+58
+00:05:55,504 --> 00:05:57,860
+这就是 ICE 发挥作用的地方。
+That's where ice come into play.
+
+59
+00:05:58,304 --> 00:06:10,944
+交互式连接建立（ICE）是协调者，它决定我们将如何连接，
+或者如果到目的地的路径有三种不同的选择，我们该走哪一条。
+Interactive connectivity establishment is the orchestrator which decides how we're gonna connect or which path are we gonna take if
+there's three different ways to get to the destination.
+
+60
+00:06:11,184 --> 00:06:13,264
+ICE 就是那个框架。
+Ice is that framework.
+
+61
+00:06:13,614 --> 00:06:20,580
+框架就是利用某种工具或不同的协议来执行特定功能的东西。
+Framework is what uses a tool call or different protocols to carry out a certain functionality.
+
+62
+00:06:21,582 --> 00:06:27,876
+所以在这种情况下，ICE 是一个同时使用 STUN 和 TURN 协议的框架。
+So in this case, ICE is a framework that uses both stun and turn protocols together.
+
+63
+00:06:28,144 --> 00:06:46,308
+它基本上会计算每种连接的成本，并找出最佳的连接方式。
+如果我和我要连接的人在同一个网络中，我们就可以直接连接，没有任何跳数、延迟或额外成本。
+It basically calculates the cost of each of the connection and the best possible connection if me and the person I'm trying to connect
+to, if we exist on the same network, then we can connect directly without any hop, latency, or additional cost.
+
+64
+00:06:47,424 --> 00:06:58,544
+如果通过 STUN 服务器返回的 IP 地址和端口号能够成功建立连接，那我们就应该能做到。
+And if the connection is being successful by using the returned IP address
+and port number through the stun server, we should be able to do it.
+
+65
+00:06:58,704 --> 00:07:06,384
+但在存在对称 NAT 的情况下，我们将不得不使用 TURN 服务器，这会增加额外的成本。
+But in cases where there's symmetric NAT at play, we will have to use turn server, which will add additional cost.
+
+66
+00:07:06,766 --> 00:07:09,744
+所以按时间顺序，它会从 1、2、3 依次尝试。
+So chronologically, it'll go from one, two, three.
+
+67
+00:07:09,966 --> 00:07:15,172
+它会选择最先发现可行的连接方式。
+Whichever connection it sees viable first is the connection is gonna go ahead with.
+
+68
+00:07:15,726 --> 00:07:17,664
+现在，这一切都能完美运行。
+Now all this works perfectly.
+
+69
+00:07:17,904 --> 00:07:25,264
+最重要的问题是，两个设备如何在公共互联网上找到彼此？
+The most important question is how do two devices even locate each other on the public internet?
+
+70
+00:07:25,424 --> 00:07:27,104
+网络上有成千上万个设备。
+There's thousands of devices.
+
+71
+00:07:27,470 --> 00:07:33,188
+你怎么知道你连接的是朋友的手机，而不是陌生人的手机？
+How do you know you're connecting with your friends mobile and friends mobile only, not a stranger?
+
+72
+00:07:33,614 --> 00:07:35,984
+答案是信令服务器。
+The answer is a signaling server.
+
+73
+00:07:36,144 --> 00:07:38,436
+简单来说，它就像个媒人。
+In simple terms, is a matchmaker.
+
+74
+00:07:38,766 --> 00:07:46,148
+它让你能在拥有成千上万亿设备的公共互联网上找到朋友的设备。
+It allows you to find your friend's device on this public internet that's filled with billions and billions of devices.
+
+75
+00:07:46,544 --> 00:07:55,584
+它是通过我们称之为 SDP 的东西来实现的，也就是会话描述协议。
+It does that by using something we call SDP, which is a session description protocol.
+
+76
+00:07:56,366 --> 00:08:03,172
+它把你的手机发出的 SDP 提议发送到你朋友的手机上。
+It takes your SDP offer from your phone and sends it to your friend's phone.
+
+77
+00:08:03,502 --> 00:08:09,984
+它会经过所有的规范，并用 SDP 响应来做出回复。
+It goes through all the specifications and responses with an SDP answer.
+
+78
+00:08:10,222 --> 00:08:14,020
+现在让我们来看看 SDP 到底封装了什么内容。
+Now let's understand what SDP actually encapsulates.
+
+79
+00:08:14,318 --> 00:08:19,524
+最顶部是 SDP 的版本号，在大多数情况下是 0。
+Right at the top we have the version number for SDP, which is most of the cases zero.
+
+80
+00:08:19,822 --> 00:08:30,084
+然后是不同的属性，首先是用户 ID，在这种情况中是空白的，接着是会话 ID 和会话版本号。
+Then we have different attributes which start off with the user ID, which is blank in this case,
+followed by a session ID and a session version number.
+
+81
+00:08:31,182 --> 00:08:44,580
+这是互联网类型，地址类型 IPv4，以及 IP 地址的占位符，因为我们还没有完全验证每个设备，
+所以无法确定包含的实际 IP 地址。
+This is for internet, type of address IPv4, and a placeholder for IP address, because we haven't fully authenticated to each device to
+figure out their actual IP address that can be included.
+
+82
+00:08:45,486 --> 00:08:48,132
+S 是会话 ID，在这种情况中是空白的。
+S is the session ID, in this case is blank.
+
+83
+00:08:49,198 --> 00:08:53,056
+T 代表时间戳，也就是开始和结束时间。
+T is here for the timestamp, so start and stop.
+
+84
+00:08:53,216 --> 00:09:02,576
+我们可以看到开始和结束都是 0，这基本上意味着这条特定消息中没有提到时间戳或会话时长。
+We can see both start and stop are zero, which basically means no
+timestamps or session duration were mentioned in this specific message.
+
+85
+00:09:02,896 --> 00:09:08,036
+M 代表媒体行，正如你看到的，它用于打开媒体通道。
+M is for, as you can see, a media line, so it opens a media channel.
+
+86
+00:09:08,526 --> 00:09:11,332
+第一行是音频，然后是视频。
+The first line is for audio, then a video.
+
+87
+00:09:12,558 --> 00:09:16,176
+这里是端口号的占位符。
+This here is a placeholder for the port number.
+
+88
+00:09:16,256 --> 00:09:21,536
+在收到 ICE 候选者之前，它没有任何意义，收到后才会与之对应。
+It carries no meaning until we receive the ICE candidates, then it gets mapped to it.
+
+89
+00:09:21,696 --> 00:09:24,100
+遵循的协议是 UDP。
+The protocol being followed, which is UDP.
+
+90
+00:09:24,942 --> 00:09:26,320
+传输层安全。
+Transport their security.
+
+91
+00:09:26,320 --> 00:09:33,300
+它使用的是 DTLS，基本上就是为 UDP 这种不安全协议设计的 TLS。
+It uses DTLS, which is basically TLS for insecure protocols like UDP.
+
+92
+00:09:33,536 --> 00:09:47,216
+RTP 是实时传输协议，用于传输音视频数据包、音视频、Profile 反馈，
+基本上就是 RTP 协议上的反馈循环，也就是你发送的数据包。
+RTP is for real-time transport protocol, which is for audio video packets, audio video, profile feedback,
+basically a feedback loop on the RTP protocol, so the packets that you're sending.
+
+93
+00:09:47,456 --> 00:09:58,096
+我们的有效载荷 ID，它会被映射到我们从 A 前缀接收到的内容，也就是属性，即 RTP map。
+Our payload ID, which gets mapped to something we receive from a prefix of A, which is attribute, which is RTP map.
+
+94
+00:09:58,256 --> 00:10:06,176
+所以说到属性，也就是 RTP map，它基本上是将有效载荷映射到相应的解码器。
+So speaking of attribute, which is RTP map, it basically maps a payload to a coda decoder.
+
+95
+00:10:06,446 --> 00:10:11,844
+正如我们看到的，111 和 96 是媒体行中的有效载荷。
+As we saw, 111 and 96 were the payloads in the media lines.
+
+96
+00:10:12,302 --> 00:10:21,476
+现在我们将 111 绑定到用于音频的 Opus，将 96 绑定到用于视频的 VP8。
+Now we're binding 111 to Opus, which is for audio, and 96 to VP8, which is for video.
+
+97
+00:10:22,126 --> 00:10:26,148
+这里的这个数字是 RTP 时间戳。
+This number here is the RTP timestamp.
+
+98
+00:10:26,670 --> 00:10:33,216
+这样接收端就知道如何接收它们，并按照正确的时间间隔正确排序。
+So the receiver knows how to receive them and order them correctly with correct time spacing.
+
+99
+00:10:33,376 --> 00:10:36,036
+接下来是 ICE 凭证。
+So next up we have the ice credentials.
+
+100
+00:10:36,366 --> 00:10:41,856
+这些是稍后我们用于在手机 A 和手机 B 之间进行身份验证的凭证。
+So these are the credentials that we use later to authenticate between phone A and phone B.
+
+101
+00:10:42,016 --> 00:10:46,096
+这是用户名，那是我们将要用于身份验证的密码。
+This is the username, and that is the password we're going to use to authenticate.
+
+102
+00:10:46,360 --> 00:10:48,496
+还有几个值得提到的属性。
+A Couple of other attributes worth mentioning.
+
+103
+00:10:48,656 --> 00:10:58,576
+证书的哈希值，用于 DTLS 握手，这样我们就知道这是我们最初协商的正确实体。
+A hash of the certificate, which is used during DTLS handcheck, so
+we know this is the correct entity that we negotiated with initially.
+
+104
+00:10:58,736 --> 00:11:05,956
+第二个是 A 等于 send receive，表示这是双向通话。
+The second one is A equals send receive, which signifies this is for a two-way call.
+
+105
+00:11:06,478 --> 00:11:10,500
+如果只是 send only，那就意味着你在广播。
+If this would have been send only, that means you're broadcasting.
+
+106
+00:11:10,766 --> 00:11:15,136
+如果只是 receive only，那就意味着你只是观众或听众。
+If it would have been receive only, that means you only a viewer or a listener.
+
+107
+00:11:15,598 --> 00:11:21,376
+如果显示为 inactive，那就意味着没有任何通信是通过这个特定通道进行的。
+If it would have been inactive, it means none of the communication was happening through this specific channel.
+
+108
+00:11:21,550 --> 00:11:36,816
+好了，完美。然后 SDP 消息被发送到手机 B，它会生成关于它支持哪些技术及其原因的回答，
+然后该消息通过信令服务器传回给手机 A。
+Alright, perfect, and then SDP message is being sent to the phone B, which creates its answers on what all technologies it can support
+and why the signaling server that message is then transported back to the phone A.
+
+109
+00:11:36,976 --> 00:11:53,444
+好了，一旦 SDP 协商完成，它就会按照时间顺序找出最可行的 ICE 候选者，无论是 host、
+STUN 还是 TURN，然后选择最可行的一个。
+Alright, so once the SDP negotiations have been carried out, then it goes through the process of chronologically figuring out what is
+the most viable ice candidate, whether that's host, stun, or turn, and then chooses the most viable one.
+
+110
+00:11:54,254 --> 00:12:08,068
+完成这些后，显然 WebRTC 是点对点连接，那么两个对
+等节点就可以直接传输音频、视频和数据包来互相通信。
+Once it's done that, obviously WebRTC is a peer to peer connection, then the two
+peers can directly transfer audio, video, data packets to communicate with each other.
+
+111
+00:12:08,590 --> 00:12:09,764
+希望这些内容大家都能听懂。
+I hope it all made sense.
+
+112
+00:12:09,966 --> 00:12:13,380
+如果你们有任何问题，就在下面的评论区留言。
+If you guys have any questions, just leave them in the comments below.
+
+113
+00:12:13,838 --> 00:12:15,396
+我们下期再见。
+I'll see you in the next one.
+
