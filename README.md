@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [Why AI Math Breakthroughs Upgrade RSI Timelines \| Cheryl Wu](medias/5D17S/) | MTS | 2026-11-05 |
 | [Why I Left Quantum Computing Research](medias/WBFTV/) | Looking Glass Universe | 2026-11-03 |
 | [TanStack Start Full Stack Course (10 Hours) \| Server Functions, Middleware, Auth etc.](medias/VHAYZ/) | Jan Marshal | 2026-11-03 |
 | [Stanford CS229 I Machine Learning I Building Large Language Models (LLMs)](medias/VDBVW/) | Stanford Online | 2026-11-03 |
