@@ -12,6 +12,7 @@
 | [Autonomous Agents Are Changing Enterprise Workflows\| I/O You an Explanation](medias/A4D9C/) | Nutanix | 2026-11-05 |
 | [Why AI Math Breakthroughs Upgrade RSI Timelines \| Cheryl Wu](medias/5D17S/) | MTS | 2026-11-05 |
 | [2021-04-29 Colin Biggin - Developing iOS applications using WebRTC](medias/502MG/) | Kitchener-Waterloo Video Technology | 2026-11-05 |
+| [[Learn Lab] Create a Terraform provider with the Plugin Framework](medias/4TZSK/) | HashiCorp, an IBM Company | 2026-11-05 |
 | [From AI Infrastructure to the 6G Future](medias/4EPVK/) | NVIDIA | 2026-11-05 |
 | [Beyond Static Workflows: How AI is Changing How We Design for Automation](medias/06HGJ/) | Thomas Erl | 2026-11-05 |
 | [Why I Left Quantum Computing Research](medias/WBFTV/) | Looking Glass Universe | 2026-11-03 |
