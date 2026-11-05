@@ -6,6 +6,7 @@
 |---|---|---|
 | [Why AI Math Breakthroughs Upgrade RSI Timelines \| Cheryl Wu](medias/5D17S/) | MTS | 2026-11-05 |
 | [2021-04-29 Colin Biggin - Developing iOS applications using WebRTC](medias/502MG/) | Kitchener-Waterloo Video Technology | 2026-11-05 |
+| [From AI Infrastructure to the 6G Future](medias/4EPVK/) | NVIDIA | 2026-11-05 |
 | [Why I Left Quantum Computing Research](medias/WBFTV/) | Looking Glass Universe | 2026-11-03 |
 | [TanStack Start Full Stack Course (10 Hours) \| Server Functions, Middleware, Auth etc.](medias/VHAYZ/) | Jan Marshal | 2026-11-03 |
 | [Stanford CS229 I Machine Learning I Building Large Language Models (LLMs)](medias/VDBVW/) | Stanford Online | 2026-11-03 |
