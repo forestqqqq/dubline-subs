@@ -6,6 +6,7 @@
 |---|---|---|
 | [Your Browser Is Leaking Your Real IP (WebRTC Test & Fix)](medias/VB7YC/) | The Web Insights | 2026-11-05 |
 | [WebRTC: How Do Video Calls Actually Work?  ICE, NAT, STUN, TURN & Networking Explained (2026)](medias/S4Q3M/) | Tarn | 2026-11-05 |
+| [Episode 14 – Taking AI Into the Real World](medias/GMRMS/) | The Moving Target | 2026-11-05 |
 | [The Photoshop Clone That Exposed the Truth About Vibe Coding.](medias/GMN0M/) | TheAiExplainer | 2026-11-05 |
 | [Autonomous Agents Are Changing Enterprise Workflows\| I/O You an Explanation](medias/A4D9C/) | Nutanix | 2026-11-05 |
 | [Why AI Math Breakthroughs Upgrade RSI Timelines \| Cheryl Wu](medias/5D17S/) | MTS | 2026-11-05 |
