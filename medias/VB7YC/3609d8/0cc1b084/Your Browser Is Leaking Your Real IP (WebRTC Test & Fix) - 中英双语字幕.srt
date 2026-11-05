@@ -1,0 +1,773 @@
+1
+00:00:00,622 --> 00:00:03,716
+如果你看了上个视频，那你已经解决了 DNS 泄露问题。
+If you called the last video, you already closed your DNS leak.
+
+2
+00:00:04,160 --> 00:00:04,484
+很好。
+Good.
+
+3
+00:00:05,294 --> 00:00:06,660
+接下来是让人不安的部分。
+Here's the uncomfortable part.
+
+4
+00:00:06,926 --> 00:00:15,492
+即便 DNS 结果正常且你开启了 VPN，你的浏览器可
+能仍在向你访问的每个网站泄露你的真实 IP 地址。
+Even with a clean DNS result and your VPN run-in, your browser may still be handing out your real IP address to every site you visit.
+
+5
+00:00:15,920 --> 00:00:20,836
+这次泄露的不是你的服务商，而是和你家关联的真实地址。
+Not your provider this time, the actual address tied to your home.
+
+6
+00:00:21,294 --> 00:00:25,028
+而针对这个问题，你的 VPN 通常帮不上忙。
+And for this one, your VPN often can't help you.
+
+7
+00:00:25,678 --> 00:00:34,880
+在 VoidSec 对 100 个 VPN 进行的一项著名测试中，
+近五分之一的 VPN 通过这个漏洞泄露了用户的真实 IP。
+In one well-known test of 100 VPNs by VoidSec, nearly one in five leaked the user's real IP through this exact hole.
+
+8
+00:00:35,086 --> 00:00:38,240
+负责这一功能的叫法是 WebRTC。
+The feature responsible is called WebRTC.
+
+9
+00:00:38,480 --> 00:00:40,740
+它内置在每一个主流浏览器中。
+It's built into every major browser.
+
+10
+00:00:40,974 --> 00:00:45,636
+它在后台静默运行，而且其设计初衷就是绕过你的 VPN。
+It runs silently and it bypasses your VPN by design.
+
+11
+00:00:46,382 --> 00:00:52,292
+你可以在 20 秒内检查它，我还会教你如何关闭它，即使你的 VPN 没法关闭它。
+You can check it in 20 seconds, and I'll show you how to close it, even if your VPN won't.
+
+12
+00:00:52,814 --> 00:01:05,080
+现在，在这个视频中，我们将涵盖什么是 WebRTC 以及它为什么会泄露、实测演示、
+为什么你的 VPN 无法修复它、浏览器的修复方法及其局限
+Now, in this video, we're gonna cover what WebRTC is and why it leaks, a live test, why your VPN can't fix it,
+the browser fixes and their catch, the architectural solutions, and the 30 second monthly checklist.
+
+13
+00:01:05,080 --> 00:01:09,956
+性、架构层面的解决方案，以及每月的 30 秒检查清单。
+Now, in this video, we're gonna cover what WebRTC is and why it leaks, a live test, why your VPN can't fix it,
+the browser fixes and their catch, the architectural solutions, and the 30 second monthly checklist.
+
+14
+00:01:10,766 --> 00:01:13,200
+现在，这是泄露系列视频的第二部分。
+Now, this is part two of the leak series.
+
+15
+00:01:13,390 --> 00:01:17,604
+完整的播放列表链接在下方，别忘了订阅以观看第三部分。
+Full playlist is linked below, and don't forget subscribe for part three.
+
+16
+00:01:18,000 --> 00:01:20,772
+什么是 WebRTC 以及什么是泄露。
+What WebRTC is and what a leak is.
+
+17
+00:01:21,280 --> 00:01:22,720
+好，先快速打个基础。
+Okay, quick foundation.
+
+18
+00:01:22,926 --> 00:01:23,840
+WebRTC。
+WebRTC.
+
+19
+00:01:24,080 --> 00:01:32,612
+Web 实时通信是让你的浏览器无需安装任何额外软件即可运行视频通话和语音聊天的技术。
+Web real-time communication is the technology that lets your browser run video calls and voice chat without installing anything extra.
+
+20
+00:01:32,878 --> 00:01:37,700
+它是驱动 Google Meet、浏览器里的 Discord 之类的功能。
+It's what powers Google Meet, Discord in the browser, that kind of thing.
+
+21
+00:01:38,126 --> 00:01:42,180
+它内置在 Chrome、Firefox、Edge、Safari 和 Brave 中。
+It's built into Chrome, Firefox, Edge, Safari, and Brave.
+
+22
+00:01:42,830 --> 00:01:44,452
+涉及数十亿台设备。
+Billions of devices.
+
+23
+00:01:45,198 --> 00:01:52,356
+但问题就在这里：为了让你直接与某人通话，WebRTC 必须知道你的真实 IP 地址。
+But here's the problem to connect you directly to someone for a call, WebRTC has to know your real IP address.
+
+24
+00:01:52,814 --> 00:01:56,324
+它通过一种叫做 stun 请求的东西来找到它。
+It finds it using something called a stun request.
+
+25
+00:01:56,800 --> 00:02:03,812
+那个请求直接通过你的网络接口发出，绕过你的 VPN 隧道，而不是通过它。
+That request goes straight out through your network interface, around your VPN tunnel, not through it.
+
+26
+00:02:04,494 --> 00:02:07,204
+所以，WebRTC 泄露就是这样的。
+So, a WebRTC leak is this.
+
+27
+00:02:07,854 --> 00:02:19,108
+任何使用大约 15 行 JavaScript 且无需权限提示的网站，
+都可以静默地询问你的浏览器你的真实 IP 地址是多少。
+Any website using about 15 lines of JavaScript with no permission prompt can quietly ask your browser what your real IP address is.
+
+28
+00:02:19,534 --> 00:02:24,228
+而你的浏览器会如实回答，即使 VPN 是开启状态。
+And your browser answers honestly, even with the VPN on.
+
+29
+00:02:24,814 --> 00:02:28,708
+让视频通话正常工作的正是同一个功能。
+The feature that makes video calls work is the same one.
+
+30
+00:02:28,974 --> 00:02:32,100
+它把你的地址交给任何索要的人。
+Handing out your address to anyone who asks.
+
+31
+00:02:33,518 --> 00:02:34,276
+实测演示。
+The live test.
+
+32
+00:02:35,920 --> 00:02:37,380
+好了，VPN 连接上了吗？
+Alright, VPN connected?
+
+33
+00:02:38,030 --> 00:02:38,240
+很好。
+Good.
+
+34
+00:02:38,510 --> 00:02:40,068
+好了，慢一点，跟着操作。
+Alright, slow down and follow along.
+
+35
+00:02:40,718 --> 00:02:44,228
+打开 browserleaks.com/webRTC。
+Open browserleaks.com forward slash webRTC.
+
+36
+00:02:44,430 --> 00:02:46,000
+测试会自动运行。
+The test runs automatically.
+
+37
+00:02:46,222 --> 00:02:49,188
+现在你会看到两种地址：本地地址和公网地址。
+Now you'll see two kinds of address local and public.
+
+38
+00:02:49,550 --> 00:02:56,132
+以 192.168 或 10 开头的本地地址是你的家庭网络，没关系。
+Local ones starting with 192.168 or 10.R your home networks, harmless.
+
+39
+00:02:56,718 --> 00:02:59,120
+真正重要的是公网 IP。
+The one that matters is the public IP.
+
+40
+00:02:59,280 --> 00:03:04,100
+如果那个公网 IP 是你的真实 IP 而不是 VPN 的，那你就在泄露。
+Now if that public IP is your real one, not your VPNs, you're leaking.
+
+41
+00:03:04,782 --> 00:03:06,980
+和上次一样，再核对一遍。
+Same double check as last time.
+
+42
+00:03:07,440 --> 00:03:10,468
+记录下关闭 VPN 时的真实 IP。
+Note your real IP with the VPN off.
+
+43
+00:03:10,640 --> 00:03:12,452
+然后重新连接并再次运行。
+Then reconnect and run it again.
+
+44
+00:03:12,718 --> 00:03:17,540
+如果 VPN 开启时显示的还是同一个地址，那就确认泄露了。
+If the same address shows up while the VPN is on, the leak is confirmed.
+
+45
+00:03:18,318 --> 00:03:26,820
+如果你想在一个页面上看到所有信息，iPleak.net 同时也涵盖了 DNS 和 IPv6。
+iPleak.net covers this alongside DNS and IPv6 if you want everything on one page.
+
+46
+00:03:27,342 --> 00:03:30,404
+现在把你的结果发在评论区。
+Now go ahead and drop your results in the comments.
+
+47
+00:03:30,800 --> 00:03:32,004
+是干净的还是泄露了？
+Clean or leaked?
+
+48
+00:03:32,400 --> 00:03:36,100
+如果泄露了，请注明你使用的是哪款浏览器。
+And if it's leaking, mention which browser you're using.
+
+49
+00:03:36,558 --> 00:03:44,880
+因为这种泄露发生在浏览器里而不是网络里，这个
+信息能帮助其他人判断哪些配置才是真正安全的。
+Because this leak lives in the browser, not the network, and that
+information helps everyone else figure out which setups are actually safe.
+
+50
+00:03:45,678 --> 00:03:47,460
+为什么你的 VPN 拦不住它。
+Why your VPN can't stop it.
+
+51
+00:03:48,238 --> 00:03:51,396
+那为什么这个和 DNS 泄露不一样呢？
+So why is this one different from the DNS leak?
+
+52
+00:03:51,840 --> 00:03:56,708
+嗯，因为它不是发生在网络层，而是发生在你的浏览器内部。
+Well because it doesn't happen at the network level, it happens inside your browser.
+
+53
+00:03:56,880 --> 00:03:59,876
+你的 VPN 会加密通过其隧道的所有流量。
+Your VPN encrypts traffic going through its tunnel.
+
+54
+00:04:00,206 --> 00:04:08,356
+WebRTC 的 stun 请求不走那个隧道，它是直接通过你的网络接口走侧门出去的。
+WebRTC's stun request doesn't use that tunnel, it goes out through a side door directly through your network interface.
+
+55
+00:04:08,800 --> 00:04:13,444
+很多 VPN 根本看不到这个请求，所以它们没法拦截。
+A lot of VPNs never even see it, so they can't block it.
+
+56
+00:04:14,030 --> 00:04:18,308
+这不是某个糟糕产品的漏洞，这是设计使然。
+That's not a bug in one bad product, that's the design.
+
+57
+00:04:19,182 --> 00:04:28,612
+VoidSec 测试了 100 家 VPN 服务商，发现其中 16 家
+通过 WebRTC 泄露了用户的真实 IP，几乎是五分之一。
+VoidSec tested 100 VPN providers and found 16 of them leaked the user's real IP through WebRTC, nearly one in five.
+
+58
+00:04:28,960 --> 00:04:40,548
+顶尖的 VPN 后来增加了浏览器扩展补丁，但这些只有在你安装、
+保持更新并在所有设备的所有浏览器上使用时才有效。
+The top VPNs have since added browser extension patches, but those only work if you install them, keep them updated,
+and use them on every browser on every device.
+
+59
+00:04:41,166 --> 00:04:46,960
+修复必须在浏览器端完成，所以让我们来看看具体该怎么做。
+The fix has to happen in the browser, so let's go through exactly how to do that.
+
+60
+00:04:48,078 --> 00:04:49,124
+标准的修复方法。
+The standard fixes.
+
+61
+00:04:50,144 --> 00:04:51,904
+那么，按浏览器分类来看。
+So, browser by browser.
+
+62
+00:04:51,984 --> 00:04:54,148
+轮到你的时候，直接截图就行。
+When we get to yours, go ahead and screenshot it.
+
+63
+00:04:54,704 --> 00:04:56,004
+首先是 Firefox。
+First up, Firefox.
+
+64
+00:04:56,224 --> 00:04:57,060
+这个最简单。
+This is the easiest.
+
+65
+00:04:57,358 --> 00:05:00,100
+在地址栏输入 about:config
+Type about config in the address bar.
+
+66
+00:05:00,464 --> 00:05:07,332
+接受警告，搜索 media.peerconnection.enabled，把它设为 false。
+Accept the warning, search media.peerconnection.enabled and set it to false.
+
+67
+00:05:07,982 --> 00:05:09,892
+这样 WebRTC 就完全关闭了。
+WebRTC is fully off.
+
+68
+00:05:10,286 --> 00:05:12,644
+在 Android 上的 Firefox 2 也能奏效。
+Works on Firefox for Android 2.
+
+69
+00:05:13,070 --> 00:05:14,500
+接下来是 Chrome 和 Edge。
+Chrome and Edge.
+
+70
+00:05:14,784 --> 00:05:16,452
+现在已经没有内置的开关了。
+No built-in switch anymore.
+
+71
+00:05:16,782 --> 00:05:20,292
+谷歌删除了旧的标志，所以你需要安装插件。
+Google removed the old flag, so you need an extension.
+
+72
+00:05:20,654 --> 00:05:23,524
+WebRTC Network Limiter 是谷歌官方出的。
+WebRTC Network Limiter is Google's own.
+
+73
+00:05:23,950 --> 00:05:27,204
+WebRTC Control 是另一个可靠的选择。
+WebRTC Control is another reliable option.
+
+74
+00:05:27,598 --> 00:05:30,020
+安装一个，启用它，搞定。
+Install one, enable it, and done.
+
+75
+00:05:30,544 --> 00:05:31,664
+下一个是 Brave。
+Next is Brave.
+
+76
+00:05:32,014 --> 00:05:33,664
+它基本上已经帮你处理好了。
+It's mostly handled for you already.
+
+77
+00:05:33,870 --> 00:05:41,508
+去设置，然后到隐私选项，把 WebRTC IP 处理设为禁用非代理 UDP。
+Go to settings, then privacy and set WebRTC IP handling to disable non-proxied UDP.
+
+78
+00:05:42,478 --> 00:05:43,424
+接下来是 Tor。
+Next up, Tor.
+
+79
+00:05:43,984 --> 00:05:44,784
+不需要做任何操作。
+Nothing to do.
+
+80
+00:05:44,944 --> 00:05:47,396
+它默认就禁用了 WebRTC。
+It disables WebRTC by default.
+
+81
+00:05:48,078 --> 00:05:51,076
+Safari 和 iOS，这是最棘手的情况。
+Safari and iOS, the hard case.
+
+82
+00:05:51,504 --> 00:05:58,404
+苹果强制 iPhone 上的所有浏览器使用 WebKit，而且没有可靠的原生关闭开关。
+Apple forces every browser on iPhone onto WebKit and there's no reliable native off switch.
+
+83
+00:05:58,624 --> 00:06:04,132
+如果你需要在 iOS 上彻底解决这个问题，Brave 是目前最稳定的选择。
+If you need it gone on iOS, Brave is the most consistent option available.
+
+84
+00:06:04,704 --> 00:06:12,260
+完成这些操作后，重新访问 browserleaks.com/webrtc 来确认你的真实 IP 已经消失。
+After any of these, rerun browserleaks.com forward slash web RTC to confirm your real IP has gone.
+
+85
+00:06:12,878 --> 00:06:14,436
+现在，重点来了。
+Now, the catch.
+
+86
+00:06:14,958 --> 00:06:15,908
+实际上有两个问题。
+Two of them in fact.
+
+87
+00:06:16,494 --> 00:06:21,540
+第一，完全禁用 WebRTC 会导致你所有的浏览器视频通话都无法正常工作。
+One, fully disabling WebRTC breaks every browser video call you have.
+
+88
+00:06:21,934 --> 00:06:24,036
+没法用 Meet，也没法在标签页里用 Discord。
+No meat, no Discord in the tab.
+
+89
+00:06:24,750 --> 00:06:28,228
+第二，你只是修复了某一台设备上的某一个浏览器。
+Two, you just fix one browser on one device.
+
+90
+00:06:28,558 --> 00:06:35,172
+换个新浏览器、换个新手机，或者系统更新重置了设置，你又暴露了。
+A new browser, a new phone, an update that resets a setting, and you're exposed again.
+
+91
+00:06:35,822 --> 00:06:37,604
+和上次一样，还是有上限的。
+Same ceiling as last time.
+
+92
+00:06:37,902 --> 00:06:41,540
+你只是在修补缝隙，而不是密封整个容器。
+You're patching the seams, not sealing the container.
+
+93
+00:06:42,062 --> 00:06:43,812
+这种情况你真的需要用 VPN 吗？
+Do you even need a VPN for this?
+
+94
+00:06:44,942 --> 00:06:48,676
+好，这是对上个视频观点的更精准的表述。
+Well here's the sharper version of the point from the last video.
+
+95
+00:06:49,070 --> 00:06:55,664
+针对 WebRTC 泄露，VPN 不仅仅是可选方案，它往往根本不是解决这个问题的正确工具。
+For a Web RTC leak, a VPN isn't just optional, it's often the wrong tool for the problem entirely.
+
+96
+00:06:55,886 --> 00:06:58,692
+这种泄露的设计初衷就是绕过隧道。
+The leak goes around the tunnel by design.
+
+97
+00:06:59,054 --> 00:07:01,188
+花钱买 VPN 也解决不了这个问题。
+Paying for a VPN doesn't close it.
+
+98
+00:07:01,678 --> 00:07:08,324
+你只能一个设备一个设备地去切换浏览器开关，搞坏你的通话，还得祈祷设置别被重置。
+You're left flipping browser switches that break your calls, one device at a time, hoping nothing resets.
+
+99
+00:07:09,006 --> 00:07:23,332
+真正能在不破坏视频通话、且不用在每个浏览器上重复操作的情况下修复 WebRTC 的方法，
+是停止与浏览器设置死磕，转而使用从一开始就是密封好的浏览器。
+What actually fixes WebRTC without breaking your video calls, without redoing the work on every browser,
+is stopping the fight with the browser settings and using a browser that's sealed from the very start.
+
+100
+00:07:24,270 --> 00:07:25,636
+从源头解决问题。
+The fix at the source.
+
+101
+00:07:25,934 --> 00:07:26,500
+GoLogin。
+Go login.
+
+102
+00:07:26,990 --> 00:07:30,544
+现在，方法和上次一样，原因也是一样的。
+Now, same approach as last time, and the reason is the same.
+
+103
+00:07:30,704 --> 00:07:35,716
+VPN 只是包裹了一个普通浏览器，并寄希望于没有任何信息从边缘泄露。
+A VPN wraps a normal browser and hopes nothing leaks around the edges.
+
+104
+00:07:36,238 --> 00:07:40,864
+GoLogin 将每个浏览器配置文件都构建成一个完全隔离的容器。
+Go login builds each browser profile as a fully isolated container.
+
+105
+00:07:41,134 --> 00:07:48,836
+WebRTC 是按配置文件处理的，所以它只能报告代理的 IP，永远不会显示你的真实 IP。
+WebRTC is handled per profile, so it can only ever report the proxy's IP, never your real one.
+
+106
+00:07:49,390 --> 00:07:52,260
+DNS 会通过内置的代理。
+DNS goes through the built-in proxy.
+
+107
+00:07:52,544 --> 00:07:58,180
+时区、语言、地理位置和指纹信息全都与代理位置匹配。
+Time zone, language, geolocation, and fingerprint all match the proxy location.
+
+108
+00:07:58,638 --> 00:08:04,100
+WebRTC 没有可以逃逸的后门，因为整个配置文件都是密封的。
+There's no side door for WebRTC to exit through because the whole profile is sealed.
+
+109
+00:08:04,494 --> 00:08:11,172
+你不是在禁用 WebRTC，而是优雅地处理它，这样你的通话依然能正常工作。
+You're not disabling WebRTC, you're handling it cleanly so your calls still work.
+
+110
+00:08:11,790 --> 00:08:14,148
+设置只需要两分钟。
+Setup is done in just two minutes.
+
+111
+00:08:14,766 --> 00:08:17,732
+在 GoLogin 控制面板上，创建一个新配置文件。
+On the Go Login dashboard, create a new profile.
+
+112
+00:08:18,126 --> 00:08:20,224
+选择一个代理或者粘贴你自己的。
+Pick a proxy or paste your own.
+
+113
+00:08:20,558 --> 00:08:24,260
+付费方案每月包含两 GB 的代理流量。
+Paid plans include two gigabytes of proxy traffic per month.
+
+114
+00:08:25,102 --> 00:08:26,884
+然后就没别的东西需要配置了。
+Then there's nothing else to configure.
+
+115
+00:08:27,278 --> 00:08:32,196
+团队的立场是，自动设置已经是最优的了。
+The team's position is that the automatic settings are already optimal.
+
+116
+00:08:32,621 --> 00:08:39,268
+GoLogin 会让 WebRTC 输出、DNS、时区、语言和地理位置与你的代理 IP 相匹配。
+Go login matches the WebRTC output, DNS, time zone, language, and geolocation to your proxy IP.
+
+117
+00:08:39,630 --> 00:08:43,364
+点击运行，然后在做任何事情之前，先进行验证。
+Go ahead and click run, then before anything else, verify.
+
+118
+00:08:44,046 --> 00:08:50,628
+在配置文件里打开 browserleaks.com/WebRTC 或者 iphey.com。
+Go ahead and open browserleaks.com forward slash WebRTC or iphey.com inside the profile.
+
+119
+00:08:51,104 --> 00:08:52,292
+检查所有项目。
+Check everything.
+
+120
+00:08:52,750 --> 00:08:58,788
+没有真实 IP，WebRTC 一致，DNS 清净，WebGL 清净。
+No real IP, WebRTC consistent, DNS clean, WebGL clean.
+
+121
+00:08:59,184 --> 00:09:02,624
+在每一次会话开始前，都要养成这个习惯。
+Make that the habit before literally every single session.
+
+122
+00:09:02,990 --> 00:09:09,380
+现在 GoLogin 每月只需 9 美元，提供 7 天免费试用，还有涵盖免费配置文件的免费方案。
+Now go login starts at $9 a month with a 7-day free trial and a free plan covering free profiles.
+
+123
+00:09:09,904 --> 00:09:11,684
+链接就在描述栏里。
+Link is in the description.
+
+124
+00:09:13,166 --> 00:09:14,724
+这到底对谁很重要？
+Who this actually matters to.
+
+125
+00:09:15,886 --> 00:09:19,620
+嗯，还是上次提到的那些人，只是多了一个。
+Well, it's the same people as last time with one addition.
+
+126
+00:09:20,206 --> 00:09:28,964
+营销机构在同一个平台上运行多个账号，WebRTC 泄露可能会暴露它们背后相同的真实 IP。
+Marketing agencies running multiple accounts on one platform, a web RTC leak can expose the same real IP behind all of them.
+
+127
+00:09:29,344 --> 00:09:33,412
+然后检测系统就会把这些账号关联起来，然后把这一批全部封号。
+And detection systems link the accounts and ban the batch.
+
+128
+00:09:33,742 --> 00:09:37,988
+联盟营销人员在检查推广活动在不同地区的呈现情况。
+Affiliate marketers checking how campaigners appear from different regions.
+
+129
+00:09:38,446 --> 00:09:41,956
+只要有一个泄露的真实 IP，这些数据就毫无价值了。
+One leaked real IP and the data is worthless.
+
+130
+00:09:42,542 --> 00:09:43,556
+网页抓取团队。
+Web scraping teams.
+
+131
+00:09:43,904 --> 00:09:51,108
+这一条特别相关，因为反欺诈系统会专门监控通过代理泄露的真实 IP。
+This one is particularly relevant because antipod systems specifically watch for a real IP leaking through a proxy.
+
+132
+00:09:51,470 --> 00:09:54,660
+WebRTC 就是他们抓到它的途径之一。
+WebRTC is one of the ways they catch it.
+
+133
+00:09:55,342 --> 00:10:03,172
+现在是不同的操作，但规则一样：任何人看到的 IP 都应该是你选择展示给他们的那个。
+Now different operations, same rule, the only IP anyone should see is the one that you choose to show them.
+
+134
+00:10:03,790 --> 00:10:09,956
+WebRTC 泄露会在你访问的每个网站后台悄悄破坏这一点。
+A WebRTC leak breaks that quietly in the background on every site you visit.
+
+135
+00:10:10,510 --> 00:10:18,084
+对于任何依赖干净隔离的操作来说，测试就是基本规范，而不是可有可无的谨慎。
+For anyone running an operation that depends on clean separation, testing is hygiene, not caution.
+
+136
+00:10:19,502 --> 00:10:20,452
+每月的检查清单。
+The monthly checklist.
+
+137
+00:10:21,710 --> 00:10:23,744
+现在是和上次一样的重点。
+Now the same point as last time.
+
+138
+00:10:23,918 --> 00:10:26,244
+今天的干净结果不会一直保持干净。
+A clean result today doesn't stay clean.
+
+139
+00:10:26,574 --> 00:10:33,732
+浏览器更新、新安装、重置设置，泄露就会在不打招呼的情况下卷土重来。
+A browser update, a new install, a reset setting, and the leak comes back without announcing itself.
+
+140
+00:10:34,510 --> 00:10:37,092
+每个月花 30 秒时间，做这件事。
+30 seconds once a month, do this.
+
+141
+00:10:37,664 --> 00:10:43,652
+连接好你的设备，打开 browserleaks.com/WebRTC 并检查公网 IP。
+Connect your setup, open browserleaks.com forward slash WebRTC and check the public IP.
+
+142
+00:10:44,064 --> 00:10:48,324
+确认只显示你的代理 IP，千万不要显示你的真实 IP。
+Confirm only your proxy IP shows, never your real one.
+
+143
+00:10:48,878 --> 00:10:54,308
+验证你实际使用的每个浏览器中的 WebRTC 处理情况。
+Verify WebRTC is handled in every browser you actually use.
+
+144
+00:10:55,022 --> 00:10:58,852
+在任何更新或新浏览器安装后重新检查。
+Recheck after any update or new browser installation.
+
+145
+00:10:59,264 --> 00:11:00,676
+就这样。
+And that's it.
+
+146
+00:11:01,326 --> 00:11:05,796
+现在你已经封堵了 DNS 泄露和 WebRTC 泄露。
+Now you've now closed your DNS leak and your WebRTC leak.
+
+147
+00:11:06,144 --> 00:11:09,988
+这是你的真实身份外泄的两个主要途径。
+Two of the main routes your real identity uses to get out.
+
+148
+00:11:10,542 --> 00:11:12,004
+还有最后一部分。
+There's one more piece.
+
+149
+00:11:12,590 --> 00:11:18,532
+还有其他所有真实 IP 可能暴露的地方，只需通过一个测试就能把它们全部抓出来。
+Every other way your real IP can surface in one place with one test that catches all of them.
+
+150
+00:11:19,054 --> 00:11:20,420
+那就是 IP 泄露。
+That's the IP leak.
+
+151
+00:11:20,942 --> 00:11:26,564
+这是本系列视频的最后一部分，也是把所有内容串联起来的关键，快去看看下一个。
+The final part of this playlist and the one that ties everything together, check it out next.
+
+152
+00:11:27,150 --> 00:11:29,860
+运行你的测试，并订阅我们以防患于未然。
+Run your tests and subscribe to stay ahead of it.
+

@@ -1,0 +1,604 @@
+1
+00:00:00,622 --> 00:00:03,716
+If you called the last video, you already closed your DNS leak.
+
+2
+00:00:04,160 --> 00:00:04,484
+Good.
+
+3
+00:00:05,294 --> 00:00:06,660
+Here's the uncomfortable part.
+
+4
+00:00:06,926 --> 00:00:15,492
+Even with a clean DNS result and your VPN run-in, your browser may still be handing out your real IP address to every site you visit.
+
+5
+00:00:15,920 --> 00:00:20,836
+Not your provider this time, the actual address tied to your home.
+
+6
+00:00:21,294 --> 00:00:25,028
+And for this one, your VPN often can't help you.
+
+7
+00:00:25,678 --> 00:00:34,880
+In one well-known test of 100 VPNs by VoidSec, nearly one in five leaked the user's real IP through this exact hole.
+
+8
+00:00:35,086 --> 00:00:38,240
+The feature responsible is called WebRTC.
+
+9
+00:00:38,480 --> 00:00:40,740
+It's built into every major browser.
+
+10
+00:00:40,974 --> 00:00:45,636
+It runs silently and it bypasses your VPN by design.
+
+11
+00:00:46,382 --> 00:00:52,292
+You can check it in 20 seconds, and I'll show you how to close it, even if your VPN won't.
+
+12
+00:00:52,814 --> 00:01:09,956
+Now, in this video, we're gonna cover what WebRTC is and why it leaks, a live test, why your VPN can't fix it, the browser fixes and their catch, the architectural solutions, and the 30 second monthly checklist.
+
+13
+00:01:10,766 --> 00:01:13,200
+Now, this is part two of the leak series.
+
+14
+00:01:13,390 --> 00:01:17,604
+Full playlist is linked below, and don't forget subscribe for part three.
+
+15
+00:01:18,000 --> 00:01:20,772
+What WebRTC is and what a leak is.
+
+16
+00:01:21,280 --> 00:01:22,720
+Okay, quick foundation.
+
+17
+00:01:22,926 --> 00:01:23,840
+WebRTC.
+
+18
+00:01:24,080 --> 00:01:32,612
+Web real-time communication is the technology that lets your browser run video calls and voice chat without installing anything extra.
+
+19
+00:01:32,878 --> 00:01:37,700
+It's what powers Google Meet, Discord in the browser, that kind of thing.
+
+20
+00:01:38,126 --> 00:01:42,180
+It's built into Chrome, Firefox, Edge, Safari, and Brave.
+
+21
+00:01:42,830 --> 00:01:44,452
+Billions of devices.
+
+22
+00:01:45,198 --> 00:01:52,356
+But here's the problem to connect you directly to someone for a call, WebRTC has to know your real IP address.
+
+23
+00:01:52,814 --> 00:01:56,324
+It finds it using something called a stun request.
+
+24
+00:01:56,800 --> 00:02:03,812
+That request goes straight out through your network interface, around your VPN tunnel, not through it.
+
+25
+00:02:04,494 --> 00:02:07,204
+So, a WebRTC leak is this.
+
+26
+00:02:07,854 --> 00:02:19,108
+Any website using about 15 lines of JavaScript with no permission prompt can quietly ask your browser what your real IP address is.
+
+27
+00:02:19,534 --> 00:02:24,228
+And your browser answers honestly, even with the VPN on.
+
+28
+00:02:24,814 --> 00:02:28,708
+The feature that makes video calls work is the same one.
+
+29
+00:02:28,974 --> 00:02:32,100
+Handing out your address to anyone who asks.
+
+30
+00:02:33,518 --> 00:02:34,276
+The live test.
+
+31
+00:02:35,920 --> 00:02:37,380
+Alright, VPN connected?
+
+32
+00:02:38,030 --> 00:02:38,240
+Good.
+
+33
+00:02:38,510 --> 00:02:40,068
+Alright, slow down and follow along.
+
+34
+00:02:40,718 --> 00:02:44,228
+Open browserleaks.com forward slash webRTC.
+
+35
+00:02:44,430 --> 00:02:46,000
+The test runs automatically.
+
+36
+00:02:46,222 --> 00:02:49,188
+Now you'll see two kinds of address local and public.
+
+37
+00:02:49,550 --> 00:02:56,132
+Local ones starting with 192.168 or 10.R your home networks, harmless.
+
+38
+00:02:56,718 --> 00:02:59,120
+The one that matters is the public IP.
+
+39
+00:02:59,280 --> 00:03:04,100
+Now if that public IP is your real one, not your VPNs, you're leaking.
+
+40
+00:03:04,782 --> 00:03:06,980
+Same double check as last time.
+
+41
+00:03:07,440 --> 00:03:10,468
+Note your real IP with the VPN off.
+
+42
+00:03:10,640 --> 00:03:12,452
+Then reconnect and run it again.
+
+43
+00:03:12,718 --> 00:03:17,540
+If the same address shows up while the VPN is on, the leak is confirmed.
+
+44
+00:03:18,318 --> 00:03:26,820
+iPleak.net covers this alongside DNS and IPv6 if you want everything on one page.
+
+45
+00:03:27,342 --> 00:03:30,404
+Now go ahead and drop your results in the comments.
+
+46
+00:03:30,800 --> 00:03:32,004
+Clean or leaked?
+
+47
+00:03:32,400 --> 00:03:36,100
+And if it's leaking, mention which browser you're using.
+
+48
+00:03:36,558 --> 00:03:44,880
+Because this leak lives in the browser, not the network, and that information helps everyone else figure out which setups are actually safe.
+
+49
+00:03:45,678 --> 00:03:47,460
+Why your VPN can't stop it.
+
+50
+00:03:48,238 --> 00:03:51,396
+So why is this one different from the DNS leak?
+
+51
+00:03:51,840 --> 00:03:56,708
+Well because it doesn't happen at the network level, it happens inside your browser.
+
+52
+00:03:56,880 --> 00:03:59,876
+Your VPN encrypts traffic going through its tunnel.
+
+53
+00:04:00,206 --> 00:04:08,356
+WebRTC's stun request doesn't use that tunnel, it goes out through a side door directly through your network interface.
+
+54
+00:04:08,800 --> 00:04:13,444
+A lot of VPNs never even see it, so they can't block it.
+
+55
+00:04:14,030 --> 00:04:18,308
+That's not a bug in one bad product, that's the design.
+
+56
+00:04:19,182 --> 00:04:28,612
+VoidSec tested 100 VPN providers and found 16 of them leaked the user's real IP through WebRTC, nearly one in five.
+
+57
+00:04:28,960 --> 00:04:40,548
+The top VPNs have since added browser extension patches, but those only work if you install them, keep them updated, and use them on every browser on every device.
+
+58
+00:04:41,166 --> 00:04:46,960
+The fix has to happen in the browser, so let's go through exactly how to do that.
+
+59
+00:04:48,078 --> 00:04:49,124
+The standard fixes.
+
+60
+00:04:50,144 --> 00:04:51,904
+So, browser by browser.
+
+61
+00:04:51,984 --> 00:04:54,148
+When we get to yours, go ahead and screenshot it.
+
+62
+00:04:54,704 --> 00:04:56,004
+First up, Firefox.
+
+63
+00:04:56,224 --> 00:04:57,060
+This is the easiest.
+
+64
+00:04:57,358 --> 00:05:00,100
+Type about config in the address bar.
+
+65
+00:05:00,464 --> 00:05:07,332
+Accept the warning, search media.peerconnection.enabled and set it to false.
+
+66
+00:05:07,982 --> 00:05:09,892
+WebRTC is fully off.
+
+67
+00:05:10,286 --> 00:05:12,644
+Works on Firefox for Android 2.
+
+68
+00:05:13,070 --> 00:05:14,500
+Chrome and Edge.
+
+69
+00:05:14,784 --> 00:05:16,452
+No built-in switch anymore.
+
+70
+00:05:16,782 --> 00:05:20,292
+Google removed the old flag, so you need an extension.
+
+71
+00:05:20,654 --> 00:05:23,524
+WebRTC Network Limiter is Google's own.
+
+72
+00:05:23,950 --> 00:05:27,204
+WebRTC Control is another reliable option.
+
+73
+00:05:27,598 --> 00:05:30,020
+Install one, enable it, and done.
+
+74
+00:05:30,544 --> 00:05:31,664
+Next is Brave.
+
+75
+00:05:32,014 --> 00:05:33,664
+It's mostly handled for you already.
+
+76
+00:05:33,870 --> 00:05:41,508
+Go to settings, then privacy and set WebRTC IP handling to disable non-proxied UDP.
+
+77
+00:05:42,478 --> 00:05:43,424
+Next up, Tor.
+
+78
+00:05:43,984 --> 00:05:44,784
+Nothing to do.
+
+79
+00:05:44,944 --> 00:05:47,396
+It disables WebRTC by default.
+
+80
+00:05:48,078 --> 00:05:51,076
+Safari and iOS, the hard case.
+
+81
+00:05:51,504 --> 00:05:58,404
+Apple forces every browser on iPhone onto WebKit and there's no reliable native off switch.
+
+82
+00:05:58,624 --> 00:06:04,132
+If you need it gone on iOS, Brave is the most consistent option available.
+
+83
+00:06:04,704 --> 00:06:12,260
+After any of these, rerun browserleaks.com forward slash web RTC to confirm your real IP has gone.
+
+84
+00:06:12,878 --> 00:06:14,436
+Now, the catch.
+
+85
+00:06:14,958 --> 00:06:15,908
+Two of them in fact.
+
+86
+00:06:16,494 --> 00:06:21,540
+One, fully disabling WebRTC breaks every browser video call you have.
+
+87
+00:06:21,934 --> 00:06:24,036
+No meat, no Discord in the tab.
+
+88
+00:06:24,750 --> 00:06:28,228
+Two, you just fix one browser on one device.
+
+89
+00:06:28,558 --> 00:06:35,172
+A new browser, a new phone, an update that resets a setting, and you're exposed again.
+
+90
+00:06:35,822 --> 00:06:37,604
+Same ceiling as last time.
+
+91
+00:06:37,902 --> 00:06:41,540
+You're patching the seams, not sealing the container.
+
+92
+00:06:42,062 --> 00:06:43,812
+Do you even need a VPN for this?
+
+93
+00:06:44,942 --> 00:06:48,676
+Well here's the sharper version of the point from the last video.
+
+94
+00:06:49,070 --> 00:06:55,664
+For a Web RTC leak, a VPN isn't just optional, it's often the wrong tool for the problem entirely.
+
+95
+00:06:55,886 --> 00:06:58,692
+The leak goes around the tunnel by design.
+
+96
+00:06:59,054 --> 00:07:01,188
+Paying for a VPN doesn't close it.
+
+97
+00:07:01,678 --> 00:07:08,324
+You're left flipping browser switches that break your calls, one device at a time, hoping nothing resets.
+
+98
+00:07:09,006 --> 00:07:23,332
+What actually fixes WebRTC without breaking your video calls, without redoing the work on every browser, is stopping the fight with the browser settings and using a browser that's sealed from the very start.
+
+99
+00:07:24,270 --> 00:07:25,636
+The fix at the source.
+
+100
+00:07:25,934 --> 00:07:26,500
+Go login.
+
+101
+00:07:26,990 --> 00:07:30,544
+Now, same approach as last time, and the reason is the same.
+
+102
+00:07:30,704 --> 00:07:35,716
+A VPN wraps a normal browser and hopes nothing leaks around the edges.
+
+103
+00:07:36,238 --> 00:07:40,864
+Go login builds each browser profile as a fully isolated container.
+
+104
+00:07:41,134 --> 00:07:48,836
+WebRTC is handled per profile, so it can only ever report the proxy's IP, never your real one.
+
+105
+00:07:49,390 --> 00:07:52,260
+DNS goes through the built-in proxy.
+
+106
+00:07:52,544 --> 00:07:58,180
+Time zone, language, geolocation, and fingerprint all match the proxy location.
+
+107
+00:07:58,638 --> 00:08:04,100
+There's no side door for WebRTC to exit through because the whole profile is sealed.
+
+108
+00:08:04,494 --> 00:08:11,172
+You're not disabling WebRTC, you're handling it cleanly so your calls still work.
+
+109
+00:08:11,790 --> 00:08:14,148
+Setup is done in just two minutes.
+
+110
+00:08:14,766 --> 00:08:17,732
+On the Go Login dashboard, create a new profile.
+
+111
+00:08:18,126 --> 00:08:20,224
+Pick a proxy or paste your own.
+
+112
+00:08:20,558 --> 00:08:24,260
+Paid plans include two gigabytes of proxy traffic per month.
+
+113
+00:08:25,102 --> 00:08:26,884
+Then there's nothing else to configure.
+
+114
+00:08:27,278 --> 00:08:32,196
+The team's position is that the automatic settings are already optimal.
+
+115
+00:08:32,622 --> 00:08:39,268
+Go login matches the WebRTC output, DNS, time zone, language, and geolocation to your proxy IP.
+
+116
+00:08:39,630 --> 00:08:43,364
+Go ahead and click run, then before anything else, verify.
+
+117
+00:08:44,046 --> 00:08:50,628
+Go ahead and open browserleaks.com forward slash WebRTC or iphey.com inside the profile.
+
+118
+00:08:51,104 --> 00:08:52,292
+Check everything.
+
+119
+00:08:52,750 --> 00:08:58,788
+No real IP, WebRTC consistent, DNS clean, WebGL clean.
+
+120
+00:08:59,184 --> 00:09:02,624
+Make that the habit before literally every single session.
+
+121
+00:09:02,990 --> 00:09:09,380
+Now go login starts at $9 a month with a 7-day free trial and a free plan covering free profiles.
+
+122
+00:09:09,904 --> 00:09:11,684
+Link is in the description.
+
+123
+00:09:13,166 --> 00:09:14,724
+Who this actually matters to.
+
+124
+00:09:15,886 --> 00:09:19,620
+Well, it's the same people as last time with one addition.
+
+125
+00:09:20,206 --> 00:09:28,964
+Marketing agencies running multiple accounts on one platform, a web RTC leak can expose the same real IP behind all of them.
+
+126
+00:09:29,344 --> 00:09:33,412
+And detection systems link the accounts and ban the batch.
+
+127
+00:09:33,742 --> 00:09:37,988
+Affiliate marketers checking how campaigners appear from different regions.
+
+128
+00:09:38,446 --> 00:09:41,956
+One leaked real IP and the data is worthless.
+
+129
+00:09:42,542 --> 00:09:43,556
+Web scraping teams.
+
+130
+00:09:43,904 --> 00:09:51,108
+This one is particularly relevant because antipod systems specifically watch for a real IP leaking through a proxy.
+
+131
+00:09:51,470 --> 00:09:54,660
+WebRTC is one of the ways they catch it.
+
+132
+00:09:55,342 --> 00:10:03,172
+Now different operations, same rule, the only IP anyone should see is the one that you choose to show them.
+
+133
+00:10:03,790 --> 00:10:09,956
+A WebRTC leak breaks that quietly in the background on every site you visit.
+
+134
+00:10:10,510 --> 00:10:18,084
+For anyone running an operation that depends on clean separation, testing is hygiene, not caution.
+
+135
+00:10:19,502 --> 00:10:20,452
+The monthly checklist.
+
+136
+00:10:21,710 --> 00:10:23,744
+Now the same point as last time.
+
+137
+00:10:23,918 --> 00:10:26,244
+A clean result today doesn't stay clean.
+
+138
+00:10:26,574 --> 00:10:33,732
+A browser update, a new install, a reset setting, and the leak comes back without announcing itself.
+
+139
+00:10:34,510 --> 00:10:37,092
+30 seconds once a month, do this.
+
+140
+00:10:37,664 --> 00:10:43,652
+Connect your setup, open browserleaks.com forward slash WebRTC and check the public IP.
+
+141
+00:10:44,064 --> 00:10:48,324
+Confirm only your proxy IP shows, never your real one.
+
+142
+00:10:48,878 --> 00:10:54,308
+Verify WebRTC is handled in every browser you actually use.
+
+143
+00:10:55,022 --> 00:10:58,852
+Recheck after any update or new browser installation.
+
+144
+00:10:59,264 --> 00:11:00,676
+And that's it.
+
+145
+00:11:01,326 --> 00:11:05,796
+Now you've now closed your DNS leak and your WebRTC leak.
+
+146
+00:11:06,144 --> 00:11:09,988
+Two of the main routes your real identity uses to get out.
+
+147
+00:11:10,542 --> 00:11:12,004
+There's one more piece.
+
+148
+00:11:12,590 --> 00:11:18,532
+Every other way your real IP can surface in one place with one test that catches all of them.
+
+149
+00:11:19,054 --> 00:11:20,420
+That's the IP leak.
+
+150
+00:11:20,942 --> 00:11:26,564
+The final part of this playlist and the one that ties everything together, check it out next.
+
+151
+00:11:27,150 --> 00:11:29,860
+Run your tests and subscribe to stay ahead of it.
+
