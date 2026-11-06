@@ -6,6 +6,7 @@
 |---|---|---|
 | [CesiumJS in 1 Hour - From Zero to Hero](medias/W568Q/) | GISWorld | 2026-11-06 |
 | [IntelliJ Idea Plugin Development EP04](medias/TZ8ER/) | aptkode | 2026-11-06 |
+| [Part 6: how to clamp a 3D object model to the Cesium terrain model](medias/SXYC1/) | GISWorld | 2026-11-06 |
 | [3D Tiles: CityGML Conversion, Styling & Filtering](medias/S1GV2/) | GISWorld | 2026-11-06 |
 | [3D Tiles: Point Cloud Filtering](medias/BEW55/) | GISWorld | 2026-11-06 |
 | [IntelliJ Idea Plugin Development EP03](medias/AAVPR/) | aptkode | 2026-11-06 |
