@@ -6,6 +6,7 @@
 |---|---|---|
 | [CesiumJS in 1 Hour - From Zero to Hero](medias/W568Q/) | GISWorld | 2026-11-06 |
 | [IntelliJ Idea Plugin Development EP04](medias/TZ8ER/) | aptkode | 2026-11-06 |
+| [3D Tiles: Point Cloud Filtering](medias/BEW55/) | GISWorld | 2026-11-06 |
 | [IntelliJ Idea Plugin Development EP03](medias/AAVPR/) | aptkode | 2026-11-06 |
 | [September [Intro] Welcome Session by TechEquity Ai](medias/8RHVR/) | TechEquity Ai | 2026-11-06 |
 | [Cesium Entity: Integrating 2D and 3D Data with REST APIs](medias/4JS8J/) | GISWorld | 2026-11-06 |

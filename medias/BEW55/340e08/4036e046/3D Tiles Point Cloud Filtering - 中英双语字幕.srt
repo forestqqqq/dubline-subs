@@ -1,0 +1,1540 @@
+1
+00:00:02,400 --> 00:00:08,240
+欢迎回到 GISWorld Academy 的又一期 CesiumJS 教程。
+Welcome back to another tutorial of CCMJS in the GIS Word Academy.
+
+2
+00:00:08,400 --> 00:00:23,600
+在这段短视频中，我将讲解如何在 Cesium 中将点云数据可视化为 3D Tiles，过滤 3D Tiles，
+最后对 CityGML 和点云数据同时应用符号化和过滤。
+In this short video, I'm gonna talk about visualization of point cloud data as 3D tiles in CCM, filtering 3D tiles,
+and finally applying symbology and filtering on both CTGML and point cloud data.
+
+3
+00:00:23,920 --> 00:00:29,760
+另外，我想特别感谢 Cesium 支持这一系列的教程。
+Also, I wanna say a special thing to CCM to support this series of tutorials.
+
+4
+00:00:30,080 --> 00:00:33,360
+如果你准备好了，那我们就开始吧。
+So if you are excited, let's get it started.
+
+5
+00:00:34,880 --> 00:00:38,560
+在开始写代码之前，我想先给你们展示一下这个教程的效果。
+Before I start coding, I want to show you the result of this tutorial.
+
+6
+00:00:38,720 --> 00:00:41,360
+这些是上一节课中的建筑。
+So these are the buildings of the previous session.
+
+7
+00:00:41,520 --> 00:00:44,320
+现在我已经添加了一个按钮。
+So right now I have already added one button.
+
+8
+00:00:44,640 --> 00:00:49,930
+这里有一个面板，你可以通过它在不同类型的组之间进行切换。
+Here we have a panel, so here you just you can switch between different types of groups.
+
+9
+00:00:50,240 --> 00:00:54,320
+它和之前的教程完全一样，没有任何变动。
+So it is exactly the same as the previous tutorial without any changes.
+
+10
+00:00:54,734 --> 00:01:00,080
+不过现在，这里有不同类型的过滤器，我们将在本教程中对其进行操作。
+But right now, here we have different types of filters that we want to work with it in this tutorial.
+
+11
+00:01:00,240 --> 00:01:13,120
+你可以看到，只需点击一下，就能看到 Cesium 是如何强大且轻松地过滤点云的，
+你还能看到这个区域的植被和树木。
+You can see with one click, you can see how powerfully and easily CZM filter the point clouds,
+and you can see the vegetations and the trees of this area.
+
+12
+00:01:13,390 --> 00:01:15,760
+这真的非常、非常棒。
+It's it's really, really wonderful.
+
+13
+00:01:15,920 --> 00:01:22,720
+你可以看到这些图像展示得多么完美，也许我可以把它们关掉然后再打开。
+So you can see how how perfectly all these images, maybe I can just turn them off and then turn them on.
+
+14
+00:01:22,880 --> 00:01:25,680
+你看，哇，真的太棒了。
+You can see, wow, it's really great.
+
+15
+00:01:26,160 --> 00:01:34,560
+或者在这里你可以看到 Cesium 如何完美地对这些点云进行分类，
+你可以看到这个区域的所有点云。
+or here you can see how perfectly CCM can classify these point clouds, and you can see all of them in this area.
+
+16
+00:01:34,798 --> 00:01:37,604
+是的，真的很棒，而且速度也非常快。
+Yeah, it's really wonderful, and also the speed.
+
+17
+00:01:38,062 --> 00:01:44,068
+接下来是水体类别，然后是桥梁类别。
+Then we have the water, class, and after that we have the bridge class.
+
+18
+00:01:45,198 --> 00:01:51,360
+所以在这里你可以看到这些是桥梁的点云，而这里是所有的原始数据。
+So here you can see these are the points clouds of the bleach, and here it's all of the data.
+
+19
+00:01:51,680 --> 00:01:57,040
+当我点击这些按钮时，所有的点云都会消失。
+And when I click on these buttons, all of the point clouds will be disappeared.
+
+20
+00:01:57,280 --> 00:02:03,556
+如果你感兴趣的话，让我们继续这个教程，去创建一个这么棒的应用吧。
+So if you are excited, let's continue this tutorial to create such a great application.
+
+21
+00:02:04,878 --> 00:02:09,919
+和我们之前的教程一样，这里是文件夹结构，你可以看到一些数据。
+Like all of our previous tutorials, here is the folder structure, and you can see some data.
+
+22
+00:02:10,000 --> 00:02:11,760
+我已经为你添加了一些数据。
+I have already add some data for you.
+
+23
+00:02:11,840 --> 00:02:24,800
+这里有一份 CityGML 数据，当然，它是关于 Munsta 的，这是德国的一个城市，
+你可以很容易地找到很多关于它的开放数据。
+Here is one CT GML data, of course, it's for Munsta, it's one of the uh one of the cities in Germany,
+so which completely you can find a lot of open data for that.
+
+24
+00:02:25,006 --> 00:02:28,960
+所以这里是 CityGML 数据，还有一份点云数据。
+So here it's a Ct GML data and it's it's a point cloud data.
+
+25
+00:02:29,040 --> 00:02:40,836
+你可以在我们的 GitHub 仓库中获取它，或者如果你想要的话，直接在谷歌上搜索，
+然后进入门户网站，你就可以下载所有的德国开放数据了。
+You can access it in our GitHub repository, or if you want it, just search in the Google,
+and then you can access to the portal and you can download all of the open Germany's open data.
+
+26
+00:02:41,120 --> 00:02:43,440
+这就是最终的代码。
+Here it is the final code.
+
+27
+00:02:43,840 --> 00:02:47,680
+所以如果你愿意，我们稍后会一起继续。
+so if you can you can just uh we will continue it later together.
+
+28
+00:02:47,840 --> 00:02:49,200
+这就是起点。
+And here is the start.
+
+29
+00:02:49,360 --> 00:02:53,040
+如果你想和我一起开始写代码，只需复制并粘贴这个文件。
+So if you want to start coding with me, just copy paste this file.
+
+30
+00:02:53,920 --> 00:02:58,160
+抱歉，只需把这个文件复制粘贴到一个文件夹里，然后和我一起开始写代码。
+Sorry, just copy paste this file in one folder and start coding with me.
+
+31
+00:02:58,320 --> 00:03:11,440
+另外，我已经添加了这个项目的 CDN 代码，如果你不想
+用 webpack 或者 npm 之类的工具，也可以直接看这个。
+And then also I have already added a CDN code of this one if you don't want to do it with the webpack or uh or npm or such a thing,
+so just uh also you can take a look at this one.
+
+32
+00:03:11,760 --> 00:03:14,052
+好了，我们开始一起写代码。
+Okay, let's start coding together.
+
+33
+00:03:15,982 --> 00:03:19,600
+这段代码和上一个教程里的一模一样。
+This is exactly the same code of the last tutorial.
+
+34
+00:03:19,760 --> 00:03:22,400
+我们要把点云数据添加到这段代码里。
+We want to add the point cloud to this code.
+
+35
+00:03:22,560 --> 00:03:26,880
+如果你没看之前的教程，我真的建议你先看一下。
+I really recommend you if you didn't uh check the previous tutorial.
+
+36
+00:03:27,040 --> 00:03:32,292
+首先先快速浏览一下，然后打开 start 文件夹，跟我一起写代码。
+First of all, take a look at it shortly and then open the start folder and code with me.
+
+37
+00:03:32,560 --> 00:03:36,400
+第一步是安装依赖。
+So the first step is installing the requirements.
+
+38
+00:03:36,640 --> 00:03:39,520
+我们的 node_modules 已经创建好了。
+So our node module has already been created.
+
+39
+00:03:39,680 --> 00:03:44,160
+完美，然后运行 npm start。
+Perfect, then npm start.
+
+40
+00:03:46,080 --> 00:03:46,720
+很好。
+Nice.
+
+41
+00:03:47,120 --> 00:03:54,560
+接下来，我需要打开浏览器，去 localhost。
+So then after that, I need the firefights, so I will go to localhost.
+
+42
+00:03:56,270 --> 00:03:57,344
+没错，完美。
+Yeah, perfect.
+
+43
+00:03:57,504 --> 00:04:01,504
+你可以看到，这和我们上个教程里的一模一样。
+So you can see this is exactly the same thing that we had in the previous tutorial.
+
+44
+00:04:01,664 --> 00:04:07,824
+我把两个按钮换成了一个按钮，你可以看到建筑物的颜色可以轻松切换。
+Instead of the two buttons, I have just one button, and then you can see that the colors of building can easily change.
+
+45
+00:04:08,144 --> 00:04:13,540
+好，我现在不需要这个，我就把它关了。
+Okay, so I don't need this one right now, so I will close it.
+
+46
+00:04:15,278 --> 00:04:20,704
+接下来，我们可以看一下我们的代码结构。
+The next part is maybe we can take a look at our code structure.
+
+47
+00:04:20,944 --> 00:04:23,900
+这里是 index.html。
+So here it's index.html.
+
+48
+00:04:24,304 --> 00:04:25,744
+这非常简单。
+It is a super easy thing.
+
+49
+00:04:25,824 --> 00:04:32,224
+我已经把那个面板加进去了，你可以看一下代码。
+The only thing I have already added that panel, so you can you can just take a look at the code.
+
+50
+00:04:32,384 --> 00:04:35,984
+它就在那儿，其实没什么复杂的。
+So there it's it's not there, there is nothing really difficult.
+
+51
+00:04:36,144 --> 00:04:37,824
+所有内容都是基于 bootstrap 的。
+Everything is from the bootstrap.
+
+52
+00:04:37,984 --> 00:04:41,504
+然后你可以看到，这里是我们的两个按钮。
+Then here you can see that here it is our two buttons.
+
+53
+00:04:41,664 --> 00:04:53,220
+这里是我们的训练和屋顶部分，而在这些部分，我们添
+加了不同类型的过滤器：树木、水体、桥梁和全部数据。
+So here it is our train and the roof part, and here in these sections, we are
+adding our different type of the filters: Trees, water, bridge, and the all data.
+
+54
+00:04:53,504 --> 00:04:58,224
+好，回到 index.js 文件。
+Okay, back to the index.js file.
+
+55
+00:04:58,304 --> 00:05:02,224
+我已经为这个教程添加了一些待办事项。
+I have already added some to-dos for this tutorial.
+
+56
+00:05:02,384 --> 00:05:08,464
+如果你愿意，可以先看看这些，自己动手做一下，或者我们也可以一起写。
+So if you want, maybe you can take a look at them, you can do it by yourself, otherwise, we can code it together.
+
+57
+00:05:08,704 --> 00:05:15,984
+所以任何需要修改的地方，你只需要遵循这些建议或者待办事项即可。
+So any part that you should change any things, you should follow these suggestions or yeah, to-dos.
+
+58
+00:05:16,304 --> 00:05:18,224
+好了，我们开始吧。
+Okay, let's start.
+
+59
+00:05:18,384 --> 00:05:22,144
+第一件事是把点云添加到查看器中，好吗。
+The first thing adding a point cloud to the viewer, okay.
+
+60
+00:05:22,384 --> 00:05:30,148
+在这种情况下，我需要找到 asset ID。
+So in that case, I need to find asset ID.
+
+61
+00:05:30,944 --> 00:05:34,944
+好的，我这里有这个 asset ID 文件。
+So here I have this asset ID file.
+
+62
+00:05:35,104 --> 00:05:49,424
+首先，我应该把它改成……我要把它放到数组里，然后把它赋值给 CityGML。
+So first of all, I should change it to the so I will take it, grab it into the array, and I will assign it to ctgml.
+
+63
+00:05:50,624 --> 00:05:52,224
+好的，太棒了。
+Okay, great.
+
+64
+00:05:53,184 --> 00:05:58,464
+另外，我们还有一个叫点云的文件。
+Also, we have another one which is called point cloud.
+
+65
+00:06:03,904 --> 00:06:18,564
+好的，让我先给它设为 0，然后我们可以看一下，另
+外我应该重构一下这部分，把名字改为 asset IDs。
+Okay, so let me just give one zero and then after that we can take a
+look at it, and also I should refactor this part rename to the asset IDs.
+
+66
+00:06:20,144 --> 00:06:22,544
+是的，去重构一下。
+Yes, to the refactor.
+
+67
+00:06:22,784 --> 00:06:23,264
+太棒了。
+Great.
+
+68
+00:06:23,424 --> 00:06:26,304
+所以我们现在有两个数字。
+So we have right now the two numbers.
+
+69
+00:06:26,464 --> 00:06:36,164
+现在让我们打开 CCM，然后上传点云，再获取另一个 asset ID 文件。
+So let's now open the CCM and then upload the point cloud and then get another asset ID file.
+
+70
+00:06:37,134 --> 00:06:38,864
+我的账号是完全免费的。
+My account is completely free.
+
+71
+00:06:38,958 --> 00:06:41,904
+所以如果你还没有账号，请创建一个。
+So if you don't have any account, please create it.
+
+72
+00:06:42,064 --> 00:06:42,944
+创建一个。
+Create it.
+
+73
+00:06:43,184 --> 00:06:52,144
+之后，你会看到这个页面，然后去资产文件里，你可以看到这些都是我的数据。
+And after that, you will see this page, and after that, go to the asset files, and you can see these are all of my data.
+
+74
+00:06:52,430 --> 00:06:57,824
+是的，你可以看到这是一个我已经添加的新 CityGML 数据。
+Yes, so you can see that this is a new CTGML data that I have already added.
+
+75
+00:06:57,934 --> 00:07:11,104
+只需点击这个按钮，你就能看到数据，然后你可以看到数
+据是如何完美地贴合在 CZM 表面上的，点云也是一样。
+Just click on this button, then you can see the data, and then you can see how
+the data is perfectly clamped on the CZM surface and also point cloud the same.
+
+76
+00:07:11,130 --> 00:07:11,904
+太棒了。
+it's wonderful.
+
+77
+00:07:12,064 --> 00:07:15,377
+你可以看到，是的，简直完美。
+You can see, yeah, it's absolutely perfect.
+
+78
+00:07:15,377 --> 00:07:23,024
+是的，所以如果你想添加点云，它和 CityGML 一样，甚至更容易。
+yeah Then so if you want to add the point cloud, it is exactly same as ctml and even easier.
+
+79
+00:07:23,278 --> 00:07:24,827
+只需去添加文件。
+Just go to the add files.
+
+80
+00:07:25,038 --> 00:07:29,024
+我把它放在我的下载文件夹里。
+so I have it in my download folder.
+
+81
+00:07:29,264 --> 00:07:40,864
+这里就是这一部分，这是一个文件夹名称，这个 cd 名
+称，然后你可以随便选你要多少个文件，然后打开就行。
+So here it is this part, it is a dispart name, this cd name, and then you can just take how many files as you want and you just open.
+
+82
+00:07:41,934 --> 00:07:47,824
+所以在这里你可以看到所有内容都会被打开，一旦你点击按钮，所有内容都会被编码。
+So here you can see everything will be open, and you will as soon as you click on the button, everything will be coded.
+
+83
+00:07:47,984 --> 00:07:54,820
+好的，因为我已经做过了，所以不想再重复一遍，因为这花点时间。
+Okay, because I have already did it, so I don't want to repeat it once more because it takes a little bit of time.
+
+84
+00:07:55,504 --> 00:08:01,184
+然后我这里会抓取这个点云的代码。
+Then here I will grab this code once the point cloud.
+
+85
+00:08:01,678 --> 00:08:02,304
+复制它。
+Copy it.
+
+86
+00:08:03,104 --> 00:08:05,744
+所以我们不再需要它了。
+So we don't need it anymore.
+
+87
+00:08:06,704 --> 00:08:10,224
+所以回到，回到我们的
+So back to the back to our
+
+88
+00:08:13,776 --> 00:08:15,204
+呃，由……
+Uh by charm.
+
+89
+00:08:15,376 --> 00:08:21,252
+好的，所以我应该把它准确地粘贴到这里，也就是 asset IDs。
+Okay, so here just I should paste it exactly here and asset IDs.
+
+90
+00:08:21,902 --> 00:08:22,416
+完美。
+Perfect.
+
+91
+00:08:22,510 --> 00:08:26,016
+所以我觉得我们不需要其他的 ccm 配置文件了。
+So I think we don't need any more ccm config file.
+
+92
+00:08:26,336 --> 00:08:30,852
+那我现在跳到 index.js 文件。
+So I will jump to the index.js file.
+
+93
+00:08:31,182 --> 00:08:34,212
+第一步就在这里，这是 tileset。
+The first step is here it is the tileset.
+
+94
+00:08:34,416 --> 00:08:47,856
+我应该把它重构一下，改名为，抱歉，cd gml。
+I should just refactor it to rename, sorry, c, ct gml.
+
+95
+00:08:49,678 --> 00:08:54,884
+还有这里，我应该点击 cd gml。
+and also here, I should just click cd gml.
+
+96
+00:08:56,462 --> 00:08:58,336
+然后我把它复制一份。
+then I will duplicate it.
+
+97
+00:08:58,576 --> 00:09:04,356
+然后把 cd gml 换成 point cloud。
+and then instead of cd gml, we need point cloud.
+
+98
+00:09:05,806 --> 00:09:13,156
+这里也应该是 point cloud，那我肯定得把它加上。
+Also here, it should be point cloud, then definitely I should add it.
+
+99
+00:09:14,478 --> 00:09:18,176
+然后同样的操作，复制这个，然后……
+Then the same thing, duplicate this one and,
+
+100
+00:09:21,582 --> 00:09:24,416
+呃，tile set point cloud。
+uh, tile set point cloud.
+
+101
+00:09:24,656 --> 00:09:27,332
+好，检查一下到目前为止的实现。
+So, check our implementation up to this point.
+
+102
+00:09:29,216 --> 00:09:34,416
+好的，localhost 88080。
+So, local host 88080.
+
+103
+00:09:34,542 --> 00:09:35,216
+完美。
+So, perfect.
+
+104
+00:09:35,296 --> 00:09:39,936
+你可以看到这是精确的模拟，就像我们之前在……
+You can see this is exact simulation, so as we had in the.
+
+105
+00:09:41,136 --> 00:09:51,780
+还有像 CCM 里的可视化，我不需要它，因为我在录制，我得把它关了，因为它太占我电脑资源了。
+And visualization as we have in the CCM IN, so I don't need it, so because I'm recording,
+I should close it because it takes a lot of resource from my PC.
+
+106
+00:09:52,256 --> 00:09:57,936
+好的，在那之后，我们之前提到过一开始不要可视化点云。
+Okay, after that, we have already mentioned that not visualize point cloud in the start.
+
+107
+00:09:58,096 --> 00:10:05,700
+还是简单的 title style point cloud.show 等于什么。
+It is again easy title style point cloud dot show equal to what's.
+
+108
+00:10:08,878 --> 00:10:16,964
+好，下一步我们应该去……去对点云进行分类，分成四个类别。
+Okay, then the next step is we should go to the to the number to classify the point clouds in the four categories.
+
+109
+00:10:17,216 --> 00:10:27,456
+所以在做之前，我们应该跳到 title style manager，
+在 title style manager 里，我需要一个叫 point
+So, before doing it, we should jump into the title style manager, and in the title style manager, I need a new function called point.
+
+110
+00:10:29,038 --> 00:10:32,816
+cloud style 的新函数，是的。
+Cloud style, yes.
+
+111
+00:10:33,216 --> 00:10:45,412
+对于点云样式，我需要三个类别，也就是 class name。
+And for the point cloud style, I need the three classes, so class name.
+
+112
+00:10:46,126 --> 00:10:52,736
+在那之后，我们需要，这个分类编号是什么？
+And after that, we need, so what is the this classification number?
+
+113
+00:10:52,816 --> 00:10:56,096
+你可以把它命名为 category 或者任何你想要的名称。
+You can name it category or anything that you want.
+
+114
+00:10:56,656 --> 00:11:03,716
+而且我们还需要，比如，这个类别的颜色应该是什么？
+And also, we need, for example, what we what would be the color for this class?
+
+115
+00:11:04,336 --> 00:11:15,940
+好，那我会分配一些预定义的值，编号 1，还有预定义的值为绿色。
+Okay, so then I will assign some predefined values, number one, and also predefined value as a green.
+
+116
+00:11:16,576 --> 00:11:32,896
+在这种情况下，我们不需要为 radio 值等于 all 的情况添加这些值，因为现在我们有四个值，
+是的，其中一个是树，水，桥，还有全部。
+So in that case, we don't need to add these values for uh for when the when the radio value is all,
+because right now we have four values, yes, one of them is a tree, water, bridge, and all.
+
+117
+00:11:34,576 --> 00:11:41,636
+而且在 index.html 里，我们有 radio tree，radio water，radio bridge，还有 all。
+And also in the index.html, we have it as a radio tree, radio water, radio bridge, and all.
+
+118
+00:11:41,936 --> 00:11:45,136
+好，回到代码。
+Okay, so back to the code.
+
+119
+00:11:45,376 --> 00:11:52,176
+第一步是，我们应该检查 class name
+Then the first step is, we should check if class name
+
+120
+00:11:55,296 --> 00:11:57,216
+是否等于
+equal equal to
+
+121
+00:12:00,656 --> 00:12:01,936
+全部广播。
+radio all.
+
+122
+00:12:02,576 --> 00:12:09,444
+所以，如果类别名称等于“全部广播”，我就抓取这段代码。
+So, if the class name is equal to radio all, I will grab exactly this part of the code.
+
+123
+00:12:11,376 --> 00:12:25,480
+当然，你可以看到这部分和那部分之间有一点重复，你完全可以重构代码，
+但我现在只是想展示功能，所以不用太在意这些细节。
+And definitely, you can see we have a little bit load now duplication between this part and this part,
+and definitely you can refactor the code, but we want to just, I want to just visualize and show you the the functionality,
+
+124
+00:12:25,480 --> 00:12:29,216
+当然，你可以看到这部分和那部分之间有一点重复，你完全可以重构代码，
+但我现在只是想展示功能，所以不用太在意这些细节。
+so you don't want to pay too much attention to these things.
+
+125
+00:12:29,966 --> 00:12:37,136
+好，那我就把它删掉，把 roof 类别换成……
+Okay, so here I will just remove it and instead of the roof class classy,
+
+126
+00:12:41,582 --> 00:12:48,100
+我刚才拼写错了，然后我们获取颜色索引等等。
+so I made a mistake in the spelling, and after that, we get the color index and so on.
+
+127
+00:12:48,400 --> 00:12:55,748
+另外，我们不需要这一行，因为我已经给所有的点云颜色赋值了。
+Also, we don't need this one because I have already given the value to all of the point clouds colors.
+
+128
+00:12:56,320 --> 00:12:59,680
+那么这里又是 tile set。
+So then here we have again tile set.
+
+129
+00:13:00,160 --> 00:13:03,200
+回到类顶端。
+So back to the top of the class.
+
+130
+00:13:03,406 --> 00:13:05,600
+这里又是 tile set。
+Here we have the tile set again.
+
+131
+00:13:06,010 --> 00:13:16,004
+我要把它重构回 tile set CityGML。
+I'm gonna refactor it to again, tile set, ct gml.
+
+132
+00:13:17,680 --> 00:13:27,440
+而且我还需要 tile set point。
+and also I need tile tile set point.
+
+133
+00:13:30,990 --> 00:13:37,360
+然后我应该把这个点 tileset point cloud 改成 point cloud。
+Then I should say that this dot tileset point cloud to the point cloud.
+
+134
+00:13:37,920 --> 00:13:38,436
+太棒了。
+Great.
+
+135
+00:13:38,960 --> 00:13:40,640
+让我检查一下。
+So let me check.
+
+136
+00:13:40,800 --> 00:13:42,916
+噢，为什么这里没变？
+Oh why here it is not changed.
+
+137
+00:13:43,440 --> 00:13:43,760
+好的。
+Okay.
+
+138
+00:13:46,000 --> 00:13:46,960
+所以就
+So just
+
+139
+00:13:52,910 --> 00:13:57,668
+把它粘贴到这里，然后重构，完成重构，完美。
+paste it here, then refactor, do the refactor, perfect.
+
+140
+00:13:58,670 --> 00:14:00,440
+所以是 tileset CityGML。
+So tileset CTGML.
+
+141
+00:14:00,640 --> 00:14:08,996
+在点云数据里，第一件事是这里，我应该把它改成 tile set point cloud，
+So here in the point cloud data, so the first thing is here, so I should change it to tile set point cloud,
+
+142
+00:14:13,134 --> 00:14:18,052
+tile set point cloud，我觉得剩下的都没问题。
+tileset point cloud, and I think the rest is fine.
+
+143
+00:14:18,400 --> 00:14:29,892
+下一步是给 tile set point cloud 设置颜色条件，而且我们还需要一个 show query。
+The next step is we are giving the time set point cloud color condition, and also we need a show query.
+
+144
+00:14:32,398 --> 00:14:33,200
+针对这一项。
+for this one.
+
+145
+00:14:33,678 --> 00:14:38,960
+不，我们不需要那个 show query，那是为了下一项，也就是我们想要根据树木和水体进行过滤的。
+No, we don't need that no show query, it is the for the next one that we want to filter according to the tree and water.
+
+146
+00:14:39,280 --> 00:14:40,900
+我觉得这里一切都没问题。
+I think everything is fine here.
+
+147
+00:14:42,158 --> 00:14:47,200
+那也许我们可以检查一下这里这些项的实现。
+So maybe we can check our implementation here of these ones.
+
+148
+00:14:48,320 --> 00:14:51,364
+好的，回到浏览器，localhost。
+Okay, back to the browser, local host.
+
+149
+00:14:53,518 --> 00:14:56,160
+是的，到这里为止一切正常。
+Yes, everything works until here.
+
+150
+00:14:57,040 --> 00:15:04,960
+好的，然后我们还需要回到文件里，把它设为 true。
+Okay, then also we need to back to the file, make it as a true.
+
+151
+00:15:13,134 --> 00:15:13,840
+是的，完美。
+Yeah, perfect.
+
+152
+00:15:13,920 --> 00:15:32,260
+你可以看到点云已经可视化了，但我们忘了，这里应该是 true，而且我这里忘了赋值了。
+You can see that the point clouds are visualized, but we forgot, here it should be true, and also here I forgot to assign the value.
+
+153
+00:15:32,720 --> 00:15:44,484
+所以点云样式，第一个值应该是 array deal all，好吗。
+So point cloud style, then the first value it should be array deal all okay.
+
+154
+00:15:45,486 --> 00:15:50,372
+让我们再检查一遍，刷新一下。
+Let's check it once more, refresh.
+
+155
+00:15:52,302 --> 00:15:55,140
+那我们在样式上出了点问题。
+Then we have a problem in the styling.
+
+156
+00:16:04,974 --> 00:16:09,200
+那我们来看看结果是什么，以及这个警告的原因是什么。
+So let's check what is the result and what is the reason of this warning.
+
+157
+00:16:09,360 --> 00:16:10,404
+回到代码。
+Back to the code.
+
+158
+00:16:12,558 --> 00:16:18,052
+所以这里我们已经把它分配给 radio 了，all，所以不应该有问题。
+So here we have already assigned it to the radio, all so it shouldn't be a problem.
+
+159
+00:16:18,688 --> 00:16:22,448
+然后，这里是 tileset 的问题。
+And then so here it is the problem of the tileset.
+
+160
+00:16:22,528 --> 00:16:28,644
+这里我们已经把它分配给两个值了，然后这里应该是 tileset point cloud。
+Here we have already assigned it to two values, and then here it should be tileset point cloud.
+
+161
+00:16:29,262 --> 00:16:31,728
+我觉得现在问题应该解决了。
+I think the problem should be solved right now.
+
+162
+00:16:32,142 --> 00:16:33,412
+再刷新一次。
+Refresh it once more.
+
+163
+00:16:33,968 --> 00:16:38,208
+是的，点云现在是单一颜色了。
+And yes, the point cloud has a one color.
+
+164
+00:16:38,448 --> 00:16:39,568
+没错，没问题。
+Yeah, it's fine.
+
+165
+00:16:39,822 --> 00:16:44,868
+好，那我要打开一个新标签页，我不想一直把它开着。
+Okay, so I will open the new tab and I don't want it to keep it open.
+
+166
+00:16:46,222 --> 00:16:48,368
+好，这部分完成了。
+Okay, so this part it's done.
+
+167
+00:16:48,558 --> 00:16:55,568
+然后我们去标题样式管理器，写 else 条件。
+Then we go to the title style manager and write the else condition.
+
+168
+00:16:56,334 --> 00:17:13,887
+在 else 条件里，我们应该写 const，然后是颜色条件，等于，然后这里我们需要一个 class。
+In the else condition, we should say that const, then we have color condition, equal to, and then here we need a class.
+
+169
+00:17:14,848 --> 00:17:23,460
+然后我们还需要一个左括号。
+and then so then also we need a parenthesis open.
+
+170
+00:17:24,012 --> 00:17:26,127
+而且我还需要一个美元符号。
+and also I need a dollar sign.
+
+171
+00:17:26,288 --> 00:17:26,928
+没错。
+exactly.
+
+172
+00:17:27,214 --> 00:17:32,288
+所以这里我需要一个分类，等于。
+So here I need a classification, which is equal to.
+
+173
+00:17:33,808 --> 00:17:40,484
+然后我们分配类编号。
+then we'll assign the class number.
+
+174
+00:17:41,488 --> 00:17:45,060
+之后，我们加个逗号。
+and after that, we have a comma.
+
+175
+00:17:45,888 --> 00:17:50,768
+然后是颜色。
+and then color.
+
+176
+00:17:52,688 --> 00:18:04,848
+然后我们需要单引号，抱歉，首先我们要打开括号，然后我们需要单引号。
+Then we need a single code, and sorry, first of all, we should open the parentheses, and then we need a single code.
+
+177
+00:18:05,248 --> 00:18:13,008
+然后应该是加号 class 颜色，然后加号。
+then it should be plus class color, and then plus.
+
+178
+00:18:13,742 --> 00:18:22,760
+然后我们还需要双引号，再加单引号，然后我们要关闭括号。
+then we need again, double code, then single code, and we should close the practices.
+
+179
+00:18:23,408 --> 00:18:25,156
+好，这就是颜色。
+Okay, here is the color.
+
+180
+00:18:27,534 --> 00:18:29,956
+所以这里是颜色条件。
+So here it is the color condition.
+
+181
+00:18:30,768 --> 00:18:34,208
+然后我们需要 const
+then we need const
+
+182
+00:18:37,888 --> 00:18:42,368
+show 等于
+show is equal to.
+
+183
+00:18:42,608 --> 00:18:50,084
+所以，我们再次要在 CCM 中写一个，呃，查询语句。
+so again, we want to write a uh, a query in the CCM.
+
+184
+00:18:50,288 --> 00:18:58,724
+所以也许我们可以先检查一下 CCM 的快速启动，然后在这里的样式和过滤中。
+So maybe we can check first of all the CCM quickest start, then here in the style and filtering.
+
+185
+00:18:59,168 --> 00:19:07,568
+所以也许我可以先说一下关于特征的部分。
+So maybe I can just so first about a feature.
+
+186
+00:19:09,408 --> 00:19:14,448
+所以在这里你可以看到，它和 QGIS 等其他地理空间应用完全一样。
+So here you can see it is exactly same as other geospatial applications like a QGIS.
+
+187
+00:19:14,528 --> 00:19:26,340
+所以如果你想调用任何特征，你也应该调用特征，比如建筑列或字段等于住宅或者这个。
+So if you want to call any feature, so you should also call the feature
+which the building column or field is equal to a residential or this one.
+
+188
+00:19:26,848 --> 00:19:41,540
+所以我们想要完全实现同样的功能，我们想要说分类等于，例如，数字 1，例如，水体，
+或者数字 9，例如，呃，呃，桥梁之类的。
+So we want to exactly implement the same thing, we want to say that the classification equals, for example, number one, for example,
+which is water, or number nine, which is uh uh for example bridge or such a thing.
+
+189
+00:19:41,728 --> 00:19:43,008
+是的，好的。
+Yeah, okay.
+
+190
+00:19:43,982 --> 00:19:48,368
+让我们进入代码。
+Let's jump into our code.
+
+191
+00:19:48,608 --> 00:19:56,608
+所以这里我再次需要花括号，而且我这里还需要一个美元符号。
+So here again I need a curly braces and also I need a dollar sign here.
+
+192
+00:19:56,688 --> 00:19:59,648
+它应该是 feature。
+It should be feature.
+
+193
+00:20:04,142 --> 00:20:05,552
+feature of
+Feature of
+
+194
+00:20:09,134 --> 00:20:11,312
+classification,
+classification,
+
+195
+00:20:14,414 --> 00:20:21,956
+feature of classification 应该等于，等于 class。
+feature of classification should be equal, equal to class.
+
+196
+00:20:26,112 --> 00:20:33,188
+然后最后一步是这个点：apply settings。
+Then the last step is this dot: apply settings.
+
+197
+00:20:34,112 --> 00:20:39,460
+所以这个点：tileset，point cloud。
+So this dot: tileset, point cloud.
+
+198
+00:20:40,352 --> 00:20:52,420
+然后我们需要 color condition，color condition，最后我们需要一个 show query。
+Then we need color condition, color condition, and finally we need a show query.
+
+199
+00:20:52,752 --> 00:20:58,112
+但我们的 apply settings 里还没有这个 show query。
+But we don't have this show query here in our apply settings.
+
+200
+00:20:58,542 --> 00:21:06,032
+我会在这里添加一个 show，并给它一个默认值 true。
+I will add here as a show, and I give a default value as a true.
+
+201
+00:21:06,192 --> 00:21:16,432
+所以其他条件，例如这个，你应该为这类事物设置任何错误，然后这里是 true 值。
+So other conditions, for example, this one, you should have any error for these type of things, and then here the true value.
+
+202
+00:21:17,392 --> 00:21:18,912
+抱歉，不是 true 值。
+Sorry, not true value.
+
+203
+00:21:19,472 --> 00:21:23,152
+show 值应该等于 show。
+The show value should be equal to show.
+
+204
+00:21:23,312 --> 00:21:31,940
+我们将 show 分配给这个 apply settings 的 show 值，它是从 CCM3 tile settings 中获取的。
+We will assign show to the show value of this apply settings, which is coming from CCM3 tile settings.
+
+205
+00:21:32,432 --> 00:21:36,740
+好了，我觉得我们的代码没问题了。
+Okay, so I think our code is fine.
+
+206
+00:21:37,152 --> 00:21:40,592
+所以让我们再次检查一下我们的实现。
+So let's check our implementation again.
+
+207
+00:21:41,038 --> 00:21:48,272
+所以，例如，我们需要一个单选框，例如，三个。
+So, for example, we need a radio, for example, three.
+
+208
+00:21:48,942 --> 00:21:52,672
+然后我们将给它 1，然后我们将给它绿色。
+Then we will give one, and then we will give green.
+
+209
+00:21:53,072 --> 00:21:57,712
+好的，让我们回到那里，localhost。
+Okay, let's back there, local host.
+
+210
+00:22:00,174 --> 00:22:01,072
+是的，完美。
+Yeah, perfect.
+
+211
+00:22:01,262 --> 00:22:09,540
+你可以看到 Cesium 是如何完美地可视化所有这些，呃，树木植被或点云的。
+You can see how perfectly Cesium can visualize all these, uh, the tree vegetation or point clouds.
+
+212
+00:22:09,632 --> 00:22:12,912
+没错，你可以看到所有东西都被完美地分离出来了。
+Yeah, you can see how beautifully separate everything.
+
+213
+00:22:13,072 --> 00:22:15,232
+好的，没问题。
+Okay, it's, it's fine.
+
+214
+00:22:15,598 --> 00:22:24,192
+让我们去看剩下的代码，在完成代码之前激活这些按钮。
+Let's go to the rest of our code and activate these buttons before completing our code.
+
+215
+00:22:24,352 --> 00:22:30,244
+也许我可以把这些待办事项删掉，我不需要这部分了。
+Maybe we can, I can just remove these to-dos, so I don't need this part.
+
+216
+00:22:30,912 --> 00:22:33,872
+还有这里，还没做完。
+And also here, it has not been done.
+
+217
+00:22:33,952 --> 00:22:35,312
+还有这部分。
+And also this part.
+
+218
+00:22:35,598 --> 00:22:42,112
+还有，我觉得在配置文件里我还有另一个待办事项，我们也可以检查一下。
+And also, I think in the config file, I have another to -do, so also we can check it.
+
+219
+00:22:42,286 --> 00:22:46,244
+没错，就在这里有一个待办事项。
+Exactly here we have a to-do part.
+
+220
+00:22:46,638 --> 00:22:53,540
+好的，让我检查一下这里。
+Yeah, okay, so Let me check here.
+
+221
+00:22:54,190 --> 00:22:59,632
+所以，这里我们所有的待办事项：待办事项三和待办事项二。
+So, here we have all of our to -dos: to do number three and to do number two.
+
+222
+00:23:00,032 --> 00:23:02,992
+好的，我们稍后应该把它们删掉。
+Okay, and we should remove them later.
+
+223
+00:23:03,152 --> 00:23:04,804
+好的，待办事项二。
+Okay, to do number two.
+
+224
+00:23:05,552 --> 00:23:07,392
+所以在这种情况下。
+So, in this case.
+
+225
+00:23:09,550 --> 00:23:11,552
+所以，document 点。
+so document dot.
+
+226
+00:23:13,872 --> 00:23:16,260
+也许我可以直接跳到下一行。
+maybe I can just go to the next line.
+
+227
+00:23:16,672 --> 00:23:22,272
+点，query，query，Selector
+dot, query, query, Selector,
+
+228
+00:23:26,926 --> 00:23:28,432
+selector，All
+selector, All.
+
+229
+00:23:29,632 --> 00:23:32,672
+然后在那之后，我需要和
+and then after that, I need and
+
+230
+00:23:35,792 --> 00:23:36,452
+input
+input.
+
+231
+00:23:37,152 --> 00:23:43,908
+所以，输入值应该有一个名字等于。
+So, the input value should have a name equal to.
+
+232
+00:23:47,726 --> 00:24:02,148
+等于 classification，然后对于所有这些 classification 值，我需要一个 for each。
+Equal to classification, and then for all of these classification values, I need a for each.
+
+233
+00:24:02,896 --> 00:24:07,620
+所以，然后我想给一个 radio。
+So, and then I want to give a radio.
+
+234
+00:24:09,536 --> 00:24:13,536
+然后我们需要一个箭头函数来处理这个。
+Then we need an arrow function for that.
+
+235
+00:24:17,376 --> 00:24:25,092
+然后是 radio 点 add event listener。
+then radio dot add event listener.
+
+236
+00:24:26,256 --> 00:24:29,860
+所以当我们调用 change 时。
+so with the when we are calling the change.
+
+237
+00:24:33,934 --> 00:24:46,820
+在那之后，对于每个事件，首先我应该说 tileset 点 point cloud 点 show 等于 true。
+And after that, for each event, first of all, I should say that tileset dot point cloud dot show is equal to true.
+
+238
+00:24:47,696 --> 00:24:50,016
+然后在那之后，如果
+and then after that, if
+
+239
+00:24:55,056 --> 00:25:19,140
+Event 点 target 点 id 等于等于 radio all，那么我需要添加一些函数。
+Event dot target dot id is equal equal to radio all, then I need some functions to add some functions.
+
+240
+00:25:19,662 --> 00:25:26,436
+所以是 style 点 manager 点 point cloud style。
+so style dot manager dot point cloud style.
+
+241
+00:25:26,816 --> 00:25:38,736
+所以我们唯一需要做的，或者也许我们可以从 radio tree 开始，然后把 radio all 放到条件里。
+So the only thing we need, or maybe we can just start with radio tree and then we can put the radio all to the condition.
+
+242
+00:25:39,214 --> 00:25:42,496
+所以这里我们传递单选按钮
+So here we are passing radio
+
+243
+00:25:46,414 --> 00:25:50,372
+编号 1 和绿色值。
+number one and green value.
+
+244
+00:25:52,270 --> 00:25:59,216
+然后我们有 else，也就是 if 条件，所以
+then we have else, if condition, so
+
+245
+00:26:02,896 --> 00:26:03,456
+Else。
+Else.
+
+246
+00:26:04,176 --> 00:26:32,484
+如果事件目标 ID 等于单选按钮 water，那么 style manager 点点点 point cloud radio water。
+if event target id is equal to radio radio water, then style manager dot point cloud radio water.
+
+247
+00:26:32,686 --> 00:26:34,180
+那个编号是多少？
+What is the number of that?
+
+248
+00:26:34,496 --> 00:26:38,916
+是 9，然后颜色应该是
+It is nine, and then the color should be.
+
+249
+00:26:41,070 --> 00:26:42,816
+然后 else
+Then else
+
+250
+00:26:51,856 --> 00:27:09,732
+条件是这个事件目标 ID 等于单选按钮 bridge。
+condition of that event dot target dot id is equal equal to radio bridge.
+
+251
+00:27:12,096 --> 00:27:22,816
+那么这里我们有 style manager 点点点 point cloud style，单选按钮 bridge，编号是 17。
+then here we have style manager dot point cloud style, radio bridge, and the number is 17.
+
+252
+00:27:23,856 --> 00:27:28,132
+而且我们把绿色换成棕色。
+and also instead of the green, we are assigning to brown.
+
+253
+00:27:29,216 --> 00:27:34,096
+否则，也就是 else 条件，
+Otherwise, so the else condition,
+
+254
+00:27:38,158 --> 00:27:41,856
+所以 style manager 点点点 point cloud style。
+so style manager point cloud style.
+
+255
+00:27:42,096 --> 00:27:43,376
+而且这里我们需要
+and here we need
+
+256
+00:27:50,096 --> 00:27:50,416
+还有。
+also.
+
+257
+00:27:57,742 --> 00:28:03,556
+又来了，我觉得 PyCharm 把我的代码搞乱了。
+Again, I think CCM, uh, pie charm missed up my code.
+
+258
+00:28:05,056 --> 00:28:09,456
+好了，现在看起来好点了。
+Okay, now, okay, now it looks better.
+
+259
+00:28:11,246 --> 00:28:19,780
+好吧，我不知道为什么它把所有内容都自动转换成了反斜杠，还有，好吧，分号。
+Okay, I don't know why I jump convert everything automatically to backslash and, okay, semicolon.
+
+260
+00:28:20,334 --> 00:28:21,232
+所以没问题。
+So it's fine.
+
+261
+00:28:21,454 --> 00:28:24,752
+让我们再次检查到目前为止的实现。
+Let's check our implementation again up to this point.
+
+262
+00:28:25,152 --> 00:28:32,432
+看看我们的过滤器是不是起作用了。好的，太棒了。
+Let's see our filters are working Okay, great.
+
+263
+00:28:33,198 --> 00:28:35,940
+第一步我们有这些点云。
+The first step we have these point clouds.
+
+264
+00:28:36,272 --> 00:28:37,952
+我们现在把它修正一下。
+Let's fix it right now.
+
+265
+00:28:38,350 --> 00:28:41,312
+这里应该是 false。
+Here it should be false.
+
+266
+00:28:43,822 --> 00:28:44,352
+太棒了。
+Great.
+
+267
+00:28:49,102 --> 00:28:51,524
+回到代码，刷新一下。
+back to the code, refresh.
+
+268
+00:28:53,102 --> 00:28:57,152
+所以这里没有任何点云，漂亮。
+So here we don't have any point clouds, beautiful.
+
+269
+00:28:57,390 --> 00:29:01,872
+然后当我们选了 tree，树、水和桥就会出现。
+Then when we have three, tree will come, water and breach.
+
+270
+00:29:02,432 --> 00:29:14,532
+抱歉，现在所有数据都在，下一步是当我们点击这个按钮时，点云应该消失。
+Sorry, and now all the data, and then and the next step is when we are clicking on this button, so point cloud should be disappear.
+
+271
+00:29:15,790 --> 00:29:17,472
+现在是最后一部分。
+Now the last to do part.
+
+272
+00:29:17,712 --> 00:29:19,712
+所以这一部分也完成了。
+So also this one is done.
+
+273
+00:29:19,872 --> 00:29:27,632
+让我把它删掉，最后要做的部分是所有单选按钮都应该取消勾选。
+Let me remove it, and then the last to do part is all the radio buttons should be unchecked.
+
+274
+00:29:27,872 --> 00:29:30,192
+好的，我觉得这也很简单。
+Okay, I think it is also easy.
+
+275
+00:29:30,352 --> 00:29:33,152
+让我把这个也删掉。
+Let me just I can also remove this one.
+
+276
+00:29:33,472 --> 00:29:47,072
+所以抓取大括号里的这段代码，首先是 tileset.pointCloud.show 等于 false。
+So grab this part of the code inside the curly braces, and then the first thing is tileset point cloud dot show is equal to false.
+
+277
+00:29:49,792 --> 00:29:53,712
+抱歉，我们换一种实现方式。
+sorry, let's change the implementation.
+
+278
+00:29:53,872 --> 00:30:01,312
+让我检查一下一切是否正常，呃，这里没把所有东西搞混，好的，完美。
+Let me check everything is fine, and uh pretty here doesn't mix everything Okay, perfect.
+
+279
+00:30:01,614 --> 00:30:08,516
+然后我们还需要一个取消勾选的函数，因为我们现在有两个变量和两个按钮。
+Then we need also a function to uncheck because we have right now the two variables and two buttons.
+
+280
+00:30:09,712 --> 00:30:26,308
+呃，然后我将创建一个名为 uncheckedRadioButtons 的函数。
+Uh then I will create a one function which is called unchecked radio buttons.
+
+281
+00:30:27,872 --> 00:30:36,292
+好的，然后我把它赋值给一个箭头函数。
+Okay, then so I will assign it to one arrow function.
+
+282
+00:30:38,992 --> 00:30:40,752
+完美。
+So perfect.
+
+283
+00:30:41,262 --> 00:30:45,312
+所以在这一块，我只需要再次调用
+So in this one, I should just call again the
+
+284
+00:30:49,552 --> 00:31:00,512
+document.querySelectorAll，输入内容和我们之前在这里写的一模一样。
+document done, select all queries exactly the same input that we have already at here.
+
+285
+00:31:02,446 --> 00:31:06,992
+所以我把这段代码抓取过来放到这里。
+So I will grab this part of the code and put it here.
+
+286
+00:31:07,630 --> 00:31:29,156
+然后，对于每一个，也就是每一个单选按钮，需要执行：radio.checked 等于 false。
+Then, for each, so for each radio, need to do the following: radio dot checked equal to butt.
+
+287
+00:31:30,318 --> 00:31:32,832
+我觉得一切看起来都没问题。
+I think everything should look fine.
+
+288
+00:31:33,134 --> 00:31:39,012
+唯一剩下的就是，我们应该加上取消所有单选按钮的操作。
+The only thing it remains, we should add, uncheck all radio buttons.
+
+289
+00:31:39,792 --> 00:32:01,124
+在这部分，我再次抓取大括号里的这段代码，然后
+tileset.pointCloud.show 等于 false，同时取消所有单选按钮的勾选。
+And in this part, again, I will grab this part of the code inside the curly braces, then tileset dot point cloud,
+dot show equal to false, and also unchecked all the radio buttons.
+
+290
+00:32:01,486 --> 00:32:02,112
+太棒了。
+Great.
+
+291
+00:32:03,022 --> 00:32:07,072
+好的，让我们检查一下到目前为止的实现。
+Okay, let's check our implementation up to this point.
+
+292
+00:32:09,072 --> 00:32:14,912
+我需要 Chrome，我把它关了，localhost。
+So I need Chrome, I closed it, local host.
+
+293
+00:32:17,070 --> 00:32:21,232
+好的，我们现在有了建筑，没有点云，没问题。
+Okay, so we have our buildings without any point cloud, it's fine.
+
+294
+00:32:21,358 --> 00:32:23,140
+颜色是可以更改的。
+The colors is can be changed.
+
+295
+00:32:23,552 --> 00:32:24,832
+好的，完美。
+Okay, perfect.
+
+296
+00:32:25,102 --> 00:32:32,672
+所以这里是树木、水体，然后这里这个是桥梁，还有其他数据。
+So here it's the trees, water, and then here this one is each, and then other data.
+
+297
+00:32:32,910 --> 00:32:37,220
+只要我点击这些按钮，所有的点云就会被移除。
+As soon as I'm clicking on these buttons, all the point cloud will be removed.
+
+298
+00:32:37,966 --> 00:32:40,752
+好的，我觉得今天的课程就到这里。
+Okay, I think it's enough for today.
+
+299
+00:32:40,912 --> 00:32:43,952
+再次感谢大家的关注和时间。
+Again, thanks a lot for your time and all our attentions.
+
+300
+00:32:44,032 --> 00:32:47,872
+如果你有任何问题，别忘了在下面的评论区留言。
+If you have any questions, don't forget to comment it in the comment section below.
+
+301
+00:32:48,206 --> 00:32:49,792
+我们下个视频再见。
+See you all in the next video.
+
+302
+00:32:50,032 --> 00:32:50,352
+再见。
+Bye.
+
