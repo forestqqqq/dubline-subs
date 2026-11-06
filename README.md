@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [IntelliJ Idea Plugin Development EP04](medias/TZ8ER/) | aptkode | 2026-11-06 |
 | [IntelliJ Idea Plugin Development EP03](medias/AAVPR/) | aptkode | 2026-11-06 |
 | [September [Intro] Welcome Session by TechEquity Ai](medias/8RHVR/) | TechEquity Ai | 2026-11-06 |
 | [Your Browser Is Leaking Your Real IP (WebRTC Test & Fix)](medias/VB7YC/) | The Web Insights | 2026-11-05 |
