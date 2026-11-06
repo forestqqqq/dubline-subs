@@ -1,0 +1,544 @@
+1
+00:00:00,878 --> 00:00:02,780
+Hey guys, welcome to apt-code.
+
+2
+00:00:03,438 --> 00:00:07,268
+In this video, we are going to continue IntelliJ Idea Plugin Development Series.
+
+3
+00:00:07,694 --> 00:00:09,028
+This is episode number 3.
+
+4
+00:00:09,262 --> 00:00:11,844
+If you haven't subscribed yet, please do subscribe.
+
+5
+00:00:12,398 --> 00:00:20,324
+In this video, we are going to cover localization and code inspection by starting building plugin from scratch.
+
+6
+00:00:20,910 --> 00:00:22,308
+So let's get started.
+
+7
+00:00:23,630 --> 00:00:24,260
+Okay, guys.
+
+8
+00:00:24,480 --> 00:00:33,476
+So in this tutorial, we are going to develop a plugin that indicate us if the main one dependency has new updates, right?
+
+9
+00:00:33,870 --> 00:00:40,004
+So if I hover this dependency, we get the message dependency has new version, right?
+
+10
+00:00:40,654 --> 00:00:48,164
+If I click alt insert, we get quick fix saying use new version, right?
+
+11
+00:00:48,480 --> 00:01:03,120
+So here we have 1.16 and if I press uh alt enter together and again enter uh use new version, it gets updated to 1.21, right?
+
+12
+00:01:03,440 --> 00:01:10,212
+So to this plugin to work, uh we need to have Maven repository updates, right?
+
+13
+00:01:10,560 --> 00:01:18,788
+Uh so for that one we need to go build execution deployment maven repositories, and here we have Maven Central.
+
+14
+00:01:19,040 --> 00:01:28,068
+If you haven't updated it lately, please click update, then it get updated, so then we can work on our plugin.
+
+15
+00:01:28,720 --> 00:01:39,460
+So this is the plugin we are going to develop, and uh I'll start working on that one, and you can work along with me, right?
+
+16
+00:01:40,462 --> 00:01:44,420
+Okay, guys, so here I'm in new skeleton plugin project.
+
+17
+00:01:44,910 --> 00:02:02,500
+So I have uh up name my plugin called Maven Dependency Updater, and here's the settings.gradle file, and we have build.gradle file updated, and then plugin.xml file updated with the relevant details, right?
+
+18
+00:02:02,960 --> 00:02:12,004
+So in first episode of this series, we did these things and uh we showed how to run and debug the plugin, right?
+
+19
+00:02:12,430 --> 00:02:21,668
+So in this plugin we need to uh use some dependency coming from the IntelliJSDK itself to use some Maven stuff, right?
+
+20
+00:02:22,080 --> 00:02:24,996
+For doing that, we need to add depends tag here.
+
+21
+00:02:26,190 --> 00:02:35,300
+Depends we need to put ob.jet brains.ide and then main, right?
+
+22
+00:02:36,142 --> 00:02:38,276
+This is the dependency we need, right?
+
+23
+00:02:38,880 --> 00:02:41,200
+And we need also uh
+
+24
+00:02:46,446 --> 00:02:52,996
+need to that uh add to the add plugin to IntelliJ plugin section, right?
+
+25
+00:02:53,680 --> 00:03:02,800
+So we can type plugins and here we can type na1 right now.
+
+26
+00:03:03,086 --> 00:03:06,756
+It should get uh resolved.
+
+27
+00:03:11,630 --> 00:03:13,680
+Yes, right now it's get resolved.
+
+28
+00:03:13,840 --> 00:03:19,840
+So we have added this one, so we can use Maven stuff uh inside our plugin.
+
+29
+00:03:20,240 --> 00:03:28,880
+That's how you add uh Intel J DK plugins uh which is coming uh come comes as bundle plugin.
+
+30
+00:03:29,440 --> 00:03:31,364
+we can use as this manner.
+
+31
+00:03:33,774 --> 00:03:43,684
+Okay, so next thing in our agenda is to create some uh bundle resource bundle to a localization stuff, right?
+
+32
+00:03:44,080 --> 00:03:55,920
+Uh basically you can have uh default one, then you can have uh English, uh German, or whatever the language you need to support in your plugin.
+
+33
+00:03:57,360 --> 00:04:08,868
+And to do that, I am going to source main resources folder and I'm going to create a new file basically properties file.
+
+34
+00:04:09,110 --> 00:04:19,108
+I will call it maven version inspection bundle.properties right okay.
+
+35
+00:04:19,680 --> 00:04:32,772
+So now I have this properties file which is be called in Intel J world as bundle, and we need to add that to plugin XML as well, right?
+
+36
+00:04:32,960 --> 00:04:40,388
+So I'll put here deep in this for the references, right?
+
+37
+00:04:41,520 --> 00:05:00,800
+And resource bundles we have some type called resource bundle, and if I paste uh control space, it automatically identified we have this maim and version inspection bundle, right?
+
+38
+00:05:01,520 --> 00:05:05,444
+So, uh, this is how we need to.
+
+39
+00:05:06,158 --> 00:05:17,988
+we have to add the resource bundle to the plugin, and let's create a bundle Java which process this file.
+
+40
+00:05:18,480 --> 00:05:22,052
+and then we can use it in our application.
+
+41
+00:05:22,926 --> 00:05:38,660
+Okay, uh to add bundle Java, the easiest way is to identify some bundle already exists in the SDK and use uh same kind of thing basically altered copy.
+
+42
+00:05:39,950 --> 00:05:43,332
+so we there is something called Maven DOM bundle.
+
+43
+00:05:43,600 --> 00:05:53,604
+Uh if we open that file, it is in the uh as you see ideal ideas c community edition sources file uh sources jar.
+
+44
+00:05:54,080 --> 00:06:08,484
+So here we have the Maven DOM bundle, and basically what we need to update this Maven DOM bundle uh which is uh point to that property file uh we created earlier, right?
+
+45
+00:06:08,640 --> 00:06:22,308
+So uh what I go what I am going to do now is just take a copy of this and go to java package and create uh package for the application.
+
+46
+00:06:23,694 --> 00:06:34,532
+it is okay C and this is basically uh main dependency updated.
+
+47
+00:06:41,262 --> 00:06:43,716
+Okay, okay.
+
+48
+00:06:44,000 --> 00:06:57,920
+Now I have this package, so basically I'm gonna paste it by pressing Ctrl B so we get a new class copy it as Maven Dom Mund.
+
+49
+00:06:58,670 --> 00:07:02,500
+Right, so I'm gonna change this class name.
+
+50
+00:07:04,206 --> 00:07:05,600
+Shift F6, right?
+
+51
+00:07:05,742 --> 00:07:06,820
+You know already, right?
+
+52
+00:07:07,200 --> 00:07:14,436
+Um, main version inspection button.
+
+53
+00:07:15,278 --> 00:07:21,956
+Okay, so now we have the bundle class and we need to change this one.
+
+54
+00:07:22,830 --> 00:07:38,320
+Basically, if we press control space, we get main version inspection button, so that's how you create uh inspection bundle or basically resource bundle.
+
+55
+00:07:38,480 --> 00:07:50,560
+So you can have different different messages this on this one, and you may have main version inspection bundle underscore enus for the English and so on.
+
+56
+00:07:50,720 --> 00:07:59,780
+Right, you can have different different localization updates changes and you can reply in the application.
+
+57
+00:08:01,454 --> 00:08:13,280
+Okay, let's create a inspection class, and in that I'll show you how to use this message thing to use different localization, right?
+
+58
+00:08:13,486 --> 00:08:27,524
+So basically, if I talk about this bundle class, we have this message method, it's basically a user's message common bundle message method, and we have get bundle method.
+
+59
+00:08:29,166 --> 00:08:48,516
+there we basically use Sdk classes to get this bundle basically the file and it creates a soft deep reference and dereference it as it needed, and it is managed by basically plugin runtime, so we don't have to worry about that one.
+
+60
+00:08:49,486 --> 00:09:00,964
+Uh basically we need to use this message to pass our key to the to access the message here, right?
+
+61
+00:09:01,440 --> 00:09:06,960
+So for the message, I'll, I'll put something here.
+
+62
+00:09:07,360 --> 00:09:08,132
+Basically,
+
+63
+00:09:11,680 --> 00:09:21,760
+version inspection has version update, right?
+
+64
+00:09:22,478 --> 00:09:23,908
+So there's a d pin.
+
+65
+00:09:30,350 --> 00:09:43,200
+So this is the message uh we are gonna localize, and I have a typo here, so I'll fix that one, and here we have this thing now.
+
+66
+00:09:43,280 --> 00:09:45,280
+It's all all done right now.
+
+67
+00:09:45,360 --> 00:09:48,100
+We need to create inspection.
+
+68
+00:09:49,806 --> 00:09:57,732
+to that one, we need to create a new class, extends dom element inspection.
+
+69
+00:09:58,160 --> 00:10:11,044
+So uh it's very easy to find how to uh uh which class we need to extend by uh by exploring the existing Maven inspection, right?
+
+70
+00:10:11,440 --> 00:10:18,240
+So we have that one Maven inspection, right?
+
+71
+00:10:18,400 --> 00:10:28,068
+If we put press control and again we have this different different inspection going on uh in the inside the idea source, right?
+
+72
+00:10:28,494 --> 00:10:31,716
+Here we have this inspection in the name job.
+
+73
+00:10:32,366 --> 00:10:38,308
+So we have main duplicate dependency inspection, maven duplicate plugin dependency inspection.
+
+74
+00:10:38,960 --> 00:10:52,800
+Uh several inspection are there, but there's not no any version update uh one, so that's why I I thought about creating this plugin, right?
+
+75
+00:10:53,294 --> 00:11:00,036
+Uh so uh what we need to extend is uh dominal events uh inspection.
+
+76
+00:11:02,816 --> 00:11:07,056
+This is the uh DOM element inspection uh base class, right?
+
+77
+00:11:07,406 --> 00:11:21,668
+So I'll copy that one and basically I'll create a new class memory dependency version update inspection, right?
+
+78
+00:11:22,766 --> 00:11:29,860
+And I have this one and then we need to extend from the this DOM element inspection, right?
+
+79
+00:11:30,336 --> 00:11:34,816
+And DOM project, right?
+
+80
+00:11:35,056 --> 00:11:47,696
+Okay, now it's already done and we need to ... it's complaining about default constructor and we have this one.
+
+81
+00:11:47,856 --> 00:11:56,356
+Now it's all done, and we can press Alt +Enter again, and we can put register inspection.
+
+82
+00:11:57,536 --> 00:12:10,596
+and magically, it puts this one, and we need to provide some display name keys for the this inspection in the plugin XML.
+
+83
+00:12:13,296 --> 00:12:20,612
+So let's put those data into the this tag, right?
+
+84
+00:12:21,838 --> 00:12:30,564
+first one is the short name, we can put it as May1 version update inspection, right?
+
+85
+00:12:31,616 --> 00:12:40,484
+And then uh display name uh may1 version update, right?
+
+86
+00:12:41,376 --> 00:12:43,812
+And we can have group name.
+
+87
+00:12:44,976 --> 00:12:51,876
+Basically, these things are are uh relevant to if you go to inspection in the settings tab.
+
+88
+00:12:52,496 --> 00:12:57,764
+Uh I can show you where this these things going on, right?
+
+89
+00:12:58,016 --> 00:13:04,576
+Uh in if I go to inspection, this is the basically groups we have, right?
+
+90
+00:13:04,816 --> 00:13:06,948
+We need to put this in the main one thing.
+
+91
+00:13:07,376 --> 00:13:12,816
+Uh so in main we have this duplicate dependencies to create plugin.
+
+92
+00:13:13,616 --> 00:13:17,796
+These are the dependencies we have.
+
+93
+00:13:20,256 --> 00:13:21,696
+these are the inspection basically.
+
+94
+00:13:21,776 --> 00:13:29,936
+We have, and this is maven version resolve, which is I created earlier, but let's put something else here.
+
+95
+00:13:30,176 --> 00:13:30,436
+So
+
+96
+00:13:33,774 --> 00:13:34,564
+update, all right.
+
+97
+00:13:34,976 --> 00:13:46,576
+Okay, so group name should be the main one because we need to put it in the main one area, main one group, and enable by default.
+
+98
+00:13:46,816 --> 00:13:51,108
+Let's put it as true, because we can turn it off in the settings.
+
+99
+00:13:51,856 --> 00:13:55,460
+And then language, we need to put XML there.
+
+100
+00:13:56,816 --> 00:14:00,540
+And level, let's put it as warning,
+
+101
+00:14:05,582 --> 00:14:10,148
+otherwise it's get very annoying, right?
+
+102
+00:14:10,336 --> 00:14:28,132
+So let's remove this extension, let's put it as inspection, So basically, this is the groundwork we need to do to register inspection.
+
+103
+00:14:28,846 --> 00:14:30,692
+Now we have this inspection here.
+
+104
+00:14:34,030 --> 00:14:39,616
+Okay, uh let's override the method we need to uh do the inspection, right?
+
+105
+00:14:39,696 --> 00:14:49,216
+We can press all alter insert and override method, and the method we need to override is check file element, right?
+
+106
+00:14:49,536 --> 00:14:55,908
+Uh so here we need to use internal class again, which is called generate manage dependency action.
+
+107
+00:14:56,496 --> 00:15:06,340
+basically uh it is coming from the if uh dependency generate uh action in the Maven file, main form file.
+
+108
+00:15:06,798 --> 00:15:18,976
+So if I I can show you if I open a Maven project, in this one, we can actually press alt answer, then we get a dependency tag.
+
+109
+00:15:19,296 --> 00:15:27,616
+Uh, this is the action we are going to use inside our plugin to generate and also the search window.
+
+110
+00:15:27,696 --> 00:15:33,284
+This is coming from the something called Maven search, and we are gonna use that class one also.
+
+111
+00:15:33,614 --> 00:15:35,268
+That class for our applications.
+
+112
+00:15:35,376 --> 00:15:45,540
+So if I search for home.jmh or I don't remember the name actually obvious openjdk
+
+113
+00:15:52,048 --> 00:15:53,284
+Jmh call yes.
+
+114
+00:15:53,408 --> 00:15:55,568
+Uh so we have this version.
+
+115
+00:15:56,048 --> 00:16:05,636
+Uh and basically what we are going to use is we search use these classes and search for this latest version, right?
+
+116
+00:16:06,288 --> 00:16:18,848
+that's how it works, and here we can use that action generate memory.
+
+117
+00:16:19,168 --> 00:16:24,768
+Generate manage actually generate manage dependency action, right?
+
+118
+00:16:25,134 --> 00:16:28,928
+Collect managing dependencies okay.
+
+119
+00:16:29,168 --> 00:16:32,928
+So we need to pass a doma maven DOM project model.
+
+120
+00:16:33,008 --> 00:16:38,116
+We can do it by DOM file element accessing the get root element method, right?
+
+121
+00:16:38,734 --> 00:16:47,012
+Okay, so we can introduce the variable and let's put it as dependency map, okay?
+
+122
+00:16:47,726 --> 00:16:54,288
+So I'll uh keep this super method for for the moment.
+
+123
+00:16:55,342 --> 00:16:57,284
+Uh we'll change it later, right?
+
+124
+00:16:57,488 --> 00:17:12,324
+So here I'll show you how to you know use that resource bundle and I'll stop there and we'll continue in the next episode uh with the implementation of the plugin, right?
+
+125
+00:17:12,528 --> 00:17:15,248
+Because earlier uh video is too long.
+
+126
+00:17:15,328 --> 00:17:31,328
+I think you guys might get annoyed by the length of the video, and this one will be shorter, and next one I'll continue with the uh actual implementation of the plugin.
+
+127
+00:17:31,982 --> 00:17:36,004
+I'll put it in this this one in GitHub also, right?
+
+128
+00:17:36,688 --> 00:17:46,916
+So let's use that uh main one inspection inspection bundle and use message.
+
+129
+00:17:47,328 --> 00:17:49,156
+We can use this key
+
+130
+00:17:53,294 --> 00:18:02,468
+for the for accessing that one right and the key we put here, right?
+
+131
+00:18:04,430 --> 00:18:20,676
+I'll copy it and can pass it here and something, if you, if you can, you can actually pass parameters for the placeholders here, which is, I don't have right now.
+
+132
+00:18:21,328 --> 00:18:29,988
+and this is how you, how you get the localized message from the bundle.
+
+133
+00:18:30,288 --> 00:18:30,608
+right?
+
+134
+00:18:31,438 --> 00:18:33,408
+Okay, so that is it guys.
+
+135
+00:18:33,614 --> 00:18:39,940
+Please do subscribe to the channel and for the and then you will get notification about next video, right?
+
+136
+00:18:41,038 --> 00:18:41,924
+thank you for watching.
+
