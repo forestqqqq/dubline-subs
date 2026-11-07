@@ -11,6 +11,7 @@
 | [Part 3: CesiumJS installation with CDN & npm](medias/RQ1ZC/) | GISWorld | 2026-11-06 |
 | [React Hook Form Course for Beginners (inc. Zod + Material UI)](medias/MXYP4/) | freeCodeCamp.org | 2026-11-06 |
 | [Part 5.1: Air Transport App: Visualize 3D Object Movement Over Time](medias/MBGKA/) | GISWorld | 2026-11-06 |
+| [IntelliJ Idea Plugin Development EP02](medias/KC0E7/) | aptkode | 2026-11-06 |
 | [IntelliJ Idea Plugin Development EP01](medias/CMV4Y/) | aptkode | 2026-11-06 |
 | [3D Tiles: Point Cloud Filtering](medias/BEW55/) | GISWorld | 2026-11-06 |
 | [IntelliJ Idea Plugin Development EP03](medias/AAVPR/) | aptkode | 2026-11-06 |
