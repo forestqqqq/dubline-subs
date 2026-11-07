@@ -7,6 +7,7 @@
 | [CesiumJS in 1 Hour - From Zero to Hero](medias/W568Q/) | GISWorld | 2026-11-06 |
 | [IntelliJ Idea Plugin Development EP04](medias/TZ8ER/) | aptkode | 2026-11-06 |
 | [Part 6: how to clamp a 3D object model to the Cesium terrain model](medias/SXYC1/) | GISWorld | 2026-11-06 |
+| [Nvidia RTX 5090 Response, DLSS 5 is 2X Faster, Nvidia Controls RTX Spark "Reviews", PS5 on PC, More!](medias/SXWKP/) | Daniel Owen | 2026-11-06 |
 | [3D Tiles: CityGML Conversion, Styling & Filtering](medias/S1GV2/) | GISWorld | 2026-11-06 |
 | [Part 3: CesiumJS installation with CDN & npm](medias/RQ1ZC/) | GISWorld | 2026-11-06 |
 | [React Hook Form Course for Beginners (inc. Zod + Material UI)](medias/MXYP4/) | freeCodeCamp.org | 2026-11-06 |
