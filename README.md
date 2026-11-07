@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [Build & Rank Websites Fast with Claude AI \| Vibe Coding & SEO](medias/EWFKF/) | InnoVistaOfficial | 2026-11-07 |
 | [CesiumJS in 1 Hour - From Zero to Hero](medias/W568Q/) | GISWorld | 2026-11-06 |
 | [IntelliJ Idea Plugin Development EP04](medias/TZ8ER/) | aptkode | 2026-11-06 |
 | [Part 6: how to clamp a 3D object model to the Cesium terrain model](medias/SXYC1/) | GISWorld | 2026-11-06 |
