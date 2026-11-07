@@ -24,6 +24,7 @@
 | [Part 2: 3D Object Duplication in CesiumJS with the help of QGIS & Blender](medias/7QJJF/) | GISWorld | 2026-11-06 |
 | [Cesium Entity: Integrating 2D and 3D Data with REST APIs](medias/4JS8J/) | GISWorld | 2026-11-06 |
 | [Create a Complete Zod Clone In TypeScript \| Tutorial from WebDevSimplified](medias/40XKH/) | MasterDotDev | 2026-11-06 |
+| [What They're Not Telling You About Data Centers](medias/1VMWE/) | Maxinomics | 2026-11-06 |
 | [IntelliJ Idea Plugin Development EP05 - Publish Plugin](medias/100T9/) | aptkode | 2026-11-06 |
 | [Your Browser Is Leaking Your Real IP (WebRTC Test & Fix)](medias/VB7YC/) | The Web Insights | 2026-11-05 |
 | [WebRTC: How Do Video Calls Actually Work?  ICE, NAT, STUN, TURN & Networking Explained (2026)](medias/S4Q3M/) | Tarn | 2026-11-05 |
