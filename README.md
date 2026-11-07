@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [Stanford CS329A Self-Improving AI Agents \| Part 1 \| Course Overview](medias/ZCM20/) | Stanford Online | 2026-11-07 |
 | [“Banks Are Herd Animals” \| Ed Zitron on the AI Debt Slow Boil](medias/MF3Z5/) | The Tech Report | 2026-11-07 |
 | [From deepfakes to DNA: the science of watermarking AI](medias/K80QW/) | Google DeepMind | 2026-11-07 |
 | [Build & Rank Websites Fast with Claude AI \| Vibe Coding & SEO](medias/EWFKF/) | InnoVistaOfficial | 2026-11-07 |
