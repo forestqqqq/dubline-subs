@@ -8,6 +8,7 @@
 | [“Banks Are Herd Animals” \| Ed Zitron on the AI Debt Slow Boil](medias/MF3Z5/) | The Tech Report | 2026-11-07 |
 | [From deepfakes to DNA: the science of watermarking AI](medias/K80QW/) | Google DeepMind | 2026-11-07 |
 | [Build & Rank Websites Fast with Claude AI \| Vibe Coding & SEO](medias/EWFKF/) | InnoVistaOfficial | 2026-11-07 |
+| [Agentic AI Course 2026 \| Agentic AI Full Course for Beginners \| LangChain, LangGraph & AutoGPT](medias/CM1T9/) | Great Learning | 2026-11-07 |
 | [​​Agentic AI Business Solutions Architect (AB-100) - Full Course – Pass The Exam!​](medias/0HRZ4/) | Citizen Developer | 2026-11-07 |
 | [CesiumJS in 1 Hour - From Zero to Hero](medias/W568Q/) | GISWorld | 2026-11-06 |
 | [IntelliJ Idea Plugin Development EP04](medias/TZ8ER/) | aptkode | 2026-11-06 |
