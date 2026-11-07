@@ -1,0 +1,5680 @@
+1
+00:00:00,174 --> 00:00:07,396
+This looks like some fairly boilerplate Zod code for various different schemas that you may want to use, but what if I told you this doesn't use Zod at all?
+
+2
+00:00:07,600 --> 00:00:15,360
+Instead, we created our very own Zod that I'm going to show you how to make in this video, and as you can see, this Zod version covers literally everything that's important about Zod.
+
+3
+00:00:15,598 --> 00:00:18,756
+We have all the different types from strings, literals, numbers, Booleans, and so on.
+
+4
+00:00:18,960 --> 00:00:31,440
+We even have the ability to do various different things such as safe parse, normal parse, we have the ability to do nullable types, transforms between types, defaults, custom validations, prefault, as well as things like optional, nullable, and so so much more.
+
+5
+00:00:31,790 --> 00:00:45,840
+This is going to be a deep dive that's not only going to help you understand how Zod works, how validation libraries are even written, but it's also going to talk about how you can understand various different complex TypeScript features because we're able to create this and it's entirely type safe and it works just like Zod.
+
+6
+00:00:49,230 --> 00:00:50,800
+Welcome back to Web Dev Simplified.
+
+7
+00:00:50,880 --> 00:00:54,980
+My name is Kyle, and my job is to simplify the web for you so you can start building your dream project sooner.
+
+8
+00:00:55,150 --> 00:00:59,012
+And before we can dive into creating our own Zod, we first need to understand how Zod works.
+
+9
+00:00:59,182 --> 00:01:02,000
+And to do that, I want to dive into this starting code that we have right here.
+
+10
+00:01:02,254 --> 00:01:05,280
+Right now I just have a boilerplate VT application for the most part.
+
+11
+00:01:05,454 --> 00:01:09,520
+Inside this main.tss file is where we're doing all of our code for running Zod.
+
+12
+00:01:09,840 --> 00:01:11,920
+Right now I'm just using the normal Zod library.
+
+13
+00:01:12,080 --> 00:01:14,080
+You can see we're creating a string-based schema.
+
+14
+00:01:14,286 --> 00:01:17,604
+I'm checking it against the value of Kyle down here by doing safe parse.
+
+15
+00:01:17,806 --> 00:01:19,680
+And if it was successful, I log out our data.
+
+16
+00:01:19,886 --> 00:01:21,920
+And if it was invalid, I log out the text invalid.
+
+17
+00:01:22,030 --> 00:01:29,120
+So for example, if we were trying to check a number here, we're going to get invalid being printed out, while any string that we print out is going to just show as the actual string.
+
+18
+00:01:29,326 --> 00:01:34,276
+And if we were to do a transformation, for example, to lowercase, you can see it converts this to a lowercase string.
+
+19
+00:01:34,478 --> 00:01:36,640
+And for example, to uppercase would make it uppercase.
+
+20
+00:01:36,750 --> 00:01:38,756
+So we're able to test all these various different things.
+
+21
+00:01:39,214 --> 00:01:41,600
+Also, we are able to use z.infer to get the type of it.
+
+22
+00:01:41,680 --> 00:01:46,180
+So you can see here our z type is string, because that's what our schema is expecting to be outputted from it.
+
+23
+00:01:46,478 --> 00:01:50,320
+So this is kind of what we need to make sure we emulate when we create our very own version of Zod.
+
+24
+00:01:50,766 --> 00:02:00,708
+And the important thing is, is that for the most part, every single object inside of Zod for our schema is going to have a safe parse as well as a normal parse function that we need to make sure that we implement ourselves.
+
+25
+00:02:00,910 --> 00:02:08,132
+And these just allow us to go from whatever value we have here, which we don't know what this could be, to a finalized version that is properly parsed just like we want it to be.
+
+26
+00:02:08,462 --> 00:02:14,880
+So we need to make sure that every single parser that we create, every single schema we create, has those two methods, and then various schemas have certain methods.
+
+27
+00:02:14,960 --> 00:02:20,640
+For example, string has this two uppercase method, while number does not have the ability to become uppercase, obviously.
+
+28
+00:02:20,846 --> 00:02:22,640
+So we need to make sure we take that into account as well.
+
+29
+00:02:22,800 --> 00:02:26,852
+Everything will have certain base values, and certain things will have other values on top of that.
+
+30
+00:02:27,150 --> 00:02:38,880
+And this type of schema, when I think of something like that, means I lean more towards class-based approaches, because I know everything needs to essentially be a base that has safe parse and parse, and then various subclasses of that can have their own specialized features.
+
+31
+00:02:39,118 --> 00:02:43,520
+For example, string can have abilities for uppercases, while numbers can have things like integer validation.
+
+32
+00:02:43,726 --> 00:02:49,280
+So with that entire idea in mind, I pretty much know I want to create a base class and that everything I use from that is going to inherit from it.
+
+33
+00:02:49,550 --> 00:02:51,760
+So we can come in here and we can create a base.ts.
+
+34
+00:02:52,080 --> 00:02:54,480
+That's going to be for our base class that we're going to create.
+
+35
+00:02:54,734 --> 00:02:56,080
+So we need to take some type of class.
+
+36
+00:02:56,206 --> 00:02:57,760
+I'm going to call it my zod type.
+
+37
+00:02:57,920 --> 00:03:01,988
+You can call it whatever you want, but this is like our base for all the different types that we can possibly be using.
+
+38
+00:03:02,318 --> 00:03:05,732
+And inside this class, we again have a few different things that we really need to focus on.
+
+39
+00:03:05,934 --> 00:03:09,040
+The first thing is that parse function, and the second thing is the safe parse function.
+
+40
+00:03:09,358 --> 00:03:17,120
+So I know I have a parse function that's going to take in some type of input value, and I have a safe parse function that essentially is going to do the same exact thing.
+
+41
+00:03:17,200 --> 00:03:19,492
+It's going to take in my input value as well.
+
+42
+00:03:19,982 --> 00:03:23,120
+Now the parse function is just going to return a parsed version of my thing.
+
+43
+00:03:23,200 --> 00:03:27,520
+So it's going to take this input and convert it to the right type, or it's going to throw an error if there's an error.
+
+44
+00:03:27,854 --> 00:03:39,332
+Safe parse is essentially going to do the same thing, but instead of throwing an error, it's going to return to me a value here that is either going to have a success property and data, or it's going to have a success of false with some type of error value being returned from it.
+
+45
+00:03:39,662 --> 00:03:41,892
+So I can actually already go ahead and add the types for this.
+
+46
+00:03:42,158 --> 00:03:44,868
+My safe parse, I know, is going to return to me one of two things.
+
+47
+00:03:45,120 --> 00:03:49,600
+An object where the success is true, and my data is set to whatever my value is.
+
+48
+00:03:49,774 --> 00:03:54,724
+For now, we're just going to set that to any, or it's going to return to me where my success is false.
+
+49
+00:03:55,342 --> 00:03:57,760
+And my error is going to be some type of error.
+
+50
+00:03:57,920 --> 00:04:00,240
+Again, we'll just set that to the error object just like that.
+
+51
+00:04:00,494 --> 00:04:02,800
+So now I know what the hard coded output of this is going to be.
+
+52
+00:04:03,022 --> 00:04:08,560
+And my parse function up here, I know I want to take my input, which I don't know the type of, and convert it to something that I do know the type of.
+
+53
+00:04:08,878 --> 00:04:13,028
+For now, we'll just type that as any, but essentially we want that to be whatever our zod type itself is.
+
+54
+00:04:13,710 --> 00:04:16,976
+Now our input we know is going to be unknown because we don't know what this type is.
+
+55
+00:04:17,070 --> 00:04:19,908
+So we can just type that as unknown and that's going to work just fine.
+
+56
+00:04:20,174 --> 00:04:22,096
+And then inside of these functions we need to do something.
+
+57
+00:04:22,286 --> 00:04:25,776
+For example, we need to take our input, process it, and then return it back to the user.
+
+58
+00:04:25,998 --> 00:04:31,536
+And inside of our safe parse, we need to do the exact same thing, but we need to return it inside the format of success and data.
+
+59
+00:04:31,758 --> 00:04:34,916
+So for now we can just write out this just to get rid of the errors inside of our code.
+
+60
+00:04:35,214 --> 00:04:37,936
+So we have a parse function, and now we have a safe parse function.
+
+61
+00:04:38,016 --> 00:04:42,896
+Now obviously using any as our type is not a great idea, and this is where generics are going to come in.
+
+62
+00:04:43,086 --> 00:04:46,816
+And that's because generics allow us to essentially insert whatever type that we want to use.
+
+63
+00:04:47,086 --> 00:04:49,856
+So in the case of parsing a string, this will return to us a string.
+
+64
+00:04:50,062 --> 00:04:51,856
+When we're using a number, it'll return a number.
+
+65
+00:04:52,110 --> 00:05:00,964
+So by using a generic type of t here and a generic type of t down here, we can make sure that whatever our generic is, if it's a string, if the number, it doesn't matter, it'll return the proper type for us.
+
+66
+00:05:01,230 --> 00:05:04,324
+So up here, this is going to take in a generic type of t.
+
+67
+00:05:04,590 --> 00:05:07,616
+So now that this t type, whatever it's going to be, is going to be returned for us.
+
+68
+00:05:07,696 --> 00:05:09,536
+So if this is a string, it's going to return as a string.
+
+69
+00:05:09,742 --> 00:05:11,536
+If it's a number, it's going to return a number and so on.
+
+70
+00:05:11,696 --> 00:05:18,896
+Now inside of all my child classes, for example, if I had a string version of this, I could just overwrite the parse function and properly make it parse this to a string.
+
+71
+00:05:19,118 --> 00:05:23,428
+But the problem is this this parse function and this safe parse function are going to do additional things.
+
+72
+00:05:23,662 --> 00:05:31,936
+For example, if we go back to what our normal Zod code looks like, we need to make sure we do conversions like converting something to uppercase as well as doing various checks like is it a minimum length?
+
+73
+00:05:32,078 --> 00:05:36,816
+So we can come in here with a dot min, for example, of three, and now it's going to throw an error if it's not long enough.
+
+74
+00:05:37,006 --> 00:05:40,004
+For example, if I remove a few characters, we now get an error being thrown.
+
+75
+00:05:40,206 --> 00:05:45,616
+So I need to make sure I handle all those things inside the parse, while my actual parsing of the string type is super simple.
+
+76
+00:05:45,776 --> 00:05:48,016
+All these other things are just added on on top of that.
+
+77
+00:05:48,398 --> 00:05:52,612
+So instead of overwriting these parse or safe parse methods, I'm going to leave those exactly the same.
+
+78
+00:05:52,878 --> 00:05:55,136
+And instead, I'm going to implement a validate function.
+
+79
+00:05:55,406 --> 00:06:01,456
+And this validate function is going to take in our exact same input, which we don't know the type of, and it's going to convert us to that type of T.
+
+80
+00:06:01,646 --> 00:06:06,576
+So very similar to parse, it's essentially going to do the exact same thing as parse, but it's not going to do the extra stuff.
+
+81
+00:06:06,734 --> 00:06:09,856
+All it's going to do is just take my input and convert it to the proper type.
+
+82
+00:06:10,016 --> 00:06:12,336
+Nothing else at all is going to happen inside this function.
+
+83
+00:06:12,686 --> 00:06:18,256
+And this validate function, I actually don't even need to apply to my base class, because this base class is going to be abstract.
+
+84
+00:06:18,478 --> 00:06:25,028
+And that's because there's no reason for us to implement a zod type that doesn't have any type to it, just a generic zod type.
+
+85
+00:06:25,216 --> 00:06:27,616
+We want to always implement either a string or a number version.
+
+86
+00:06:27,776 --> 00:06:32,772
+Essentially, we always want to make sure we're getting one of the child classes of this my zod type class.
+
+87
+00:06:33,134 --> 00:06:36,656
+So by making this abstract, it just means we can never instantiate this class directly.
+
+88
+00:06:36,816 --> 00:06:38,820
+We must always instantiate one of its children.
+
+89
+00:06:39,182 --> 00:06:44,656
+And this validate function, I just need to make sure I use it on every single child so I can make this an abstract function as well.
+
+90
+00:06:44,910 --> 00:06:48,356
+So now it's going to be forced to be implemented on all the different children that I have.
+
+91
+00:06:48,846 --> 00:06:51,296
+So now that I have this validate function, I can use it right here.
+
+92
+00:06:51,376 --> 00:06:58,596
+I can, for example, call validate and I can pass in my input, and that's going to convert my input from an unknown type to the correct type that we expect it to use.
+
+93
+00:06:59,054 --> 00:07:01,604
+Now safe parse is essentially going to do the same exact thing as parse.
+
+94
+00:07:01,870 --> 00:07:07,076
+For now, I'm just going to leave this as is because we're essentially going to call parse from safe parse or vice versa.
+
+95
+00:07:07,950 --> 00:07:12,896
+So now that I have this done, let's make sure we export our myzod type class just like that.
+
+96
+00:07:13,134 --> 00:07:18,816
+And now we want to work on implementing one of the child versions because that's going to make it really pop exactly what we're doing inside of our code.
+
+97
+00:07:19,182 --> 00:07:21,856
+So let's just come in here and let's work with string for example first.
+
+98
+00:07:22,094 --> 00:07:25,296
+So we'll say string dot TS, and I want to export a brand new class.
+
+99
+00:07:25,614 --> 00:07:29,936
+So we'll just come in here with a class and we'll call this myzod string, just like that.
+
+100
+00:07:30,286 --> 00:07:35,136
+And this is going to extend the myzod type, but it's going to be getting the string version.
+
+101
+00:07:35,438 --> 00:07:42,496
+So essentially we're saying, hey, we're using this generic myzod type class, but we want that t generic that we defined to be string.
+
+102
+00:07:42,670 --> 00:07:48,068
+So everywhere inside of here where we have t, that's essentially converted to string in the case of myzod string.
+
+103
+00:07:48,334 --> 00:07:51,936
+So now my parse function will return a string and my safe parse will return a string.
+
+104
+00:07:52,174 --> 00:07:54,336
+All I need to do is implement this validate function.
+
+105
+00:07:54,510 --> 00:08:01,636
+So I can come in here with validate and I want to make sure that I implement whatever the code inside of here is and it takes an input that is unknown.
+
+106
+00:08:02,030 --> 00:08:04,656
+And all I want to do is convert this unknown input to a string.
+
+107
+00:08:04,910 --> 00:08:06,416
+Well in TypeScript that's very easy to do.
+
+108
+00:08:06,576 --> 00:08:15,296
+I can say if my input, the type of it, is equal to string, well then I can just return my input because I've essentially narrowed it.
+
+109
+00:08:15,470 --> 00:08:20,196
+TypeScript allows you to do type narrowing, so it'll take this input type, see that it's unknown.
+
+110
+00:08:20,336 --> 00:08:21,376
+I then check the type of it.
+
+111
+00:08:21,582 --> 00:08:24,096
+So now TypeScript knows that this input is a type of string.
+
+112
+00:08:24,176 --> 00:08:25,856
+And you can see here input of string.
+
+113
+00:08:25,998 --> 00:08:27,876
+So it's able to narrow that automatically for me.
+
+114
+00:08:28,206 --> 00:08:32,036
+So now if my input is the correct type of string, it returns an input for me.
+
+115
+00:08:32,430 --> 00:08:33,856
+But what happens if it's not an input?
+
+116
+00:08:34,094 --> 00:08:42,176
+Well in that case we have an error, so we're just going to throw an error to the user by saying throw error and it just says invalid or we'll say expected string.
+
+117
+00:08:42,350 --> 00:08:42,852
+There we go.
+
+118
+00:08:43,278 --> 00:08:50,628
+So now this validate function will either return to me a string or it'll throw an error saying that we didn't have the correct string to be used inside of our application.
+
+119
+00:08:51,086 --> 00:08:59,136
+So now if we know that, we can say, okay, inside of this validate, we're either going to throw an error or we're going to essentially give us the correct value that we want to use.
+
+120
+00:08:59,470 --> 00:09:02,016
+So I'm going to implement all of this inside my safe parse function.
+
+121
+00:09:02,190 --> 00:09:08,096
+So I'm just going to say my const val is equal to validate my input, just like that.
+
+122
+00:09:08,302 --> 00:09:10,000
+Make sure I call this dot validate.
+
+123
+00:09:10,862 --> 00:09:14,560
+that's going to give me that value, which is a type of T, or it's going to throw an error.
+
+124
+00:09:14,640 --> 00:09:16,484
+So we'll wrap this inside of a try catch.
+
+125
+00:09:17,934 --> 00:09:18,724
+Just like that.
+
+126
+00:09:19,502 --> 00:09:21,124
+We're going to catch the error.
+
+127
+00:09:22,894 --> 00:09:28,800
+And then down here, we're either going to return a success that has our data as the value, and we can just call it data.
+
+128
+00:09:28,880 --> 00:09:29,316
+Why not?
+
+129
+00:09:30,126 --> 00:09:30,640
+There we go.
+
+130
+00:09:30,862 --> 00:09:34,468
+Or it's going to return to us a success of false.
+
+131
+00:09:34,798 --> 00:09:37,360
+And the error is going to be whatever this error is right here.
+
+132
+00:09:37,486 --> 00:09:41,120
+Now technically this error type is considered unknown, so we can just manually cast that.
+
+133
+00:09:41,280 --> 00:09:45,188
+We can say error as error because we know it will be of an actual error type.
+
+134
+00:09:45,614 --> 00:09:46,800
+So now we have safe parse done.
+
+135
+00:09:47,054 --> 00:09:50,560
+To do parse, all I'm going to do is call safe parse, pass it in my input.
+
+136
+00:09:50,798 --> 00:09:52,644
+That way I don't have to implement the same thing twice.
+
+137
+00:09:53,006 --> 00:09:54,372
+That's going to give me my result.
+
+138
+00:09:54,958 --> 00:10:00,380
+And if my result dot success, then what I want to do is just return my result dot data.
+
+139
+00:10:00,846 --> 00:10:03,780
+Otherwise, I want to throw an error, which is my result dot error.
+
+140
+00:10:04,110 --> 00:10:07,280
+So I'm either going to return my data or throw an error if there is an error.
+
+141
+00:10:07,406 --> 00:10:11,520
+So this is the version that does always throw an error, and this safe parse never throws an error.
+
+142
+00:10:11,600 --> 00:10:14,308
+So essentially it's a nice way to be able to use both of these different features.
+
+143
+00:10:14,990 --> 00:10:20,240
+So now I've created this parse function, I've created my safe parse function, and I've created a basic validator for my Zod string.
+
+144
+00:10:20,622 --> 00:10:26,564
+All I need to do is to create a function because if we look at how Zod is used, essentially we have one base class that has all of our functions on it.
+
+145
+00:10:26,830 --> 00:10:30,240
+You can see here, all of these different functions are on that one Zod class.
+
+146
+00:10:30,446 --> 00:10:31,840
+So if I want to get a number, I get it from here.
+
+147
+00:10:31,950 --> 00:10:34,000
+If I want to get a string, I get it from here as well.
+
+148
+00:10:34,350 --> 00:10:36,560
+So to do that, we need to create a function for a string.
+
+149
+00:10:36,814 --> 00:10:40,080
+So we'll call that function string just like that.
+
+150
+00:10:40,334 --> 00:10:43,040
+And we know if we look at the normal Zod, it doesn't take any parameters.
+
+151
+00:10:43,214 --> 00:10:44,960
+So we know that this returns no parameters at all.
+
+152
+00:10:45,340 --> 00:10:48,080
+And what we don't, All we want to do is create our own myzod string.
+
+153
+00:10:48,270 --> 00:10:51,440
+So we're just going to return a new myzod string just like that.
+
+154
+00:10:51,694 --> 00:10:57,040
+So essentially we're creating a new instance of this class that has this validate function to validate if we have a string or not.
+
+155
+00:10:57,120 --> 00:10:58,480
+So let's go ahead and actually test this out.
+
+156
+00:10:58,640 --> 00:11:02,400
+We want to first make sure we export this string function so we can use it in our application.
+
+157
+00:11:02,606 --> 00:11:07,588
+And then inside of our myzod, I'm going to create a file called index.ts where I export all the stuff we need.
+
+158
+00:11:07,918 --> 00:11:13,360
+So we're going to export star from, and that's going to be from our string file, just like that.
+
+159
+00:11:13,838 --> 00:11:15,920
+So now we got all of the stuff from our string related file.
+
+160
+00:11:16,110 --> 00:11:17,040
+Make sure I save everything.
+
+161
+00:11:17,120 --> 00:11:29,092
+And now inside of here, I should be able to import star as myz for myzod, and I can get it from that myzod folder, and it's going to come from that index file, which is exporting everything from string, which is just this one string function.
+
+162
+00:11:29,550 --> 00:11:36,880
+So now I can create, for example, myzod schema, which is equal to myz dot, and we have that string function available.
+
+163
+00:11:37,102 --> 00:11:42,000
+So now I have my own version of a Zod schema that should hopefully at least validate if we have a string or not.
+
+164
+00:11:42,190 --> 00:11:44,548
+Essentially the most basic version of our validation.
+
+165
+00:11:44,942 --> 00:11:46,400
+So let's come down here and actually do that.
+
+166
+00:11:46,542 --> 00:11:50,240
+So we can go our constmyzodresults.
+
+167
+00:11:50,478 --> 00:11:53,200
+So we'll say myz result, just like that.
+
+168
+00:11:53,422 --> 00:11:55,440
+That's going to come from the myz schema.
+
+169
+00:11:55,760 --> 00:11:56,720
+or I called it zod, I guess.
+
+170
+00:11:56,814 --> 00:11:58,084
+So I'll call this one zod as well.
+
+171
+00:11:58,478 --> 00:11:58,880
+There we go.
+
+172
+00:11:59,182 --> 00:12:00,708
+So now I get the zod version of that.
+
+173
+00:12:01,358 --> 00:12:02,720
+And I can make sure I use that down here.
+
+174
+00:12:02,894 --> 00:12:05,600
+So anywhere I have zod result, I'll use the myzod result.
+
+175
+00:12:05,870 --> 00:12:08,708
+And we should hopefully see the exact same thing being printed out for both of them.
+
+176
+00:12:08,910 --> 00:12:12,320
+Obviously, we don't have two uppercase or minimum being implemented, so let's change that.
+
+177
+00:12:12,494 --> 00:12:14,240
+And you can see they both get the same output.
+
+178
+00:12:14,542 --> 00:12:22,468
+Now, if I were to change this to, for example, the text of 23, a number, we see they both actually print out invalid because we're getting an error for both of them.
+
+179
+00:12:22,830 --> 00:12:27,600
+So at least we can see that our very, very basic version of our validation is working like we expect it to.
+
+180
+00:12:27,680 --> 00:12:30,960
+We can even test to make sure all of our different data types are lining up like we expect.
+
+181
+00:12:31,040 --> 00:12:36,676
+So if we hover over myzod schema, you can see that is the type of myzod string, which is that class that we created right here.
+
+182
+00:12:36,942 --> 00:12:46,852
+And when we call the safe parse function and pass it in any value, you can see it gives us a result that is either a success of false with an error or a success of true with a data that is a string.
+
+183
+00:12:47,086 --> 00:12:49,828
+So it's always going to return to us a string if it is correct.
+
+184
+00:12:49,998 --> 00:12:53,220
+And you can see down here, we make sure that we have a data type of string.
+
+185
+00:12:53,422 --> 00:12:56,612
+And that all matches up properly with what we would expect to get from Zod.
+
+186
+00:12:56,814 --> 00:13:00,292
+So at least that portion of our code is working exactly as we expect it to.
+
+187
+00:13:00,846 --> 00:13:05,600
+Now, unfortunately, this very basic implementation that we have right here has quite a few limitations.
+
+188
+00:13:05,806 --> 00:13:08,356
+And the biggest is how do we properly handle errors?
+
+189
+00:13:08,718 --> 00:13:11,652
+Right now, if we have an error in our string, we're throwing an error right here.
+
+190
+00:13:12,080 --> 00:13:17,840
+But usually inside a Zod, if you have, for example, five different errors that show up, you want to show all five of those errors.
+
+191
+00:13:18,158 --> 00:13:24,356
+The way our code is written is it'll only ever wait for one error to occur, it'll throw that error and then no more errors will be checked.
+
+192
+00:13:24,480 --> 00:13:28,132
+So at most, we can find one error for every single one of our objects.
+
+193
+00:13:28,526 --> 00:13:30,320
+So we go back here to the way Zod works.
+
+194
+00:13:30,400 --> 00:13:45,120
+I can add, for example, a min of one onto here and a length of two, and that's going to be two different checks, and we can see if our value here, and actually let's make the minimum 10, for example, if our value here is a three length string, we're actually going to get two different errors.
+
+195
+00:13:45,200 --> 00:13:46,560
+And I can just print that out for you.
+
+196
+00:13:46,830 --> 00:13:54,276
+I'll comment out this and we can say console dot log zod result dot error, and we want to get the issues dot length.
+
+197
+00:13:55,246 --> 00:13:55,600
+There we go.
+
+198
+00:13:55,886 --> 00:14:03,040
+And you can see that this prints out two because it gives me an error for the minimum and it gives me an error for the length, essentially saying the length is not two and the length is not at least ten.
+
+199
+00:14:03,374 --> 00:14:04,868
+Those are different errors that we have.
+
+200
+00:14:05,102 --> 00:14:07,520
+And if we had just one error, for example, it'll print out one.
+
+201
+00:14:07,790 --> 00:14:13,796
+While our example can only at most get one error, because as soon as we throw an error, our entire application crashes and closes.
+
+202
+00:14:14,254 --> 00:14:16,676
+So we need to make sure that we're able to properly handle errors.
+
+203
+00:14:17,166 --> 00:14:24,000
+So what we can do, clean up our code right here, go back into our base class and our string, and we need to rework how this different validation works.
+
+204
+00:14:24,160 --> 00:14:27,360
+Instead of throwing an error, we essentially need to aggregate all these errors together.
+
+205
+00:14:27,520 --> 00:14:33,440
+Essentially, what I want to do is I want to keep track of my value as well as any different errors that are thrown for that value as well.
+
+206
+00:14:33,774 --> 00:14:42,560
+So what we can do inside of our base is instead of having our validate return just the input itself or the output that we expect, we can instead have it return to us an object.
+
+207
+00:14:42,640 --> 00:14:47,076
+That object can be, for example, an arrays, which is just for now going to be an array of strings.
+
+208
+00:14:47,438 --> 00:14:50,720
+And we can also have it return our value, which is of that type of t.
+
+209
+00:14:51,118 --> 00:14:55,360
+So now we have access to that type of t as well as all of our different errors.
+
+210
+00:14:55,566 --> 00:15:01,360
+So down here, this data has our errors, which are in the form of a string, as well as our value with this, that type of t.
+
+211
+00:15:01,710 --> 00:15:03,840
+So let's go into our string and implement how that would work.
+
+212
+00:15:04,046 --> 00:15:15,748
+Instead of returning our input right here, we essentially need to return an object that is going to have our input as the value, which is input right here, and we need to have errors, and that is going to be essentially an empty string, because we have no errors.
+
+213
+00:15:16,110 --> 00:15:22,080
+Now down here, if we have a particular problem, we can return our value, which is still going to be our input.
+
+214
+00:15:22,160 --> 00:15:23,200
+That doesn't actually change.
+
+215
+00:15:23,438 --> 00:15:27,524
+The type on this is unknown, while the type up here is string, so at least that is tracking properly.
+
+216
+00:15:27,982 --> 00:15:33,360
+And our errors here is going to say expected string, just like that.
+
+217
+00:15:33,646 --> 00:15:39,120
+So now if we had more errors, we could constantly keep adding them onto this section where we have our errors, which is great.
+
+218
+00:15:39,278 --> 00:15:48,000
+Now we are getting some problems though, and that's because our input down here is unknown, but inside of our base, we're requiring our input to be that type of t, which is a string.
+
+219
+00:15:48,302 --> 00:15:54,800
+So that's making it a little bit difficult for us to actually work with this particular value because sometimes it's unknown and sometimes it is the correct value.
+
+220
+00:15:55,054 --> 00:15:58,000
+So this actual value right here, really, we don't know what this value is.
+
+221
+00:15:58,126 --> 00:16:03,492
+So I can just for now type this as unknown because I never know what this value property is going to be.
+
+222
+00:16:03,694 --> 00:16:06,720
+That solves the errors in here because now my value can be anything.
+
+223
+00:16:06,926 --> 00:16:12,996
+Unknown string, it doesn't really matter what it is, but it makes my code here much more difficult because now I don't know what my value is.
+
+224
+00:16:13,742 --> 00:16:17,732
+We have to essentially make some assumptions here and force TypeScript to do what we want it to do.
+
+225
+00:16:18,094 --> 00:16:23,908
+And that's because inside of string, we know that if we have an array with errors in it, well then our string is not the correct type.
+
+226
+00:16:24,240 --> 00:16:28,880
+But if we have an array with no errors, we know our string is this correct type of string.
+
+227
+00:16:29,262 --> 00:16:34,084
+So essentially we can use this errors array to determine is our type correct or is our type incorrect.
+
+228
+00:16:34,286 --> 00:16:38,372
+And we can force TypeScript to use the correct type based on this validation for us.
+
+229
+00:16:38,766 --> 00:16:42,880
+So inside this base class right here where we're doing all of our code, we can actually remove this try catch.
+
+230
+00:16:42,960 --> 00:16:48,880
+We no longer need that because we're not throwing any errors, and now the data we're getting returned has the errors as well as our value.
+
+231
+00:16:49,198 --> 00:16:54,960
+So we can do a quick check to see if data.errors dot length is greater than zero.
+
+232
+00:16:55,150 --> 00:17:05,680
+That means that we have some type of errors on our application, so we can just return that to the user saying that we have errors, so our success is going to be false, and our error is just going to be whatever those errors are.
+
+233
+00:17:05,902 --> 00:17:12,420
+For now, we can just say that it's going to be a new error with those errors, and we can JSON.stringify that.
+
+234
+00:17:12,686 --> 00:17:15,760
+We'll fix the actual error printing itself in a little bit.
+
+235
+00:17:16,000 --> 00:17:20,132
+That's going to print along all of our different errors to the user as essentially just a string.
+
+236
+00:17:20,622 --> 00:17:26,400
+Otherwise, what we can do is since we know that there are no errors down here, we can actually get to the data.value.
+
+237
+00:17:26,606 --> 00:17:30,468
+Right now that's set to a value of unknown, but like I said, we're smarter than TypeScript.
+
+238
+00:17:30,800 --> 00:17:35,840
+We know that if we have no errors, the type of this value is whatever our t type is, in our case, a string.
+
+239
+00:17:35,982 --> 00:17:40,560
+So we can just cast that to the type of t and tell TypeScript, hey, we know more than you do.
+
+240
+00:17:40,910 --> 00:17:50,692
+So now what I can do is I can return our success this time of true with a data that is properly casted to the actual value that we want to use of type t.
+
+241
+00:17:51,022 --> 00:17:57,520
+So now that fixes all of our different TypeScript related errors, and if we save, everything should still be working exactly the same as it did before.
+
+242
+00:17:57,774 --> 00:18:03,396
+For example, if I print out 23, both of these are printing invalid, and if I were to actually comment or to log out.
+
+243
+00:18:04,718 --> 00:18:09,632
+What the myzod result dot errors is, because that's what we want to specifically get.
+
+244
+00:18:09,774 --> 00:18:10,912
+Actually, I think I just called it error.
+
+245
+00:18:11,022 --> 00:18:14,992
+You can see we get an error, which is right here a JSON stringified version of expected string.
+
+246
+00:18:15,278 --> 00:18:18,192
+So at least it's printing out what that particular error for our user is.
+
+247
+00:18:18,542 --> 00:18:20,672
+So we can see that is working like we expect it to.
+
+248
+00:18:20,752 --> 00:18:27,072
+Now, even though it looks like everything is still working, we still have some issues with our implementation that are going to make it hard to work with down the line.
+
+249
+00:18:27,342 --> 00:18:31,552
+If we look at our validate function here, you can see it's taking in our input, which is fine, that makes sense.
+
+250
+00:18:31,632 --> 00:18:32,912
+That's what we want to validate.
+
+251
+00:18:33,166 --> 00:18:37,828
+And inside here, we're creating brand new objects with have arrays of errors or have no errors at all.
+
+252
+00:18:38,158 --> 00:18:41,392
+But the problem is how do I track errors from things that happened before?
+
+253
+00:18:41,646 --> 00:18:44,432
+For example, in Zod, you can use like an array or an object.
+
+254
+00:18:44,622 --> 00:18:49,060
+So I can come in here and say Z dot array to create essentially an array of strings.
+
+255
+00:18:49,326 --> 00:18:51,952
+And now I can have validation specifically on the array.
+
+256
+00:18:52,112 --> 00:18:53,952
+For example, this array must be a length of two.
+
+257
+00:18:54,350 --> 00:18:58,912
+So now I can have validation on my array as well as validation on the strings inside of that array.
+
+258
+00:18:59,086 --> 00:19:03,312
+So I have multiple different levels of validation that I can do inside this particular application.
+
+259
+00:19:03,662 --> 00:19:11,492
+And the way that I'm doing things right now is it's always returning a brand new set of errors or values, and it's never taking into account all the previous errors that we've accumulated.
+
+260
+00:19:11,822 --> 00:19:18,032
+So instead of passing in just an input, instead I essentially want to pass in this type that has a value as well as all my different errors.
+
+261
+00:19:18,192 --> 00:19:20,912
+And to do that even easier, we're just going to create a custom type for that.
+
+262
+00:19:21,134 --> 00:19:27,472
+I'm going to create a brand new file called types.ts, and in here I'm going to export a type called parse context.
+
+263
+00:19:27,566 --> 00:19:29,668
+That's the context of all the things we're keeping track of.
+
+264
+00:19:29,902 --> 00:19:34,992
+This is a generic, and by default, it's going to be set to unknown because we don't know what the type of our input is.
+
+265
+00:19:35,072 --> 00:19:36,580
+That's what that T is going to be tracking.
+
+266
+00:19:37,006 --> 00:19:39,908
+So our value is of type T because we don't know what it is by default.
+
+267
+00:19:40,174 --> 00:19:41,632
+And then we also have our issues.
+
+268
+00:19:41,806 --> 00:19:43,392
+That's going to be the error messages we have.
+
+269
+00:19:43,534 --> 00:19:45,632
+And for now, we just have that as a string array.
+
+270
+00:19:45,934 --> 00:19:47,812
+So we can come in here with a string array just like that.
+
+271
+00:19:48,238 --> 00:19:50,192
+So now I have this parse context by default.
+
+272
+00:19:50,272 --> 00:19:51,552
+It's going to be set to unknown.
+
+273
+00:19:51,726 --> 00:19:59,152
+So in my base value here, my validate function, this input is going to take in a parse context and it's going to output a parse context as well.
+
+274
+00:19:59,374 --> 00:20:03,712
+Essentially, we're taking in all the current errors and value, and then we're adding all the new errors we want.
+
+275
+00:20:03,854 --> 00:20:09,472
+We're updating our value with the new information and we're passing that along to the next time that we call validate with some other value.
+
+276
+00:20:09,838 --> 00:20:15,712
+So inside my string, I want this to take in a parse context, and again, I want it to export the exact same context.
+
+277
+00:20:15,918 --> 00:20:18,832
+So I can take my context here and use that inside my file.
+
+278
+00:20:19,054 --> 00:20:22,352
+So for example, my context dot value, There we go.
+
+279
+00:20:22,542 --> 00:20:24,112
+Make sure I get the type of this correct.
+
+280
+00:20:24,398 --> 00:20:32,548
+If my context value is a string, well, I want to essentially return my context because I already know that my value is a string, so I don't have to do anything else.
+
+281
+00:20:32,974 --> 00:20:34,992
+Otherwise, I want to add an error to my errors.
+
+282
+00:20:35,086 --> 00:20:38,530
+So down here, I can say context dot issues dot push.
+
+283
+00:20:38,702 --> 00:20:42,032
+I want to push a brand new error that says expected string.
+
+284
+00:20:42,382 --> 00:20:43,588
+And then return my context.
+
+285
+00:20:43,918 --> 00:20:47,072
+So you can see here we're not creating any new values or new objects.
+
+286
+00:20:47,152 --> 00:20:51,392
+Instead, we're taking the exact same context object and we're always returning that back to the user.
+
+287
+00:20:51,598 --> 00:20:54,912
+And if we have errors, we're throwing those errors onto that context object.
+
+288
+00:20:54,992 --> 00:20:57,792
+So they continually accumulate all on the same object.
+
+289
+00:20:57,902 --> 00:21:01,792
+So every single time I call this context thing, it's going to get new errors added to it.
+
+290
+00:21:02,126 --> 00:21:03,072
+So let's give that a quick save.
+
+291
+00:21:03,182 --> 00:21:06,352
+We're going to go over to our base because now we need to make sure we handle this property as well.
+
+292
+00:21:06,510 --> 00:21:19,140
+Because instead of passing our input indirectly, we instead need to pass it in that parse context, which takes in our input as a value and our array of errors, which we called our issues, and we can just set that to an empty array by default.
+
+293
+00:21:19,598 --> 00:21:23,652
+So now we have our issues, so we can rename this from error to issues, just like that.
+
+294
+00:21:26,158 --> 00:21:28,112
+And that cleaned up all the different errors that we have here.
+
+295
+00:21:28,302 --> 00:21:30,192
+And now everything should still be working fine.
+
+296
+00:21:30,318 --> 00:21:37,552
+Really, the only thing that we've done is instead of passing in a brand new input and returning brand new errors, we're keeping track of the same set of errors throughout our entire stack.
+
+297
+00:21:37,806 --> 00:21:42,512
+So that way if we have lots of complex nesting and so on, everything will work just fine.
+
+298
+00:21:42,990 --> 00:21:43,632
+So let's come in here.
+
+299
+00:21:43,822 --> 00:21:48,032
+We'll change this to a Zod string to make sure that everything is still lined up the same as before.
+
+300
+00:21:48,270 --> 00:21:49,632
+If we pass in a number, it's invalid.
+
+301
+00:21:49,806 --> 00:21:51,792
+We pass it in a string, we get the string printed out.
+
+302
+00:21:51,982 --> 00:21:53,872
+So that is working just like we expect it to.
+
+303
+00:21:53,998 --> 00:22:02,980
+Now there is one minor thing that I want to change before we start moving on to adding more validations, and that's you'll notice on this schema that I have, I can actually call the validate method directly.
+
+304
+00:22:03,214 --> 00:22:10,244
+That's not really something that I want to do because this validate method is really just used internally, and the only methods that they should be using are parse or safe parse.
+
+305
+00:22:10,702 --> 00:22:16,432
+So to make a function only be able to use internally and not externally, we can say that it is a protected method.
+
+306
+00:22:16,686 --> 00:22:20,112
+This means that we can only call this internally and we cannot call it externally.
+
+307
+00:22:20,366 --> 00:22:23,552
+So now if I make sure everywhere that I have validate, I make it protected.
+
+308
+00:22:23,790 --> 00:22:27,364
+When I come back to here and I try to call this, you can see validate doesn't show up.
+
+309
+00:22:27,502 --> 00:22:29,028
+It's only parse and safe parse.
+
+310
+00:22:29,230 --> 00:22:33,552
+So just make this so that I don't accidentally use this outside of a place that it should be particularly being used.
+
+311
+00:22:33,838 --> 00:22:36,352
+So now let's go ahead and actually start working on some various validations.
+
+312
+00:22:36,494 --> 00:22:39,152
+For example, we can do things like min and max and so on.
+
+313
+00:22:39,374 --> 00:22:42,032
+So let's implement those into our very own string implementation.
+
+314
+00:22:42,222 --> 00:22:44,352
+We can just do them directly on this class right here.
+
+315
+00:22:44,654 --> 00:22:46,912
+So we can, for example, add in min, max, and so on.
+
+316
+00:22:47,118 --> 00:22:48,272
+I'm going to add in just min.
+
+317
+00:22:48,910 --> 00:22:51,760
+We're going to add in max and we're going to add in length for now.
+
+318
+00:22:51,840 --> 00:22:54,720
+So this min function is going to take in some kind of length, which is a number.
+
+319
+00:22:54,800 --> 00:22:56,880
+This is the minimum length that our string needs to be.
+
+320
+00:22:57,070 --> 00:22:59,280
+And then we want to do some specific code with this.
+
+321
+00:22:59,438 --> 00:23:02,308
+And most importantly, at the bottom, we want to always return this.
+
+322
+00:23:02,734 --> 00:23:06,160
+By returning this, it essentially means that we can chain these methods together.
+
+323
+00:23:06,382 --> 00:23:13,412
+For example, inside of the Zod method, we can call min and then we can call max, and then we can continue calling other things on there, such as length.
+
+324
+00:23:13,520 --> 00:23:15,040
+We can just chain these together.
+
+325
+00:23:15,278 --> 00:23:23,812
+So by returning this, it essentially returns this myZod string object, which is great because now we can call max, we can call length, and just chain everything together back to back to back.
+
+326
+00:23:24,110 --> 00:23:32,400
+So every single one of these methods just needs to make sure at the very bottom that we constantly are returning the this object so we can make sure we use this all throughout our entire application.
+
+327
+00:23:32,622 --> 00:23:35,200
+And these all again take in that length, just like that.
+
+328
+00:23:35,566 --> 00:23:38,880
+So now back inside this main here, we'll clean this back up to what we had before.
+
+329
+00:23:39,086 --> 00:23:41,636
+And now we need to make sure we implement these specific functions.
+
+330
+00:23:42,094 --> 00:23:45,040
+So each one of these functions essentially needs to add a validator to our code.
+
+331
+00:23:45,262 --> 00:23:50,640
+So we can actually keep track of these validators in this base because every single type of schema can have a validator.
+
+332
+00:23:50,862 --> 00:23:54,276
+Strings have validators, numbers have validators, all the different types have validators.
+
+333
+00:23:54,606 --> 00:23:59,680
+So to keep track of these validators, inside here, we're just going to create essentially something we can use to keep track of them.
+
+334
+00:24:00,014 --> 00:24:01,760
+So to keep protected something.
+
+335
+00:24:01,920 --> 00:24:03,300
+We're going to call this validators.
+
+336
+00:24:03,726 --> 00:24:06,400
+This is going to be an array of all of our different validator logic.
+
+337
+00:24:06,606 --> 00:24:10,320
+Now these validators are going to work very similarly to our validate function.
+
+338
+00:24:10,510 --> 00:24:16,868
+Essentially, they're going to take in this context and then they're going to return true or false on whether or not it matches that particular context.
+
+339
+00:24:17,198 --> 00:24:20,000
+So it's going to be a function that takes in the context.
+
+340
+00:24:20,238 --> 00:24:22,800
+So we're going to call that context parse context.
+
+341
+00:24:22,990 --> 00:24:26,404
+And I'll rename this context down here just to build a little more self-explanatory.
+
+342
+00:24:26,670 --> 00:24:32,800
+And these are going to return to us a Boolean value of true or false on if they actually follow that context or not.
+
+343
+00:24:33,006 --> 00:24:34,960
+For example, if they follow the validator, is it long enough?
+
+344
+00:24:35,040 --> 00:24:35,680
+Is it short enough?
+
+345
+00:24:35,822 --> 00:24:36,196
+And so on.
+
+346
+00:24:36,494 --> 00:24:38,308
+And this is going to be an array of values.
+
+347
+00:24:38,766 --> 00:24:42,240
+So we can come in here and say that it is going to be an array of those different functions.
+
+348
+00:24:42,542 --> 00:24:46,308
+So now I have this validators property, which is an array of these different values.
+
+349
+00:24:46,478 --> 00:24:51,040
+And by default, we're just going to set that to an empty array because we start out with no validators at all.
+
+350
+00:24:51,374 --> 00:24:53,920
+So inside my string, I can essentially add a validator.
+
+351
+00:24:54,000 --> 00:24:55,908
+That's what this entire section of code is going to do.
+
+352
+00:24:56,206 --> 00:25:07,040
+I can say my validators, I want to push a new validator onto here, and this validator is going to take in my context and it's going to return to me either a Boolean of true if it's valid or false if it's invalid.
+
+353
+00:25:07,310 --> 00:25:09,360
+So now I just need to run my checks on the value.
+
+354
+00:25:09,518 --> 00:25:11,600
+And we know our context contains our value.
+
+355
+00:25:11,822 --> 00:25:17,520
+And if we have an error, we can add it directly to those issues that we've been accumulating throughout all of the rest of the different checks that we have.
+
+356
+00:25:18,030 --> 00:25:26,160
+So what I can do inside of here, I can just do a simple check that says if our context dot value.length is greater than or equal to this length property.
+
+357
+00:25:26,254 --> 00:25:30,320
+We know is fulfilled that minimum value, and we can just return true.
+
+358
+00:25:30,606 --> 00:25:33,120
+Otherwise, we have an error, so we need to add that to our errors.
+
+359
+00:25:33,230 --> 00:25:38,400
+So we can just push in a brand new error, and this error is just going to say string is too short.
+
+360
+00:25:38,638 --> 00:25:40,560
+You can make it more detailed if you want it, but that works.
+
+361
+00:25:40,782 --> 00:25:43,492
+And then we'll return false, saying that this is an invalid error.
+
+362
+00:25:43,950 --> 00:25:45,636
+Now you'll notice something interesting though.
+
+363
+00:25:45,840 --> 00:25:47,876
+Our context value is set to unknown.
+
+364
+00:25:48,240 --> 00:25:53,920
+We know by the time we get to these checks, we know that we have a string value because we already ran our validate up here.
+
+365
+00:25:54,094 --> 00:25:57,760
+So when we do our validation checks here, we know that this will be a string value.
+
+366
+00:25:58,094 --> 00:26:04,560
+So inside of our types, we can actually change this parse context to be a parse context of type T, which is whatever type we pass in.
+
+367
+00:26:04,686 --> 00:26:08,260
+In our case, it is a string, but when we work with numbers, it'll be a number and so on.
+
+368
+00:26:08,526 --> 00:26:10,560
+So now my value here is that string type.
+
+369
+00:26:10,702 --> 00:26:12,720
+It is whatever this generic value is right here.
+
+370
+00:26:12,942 --> 00:26:16,004
+And when we created this, we created it with a generic value of string.
+
+371
+00:26:16,494 --> 00:26:21,988
+Now we need to make sure that when we use these validators, we properly type everything though to get the correct information back to us.
+
+372
+00:26:22,222 --> 00:26:24,452
+But now at least that solves the typing issues here.
+
+373
+00:26:24,782 --> 00:26:32,036
+Now we can copy this down for max because max is essentially the same thing, but it must be less than or equal to our length, and this will say string is too long.
+
+374
+00:26:32,334 --> 00:26:41,040
+And then finally for our length down here, it must be directly equal, and we can say string is not the exact length.
+
+375
+00:26:41,358 --> 00:26:45,760
+You could obviously make these error messages much better, but I just want to make it super basic and boilerplate.
+
+376
+00:26:45,998 --> 00:26:50,788
+So now we have our minimum, our maximum, and our length function directly inside of our string that we can start using.
+
+377
+00:26:51,054 --> 00:27:01,760
+And if we go over into here, we can try a min of, for example, four, and we can do the same thing here, a min of four, and we should see that we get an error, but you'll notice it only gives us an error on the Zod one.
+
+378
+00:27:02,000 --> 00:27:03,908
+R still correctly returns the value.
+
+379
+00:27:04,110 --> 00:27:07,492
+And that's because inside of our base, we're never actually using these validators.
+
+380
+00:27:07,694 --> 00:27:13,348
+We pushed a bunch of things inside of our array, but when we do our parsing, you'll notice we never actually call these validators.
+
+381
+00:27:13,710 --> 00:27:16,548
+So we need to make sure inside of here we call all of our different validators.
+
+382
+00:27:17,358 --> 00:27:19,760
+So now what I want to do inside of here is call those validators.
+
+383
+00:27:19,840 --> 00:27:22,436
+That is as simple as just saying this dot validators.
+
+384
+00:27:23,598 --> 00:27:25,604
+I want to loop through each one, so we'll say for each.
+
+385
+00:27:25,998 --> 00:27:31,776
+For each one of these, we're going to get a function, and all I want to do is I just want to call that function with my value that I have.
+
+386
+00:27:31,982 --> 00:27:34,176
+So we can get essentially whatever this data is right here.
+
+387
+00:27:34,256 --> 00:27:35,268
+That's our parse context.
+
+388
+00:27:35,534 --> 00:27:36,708
+So we can pass it in our data.
+
+389
+00:27:37,038 --> 00:27:43,236
+The problem though is this data type is unknown and we need it to be typed as in our case a string or whatever that generic type is.
+
+390
+00:27:43,758 --> 00:27:48,656
+Well, we know if our data is correct and we don't have any errors, that we have the correct type.
+
+391
+00:27:48,736 --> 00:27:50,976
+You can see we're manually casting that type down here.
+
+392
+00:27:51,278 --> 00:27:54,256
+So we can essentially move this below our check to make sure we have no errors.
+
+393
+00:27:54,478 --> 00:27:58,468
+So now if we have no errors, it'll run all of our validators that come after that particular point.
+
+394
+00:27:58,670 --> 00:28:00,416
+And we just need to make sure we type this correctly.
+
+395
+00:28:00,718 --> 00:28:03,296
+So I'm going to create a brand new thing called success data.
+
+396
+00:28:03,566 --> 00:28:08,416
+I'm going to set that equal to our data, and I'm going to just cast that to a parse context of type T.
+
+397
+00:28:08,686 --> 00:28:13,188
+Essentially, all that's doing is typing my data value to be the correct type value.
+
+398
+00:28:13,582 --> 00:28:18,816
+So now I can use my success data here, and here I can use my success data, and I don't need to do any casting at all.
+
+399
+00:28:18,896 --> 00:28:21,668
+I can just get the value and it's already casted to the correct property.
+
+400
+00:28:22,126 --> 00:28:26,736
+Now this will add in a bunch of new errors for me, and I can just do another check right here.
+
+401
+00:28:26,958 --> 00:28:32,656
+So now if my success data has any issues at all, well I want to return all those issues back down to the user.
+
+402
+00:28:33,006 --> 00:28:36,132
+So essentially what I'm doing is I'm first validating that my type is correct.
+
+403
+00:28:36,270 --> 00:28:37,216
+Do I have a string?
+
+404
+00:28:37,486 --> 00:28:39,108
+If I don't have a string, throw an error.
+
+405
+00:28:39,470 --> 00:28:44,964
+If I do have a string, well then I want to cast my data to a string by telling TypeScript, hey, I have a string.
+
+406
+00:28:45,358 --> 00:28:48,484
+I then want to do my additional checks such as minimum, maximum, and so on.
+
+407
+00:28:48,686 --> 00:28:54,052
+And if there are any errors there, I then want to print those errors out to the user, otherwise return the successful data.
+
+408
+00:28:54,510 --> 00:28:57,456
+So now if we come over here, we can see both of these are marked as invalid.
+
+409
+00:28:57,646 --> 00:29:00,868
+And if I make my string long enough, you can see it just prints out whatever that string is.
+
+410
+00:29:01,198 --> 00:29:14,496
+And if we were to actually check what the error being returned is, we can just do a quick console log of myzodresult.error, and I can comment out these ones right here, and you can see we get an error that says string is too short because it's not quite long enough.
+
+411
+00:29:14,670 --> 00:29:16,896
+So we at least know that it is doing those checks correctly.
+
+412
+00:29:17,070 --> 00:29:18,976
+And we should see it'll actually print out two errors.
+
+413
+00:29:19,136 --> 00:29:22,896
+If I, for example, set my length here to be six, for example.
+
+414
+00:29:23,086 --> 00:29:28,976
+Now you can see that this is failing both of those checks, and you can see our array has string is too short and string is not the exact length.
+
+415
+00:29:29,056 --> 00:29:31,456
+So it's printing out both of those different errors into our log.
+
+416
+00:29:31,598 --> 00:29:35,696
+Now I do want to add one more validator before we start moving on to other schema related things.
+
+417
+00:29:35,856 --> 00:29:38,336
+We'll just clean this up so that it's going to print out the correct value.
+
+418
+00:29:38,574 --> 00:29:39,456
+We can come back to our string.
+
+419
+00:29:39,536 --> 00:29:41,220
+We have min, we have max, we have length.
+
+420
+00:29:41,456 --> 00:29:46,372
+I also want to add in a simple validator here for a regex expression, a regex expression.
+
+421
+00:29:46,576 --> 00:29:51,296
+This is going to take in some type of pattern, and we know that that is going to be a regular expression.
+
+422
+00:29:51,534 --> 00:29:54,336
+And all we want to do is make sure that it matches that particular regular expression.
+
+423
+00:29:54,542 --> 00:29:57,028
+So we can say dot match, whatever that pattern is.
+
+424
+00:29:57,358 --> 00:29:59,216
+If it does match, fine, return true.
+
+425
+00:29:59,296 --> 00:30:06,116
+If it doesn't, we can just say string does not match pattern.
+
+426
+00:30:07,630 --> 00:30:07,856
+There we go.
+
+427
+00:30:07,936 --> 00:30:08,900
+And we return false.
+
+428
+00:30:09,056 --> 00:30:12,896
+So now we have the ability to check regular expressions as well, and that'll work just fine.
+
+429
+00:30:13,006 --> 00:30:15,696
+We have all these different checks in place for our Zod string.
+
+430
+00:30:16,046 --> 00:30:18,244
+But inside of Zod, there's more than just strings we can check.
+
+431
+00:30:18,416 --> 00:30:24,176
+If we look at this, we can see we can check things like emails, we can check UUIDs, we can check URLs, and so much more.
+
+432
+00:30:24,494 --> 00:30:28,804
+Now implementing every single one of these is really kind of a tedious thing because they're all very similar.
+
+433
+00:30:29,006 --> 00:30:34,496
+So I'm just going to implement email and UUID, and that'll give you an idea of how all of the rest of these are also implemented.
+
+434
+00:30:34,830 --> 00:30:35,936
+So let's get started with email.
+
+435
+00:30:36,142 --> 00:30:38,496
+We'll change this to email as well, even though we don't have that function.
+
+436
+00:30:38,702 --> 00:30:39,936
+And of course we're going to get an error.
+
+437
+00:30:40,110 --> 00:30:41,536
+So we need to create an email function.
+
+438
+00:30:41,742 --> 00:30:46,404
+So inside this string class right here, I can export a function called email.
+
+439
+00:30:47,150 --> 00:30:48,976
+And this is going to need to return to me a new class.
+
+440
+00:30:49,166 --> 00:30:50,416
+But what class is it going to return?
+
+441
+00:30:50,576 --> 00:30:54,820
+It could return to me this zod string, but it won't actually have the email check built in.
+
+442
+00:30:55,118 --> 00:30:56,932
+Instead, I want to create a brand new class.
+
+443
+00:30:57,422 --> 00:31:02,096
+This is going to be a myzod email, and this is going to extend myzod string.
+
+444
+00:31:02,254 --> 00:31:04,976
+So essentially it's just a continuation of my string.
+
+445
+00:31:05,230 --> 00:31:07,140
+So my string just checks, is this a string?
+
+446
+00:31:07,438 --> 00:31:10,948
+My email will then check, is this also an email on top of that.
+
+447
+00:31:11,246 --> 00:31:22,816
+So essentially, all we need to do is implement our very own protected validate method that's going to check not only to see if it's a string, which is already checked by the parent version, but we also want to check that it's actually an email as well.
+
+448
+00:31:23,310 --> 00:31:26,820
+So the first thing I can do is I can call this, or I'm sorry, super.validate.
+
+449
+00:31:27,118 --> 00:31:33,536
+What that's going to do is it's going to call the parent method, which in our case is myzod string, and it's going to call the validate method here.
+
+450
+00:31:33,678 --> 00:31:36,484
+So first we're going to validate is this particular thing a string?
+
+451
+00:31:36,846 --> 00:31:38,896
+If it is a string, then we can move on from there.
+
+452
+00:31:39,056 --> 00:31:43,076
+So what I can do is I can just say new context is equal to this.
+
+453
+00:31:43,376 --> 00:31:50,180
+And if my context.issues.length is not equal to my new context.
+
+454
+00:31:52,192 --> 00:31:53,252
+issues length.
+
+455
+00:31:53,550 --> 00:32:00,832
+Well that means that by calling validate on my string, my parent method here, we added a new error, which essentially means this is not a string.
+
+456
+00:32:01,070 --> 00:32:05,444
+So now we know that this thing is not a string, so we can return some type of error to the user.
+
+457
+00:32:05,774 --> 00:32:09,952
+Right here we can just say that we want to add a new thing or actually we don't even need to add a new thing.
+
+458
+00:32:10,032 --> 00:32:15,908
+We can just return the new context because essentially we had an error and we can't continue onward because this thing is not a string.
+
+459
+00:32:16,430 --> 00:32:20,100
+Then if we get past this point, we know that our context is a string.
+
+460
+00:32:20,334 --> 00:32:22,512
+So we can actually use that to check to see if it's an email.
+
+461
+00:32:22,592 --> 00:32:27,364
+So first we need to pass this to be a email or a string, sorry, because right now it's an unknown type.
+
+462
+00:32:27,472 --> 00:32:40,836
+So we can just say const string context is equal to our new context and we just need to change the type so we can change it to a parse context of string because we know it's a string if it passes the validation that we already ran for the parent value.
+
+463
+00:32:41,198 --> 00:32:47,204
+So if it gets through all of this code, we know it's a string value so we can cast it to be a string by telling TypeScript we are smarter than it.
+
+464
+00:32:47,502 --> 00:32:55,524
+And unfortunately when you're making these really complicated type libraries behind the scenes you have to use quite a bit of as casting and other things in TypeScript that you normally want to avoid.
+
+465
+00:32:55,790 --> 00:33:00,132
+But in our case it's the only way for us to tell TypeScript we are correct because it otherwise doesn't know.
+
+466
+00:33:00,622 --> 00:33:05,952
+So now we have a string context which means we can do things with that string context value such as matching if it's on a pattern.
+
+467
+00:33:06,158 --> 00:33:12,032
+So we can say string context dot value dot match to see if it matches a particular regex expression.
+
+468
+00:33:12,270 --> 00:33:18,084
+And what I'm going to do is I'm just going to paste in the regular expression directly from shed or from the Zod documentation.
+
+469
+00:33:18,318 --> 00:33:21,156
+This is the exact email regular expression that they use.
+
+470
+00:33:21,518 --> 00:33:24,260
+So we can actually use that inside of our match statement right here.
+
+471
+00:33:24,558 --> 00:33:29,712
+If everything matches just fine, well we can return our string context because we didn't change anything at all.
+
+472
+00:33:29,934 --> 00:33:37,152
+Otherwise we need to add a new issue that essentially says invalid email and then we can return that context.
+
+473
+00:33:37,262 --> 00:33:39,524
+I'm going to do it all on my string context object.
+
+474
+00:33:39,886 --> 00:33:42,820
+So now you can see here I've created a brand new validate function.
+
+475
+00:33:42,958 --> 00:33:45,392
+It calls the parent validate to make sure we have a string.
+
+476
+00:33:45,646 --> 00:33:49,124
+If we don't have a string it just returns things as is with the errors already intact.
+
+477
+00:33:49,550 --> 00:33:56,032
+If we do have a string we cast the type we then check to make sure it's an email if it's not an email we're returned saying it's an invalid email.
+
+478
+00:33:56,206 --> 00:34:00,036
+Otherwise we just return this context as is without adding any more errors to it.
+
+479
+00:34:00,558 --> 00:34:04,352
+So now in this email I can create a new myZ email just like that.
+
+480
+00:34:04,622 --> 00:34:08,356
+And now I have the ability to check emails as well as the ability to check just normal strings.
+
+481
+00:34:08,814 --> 00:34:16,260
+So inside of this main function if we just change this to an email you can see that they both return successfully because they passed that email validation check.
+
+482
+00:34:16,846 --> 00:34:19,072
+Now we can do the exact same thing with UUID.
+
+483
+00:34:19,246 --> 00:34:24,516
+So let's come over here do the exact same thing with UUID and again it's going to be very similar to what we did for email.
+
+484
+00:34:25,262 --> 00:34:33,792
+I'm going to copy over my entire email I'm going to rename this to Zod UUID and then I'm going to make sure inside of here that we have a UUID regular expression.
+
+485
+00:34:33,902 --> 00:34:37,312
+Again this is copied directly from the documentation for Zod.
+
+486
+00:34:37,646 --> 00:34:42,244
+So we have our UUID regular expression and if it's invalid we just write invalid UUID.
+
+487
+00:34:42,542 --> 00:34:51,556
+Otherwise our code is exactly the same and you can see why I didn't want to implement every single regular expression check inside of shad or inside of Zod because there's just so so many of them.
+
+488
+00:34:52,078 --> 00:35:02,592
+So now what we can do is we can just export this as a UUID function and my Zod UUID and all that is what we need to do to now have UUID validation.
+
+489
+00:35:02,862 --> 00:35:16,740
+So if I come into here and I change this to something that is a UUID for example just crypto.random UUID, you can see that successfully parses whatever this UUID value is and it's entirely just based on this regular expression built into the Zod library.
+
+490
+00:35:17,070 --> 00:35:25,072
+So pretty much every single other string validation we want to do is the same pattern copy the class change the validation slightly and use a regular expression or other related things.
+
+491
+00:35:25,230 --> 00:35:36,512
+Now to make sure that this is sticking and that we understand exactly what's going on I want to go ahead and implement numbers next because they're very similar to strings they have custom validations that we can do and they have some other subclasses that we can deal with.
+
+492
+00:35:36,718 --> 00:35:44,352
+And the nice thing is since everything is just inherited our UUID also has its own min, max length and is regular expression functions.
+
+493
+00:35:44,494 --> 00:35:49,152
+So we can use all those other functions that we could use with the normal UUID email strings and so on.
+
+494
+00:35:49,232 --> 00:35:50,148
+They're all part of it.
+
+495
+00:35:50,734 --> 00:35:56,992
+So now let's go ahead instead of UUID we're going to change this to number and down here we'll change to a number like one two three just to make sure it works.
+
+496
+00:35:57,358 --> 00:36:10,592
+Obviously we have an error because we don't have a number function yet so let's take our string class we'll copy that and we'll just change this to number.ts so up here we're going to have a number we can remove these other ones and this is going to be a myzod number class.
+
+497
+00:36:10,766 --> 00:36:14,432
+So instead of strings we have numbers so this right here will be a number.
+
+498
+00:36:14,894 --> 00:36:18,112
+Now I'm going to go down and remove all the rest of the code that we have in this file.
+
+499
+00:36:18,862 --> 00:36:19,424
+There we go.
+
+500
+00:36:19,758 --> 00:36:22,864
+We can get rid of all this other stuff for the minimum, maximum, and so on.
+
+501
+00:36:22,944 --> 00:36:23,584
+We don't need those.
+
+502
+00:36:23,758 --> 00:36:28,144
+All we're going to deal with is this validate right here and make sure it uses the myzod number.
+
+503
+00:36:28,334 --> 00:36:35,424
+So now we have that number function, and in our index, we can export star from dot slash number, and at least that'll fix our error here.
+
+504
+00:36:35,584 --> 00:36:39,744
+Now we actually have this number running, and if I save everything, you can see it's at least working.
+
+505
+00:36:39,886 --> 00:36:43,584
+It's just printing out invalid because we're currently checking for string instead of number.
+
+506
+00:36:43,886 --> 00:36:46,464
+So if I change this to number, that'll actually solve the problem.
+
+507
+00:36:46,606 --> 00:36:53,024
+But there's one other thing that we need to do, and that's because inside of Zod, they actually check to make sure the number is a finite number as well.
+
+508
+00:36:53,454 --> 00:36:57,860
+So we can come in here and say number dot is finite, context.value.
+
+509
+00:36:58,702 --> 00:36:59,104
+There we go.
+
+510
+00:36:59,406 --> 00:37:01,604
+Make sure this is on a new line so it's a little bit easier to read.
+
+511
+00:37:02,126 --> 00:37:06,372
+And now essentially it's only going to return true if it's a number and it's a finite number.
+
+512
+00:37:06,830 --> 00:37:10,724
+Otherwise, we can say we expected a number and return that context value back out.
+
+513
+00:37:11,470 --> 00:37:14,384
+Now if we go into our main here, you can see it's returning one, two, three.
+
+514
+00:37:14,542 --> 00:37:16,224
+If I change it to a string, we get an error.
+
+515
+00:37:16,430 --> 00:37:20,064
+If I change it to something like infinity, we're gonna get an error because it's not a finite number.
+
+516
+00:37:20,398 --> 00:37:23,264
+And if I change it to like not a number, again, it's going to give us invalid.
+
+517
+00:37:23,344 --> 00:37:26,624
+It'll only work if we have a number, even if it has some decimal places in it.
+
+518
+00:37:26,798 --> 00:37:29,984
+Now let's go ahead and also implement the different minimum, maximums, and so on.
+
+519
+00:37:30,158 --> 00:37:32,224
+So I'll just copy over this as a placeholder start.
+
+520
+00:37:32,366 --> 00:37:34,784
+So inside of our number, we can paste down our minimum.
+
+521
+00:37:34,958 --> 00:37:37,504
+Our minimum is going to be some type of number, we'll call it n.
+
+522
+00:37:37,710 --> 00:37:43,584
+And what we want to do is we want to make sure that our context value is greater than or equal to whatever that number is, which we call n.
+
+523
+00:37:43,918 --> 00:37:44,784
+That's going to work fine.
+
+524
+00:37:44,942 --> 00:37:47,332
+And we can just say number is too small.
+
+525
+00:37:47,726 --> 00:37:49,636
+Now that's going to give us a minimum validator.
+
+526
+00:37:49,934 --> 00:37:54,276
+We can also come in here with a validator that's going to be a maximum value validator.
+
+527
+00:37:54,478 --> 00:37:57,504
+and This is going to be less than or equal to, and number is too large.
+
+528
+00:37:57,742 --> 00:38:00,388
+And we can also do the exact same thing, for example, with positive.
+
+529
+00:38:00,974 --> 00:38:03,184
+So we can say it must be greater than or equal to zero.
+
+530
+00:38:03,344 --> 00:38:04,544
+We don't even need this number.
+
+531
+00:38:04,654 --> 00:38:07,876
+And it says number must be positive.
+
+532
+00:38:08,910 --> 00:38:09,344
+There we go.
+
+533
+00:38:09,710 --> 00:38:11,844
+And we can do the exact same thing with negative.
+
+534
+00:38:13,774 --> 00:38:18,084
+And we can say that the number is less than zero, and number must be negative.
+
+535
+00:38:18,446 --> 00:38:18,784
+There we go.
+
+536
+00:38:19,214 --> 00:38:21,984
+So now we've essentially created positive, negative, minimum, and maximum.
+
+537
+00:38:22,144 --> 00:38:23,264
+Different validators we can use.
+
+538
+00:38:23,470 --> 00:38:29,344
+And the nice thing is we can come in here and we can say, okay, we expect it to be a positive number with a minimum value of four.
+
+539
+00:38:29,614 --> 00:38:32,516
+Do the exact same thing for the other Zod validator.
+
+540
+00:38:33,166 --> 00:38:35,184
+And you can see it works fine when the number is large enough.
+
+541
+00:38:35,310 --> 00:38:38,864
+If we change it to the number one, we now have an error because it's not past that minimum of four.
+
+542
+00:38:39,182 --> 00:38:44,144
+If we change it to negative eight, we now have two errors because it's not positive and it's not past that minimum of four.
+
+543
+00:38:44,462 --> 00:38:49,664
+So this is really great because now we have all these different validators set up and it's able to check our numbers just like we expect.
+
+544
+00:38:49,870 --> 00:39:04,624
+And the nice thing is since we did all the hard work with setting up our base with all these different parses and these validator sections, actually doing the implementation of each individual thing, like a number and a string, is as simple as just creating a really easy function that has like one or two if checks, add some errors if we have them, and that's pretty much it.
+
+545
+00:39:04,942 --> 00:39:05,584
+Same thing up here.
+
+546
+00:39:05,806 --> 00:39:09,744
+We have one or two if checks of adding our errors and then returning our different context values.
+
+547
+00:39:09,934 --> 00:39:12,464
+Once we get everything set up, it's incredibly easy to work with.
+
+548
+00:39:12,718 --> 00:39:17,424
+Now we can also add in a class for integers as well, which is something built into Zod instead of number.
+
+549
+00:39:17,504 --> 00:39:21,024
+I can just change this to int and now it's going to work only for integer-based numbers.
+
+550
+00:39:21,104 --> 00:39:23,504
+So if this was like 8.5, we're going to get an error.
+
+551
+00:39:23,598 --> 00:39:27,264
+We want to make sure we work the exact same thing into our very own schema as well.
+
+552
+00:39:27,662 --> 00:39:31,664
+So let's go and we're just going to copy over the entire class we're using for the Zod email.
+
+553
+00:39:31,744 --> 00:39:40,292
+We'll use that as our starting point for the number, and we'll call this my Zod int because it's going to be an integer and it's going to inherit from the number class that we created.
+
+554
+00:39:40,654 --> 00:39:42,704
+Now, almost everything else we have here is the same.
+
+555
+00:39:42,926 --> 00:39:46,052
+First, we're going to check to make sure our first context passed successfully.
+
+556
+00:39:46,254 --> 00:39:52,196
+If it did, we now know the type of this is going to be a number, and we can call this our number context.
+
+557
+00:39:52,910 --> 00:39:56,260
+So anywhere we use string context, I'll just replace that with number context.
+
+558
+00:39:56,686 --> 00:39:58,784
+Now we want to check to make sure that it is an integer.
+
+559
+00:39:58,864 --> 00:40:05,370
+So we can just come in here, number dot is integer, and we can pass it in our number context dot value.
+
+560
+00:40:05,486 --> 00:40:06,864
+That's going to be the value we're using.
+
+561
+00:40:07,054 --> 00:40:09,024
+If it is an integer, just return just fine.
+
+562
+00:40:09,294 --> 00:40:14,864
+Otherwise, if it's not, we can just put an error in here that says expected integer, just like that.
+
+563
+00:40:15,118 --> 00:40:17,344
+And now it's essentially saying this must be an integer value.
+
+564
+00:40:17,486 --> 00:40:23,424
+And up here, I can just copy this down, call this function int myzodint, and there we go.
+
+565
+00:40:23,504 --> 00:40:24,384
+That's all I need to do.
+
+566
+00:40:24,558 --> 00:40:27,424
+Now if we come back to here, I change this to an integer, everything works fine.
+
+567
+00:40:27,598 --> 00:40:31,812
+If I change it to a decimal place number, you can see it now prints invalid for both of them.
+
+568
+00:40:32,046 --> 00:40:42,064
+So we can see that simple, easy changes since we have that base class setup and everything else, adding new implementations and so on is actually quite simple, especially when they're as easy as like a number, a string, and so on.
+
+569
+00:40:42,144 --> 00:40:53,184
+Now before we just start grinding through all the other types like Booleans, dates, and so on, I want to actually work on one of the more difficult types, which is an array, because it's actually going to force us to change how we have things structured just ever so slightly.
+
+570
+00:40:53,614 --> 00:40:55,504
+So let's kind of close out all the different files that we have.
+
+571
+00:40:55,758 --> 00:40:59,684
+I want to create a new file called array.ts to be able to handle array based items.
+
+572
+00:40:59,982 --> 00:41:04,944
+Inside of our main here, we can use array just to look at how Zod does things so that we can implement this ourselves.
+
+573
+00:41:05,198 --> 00:41:07,984
+When they have an array, it requires you to pass in a child to it.
+
+574
+00:41:08,174 --> 00:41:12,624
+So we're going to pass it in here, saying string, and that just tells you we have an array of string based values.
+
+575
+00:41:12,974 --> 00:41:19,280
+So if I change this to an array of strings, You can see this bottom one right here prints out whatever that array is.
+
+576
+00:41:19,470 --> 00:41:22,880
+And as soon as I add something that's not a string, it's going to give me that value of invalid.
+
+577
+00:41:23,054 --> 00:41:26,800
+So this is a really great way to just know, okay, we have everything working just like we expect it to.
+
+578
+00:41:26,990 --> 00:41:31,120
+Now we want to essentially implement the exact same thing on our own Zod implementation.
+
+579
+00:41:31,200 --> 00:41:33,252
+We want to create our own array of strings.
+
+580
+00:41:33,454 --> 00:41:35,600
+And this is going to be quite a bit more complicated.
+
+581
+00:41:35,982 --> 00:41:38,720
+Now, first of all, we can kind of start with the same boilerplate code.
+
+582
+00:41:38,800 --> 00:41:41,412
+I'll copy that over so we have just a starting place to work with.
+
+583
+00:41:41,774 --> 00:41:46,400
+We have this array and we know it's going to give us a myzod array, just like that.
+
+584
+00:41:46,830 --> 00:41:48,068
+We don't have to worry about integer.
+
+585
+00:41:48,206 --> 00:41:55,840
+And we can essentially take all the code inside of here, get rid of that, get rid of that, because all we need to worry about is our myzod array and this validate function right here.
+
+586
+00:41:55,920 --> 00:42:03,840
+Now the thing that makes this myzod array much more complicated is because as you can see, we're passing a value to the array function, which is another schema.
+
+587
+00:42:04,142 --> 00:42:09,920
+So essentially we're taking an input here, which is our schema, and we know that has a type of my zod type.
+
+588
+00:42:10,318 --> 00:42:11,280
+But what type is this?
+
+589
+00:42:11,374 --> 00:42:17,572
+You know, we could pass in any here and that'll work fine because it works for literally anything, but then we lose all of our type safety benefits.
+
+590
+00:42:17,934 --> 00:42:20,240
+Instead, we need to make this a generic as well.
+
+591
+00:42:20,462 --> 00:42:23,280
+Because if we say that we want this to be a string, it should be a string.
+
+592
+00:42:23,534 --> 00:42:25,764
+If we tell it a number type, it should be a number type.
+
+593
+00:42:25,966 --> 00:42:29,920
+So based on what we pass in here, our array should infer its type based on that.
+
+594
+00:42:30,126 --> 00:42:31,780
+That's the perfect use case for generics.
+
+595
+00:42:31,950 --> 00:42:35,716
+So instead we're going to change this to a T to say that we have a generic type just like that.
+
+596
+00:42:36,078 --> 00:42:43,652
+So now we're saying whatever zod type this is, is it a string, number, Boolean, doesn't matter, our array is just going to infer that it's using those particular values.
+
+597
+00:42:43,982 --> 00:42:47,236
+And then we can pass our schema directly into our myzod array.
+
+598
+00:42:47,726 --> 00:42:52,480
+Now, since we need to pass it into this array to use it, we need to create a constructor function for this as well.
+
+599
+00:42:52,782 --> 00:42:57,412
+And this constructor is going to take in our schema, which we know is a myzod type.
+
+600
+00:42:57,582 --> 00:43:02,560
+And we again know it's generic, so we must make this entire function a generic function just like that.
+
+601
+00:43:02,830 --> 00:43:07,840
+Now in our particular case, this schema is like an inner schema, so I'm actually going to call it inner when we save it.
+
+602
+00:43:08,046 --> 00:43:11,040
+So we're going to save it as a private variable so it's not accessible anywhere else.
+
+603
+00:43:11,214 --> 00:43:12,452
+That's what that pound symbol does.
+
+604
+00:43:12,590 --> 00:43:13,600
+And we'll call this inner.
+
+605
+00:43:13,902 --> 00:43:21,920
+And it is a myzod type of t, again, because it's a generic type, so it's just going to be whatever that inner schema type is.
+
+606
+00:43:22,062 --> 00:43:25,040
+And I can say this dot inner is equal to our schema.
+
+607
+00:43:25,326 --> 00:43:26,880
+So now we have all that information set up.
+
+608
+00:43:27,022 --> 00:43:30,720
+Now we are getting some errors because whenever you call a constructor, you must call the super method.
+
+609
+00:43:30,830 --> 00:43:31,760
+So we can just call super.
+
+610
+00:43:32,142 --> 00:43:34,720
+What that does is just calls whatever the parent's constructor is.
+
+611
+00:43:34,990 --> 00:43:36,708
+In our case, we don't even really have a constructor.
+
+612
+00:43:36,800 --> 00:43:41,668
+If you look inside of here, there's no constructor, so it doesn't actually do anything, but it's required as part of TypeScript.
+
+613
+00:43:42,222 --> 00:43:47,556
+Now the final thing we need to do before implementing validate is we need to figure out what is the return type of this particular function.
+
+614
+00:43:47,886 --> 00:43:50,560
+Well, we know our array is of type t.
+
+615
+00:43:50,670 --> 00:43:52,640
+It's an array of strings or array of numbers.
+
+616
+00:43:52,846 --> 00:44:00,000
+So our return type from this is going to be an array, but that array is going to be of type t, because it's going to be an array of strings, an array of numbers, and so on.
+
+617
+00:44:00,270 --> 00:44:05,508
+So we know the return type here is an array of strings, and we know we're getting input, a schema for that particular type.
+
+618
+00:44:05,838 --> 00:44:15,460
+So now essentially we not only need to check our array itself to make sure it is an array and everything like that, but we also need to check all of the different individual items in the array to make sure they match the schema as well.
+
+619
+00:44:15,822 --> 00:44:21,092
+Because for example, here, if I pass, for example, a number, obviously that'll fail because a number is not an array.
+
+620
+00:44:21,294 --> 00:44:26,948
+But if I pass it an array and one of those values is a number, again, that should fail because it's supposed to be a string.
+
+621
+00:44:27,246 --> 00:44:29,828
+So I need to make sure I'm doing all of these various different checks.
+
+622
+00:44:30,190 --> 00:44:32,000
+So inside of this array method, we need to do that.
+
+623
+00:44:32,110 --> 00:44:33,920
+First, we need to check is this thing an array?
+
+624
+00:44:34,030 --> 00:44:36,400
+And secondly, we need to check each item in the array as well.
+
+625
+00:44:36,480 --> 00:44:38,800
+So let's do our very first check to see is this an array.
+
+626
+00:44:38,990 --> 00:44:43,840
+So we're going to say if it is not an array dot is array.
+
+627
+00:44:44,718 --> 00:44:46,240
+For some reason it's typing down here as well.
+
+628
+00:44:46,320 --> 00:44:47,040
+Let's remove that.
+
+629
+00:44:47,182 --> 00:44:47,600
+There we go.
+
+630
+00:44:47,854 --> 00:44:51,760
+So if it is not an array, our context.value, well then we know we have an error.
+
+631
+00:44:52,014 --> 00:44:56,484
+So we can just return that error by saying contact.issues expected array.
+
+632
+00:44:56,878 --> 00:44:58,180
+And then return our context.
+
+633
+00:44:58,350 --> 00:44:58,640
+There we go.
+
+634
+00:44:58,880 --> 00:45:00,560
+We want to make sure we push in that value.
+
+635
+00:45:00,974 --> 00:45:04,900
+So we're creating a brand new error that just says we expected this to be an array, but it's not.
+
+636
+00:45:05,358 --> 00:45:11,360
+Then if we're past that, we know we have an array, so we can continue on with the rest of our code to check our different issues down here.
+
+637
+00:45:11,520 --> 00:45:14,480
+And in this section, we're specifically checking the schema of our inner value.
+
+638
+00:45:14,560 --> 00:45:16,160
+So essentially I want to loop through my array.
+
+639
+00:45:16,494 --> 00:45:19,428
+So we'll say for let i equals zero.
+
+640
+00:45:19,694 --> 00:45:22,080
+I is less than, and it's going to be our array.
+
+641
+00:45:22,190 --> 00:45:24,292
+So context dot value dot length.
+
+642
+00:45:25,262 --> 00:45:28,388
+I plus plus, that'll loop us through each one of the items in the array.
+
+643
+00:45:28,974 --> 00:45:33,552
+I want to get each item, which is just going to be context.value at that particular index.
+
+644
+00:45:33,742 --> 00:45:35,232
+So this gives me each item in the array.
+
+645
+00:45:35,566 --> 00:45:38,432
+So every time we loop through, it'll give me this item, then this item, then this item.
+
+646
+00:45:38,670 --> 00:45:45,092
+And all I want to do is I want to take whatever schema I pass in, in our case a string schema, and make sure it matches every single one of these different values.
+
+647
+00:45:45,486 --> 00:45:47,396
+So down here, I want to do that simple check.
+
+648
+00:45:47,790 --> 00:45:48,752
+So we can get a response.
+
+649
+00:45:48,846 --> 00:45:50,340
+We'll call it our inner response.
+
+650
+00:45:50,542 --> 00:45:52,512
+And that's just using our inner property.
+
+651
+00:45:52,654 --> 00:45:54,672
+And we can just call safe parse directly on here.
+
+652
+00:45:54,766 --> 00:45:57,552
+And we can pass it in essentially the value of the item we're dealing with.
+
+653
+00:45:57,710 --> 00:45:59,072
+So that is just our item itself.
+
+654
+00:45:59,232 --> 00:46:05,712
+When we do that, we essentially are calling the parse method on each individual item in our array using whatever schema we pass in.
+
+655
+00:46:05,966 --> 00:46:07,072
+So it'll check is it a string?
+
+656
+00:46:07,152 --> 00:46:10,884
+We can also do things like checking to make sure the minimum length is proper and all those other things.
+
+657
+00:46:11,118 --> 00:46:12,352
+Everything is going to be checked in here.
+
+658
+00:46:12,526 --> 00:46:14,564
+So let's just set this to a value of five, for example.
+
+659
+00:46:14,894 --> 00:46:19,460
+Now we can make sure that whatever this schema is is being checked on every single item in our array.
+
+660
+00:46:19,854 --> 00:46:26,272
+And this is going to return to us a brand new section that's either going to contain an array or it's going to contain that success property right here.
+
+661
+00:46:26,352 --> 00:46:28,752
+So first of all, let's handle this success scenario.
+
+662
+00:46:28,942 --> 00:46:33,312
+If our inner response is successful, well, that's great.
+
+663
+00:46:33,472 --> 00:46:40,420
+All we need to do is just take our context dot value, set whatever that item's value is equal to the thing being returned from our response.
+
+664
+00:46:40,686 --> 00:46:41,632
+So we're going to get our data.
+
+665
+00:46:41,806 --> 00:46:44,772
+That's just updating our current context value with this new one.
+
+666
+00:46:45,070 --> 00:46:47,152
+And that's because sometimes we have certain transforms.
+
+667
+00:46:47,312 --> 00:46:52,512
+For example, if I go into here and I use the two uppercase method, that converts all the strings to uppercase.
+
+668
+00:46:52,654 --> 00:47:00,516
+So I want to make sure parsing that will convert it to uppercase, and then I will save that back in my array as the brand new value in my array, but only if it's successful, obviously.
+
+669
+00:47:01,294 --> 00:47:13,508
+Then if we have an error, we are going to get a bunch of different error objects from here, and then we want to add them to our current context because we want to essentially have one context that contains all of our errors, and this actually creates a new context with those errors inside of it.
+
+670
+00:47:13,966 --> 00:47:18,788
+Right now though, we're just typing this as a generic error type and passing it in a hard-coded string.
+
+671
+00:47:19,054 --> 00:47:22,912
+Instead, we should probably create our very own error type to handle all of this information.
+
+672
+00:47:23,310 --> 00:47:24,752
+So we can create a brand new file.
+
+673
+00:47:25,038 --> 00:47:26,432
+We'll call this error.ts.
+
+674
+00:47:26,672 --> 00:47:30,660
+And inside of here, I want to export a class called myzot error.
+
+675
+00:47:31,182 --> 00:47:33,284
+That's going to extend the error class.
+
+676
+00:47:34,798 --> 00:47:37,956
+And when you extend the error class, you must create a constructor for it.
+
+677
+00:47:40,878 --> 00:47:43,392
+Make sure I come in here with all of this being proper.
+
+678
+00:47:43,472 --> 00:47:44,352
+There we go, extends.
+
+679
+00:47:44,526 --> 00:47:46,912
+Now we have a constructor that's going to take in whatever we want.
+
+680
+00:47:46,992 --> 00:47:51,428
+In our case, it's taking in all of our different issues, which are just an array of strings for now.
+
+681
+00:47:52,014 --> 00:47:54,032
+And then what I want to do is I want to combine these all together.
+
+682
+00:47:54,254 --> 00:47:56,512
+So we need to call it the super method and give it a message.
+
+683
+00:47:56,718 --> 00:48:00,100
+That message is just going to be the string stringified version of our errors.
+
+684
+00:48:00,878 --> 00:48:02,672
+So we'll just take our issues and stringify them.
+
+685
+00:48:02,766 --> 00:48:04,192
+That's the error message just fine.
+
+686
+00:48:04,398 --> 00:48:07,268
+That's essentially what we were doing inside this base section by default.
+
+687
+00:48:07,566 --> 00:48:08,992
+But now we can have some other properties.
+
+688
+00:48:09,166 --> 00:48:12,164
+For example, the name is equal to my zod error.
+
+689
+00:48:12,462 --> 00:48:14,112
+And I can also come in here and say this.
+
+690
+00:48:16,112 --> 00:48:18,628
+Because now I have access to this issues property.
+
+691
+00:48:18,958 --> 00:48:21,860
+And up here, I can say that issues is a string array.
+
+692
+00:48:22,350 --> 00:48:22,884
+There we go.
+
+693
+00:48:24,462 --> 00:48:24,672
+Perfect.
+
+694
+00:48:25,038 --> 00:48:29,508
+So now I have my issues as well as my name property being set on this particular error class.
+
+695
+00:48:29,806 --> 00:48:38,930
+So now if I go into my base and instead of using this new error, I can instead use a new myzod error and pass it in our data dot issues.
+
+696
+00:48:39,278 --> 00:48:45,632
+So now it's essentially working as a normal error, but I have all this additional information with it, such as this error information right here.
+
+697
+00:48:45,838 --> 00:48:48,036
+And here I can again return a myzod error.
+
+698
+00:48:48,494 --> 00:48:55,632
+Now if I go into my arrays class, this item response now is a myzod error, which is great because I can get the inner.
+
+699
+00:48:56,782 --> 00:49:00,192
+response dot error and that has access to that issues property on it.
+
+700
+00:49:00,334 --> 00:49:07,012
+So I can take all the issues from this inner version and just add them to my outer version as well to keep all my errors inside of one main context.
+
+701
+00:49:07,598 --> 00:49:14,052
+So to do that, I can say context dot issues dot push and I essentially want to push all of the issues that we have right here.
+
+702
+00:49:14,702 --> 00:49:17,072
+Now to make this work properly I can just spread this out.
+
+703
+00:49:17,198 --> 00:49:22,272
+It's going to pass in all of my different errors and now I have an array of all the different errors inside my code.
+
+704
+00:49:22,702 --> 00:49:25,552
+Now let's go ahead and clean up some of the different errors we have otherwise in our code.
+
+705
+00:49:25,712 --> 00:49:34,512
+First of all I need to export star from dot slash array to make sure I have all my array properties accessible inside my main file that solved that particular error.
+
+706
+00:49:34,702 --> 00:49:43,232
+And now inside my base it looks like we're having an error and that's because here I again need to use myzod error and instead of stringifying this just pass it in my issues directly.
+
+707
+00:49:43,502 --> 00:49:48,672
+That does look like it cleaned up my errors it's showing invalid currently because we have a value that's not a string.
+
+708
+00:49:49,070 --> 00:49:51,872
+If we remove that you can now see it returns both of our strings properly.
+
+709
+00:49:52,078 --> 00:49:57,632
+Obviously we don't have two uppercase yet so we can remove that and you can see it's properly working just like we expect it to.
+
+710
+00:49:57,806 --> 00:50:01,632
+If one of our strings is too short it's going to return to us an error which is great.
+
+711
+00:50:01,712 --> 00:50:03,072
+But there is one slight problem.
+
+712
+00:50:03,406 --> 00:50:09,712
+Let me just show you by console.logging our zodresults dot error and minimizing this code right here.
+
+713
+00:50:10,062 --> 00:50:15,312
+So if we look at our zodresult.error, you can see it's essentially telling us a bunch of different information about the error.
+
+714
+00:50:15,438 --> 00:50:17,792
+I'll make it even wider so it's easier to read what's going on.
+
+715
+00:50:17,998 --> 00:50:26,592
+But you can see we have the code we have the message for the most part all I really care about is the message which says too small expected string to be larger but also you'll see this path section right here.
+
+716
+00:50:26,766 --> 00:50:31,072
+It's saying that hey this is specifically the second item in our array the one with an index of one.
+
+717
+00:50:31,438 --> 00:50:33,892
+And that's really important for tracing where your errors come from.
+
+718
+00:50:34,158 --> 00:50:40,752
+Because if your error only says too small expected string to have greater than five characters, how do you know which string that was that was too small?
+
+719
+00:50:41,006 --> 00:50:44,004
+Well that's where this path comes in it tells you exactly where that was.
+
+720
+00:50:44,302 --> 00:50:52,272
+If we look at our particular error instead I change this to my Zod result and we maximize this section you'll notice all it does is say string is too short.
+
+721
+00:50:52,398 --> 00:50:53,072
+Well which string?
+
+722
+00:50:53,152 --> 00:50:53,700
+Where's the string?
+
+723
+00:50:53,872 --> 00:50:55,748
+I don't know which string is the particular error.
+
+724
+00:50:55,918 --> 00:50:57,348
+I want to be able to narrow that down.
+
+725
+00:50:57,582 --> 00:51:11,152
+That's where the whole idea from tracking what the path is because now I can say oh it was this exact error inside my array and when I want to render these errors to the user in like a UI it makes it much easier if I know which error is tied to which item in the array and the objects and so on.
+
+726
+00:51:11,278 --> 00:51:14,992
+So let's actually go ahead and change our code quite a bit to make sure we can keep track of that information.
+
+727
+00:51:15,278 --> 00:51:19,232
+First of all in our error I'm going to create a brand new type and that's going to be for tracking my issues.
+
+728
+00:51:19,342 --> 00:51:30,272
+So we're going to say myzod issue and this myzod issue is going to have a message which is a string but it's also going to have a path which is a property key array.
+
+729
+00:51:30,510 --> 00:51:38,660
+And essentially that is a type of string number or symbol it's just anything that can be a property inside of an object so that works for arrays and for objects which is exactly what we want.
+
+730
+00:51:39,086 --> 00:51:42,916
+And then I just want to replace my string of issues up here with those myzod issues.
+
+731
+00:51:43,374 --> 00:51:48,432
+Now obviously that's going to cause us quite a few errors inside of our code because we're currently assuming everything is a string.
+
+732
+00:51:48,718 --> 00:51:49,792
+So let's go ahead and fix that.
+
+733
+00:51:50,062 --> 00:51:55,140
+First of all inside of our array this is passing us essentially a bunch of things that we need to make sure we handle properly.
+
+734
+00:51:55,470 --> 00:52:02,436
+See here we're pushing into this context issue which is saying that it is currently a type of string because our parse context says that these issues are string.
+
+735
+00:52:02,734 --> 00:52:04,912
+These need to be a myzod issue as well.
+
+736
+00:52:04,992 --> 00:52:14,032
+So let's go ahead into our error make sure we export this type just like that and here we can use that myzod issue to make sure everything's working fine and that fixes that particular problem.
+
+737
+00:52:14,112 --> 00:52:15,872
+So our base class file is fine.
+
+738
+00:52:16,142 --> 00:52:21,380
+Our arrays file is mostly fine but here instead of pushing in a string we need to push it in an object.
+
+739
+00:52:21,646 --> 00:52:26,564
+This object has a message that is our expected array and then it's also going to have a path.
+
+740
+00:52:26,894 --> 00:52:33,552
+Now by default our path is always going to be an empty array the only time we would change that is if we're accessing the children of something.
+
+741
+00:52:33,838 --> 00:52:39,844
+In our case here we're accessing the children of this array so we need to change the path based on the index they are in the array.
+
+742
+00:52:40,174 --> 00:52:45,952
+So here what I want to do currently my path is an empty array I want to essentially add that index into the path itself.
+
+743
+00:52:46,350 --> 00:52:49,476
+So what we want to do for each one of these issues is I want to map through them.
+
+744
+00:52:49,838 --> 00:52:55,472
+That's going to give me an issue and for each one of these issues we can just return an object.
+
+745
+00:52:55,726 --> 00:52:59,392
+That object is going to have all of my different issue properties directly on it.
+
+746
+00:52:59,726 --> 00:53:06,560
+And then what I want to do is I want to take the path which is just my issue path so we can say issue dot path Spread that out.
+
+747
+00:53:06,766 --> 00:53:09,360
+And at the very start of that, I want to put my index, which is I.
+
+748
+00:53:09,710 --> 00:53:15,760
+So essentially, I'm just taking whatever my index is and adding that into the path at the very start because we're just slowly building up this path.
+
+749
+00:53:15,886 --> 00:53:19,748
+And the more and more nested something becomes, the longer and longer that path is.
+
+750
+00:53:19,920 --> 00:53:21,680
+It starts out as an empty array.
+
+751
+00:53:21,806 --> 00:53:24,240
+And then as we access the children, we add the index.
+
+752
+00:53:24,462 --> 00:53:26,640
+And we access the children of that, then we're going to add the index.
+
+753
+00:53:26,958 --> 00:53:29,092
+If we access the children of them, then we're going to add the index.
+
+754
+00:53:29,294 --> 00:53:34,480
+And it'll slowly chain them all together until we get a really coherent error that's going to tell us exactly where they are.
+
+755
+00:53:34,830 --> 00:53:39,520
+So now that solves all the stuff inside of our error file, but we have errors in a lot of the rest of our files as well.
+
+756
+00:53:39,854 --> 00:53:41,520
+Let's go into our error file, that looks fine.
+
+757
+00:53:41,774 --> 00:53:42,960
+Our index file is fine.
+
+758
+00:53:43,214 --> 00:53:46,720
+Our number file obviously has issues because we're not logging out these errors properly.
+
+759
+00:53:46,800 --> 00:53:49,760
+You can see we're printing them out as strings when they should be objects.
+
+760
+00:53:49,934 --> 00:53:59,396
+So we just need to change this to an object that has a message, and it's going to have a path, which is an empty string, just like that.
+
+761
+00:54:00,878 --> 00:54:01,200
+There we go.
+
+762
+00:54:01,486 --> 00:54:02,320
+That solves that problem.
+
+763
+00:54:02,542 --> 00:54:05,572
+And I'm just going to copy this down to all of these to fix them.
+
+764
+00:54:06,254 --> 00:54:11,120
+So we'll copy it down to this one and this one and close off those brackets on all of them.
+
+765
+00:54:11,310 --> 00:54:12,400
+That fixes those errors.
+
+766
+00:54:12,560 --> 00:54:14,000
+Do the same exact thing down here.
+
+767
+00:54:14,080 --> 00:54:18,880
+Again, the path by default, is always going to be empty, unless we're accessing the children or something like that.
+
+768
+00:54:19,118 --> 00:54:21,604
+And in this case, obviously, we have no children to access.
+
+769
+00:54:21,934 --> 00:54:22,640
+So that solves that.
+
+770
+00:54:22,958 --> 00:54:25,120
+Now it's going to string and do the exact same thing.
+
+771
+00:54:25,390 --> 00:54:26,560
+Unfortunately, it's just kind of tedious.
+
+772
+00:54:26,640 --> 00:54:27,332
+We got to make sure.
+
+773
+00:54:27,982 --> 00:54:30,692
+We put all the different brackets and everything in place.
+
+774
+00:54:32,078 --> 00:54:32,800
+Fix this one.
+
+775
+00:54:33,102 --> 00:54:40,740
+And this is why I wanted to tackle arrays early, because otherwise we would have a lot more files we need to update when we go back and actually change the problems for how we solve this.
+
+776
+00:54:41,166 --> 00:54:43,300
+So inside of here, make sure this is valid.
+
+777
+00:54:43,694 --> 00:54:47,236
+And then finally our Zod UUID, make sure that this one is valid.
+
+778
+00:54:47,822 --> 00:54:51,120
+Now if we go into types, that looks like it has no errors, and it looks like our code is running fine.
+
+779
+00:54:51,200 --> 00:54:55,492
+When we go back to our main file, you can say they both say invalid because this string is not long enough.
+
+780
+00:54:55,758 --> 00:55:06,320
+And we should see that if we console.log our myzod result.error, just comment these ones out, we should see when we expand this, we now have a path which is that one array.
+
+781
+00:55:06,478 --> 00:55:10,160
+So it's saying, hey, at index one in our array, the string was too short.
+
+782
+00:55:10,254 --> 00:55:13,508
+That gives us all the information we need to actually solve this particular error.
+
+783
+00:55:13,998 --> 00:55:17,520
+Now let's just bring those correct messages back in and take a look at our code.
+
+784
+00:55:17,600 --> 00:55:21,284
+If we were to solve this by making this long enough, you can now see it prints out both of our different arrays.
+
+785
+00:55:21,550 --> 00:55:26,244
+And if we had a problem with our actual array for our object, you can see they both print out invalid here.
+
+786
+00:55:26,670 --> 00:55:28,080
+But what happens if we had multiple errors?
+
+787
+00:55:28,240 --> 00:55:31,120
+For example, our array was incorrect and our string was also incorrect.
+
+788
+00:55:31,360 --> 00:55:32,164
+let's take a look at that.
+
+789
+00:55:32,590 --> 00:55:36,059
+We can console.log our my Zod result dot error.
+
+790
+00:55:37,230 --> 00:55:39,908
+And if we look at the error for this one, you can see we get two errors.
+
+791
+00:55:40,080 --> 00:55:44,480
+The first one right here says that the string is too short, and the second one says that it expected a string.
+
+792
+00:55:44,560 --> 00:55:46,160
+That looks like exactly what we would want.
+
+793
+00:55:46,446 --> 00:55:49,120
+Now let's go ahead and test the exact same thing with our zod result.
+
+794
+00:55:50,382 --> 00:55:51,440
+See if it does the same thing.
+
+795
+00:55:51,694 --> 00:55:54,800
+And if we look at these errors, you can see it's much longer, but you can see we have two errors.
+
+796
+00:55:54,894 --> 00:55:58,160
+The first one here and the second one here, just like we wanted and expected.
+
+797
+00:55:58,320 --> 00:56:03,200
+Now, just like with strings, inside of arrays, we also want to be able to handle like minimum, maximum sizes, and so on.
+
+798
+00:56:03,566 --> 00:56:04,960
+So let's get rid of that extra console log.
+
+799
+00:56:05,134 --> 00:56:08,708
+And inside of our string section, I'm going to find where we're doing minimum, maximum, and length.
+
+800
+00:56:08,974 --> 00:56:12,640
+I'm just going to copy those over because the code is almost identical for the array section.
+
+801
+00:56:12,910 --> 00:56:17,920
+So inside of our array, I'm just going to put them all right here so we are able to check for min, max, and so on.
+
+802
+00:56:18,126 --> 00:56:23,440
+Here I can just say array is too short, array is too long, and array is not the exact length.
+
+803
+00:56:23,534 --> 00:56:26,880
+And now we can check minimum, maximum, and length for our array itself.
+
+804
+00:56:27,310 --> 00:56:31,780
+So now I can come into here for my array, and I could say, for example, the array must be a minimum value of four.
+
+805
+00:56:32,078 --> 00:56:36,676
+I can do the exact same thing down here for my Zod schema, and again they're both throwing an error.
+
+806
+00:56:36,880 --> 00:56:40,880
+But now we actually have some problems with our code that are not entirely clear.
+
+807
+00:56:41,326 --> 00:56:45,796
+Let's come in here console.log the myzod result dot error.
+
+808
+00:56:47,118 --> 00:56:56,000
+Comment these ones out so we can just focus on the actual error itself, and you can see that we're getting the path here that says the message string is too short and the path that says message expected string.
+
+809
+00:56:56,270 --> 00:57:01,600
+But you'll notice we don't actually have any error inside of here specifically talking about the fact that our array is too short.
+
+810
+00:57:01,710 --> 00:57:04,388
+It's supposed to be four, but it's actually a value of three.
+
+811
+00:57:04,718 --> 00:57:13,040
+When we log out the Zod result version and we look at the length of our issues by just saying length like this, you'll notice it prints out three because there are three errors inside of our application.
+
+812
+00:57:13,326 --> 00:57:16,320
+Well, if we look at the my Zod result, it's only printing out two.
+
+813
+00:57:16,560 --> 00:57:18,852
+It's essentially skipping this array one right here.
+
+814
+00:57:19,150 --> 00:57:25,636
+This was a really tricky problem for me to debug when I was first implementing this, so I want to kind of walk you through the steps of how to solve this particular problem.
+
+815
+00:57:25,966 --> 00:57:31,760
+If we look at our base code, you can see that inside of here is where we're essentially saying, do we run the validators or not?
+
+816
+00:57:31,950 --> 00:57:37,200
+And the problem is we're only seeing the string errors, we're not seeing the errors for the extra validation for our array.
+
+817
+00:57:37,614 --> 00:57:43,172
+So we look at our safe parse function, very first thing we do is we validate, and if we have any errors, we immediately return false.
+
+818
+00:57:43,534 --> 00:57:44,800
+And that is where our problem is.
+
+819
+00:57:45,102 --> 00:57:53,040
+You can see here, when we validate our array, if we look at the array code, it first checks to make sure our array is valid, which it is, it is an array, so that's fine.
+
+820
+00:57:53,294 --> 00:57:57,120
+And then it checks all the children, and now we have errors because our string has errors.
+
+821
+00:57:57,230 --> 00:57:59,748
+One of them is not long enough, one of them is supposed to be a string and it's not.
+
+822
+00:57:59,982 --> 00:58:01,668
+We have various different errors such as that.
+
+823
+00:58:01,934 --> 00:58:04,420
+So obviously we have these problems showing up inside of our code.
+
+824
+00:58:04,718 --> 00:58:09,700
+So when we go back into our base and we check our errors, we have issues, so it's going to return false.
+
+825
+00:58:10,094 --> 00:58:16,880
+Instead, I want to make sure we only have fatal issues, essentially issues that completely render us unable to check the rest of our code.
+
+826
+00:58:17,134 --> 00:58:20,068
+For example, this thing is not an array, or this thing is not a string.
+
+827
+00:58:20,270 --> 00:58:23,200
+Those would be fatal errors that we need to make sure that we handle properly.
+
+828
+00:58:23,438 --> 00:58:28,400
+While if it's just like our string is too short, well, it's technically still a string, so it's not a fatal error.
+
+829
+00:58:28,480 --> 00:58:30,820
+It doesn't prevent us from running the rest of our code.
+
+830
+00:58:31,182 --> 00:58:36,800
+So we need to go back into our error and actually make another change that just says, is this a fatal error or not?
+
+831
+00:58:37,102 --> 00:58:38,320
+And we're going to make this a Boolean.
+
+832
+00:58:38,480 --> 00:58:39,600
+By default, it'll be false.
+
+833
+00:58:39,694 --> 00:58:40,868
+It's an undefined property.
+
+834
+00:58:41,038 --> 00:58:43,332
+Otherwise, we can set true for a fatal error.
+
+835
+00:58:43,630 --> 00:58:46,880
+And inside of here, all I want to do is check if we have fatal errors instead.
+
+836
+00:58:47,054 --> 00:58:53,680
+So here, what I want to do is I want to take my data.issues and I want to check to see if any of the issues are fatal.
+
+837
+00:58:53,902 --> 00:58:55,844
+So we can say issue.fatal.
+
+838
+00:58:56,174 --> 00:59:00,644
+That'll return true if any of the issues are fatal, which prevent me from continuing on.
+
+839
+00:59:00,974 --> 00:59:04,320
+And I only want to do that for issues that are at the current path.
+
+840
+00:59:04,526 --> 00:59:08,240
+So we can say path.length is equal to zero.
+
+841
+00:59:08,430 --> 00:59:12,900
+This essentially means I want to check for fatal errors on the exact object that I'm checking.
+
+842
+00:59:13,166 --> 00:59:14,960
+That means that it's going to ignore the children.
+
+843
+00:59:15,150 --> 00:59:24,560
+So that means when I have fatal errors on the children, I don't care because these checks that I'm running next, which are my validators, those only run on the actual item itself, our array.
+
+844
+00:59:24,640 --> 00:59:26,052
+We're checking is our array long enough?
+
+845
+00:59:26,240 --> 00:59:27,920
+We don't care if the array has a number in it.
+
+846
+00:59:28,000 --> 00:59:29,540
+That doesn't actually matter for our use case.
+
+847
+00:59:29,934 --> 00:59:32,480
+So we're checking, do we have a fatal error that prevents us from continuing?
+
+848
+00:59:32,560 --> 00:59:37,284
+For example, this thing is not an array, and we're making sure we check that only on the object we care about.
+
+849
+00:59:37,710 --> 00:59:41,200
+So now we need to go back and make sure we implement these fatal errors as well.
+
+850
+00:59:41,582 --> 00:59:46,000
+So inside of our array section, the only fatal error we have is when we don't have an array.
+
+851
+00:59:46,126 --> 00:59:51,172
+If we try to validate this and it's not an array, well, obviously that's a fatal error because we can't continue onward.
+
+852
+00:59:51,406 --> 00:59:54,404
+We can't check the length of something if it's not an array that has a length.
+
+853
+00:59:54,862 --> 00:59:59,680
+So we can come in here and we can say fatal is true because we cannot continue on past this point.
+
+854
+00:59:59,982 --> 01:00:01,360
+And we can do that for all of our checks.
+
+855
+01:00:01,440 --> 01:00:06,480
+Essentially, inside of our number section, if we have a number and it's not a number, well, that is a fatal error.
+
+856
+01:00:06,670 --> 01:00:08,452
+So we need to print out that as a fatal error.
+
+857
+01:00:08,750 --> 01:00:09,600
+Same thing for strings.
+
+858
+01:00:09,774 --> 01:00:13,120
+If we have a string that is not a string type, that is again a fatal error.
+
+859
+01:00:13,262 --> 01:00:14,628
+So we're just going to put fatal true.
+
+860
+01:00:15,022 --> 01:00:17,760
+Now we're only failing if we have a fatal error.
+
+861
+01:00:18,062 --> 01:00:24,676
+So in this base section, if we don't have a fatal error, we still come over here and convert our data to this success data.
+
+862
+01:00:25,070 --> 01:00:26,884
+Then we check more validations.
+
+863
+01:00:27,694 --> 01:00:41,508
+And really, all this allows us to do is if we don't have a fatal error, so for example, we have a string when we expect a string, it allows us to do checks for like the minimum length and maximum length and so on, so we can get all the possible errors at once instead of only a subset of the different errors we're working with.
+
+864
+01:00:42,030 --> 01:00:54,660
+Now if we go back to this main file and I console.log the myzod result dot error dot issues dot length, and I do the exact same thing for the zod result as well.
+
+865
+01:00:55,150 --> 01:00:58,464
+We should hopefully see that they both print out three because we're getting all the errors.
+
+866
+01:00:58,574 --> 01:01:06,884
+We're getting the error for the string being too short, we're getting the error for this not being a string, and we're getting an error because our array should be four instead of three values long.
+
+867
+01:01:07,214 --> 01:01:09,744
+So now we're getting all of the different errors possible.
+
+868
+01:01:10,030 --> 01:01:14,144
+And this is only achievable because we're checking to make sure that we have an array type.
+
+869
+01:01:14,254 --> 01:01:18,276
+Essentially, these fatal errors are just checking to make sure that our type is correct.
+
+870
+01:01:18,542 --> 01:01:21,284
+As long as our type is correct, we can continue checking more stuff.
+
+871
+01:01:21,582 --> 01:01:24,388
+The only reason we can't check more stuff is if our type is incorrect.
+
+872
+01:01:24,846 --> 01:01:29,344
+And then we still keep those errors because this success data is the same as our data up here.
+
+873
+01:01:29,582 --> 01:01:33,984
+So if we had non-fatal errors, those are still going to be in there and they'll be checked right here.
+
+874
+01:01:34,254 --> 01:01:39,184
+So all we're doing is just making it so we can do additional validations before we continue on with the rest of our code.
+
+875
+01:01:39,374 --> 01:01:42,544
+Now I want to clean up our logs by removing these and bringing these logs back in.
+
+876
+01:01:42,624 --> 01:01:49,504
+And hopefully if we fix this to be some strings that are long enough and this one is long enough and we save, you can see it is actually outputting the same information.
+
+877
+01:01:49,584 --> 01:01:51,264
+So that is correct and is what we want.
+
+878
+01:01:51,502 --> 01:01:55,108
+And now we can move on to some of the other stuff inside the ZA that we want to implement.
+
+879
+01:01:55,438 --> 01:01:58,756
+But before we do that, we should probably implement things like Booleans, dates, and so on.
+
+880
+01:01:58,926 --> 01:02:03,904
+And instead of you watching me type those out by hand, I'm going to be copying over the code and showing you what it looks like.
+
+881
+01:02:04,110 --> 01:02:09,264
+So we can, for example, do Boolean.ts, and I'll paste in the code for this because it's relatively straightforward.
+
+882
+01:02:09,358 --> 01:02:10,916
+It's the same as what we did for everything else.
+
+883
+01:02:11,214 --> 01:02:16,544
+First we create a Boolean function, then we create a class for that, which uses that Boolean type for its child.
+
+884
+01:02:16,814 --> 01:02:18,500
+The validate function takes in our context.
+
+885
+01:02:18,766 --> 01:02:21,412
+If we have the correct type, we return our context as is.
+
+886
+01:02:21,646 --> 01:02:27,824
+Otherwise, we throw an error saying that we expected there to be a Boolean, and we say that it's a fatal error because this one must be a Boolean.
+
+887
+01:02:27,950 --> 01:02:29,860
+If it's not, obviously that would be a fatal error.
+
+888
+01:02:30,286 --> 01:02:32,388
+So now we can actually use Booleans and to test that out.
+
+889
+01:02:32,654 --> 01:02:36,356
+Inside of here, let's export star from Boolean.
+
+890
+01:02:36,942 --> 01:02:39,204
+Let's make sure we export all of our other stuff as well.
+
+891
+01:02:40,270 --> 01:02:42,020
+So we have our base.
+
+892
+01:02:43,118 --> 01:02:47,184
+And if we go down, I think we have error as well, and that should be everything we need to export.
+
+893
+01:02:47,374 --> 01:02:50,532
+So now inside of our main file, we can just change this to be Boolean.
+
+894
+01:02:52,238 --> 01:02:54,916
+We can change the one below it to be a Boolean as well.
+
+895
+01:02:56,910 --> 01:02:57,508
+There we go.
+
+896
+01:02:58,478 --> 01:03:00,624
+And if we see that this is not a Boolean, we get invalid.
+
+897
+01:03:00,782 --> 01:03:03,184
+Well, if it's a Boolean, it just prints out whatever that Boolean is.
+
+898
+01:03:03,344 --> 01:03:04,944
+We can also do the exact same thing for dates.
+
+899
+01:03:05,198 --> 01:03:08,464
+So we'll say dates.ts, just like that, and we'll paste this down.
+
+900
+01:03:08,718 --> 01:03:14,784
+And I'm going to be going over this pasted section of the code relatively quickly, but I have the full GitHub repo linked in the description if you want to check it out.
+
+901
+01:03:15,086 --> 01:03:16,224
+But you can see same exact thing.
+
+902
+01:03:16,384 --> 01:03:19,620
+Date function, we have a date class that uses that date type.
+
+903
+01:03:19,854 --> 01:03:20,944
+We check to see if it's a date.
+
+904
+01:03:21,134 --> 01:03:28,708
+If it's not, we throw a fatal error, and then we just have some basic checks for minimum and maximum just to see if the date falls within the specific ranges that we want.
+
+905
+01:03:29,358 --> 01:03:31,344
+We can also do the same exact thing for enum.
+
+906
+01:03:31,424 --> 01:03:33,824
+And this one actually has a few extra things going on in it.
+
+907
+01:03:33,904 --> 01:03:36,544
+So we'll just do enum.ts, just like that.
+
+908
+01:03:36,624 --> 01:03:40,036
+I'm going to rename this to date just to be in line with all the rest of our file types.
+
+909
+01:03:40,334 --> 01:03:43,588
+And inside of enum, you'll notice we called our function underscore enum.
+
+910
+01:03:43,854 --> 01:03:47,664
+The only reason for that is because enum is an actual thing in TypeScript.
+
+911
+01:03:47,744 --> 01:03:50,144
+You can't use the word enum to create a function or so on.
+
+912
+01:03:50,446 --> 01:03:53,744
+So I called it underscore enum and then I exported it as enum.
+
+913
+01:03:53,998 --> 01:03:58,692
+So that way when I use it, I can say my Z dot enum, and it'll work just fine.
+
+914
+01:03:59,374 --> 01:04:00,624
+So I have that enum function.
+
+915
+01:04:00,814 --> 01:04:04,144
+And this one is again a little bit more complicated because now we need a generic type.
+
+916
+01:04:04,302 --> 01:04:05,744
+Because an enum can be anything.
+
+917
+01:04:05,838 --> 01:04:09,744
+It can be an array of strings, an array of numbers, an array that has a string, a number, and a Boolean.
+
+918
+01:04:09,824 --> 01:04:10,544
+I don't know what it is.
+
+919
+01:04:10,894 --> 01:04:12,420
+So it's going to take in this generic type.
+
+920
+01:04:12,686 --> 01:04:20,064
+We specifically label it as a constant because we know that it cannot ever change, and we say it's read-only, because again, it cannot specifically change.
+
+921
+01:04:20,494 --> 01:04:24,804
+Our Zod enum takes in that generic type, which again is read only and constant.
+
+922
+01:04:25,070 --> 01:04:30,372
+And whatever that generic type is, we know that the thing being returned from this function is one of those generic types.
+
+923
+01:04:31,086 --> 01:04:34,704
+So if we go ahead and we actually look at how we use this, I'll go into the main function here.
+
+924
+01:04:35,022 --> 01:04:37,348
+We're going to say enum, and we need to make sure we import that.
+
+925
+01:04:37,774 --> 01:04:38,944
+So we'll say export.
+
+926
+01:04:40,238 --> 01:04:44,080
+Star from date and enum.
+
+927
+01:04:44,206 --> 01:04:44,960
+So we get both of those.
+
+928
+01:04:45,198 --> 01:04:49,120
+So now if I want to use the enum for both of these, I essentially need to pass it an array of values.
+
+929
+01:04:49,294 --> 01:04:51,440
+So we can say cat and dog.
+
+930
+01:04:51,918 --> 01:04:52,960
+Those are my enum values.
+
+931
+01:04:53,134 --> 01:04:55,440
+And I can use the exact same enum values up here.
+
+932
+01:04:55,662 --> 01:05:01,040
+And now if this is set to cat, it's going to work just fine, even though it looks like we have a little bit of an error going on.
+
+933
+01:05:01,200 --> 01:05:03,280
+I believe that's just because I forgot to save this file.
+
+934
+01:05:03,470 --> 01:05:03,760
+There we go.
+
+935
+01:05:04,046 --> 01:05:05,732
+So now you can see cat is being printed out.
+
+936
+01:05:06,030 --> 01:05:08,320
+If I change this to dog, you can see it's being printed out.
+
+937
+01:05:08,400 --> 01:05:10,720
+And if I change it to something else, we get that invalid text.
+
+938
+01:05:10,830 --> 01:05:14,880
+And the nice thing is when I look at my data type for my Zod result, it is either cat or dog.
+
+939
+01:05:15,086 --> 01:05:16,720
+Same exact thing as what Zod would be.
+
+940
+01:05:16,800 --> 01:05:17,920
+It's either cat or dog.
+
+941
+01:05:18,446 --> 01:05:28,080
+So we go ahead and we look at the rest of this enum code to figure out how it's working, you can see here when we call this, we pass it an array of all the different values that we want to be checking, which in our case is cat and dog.
+
+942
+01:05:28,302 --> 01:05:30,160
+We're saving that in this array up here.
+
+943
+01:05:30,414 --> 01:05:34,960
+And then when we call validate, we're just checking to make sure that our value is one of those values in our array.
+
+944
+01:05:35,054 --> 01:05:37,280
+So did we pass a cat or did we pass a dog?
+
+945
+01:05:37,646 --> 01:05:40,800
+If we didn't, then obviously we have an error and it's going to be a fatal error.
+
+946
+01:05:40,942 --> 01:05:42,800
+So we make sure we log that as a fatal error.
+
+947
+01:05:43,054 --> 01:05:46,960
+And we can just say like expected correct enum.
+
+948
+01:05:47,200 --> 01:05:51,760
+Doesn't matter what the error is, you can make these error messages much more useful for your user if you wanted to.
+
+949
+01:05:51,918 --> 01:05:54,532
+Now the final type that I want to implement is going to be literals.
+
+950
+01:05:54,734 --> 01:05:57,440
+So to understand how literals work, let's go ahead and look at this.
+
+951
+01:05:57,582 --> 01:06:01,284
+And that's the final type before we get to objects, that is, because that's like the big massive type.
+
+952
+01:06:01,550 --> 01:06:05,280
+But literals, if we use the Zod version of them, we can say literal just like that.
+
+953
+01:06:05,518 --> 01:06:17,600
+And this literal type either takes in a single value, for example, it's going to take in cat like this, and that means it must be the literal value of cat, or it can take in an array of values, for example, cat and dog, just like that.
+
+954
+01:06:17,710 --> 01:06:20,640
+And that essentially means it must be the value of cat or dog.
+
+955
+01:06:20,800 --> 01:06:24,800
+Very similar to how an enum works, but the nice thing is we can come in here with like numbers and so on.
+
+956
+01:06:24,880 --> 01:06:26,640
+It's just any literal value at all.
+
+957
+01:06:26,958 --> 01:06:33,200
+So these literal values can either be a single literal value, which is most often how you use it, for example, dog, or it can be an array of different values.
+
+958
+01:06:33,486 --> 01:06:36,240
+And if we save this, you can see it works fine when this is set to dog.
+
+959
+01:06:36,366 --> 01:06:39,600
+If I change it to anything else, though, I get that invalid text being printed out.
+
+960
+01:06:39,950 --> 01:06:41,732
+So now we need to go ahead and implement this ourselves.
+
+961
+01:06:42,414 --> 01:06:43,600
+So we have literal.ts.
+
+962
+01:06:43,886 --> 01:06:44,800
+I'm going to paste in the code.
+
+963
+01:06:44,880 --> 01:06:47,908
+And before we go ahead, I'm going to make sure we export that code from here.
+
+964
+01:06:48,654 --> 01:06:49,600
+Literal, just like that.
+
+965
+01:06:49,966 --> 01:07:02,000
+So now let's take a look at that code because on top of the fact that we have our normal literal function right here, we also have functions for not a number, any, unknown, never, null, and undefined, which are all built into this Zod library.
+
+966
+01:07:02,254 --> 01:07:08,960
+So I can use not a number, I can use null, I can use undefined, and they essentially are the exact same thing as a literal value, but they're just hard-coded.
+
+967
+01:07:09,040 --> 01:07:12,548
+It's a literal value of nan or null or undefined and so on.
+
+968
+01:07:13,038 --> 01:07:15,200
+So let's take a look at how this literal code itself works.
+
+969
+01:07:15,502 --> 01:07:18,320
+First of all, we know we can pass it a single value or an array of values.
+
+970
+01:07:18,446 --> 01:07:19,920
+And again, we need these to be generics.
+
+971
+01:07:20,078 --> 01:07:24,560
+So you can see it's giving us that generic type of one of these specific values that's being passed in.
+
+972
+01:07:24,718 --> 01:07:29,120
+And just like with enums, we need to make sure that these are constant values and that they are read-only.
+
+973
+01:07:29,326 --> 01:07:31,920
+So we can say read only, and same thing here.
+
+974
+01:07:32,000 --> 01:07:33,840
+This is a read-only array just like that.
+
+975
+01:07:34,094 --> 01:07:35,520
+So it's a constant read-only value.
+
+976
+01:07:35,600 --> 01:07:37,508
+We don't actually need read-only on this one right there.
+
+977
+01:07:37,902 --> 01:07:41,252
+And then we can do the exact same thing where we define our myzod literal.
+
+978
+01:07:41,440 --> 01:07:45,760
+This must be constant, and it must also be read-only, just like that.
+
+979
+01:07:46,030 --> 01:07:47,840
+And this read-only would need to be here.
+
+980
+01:07:48,078 --> 01:07:48,480
+There we go.
+
+981
+01:07:48,686 --> 01:07:51,280
+Finally, we would need to make this a read-only array as well.
+
+982
+01:07:51,534 --> 01:08:00,880
+And doing that is useful because it makes sure that everything is read-only and it makes sure it's set as a constant value so that when we get our typing, it'll be typed as those literal values instead of something like string or number.
+
+983
+01:08:01,040 --> 01:08:02,240
+Now we still have an error here.
+
+984
+01:08:02,400 --> 01:08:07,760
+Essentially, it doesn't know that this t type can't be an array, so it thinks it could be like a non-read-only thing.
+
+985
+01:08:08,046 --> 01:08:11,600
+Essentially, we need to limit what t can be, because a literal type can really only be a few things.
+
+986
+01:08:11,694 --> 01:08:14,560
+They essentially have to be pretty much primitive values, and that's about it.
+
+987
+01:08:14,894 --> 01:08:17,520
+So we can create a custom type, which we're going to call literal.
+
+988
+01:08:17,710 --> 01:08:20,964
+This literal type is a string, number, big int, boolean, null, or undefined.
+
+989
+01:08:21,120 --> 01:08:25,924
+Essentially just normal primitive type values minus things like symbols that don't actually matter.
+
+990
+01:08:26,318 --> 01:08:29,440
+And what we want to do is we want to say that t extends that literal type.
+
+991
+01:08:29,678 --> 01:08:35,428
+This essentially prevents TypeScript from thinking that it could be an array or an object or something else that could be non-read only.
+
+992
+01:08:35,822 --> 01:08:41,600
+Now, if we do the same thing here by saying it extends that literal type, that gets rid of all the different errors that we have inside of our code.
+
+993
+01:08:41,902 --> 01:08:43,520
+So let's take a look at what our actual code does.
+
+994
+01:08:43,680 --> 01:08:48,000
+First of all, we have our literal type, which just returns that myzod literal using that generic type.
+
+995
+01:08:48,174 --> 01:08:50,880
+So whatever we pass in is what's going to be used as that literal type.
+
+996
+01:08:51,086 --> 01:08:56,080
+So whether it's dog or an array like dog and cat, that's what's going to be used, so we can pass in either type of value.
+
+997
+01:08:56,366 --> 01:09:00,612
+And then inside of here, we pretty much do the same thing we did with enums, just slightly differently.
+
+998
+01:09:00,942 --> 01:09:07,076
+So first of all, we convert to an array if we don't have an array, and then we check to see if the value is in the array, just like we would do with enums.
+
+999
+01:09:07,310 --> 01:09:11,332
+And then if we have an error, we essentially print out saying, hey, it must be one of these different types.
+
+1000
+01:09:11,598 --> 01:09:15,780
+Same exact thing that we did with enums, just as a slightly better error matches that we have right here.
+
+1001
+01:09:16,206 --> 01:09:21,476
+So now if we go over and we look at our types and we change this one to a literal of dog, for example.
+
+1002
+01:09:22,542 --> 01:09:26,864
+And we look at our Zod schema, you can see it's a my Zod literal of exactly dog.
+
+1003
+01:09:27,182 --> 01:09:30,020
+And when we look at the data type, the data type is the string of dog.
+
+1004
+01:09:30,254 --> 01:09:31,812
+And if it's anything else, we get an error.
+
+1005
+01:09:32,110 --> 01:09:37,424
+Now if I were to use an array of values here instead, for example, dog and cat, just like that.
+
+1006
+01:09:37,710 --> 01:09:40,784
+Now you can see my data type for this is either dog or cat.
+
+1007
+01:09:40,974 --> 01:09:45,824
+And if I change it to something like 42 to have a number, you can see that number is thrown into that type as well.
+
+1008
+01:09:46,126 --> 01:09:52,100
+So this literal type works very similar to enum, just slightly different, and it allows us to pass in just a literal value of anything we want.
+
+1009
+01:09:52,654 --> 01:09:59,024
+But on top of this, like you said, like I said earlier, you can see we have nan, we have any, we have unknown, we have never, we have null, and we have undefined.
+
+1010
+01:09:59,182 --> 01:10:05,636
+And again, I use that underscore trick because you can't name a variable or function null or undefined without throwing a bunch of errors inside a JavaScript.
+
+1011
+01:10:06,062 --> 01:10:08,304
+So if we look at those implementations, they're very straightforward.
+
+1012
+01:10:08,622 --> 01:10:16,224
+The myzod null is essentially just using this myzod literal with a type of null, and it's passing null up as the type into this constructor.
+
+1013
+01:10:16,494 --> 01:10:18,404
+So we get an array with one value of null.
+
+1014
+01:10:18,990 --> 01:10:21,700
+Same thing with undefined, it passes undefined in.
+
+1015
+01:10:22,064 --> 01:10:29,104
+NAN is slightly different because essentially we need to make sure that we're checking to see if this value itself is actually nan.
+
+1016
+01:10:29,390 --> 01:10:33,584
+So we're taking in that particular value and we're checking to compare it number.isNan.
+
+1017
+01:10:33,744 --> 01:10:41,664
+Essentially we're overwriting the entire validate function because the way nan works is different than how normal literal values work because nan is essentially never equal to itself.
+
+1018
+01:10:41,838 --> 01:10:43,876
+So that one we had to do a little bit of custom code for.
+
+1019
+01:10:44,110 --> 01:10:45,744
+But otherwise, the rest of these are super straightforward.
+
+1020
+01:10:45,824 --> 01:10:49,504
+Any just allows any type, so we're just essentially returning our context as is.
+
+1021
+01:10:49,806 --> 01:10:53,796
+Same thing here with unknown, it allows any type to go through, so we just throw in the context here.
+
+1022
+01:10:53,998 --> 01:10:59,744
+And never always throws an error, so we're just always throwing an error right here, and you can see we're returning the context as is.
+
+1023
+01:10:59,886 --> 01:11:06,064
+So this will essentially always throw an error, and these two literally do nothing at all, other than saying it can be any type or unknown type, it doesn't actually matter.
+
+1024
+01:11:06,254 --> 01:11:14,464
+Now the last type we have to implement is going to be objects before we start moving into some of the more advanced features inside of things like transforms and custom regex and things like that.
+
+1025
+01:11:14,862 --> 01:11:15,584
+So let's come in here.
+
+1026
+01:11:15,758 --> 01:11:17,264
+We're going to create an object.ts.
+
+1027
+01:11:17,710 --> 01:11:25,184
+That's going to be the file we're going to be using, and it's going to be kind of similar to what we do for arrays, so I might as well copy that over to give us a starting point, even though a lot of things are going to change.
+
+1028
+01:11:25,454 --> 01:11:31,664
+First of all, this function should say object instead, and this is going to be a myzod object, just like that.
+
+1029
+01:11:31,854 --> 01:11:33,504
+And here we get myzod object.
+
+1030
+01:11:33,646 --> 01:11:35,584
+Now the way objects work in Zod is a little interesting.
+
+1031
+01:11:35,664 --> 01:11:48,464
+If we come in here and we just check out an object, you can see we pass it essentially an object that has a key, which is just whatever key we want, and then it's followed by an actual value, which is going to be the Zod value thing that we're working on.
+
+1032
+01:11:48,544 --> 01:11:49,904
+So it's going to be the schema we're looking at.
+
+1033
+01:11:49,984 --> 01:11:53,024
+So like in this case, it's a string that has a minimum value of four.
+
+1034
+01:11:53,262 --> 01:11:57,796
+So we have an object that passes in an object which has keys that point to Zod schemas.
+
+1035
+01:11:57,966 --> 01:12:00,784
+So in our object, we want this T type to be essentially that.
+
+1036
+01:12:01,038 --> 01:12:06,784
+It needs to be a record that takes in a property key.
+
+1037
+01:12:06,926 --> 01:12:12,132
+That essentially means any property value at all that could be a key, and it's going to take in a myzod type.
+
+1038
+01:12:12,302 --> 01:12:13,504
+And we don't know what the type of that is.
+
+1039
+01:12:13,584 --> 01:12:15,332
+It could literally be any type at all.
+
+1040
+01:12:15,662 --> 01:12:20,064
+So essentially, that's what our schema is representing is this particular type, and we can pass it in here.
+
+1041
+01:12:20,302 --> 01:12:22,784
+And this is not really a schema, this is more of like an inner property.
+
+1042
+01:12:22,864 --> 01:12:25,860
+It's our object we're working with, so we'll call that inner just like that.
+
+1043
+01:12:26,286 --> 01:12:30,624
+This myzod object also needs to take in a t property that does the exact same extending.
+
+1044
+01:12:30,830 --> 01:12:32,864
+So it needs to extend the exact same information.
+
+1045
+01:12:32,944 --> 01:12:39,664
+And to make it a little bit more clear what this is, I'm actually going to call this schema, and we're going to make sure this is a constant value as well, so it cannot change.
+
+1046
+01:12:39,950 --> 01:12:47,204
+So now we have this schema property that we're using, but we can't use that directly here because this schema is an object that essentially points to other schemas.
+
+1047
+01:12:47,504 --> 01:12:49,664
+We instead need to get the output value.
+
+1048
+01:12:49,966 --> 01:12:52,932
+So I'm going to create a second generic type called output.
+
+1049
+01:12:53,742 --> 01:12:56,912
+And this is where some of the really complicated TypeScript code is going to come in.
+
+1050
+01:12:57,102 --> 01:13:02,724
+This is going to do an extends here, and we're going to say it's going to extend K and key of schema.
+
+1051
+01:13:03,406 --> 01:13:04,068
+Just like that.
+
+1052
+01:13:04,526 --> 01:13:06,832
+And then what we want to do is we want to get some information from that.
+
+1053
+01:13:06,912 --> 01:13:10,832
+I'm just going to put true just for now so we can hopefully close this off and get our code running.
+
+1054
+01:13:11,022 --> 01:13:15,312
+All I need to do is put those closing brackets, and up here I need to have some starting brackets.
+
+1055
+01:13:15,472 --> 01:13:15,872
+There we go.
+
+1056
+01:13:16,206 --> 01:13:18,916
+Now if I get that a save, at least gets our formatting properly correct.
+
+1057
+01:13:19,310 --> 01:13:30,592
+So this output section, by using K in key of schema while inside of these brackets like this, what that's doing is essentially looping through all the keys in this schema value, and we're able to convert them to something else.
+
+1058
+01:13:30,830 --> 01:13:35,872
+So by saying true, I'm essentially taking all the keys in our schema and setting the value of them to true.
+
+1059
+01:13:36,174 --> 01:13:39,908
+So in our case, when we look at this, we have a name here, which is set to this schema.
+
+1060
+01:13:40,142 --> 01:13:43,552
+In my new type, it would essentially be a name that's set to the value of true.
+
+1061
+01:13:43,758 --> 01:13:45,552
+That's what this section right here is doing.
+
+1062
+01:13:45,838 --> 01:13:49,572
+So I want to essentially get the return value of whatever my schema is going to be.
+
+1063
+01:13:49,998 --> 01:13:54,112
+So to do that, I can take my schema and I can get the current property that I'm looping through.
+
+1064
+01:13:54,192 --> 01:13:59,792
+So this gives me, for example, the value of the name property, because K would be the name, and schema is my whole object.
+
+1065
+01:14:00,046 --> 01:14:03,556
+So this gives me the type of whatever the value is for my name property.
+
+1066
+01:14:03,950 --> 01:14:13,348
+Then what I can do is I can use a trick called extends my Zod type, and I can infer whatever the type of this particular value is, which is our output value.
+
+1067
+01:14:13,806 --> 01:14:24,352
+So by doing this section right here, I'm essentially saying, okay, infer, I know that this thing extends my zod type because we already know it's essentially a record that extends my zod type.
+
+1068
+01:14:24,432 --> 01:14:28,292
+And I'm getting the value of that record, which is my zod type of any.
+
+1069
+01:14:28,654 --> 01:14:31,952
+And by writing out extends my zod type, I'm saying it extends this type.
+
+1070
+01:14:32,032 --> 01:14:33,952
+If so, do something, if not, do something else.
+
+1071
+01:14:34,158 --> 01:14:34,832
+So this is a turnary.
+
+1072
+01:14:35,118 --> 01:14:35,844
+So we can come in here.
+
+1073
+01:14:36,112 --> 01:14:39,684
+If so, do the true section, otherwise do this false section.
+
+1074
+01:14:40,398 --> 01:14:45,316
+Now in our case, we always know this will be true, so we can just return never right here because this should never happen.
+
+1075
+01:14:45,792 --> 01:14:50,032
+But if this is true, which it always should be, we're inferring this O value.
+
+1076
+01:14:50,254 --> 01:14:56,420
+So essentially whatever the type of our Zod type is is going to be set to this O value, and we can set that to O right here.
+
+1077
+01:14:56,718 --> 01:15:08,900
+So this output has now been converted from this schema right here, which is an object with keys that point to other schemas, and instead we're converting it to an object that has keys that point to the return value of those actual schemas.
+
+1078
+01:15:09,294 --> 01:15:12,832
+So this output is what I want to use as the output type right here.
+
+1079
+01:15:13,070 --> 01:15:15,152
+So I can paste down my output type right there.
+
+1080
+01:15:15,342 --> 01:15:17,712
+And for my schema, I'll just call this schema.
+
+1081
+01:15:17,792 --> 01:15:20,112
+That's going to be the type of my schema itself.
+
+1082
+01:15:20,334 --> 01:15:21,952
+And we can change around the names of all these.
+
+1083
+01:15:22,126 --> 01:15:25,392
+So this is going to be the type of schema, and this will say schema right there.
+
+1084
+01:15:25,472 --> 01:15:28,900
+That at least solve those particular errors that we had inside of our code.
+
+1085
+01:15:29,262 --> 01:15:40,592
+And again, this type is really complicated and difficult to look at, but essentially all we're doing is we're saying, okay, I'm passing it in a schema that is a bunch of different property keys, followed by different validations that we have for the different types.
+
+1086
+01:15:40,750 --> 01:15:41,472
+So is this a string?
+
+1087
+01:15:41,552 --> 01:15:42,192
+Is it a number?
+
+1088
+01:15:42,350 --> 01:15:42,660
+And so on.
+
+1089
+01:15:43,118 --> 01:15:52,752
+And then I'm converting that schema into a brand new object that keeps all of the exact same keys, but I'm just taking the section inside of my Zod type and extracting that out.
+
+1090
+01:15:52,832 --> 01:15:58,432
+And we know that that's always equal to our return value, so it's going to get whatever that return value property is for us.
+
+1091
+01:15:58,592 --> 01:16:00,032
+Let's actually see this in action a little bit.
+
+1092
+01:16:00,302 --> 01:16:06,352
+I'm going to come into our code, we're going to get our index, we're going to export star from, and we want to get that from that object section.
+
+1093
+01:16:06,542 --> 01:16:09,152
+And inside of here, I essentially want to do the exact same object.
+
+1094
+01:16:09,422 --> 01:16:13,072
+So we'll copy that over and make sure we're using my Z, just like that.
+
+1095
+01:16:13,422 --> 01:16:21,712
+And now when I hover over my Zod schema, you can see it's essentially the first value here is that schema that we created, which is a name with my Zod string.
+
+1096
+01:16:21,952 --> 01:16:22,436
+That makes sense.
+
+1097
+01:16:22,766 --> 01:16:26,672
+The second value is that output parameter that we created, which is now a name with a string.
+
+1098
+01:16:26,990 --> 01:16:31,556
+So essentially we're keeping the exact same keys and getting whatever the output of this particular value is.
+
+1099
+01:16:31,950 --> 01:16:37,152
+That's great because now down here when we use that data property, you can see it's a name with a value of a string.
+
+1100
+01:16:37,326 --> 01:16:39,392
+So we actually have all the correct information.
+
+1101
+01:16:39,726 --> 01:16:42,992
+And I can just come in here and say, for example, data.name, and that returns everything.
+
+1102
+01:16:43,118 --> 01:16:45,284
+So we get everything being perfectly type safe for us.
+
+1103
+01:16:45,552 --> 01:16:54,032
+And it all comes from this fancy infer keyword right here, which does all that fancy TypeScript logic behind the scenes for us to figure out what this type is, and then we can use that right here.
+
+1104
+01:16:54,286 --> 01:16:56,592
+So now we just need to implement our validate function next.
+
+1105
+01:16:56,942 --> 01:17:03,172
+So the very first thing I want to do is I want to just check is the type of my context dot value, make sure I spell type of correctly.
+
+1106
+01:17:03,982 --> 01:17:07,236
+If that is not equal to an object, well then I know I have an error.
+
+1107
+01:17:07,424 --> 01:17:10,144
+But also, technically, null is an object.
+
+1108
+01:17:10,286 --> 01:17:16,420
+So we need to come in here and make sure that our context dot value is an actual value, so we can just put a not equal in there.
+
+1109
+01:17:16,558 --> 01:17:18,464
+And also arrays are considered objects.
+
+1110
+01:17:18,606 --> 01:17:22,304
+So we also want to make sure if it is an array, we also consider that a bad thing.
+
+1111
+01:17:22,606 --> 01:17:35,140
+So if we don't have an object, or if our object is null, or if our object is an array, then we want to push in something that just says expected object, and we can say that that is a fatal error, and that's all going to work just fine for solving this error section.
+
+1112
+01:17:35,662 --> 01:17:38,704
+The next thing we need to do is we need to loop through all the keys inside of our object.
+
+1113
+01:17:38,894 --> 01:17:42,544
+So we can say for const key in this dot schema.
+
+1114
+01:17:43,150 --> 01:17:43,424
+There we go.
+
+1115
+01:17:43,694 --> 01:17:45,744
+That'll loop through each key inside of our schema.
+
+1116
+01:17:45,934 --> 01:17:51,104
+I essentially want to do the same thing as I did inside of here by getting my inner response from my schema.
+
+1117
+01:17:51,406 --> 01:17:52,944
+We're going to call that safe parse function.
+
+1118
+01:17:53,294 --> 01:17:55,984
+And we want to pass it in whatever the object is for my context.
+
+1119
+01:17:56,110 --> 01:17:59,492
+So we can say context dot value and pass it in the key just like that.
+
+1120
+01:17:59,694 --> 01:18:04,144
+We also need to make sure since our schema is an object, we actually get the key property from it as well.
+
+1121
+01:18:04,526 --> 01:18:06,944
+So essentially we want to get the correct index of our schema.
+
+1122
+01:18:07,054 --> 01:18:09,824
+So is this the name property, the age property, and so on?
+
+1123
+01:18:10,094 --> 01:18:12,784
+And I also want to get the correct value for that section as well.
+
+1124
+01:18:12,974 --> 01:18:18,468
+Now this technically throws us an error, and that's because value here is considered the type of object by TypeScript.
+
+1125
+01:18:18,704 --> 01:18:21,664
+But object doesn't allow you to actually access the properties of it.
+
+1126
+01:18:21,838 --> 01:18:27,584
+Instead, we need to convert this to a slightly different type that we can use throughout the rest of the code inside of our application.
+
+1127
+01:18:27,886 --> 01:18:35,940
+So what we can do is we can say that we want to get this our success context is equal to, and that's just going to be our normal context dot.
+
+1128
+01:18:36,944 --> 01:18:48,704
+And then we can set that as a parse context, and this is going to be a record, which has got property keys, and it's going to have whatever our value is, which in our case we don't really care.
+
+1129
+01:18:48,974 --> 01:18:50,244
+So we can just set that to unknown.
+
+1130
+01:18:50,638 --> 01:18:52,944
+That at least allows us to be able to access the individual keys.
+
+1131
+01:18:53,102 --> 01:18:58,224
+So now I can use my success context, and that gets rid of the error because now it's labeled as a record instead of an object.
+
+1132
+01:18:58,478 --> 01:18:59,652
+It's just a weird TypeScript thing.
+
+1133
+01:18:59,824 --> 01:19:10,144
+Object essentially, since it can be null, doesn't allow you to access things like the properties on it, while record always requires it to be an object with properties and values, so that allows us to access these particular keys.
+
+1134
+01:19:10,446 --> 01:19:16,452
+And since we already did this checkup here, we know it's an object that has properties and keys, so we're able to just manually cast that for ourselves.
+
+1135
+01:19:17,038 --> 01:19:22,304
+So now we have that response for doing the schema check, and we're doing it for each individual key inside of our item.
+
+1136
+01:19:22,414 --> 01:19:32,704
+And again, the way this is working is if we pass in a value or an object here that has a name of John, this is going to take John, and then whatever the schema for name is is going to be what we use here for that parsing.
+
+1137
+01:19:32,942 --> 01:19:35,984
+So we're going to take our name schema and parse it with that value of John.
+
+1138
+01:19:36,558 --> 01:19:42,224
+That's going to give us back our results, and we can do different things based on if the results are true or false, kind of like we did inside of here.
+
+1139
+01:19:42,510 --> 01:19:49,104
+So I might as well just copy over this code, get rid of the rest of this because we don't need it, and we're going to paste this inside of here and make any minor modifications we need to.
+
+1140
+01:19:49,184 --> 01:20:02,052
+For example, if we had a successful run right here, well, what I want to do is I want to take my success context.value at that key property and set it equal to whatever the new value is, just like we did with arrays, but I'm specifically doing it for my brand new value.
+
+1141
+01:20:02,318 --> 01:20:04,464
+I do need to do an additional check inside of here.
+
+1142
+01:20:04,718 --> 01:20:12,944
+This is going to check to see if the key is in my success context dot value, or if my inner result dot data is not equal to null.
+
+1143
+01:20:13,326 --> 01:20:14,304
+Actually, we'll make it undefined.
+
+1144
+01:20:14,464 --> 01:20:15,344
+There we go.
+
+1145
+01:20:16,494 --> 01:20:16,704
+Perfect.
+
+1146
+01:20:16,944 --> 01:20:32,304
+The entire reason that I'm doing this small if check right here is because technically, if I have an object that has a name property and no age property, and my schema checks for an age, but the age is a number, and the number is optional, just like this.
+
+1147
+01:20:32,590 --> 01:20:34,980
+And now let's create that value so we can say name.
+
+1148
+01:20:36,590 --> 01:20:38,560
+John and they have no age at all.
+
+1149
+01:20:38,830 --> 01:20:43,748
+So now when we run this particular piece of code, we expect the output to be an object with the name of John.
+
+1150
+01:20:44,080 --> 01:20:56,960
+But our code beforehand, when we didn't have this little if check right here, would actually return an object that has an age of undefined, because it would be getting undefined as the value for our age since it's not set on the value, and then it would be setting that value right here.
+
+1151
+01:20:57,262 --> 01:20:57,920
+We don't really want that.
+
+1152
+01:20:58,080 --> 01:21:00,400
+We want it to just be a name with John just like that.
+
+1153
+01:21:00,686 --> 01:21:05,764
+So this little check right here just make sure if the value doesn't already exist on the property, completely ignore it.
+
+1154
+01:21:06,350 --> 01:21:09,360
+Then what we can do is we can combine together all the different errors that we have.
+
+1155
+01:21:09,614 --> 01:21:13,840
+And here we just want to make sure we use the key of the object as the thing that we use for the path.
+
+1156
+01:21:13,998 --> 01:21:20,720
+So as it gets more and more nested, this will say like name is a string that was supposed to be five characters, or age was supposed to be a positive number.
+
+1157
+01:21:20,974 --> 01:21:24,720
+Finally, we can scroll down If we can get rid of all this min mac length stuff and so on.
+
+1158
+01:21:24,846 --> 01:21:26,880
+We can give a quick save to all of our different files.
+
+1159
+01:21:27,150 --> 01:21:29,508
+Inside of our index, make sure we're importing our object.
+
+1160
+01:21:29,806 --> 01:21:31,200
+Inside of here, make sure we save that.
+
+1161
+01:21:31,374 --> 01:21:34,000
+And now you can see it's printed out name john and name john.
+
+1162
+01:21:34,222 --> 01:21:41,840
+And if we put the age up here as an optional property, you'll see that it looks like we're actually getting some errors, and that's because optional doesn't even exist as something we can use.
+
+1163
+01:21:41,998 --> 01:21:44,068
+And also this should be myz instead.
+
+1164
+01:21:44,462 --> 01:21:46,560
+But now you can see this one's invalid because we don't have an age.
+
+1165
+01:21:46,640 --> 01:21:50,436
+But if we put an age of 30, for example, you can see it shows up those values as correct.
+
+1166
+01:21:50,766 --> 01:21:59,280
+And if for example this minimum value here was 40, and I set the minimum value for both of these, just like that, you can now see we get invalid because we have an error on that age.
+
+1167
+01:21:59,470 --> 01:22:10,400
+And if I console.log myzod result.issues, and we look at that error with this issues, you can see here we get that path which is age.
+
+1168
+01:22:10,480 --> 01:22:14,000
+So it's telling us the age property of our object is a number that is too small.
+
+1169
+01:22:14,254 --> 01:22:18,160
+This is great for being able to track down where those errors occurred and on which properties they're happening.
+
+1170
+01:22:18,286 --> 01:22:30,960
+Now I very briefly have alluded to the ability to have optional types and nullable types by just coming in here and saying, for example, that this is optional if we want it to not be passed in, but we don't currently have the ability to do that on our code right now.
+
+1171
+01:22:31,040 --> 01:22:32,080
+You can see we get an error.
+
+1172
+01:22:32,398 --> 01:22:34,160
+So to do that, we need to go back to our base class.
+
+1173
+01:22:34,254 --> 01:22:36,164
+We already have a parse and a safe parse function.
+
+1174
+01:22:36,334 --> 01:22:41,760
+We need to add in some additional functions for optional as well as nullable if we want the field to be nullable.
+
+1175
+01:22:41,840 --> 01:22:44,800
+Optional allows it to be undefined, nullable allows it to be null.
+
+1176
+01:22:44,960 --> 01:22:51,108
+Now, optional and nullable will essentially just need to return to us brand new classes that are specifically either optional or null.
+
+1177
+01:22:51,342 --> 01:22:54,240
+And the interesting thing about Zod is we have two ways to define optional.
+
+1178
+01:22:54,400 --> 01:23:00,960
+We can also call z.optional as a function like this, or we can chain it together.
+
+1179
+01:23:01,120 --> 01:23:02,400
+Both of those will work just fine.
+
+1180
+01:23:02,638 --> 01:23:09,028
+So we need to make sure that we support both of these different methods for handling optional and nullable.
+
+1181
+01:23:09,262 --> 01:23:19,684
+So in order to do that, inside of our base class, we also need to export a function called nullable, and we need to export a function called optional.
+
+1182
+01:23:20,206 --> 01:23:22,276
+That way we can handle both scenarios of doing this.
+
+1183
+01:23:22,480 --> 01:23:32,320
+And here we're just going to call the optional function, and here we're just going to recall nullable and return this at the end of both of these, just to make sure we can chain these together if we want to.
+
+1184
+01:23:32,718 --> 01:23:35,236
+So now we essentially just need to implement nullable and optional.
+
+1185
+01:23:35,374 --> 01:23:40,400
+And actually, before we do that, this should actually return whatever optional is, and this should return whatever nullable is.
+
+1186
+01:23:40,480 --> 01:23:43,332
+That makes more sense since we're creating a nullable and optional type.
+
+1187
+01:23:43,950 --> 01:23:48,000
+Now inside those nullable and optional types, we need to go ahead and implement what they're going to look like.
+
+1188
+01:23:48,160 --> 01:23:51,360
+Now inside those optional and notable types, they're going to be taking in a schema.
+
+1189
+01:23:51,566 --> 01:23:53,572
+So we're going to have a schema of type T.
+
+1190
+01:23:53,902 --> 01:23:55,680
+Both of these are going to have that schema.
+
+1191
+01:23:55,886 --> 01:23:57,840
+And these schemas again need to come in from here.
+
+1192
+01:23:57,920 --> 01:24:00,388
+So we have that schema information being passed along.
+
+1193
+01:24:00,654 --> 01:24:04,000
+But in our case, the schema for these ones is just whatever we are currently on.
+
+1194
+01:24:04,174 --> 01:24:06,320
+So we just pass into this property for both of these.
+
+1195
+01:24:06,574 --> 01:24:08,480
+Otherwise, we're passing in a fresh schema.
+
+1196
+01:24:08,686 --> 01:24:10,160
+And that's how we're able to make both these work.
+
+1197
+01:24:10,320 --> 01:24:14,724
+This one passes itself in as a schema, and this one obviously passes the schema we pass into it.
+
+1198
+01:24:15,182 --> 01:24:17,924
+So now we can continue on with creating what these nullables are.
+
+1199
+01:24:18,254 --> 01:24:20,320
+So this again is going to be a generic type.
+
+1200
+01:24:20,526 --> 01:24:22,800
+So we can set that to T and that to T.
+
+1201
+01:24:23,040 --> 01:24:26,532
+And we know these generic types must extend the myzod type.
+
+1202
+01:24:27,470 --> 01:24:29,408
+And it could be any type, it doesn't matter what it is.
+
+1203
+01:24:29,568 --> 01:24:33,668
+Just like we kind of did for objects and arrays, we need to make sure it comes from one of those different types.
+
+1204
+01:24:33,966 --> 01:24:38,916
+And then inside of here, we can return a new myzod nullable for this one.
+
+1205
+01:24:39,598 --> 01:24:41,408
+And we can do the same thing for optional down here.
+
+1206
+01:24:41,488 --> 01:24:43,812
+And we just want to pass in the schema for both of these.
+
+1207
+01:24:44,110 --> 01:24:50,208
+So now we have the myzod optional and myzod nullable.
+
+1208
+01:24:50,446 --> 01:24:57,060
+And I'm going to put this one above the nullable just so they're in the exact same order they are in up here, just for my own personal preferences.
+
+1209
+01:24:57,806 --> 01:25:00,004
+So now let's implement the optional version.
+
+1210
+01:25:02,478 --> 01:25:06,768
+We know that this must extend that my zod type, just like that.
+
+1211
+01:25:06,958 --> 01:25:11,168
+We know that this is a generic that again extends one of those particular types.
+
+1212
+01:25:11,310 --> 01:25:16,048
+So we can just put in that extend right here, close that off, and then we need to give this a generic type.
+
+1213
+01:25:16,174 --> 01:25:21,408
+Well, we know since it's optional, it can obviously be undefined, but we also need to get whatever the type of this is.
+
+1214
+01:25:21,646 --> 01:25:24,608
+And we could just put or t, but this needs to be the return type.
+
+1215
+01:25:24,688 --> 01:25:26,688
+And this t is currently the schema.
+
+1216
+01:25:26,990 --> 01:25:29,328
+So we need to get the return type from the schema.
+
+1217
+01:25:29,518 --> 01:25:32,288
+And that's essentially what this zodinfer function does.
+
+1218
+01:25:32,558 --> 01:25:36,768
+So we might as well create our own zodinfer function because we kind of need to use it already anyway.
+
+1219
+01:25:37,070 --> 01:25:39,408
+And we can just do that directly inside this types right here.
+
+1220
+01:25:39,598 --> 01:25:41,488
+So we'll export a type, call it infer.
+
+1221
+01:25:41,870 --> 01:25:46,756
+This is going to take in t and that's going to extend that myzod type.
+
+1222
+01:25:46,990 --> 01:25:49,060
+And again, it's going to be any type at all.
+
+1223
+01:25:50,510 --> 01:25:53,728
+And then we need to use that exact same infer trick that we used earlier.
+
+1224
+01:25:53,838 --> 01:25:59,408
+So we can say t extends my zod type and we can infer that output O.
+
+1225
+01:25:59,694 --> 01:26:01,860
+So essentially we already know it extends that type.
+
+1226
+01:26:02,048 --> 01:26:06,404
+So the true case we know is just going to print us out the O property itself.
+
+1227
+01:26:06,926 --> 01:26:09,328
+And in the false case, we know that that can never happen.
+
+1228
+01:26:09,486 --> 01:26:10,928
+So we're just going to put never right here.
+
+1229
+01:26:11,246 --> 01:26:15,876
+So this infer function, all it does is it extracts whatever this type is and returns that type to us.
+
+1230
+01:26:16,110 --> 01:26:18,180
+So now we can use that inside of our base here.
+
+1231
+01:26:18,446 --> 01:26:22,148
+So here instead of using t, we can say that we want to use that infer function.
+
+1232
+01:26:22,414 --> 01:26:27,044
+Now unfortunately, we can't just use this infer keyword like this, because that's a TypeScript referred keyword.
+
+1233
+01:26:27,278 --> 01:26:33,508
+So instead we can import this as we'll say my zodinfer, just like that.
+
+1234
+01:26:33,934 --> 01:26:42,020
+So now I can use my zodinfer, pass it in that type of t, and that essentially infers that return type for us.
+
+1235
+01:26:42,414 --> 01:26:51,408
+So now this myzod optional right here is always going to be either the undefined type or it's going to be the return type of whatever I pass in, which allows me to be optional.
+
+1236
+01:26:51,488 --> 01:26:53,888
+It's either undefined or the original schema type.
+
+1237
+01:26:54,030 --> 01:27:04,528
+Now of course need to create a constructor for this that takes in my schema, which is a type of t, and we'll say that we need to call that super function and set my schema equal to that schema.
+
+1238
+01:27:04,718 --> 01:27:11,168
+And let's create a schema type here, which is equal to that type of t, just like that.
+
+1239
+01:27:11,534 --> 01:27:14,628
+And then we need to create that protected validate function.
+
+1240
+01:27:15,726 --> 01:27:17,008
+That's going to take in our context.
+
+1241
+01:27:17,198 --> 01:27:19,012
+And this is going to be a rather straightforward function.
+
+1242
+01:27:19,374 --> 01:27:24,448
+First, we're just going to do our check to see if our context dot value is equal to undefined.
+
+1243
+01:27:24,558 --> 01:27:27,648
+Well, if it's equal to undefined, well, then we know it's an optional thing.
+
+1244
+01:27:27,728 --> 01:27:28,528
+That's perfectly okay.
+
+1245
+01:27:28,814 --> 01:27:30,660
+We're just going to return our context as is.
+
+1246
+01:27:31,118 --> 01:27:33,488
+Otherwise, we just want to run our schema as normal.
+
+1247
+01:27:33,568 --> 01:27:35,408
+So we essentially want to do what we were doing before.
+
+1248
+01:27:35,726 --> 01:27:43,620
+So we can say response is equal to this dot schema.safe parse, passing it in that value that we get from our context.
+
+1249
+01:27:43,888 --> 01:27:52,740
+If our response succeeds, then our context.value is equal to our response.data, and we can return our context.
+
+1250
+01:27:53,326 --> 01:27:56,688
+Otherwise, if we have an error inside of our code, we need to get the issues.
+
+1251
+01:27:56,942 --> 01:28:02,916
+So we're going to say our issues are going to take all of the response errors, and it's going to get the issues directly from them.
+
+1252
+01:28:03,214 --> 01:28:12,612
+So essentially it just parses the entire thing like normal if we don't have an undefined value, and then it converts that parsed value into our context value so it can be used other places inside of our code.
+
+1253
+01:28:13,134 --> 01:28:16,484
+So now we can make sure here this uses myzod optional and that works just fine.
+
+1254
+01:28:16,942 --> 01:28:22,128
+The myzod nullable is essentially the exact same code, but it's going to be for null instead of for undefined.
+
+1255
+01:28:22,208 --> 01:28:23,588
+So here we can set this to null.
+
+1256
+01:28:23,950 --> 01:28:27,248
+Here we can check null here, and otherwise it's exactly the same code.
+
+1257
+01:28:27,328 --> 01:28:28,528
+So let's scroll all the way up.
+
+1258
+01:28:28,622 --> 01:28:30,608
+We now have this optional property and this nullable property.
+
+1259
+01:28:30,688 --> 01:28:33,988
+And the great thing is it looks like on the right hand side everything is working like we expect.
+
+1260
+01:28:34,288 --> 01:28:36,528
+If we have that name aged optional, that works.
+
+1261
+01:28:36,688 --> 01:28:39,460
+If our name is removed, that's optional and it works perfectly fine.
+
+1262
+01:28:39,662 --> 01:28:43,808
+And we can even come over here and we can say type my z type.
+
+1263
+01:28:45,038 --> 01:28:47,620
+is equal to my z dot infer.
+
+1264
+01:28:48,272 --> 01:28:54,752
+It looks like this function is not being imported, so we need to make sure in our index we are exporting star from dot slash types.
+
+1265
+01:28:55,118 --> 01:28:55,472
+There we go.
+
+1266
+01:28:55,662 --> 01:28:57,540
+That should hopefully get us that infer function.
+
+1267
+01:28:58,382 --> 01:29:03,312
+We can put the type of our myzod schema into there and we should see the return type of this.
+
+1268
+01:29:03,470 --> 01:29:09,072
+You can see it is a name that is unknown and an age that's unknown, which is not quite correct because it should look something like this.
+
+1269
+01:29:09,262 --> 01:29:12,512
+Now I believe this is because we haven't fully implemented all of our features yet.
+
+1270
+01:29:12,718 --> 01:29:17,392
+For example if we remove optional on this you'll see that the type for our number on our age is correct.
+
+1271
+01:29:17,614 --> 01:29:20,352
+It has something to do with the way our optional types are working with everything else.
+
+1272
+01:29:20,526 --> 01:29:24,592
+But if we finish implementing all the features of Zod we will see that this will actually work properly.
+
+1273
+01:29:24,910 --> 01:29:29,828
+So inside the base the next thing that I want to actually focus on is going to be the ability to do transforms.
+
+1274
+01:29:30,158 --> 01:29:42,564
+Because if we go ahead and we use normal Zod, for example, we just take our string here we can just call to uppercase and that's going to make our name completely uppercase but obviously we don't have the ability to do that inside of our code yet.
+
+1275
+01:29:42,862 --> 01:29:46,916
+So I want to make sure that we implement essentially the ability to do these different types of transforms.
+
+1276
+01:29:47,374 --> 01:29:51,792
+So inside of our base we already have some validators now I want to do some transforms as well.
+
+1277
+01:29:51,982 --> 01:29:53,872
+These transforms are going to be relatively simple.
+
+1278
+01:29:53,966 --> 01:30:00,032
+It's going to be a function that takes in an input of type T and returns to me a brand new value of that type T.
+
+1279
+01:30:00,206 --> 01:30:02,980
+So essentially converting a string to an uppercase string and so on.
+
+1280
+01:30:03,152 --> 01:30:05,892
+These transforms never actually change the type that we're working in.
+
+1281
+01:30:06,350 --> 01:30:14,672
+So now we have a bunch of different transforms we can work on and inside of here all the way at the very bottom after we do all of our different validation we can run our transforms on our values right here.
+
+1282
+01:30:14,862 --> 01:30:30,832
+So for our data let's take our transforms what I want to do is I want to reduce these I'm going to take in an accumulator as well as each one of my different functions and I just want to call my function and I want to pass it in whatever my accumulated value is and I'm going to start it out with that success value.
+
+1283
+01:30:31,214 --> 01:30:38,272
+So if I give that a quick save and we look at this particular code really all we're doing is we're looping through we're calling each function and we're passing the result back to the next function.
+
+1284
+01:30:38,478 --> 01:30:41,952
+So we're just calling all of our transforms chained together as one particular thing.
+
+1285
+01:30:42,222 --> 01:30:44,512
+So let's go ahead and actually create these transform functions.
+
+1286
+01:30:44,592 --> 01:30:51,552
+We need to go onto our string to do that and instead of our string object below where we have all of our different validators let's add things like trim for example.
+
+1287
+01:30:51,790 --> 01:31:00,036
+And this is just going to take in a transform and it's going to push to our transforms a function that takes in our input and it just calls the trim function on it.
+
+1288
+01:31:00,366 --> 01:31:05,232
+And of course we need to make sure at the bottom we return this just to make sure that we can chain these together.
+
+1289
+01:31:05,454 --> 01:31:07,748
+Now we just need to essentially call this a bunch of other times.
+
+1290
+01:31:08,206 --> 01:31:20,672
+So we can call this for to lowercase and to uppercase so we can say to lowercase that's going to call the to lowercase function and this is going to be to uppercase which is going to call the touppercase function.
+
+1291
+01:31:20,974 --> 01:31:26,432
+So now you can see that actually already immediately works because now we have the uppercase version of this section inside of our code.
+
+1292
+01:31:26,670 --> 01:31:34,112
+And if I were to chain this together with a dot trim for example and I put a bunch of spaces after here you can see those are been trimmed off which is exactly what I expect.
+
+1293
+01:31:34,382 --> 01:31:41,188
+Now on top of these types of transforms that don't actually modify the ability of the thing the type of thing we also have the ability to do further transforms.
+
+1294
+01:31:41,454 --> 01:31:49,232
+For example what I could do inside of here is I can call dot transform and this dot transform function is going to take this object and transform it into something entirely different.
+
+1295
+01:31:49,312 --> 01:31:51,232
+It could be the same type or it could be a different type.
+
+1296
+01:31:51,502 --> 01:31:56,752
+So for example I'm going to take this transform for whatever this input is and I want to get the length of this string.
+
+1297
+01:31:56,942 --> 01:32:01,380
+So now I'm converting this name to essentially the number four because it's a four length long string.
+
+1298
+01:32:01,678 --> 01:32:09,072
+I want to be able to do the exact same thing up here as well to convert this from a length or from a string to a length of a specific number.
+
+1299
+01:32:09,390 --> 01:32:11,152
+To do that we need to go back to our base.
+
+1300
+01:32:11,662 --> 01:32:19,632
+So let's just close all of these open up our base file right here and I need to add a brand new function called transform and essentially it's going to do the same thing we did up here.
+
+1301
+01:32:19,712 --> 01:32:37,072
+It's going to return a transform which is going to be a new myzod transform and this new myzod transform takes in a function as it so here we can have a function which takes in an input of type t and it's going to output a type of whatever our output is.
+
+1302
+01:32:37,358 --> 01:32:41,668
+So this transform is going to take in a generic of this output particular type.
+
+1303
+01:32:42,062 --> 01:32:49,188
+And here we want to use that output type and we also want to use a t type just like that and we can pass it in that function.
+
+1304
+01:32:49,646 --> 01:32:52,192
+We also want to pass it in the current schema we're working on.
+
+1305
+01:32:52,272 --> 01:32:57,232
+So this myzod transform essentially is going to take in a function and it's going to take the schema that we already have.
+
+1306
+01:32:57,422 --> 01:33:03,392
+It's going to run all the code in that schema and then once it's done it's going to run this function on the output of this to convert it to a brand new type.
+
+1307
+01:33:03,534 --> 01:33:08,004
+And the reason this is generic is because it can be a brand new type that's being output from this particular object.
+
+1308
+01:33:08,432 --> 01:33:10,992
+So let's create that class myzodtransform.
+
+1309
+01:33:11,278 --> 01:33:22,148
+This myzod transform takes an output and an input as our two types and it extends myzod type and the type that's being output is the output type so we don't need to do any fancy TypeScript stuff.
+
+1310
+01:33:22,766 --> 01:33:32,868
+We then have an input schema which is myzod type of the input type so it's a schema that outputs whatever our input type is and then we have a transform function.
+
+1311
+01:33:35,502 --> 01:33:42,308
+We know that takes in an input of our input type, essentially whatever our input schema outputs, and then it outputs whatever our output type is.
+
+1312
+01:33:43,246 --> 01:33:47,748
+Next we can create a constructor function, which takes in our schema, which is this type right here.
+
+1313
+01:33:48,718 --> 01:33:53,156
+Takes in a transform function, which we know is this type right here.
+
+1314
+01:33:54,286 --> 01:33:56,160
+And then we know that all we need to do is call super.
+
+1315
+01:33:56,878 --> 01:34:04,560
+We need to set the schema to our schema, and we just set the transform function equal to our transform function.
+
+1316
+01:34:04,718 --> 01:34:06,640
+Now we have access to all those different properties.
+
+1317
+01:34:06,800 --> 01:34:10,160
+We can use them inside the validate function, just like this.
+
+1318
+01:34:10,990 --> 01:34:13,840
+Now inside this validate function, we first need to call our schema.
+
+1319
+01:34:14,030 --> 01:34:21,156
+So we're going to get our results by saying this.input schema, we want to parse that with our context.value.
+
+1320
+01:34:21,838 --> 01:34:24,960
+Then if our response is successful, we want to do the transform.
+
+1321
+01:34:25,166 --> 01:34:29,600
+So we can say context dot value is equal to this dot transform function.
+
+1322
+01:34:29,902 --> 01:34:32,400
+And we can pass it in all the different data that we got from it.
+
+1323
+01:34:32,590 --> 01:34:37,188
+So we're just taking the data that's from this transform for our schema and we're transforming it to a brand new type.
+
+1324
+01:34:37,870 --> 01:34:47,680
+Otherwise, what I want to do is I want to get my issues and I want to push them in, and they come from our response.error dot issues.
+
+1325
+01:34:47,918 --> 01:34:49,680
+So essentially, if we have any issues, add those on.
+
+1326
+01:34:49,840 --> 01:34:51,920
+Otherwise, do the transform just like we want to.
+
+1327
+01:34:52,206 --> 01:34:54,756
+And then finally we can return our context at the very bottom.
+
+1328
+01:34:55,182 --> 01:35:06,116
+So essentially, this myzod transform is very similar to these optional and notable types, but instead all we're doing is recalling our initial schema and then using this transform to transform it to a new value if things were successful.
+
+1329
+01:35:06,574 --> 01:35:10,480
+So now we should hopefully see everything's working, but we get this invalid being passed down.
+
+1330
+01:35:10,734 --> 01:35:12,800
+Let's go over to our code to see exactly what's going on.
+
+1331
+01:35:12,880 --> 01:35:15,200
+Now this is a little bit confusing because we have a complicated type.
+
+1332
+01:35:15,374 --> 01:35:20,160
+So I'm going to actually simplify this drastically and just use a simple string just like this.
+
+1333
+01:35:20,366 --> 01:35:23,840
+And for this one, same exact thing, just a simple string, nothing else.
+
+1334
+01:35:24,142 --> 01:35:26,720
+And we'll change our value to be equal to a simple string.
+
+1335
+01:35:27,086 --> 01:35:34,720
+Now if we save, you can see they both are being transformed to that value of four, which is a number, and the type for both of these is actually set to number just like we would expect.
+
+1336
+01:35:34,800 --> 01:35:36,400
+So that is working like we expect it to.
+
+1337
+01:35:36,494 --> 01:35:39,440
+Now something that's nice and simple that we can implement would be a default value.
+
+1338
+01:35:39,694 --> 01:35:41,520
+For example, I can come in here with a default.
+
+1339
+01:35:41,838 --> 01:35:48,932
+I could set it to three, for example, and now if for some reason John is not actually set to a value, it'll default to a value of three.
+
+1340
+01:35:49,294 --> 01:35:53,600
+I want to do the exact same thing here by defaulting my value, but of course I need to implement that.
+
+1341
+01:35:53,806 --> 01:35:57,220
+So I can go into here, I can add a default just like this.
+
+1342
+01:35:57,806 --> 01:36:04,560
+This is going to set a default value to whatever I pass in equal to whatever my input value is.
+
+1343
+01:36:04,654 --> 01:36:05,600
+We'll just call this val.
+
+1344
+01:36:06,640 --> 01:36:09,860
+And this value must be a type of t because that's my output type.
+
+1345
+01:36:10,190 --> 01:36:11,840
+Now let's implement this up here.
+
+1346
+01:36:11,920 --> 01:36:16,480
+So we can say that we have our default, which is of that type of t.
+
+1347
+01:36:16,686 --> 01:36:18,480
+And now we can use that inside of here.
+
+1348
+01:36:18,720 --> 01:36:33,939
+So if our input is equal to undefined, and our default is not equal to undefined, then we can just return our default as a success.
+
+1349
+01:36:34,254 --> 01:36:38,320
+So we'll say success of true, and our data is our default value.
+
+1350
+01:36:38,606 --> 01:36:38,960
+There we go.
+
+1351
+01:36:39,374 --> 01:36:42,160
+So now if we have a default, it should hopefully be set, but it looks like we have some errors.
+
+1352
+01:36:42,350 --> 01:36:46,916
+And that's because I need to make sure that this can be typed as undefined, so the default value is undefined.
+
+1353
+01:36:47,374 --> 01:36:49,360
+Now let's go ahead make sure everything's working fine.
+
+1354
+01:36:49,646 --> 01:36:50,960
+Of course, it looks like we have some errors here.
+
+1355
+01:36:51,120 --> 01:36:57,120
+I think the reason for this is inside of here in my default, I need to make sure I return this so that everything is chainable.
+
+1356
+01:36:57,262 --> 01:37:04,720
+Now you can see they both print out three because it's currently defaulted to a non-value, but if I give it a value, you can see it just returns whatever that specific value is.
+
+1357
+01:37:04,974 --> 01:37:13,120
+Now the final thing we need to add in before we validate everything works by running through the massive test suite that I have inside this library that'll run a ton of different tests across our code base.
+
+1358
+01:37:13,294 --> 01:37:19,040
+What we want to do is come in here and add the ability to do custom validations because that's kind of like the final thing that we haven't implemented.
+
+1359
+01:37:19,342 --> 01:37:24,720
+To do that, again, we're back inside of our base here, and we need to just come into this section and we want to use the refine function.
+
+1360
+01:37:24,800 --> 01:37:26,000
+That's what they use inside Zod.
+
+1361
+01:37:26,350 --> 01:37:28,320
+So what I could do is I could say refine on here.
+
+1362
+01:37:28,494 --> 01:37:30,692
+That's going to take in whatever my input value is.
+
+1363
+01:37:30,926 --> 01:37:33,680
+And inside of this, I need to return a true or false value.
+
+1364
+01:37:33,870 --> 01:37:40,000
+So for example, I can say my input is less than three, and then I can specify an error message that just says error, something like that.
+
+1365
+01:37:40,302 --> 01:37:44,960
+And now you can see we're getting invalid being passed out because this returns false, which means there is an error.
+
+1366
+01:37:45,198 --> 01:37:48,640
+If I were to change this to be greater than three, you can now see it returns properly.
+
+1367
+01:37:48,782 --> 01:37:52,320
+So this allows me to write custom validation that will give me a custom error message.
+
+1368
+01:37:52,558 --> 01:38:00,580
+Because if I actually print out my zod error by just saying zod result.error.issues, and we expand this over so it's easier to see.
+
+1369
+01:38:00,814 --> 01:38:05,284
+We can see inside of here it has the message of error, which is that custom error message that I just created.
+
+1370
+01:38:05,678 --> 01:38:07,760
+So now we at least have that information available to us.
+
+1371
+01:38:08,046 --> 01:38:12,080
+What I want to do is I want to go ahead and make it so this works all the way up here as well.
+
+1372
+01:38:12,494 --> 01:38:14,720
+So inside of our base, we have that refine function.
+
+1373
+01:38:14,862 --> 01:38:20,388
+We know that it's going to take in a function that takes in our output value and is going to return true or false.
+
+1374
+01:38:20,558 --> 01:38:21,840
+So this is going to be a function.
+
+1375
+01:38:22,062 --> 01:38:24,240
+We know that it takes in an input of our type.
+
+1376
+01:38:25,070 --> 01:38:29,476
+And it returns to us a Boolean and also takes in a message, which is a string.
+
+1377
+01:38:30,094 --> 01:38:32,208
+Then what we want to do is we want to add that to our validators.
+
+1378
+01:38:32,366 --> 01:38:40,420
+But instead of our normal validators, we want to add it to a section for custom validators, because these should only run if all of our other validations successfully go through.
+
+1379
+01:38:40,814 --> 01:38:42,468
+So we can come in here with a simple push.
+
+1380
+01:38:42,702 --> 01:38:45,092
+We can push it in our context just like that.
+
+1381
+01:38:45,838 --> 01:38:49,668
+And this is a function that takes in the context, just like all the rest of our validators in our code.
+
+1382
+01:38:50,222 --> 01:38:56,164
+If our function with our context value passes, if this returns true, well then our overall validator should return true.
+
+1383
+01:38:56,686 --> 01:38:58,608
+Otherwise, we should add in an issue.
+
+1384
+01:38:58,862 --> 01:39:04,368
+So issues.push, and it should take a message and a path that's an empty string.
+
+1385
+01:39:04,526 --> 01:39:09,092
+So whatever message we pass in, pass in is the thing it gives us, and then we can return false down here.
+
+1386
+01:39:09,422 --> 01:39:12,324
+And then finally, to make sure we can chain this, we return this at the bottom.
+
+1387
+01:39:12,846 --> 01:39:17,796
+Now all the way at the top, we can access those custom validators, which is just going to be another protected property.
+
+1388
+01:39:18,638 --> 01:39:19,716
+Custom validators.
+
+1389
+01:39:19,950 --> 01:39:27,332
+This is an array that takes in an input, and this one is going to return us a Boolean, and it actually takes in a parse context, just like we had up here.
+
+1390
+01:39:28,462 --> 01:39:32,260
+There we go, because essentially it's exactly the same as our normal validators, but these ones are custom.
+
+1391
+01:39:32,558 --> 01:39:35,780
+So now we can scroll down and we want to do these custom validators essentially last.
+
+1392
+01:39:35,968 --> 01:39:37,764
+So first we validate our types.
+
+1393
+01:39:38,190 --> 01:39:40,100
+Then if we have any fatal errors, we return.
+
+1394
+01:39:40,558 --> 01:39:43,248
+Next, what we want to do is we want to run all of our normal validators.
+
+1395
+01:39:43,374 --> 01:39:46,180
+And then again, we want to check to see if we have any fatal errors.
+
+1396
+01:39:46,414 --> 01:39:52,128
+So we can come in here and we can check to see if we have any fatal errors anywhere, because these custom validators can access code anywhere.
+
+1397
+01:39:52,366 --> 01:39:55,168
+So we need to make sure there's no fatal errors anywhere in our code.
+
+1398
+01:39:55,406 --> 01:39:59,088
+If there are, we want to make sure that we return whatever our success data is.
+
+1399
+01:39:59,168 --> 01:40:01,604
+So we'll get our success data dot issues, just like that.
+
+1400
+01:40:02,094 --> 01:40:07,888
+Finally, if we get past all of that, we can essentially do this code right here, but running our custom validators instead.
+
+1401
+01:40:08,238 --> 01:40:12,128
+So we can run through all of our different custom validators and make sure everything is proper from there.
+
+1402
+01:40:12,398 --> 01:40:19,812
+So we're just making sure every step of the way before we run validators that we don't have any problems in our code that would cause those validators to error out unexpectedly.
+
+1403
+01:40:20,334 --> 01:40:23,876
+So now you can see, since this is not successful, it gives us that invalid text.
+
+1404
+01:40:24,110 --> 01:40:28,288
+If we change this to greater than for both of these, you'll see it actually returns that value properly.
+
+1405
+01:40:28,430 --> 01:40:31,168
+So now we have custom validation we can put to any logic we want.
+
+1406
+01:40:31,406 --> 01:40:36,420
+Now to make sure everything's working properly, let's bring back that object that was giving us the weird types when we did our inference.
+
+1407
+01:40:36,590 --> 01:40:39,808
+And if we just hover over the inferred type, you can see it's still set to unknown.
+
+1408
+01:40:40,270 --> 01:40:46,980
+So they go into our base, I did some snooping and I figured out the reason for this is we imported our infer function from the wrong location.
+
+1409
+01:40:47,246 --> 01:40:49,248
+This should be coming from our types section.
+
+1410
+01:40:49,422 --> 01:40:54,608
+So we can just copy this down to our types section here, remove this from here, and that should fix our problem.
+
+1411
+01:40:54,688 --> 01:41:00,768
+We just imported from Zod instead of from our own custom library, and when we hover over the type, you can see the types for this is exactly what we would expect.
+
+1412
+01:41:01,006 --> 01:41:03,268
+So let's go ahead and see if all of our different tests pass.
+
+1413
+01:41:03,534 --> 01:41:07,248
+We can just come in here and run our test by calling the run test function.
+
+1414
+01:41:07,438 --> 01:41:09,728
+And if nothing gets logged to the console, it means they all pass.
+
+1415
+01:41:09,902 --> 01:41:11,168
+But it looks like we have one failure.
+
+1416
+01:41:11,328 --> 01:41:13,408
+Positive number validation fails with zero.
+
+1417
+01:41:13,646 --> 01:41:16,368
+So if we go back to our number, it looks like we just messed this up.
+
+1418
+01:41:16,558 --> 01:41:22,048
+This should only be true if it's greater than zero because positive is zero number is not considered positive for Zod.
+
+1419
+01:41:22,350 --> 01:41:27,396
+Now when we fix that, all of our errors go away, which means all of the different tests inside of here are successfully passing.
+
+1420
+01:41:27,630 --> 01:41:34,368
+And again, if you want to check out all the code for this Zod implementation and maybe add some of your own stuff to it or see how it works, it'll all be linked down in the description below.
+
