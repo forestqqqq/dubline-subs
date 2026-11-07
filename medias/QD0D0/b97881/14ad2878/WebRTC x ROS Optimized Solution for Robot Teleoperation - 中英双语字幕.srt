@@ -1,0 +1,1159 @@
+1
+00:00:00,046 --> 00:00:02,160
+大家好，我是拉希德，欢迎回来。
+Hi guys, this is Rashid and welcome back.
+
+2
+00:00:02,320 --> 00:00:11,840
+今天我们要聊一个观众经常问的话题，就是如何通过互
+联网控制机器人，或者换句话说，就是机器人远程操控。
+Today is one of the topics that some of my viewers have been asking to do how to
+control the robot over the internet, or in another term, the robot teleoperation.
+
+3
+00:00:12,014 --> 00:00:22,948
+这意味着你的机器人放在某个地方，而你在另一个地方，你想通过网络控制机器人，
+并且期望能看到视频流和数据显示。
+That means your robot is placing somewhere and you are in somewhere else, and you want to control the robot passing all the network
+and you expect to have the video streaming and the data displaying.
+
+4
+00:00:23,278 --> 00:00:26,960
+我以前做过机器人远程操控，大概是两年前。
+I have made a robot teleoperation before, like two years ago.
+
+5
+00:00:27,200 --> 00:00:38,690
+那时候我使用的是一个叫 Zenoh 的 ROS2 中间件，它确实可行，
+但根据我的经验和客户的实际使用案例，我发现最简单、
+At that time I was using a ROS2 middleware called CENOR, which is working time to time,
+but from my experience and the real use case from customer, I found that the most
+
+6
+00:00:38,690 --> 00:00:38,770
+那时候我使用的是一个叫 Zenoh 的 ROS2 中间件，它确实可行，
+但根据我的经验和客户的实际使用案例，我发现最简单、
+simplest and most reliable and less complicated is to use browser-based WebRTC.
+
+7
+00:00:38,770 --> 00:00:44,400
+最可靠且复杂度最低的方法是使用基于浏览器的 WebRTC。
+simplest and most reliable and less complicated is to use browser-based WebRTC.
+
+8
+00:00:44,590 --> 00:00:48,612
+如果你想知道为什么以及我是怎么做的，那我们就开始吧。
+If you want to know why and how I do it, so let's get started.
+
+9
+00:00:48,974 --> 00:01:03,280
+作为传统的自定义 UDP 或 WebSocket 通信，你需要先在某个地方启动一台服务器机器，
+你的机器人和 Web 控制台 GUI 都需要先与服务器通信，才能发送或接收数据。
+As a traditional old school custom UDP or WebSocket communication, you will need to launch a server machine somewhere,
+and your robot and your web console GUI will need to talk with the server first in order to send or receive data.
+
+10
+00:01:03,440 --> 00:01:09,120
+没错，这种方法也能行，但问题是延迟高或者速度太慢。
+And yes, this method also works, but the problem is high latency or it's too slow.
+
+11
+00:01:09,390 --> 00:01:13,520
+那我一开始提到的 Zenoh ROS2 中间件呢？
+And how about the Cinol ROS2 middleware that I mentioned in the first place?
+
+12
+00:01:13,680 --> 00:01:19,360
+是的，它也是一种可以用来在互联网上发送 ROS2 消息的好技术。
+And yes, it's one of the good technology that you can use and send ROS2 message over the internet.
+
+13
+00:01:19,886 --> 00:01:21,920
+如果你还没试过，请去看看。
+If you haven't tried, please check it out.
+
+14
+00:01:22,126 --> 00:01:26,880
+那里有一些演示，展示了你可以实现机器人的视频传输和控制。
+And there is some demo that's showing you can have a video and a control on the robot.
+
+15
+00:01:27,118 --> 00:01:34,800
+我用 Zenoh 有一段时间了，但一直有一些反馈说视频非常卡顿，能不能做得快一点？
+I've been using CNO for a while, but there are some requests that keep
+coming like the video is quite laggy, can you make it much faster?
+
+16
+00:01:35,022 --> 00:01:39,520
+我能不能打开手机或 iPad 的摄像头，把我的脸显示在机器人上？
+Can I open the camera from my phone or iPad to display my face on the robot?
+
+17
+00:01:39,694 --> 00:01:43,360
+我能不能和机器人附近的人通话，或者听到机器人那边的声音？
+Can I talk with people near the robot or hear sound from the robot side?
+
+18
+00:01:43,662 --> 00:01:49,124
+最终用户的电脑不是 Linux，只有 Windows，他们想要一些易于使用的东西。
+An end-user computer is not Linux, just only Windows, they want something easy to use.
+
+19
+00:01:49,870 --> 00:01:53,412
+那么我认为更好的解决方案是使用 WebRTC。
+Then I think the better solution is to use WebRTC.
+
+20
+00:01:53,966 --> 00:02:01,188
+在同样的系统中，机器人位于现场，你的电脑在办公室网络中，信令服务器在云端。
+With the same system, you have robot at the field and your computer in Office Network and Signaling Server on the cloud.
+
+21
+00:02:01,486 --> 00:02:13,444
+首先，机器人会向信令服务器发送 SDP 和 ICE 的 offer，一旦你的电脑访问 Web 控制台，
+它也会向信令服务器发送 SDP 和 ICE 的 answer。
+At first, the robot will send offer of SDP and ICE to signaling server, and once your computer accesses the web console,
+it will send answer of SDP and ICE to signaling server as well.
+
+22
+00:02:14,126 --> 00:02:17,440
+这些 SDP 和 ICE 将在每个对等节点之间交换。
+Those SDP and ICE will be exchanged for each peer.
+
+23
+00:02:17,582 --> 00:02:23,360
+建立连接后，对等节点就能互相看到，之后就不再需要信令服务器了。
+Then after established, the peer will see each other, and then there is no need for signaling server anymore.
+
+24
+00:02:23,630 --> 00:02:35,920
+如果你想了解更多关于 WebRTC 的信息，我非常推荐这些视频：
+Dennis Ivey 的 WebRTC 工作原理速成课程，以及 Hussain Nasser 的 WebRTC 速成课程。
+If you would like to learn more about WebRTC, I pretty recommend on these videos how does
+WebRTC work, Crash Course from Dennis Ivey, and WebRTC Crash Course from Hussain Nasser.
+
+25
+00:02:36,160 --> 00:02:38,372
+他们解释得非常出色。
+They have done a pretty good job for explaining.
+
+26
+00:02:38,894 --> 00:02:41,700
+那么，为什么要用基于浏览器的 WebRTC？
+So, why browser-based WebRTC?
+
+27
+00:02:42,094 --> 00:02:46,560
+有人可能会说，嘿，还有 Python 的 AIORTC 呀。
+Somebody will say, hey, there is also Python AIORTC.
+
+28
+00:02:46,766 --> 00:02:50,800
+是的，当然，AIORTC Python 包是另一个选择。
+Yes, of course, AIORTC Python package is another option.
+
+29
+00:02:51,118 --> 00:02:54,852
+它可以创建 WebRTC 对等节点并处理 WebRTC 会话。
+It can create WebRTC peer and handle the WebRTC session.
+
+30
+00:02:55,054 --> 00:03:07,200
+你可以在机器人端作为一个对等节点运行这个，但同样，如果你的 Web 控制台端只能运行浏览器，
+你无论如何都需要实现原生的 HTML JavaScript WebRTC。
+You can run this on the robot side as one peer, but again, if your web console side can only run web browser,
+you will need to implement an original HTML JavaScript WebRTC anyway.
+
+31
+00:03:07,406 --> 00:03:22,480
+所以，与其去同时研究 AIORTC 的 Python WebRTC 和 Google 的 JavaScript WebRTC，
+你只需要了解 JavaScript WebRTC 就够了，因为它可以在机器人端和 Web 控制台端同时运行。
+So instead of you going to head 8 on both Python WebRTC from AIORTC and JavaScript WebRTC from Google,
+you just need to know only JavaScript WebRTC because it could run on both robot side and web console side.
+
+32
+00:03:22,640 --> 00:03:32,800
+最后总结一下，我为什么更倾向于使用基于浏览器的 WebRTC，是因为首先，
+它可以在几乎任何拥有浏览器的电脑和操作系统上运行。
+To conclude, why I prefer to use browser-based WebRTC, because first,
+it could run on mostly any computer, any OS which has a web browser.
+
+33
+00:03:32,960 --> 00:03:38,000
+你不需要担心依赖关系或安装额外的包，只需要一个浏览器就行。
+You don't need to worry about dependencies or install extra packages, just the web browser.
+
+34
+00:03:38,160 --> 00:03:43,972
+第二，它很容易扩展，就像我之前说的，不仅仅是远程控制机器人。
+Second, it's easy to expand, as said earlier, not even just control the robot remotely.
+
+35
+00:03:44,270 --> 00:03:51,712
+如果你需要传输视频并与机器人附近的人交谈，用 JavaScript 实现这些功能一点也不麻烦。
+If you need to stream your video and talk with others near a robot, Implementing those things on JavaScript is not a hassle at all.
+
+36
+00:03:51,918 --> 00:04:00,592
+第三，如果你不知道机器人的公网 IP，或者它在防
+火墙后面，或者你不知道什么是 DDS、QOS 等等。
+Third, if you don't know your robot public IP or is behind that, or you don't know what is DDS, QOS, etc.
+
+37
+00:04:01,198 --> 00:04:06,672
+有了 WebRTC，你就不需要太在意这些，因为它就是为了帮你处理这些而设计的。
+So with WebRTC, you don't need to care much about that because it's designed to handle it for you.
+
+38
+00:04:06,832 --> 00:04:13,152
+对于基于浏览器的 WebRTC，视频是经过优化的，并且具有自适应比特率控制。
+For the browser-based WebRTC video is optimized and it has adaptive bitrate control.
+
+39
+00:04:13,518 --> 00:04:22,912
+例如，如果你的网络状况不好，它不会一直显示 4K 视频，
+而是会切换到低分辨率方案，让你能够实时看到视频。
+For example, if your network is not good, so instead of keep displaying 4K video,
+it will become low value solution and allow you to see the video in real time.
+
+40
+00:04:23,118 --> 00:04:24,992
+这样你的延迟就会非常稳定。
+So your latency is quite stable.
+
+41
+00:04:25,152 --> 00:04:31,712
+此外，对于数据通道，它是基于 UDP 实现的，所以数据包会准时到达。
+Also for data channel, it's implemented based on UDP, so data packet will arrive right on time.
+
+42
+00:04:31,872 --> 00:04:42,432
+最后，你可以不用把 ROS 消息暴露到外部世界，只需
+让 ROS 留在局域网内，让 WebRTC 处理全球网络通信。
+And lastly, you could get rid of expose ROS message to the outside world, just
+keep ROS in local network and let WebRTC handle for global network communication.
+
+43
+00:04:42,734 --> 00:04:51,472
+在深入讨论之前，我想提醒大家，这种基于浏览器的
+WebRTC 方法只是我认为适合我应用场景的一种方案。
+Before going too far, I would like to remind you that this browser-based
+WebRTC method is just one of the idea that I think is good for my application.
+
+44
+00:04:51,822 --> 00:04:55,312
+这里没有对错之分，也没有哪种方案绝对优于另一种。
+There is no right or wrong or which one is better than which one.
+
+45
+00:04:55,598 --> 00:04:59,588
+这完全取决于你的背景经验，哪种方案最适合你。
+It just depends on your background experiences that which one is best for you.
+
+46
+00:05:00,270 --> 00:05:03,072
+本视频由 PCB Way 赞助。
+And this video is sponsored by PCB Way.
+
+47
+00:05:03,502 --> 00:05:16,004
+PCB Way 不仅提供 PCB 制作服务，他们还擅长从简单到复杂的 CNC 加工，
+以及提供多种可供选择的耗材的 3D 打印服务。
+PCB Way provides you a service not only making a PCB, they also specialize on CNC machining from simple to complicated design and 3D
+printing from variety of filaments you can choose.
+
+48
+00:05:16,462 --> 00:05:31,908
+例如，柔性材料、TPU 或透明材料，我觉得这些对于某些产品来说非常酷；
+或者许多比 PLA 更坚韧的材料，可用于高温、户外或日常使用的产品。
+For example, flexible material or TPU or transparent material, which I think is really cool for some products,
+or many tough materials better than PLA, which could be used for high temperature, outdoor or daily usage product.
+
+49
+00:05:32,558 --> 00:05:39,140
+此外，我最喜欢的一项是碳纤维板的激光切割，这非常适合机器人的原型制作。
+Also, one of my favorite is the laser cutting on carbon fiber plate, which is good for robot prototyping.
+
+50
+00:05:39,630 --> 00:05:43,364
+它重量轻但依然坚固，而且设计简单。
+It's for a lightweight but still strong and just a simple design.
+
+51
+00:05:44,014 --> 00:05:53,348
+每当我需要快速制作 PCB 原型或像这种碳纤维板之类的硬件制造时，我都会使用 PCB Way。
+I've been using PCB Wave for a couple of times when I need a rapid prototype
+of the PCB or a hardware manufacturing like this carbon fiber plate.
+
+52
+00:05:54,030 --> 00:05:58,272
+所以，别让你的项目只停留在脑子里或电脑里的文件里。
+So don't let your project just in mind or just a file in the computer.
+
+53
+00:05:58,574 --> 00:06:02,148
+你可以去查看 PCB Way 的服务，并在你的下一个项目中使用它。
+You can check on PCB services and try it out for your next project.
+
+54
+00:06:02,766 --> 00:06:04,272
+好了，说得太多了。
+So it's too much of talking.
+
+55
+00:06:04,432 --> 00:06:07,428
+让我给你们看看我制作的 WebRTC 模板。
+Let me show you the WebRTC template that I have made.
+
+56
+00:06:08,174 --> 00:06:11,428
+这是 WebRTC 模板的 GitHub 仓库。
+This is a GitHub repository for WebRTC template.
+
+57
+00:06:11,854 --> 00:06:13,860
+你可以通过这个 URL 链接查看。
+You can have a look from this URL link.
+
+58
+00:06:14,158 --> 00:06:16,100
+它是公开的，可以免费下载。
+It's public and free to download.
+
+59
+00:06:16,430 --> 00:06:19,364
+这张图片展示了文件结构。
+So the file structures are shown in this picture.
+
+60
+00:06:19,758 --> 00:06:35,952
+我们有一些直接与 WebRTC 相关的部分，从 console.html、answer.js、mainanswer.js、
+offer.js、main offer.js、signalingserver.js 到 offer.html。
+So we have some part that related directly to WebRTC starts from console.html,
+answer.js, mainanswer.js, offer.js, main offer.js, signalingserver.js, and offer.html.
+
+61
+00:06:36,112 --> 00:06:46,032
+最后，还有必须在机器人上运行的 Python 脚本：json_ros2_converter.py、
+local_data_server.py 和 ws_python_client.py。
+And lastly, there are Python scripts that has to be running on the robot,
+json ros2 converter.py, local data server.py, ws python client.py.
+
+62
+00:06:46,192 --> 00:06:52,112
+这个文件的主要作用是将 WebRTC 数据转换为 ROS 消息并进行交换。
+The main role of this file is to convert and exchange data from WebRTC to ROS message.
+
+63
+00:06:52,334 --> 00:06:55,300
+这是代码运行的概览图。
+Here is the overview where the code should be running.
+
+64
+00:06:55,598 --> 00:07:04,132
+在机器人端，有 ROS2 节点在运行，比如激光扫描仪、电机驱动程序、读取传感器数据等等。
+So on the robot side, there is ROS2 node running, for example, like your laser scanner, motor driver, reading sensor data, and so on.
+
+65
+00:07:04,814 --> 00:07:15,872
+还有来自这个 WebRTC 模板文件夹的另外三个 Python 脚本，
+机器人将运行来自 offer.html 的网页浏览器，offer.js 和 main offer.js 将被调用。
+And another three Python scripts from this WebRTC template folder, and the robot will
+be running web browser from offer.html and offer.js and main offer.js will be calling.
+
+66
+00:07:16,032 --> 00:07:25,712
+在云端或服务器端，首先必须运行 signaling server.js，
+这个服务器还托管了一个作为 console.html 的网页控制台。
+On the cloud or server side, signaling server.js has to be running at first, and this server is hosting a web console as console.html.
+
+67
+00:07:25,966 --> 00:07:31,492
+然后用户可以在自己的电脑上用任何浏览器访问云服务器的域名。
+Then on user PC, they can use any web browser to access the cloud server domain name.
+
+68
+00:07:31,886 --> 00:07:36,868
+这样他们就能在屏幕上看到网页控制台，并能通过这台电脑控制机器人。
+Then they could see the web console on the screen and able to control the robot from this computer.
+
+69
+00:07:37,326 --> 00:07:41,348
+接下来，我将向大家展示为了让这一切正常工作，具体会发生什么。
+Then I'm going to show you what's going to happen to make this thing work.
+
+70
+00:07:41,870 --> 00:07:50,724
+首先，在机器人端，local data server、构建好的 Python client 和 JSON ROS2 converter 将
+会运行，同时你的 ROS2 节点也会运行。
+First, on the robot side, the local data server, the built Python
+client and JSON ROS2 converter will be running and also your ROS2 node.
+
+71
+00:07:51,312 --> 00:07:59,232
+这里，如果我们看 local dataserver.py 的代码，首先确保安装了 10.4 版本的 WebSockets。
+Here, if we look on the code of local dataserver.py, first make sure to install WebSockets with 10.4 version.
+
+72
+00:07:59,342 --> 00:08:02,628
+本地 WebSocket 端口是 8888。
+The local WebSocket port is on 8888.
+
+73
+00:08:03,246 --> 00:08:07,940
+如果我们看下面，我们将启动一个作为 localhost 的 WebSocket 服务器。
+And if we look down here, we will start a WebSocket server as localhost.
+
+74
+00:08:08,686 --> 00:08:11,744
+带有 echo 函数，它将一直运行下去。
+With the echo function, and this will be running forever.
+
+75
+00:08:11,982 --> 00:08:18,244
+在 echo 函数内部，会有 build sjs 和 buzz Python，它们是两个客户端。
+Inside echo function, there will be to the build sjs and the buzz Python, which are two clients.
+
+76
+00:08:18,798 --> 00:08:23,424
+所以一旦每个客户端连接上，服务器就能通过结尾路径识别它们。
+So once each client is connected, the server can know it from the ending path.
+
+77
+00:08:23,584 --> 00:08:31,556
+这里的概念很简单，无论从 Python 客户端接收到
+什么消息，它都会发送给 JS 客户端，反之亦然。
+The concept here is simple whatever message from Python client receive it will send to JS client and vice versa.
+
+78
+00:08:31,950 --> 00:08:35,236
+也就是说，每个客户端都会收到来自另一个客户端的消息。
+Meaning each client will receive a message from another client.
+
+79
+00:08:35,822 --> 00:08:38,304
+这就是 local data server 的 WebSocket 部分。
+That's it for the local data server WebSocket.
+
+80
+00:08:38,573 --> 00:08:41,183
+接下来，WS Python client 是做什么的？
+Next, what does the WS Python client do?
+
+81
+00:08:41,344 --> 00:08:47,824
+如果我们再次检查代码，首先确保安装了 1.4.2 版本的 WebSocket client。
+Is if we check on the code again, first make sure to install WebSocket client version 1.4.2.
+
+82
+00:08:48,174 --> 00:08:51,844
+在最上方，我们定义了用于接收和发送的 UDP 套接字。
+On top here, we define the UDP socket for receive and send.
+
+83
+00:08:52,366 --> 00:08:57,380
+这些套接字用于 WS Python client 和 JSROS2 converter 之间。
+These sockets are used between WS Python client and JSROS2 converter.
+
+84
+00:08:57,902 --> 00:09:04,740
+这是一个以 Python client 结尾的 WebSocket URL，这样 WebSocket 服务器就能识别它。
+And this is a WebSocket URL client ending with Python client, so the WebSocket server could recognize this.
+
+85
+00:09:04,944 --> 00:09:08,356
+在下面，有一个作为全局变量的 send thread。
+And down here, there is send thread as global valuable.
+
+86
+00:09:08,654 --> 00:09:15,824
+我们将启动 WebSocket 应用，包含 on message、on open、on error 和 on close 这些事件。
+We're going to start WebSocket app with these events for on message, on open, on error and on close.
+
+87
+00:09:16,270 --> 00:09:18,544
+我们还有一个作为另一个线程的 sender worker。
+We have sender worker as another thread.
+
+88
+00:09:18,704 --> 00:09:24,464
+在 on open 事件中，一旦 WebSocket 打开，我们就会启动 sender 线程。
+On open event, once the web socket is open, then we start the sender thread after that.
+
+89
+00:09:24,624 --> 00:09:34,624
+在 on message 中，它从 JS 客户端接收到的任何消息都会通过 pickle 进行序列化，
+然后通过 UDP 套接字发送给 JSONROS2 converter。
+And on message, whatever message it received from JS client is going to dump by pickle,
+then send via UDP socket to JSONROS2 converter.
+
+90
+00:09:34,784 --> 00:09:42,340
+在 sender worker 线程内部，它会是一个 while 循环，
+持续监听来自 JSON ROS2 converter 的 UDP 套接字。
+Inside the sender worker thread, it will be a while loop and keep listening on UDP socket from JSON ROS2 converter.
+
+91
+00:09:42,734 --> 00:09:49,504
+然后，它接收到的任何消息都会被转换成 JSON，然后传递给 WebSocket.js 客户端。
+Then whatever message it received, it will be dumped as JSON, then pass it to WebSocket.js client.
+
+92
+00:09:49,806 --> 00:09:56,740
+JSON ROS2 converter 将使用 UDP 套接字与 BUS Python client 发送和接收消息。
+The JSON ROS2 converter will be using UDP socket to send and receive message from the BUS Python client.
+
+93
+00:09:57,166 --> 00:10:00,612
+在代码中，你可以看到发送和接收端口是相反的。
+So on the code, you could see the send receive ports are opposite.
+
+94
+00:10:01,294 --> 00:10:05,988
+这里的 send packets 对象就是我们要发送给 BUS Python 客户端的内容。
+The send packets object here is what we're going to send to the BUS Python client.
+
+95
+00:10:06,382 --> 00:10:11,664
+我们需要确保在 WebRTC 读取时，这些对象的键是匹配的。
+We need to make sure that these object keys are meshing when we read it on WebRTC.
+
+96
+00:10:11,824 --> 00:10:14,144
+然后我们可以为 ROS2 节点创建一个类。
+Then we can make a class for ROS2 node.
+
+97
+00:10:14,304 --> 00:10:23,024
+这些发布者是来自用户网页控制台的输入，比如数字、PDM 命令滑块、或者某些按钮和速度指令。
+These publishers are the input from user web console like number, PDM command slider, or some button and command velocity.
+
+98
+00:10:23,184 --> 00:10:29,344
+在订阅者方面，这个节点正在监听 ROS 主题，比如机器人状态、传感器数据。
+On the subscribers, this node is listening for a ROS topic like robot status, sensor data.
+
+99
+00:10:29,582 --> 00:10:33,156
+在这种情况下，它只是字符串格式的浮点数和布尔数据。
+In this case, it's just float in string and boolean data.
+
+100
+00:10:33,614 --> 00:10:36,804
+然后这些数据将显示在网页控制台屏幕上。
+Then this data will be showing on the web console screen.
+
+101
+00:10:37,262 --> 00:10:43,184
+所以在 ROS 回调中，我们会把 ROS 主题数据放入 send packets 对象的各个键中。
+So in the ROS callback, we will put the ROS topic data to the send packets object in each key.
+
+102
+00:10:43,344 --> 00:10:52,452
+在定时器循环中，我们持续监听来自 BUS Python 客户端的 UDP 接收套接字，
+先用 pickle 加载一次，然后再用 JSON 加载。
+Inside timer loop, we keep listening from UDP receive socket from the BUS Python client, load by pickle once, then load again by JSON.
+
+103
+00:10:52,814 --> 00:11:01,264
+在传递数据时，我们会检查诸如时间戳、输入数字、pdvm 命令、按钮状态或速度指令等键。
+Inside the pass data, we will check the key like timestamp, input number, pdvm command, button state, or command velocity.
+
+104
+00:11:01,486 --> 00:11:04,704
+对于时间戳，我们只需将其打印出来，不做任何处理。
+For timestamp, we just print it out and don't do anything.
+
+105
+00:11:05,102 --> 00:11:12,864
+对于其他键，我们将把传递的数据放入每个 ROS 发布者中，
+这样其他 ROS 节点就能看到这些输入指令了。
+For other keys, we're going to put the pass data to each ROS publisher so the other ROS node could see this input command.
+
+106
+00:11:13,038 --> 00:11:20,260
+最后，我们将 send packets 发回给 BUS Python 客户端，并进一步发送到 WebRTC。
+Then lastly, we are sending out the send packets back to the BUS Python client and to the WebRTC further.
+
+107
+00:11:20,782 --> 00:11:24,132
+这些是运行在机器人端的三个 Python 脚本。
+Those are three Python scripts running on the robot side.
+
+108
+00:11:24,526 --> 00:11:32,304
+对于信令服务器，这些注释部分是针对 HTTPS 的，下面的代码块是针对普通 HTTP 的。
+For signaling server, these comment outlines are for HTTPS and lower block is just for normal HTTP.
+
+109
+00:11:32,942 --> 00:11:36,384
+所以你可以注释掉上面的任何一个代码块，或者注释掉这个代码块。
+So you can comment out either of the above block or this block.
+
+110
+00:11:36,544 --> 00:11:47,460
+在连接事件中，如果客户端作为 offer 客户端连接，我们就把它设为 db US offer；
+如果客户端是 answer 客户端，就把它设为 BUS answer。
+On the connection even, if the client connects as offer client, then we put it
+as db US offer, or if the client is answer client, then it put as the BUS answer.
+
+111
+00:11:48,110 --> 00:11:54,212
+对于 answer 客户端，如果 offer 先到，它就会把接收到的 offer 发回给 answer。
+For answer client, if offer come first, then it will send a receive offer back to answer.
+
+112
+00:11:54,606 --> 00:11:59,376
+或者如果 answer 客户端先到，就只需将该标志设置为 answer 先到即可。
+Or if answer client came first, then just set that flag as answer came first.
+
+113
+00:11:59,854 --> 00:12:07,396
+在消息事件中，如果消息来自 offer 客户端，我们就检查它是 ping 消息还是 offer 消息。
+On message even, if the message is from the offer client, then we check that it's a ping message or offer message.
+
+114
+00:12:07,982 --> 00:12:13,380
+如果设置了 answer 先到，我们就立即把 offer 发回给 answer。
+And in case the answer comes first is set, then we send the offer back to answer immediately.
+
+115
+00:12:14,062 --> 00:12:21,412
+但如果消息来自 answer 客户端且 offer 已经到了，我们就把 answer 发回给 offer 客户端。
+But if the message is from answer client and offer is already here, then we send answer back to the offer client.
+
+116
+00:12:22,094 --> 00:12:29,124
+在关闭事件中，如果 offer 客户端关闭，就将其设为当前时间并关闭 WebSocket。
+On close event, if the offer client is closed then just set it as now and close the web socket.
+
+117
+00:12:29,710 --> 00:12:33,696
+类似地，如果 answer 客户端关闭，也将其设为当前时间。
+Similar if the answer client is closed then just set it as now.
+
+118
+00:12:34,190 --> 00:12:42,976
+但如果 offer 客户端还没关闭，它会把重启 offer 发回给 offer 客户端，
+告知它 answer 客户端已经断开。
+But if the offer client hasn't closed yet, it will send restart offer
+back to offer client to let it know that the answer client is gone now.
+
+119
+00:12:43,214 --> 00:12:47,812
+还有一个循环，就是为了检查在 offer 未正常关闭的情况。
+And there is a loop just to check the in case of the offer is not closed properly.
+
+120
+00:12:48,206 --> 00:12:54,020
+如果信令服务器收不到来自 offer 客户端的任何信息，它就会关闭所有的 WebSocket。
+The signaling server will not receive anything from the offer client, then it will close all the web sockets.
+
+121
+00:12:54,336 --> 00:13:00,096
+接下来，一旦 offer 对端启动，它就会启动 WebSocket 连接到信令服务器。
+Next, once the offer peer is started, it will start WebSocket to connect with signaling server.
+
+122
+00:13:00,270 --> 00:13:03,376
+所以它将从打开 offer.html 开始。
+So it will start by open up offer.html.
+
+123
+00:13:03,536 --> 00:13:10,816
+这个页面非常简单，只需导入 offer 和 main offer.js 脚本，只有一个显示视频的框。
+This page is very simple, just import offer and main offer.js scripts and has only a video box showing.
+
+124
+00:13:10,976 --> 00:13:12,496
+这是 offer.js。
+Here is offer.js.
+
+125
+00:13:12,816 --> 00:13:15,856
+我们在顶部定义了 WebRTC 变量。
+We have defined WebRTC variables on top here.
+
+126
+00:13:16,110 --> 00:13:19,056
+接下来，我们创建 WebSocket 作为 offer 客户端。
+Next, we create WebSocket as offer client.
+
+127
+00:13:19,534 --> 00:13:23,300
+所以我们需要指定信令服务器的 URL。
+So we need to specify the URL of signaling server.
+
+128
+00:13:23,822 --> 00:13:29,188
+之后，它还会启动一个 WebSocket 本地客户端作为 BOS 本地端。
+After that, it will also start a WebSocket local client as the BOS local.
+
+129
+00:13:29,614 --> 00:13:33,136
+这是为了与本地的 data server.py 进行通信。
+This is to communicate with the local data server.py.
+
+130
+00:13:33,422 --> 00:13:36,772
+所以我们需要取消注释这一行，以允许数据通信。
+So we need to uncomment this to allow data communication.
+
+131
+00:13:37,294 --> 00:13:49,444
+你可以看到在消息事件中，无论它从 BOS 本地 WebSocket 接收到什么，
+它都会使用 WebRTC 数据通道将其进一步发送，这意味着数据将传递到 Web 控制台。
+You could see on message event, whatever it received from the BOS local WebSocket, it will use WebRTC data channel to send it further,
+meaning the data will be passed through to the web console.
+
+132
+00:13:50,158 --> 00:13:57,616
+因为 offer 页面是在机器人端运行的，所以我们需要初始化摄像头或麦克风等媒体设备。
+And because offer page is running on the robot side, we need to initialize the media device like camera or microphone.
+
+133
+00:13:57,776 --> 00:14:02,116
+在代码中，其中的媒体设备会检查可用设备。
+On the code, media device in it will check on the available devices.
+
+134
+00:14:02,606 --> 00:14:14,256
+所以如果我想使用特定的摄像头，例如名称为 fake device 的，
+那么我会检查每个设备的标签并返回正确的设备 ID。
+So in case if I would like to use a specific camera, for example, with the name as fake device,
+then I will check the label of each device and return the correct device ID.
+
+135
+00:14:14,542 --> 00:14:18,736
+获取到摄像头的设备 ID 后，将其放入约束对象中。
+After got device ID of camera, then put it as constraint object.
+
+136
+00:14:18,896 --> 00:14:25,936
+如果没有麦克风，就把音频设为 false，然后我们可
+以使用 getUserMedia 配合约束条件来打开摄像头。
+If no microphone, then put audio as false, and we can use getUserMedia with the constraint to open the camera.
+
+137
+00:14:26,096 --> 00:14:28,016
+最后，我们调用 create offer。
+In the end, we call create offer.
+
+138
+00:14:28,336 --> 00:14:36,016
+之后，create offer 将使用 SDP 数据，例如在 WebRTC 中将使用哪些媒体设备。
+After that, create offer will be using an SDP data, for example, what media device will be used in WebRTC.
+
+139
+00:14:36,654 --> 00:14:43,936
+在函数内部，它将创建 peer connection 并创建自己的 offer，然后发送到信令服务器。
+Inside the function, it will create peer connection and create its own offer, then send to signaling server.
+
+140
+00:14:44,270 --> 00:14:51,812
+对于 create peer connection 函数，它将使用提供
+的 stun turn 服务器来创建 RTC peer connection。
+For create peer connection function, it will create RTC peer connection by using provided stunt turn server.
+
+141
+00:14:52,366 --> 00:14:56,260
+我们可以使用 Google 的免费服务器，也可以使用我们自己的。
+We can use the free one from Google or we can use our own.
+
+142
+00:14:56,686 --> 00:14:58,416
+所以只需在这里指定即可。
+So just specify it here.
+
+143
+00:14:58,894 --> 00:15:01,220
+对于本地测试，我们不需要指定它。
+For local test, we don't need to specify it.
+
+144
+00:15:01,710 --> 00:15:11,456
+然后如果有本地视频，我们会把它放在本地视频上，我们会
+从本地流中获取轨道并将其添加到 peer connection 中。
+Then if there is a limode video, we will put it on the local video and we're
+going to get track from local stream and add track to the peer connection.
+
+145
+00:15:11,950 --> 00:15:13,796
+接着创建数据通道。
+Then data channel is created.
+
+146
+00:15:14,318 --> 00:15:21,376
+如果从 WebRTC 数据通道收到消息，我们只需将其传递到 WS 本地 WebSocket。
+And if there is message coming from WebRTC Data Channel, we just pass through it to the WS local web socket.
+
+147
+00:15:21,696 --> 00:15:32,816
+最后，ICE 候选者（即 WebRTC 连接的优化路径）可能会更新，
+我们希望将最新的 ICE 发送到信令服务器。
+And at the end, the ICE candidate, which is the optimized path for WebRTC connection, could be updated,
+and we would like to send the latest ICE to the signaling server.
+
+148
+00:15:33,102 --> 00:15:39,716
+在这里的图表中，你可以看到 SDP 和更新后的 ICE 候选者都被发送到了信令服务器。
+On the diagram here, you could see both of SDP and updated ICE candidate sent to the signaling server.
+
+149
+00:15:40,718 --> 00:15:48,292
+所以一旦 Web 控制台或 answer peer 启动，它将作为
+AnswerClient 通过 WebSocket 连接到信令服务器。
+So once Web Console or answer peer is started, it will connect with Signaling Server by WebSocket as AnswerClient.
+
+150
+00:15:48,974 --> 00:15:53,828
+在这里的代码中，我们需要确保信令服务器的 URL 是正确的。
+On the code here, we need to make sure the URL of Signaling Server is correct.
+
+151
+00:15:54,478 --> 00:16:01,124
+在消息事件中，如果消息是 alive，那应该是来自 offer 客户端的 offer。
+On message event, if the message is alive, that is supposed to be an offer from offer client.
+
+152
+00:16:01,582 --> 00:16:08,932
+然后如果创建的 answer 为 false，我们将运行 start connect，并稍微延迟 3 秒。
+Then if created answer is false, we are going to run start connect with a bit delay of 3 seconds.
+
+153
+00:16:09,806 --> 00:16:11,984
+下一步是创建回答。
+Next step is to create answer.
+
+154
+00:16:12,590 --> 00:16:15,140
+这个流程基本上和创建提议是一样的。
+The sequence is pretty much same as offer.
+
+155
+00:16:15,630 --> 00:16:23,428
+所以开始创建 peer 连接，生成它自己的 SDP 和 ICE，然后发回给信令服务器。
+So start create peer connection and make its own SDP and Ice, then send it back to signaling server.
+
+156
+00:16:24,270 --> 00:16:30,084
+在图示中，提议端会收到回答，然后将其添加到 peer 连接中。
+On the diagram here, offer will receive answer, then it will add answer to peer connection.
+
+157
+00:16:30,574 --> 00:16:37,668
+在回答端的创建 peer 连接中，只需像之前一样启动与服务器的 RTC peer 连接。
+Inside create peer connection of answer, just start RTC peer connection with server, same as before.
+
+158
+00:16:38,126 --> 00:16:42,692
+现在我们这里的远程流就是机器人的视频流。
+Then now the remote stream we have here is the robot video streaming.
+
+159
+00:16:43,246 --> 00:16:49,984
+我们将流放入机器人的视频源对象中，也就是网页控制台上的 DOM 元素。
+We're going to put the stream to the robot video source object, which is the DOM element on the web console.
+
+160
+00:16:50,190 --> 00:16:55,204
+在 DataChannel 上，我们将接收 WebRTC 数据的标志设置为 true。
+On DataChannel, we set the flag as receive data web RTC as true.
+
+161
+00:16:55,886 --> 00:17:02,628
+我们知道收到的消息是 JSON 对象，所以我们可以解析它并获取每个键对应的数据。
+Then we know that the message coming is JSON object, so we can pass it and get data from each key.
+
+162
+00:17:03,118 --> 00:17:10,788
+所以需要确保传递的键与这里 JSON ROS2 转换器发送数据包的键是一致的。
+So need to make sure that the key are passing is same as the key of send packets from JSON ROS2 converter here.
+
+163
+00:17:11,534 --> 00:17:17,424
+一旦 WebRTC 连接建立，这就是一个点对点的连接。
+Once the WebRTC connection is established, this will be a through peer-to-peer connection.
+
+164
+00:17:17,678 --> 00:17:27,556
+来自网页控制台的输入命令将从回答端发送到提议端，通过
+机器人内部的本地 WebSocket 传递，并构建成 ROS 话题。
+Input command from Web Console will be sent from answer to offer and pass
+through local web socket inside the robot and construct as ROS topic.
+
+165
+00:17:27,824 --> 00:17:40,144
+反之，机器人的数据或传感器数据将从本地 WebSocket 发送到提议端，
+然后通过 WebRTC 数据通道传到回答端，并在屏幕上显示。
+Vice versa, the robot's data or sensor data will be sent from local web socket to offer,
+then pass through answer via WebRTC data channel and display on screen.
+
+166
+00:17:40,304 --> 00:17:43,172
+接下来，我们就在本地机器上做一些测试。
+Next, let's do some tests on the local machine.
+
+167
+00:17:43,566 --> 00:17:49,188
+首先，我们启动信令服务器，然后是本地数据服务器和 BS Python 客户端。
+First, we start signaling server, then local data server and the BS Python client.
+
+168
+00:17:49,710 --> 00:17:55,204
+然后在终端里，我们配置 ROS 环境并运行 JSON ROS2 转换器。
+Then on for terminal, we source ROS environment and run JSON ROS2 converter.
+
+169
+00:17:55,854 --> 00:17:58,340
+然后打开 offer.html。
+Then open up offer.html.
+
+170
+00:17:58,990 --> 00:18:05,104
+你可以看到一个虚构的视频框显示出来，信令服务器正在接收来自提议端的 ping 消息。
+You could see a dummy video box showing and signaling server is getting ping message from offer.
+
+171
+00:18:05,838 --> 00:18:10,564
+如果在浏览器控制台查看，你会看到打印出来的 SDP 提议。
+If check on the browser console, you will see SDP offer printing out.
+
+172
+00:18:11,758 --> 00:18:20,164
+然后在新标签页中，我们在回答端打开网页控制台，等待几秒钟直到 WebRTC 连接建立。
+Then on the new tab, we open Web Console on the answer peer, Wait a couple seconds until the WebRTC is established.
+
+173
+00:18:20,622 --> 00:18:23,396
+然后你就能在网页控制台上看到视频流了。
+Then you could see the video streaming on web console.
+
+174
+00:18:24,462 --> 00:18:30,116
+在第五个终端，我们可以运行 ROS 来对 web number 话题进行 echo。
+On the fifth terminal, we can run ROS to topic echo on web number topic.
+
+175
+00:18:30,542 --> 00:18:37,028
+然后在网页控制台上，我们可以更改数字并按回车键，将其发送回 ROS 环境。
+Then on web console, we can change the number and press enter to send this back to ROS environment.
+
+176
+00:18:37,934 --> 00:18:45,188
+如果我们对 web button 话题进行 echo，当你按下绿色按钮时，你会看到状态一直在切换。
+If we echo on the web button topic, then you could see the state keep toggle when pressing on green button.
+
+177
+00:18:46,254 --> 00:18:55,812
+如果我们对 web PWM 命令话题进行 echo，并且滑动
+滑块，数值就会变化，我们可以用它来控制舵机电机。
+If we echo on the web PWM command topic and slide on the slider, the value will be changing so we can use to control the servo motors.
+
+178
+00:18:57,806 --> 00:19:02,276
+至于 nipple 摇杆，我们可以在 command velocity 话题上进行 echo。
+And for nipple joystick, we can echo on the command velocity topic.
+
+179
+00:19:02,734 --> 00:19:08,868
+这样，linear X 和 Angular 的值就会根据摇杆的位置而改变。
+So the value of linear X and Angular set will be changed according to joystick position.
+
+180
+00:19:09,230 --> 00:19:11,460
+我们可以用这个来远程操控机器人。
+We can use this to teleopt the robot.
+
+181
+00:19:12,590 --> 00:19:18,084
+关于机器人状态，在这种情况下，我们有浮点数、整数、字符串和布尔值消息。
+For robot status, in this case we have float integer, string, and boolean message.
+
+182
+00:19:18,702 --> 00:19:24,304
+所以我们可以从 ROS 中逐一发布这些信息，然后它们就会显示在网页控制台上。
+So we can publish this from ROS one by one, then it will be showing on the web console.
+
+183
+00:19:24,814 --> 00:19:26,788
+这就像是机器人的遥测数据。
+It's like a robot telemetry data.
+
+184
+00:19:29,518 --> 00:19:37,284
+我这里布置了一个小型巡检车，我将使用这个 ATC Mob ROS 板来控制这个轮式模型。
+I have a small rover set up here, and I'm going to control this wheel model by using this ATC Mob ROS board.
+
+185
+00:19:37,710 --> 00:19:43,460
+如果你不知道这是什么，可以从描述栏的链接查看关于这个板子的更多细节。
+If you don't know what is it you can check more detail about this board from the link in the description.
+
+186
+00:19:44,174 --> 00:19:59,236
+板子上连接了一个小型微型舵机，还有 Wi-Fi 路由器，树莓派 5 作为机器人电脑，
+还有 USB 网络摄像头、直流稳压器，所有设备都由这块电池供电。
+We have a small micro servo connect on the board and the Wi-Fi router and the Raspberry Pi 5 as a robot computer and USB web camera
+and DC DC regulator and everything is powered from this single battery.
+
+187
+00:20:00,046 --> 00:20:03,652
+在机器人的第一个终端，我运行 Micro ROS agent。
+On robot first terminal, I run Micro ROS agent.
+
+188
+00:20:04,174 --> 00:20:09,636
+第二个终端是带有 Well Odom 转换器的 CMO app UROS 工具。
+Then second terminal is CMO app UROS utils with Well Odom converter.
+
+189
+00:20:10,350 --> 00:20:12,644
+第三个终端是信令服务器。
+Third terminal is signaling server.
+
+190
+00:20:13,326 --> 00:20:15,908
+第四个终端是本地数据服务器。
+Fourth terminal is local data server.
+
+191
+00:20:16,302 --> 00:20:19,364
+第五个终端是 BUS Python 客户端。
+And fifth terminal is the BUS Python client.
+
+192
+00:20:20,238 --> 00:20:24,048
+然后在 JSON ROS2 转换器上，我需要修改一些内容。
+Then on JSON ROS2 converter, I need to modify something.
+
+193
+00:20:24,208 --> 00:20:31,460
+所以我给 CMO app 服务器命令添加了一个发布者，这样我们就可以从网页控制台控制服务器了。
+So I add a publisher to the CMO app server command so we can control the server from the web console.
+
+194
+00:20:32,398 --> 00:20:35,108
+现在信令服务器已经在机器人上了。
+And now the signaling server is on the robot.
+
+195
+00:20:35,470 --> 00:20:41,220
+所以在 Answer.js 中，我需要把 WebSocket URL 修改为机器人的 IP。
+So on Answer.js, I need to change WebSocket URL to the robot IP.
+
+196
+00:20:42,062 --> 00:20:46,340
+现在我们准备好在 6 个终端上运行 JSON ROS2 转换器了。
+Then we are ready to run JSON ROS2 converter on the 6 terminal.
+
+197
+00:20:47,182 --> 00:20:51,648
+然后我们可以第一次在 Chromium 浏览器中打开页面。
+Then we can start off a page from the Chromium browser for the first time.
+
+198
+00:20:51,982 --> 00:20:57,252
+我们需要点击授予浏览器访问摄像头和麦克风的权限。
+We need to click on the given a permission for browser to access camera and microphone.
+
+199
+00:20:58,158 --> 00:21:07,972
+在我的笔记本电脑浏览器上，我可以访问机器人的 IP，然后我可以看到显示的网页控制台，
+还能看到机器人网络摄像头的视频流。
+On my laptop browser, I can access to robot IP, then I can see the web
+console showing and also the video streaming from robot web camera.
+
+200
+00:21:09,038 --> 00:21:12,484
+我们可以滑动滑块来控制服务器位置
+We can slide on the slider to control the server position
+
+201
+00:21:16,302 --> 00:21:19,940
+还可以发送速度命令来控制轮子的电机。
+and also send command velocity to control the wheel's motors.
+
+202
+00:21:27,630 --> 00:21:32,100
+现在我把所有东西都装到机器人上，准备在地面上运行。
+Now I put everything onto the robot and ready to run on the ground.
+
+203
+00:21:32,494 --> 00:21:35,684
+我只需要按下这个电源按钮开机。
+I just need to push this power button to turn on.
+
+204
+00:21:37,070 --> 00:21:42,660
+这里我用 iPad 连接机器人的 Wi-Fi，我可以看到显示的网页控制台。
+Here I use my iPad to connect to robot Wi-Fi and I could see the web console showing.
+
+205
+00:21:43,054 --> 00:21:46,020
+现在我们可以通过屏幕上的摇杆来移动机器人。
+Now we can move the robot by joystick on the screen.
+
+206
+00:22:05,090 --> 00:22:13,090
+在局域网环境下，我可以说明这是实时的控制，没有视频卡顿，而且控制摇杆也非常灵敏。
+With the local network I could say this is a real-time control without video lagging and the control joystick is also responsive.
+
+207
+00:22:43,200 --> 00:22:45,720
+这就是今天的视频内容，希望你们喜欢。
+And that's for today videos I hope you guys like it.
+
+208
+00:22:45,870 --> 00:22:51,648
+我向你们展示的是我们可以使用 WebRTC 进行机器人远程操控的方法之一。
+What I have shown to you is one of the method that we can use WebRTC to do the robot teleoperation.
+
+209
+00:22:51,822 --> 00:23:01,088
+还有一些话题，比如如何设置 STUN 或 TURN 服务器，如何在
+真实服务器上部署这个网页控制台，以及如何实现双向通信。
+There is also some topic like how to set up a stun or turn server, how to serve
+this web console on the real server, and how to make it two-way communications.
+
+210
+00:23:01,294 --> 00:23:05,968
+我打算把这些内容放在下一个视频里，所以请期待下一集。
+I'm thinking to put those content for the next video, so please stay tuned for the next episode.
+
+211
+00:23:06,190 --> 00:23:08,688
+WebRTC 模板是一个公开项目。
+The WebRTC template is a public project.
+
+212
+00:23:08,768 --> 00:23:11,408
+你可以在下面的描述栏中查看 GitHub 链接。
+You can check out the GitHub link in the description below.
+
+213
+00:23:11,568 --> 00:23:18,564
+如果你喜欢这类视频，或者从这个视频中收获了有用的内容，请别忘了点赞和分享按钮。
+If you like this kind of video or you found something useful from this video, please don't forget to press like and share buttons.
+
+214
+00:23:18,766 --> 00:23:22,980
+或者如果你想支持我的频道，这里还有一个超级感谢按钮。
+Or if you would like to support my channel, there is also a super thanks button.
+
+215
+00:23:23,214 --> 00:23:24,928
+那对我来说就是很好的动力。
+That would be a good energy for me.
+
+216
+00:23:25,038 --> 00:23:32,368
+或者你可以点击加入按钮成为本频道的会员，这样你就可以访问我的一些私有 GitHub 仓库。
+Or you can be a membership of this channel by clicking on join button
+so you can have an access to some of my private GitHub repository.
+
+217
+00:23:32,528 --> 00:23:36,928
+感谢观看，请期待下一集，我们下次见。
+So thank you for watching and stay tuned for the next episode and see you soon.
+

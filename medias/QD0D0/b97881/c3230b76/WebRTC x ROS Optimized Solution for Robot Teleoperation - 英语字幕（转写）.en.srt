@@ -1,0 +1,860 @@
+1
+00:00:00,046 --> 00:00:02,160
+Hi guys, this is Rashid and welcome back.
+
+2
+00:00:02,320 --> 00:00:11,840
+Today is one of the topics that some of my viewers have been asking to do how to control the robot over the internet, or in another term, the robot teleoperation.
+
+3
+00:00:12,014 --> 00:00:22,948
+That means your robot is placing somewhere and you are in somewhere else, and you want to control the robot passing all the network and you expect to have the video streaming and the data displaying.
+
+4
+00:00:23,278 --> 00:00:26,960
+I have made a robot teleoperation before, like two years ago.
+
+5
+00:00:27,200 --> 00:00:44,400
+At that time I was using a ROS2 middleware called CENOR, which is working time to time, but from my experience and the real use case from customer, I found that the most simplest and most reliable and less complicated is to use browser-based WebRTC.
+
+6
+00:00:44,590 --> 00:00:48,612
+If you want to know why and how I do it, so let's get started.
+
+7
+00:00:48,974 --> 00:01:03,280
+As a traditional old school custom UDP or WebSocket communication, you will need to launch a server machine somewhere, and your robot and your web console GUI will need to talk with the server first in order to send or receive data.
+
+8
+00:01:03,440 --> 00:01:09,120
+And yes, this method also works, but the problem is high latency or it's too slow.
+
+9
+00:01:09,390 --> 00:01:13,520
+And how about the Cinol ROS2 middleware that I mentioned in the first place?
+
+10
+00:01:13,680 --> 00:01:19,360
+And yes, it's one of the good technology that you can use and send ROS2 message over the internet.
+
+11
+00:01:19,886 --> 00:01:21,920
+If you haven't tried, please check it out.
+
+12
+00:01:22,126 --> 00:01:26,880
+And there is some demo that's showing you can have a video and a control on the robot.
+
+13
+00:01:27,118 --> 00:01:34,800
+I've been using CNO for a while, but there are some requests that keep coming like the video is quite laggy, can you make it much faster?
+
+14
+00:01:35,022 --> 00:01:39,520
+Can I open the camera from my phone or iPad to display my face on the robot?
+
+15
+00:01:39,694 --> 00:01:43,360
+Can I talk with people near the robot or hear sound from the robot side?
+
+16
+00:01:43,662 --> 00:01:49,124
+An end-user computer is not Linux, just only Windows, they want something easy to use.
+
+17
+00:01:49,870 --> 00:01:53,412
+Then I think the better solution is to use WebRTC.
+
+18
+00:01:53,966 --> 00:02:01,188
+With the same system, you have robot at the field and your computer in Office Network and Signaling Server on the cloud.
+
+19
+00:02:01,486 --> 00:02:13,444
+At first, the robot will send offer of SDP and ICE to signaling server, and once your computer accesses the web console, it will send answer of SDP and ICE to signaling server as well.
+
+20
+00:02:14,126 --> 00:02:17,440
+Those SDP and ICE will be exchanged for each peer.
+
+21
+00:02:17,582 --> 00:02:23,360
+Then after established, the peer will see each other, and then there is no need for signaling server anymore.
+
+22
+00:02:23,630 --> 00:02:35,920
+If you would like to learn more about WebRTC, I pretty recommend on these videos how does WebRTC work, Crash Course from Dennis Ivey, and WebRTC Crash Course from Hussain Nasser.
+
+23
+00:02:36,160 --> 00:02:38,372
+They have done a pretty good job for explaining.
+
+24
+00:02:38,894 --> 00:02:41,700
+So, why browser-based WebRTC?
+
+25
+00:02:42,094 --> 00:02:46,560
+Somebody will say, hey, there is also Python AIORTC.
+
+26
+00:02:46,766 --> 00:02:50,800
+Yes, of course, AIORTC Python package is another option.
+
+27
+00:02:51,118 --> 00:02:54,852
+It can create WebRTC peer and handle the WebRTC session.
+
+28
+00:02:55,054 --> 00:03:07,200
+You can run this on the robot side as one peer, but again, if your web console side can only run web browser, you will need to implement an original HTML JavaScript WebRTC anyway.
+
+29
+00:03:07,406 --> 00:03:22,480
+So instead of you going to head 8 on both Python WebRTC from AIORTC and JavaScript WebRTC from Google, you just need to know only JavaScript WebRTC because it could run on both robot side and web console side.
+
+30
+00:03:22,640 --> 00:03:32,800
+To conclude, why I prefer to use browser-based WebRTC, because first, it could run on mostly any computer, any OS which has a web browser.
+
+31
+00:03:32,960 --> 00:03:38,000
+You don't need to worry about dependencies or install extra packages, just the web browser.
+
+32
+00:03:38,160 --> 00:03:43,972
+Second, it's easy to expand, as said earlier, not even just control the robot remotely.
+
+33
+00:03:44,270 --> 00:03:51,712
+If you need to stream your video and talk with others near a robot, Implementing those things on JavaScript is not a hassle at all.
+
+34
+00:03:51,918 --> 00:04:00,592
+Third, if you don't know your robot public IP or is behind that, or you don't know what is DDS, QOS, etc.
+
+35
+00:04:01,198 --> 00:04:06,672
+So with WebRTC, you don't need to care much about that because it's designed to handle it for you.
+
+36
+00:04:06,832 --> 00:04:13,152
+For the browser-based WebRTC video is optimized and it has adaptive bitrate control.
+
+37
+00:04:13,518 --> 00:04:22,912
+For example, if your network is not good, so instead of keep displaying 4K video, it will become low value solution and allow you to see the video in real time.
+
+38
+00:04:23,118 --> 00:04:24,992
+So your latency is quite stable.
+
+39
+00:04:25,152 --> 00:04:31,712
+Also for data channel, it's implemented based on UDP, so data packet will arrive right on time.
+
+40
+00:04:31,872 --> 00:04:42,432
+And lastly, you could get rid of expose ROS message to the outside world, just keep ROS in local network and let WebRTC handle for global network communication.
+
+41
+00:04:42,734 --> 00:04:51,472
+Before going too far, I would like to remind you that this browser-based WebRTC method is just one of the idea that I think is good for my application.
+
+42
+00:04:51,822 --> 00:04:55,312
+There is no right or wrong or which one is better than which one.
+
+43
+00:04:55,598 --> 00:04:59,588
+It just depends on your background experiences that which one is best for you.
+
+44
+00:05:00,270 --> 00:05:03,072
+And this video is sponsored by PCB Way.
+
+45
+00:05:03,502 --> 00:05:16,004
+PCB Way provides you a service not only making a PCB, they also specialize on CNC machining from simple to complicated design and 3D printing from variety of filaments you can choose.
+
+46
+00:05:16,462 --> 00:05:31,908
+For example, flexible material or TPU or transparent material, which I think is really cool for some products, or many tough materials better than PLA, which could be used for high temperature, outdoor or daily usage product.
+
+47
+00:05:32,558 --> 00:05:39,140
+Also, one of my favorite is the laser cutting on carbon fiber plate, which is good for robot prototyping.
+
+48
+00:05:39,630 --> 00:05:43,364
+It's for a lightweight but still strong and just a simple design.
+
+49
+00:05:44,014 --> 00:05:53,348
+I've been using PCB Wave for a couple of times when I need a rapid prototype of the PCB or a hardware manufacturing like this carbon fiber plate.
+
+50
+00:05:54,030 --> 00:05:58,272
+So don't let your project just in mind or just a file in the computer.
+
+51
+00:05:58,574 --> 00:06:02,148
+You can check on PCB services and try it out for your next project.
+
+52
+00:06:02,766 --> 00:06:04,272
+So it's too much of talking.
+
+53
+00:06:04,432 --> 00:06:07,428
+Let me show you the WebRTC template that I have made.
+
+54
+00:06:08,174 --> 00:06:11,428
+This is a GitHub repository for WebRTC template.
+
+55
+00:06:11,854 --> 00:06:13,860
+You can have a look from this URL link.
+
+56
+00:06:14,158 --> 00:06:16,100
+It's public and free to download.
+
+57
+00:06:16,430 --> 00:06:19,364
+So the file structures are shown in this picture.
+
+58
+00:06:19,758 --> 00:06:35,952
+So we have some part that related directly to WebRTC starts from console.html, answer.js, mainanswer.js, offer.js, main offer.js, signalingserver.js, and offer.html.
+
+59
+00:06:36,112 --> 00:06:46,032
+And lastly, there are Python scripts that has to be running on the robot, json ros2 converter.py, local data server.py, ws python client.py.
+
+60
+00:06:46,192 --> 00:06:52,112
+The main role of this file is to convert and exchange data from WebRTC to ROS message.
+
+61
+00:06:52,334 --> 00:06:55,300
+Here is the overview where the code should be running.
+
+62
+00:06:55,598 --> 00:07:04,132
+So on the robot side, there is ROS2 node running, for example, like your laser scanner, motor driver, reading sensor data, and so on.
+
+63
+00:07:04,814 --> 00:07:15,872
+And another three Python scripts from this WebRTC template folder, and the robot will be running web browser from offer.html and offer.js and main offer.js will be calling.
+
+64
+00:07:16,032 --> 00:07:25,712
+On the cloud or server side, signaling server.js has to be running at first, and this server is hosting a web console as console.html.
+
+65
+00:07:25,966 --> 00:07:31,492
+Then on user PC, they can use any web browser to access the cloud server domain name.
+
+66
+00:07:31,886 --> 00:07:36,868
+Then they could see the web console on the screen and able to control the robot from this computer.
+
+67
+00:07:37,326 --> 00:07:41,348
+Then I'm going to show you what's going to happen to make this thing work.
+
+68
+00:07:41,870 --> 00:07:50,724
+First, on the robot side, the local data server, the built Python client and JSON ROS2 converter will be running and also your ROS2 node.
+
+69
+00:07:51,312 --> 00:07:59,232
+Here, if we look on the code of local dataserver.py, first make sure to install WebSockets with 10.4 version.
+
+70
+00:07:59,342 --> 00:08:02,628
+The local WebSocket port is on 8888.
+
+71
+00:08:03,246 --> 00:08:07,940
+And if we look down here, we will start a WebSocket server as localhost.
+
+72
+00:08:08,686 --> 00:08:11,744
+With the echo function, and this will be running forever.
+
+73
+00:08:11,982 --> 00:08:18,244
+Inside echo function, there will be to the build sjs and the buzz Python, which are two clients.
+
+74
+00:08:18,798 --> 00:08:23,424
+So once each client is connected, the server can know it from the ending path.
+
+75
+00:08:23,584 --> 00:08:31,556
+The concept here is simple whatever message from Python client receive it will send to JS client and vice versa.
+
+76
+00:08:31,950 --> 00:08:35,236
+Meaning each client will receive a message from another client.
+
+77
+00:08:35,822 --> 00:08:38,304
+That's it for the local data server WebSocket.
+
+78
+00:08:38,574 --> 00:08:41,184
+Next, what does the WS Python client do?
+
+79
+00:08:41,344 --> 00:08:47,824
+Is if we check on the code again, first make sure to install WebSocket client version 1.4.2.
+
+80
+00:08:48,174 --> 00:08:51,844
+On top here, we define the UDP socket for receive and send.
+
+81
+00:08:52,366 --> 00:08:57,380
+These sockets are used between WS Python client and JSROS2 converter.
+
+82
+00:08:57,902 --> 00:09:04,740
+And this is a WebSocket URL client ending with Python client, so the WebSocket server could recognize this.
+
+83
+00:09:04,944 --> 00:09:08,356
+And down here, there is send thread as global valuable.
+
+84
+00:09:08,654 --> 00:09:15,824
+We're going to start WebSocket app with these events for on message, on open, on error and on close.
+
+85
+00:09:16,270 --> 00:09:18,544
+We have sender worker as another thread.
+
+86
+00:09:18,704 --> 00:09:24,464
+On open event, once the web socket is open, then we start the sender thread after that.
+
+87
+00:09:24,624 --> 00:09:34,624
+And on message, whatever message it received from JS client is going to dump by pickle, then send via UDP socket to JSONROS2 converter.
+
+88
+00:09:34,784 --> 00:09:42,340
+Inside the sender worker thread, it will be a while loop and keep listening on UDP socket from JSON ROS2 converter.
+
+89
+00:09:42,734 --> 00:09:49,504
+Then whatever message it received, it will be dumped as JSON, then pass it to WebSocket.js client.
+
+90
+00:09:49,806 --> 00:09:56,740
+The JSON ROS2 converter will be using UDP socket to send and receive message from the BUS Python client.
+
+91
+00:09:57,166 --> 00:10:00,612
+So on the code, you could see the send receive ports are opposite.
+
+92
+00:10:01,294 --> 00:10:05,988
+The send packets object here is what we're going to send to the BUS Python client.
+
+93
+00:10:06,382 --> 00:10:11,664
+We need to make sure that these object keys are meshing when we read it on WebRTC.
+
+94
+00:10:11,824 --> 00:10:14,144
+Then we can make a class for ROS2 node.
+
+95
+00:10:14,304 --> 00:10:23,024
+These publishers are the input from user web console like number, PDM command slider, or some button and command velocity.
+
+96
+00:10:23,184 --> 00:10:29,344
+On the subscribers, this node is listening for a ROS topic like robot status, sensor data.
+
+97
+00:10:29,582 --> 00:10:33,156
+In this case, it's just float in string and boolean data.
+
+98
+00:10:33,614 --> 00:10:36,804
+Then this data will be showing on the web console screen.
+
+99
+00:10:37,262 --> 00:10:43,184
+So in the ROS callback, we will put the ROS topic data to the send packets object in each key.
+
+100
+00:10:43,344 --> 00:10:52,452
+Inside timer loop, we keep listening from UDP receive socket from the BUS Python client, load by pickle once, then load again by JSON.
+
+101
+00:10:52,814 --> 00:11:01,264
+Inside the pass data, we will check the key like timestamp, input number, pdvm command, button state, or command velocity.
+
+102
+00:11:01,486 --> 00:11:04,704
+For timestamp, we just print it out and don't do anything.
+
+103
+00:11:05,102 --> 00:11:12,864
+For other keys, we're going to put the pass data to each ROS publisher so the other ROS node could see this input command.
+
+104
+00:11:13,038 --> 00:11:20,260
+Then lastly, we are sending out the send packets back to the BUS Python client and to the WebRTC further.
+
+105
+00:11:20,782 --> 00:11:24,132
+Those are three Python scripts running on the robot side.
+
+106
+00:11:24,526 --> 00:11:32,304
+For signaling server, these comment outlines are for HTTPS and lower block is just for normal HTTP.
+
+107
+00:11:32,942 --> 00:11:36,384
+So you can comment out either of the above block or this block.
+
+108
+00:11:36,544 --> 00:11:47,460
+On the connection even, if the client connects as offer client, then we put it as db US offer, or if the client is answer client, then it put as the BUS answer.
+
+109
+00:11:48,110 --> 00:11:54,212
+For answer client, if offer come first, then it will send a receive offer back to answer.
+
+110
+00:11:54,606 --> 00:11:59,376
+Or if answer client came first, then just set that flag as answer came first.
+
+111
+00:11:59,854 --> 00:12:07,396
+On message even, if the message is from the offer client, then we check that it's a ping message or offer message.
+
+112
+00:12:07,982 --> 00:12:13,380
+And in case the answer comes first is set, then we send the offer back to answer immediately.
+
+113
+00:12:14,062 --> 00:12:21,412
+But if the message is from answer client and offer is already here, then we send answer back to the offer client.
+
+114
+00:12:22,094 --> 00:12:29,124
+On close event, if the offer client is closed then just set it as now and close the web socket.
+
+115
+00:12:29,710 --> 00:12:33,696
+Similar if the answer client is closed then just set it as now.
+
+116
+00:12:34,190 --> 00:12:42,976
+But if the offer client hasn't closed yet, it will send restart offer back to offer client to let it know that the answer client is gone now.
+
+117
+00:12:43,214 --> 00:12:47,812
+And there is a loop just to check the in case of the offer is not closed properly.
+
+118
+00:12:48,206 --> 00:12:54,020
+The signaling server will not receive anything from the offer client, then it will close all the web sockets.
+
+119
+00:12:54,336 --> 00:13:00,096
+Next, once the offer peer is started, it will start WebSocket to connect with signaling server.
+
+120
+00:13:00,270 --> 00:13:03,376
+So it will start by open up offer.html.
+
+121
+00:13:03,536 --> 00:13:10,816
+This page is very simple, just import offer and main offer.js scripts and has only a video box showing.
+
+122
+00:13:10,976 --> 00:13:12,496
+Here is offer.js.
+
+123
+00:13:12,816 --> 00:13:15,856
+We have defined WebRTC variables on top here.
+
+124
+00:13:16,110 --> 00:13:19,056
+Next, we create WebSocket as offer client.
+
+125
+00:13:19,534 --> 00:13:23,300
+So we need to specify the URL of signaling server.
+
+126
+00:13:23,822 --> 00:13:29,188
+After that, it will also start a WebSocket local client as the BOS local.
+
+127
+00:13:29,614 --> 00:13:33,136
+This is to communicate with the local data server.py.
+
+128
+00:13:33,422 --> 00:13:36,772
+So we need to uncomment this to allow data communication.
+
+129
+00:13:37,294 --> 00:13:49,444
+You could see on message event, whatever it received from the BOS local WebSocket, it will use WebRTC data channel to send it further, meaning the data will be passed through to the web console.
+
+130
+00:13:50,158 --> 00:13:57,616
+And because offer page is running on the robot side, we need to initialize the media device like camera or microphone.
+
+131
+00:13:57,776 --> 00:14:02,116
+On the code, media device in it will check on the available devices.
+
+132
+00:14:02,606 --> 00:14:14,256
+So in case if I would like to use a specific camera, for example, with the name as fake device, then I will check the label of each device and return the correct device ID.
+
+133
+00:14:14,542 --> 00:14:18,736
+After got device ID of camera, then put it as constraint object.
+
+134
+00:14:18,896 --> 00:14:25,936
+If no microphone, then put audio as false, and we can use getUserMedia with the constraint to open the camera.
+
+135
+00:14:26,096 --> 00:14:28,016
+In the end, we call create offer.
+
+136
+00:14:28,336 --> 00:14:36,016
+After that, create offer will be using an SDP data, for example, what media device will be used in WebRTC.
+
+137
+00:14:36,654 --> 00:14:43,936
+Inside the function, it will create peer connection and create its own offer, then send to signaling server.
+
+138
+00:14:44,270 --> 00:14:51,812
+For create peer connection function, it will create RTC peer connection by using provided stunt turn server.
+
+139
+00:14:52,366 --> 00:14:56,260
+We can use the free one from Google or we can use our own.
+
+140
+00:14:56,686 --> 00:14:58,416
+So just specify it here.
+
+141
+00:14:58,894 --> 00:15:01,220
+For local test, we don't need to specify it.
+
+142
+00:15:01,710 --> 00:15:11,456
+Then if there is a limode video, we will put it on the local video and we're going to get track from local stream and add track to the peer connection.
+
+143
+00:15:11,950 --> 00:15:13,796
+Then data channel is created.
+
+144
+00:15:14,318 --> 00:15:21,376
+And if there is message coming from WebRTC Data Channel, we just pass through it to the WS local web socket.
+
+145
+00:15:21,696 --> 00:15:32,816
+And at the end, the ICE candidate, which is the optimized path for WebRTC connection, could be updated, and we would like to send the latest ICE to the signaling server.
+
+146
+00:15:33,102 --> 00:15:39,716
+On the diagram here, you could see both of SDP and updated ICE candidate sent to the signaling server.
+
+147
+00:15:40,718 --> 00:15:48,292
+So once Web Console or answer peer is started, it will connect with Signaling Server by WebSocket as AnswerClient.
+
+148
+00:15:48,974 --> 00:15:53,828
+On the code here, we need to make sure the URL of Signaling Server is correct.
+
+149
+00:15:54,478 --> 00:16:01,124
+On message event, if the message is alive, that is supposed to be an offer from offer client.
+
+150
+00:16:01,582 --> 00:16:08,932
+Then if created answer is false, we are going to run start connect with a bit delay of 3 seconds.
+
+151
+00:16:09,806 --> 00:16:11,984
+Next step is to create answer.
+
+152
+00:16:12,590 --> 00:16:15,140
+The sequence is pretty much same as offer.
+
+153
+00:16:15,630 --> 00:16:23,428
+So start create peer connection and make its own SDP and Ice, then send it back to signaling server.
+
+154
+00:16:24,270 --> 00:16:30,084
+On the diagram here, offer will receive answer, then it will add answer to peer connection.
+
+155
+00:16:30,574 --> 00:16:37,668
+Inside create peer connection of answer, just start RTC peer connection with server, same as before.
+
+156
+00:16:38,126 --> 00:16:42,692
+Then now the remote stream we have here is the robot video streaming.
+
+157
+00:16:43,246 --> 00:16:49,984
+We're going to put the stream to the robot video source object, which is the DOM element on the web console.
+
+158
+00:16:50,190 --> 00:16:55,204
+On DataChannel, we set the flag as receive data web RTC as true.
+
+159
+00:16:55,886 --> 00:17:02,628
+Then we know that the message coming is JSON object, so we can pass it and get data from each key.
+
+160
+00:17:03,118 --> 00:17:10,788
+So need to make sure that the key are passing is same as the key of send packets from JSON ROS2 converter here.
+
+161
+00:17:11,534 --> 00:17:17,424
+Once the WebRTC connection is established, this will be a through peer-to-peer connection.
+
+162
+00:17:17,678 --> 00:17:27,556
+Input command from Web Console will be sent from answer to offer and pass through local web socket inside the robot and construct as ROS topic.
+
+163
+00:17:27,824 --> 00:17:40,144
+Vice versa, the robot's data or sensor data will be sent from local web socket to offer, then pass through answer via WebRTC data channel and display on screen.
+
+164
+00:17:40,304 --> 00:17:43,172
+Next, let's do some tests on the local machine.
+
+165
+00:17:43,566 --> 00:17:49,188
+First, we start signaling server, then local data server and the BS Python client.
+
+166
+00:17:49,710 --> 00:17:55,204
+Then on for terminal, we source ROS environment and run JSON ROS2 converter.
+
+167
+00:17:55,854 --> 00:17:58,340
+Then open up offer.html.
+
+168
+00:17:58,990 --> 00:18:05,104
+You could see a dummy video box showing and signaling server is getting ping message from offer.
+
+169
+00:18:05,838 --> 00:18:10,564
+If check on the browser console, you will see SDP offer printing out.
+
+170
+00:18:11,758 --> 00:18:20,164
+Then on the new tab, we open Web Console on the answer peer, Wait a couple seconds until the WebRTC is established.
+
+171
+00:18:20,622 --> 00:18:23,396
+Then you could see the video streaming on web console.
+
+172
+00:18:24,462 --> 00:18:30,116
+On the fifth terminal, we can run ROS to topic echo on web number topic.
+
+173
+00:18:30,542 --> 00:18:37,028
+Then on web console, we can change the number and press enter to send this back to ROS environment.
+
+174
+00:18:37,934 --> 00:18:45,188
+If we echo on the web button topic, then you could see the state keep toggle when pressing on green button.
+
+175
+00:18:46,254 --> 00:18:55,812
+If we echo on the web PWM command topic and slide on the slider, the value will be changing so we can use to control the servo motors.
+
+176
+00:18:57,806 --> 00:19:02,276
+And for nipple joystick, we can echo on the command velocity topic.
+
+177
+00:19:02,734 --> 00:19:08,868
+So the value of linear X and Angular set will be changed according to joystick position.
+
+178
+00:19:09,230 --> 00:19:11,460
+We can use this to teleopt the robot.
+
+179
+00:19:12,590 --> 00:19:18,084
+For robot status, in this case we have float integer, string, and boolean message.
+
+180
+00:19:18,702 --> 00:19:24,304
+So we can publish this from ROS one by one, then it will be showing on the web console.
+
+181
+00:19:24,814 --> 00:19:26,788
+It's like a robot telemetry data.
+
+182
+00:19:29,518 --> 00:19:37,284
+I have a small rover set up here, and I'm going to control this wheel model by using this ATC Mob ROS board.
+
+183
+00:19:37,710 --> 00:19:43,460
+If you don't know what is it you can check more detail about this board from the link in the description.
+
+184
+00:19:44,174 --> 00:19:59,236
+We have a small micro servo connect on the board and the Wi-Fi router and the Raspberry Pi 5 as a robot computer and USB web camera and DC DC regulator and everything is powered from this single battery.
+
+185
+00:20:00,046 --> 00:20:03,652
+On robot first terminal, I run Micro ROS agent.
+
+186
+00:20:04,174 --> 00:20:09,636
+Then second terminal is CMO app UROS utils with Well Odom converter.
+
+187
+00:20:10,350 --> 00:20:12,644
+Third terminal is signaling server.
+
+188
+00:20:13,326 --> 00:20:15,908
+Fourth terminal is local data server.
+
+189
+00:20:16,302 --> 00:20:19,364
+And fifth terminal is the BUS Python client.
+
+190
+00:20:20,238 --> 00:20:24,048
+Then on JSON ROS2 converter, I need to modify something.
+
+191
+00:20:24,208 --> 00:20:31,460
+So I add a publisher to the CMO app server command so we can control the server from the web console.
+
+192
+00:20:32,398 --> 00:20:35,108
+And now the signaling server is on the robot.
+
+193
+00:20:35,470 --> 00:20:41,220
+So on Answer.js, I need to change WebSocket URL to the robot IP.
+
+194
+00:20:42,062 --> 00:20:46,340
+Then we are ready to run JSON ROS2 converter on the 6 terminal.
+
+195
+00:20:47,182 --> 00:20:51,648
+Then we can start off a page from the Chromium browser for the first time.
+
+196
+00:20:51,982 --> 00:20:57,252
+We need to click on the given a permission for browser to access camera and microphone.
+
+197
+00:20:58,158 --> 00:21:07,972
+On my laptop browser, I can access to robot IP, then I can see the web console showing and also the video streaming from robot web camera.
+
+198
+00:21:09,038 --> 00:21:12,484
+We can slide on the slider to control the server position
+
+199
+00:21:16,302 --> 00:21:19,940
+and also send command velocity to control the wheel's motors.
+
+200
+00:21:27,630 --> 00:21:32,100
+Now I put everything onto the robot and ready to run on the ground.
+
+201
+00:21:32,494 --> 00:21:35,684
+I just need to push this power button to turn on.
+
+202
+00:21:37,070 --> 00:21:42,660
+Here I use my iPad to connect to robot Wi-Fi and I could see the web console showing.
+
+203
+00:21:43,054 --> 00:21:46,020
+Now we can move the robot by joystick on the screen.
+
+204
+00:22:05,090 --> 00:22:13,090
+With the local network I could say this is a real-time control without video lagging and the control joystick is also responsive.
+
+205
+00:22:43,200 --> 00:22:45,720
+And that's for today videos I hope you guys like it.
+
+206
+00:22:45,870 --> 00:22:51,648
+What I have shown to you is one of the method that we can use WebRTC to do the robot teleoperation.
+
+207
+00:22:51,822 --> 00:23:01,088
+There is also some topic like how to set up a stun or turn server, how to serve this web console on the real server, and how to make it two-way communications.
+
+208
+00:23:01,294 --> 00:23:05,968
+I'm thinking to put those content for the next video, so please stay tuned for the next episode.
+
+209
+00:23:06,190 --> 00:23:08,688
+The WebRTC template is a public project.
+
+210
+00:23:08,768 --> 00:23:11,408
+You can check out the GitHub link in the description below.
+
+211
+00:23:11,568 --> 00:23:18,564
+If you like this kind of video or you found something useful from this video, please don't forget to press like and share buttons.
+
+212
+00:23:18,766 --> 00:23:22,980
+Or if you would like to support my channel, there is also a super thanks button.
+
+213
+00:23:23,214 --> 00:23:24,928
+That would be a good energy for me.
+
+214
+00:23:25,038 --> 00:23:32,368
+Or you can be a membership of this channel by clicking on join button so you can have an access to some of my private GitHub repository.
+
+215
+00:23:32,528 --> 00:23:36,928
+So thank you for watching and stay tuned for the next episode and see you soon.
+

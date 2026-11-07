@@ -5,6 +5,7 @@
 | 视频 | 原作者 | 更新 |
 |---|---|---|
 | [Stanford CS329A Self-Improving AI Agents \| Part 1 \| Course Overview](medias/ZCM20/) | Stanford Online | 2026-11-07 |
+| [WebRTC x ROS \| Optimized Solution for Robot Teleoperation](medias/QD0D0/) | stepbystep-robotics | 2026-11-07 |
 | [WebRTC for Beginners: The Complete Protocol Breakdown](medias/NZHFH/) | Tsahi Levent-Levi | 2026-11-07 |
 | [“Banks Are Herd Animals” \| Ed Zitron on the AI Debt Slow Boil](medias/MF3Z5/) | The Tech Report | 2026-11-07 |
 | [From deepfakes to DNA: the science of watermarking AI](medias/K80QW/) | Google DeepMind | 2026-11-07 |
