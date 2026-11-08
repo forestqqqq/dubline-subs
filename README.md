@@ -5,6 +5,7 @@
 | 视频 | 原作者 | 更新 |
 |---|---|---|
 | [Stanford CS329A Self-Improving AI Agents \| Part 1 \| Course Overview](medias/ZCM20/) | Stanford Online | 2026-11-07 |
+| [Artificial Intelligence for UPSC Prelims 2027 \| AI Basics, LLM, Machine Learning & Important Terms](medias/TRGKC/) | Sleepy Classes IAS | 2026-11-07 |
 | [WebRTC x ROS \| Optimized Solution for Robot Teleoperation](medias/QD0D0/) | stepbystep-robotics | 2026-11-07 |
 | [11 AI Breakthroughs You Didn’t Know Existed](medias/P0DWH/) | Matt Wolfe | 2026-11-07 |
 | [WebRTC for Beginners: The Complete Protocol Breakdown](medias/NZHFH/) | Tsahi Levent-Levi | 2026-11-07 |
