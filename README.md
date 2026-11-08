@@ -9,6 +9,7 @@
 | [11 AI Breakthroughs You Didn’t Know Existed](medias/P0DWH/) | Matt Wolfe | 2026-11-07 |
 | [WebRTC for Beginners: The Complete Protocol Breakdown](medias/NZHFH/) | Tsahi Levent-Levi | 2026-11-07 |
 | [“Banks Are Herd Animals” \| Ed Zitron on the AI Debt Slow Boil](medias/MF3Z5/) | The Tech Report | 2026-11-07 |
+| [AI Just Crossed the Terrifying Line - Now What?](medias/M4K33/) | Kurzgesagt – In a Nutshell | 2026-11-07 |
 | [From deepfakes to DNA: the science of watermarking AI](medias/K80QW/) | Google DeepMind | 2026-11-07 |
 | [Build & Rank Websites Fast with Claude AI \| Vibe Coding & SEO](medias/EWFKF/) | InnoVistaOfficial | 2026-11-07 |
 | [Agentic AI Course 2026 \| Agentic AI Full Course for Beginners \| LangChain, LangGraph & AutoGPT](medias/CM1T9/) | Great Learning | 2026-11-07 |
