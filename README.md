@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [Why We Haven’t Reached Superintelligence, with David Krakauer](medias/B5DJR/) | StarTalk | 2026-11-08 |
 | [Stanford CS329A Self-Improving AI Agents \| Part 1 \| Course Overview](medias/ZCM20/) | Stanford Online | 2026-11-07 |
 | [Artificial Intelligence for UPSC Prelims 2027 \| AI Basics, LLM, Machine Learning & Important Terms](medias/TRGKC/) | Sleepy Classes IAS | 2026-11-07 |
 | [WebRTC x ROS \| Optimized Solution for Robot Teleoperation](medias/QD0D0/) | stepbystep-robotics | 2026-11-07 |
