@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [Stanford AA274A Principles of Robotic Autonomy \| Autumn 2019 \| Modern Computer Vision](medias/R2A8Q/) | Stanford Online | 2026-11-09 |
 | [AI Is Decompiling Every Game \| TheStandup](medias/QT96C/) | The PrimeTime | 2026-11-09 |
 | [Applied Data Science With Python Full Course 2027 \| Complete Data Science Tutorial \| Simplilearn](medias/66WGS/) | Simplilearn | 2026-11-09 |
 | [Joo-Young Kim, HyperAccel CEO on AI Chips, LLM Inference & Efficiency](medias/23Q9B/) | Grace Gong | 2026-11-09 |
