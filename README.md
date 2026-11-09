@@ -6,6 +6,7 @@
 |---|---|---|
 | [A Short Introduction to WebRTC With Godot 4! Advanced Godot!](medias/WXN6B/) | FinePointCGI | 2026-11-08 |
 | [How to Make Games in Unreal Engine 5 with AI](medias/RNASP/) | Unreal Sensei | 2026-11-08 |
+| [Essentials: Neuralink & Technologies to Enhance Human Brains \| Dr. Matt MacDougall](medias/R29Q2/) | Andrew Huberman | 2026-11-08 |
 | [This Week in AI: Agents Rewrite the Rules](medias/FZR3K/) | O'Reilly | 2026-11-08 |
 | [India's Answer to Boston Dynamics](medias/C92ZQ/) | RuntimeBRT | 2026-11-08 |
 | [Why We Haven’t Reached Superintelligence, with David Krakauer](medias/B5DJR/) | StarTalk | 2026-11-08 |
