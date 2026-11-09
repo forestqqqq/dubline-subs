@@ -6,6 +6,7 @@
 |---|---|---|
 | [A Short Introduction to WebRTC With Godot 4! Advanced Godot!](medias/WXN6B/) | FinePointCGI | 2026-11-08 |
 | [How to Make Games in Unreal Engine 5 with AI](medias/RNASP/) | Unreal Sensei | 2026-11-08 |
+| [India's Answer to Boston Dynamics](medias/C92ZQ/) | RuntimeBRT | 2026-11-08 |
 | [Why We Haven’t Reached Superintelligence, with David Krakauer](medias/B5DJR/) | StarTalk | 2026-11-08 |
 | [Stanford CS329A Self-Improving AI Agents \| Part 1 \| Course Overview](medias/ZCM20/) | Stanford Online | 2026-11-07 |
 | [Artificial Intelligence for UPSC Prelims 2027 \| AI Basics, LLM, Machine Learning & Important Terms](medias/TRGKC/) | Sleepy Classes IAS | 2026-11-07 |
