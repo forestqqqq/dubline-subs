@@ -8,6 +8,7 @@
 | [How to Make Games in Unreal Engine 5 with AI](medias/RNASP/) | Unreal Sensei | 2026-11-08 |
 | [India's Answer to Boston Dynamics](medias/C92ZQ/) | RuntimeBRT | 2026-11-08 |
 | [Why We Haven’t Reached Superintelligence, with David Krakauer](medias/B5DJR/) | StarTalk | 2026-11-08 |
+| [Robots That Predict the Future: Dyna-2 & Physical AI — Jason Ma, Dyna Robotics](medias/1050X/) | Latent Space | 2026-11-08 |
 | [Stanford CS329A Self-Improving AI Agents \| Part 1 \| Course Overview](medias/ZCM20/) | Stanford Online | 2026-11-07 |
 | [Artificial Intelligence for UPSC Prelims 2027 \| AI Basics, LLM, Machine Learning & Important Terms](medias/TRGKC/) | Sleepy Classes IAS | 2026-11-07 |
 | [WebRTC x ROS \| Optimized Solution for Robot Teleoperation](medias/QD0D0/) | stepbystep-robotics | 2026-11-07 |
