@@ -1,0 +1,5692 @@
+1
+00:00:00,160 --> 00:00:02,640
+Hey guys, this is Mitch with Fine Point CGI.
+
+2
+00:00:02,800 --> 00:00:06,640
+And today we're going to talk about how to do WebRTC inside of Godot.
+
+3
+00:00:06,830 --> 00:00:08,160
+And we're not going to stop just there.
+
+4
+00:00:08,240 --> 00:00:18,000
+We're going to talk about how to build a fully dedicated server, how to build a lobby system for your game, including a GUID and a join system and all that happy jazz.
+
+5
+00:00:18,080 --> 00:00:21,360
+We're going to talk about how to do the signaling and how to do your candidate stuff.
+
+6
+00:00:21,440 --> 00:00:27,680
+We're going to talk about relaying data between your server and your client so that way they can create their handshake and get everything going.
+
+7
+00:00:27,760 --> 00:00:35,680
+We're going to talk about how WebRTC works and we're going to talk about how to do peer-to-peer connections using your WebRTC.
+
+8
+00:00:35,840 --> 00:00:43,360
+And finally, we're going to update our multiplayer tutorial that we did in the previous videos to work with our WebRTC.
+
+9
+00:00:43,440 --> 00:00:45,040
+So that's what I have in store for you guys today.
+
+10
+00:00:45,390 --> 00:00:46,372
+So let's go ahead and get started.
+
+11
+00:00:46,830 --> 00:00:56,960
+Okay, so the first thing that we have to do is we have to talk about what WebRTC is and what it's not, because there's a lot of misconceptions on how WebRTC works.
+
+12
+00:00:57,200 --> 00:01:03,600
+Now, if you just want to see code and you just want to jump right in, then go ahead and jump to the next timestamp, and that's totally fine.
+
+13
+00:01:03,790 --> 00:01:08,480
+But first, let's take a quick step back and let's talk about WebRTC.
+
+14
+00:01:08,640 --> 00:01:10,560
+So, what is WebRTC?
+
+15
+00:01:10,640 --> 00:01:20,400
+Well, WebRTC is a peer-to-peer network connection that allows you to communicate with your players inside of a game peer-to-peer.
+
+16
+00:01:20,480 --> 00:01:22,628
+So there's no server involved.
+
+17
+00:01:22,880 --> 00:01:25,040
+Or at least that's what most people say.
+
+18
+00:01:25,200 --> 00:01:30,480
+To be able to start with WebRTC, you actually need what's called a signaling server.
+
+19
+00:01:30,640 --> 00:01:36,640
+Now, a signaling server is the place where all of your information is held in the beginning.
+
+20
+00:01:36,800 --> 00:01:44,240
+So think of it kind of like if this player wants to host a lobby, they need to talk to the signaling server to host that lobby.
+
+21
+00:01:44,400 --> 00:01:48,480
+It is your dedicated server that holds on to your user information.
+
+22
+00:01:48,560 --> 00:01:53,200
+It holds on to what lobbies are open, how many people are in those lobbies, things like that.
+
+23
+00:01:53,360 --> 00:02:00,800
+And it's also the thing that does the actual signaling of the data between your different peers.
+
+24
+00:02:01,006 --> 00:02:03,760
+So you might be asking, okay, so how does it happen?
+
+25
+00:02:03,920 --> 00:02:13,840
+Well, when a user like this guy tells this guy, hey, I want to make a lobby, they create a lobby and the signaling server keeps track of like a GUID, basically.
+
+26
+00:02:14,160 --> 00:02:17,680
+And that GUID gets passed back to this guy.
+
+27
+00:02:17,760 --> 00:02:27,280
+And if this guy wants to join that lobby, this guy can send this guy that GUID or that string of information, and then they can use that information to join this lobby.
+
+28
+00:02:27,440 --> 00:02:35,200
+Now, this is all not technically required, but I'm going to go with it as if it is required, just so you guys can kind of get an idea.
+
+29
+00:02:35,440 --> 00:02:46,560
+Once that happens and this player says, Hey, I'm ready to start the game, it sends out what's called a candidate, and that is basically saying, Hey, I'm ready to start playing, let's get moving, right?
+
+30
+00:02:46,766 --> 00:02:48,720
+So it sends out a candidate to the signaling server.
+
+31
+00:02:48,800 --> 00:02:51,440
+The signaling server is going to send it to this guy.
+
+32
+00:02:51,520 --> 00:02:54,960
+They're going to do what's called an offer, which is going to send back here.
+
+33
+00:02:55,120 --> 00:02:59,840
+It's going to send this guy, and then it's going to give back an answer to your signaling server.
+
+34
+00:02:59,920 --> 00:03:02,400
+And the signaling server is going to relay it to this guy.
+
+35
+00:03:02,510 --> 00:03:11,920
+And then that's going to create all of the necessary information that they need so that way they can talk to their stun server or their ice server.
+
+36
+00:03:12,110 --> 00:03:12,400
+Okay.
+
+37
+00:03:12,640 --> 00:03:15,520
+And you might be going, okay, but what is an ice server?
+
+38
+00:03:15,600 --> 00:03:16,560
+What is a stun server?
+
+39
+00:03:16,720 --> 00:03:21,200
+So a stun server's job is to do what's called the NAT connection.
+
+40
+00:03:21,422 --> 00:03:32,880
+So what it does is it provides the necessary information between these two guys to create a port opening between your routers so that these guys can have a direct communication.
+
+41
+00:03:33,040 --> 00:03:37,760
+Once that direct communication is established, the signaling server is no longer needed.
+
+42
+00:03:37,920 --> 00:03:43,280
+The communication with that is not needed anymore, and the stun server is no longer needed.
+
+43
+00:03:43,440 --> 00:03:56,000
+So once the system, once these two guys have verified that that NAT connection or network address translation connection has been made, then these guys have nothing to do with the connection anymore.
+
+44
+00:03:56,080 --> 00:03:58,240
+And these guys are peer to peer connected.
+
+45
+00:03:58,382 --> 00:04:02,660
+Now you might be asking, well, okay, but what happens if that peer to peer connection is not made?
+
+46
+00:04:02,960 --> 00:04:03,200
+Right?
+
+47
+00:04:03,360 --> 00:04:05,668
+What if something breaks along the way?
+
+48
+00:04:06,286 --> 00:04:09,040
+Well, that's where the turn server comes in.
+
+49
+00:04:09,200 --> 00:04:15,520
+Now, in this case, in this diagram, the turn server is the stun server, so it's the same server, right?
+
+50
+00:04:15,600 --> 00:04:17,120
+It's the same ICE server.
+
+51
+00:04:17,920 --> 00:04:19,280
+But it doesn't have to be.
+
+52
+00:04:19,360 --> 00:04:20,080
+It could be anything.
+
+53
+00:04:20,160 --> 00:04:21,920
+It could be a second machine that does it.
+
+54
+00:04:22,080 --> 00:04:30,916
+But what it does is it's a machine, much like a direct hosted machine that relays the data between these two guys.
+
+55
+00:04:31,360 --> 00:04:37,440
+So that's basically how it works: is this guy connects up to the signaling server, this guy connects up to the signaling server.
+
+56
+00:04:37,520 --> 00:04:38,800
+They exchange some data.
+
+57
+00:04:38,926 --> 00:04:46,320
+They then tell the stun server here's the IP address, here's the port, here's all the information that I need to be able to connect to this guy.
+
+58
+00:04:46,480 --> 00:04:49,040
+And then this guy creates a connection between these two.
+
+59
+00:04:49,134 --> 00:04:51,520
+And that's basically how WebRTC works.
+
+60
+00:04:51,600 --> 00:04:59,780
+Now, if that's confusing, trust me, it's gonna get worse because we're going to build all this out manually and it's going to be a fun time.
+
+61
+00:05:00,302 --> 00:05:02,788
+So with that being said, let's go ahead and get started.
+
+62
+00:05:03,600 --> 00:05:04,000
+All right.
+
+63
+00:05:04,160 --> 00:05:08,320
+So first thing you'll notice is that I have a multiplayer tutorial source.
+
+64
+00:05:08,400 --> 00:05:17,600
+Now, this is actually all of the source of my previous basics with Godot multiplayer tutorial, which I have a link to in the description.
+
+65
+00:05:17,760 --> 00:05:20,080
+So I'm going to be starting from that point.
+
+66
+00:05:20,160 --> 00:05:22,800
+Now you don't have to have this if you don't want to.
+
+67
+00:05:23,022 --> 00:05:30,640
+You can drop in the link in the description below and pull down this project, and it'll have the starter project, and everything will be ready and good to go.
+
+68
+00:05:30,800 --> 00:05:41,280
+But basically, all it has is it has a scene like this, it has a player like this with a very basic control set, so you can you know move around, shoot things like that.
+
+69
+00:05:41,454 --> 00:05:45,200
+It also already has pre-setup RPC calls and things like that.
+
+70
+00:05:45,280 --> 00:05:58,720
+And I can always run through that as the tutorial progresses, but I just want to let you guys know that this does exist, it already has all been coded because I don't want to run through the whole process of recoding it all and make this tutorial five hours long.
+
+71
+00:05:58,880 --> 00:06:16,080
+Now, some of the big important things to note for your game is under game manager, I have a variable called players, and that basically is set up under project settings under auto load game manager, and that's basically where my players are going to be housed.
+
+72
+00:06:16,160 --> 00:06:18,320
+Now, you don't have to have this if you don't want to.
+
+73
+00:06:18,480 --> 00:06:24,240
+This tutorial is to an extent standalone, so you don't have to have this, but just know that that exists.
+
+74
+00:06:24,480 --> 00:06:37,200
+The other big thing that I have is I do have a scene manager, and all my scene manager does is it does a for loop on my players and then instantiates my players into their player spawn points.
+
+75
+00:06:37,454 --> 00:06:40,000
+Now, again, if you want that information, that's totally fine.
+
+76
+00:06:40,160 --> 00:06:45,284
+Just go one through my basics with multiplayer and then we'll go through that.
+
+77
+00:06:45,614 --> 00:06:58,240
+Now, with that being said, the first thing that we need to do is we need to add in our WebRTC library because you can't just do WebRTC inside of Godot without using the Godot WebRTC native library.
+
+78
+00:06:58,400 --> 00:07:01,680
+Now, in my case, I am Godot 4.1.
+
+79
+00:07:01,840 --> 00:07:05,040
+So I'm going to go into the release.
+
+80
+00:07:05,200 --> 00:07:07,360
+This is the 4.1 release.
+
+81
+00:07:07,440 --> 00:07:08,080
+It is right here.
+
+82
+00:07:08,160 --> 00:07:11,840
+So you can see if I scroll down, they have a webrtc.zip.
+
+83
+00:07:11,920 --> 00:07:13,200
+So we'll pull that down real quick.
+
+84
+00:07:13,360 --> 00:07:14,480
+We'll click save.
+
+85
+00:07:14,640 --> 00:07:20,004
+I'm going to click on the file icon, right click, extract, and extract it.
+
+86
+00:07:20,814 --> 00:07:26,080
+Now you'll see it's going to get extracted, and you'll see right here we have our WebRTC.
+
+87
+00:07:26,240 --> 00:07:32,960
+Now, if we open this up, you'll see we have a lib, we have a WebRTC GD extension, we have our some licenses here.
+
+88
+00:07:33,120 --> 00:07:36,548
+Now, a lot of people just grab this, copy, and paste it.
+
+89
+00:07:36,720 --> 00:07:38,560
+And unfortunately, that's not gonna work.
+
+90
+00:07:38,640 --> 00:07:43,040
+So if we take a look at our GD extension file real quick.
+
+91
+00:07:43,120 --> 00:07:51,760
+So if I open that up with notepad, you can see they have a RES WebRTC lib webrtc native, blah, blah, blah, right?
+
+92
+00:07:51,920 --> 00:07:58,960
+So that means that we need to pull this folder here, we need to copy that, and we need to bring that into our project.
+
+93
+00:07:59,120 --> 00:08:04,960
+So let me open up our project, grab this, drag it in, let go, and you will see that it worked.
+
+94
+00:08:05,120 --> 00:08:12,240
+Now, the best way to know if it worked is if you don't get any pop-ups or any errors, that everything loaded in correctly.
+
+95
+00:08:12,400 --> 00:08:18,960
+Now, the other way that we can test this is if we go to scene, new scene, we create a new user interface scene.
+
+96
+00:08:19,120 --> 00:08:22,880
+We can actually start building out our very basic scene for this.
+
+97
+00:08:22,990 --> 00:08:26,400
+Now, I'm going to separate our code into two sections.
+
+98
+00:08:26,480 --> 00:08:28,720
+We're gonna have server and we're gonna have client.
+
+99
+00:08:28,800 --> 00:08:31,680
+Now, I will right click, attach a child node.
+
+100
+00:08:31,760 --> 00:08:34,400
+I'm gonna add in a node, and I'm gonna call this client.
+
+101
+00:08:35,470 --> 00:08:40,800
+And I'm gonna right click, attach a script, and we'll call it client.gd.
+
+102
+00:08:40,880 --> 00:08:41,476
+That's fine.
+
+103
+00:08:42,318 --> 00:08:49,520
+If we type WebRTC, if you see WebRTC data channel and peer connection, then you are good to go.
+
+104
+00:08:49,710 --> 00:08:54,480
+That means that everything's set up correctly and you are good to get started with the rest of this tutorial.
+
+105
+00:08:54,640 --> 00:09:03,716
+If not, then something's broken with how you've loaded in your WebRTC right here, and you may see an issue right here in your output.
+
+106
+00:09:04,320 --> 00:09:10,948
+But since mine worked perfectly fine, I'm going to go ahead and start coding out my client.
+
+107
+00:09:11,438 --> 00:09:18,480
+So the way that a signaling server works is you have to build a dedicated server and you have to build a dedicated client.
+
+108
+00:09:18,640 --> 00:09:21,840
+And unfortunately, it's not going to be super easy to build.
+
+109
+00:09:22,000 --> 00:09:26,560
+We're going to have to do some packet reading and we're going to have to be able to do some packet parsing.
+
+110
+00:09:26,640 --> 00:09:28,800
+So we're going to need to have a message enum.
+
+111
+00:09:28,960 --> 00:09:33,668
+So the first thing I'm going to do is I'm going to type enum and I'm going to call it message.
+
+112
+00:09:34,350 --> 00:09:35,600
+And we're going to have a couple of enums.
+
+113
+00:09:35,840 --> 00:09:38,160
+We'll first start off with getting an ID.
+
+114
+00:09:38,240 --> 00:09:39,280
+So we'll say ID.
+
+115
+00:09:39,440 --> 00:09:43,760
+And then another one that we would need is like join, like having the ability to join.
+
+116
+00:09:43,920 --> 00:09:47,520
+Something I think would be useful would have if a user connects.
+
+117
+00:09:47,600 --> 00:09:49,828
+So we'll say user connected.
+
+118
+00:09:50,542 --> 00:09:54,640
+And maybe we could have one for user disconnected, right?
+
+119
+00:09:54,720 --> 00:09:56,676
+Because a user needs to be able to disconnect.
+
+120
+00:09:57,120 --> 00:09:59,760
+We probably need one for lobby information.
+
+121
+00:09:59,840 --> 00:10:01,060
+So we'll say lobby.
+
+122
+00:10:01,454 --> 00:10:03,280
+uh, We're going to need one for the candidate.
+
+123
+00:10:03,440 --> 00:10:08,356
+So candidate, we're going to need one for the offer, and we're going to need one for an answer.
+
+124
+00:10:10,222 --> 00:10:12,800
+Outside of that, we probably don't need another one.
+
+125
+00:10:12,960 --> 00:10:18,400
+Although maybe if we want to be able to handle dead user accounts, we probably should have a check-in.
+
+126
+00:10:18,670 --> 00:10:20,196
+So we'll put that in as well.
+
+127
+00:10:21,614 --> 00:10:22,244
+Like that.
+
+128
+00:10:23,086 --> 00:10:31,040
+Now, when we're doing our signaling server, our signaling server is going to need to be set up with WebSocket multiplayer peer.
+
+129
+00:10:31,200 --> 00:10:33,440
+You could use Godot's WebSocket peer.
+
+130
+00:10:33,520 --> 00:10:36,560
+You could also use their e-net multiplayer peer if you want to.
+
+131
+00:10:36,720 --> 00:10:40,000
+You could use their multiplayer extensions, right?
+
+132
+00:10:40,080 --> 00:10:44,560
+You could use their even you could probably even use WebRTC if you know exactly what you're doing.
+
+133
+00:10:44,720 --> 00:10:49,360
+But in my case, I'm going to pull the WebSocket multiplayer peer.
+
+134
+00:10:49,440 --> 00:10:54,160
+That's to me is the most flexible version of the multiplayer library that we can use.
+
+135
+00:10:54,240 --> 00:11:01,520
+So I'll say var peer is equal to web socket multiplayer peer dot new.
+
+136
+00:11:01,680 --> 00:11:06,800
+So what that's going to do is it's going to create a WebSocket multiplayer peer instance.
+
+137
+00:11:06,960 --> 00:11:17,280
+And if you remember from my networking tutorial, I talked about how WebSocket multiplayer peer is the fundamental basis of your networking.
+
+138
+00:11:17,422 --> 00:11:19,040
+So you have to make sure that you have that in.
+
+139
+00:11:19,200 --> 00:11:20,000
+So that's great.
+
+140
+00:11:20,080 --> 00:11:21,200
+How do we do a connection?
+
+141
+00:11:21,360 --> 00:11:29,476
+Well, we'll make a small function down here called connect to server, and we'll put in an IP address.
+
+142
+00:11:30,350 --> 00:11:39,748
+And the best way to connect to a server, and this is part of the reason why I chose this library, is because of how easy it is to do connect and disconnect requests.
+
+143
+00:11:39,920 --> 00:11:43,760
+So to connect, all you have to do is type peer dot create client.
+
+144
+00:11:43,840 --> 00:11:45,520
+And then you have to pass in a URL.
+
+145
+00:11:45,680 --> 00:11:52,830
+So in my case, I'm going to go with WS colon slash slash 127.0.0.1.
+
+146
+00:11:53,440 --> 00:11:56,160
+And we're going to choose a port of some description.
+
+147
+00:11:56,240 --> 00:11:59,040
+So in my case, I'm going to go with 8915.
+
+148
+00:11:59,280 --> 00:12:01,200
+Now you might be going, okay, hold on.
+
+149
+00:12:01,280 --> 00:12:04,720
+You put IP up here, but you actually put in the information.
+
+150
+00:12:04,910 --> 00:12:05,280
+Yes.
+
+151
+00:12:05,440 --> 00:12:12,160
+And the reason why I did that is because this will get changed later to have the proper IP address.
+
+152
+00:12:12,320 --> 00:12:16,560
+I just want to make it hard-coded for this first little initial test.
+
+153
+00:12:16,686 --> 00:12:18,880
+So that way we know that things are working correctly.
+
+154
+00:12:18,960 --> 00:12:20,240
+So I'm going to type print.
+
+155
+00:12:20,320 --> 00:12:22,640
+I'm going to say started client.
+
+156
+00:12:22,720 --> 00:12:23,760
+And I think that will do it.
+
+157
+00:12:23,840 --> 00:12:24,880
+I'm going to hit control S.
+
+158
+00:12:24,960 --> 00:12:26,080
+We'll hit enter.
+
+159
+00:12:26,240 --> 00:12:30,960
+And we should be ready to at least try to get some kind of connection going.
+
+160
+00:12:31,120 --> 00:12:33,760
+So to get a connection going, we need to actually have a server.
+
+161
+00:12:33,966 --> 00:12:37,680
+And you'll notice that I'm going to be bouncing between server and client quite a bit.
+
+162
+00:12:37,760 --> 00:12:39,600
+So I'm going to right click add a child node.
+
+163
+00:12:39,680 --> 00:12:40,800
+I'm going to add in a node.
+
+164
+00:12:40,880 --> 00:12:42,212
+I'm going to call it server.
+
+165
+00:12:43,022 --> 00:12:46,400
+And I'm going to right click attach a script server.gd.
+
+166
+00:12:46,560 --> 00:12:50,800
+Now with server.gd, we need to come in and do the same message.
+
+167
+00:12:50,880 --> 00:12:55,120
+So let's go into our client, let's copy our enum message, and we can paste it.
+
+168
+00:12:55,200 --> 00:12:59,040
+Now if you want to abstract this out to a utilities function, that's totally fine.
+
+169
+00:12:59,200 --> 00:13:03,200
+I just don't want to deal with the additional utilities.message whatever.
+
+170
+00:13:03,406 --> 00:13:09,252
+So in my case, I'm just going to have both of the enums here, even though it's a little bit of extra duplicated code.
+
+171
+00:13:09,760 --> 00:13:13,120
+So when we want to start our server, we'll make a function for it.
+
+172
+00:13:13,200 --> 00:13:15,012
+So func start server.
+
+173
+00:13:15,630 --> 00:13:19,280
+And I should probably go with a lowercase s considering it's going to be local.
+
+174
+00:13:19,440 --> 00:13:22,916
+And we will put our colon there.
+
+175
+00:13:24,270 --> 00:13:27,408
+And we need to do the same thing that we did earlier, right?
+
+176
+00:13:27,488 --> 00:13:31,328
+We need to create a new multiplayer web socket peer.
+
+177
+00:13:31,502 --> 00:13:38,468
+So we'll come up here, var peer is equal to web socket multiplayer peer dot new.
+
+178
+00:13:39,630 --> 00:13:41,924
+And then we can just come down here and start our server.
+
+179
+00:13:42,862 --> 00:13:47,728
+So we'll type peer dot create server and we have to put a port.
+
+180
+00:13:47,808 --> 00:13:52,048
+So we'll do 8915, I believe is what I chose.
+
+181
+00:13:52,590 --> 00:13:58,048
+Now we'll abstract that into a port up here in about five seconds, but we'll want to make sure that this works.
+
+182
+00:13:58,382 --> 00:14:03,808
+So we'll print quote started server like that.
+
+183
+00:14:04,608 --> 00:14:05,316
+Easy enough.
+
+184
+00:14:06,030 --> 00:14:08,048
+And now we can actually kind of test this.
+
+185
+00:14:08,128 --> 00:14:12,868
+So if we come to our control node here, we right click add a child node, add a button.
+
+186
+00:14:13,262 --> 00:14:14,768
+We can duplicate that button.
+
+187
+00:14:14,928 --> 00:14:18,916
+We'll call one start server and one start client.
+
+188
+00:14:22,894 --> 00:14:23,328
+Like that.
+
+189
+00:14:23,790 --> 00:14:30,084
+And then we can call this start client and then start server.
+
+190
+00:14:30,382 --> 00:14:30,916
+Like that.
+
+191
+00:14:31,470 --> 00:14:32,928
+I'm going to grab my start server.
+
+192
+00:14:33,008 --> 00:14:34,368
+I'll drag it over to the other side.
+
+193
+00:14:34,448 --> 00:14:35,648
+That way I don't get confused.
+
+194
+00:14:35,728 --> 00:14:38,916
+So I'll just throw these guys both on the opposite sides of the screen.
+
+195
+00:14:39,214 --> 00:14:42,368
+And I'm going to go to my start client, click on node, button down.
+
+196
+00:14:42,510 --> 00:14:45,328
+I'll double-click on that, click on my client, hit connect.
+
+197
+00:14:45,408 --> 00:14:49,648
+And then when we do this, we're going to just connect to server like that.
+
+198
+00:14:50,062 --> 00:14:53,008
+When we want to start our server, oh, we have to pass it an IP.
+
+199
+00:14:53,168 --> 00:14:57,488
+So we'll put quotes just so that it's empty because we're not going to use it for right now.
+
+200
+00:14:57,614 --> 00:14:58,928
+We'll go to start server.
+
+201
+00:14:59,008 --> 00:15:00,848
+We'll double-click on it, start server.
+
+202
+00:15:01,008 --> 00:15:03,568
+We'll connect that to our server and we will hit connect.
+
+203
+00:15:03,728 --> 00:15:07,328
+And then we'll change this to start server like that.
+
+204
+00:15:07,488 --> 00:15:09,968
+And now if we've done everything correctly, we can just hit play.
+
+205
+00:15:10,128 --> 00:15:14,596
+We'll come over here, we'll hit start server, started server, start client, started client.
+
+206
+00:15:15,150 --> 00:15:15,940
+Easy enough.
+
+207
+00:15:16,368 --> 00:15:22,368
+Now that's cool, but how do we know if we actually successfully connected ourselves, right?
+
+208
+00:15:22,448 --> 00:15:24,644
+Because it really doesn't tell us much.
+
+209
+00:15:25,102 --> 00:15:28,848
+Well, here's where sending packets of information comes in handy.
+
+210
+00:15:28,928 --> 00:15:34,020
+So if we go to our client here, you can see we have our connect to server, start client button.
+
+211
+00:15:34,670 --> 00:15:40,448
+We need to create a button to actually just send data to our server so that way we can actually test our stuff.
+
+212
+00:15:40,608 --> 00:15:44,548
+So I'm going to right-click, add a child node, add another button.
+
+213
+00:15:44,910 --> 00:15:49,188
+We'll call this send test packet.
+
+214
+00:15:49,614 --> 00:15:53,316
+And we'll connect that to our client like that.
+
+215
+00:15:53,966 --> 00:15:55,248
+Now I'm going to go in here.
+
+216
+00:15:55,328 --> 00:15:58,048
+I'm going to drag this guy down so that it's in a proper spot.
+
+217
+00:15:58,208 --> 00:16:00,608
+Go to my script and it'll say on button button down.
+
+218
+00:16:00,848 --> 00:16:04,928
+And we'll say peer dot put packet.
+
+219
+00:16:05,038 --> 00:16:06,128
+And that's how you send data.
+
+220
+00:16:06,208 --> 00:16:09,168
+But you'll notice it requires a packed byte array.
+
+221
+00:16:09,294 --> 00:16:15,168
+And what that means is that we have to actually change our data into some kind of encoded data.
+
+222
+00:16:15,328 --> 00:16:15,648
+Okay.
+
+223
+00:16:15,886 --> 00:16:17,888
+So let's create some data for us to test.
+
+224
+00:16:17,968 --> 00:16:22,628
+So I'll say var message is equal to bracket bracket quote.
+
+225
+00:16:23,008 --> 00:16:33,488
+And we'll put something like message colon message dot join, let's say.
+
+226
+00:16:33,678 --> 00:16:39,728
+And we'll come in here, we'll pass in something like data colon test.
+
+227
+00:16:40,334 --> 00:16:43,168
+I think that that's pretty a pretty easy thing to test here.
+
+228
+00:16:43,310 --> 00:16:45,648
+And you'll notice that when I hit S, that's because this is running.
+
+229
+00:16:45,728 --> 00:16:46,528
+So I'll stop it.
+
+230
+00:16:46,688 --> 00:16:53,808
+Once we have our data, we have to actually modify our data into some kind of binary data.
+
+231
+00:16:53,888 --> 00:17:04,448
+So we'll say var message bytes is equal to json dot stringify our message data.
+
+232
+00:17:04,608 --> 00:17:06,768
+So message dot two.
+
+233
+00:17:07,088 --> 00:17:08,848
+And you'll see we have different buffers.
+
+234
+00:17:08,928 --> 00:17:16,356
+If you remember from my previous tutorial, I talked about the difference between ASCII, UTF 8, UTF 16, and UTF 32.
+
+235
+00:17:16,878 --> 00:17:19,088
+ASCII is great for English words.
+
+236
+00:17:19,328 --> 00:17:22,768
+UTF 8 is great for English words for the most part.
+
+237
+00:17:22,928 --> 00:17:31,968
+UTF 16 is great for English and symbols, and UTF 32 is great for symbols, English, and basically most languages.
+
+238
+00:17:32,206 --> 00:17:38,608
+So in my case, I'm going to do UTF 8, and then I'm going to pass in message bytes.
+
+239
+00:17:39,088 --> 00:17:40,608
+Now you might think, okay, cool.
+
+240
+00:17:40,718 --> 00:17:43,364
+So we're going to pass our data across to our server, right?
+
+241
+00:17:43,854 --> 00:17:48,608
+Well, yes, but our server needs to be able to read this data.
+
+242
+00:17:48,768 --> 00:17:50,368
+So how do we read that data?
+
+243
+00:17:50,528 --> 00:17:53,328
+Well, that's where server pulling comes in.
+
+244
+00:17:53,488 --> 00:17:56,288
+So we'll come down here to our server.
+
+245
+00:17:57,774 --> 00:17:59,728
+And I should probably close all of these guys.
+
+246
+00:17:59,808 --> 00:18:01,248
+So let me close everything.
+
+247
+00:18:01,422 --> 00:18:02,500
+Open up these two.
+
+248
+00:18:03,278 --> 00:18:07,076
+We'll come to our server and we'll type peer pull.
+
+249
+00:18:08,238 --> 00:18:12,848
+And that's going to pull our server socket, if that makes sense.
+
+250
+00:18:13,038 --> 00:18:23,968
+So what polling does is polling basically just says, hey, make sure that this socket is open and make sure that you are receiving or not receiving data.
+
+251
+00:18:24,048 --> 00:18:28,772
+It basically says, hey, hold this socket open for one second.
+
+252
+00:18:29,262 --> 00:18:32,580
+And if any data comes through, then get that data.
+
+253
+00:18:33,582 --> 00:18:37,568
+Now, unfortunately, that doesn't, that's not the only step that we have to do.
+
+254
+00:18:37,648 --> 00:18:39,248
+We actually have to get that packet.
+
+255
+00:18:39,374 --> 00:18:49,088
+So we have to say, if peer dot getAvailable packet count is greater than zero, then we can go ahead and grab that packet.
+
+256
+00:18:49,168 --> 00:18:55,652
+So var packet is equal to peer dot get packet.
+
+257
+00:18:56,608 --> 00:18:57,088
+Like that.
+
+258
+00:18:58,382 --> 00:19:05,888
+If our packet does not equal null, then we can actually start parsing our data.
+
+259
+00:19:06,478 --> 00:19:10,288
+Now we need to convert our data from a byte array to a string.
+
+260
+00:19:10,368 --> 00:19:23,568
+So we can say var data string is equal to packet dot get string from, and we have to choose the exact same encoding.
+
+261
+00:19:23,694 --> 00:19:25,648
+So in our case, we did UTF 8.
+
+262
+00:19:25,728 --> 00:19:27,684
+So we'll do UTF 8 in this case.
+
+263
+00:19:29,230 --> 00:19:31,648
+And then we need to pull back our data and parse it.
+
+264
+00:19:31,728 --> 00:19:39,968
+So var data is equal to json dot parse string data string.
+
+265
+00:19:40,110 --> 00:19:41,604
+And that'll pass back our data.
+
+266
+00:19:42,222 --> 00:19:43,408
+So then we'll just print that out.
+
+267
+00:19:43,488 --> 00:19:44,644
+So print data.
+
+268
+00:19:46,094 --> 00:19:49,088
+Now I know this might be a little confusing, so let's take a step through this.
+
+269
+00:19:49,294 --> 00:19:51,812
+So first things first, we're we're pulling our peer.
+
+270
+00:19:52,238 --> 00:19:55,408
+And pulling our peer is basically pulling our socket.
+
+271
+00:19:55,568 --> 00:19:57,728
+You could just call the socket if you want to.
+
+272
+00:19:57,838 --> 00:19:58,688
+That's up to you.
+
+273
+00:19:58,928 --> 00:20:02,768
+Um I called it peer because it's a WebSocket multiplayer peer.
+
+274
+00:20:02,848 --> 00:20:03,968
+So that's why I called it that.
+
+275
+00:20:04,048 --> 00:20:04,848
+It's up to you guys.
+
+276
+00:20:05,008 --> 00:20:07,008
+But first, we're pulling our peer data.
+
+277
+00:20:07,088 --> 00:20:09,168
+So we're actually pulling to see if we get data.
+
+278
+00:20:09,248 --> 00:20:11,888
+We're checking to see if we have received data.
+
+279
+00:20:12,048 --> 00:20:13,728
+If we have, we're gonna get that data.
+
+280
+00:20:13,808 --> 00:20:18,288
+And then we're gonna verify that it's not empty, that somebody didn't send us garbage data.
+
+281
+00:20:18,368 --> 00:20:22,608
+Then we're gonna come through and we're going to get our string from UTF-8.
+
+282
+00:20:22,848 --> 00:20:30,768
+So we're gonna pull our data from our byte array, which if you remember, a byte array is basically just how data gets pushed through the network.
+
+283
+00:20:31,008 --> 00:20:36,128
+We're going to change our data from byte array to a string, and then we're going to parse that into an object.
+
+284
+00:20:36,238 --> 00:20:37,728
+And that's basically how this works.
+
+285
+00:20:37,888 --> 00:20:39,568
+Now, same thing on the client end.
+
+286
+00:20:39,728 --> 00:20:41,648
+We have our button where we have our data.
+
+287
+00:20:41,808 --> 00:20:45,924
+We're going to make it into a byte array, and then we're going to send that data.
+
+288
+00:20:46,350 --> 00:20:50,244
+So if I hit play and I start my server, I start my client, and then I hit send.
+
+289
+00:20:50,734 --> 00:20:51,968
+You'll notice nothing happens.
+
+290
+00:20:52,366 --> 00:20:53,732
+Matter of fact, we're getting an error.
+
+291
+00:20:54,318 --> 00:20:55,168
+So what's going on with that?
+
+292
+00:20:55,310 --> 00:21:02,208
+Well, you can see it says here condition get connection status connected is true, returning error unconfigured.
+
+293
+00:21:02,288 --> 00:21:03,364
+Uh put packet.
+
+294
+00:21:03,726 --> 00:21:04,928
+Well, that's not ideal, right?
+
+295
+00:21:05,008 --> 00:21:07,248
+And that happens whenever we want to send a packet, right?
+
+296
+00:21:07,328 --> 00:21:09,796
+Anytime we want to send a packet, it bricks on us.
+
+297
+00:21:10,094 --> 00:21:10,688
+Why is that?
+
+298
+00:21:10,848 --> 00:21:14,448
+Well, that's because our packet peer is closed.
+
+299
+00:21:14,608 --> 00:21:20,932
+When you create your packet peer, and then you create your client, only stays open for one second.
+
+300
+00:21:21,648 --> 00:21:27,076
+So to keep that stuff open, you need to actually pull your peer.
+
+301
+00:21:27,438 --> 00:21:29,220
+So peer pull.
+
+302
+00:21:30,158 --> 00:21:34,944
+And as long as you do that every frame, it's going to keep that socket open for basically ever.
+
+303
+00:21:35,342 --> 00:21:39,744
+So we'll hit play, we'll come over here, start server, start client, send.
+
+304
+00:21:39,824 --> 00:21:42,304
+And you will notice that we have received our data.
+
+305
+00:21:42,464 --> 00:21:45,732
+So our server has received our client's information.
+
+306
+00:21:46,224 --> 00:21:50,144
+Now I know that you might be thinking, okay, but I don't understand.
+
+307
+00:21:50,382 --> 00:21:51,664
+We're on the same computer.
+
+308
+00:21:51,744 --> 00:21:54,372
+We haven't done anything, but we actually have.
+
+309
+00:21:55,054 --> 00:21:57,984
+See if I have two versions of this window.
+
+310
+00:21:58,144 --> 00:22:05,264
+So if I go to debug, run multiple instances, run two, and I hit play, and I hit start server.
+
+311
+00:22:05,454 --> 00:22:06,624
+I'll move this guy over here.
+
+312
+00:22:06,734 --> 00:22:13,904
+And then I connect to that server and I send, you'll see that this guy got that data, and this guy sent that data.
+
+313
+00:22:14,064 --> 00:22:20,864
+So that's how it works is that we can actually send and receive data to our server doing this method.
+
+314
+00:22:21,024 --> 00:22:26,224
+And this is basically going to form the basis of our entire dedicated server system.
+
+315
+00:22:26,702 --> 00:22:30,852
+Now, once we have this, we have our basic communication going.
+
+316
+00:22:31,184 --> 00:22:36,144
+We now need to basically send data from our server to our client.
+
+317
+00:22:36,224 --> 00:22:37,904
+So we're gonna do it the exact same way.
+
+318
+00:22:37,984 --> 00:22:43,024
+I'm basically going to come in here, I'm going to right click, add a child node, I'll add in another button, right?
+
+319
+00:22:43,184 --> 00:22:49,424
+We'll drag this guy out, something like this, and we'll have a send a test packet as well.
+
+320
+00:22:49,504 --> 00:22:52,784
+So we'll connect our button, we'll click on server, we'll connect.
+
+321
+00:22:52,864 --> 00:22:55,984
+You'll see we have another button down here, and we can send a packet.
+
+322
+00:22:56,144 --> 00:22:58,624
+So we'll just do the exact same thing.
+
+323
+00:22:58,944 --> 00:23:13,184
+Var message is equal to bracket bracket quote message colon message dot ID, comma, quote, data colon test.
+
+324
+00:23:14,510 --> 00:23:21,904
+And then all we have to do is just hit peer dot put packet, and we have to put a byte array.
+
+325
+00:23:21,984 --> 00:23:30,980
+So we'll just say json dot stringify will pass in our message dot to utf eight buffer.
+
+326
+00:23:31,470 --> 00:23:34,064
+And that's basically a really shorthanded way of doing this.
+
+327
+00:23:34,144 --> 00:23:41,424
+Now, technically, if you really wanted to be super shorthanded and extremely obtuse, you technically could just do this as well.
+
+328
+00:23:41,584 --> 00:23:44,944
+And that's technically valid uh instead of passing in the message.
+
+329
+00:23:45,104 --> 00:23:49,984
+But I'm gonna do it this way because it's a little bit cleaner than doing it the other way because that's quite dirty.
+
+330
+00:23:50,638 --> 00:23:56,624
+But once we have this, we can just go to our client and then basically just copy our server code, right?
+
+331
+00:23:56,704 --> 00:23:58,544
+So I'll just copy this bit of code here.
+
+332
+00:23:58,704 --> 00:24:03,332
+I'll just basically grab the whole thing, copy, and then just hit enter and paste, right?
+
+333
+00:24:03,758 --> 00:24:08,784
+And then if we hit play, we can go start server, start client, send test packet.
+
+334
+00:24:08,864 --> 00:24:10,704
+You'll see that it received that test packet.
+
+335
+00:24:10,784 --> 00:24:13,584
+If we click this guy, you'll see it received the other test packet.
+
+336
+00:24:13,664 --> 00:24:14,624
+And they're slightly different.
+
+337
+00:24:14,704 --> 00:24:17,668
+You'll see that's why I did ID versus not ID, right?
+
+338
+00:24:18,798 --> 00:24:19,844
+So that's cool.
+
+339
+00:24:20,224 --> 00:24:23,744
+But if we connect, so I have a second guy here, right?
+
+340
+00:24:23,824 --> 00:24:27,264
+So if I grab my server, so let me grab that real quick.
+
+341
+00:24:27,424 --> 00:24:30,704
+If I connect this guy, so start client, I've connected.
+
+342
+00:24:30,864 --> 00:24:34,064
+If I hit this, you'll notice that I get it twice.
+
+343
+00:24:34,542 --> 00:24:35,184
+Did you notice that?
+
+344
+00:24:35,344 --> 00:24:35,984
+I have two.
+
+345
+00:24:36,078 --> 00:24:38,084
+That's because I have two clients connected.
+
+346
+00:24:38,638 --> 00:24:39,904
+So what does that mean?
+
+347
+00:24:40,064 --> 00:24:45,444
+Well, if we look at our server, that means that this broadcasting our data.
+
+348
+00:24:46,702 --> 00:24:49,664
+It's not sending it to one specific peer.
+
+349
+00:24:49,824 --> 00:24:51,300
+So what does that mean?
+
+350
+00:24:51,630 --> 00:24:57,024
+As you may remember, when a user connects to something, they get assigned an ID.
+
+351
+00:24:57,184 --> 00:25:02,660
+And we need to basically keep track of that ID when we do our peer connection.
+
+352
+00:25:03,534 --> 00:25:07,184
+So the nice thing about Godot is that they actually have a function for that.
+
+353
+00:25:07,374 --> 00:25:20,132
+If we come up to our ready and we type peer dot connect, quote, peer underscore connected, comma, and I'll just basically grab this guy and I will paste it.
+
+354
+00:25:20,430 --> 00:25:22,544
+We can do the same thing for disconnected.
+
+355
+00:25:22,624 --> 00:25:27,264
+So peer disconnected and then disconnected.
+
+356
+00:25:27,438 --> 00:25:31,104
+And I could basically just grab this guy, scroll down, and make a function for it.
+
+357
+00:25:31,184 --> 00:25:37,504
+So I'll come in here, func, peer connected, I'll pass in their ID, and then we can just hit pass.
+
+358
+00:25:37,664 --> 00:25:39,184
+And we can do the same thing for disconnected.
+
+359
+00:25:39,344 --> 00:25:46,064
+Funk, peer underscore, peer disconnected, ID, and then pass.
+
+360
+00:25:47,246 --> 00:25:49,316
+Now, what this is going to do is there's going now.
+
+361
+00:25:49,744 --> 00:25:51,620
+What this is going to do is it's going to be a signal.
+
+362
+00:25:51,824 --> 00:25:56,932
+So these guys are going to run anytime a player connects or disconnects.
+
+363
+00:25:58,384 --> 00:25:59,972
+So what can we do with that?
+
+364
+00:26:00,384 --> 00:26:08,228
+Well, if we come up here, we can just say var users is equal to brackets, and that's going to allow us to keep track of our users.
+
+365
+00:26:09,070 --> 00:26:13,184
+And then we can come down here, and when a peer connects, we can say print.
+
+366
+00:26:15,374 --> 00:26:19,200
+Peer connected colon plus str ID.
+
+367
+00:26:19,822 --> 00:26:28,880
+And then we can just say users brackets ID is equal to, and then we can put in information about that user.
+
+368
+00:26:29,040 --> 00:26:32,320
+In my case, I'm going to say ID colon ID.
+
+369
+00:26:32,880 --> 00:26:35,440
+And that should be it for right now.
+
+370
+00:26:35,600 --> 00:26:41,092
+We're going to probably do additional stuff a little bit later, but for right now, I think that's going to be the simplest.
+
+371
+00:26:41,486 --> 00:26:48,100
+And then all we have to do is just send a message back to the peers with their information.
+
+372
+00:26:48,622 --> 00:26:49,600
+So how do we do that?
+
+373
+00:26:49,774 --> 00:26:51,680
+Well, we have this right here, right?
+
+374
+00:26:51,760 --> 00:26:58,052
+So we can basically just say peer dot send put packet.
+
+375
+00:26:59,086 --> 00:27:01,360
+And then we can pass in our packet byte array, right?
+
+376
+00:27:01,440 --> 00:27:02,240
+Just like we did here.
+
+377
+00:27:02,400 --> 00:27:05,732
+So actually, I could basically just copy this and paste it, right?
+
+378
+00:27:06,320 --> 00:27:08,480
+Well, not quite, right?
+
+379
+00:27:08,640 --> 00:27:12,708
+A, our message needs to be changed to user ID, right?
+
+380
+00:27:12,800 --> 00:27:15,280
+Like this, to send that data.
+
+381
+00:27:15,438 --> 00:27:18,000
+And this would work, but it's going to send it to everybody.
+
+382
+00:27:18,080 --> 00:27:21,956
+It's not just going to send it to just the player that I care about.
+
+383
+00:27:22,542 --> 00:27:27,280
+So what do we have to do to get it so that we can send that data back to our player?
+
+384
+00:27:27,470 --> 00:27:30,400
+So the easiest way to do it is to get your peer.
+
+385
+00:27:30,480 --> 00:27:35,040
+So we can say peer dot get peer, and we have to pass in an ID.
+
+386
+00:27:35,200 --> 00:27:42,080
+In our case, we'll say ID dot put packet, and then we can pass in our JSON string to UTF-8.
+
+387
+00:27:42,240 --> 00:27:43,364
+So we'll pass that in.
+
+388
+00:27:44,110 --> 00:27:50,400
+And that should allow us to send that data directly back to our player.
+
+389
+00:27:51,022 --> 00:27:55,120
+So how do we know if we've sent that data back directly to the player?
+
+390
+00:27:55,280 --> 00:28:03,364
+Well, if I hit comma here, I'm going to hit quote message with a lowercase m, that's probably going to mess me up quite a bit today, but we'll see.
+
+391
+00:28:04,238 --> 00:28:06,385
+And then I'll hit colon message.
+
+392
+00:28:06,385 --> 00:28:07,570
+dot ID.
+
+393
+00:28:08,654 --> 00:28:13,920
+We'll put our packet, we'll hit control S, we'll go to our client, and then we'll receive that data.
+
+394
+00:28:14,030 --> 00:28:28,580
+And I will say if data dot message is equal to message dot ID, then I know that this data is my ID packet.
+
+395
+00:28:29,040 --> 00:28:29,360
+Okay.
+
+396
+00:28:30,478 --> 00:28:35,840
+So what I'll do is I'll come up here and I'll set my var id equal to zero.
+
+397
+00:28:35,982 --> 00:28:41,200
+And I'll come up here, I'll come down here and I'll say ID is equal to data dot.
+
+398
+00:28:42,062 --> 00:28:44,480
+And I believe I used the words ID.
+
+399
+00:28:44,718 --> 00:28:45,600
+You see right here.
+
+400
+00:28:45,680 --> 00:28:57,508
+So we'll come in here, we'll say data dot ID and then we'll print my ID is plus str ID.
+
+401
+00:28:59,054 --> 00:29:03,120
+We'll hit play, start server, start client.
+
+402
+00:29:03,214 --> 00:29:06,800
+You will see that when I clicked start client, it did a peer connected.
+
+403
+00:29:06,880 --> 00:29:09,360
+So we ran through connected here.
+
+404
+00:29:09,520 --> 00:29:12,960
+We created an object with that user ID.
+
+405
+00:29:13,200 --> 00:29:18,720
+We sent back that ID to that specific peer and it says, my ID is this.
+
+406
+00:29:18,880 --> 00:29:20,480
+And you'll notice that we only got it once.
+
+407
+00:29:20,560 --> 00:29:23,840
+We didn't get it twice, which means that our code is working properly.
+
+408
+00:29:23,920 --> 00:29:28,080
+We got back the correct peer and we sent their data to them specifically.
+
+409
+00:29:28,302 --> 00:29:30,800
+We didn't send it to anyone else in the project.
+
+410
+00:29:30,960 --> 00:29:34,160
+As a matter of fact, if we refresh this, you'll see I have two of them.
+
+411
+00:29:34,320 --> 00:29:43,280
+If I start my server, I start my client, and I start my client, you'll see that I have peer connected, started client, peer connected, and they have two different IDs.
+
+412
+00:29:43,662 --> 00:29:51,200
+As a matter of fact, if we drop a break point right here in our server and we take a look, we go to our users.
+
+413
+00:29:52,270 --> 00:29:54,224
+Well, you'll notice our dictionary is zero.
+
+414
+00:29:54,304 --> 00:29:56,544
+That's probably because it needs to be in session one.
+
+415
+00:29:56,704 --> 00:30:04,544
+So, pro tip if you don't know anything about Godot's braking system, there's two sessions here because I have two windows open.
+
+416
+00:30:04,624 --> 00:30:09,860
+So you can see I have window one and window two, which are not opening up because I have them in break mode.
+
+417
+00:30:09,984 --> 00:30:11,104
+But I have two sessions.
+
+418
+00:30:11,264 --> 00:30:13,184
+You'll see here the user is zero.
+
+419
+00:30:13,264 --> 00:30:16,224
+And the reason why is because the server is not running.
+
+420
+00:30:16,430 --> 00:30:24,676
+But if I go to session one, you'll notice that I have two users right here, and they both correspond with my actual players.
+
+421
+00:30:25,422 --> 00:30:28,464
+Our user registration system is basically done.
+
+422
+00:30:28,624 --> 00:30:37,584
+Now, granted, if you wanted to have something a bit more crazy like user authentication and stuff like that, you can definitely basically use this and just expand on it, right?
+
+423
+00:30:37,744 --> 00:30:41,024
+Create a database, store the user credentials, things like that.
+
+424
+00:30:41,264 --> 00:30:43,904
+But we're basically done with this.
+
+425
+00:30:44,622 --> 00:30:47,812
+So what's next for a server, right?
+
+426
+00:30:48,270 --> 00:30:55,584
+Well, usually you have something like a lobby or something like multiple rooms or multiple games going on.
+
+427
+00:30:55,694 --> 00:30:57,824
+So what can we do to build that out?
+
+428
+00:30:57,934 --> 00:31:06,724
+Well, if we go to our server and we scroll up, the first thing we're gonna need is a var lobby, like that.
+
+429
+00:31:07,662 --> 00:31:11,332
+And I would definitely suggest making a lobby object.
+
+430
+00:31:11,584 --> 00:31:13,504
+So, how can you make a lobby object?
+
+431
+00:31:13,664 --> 00:31:19,824
+Well, if we come up here, file new script, and just type lobby or capital L lobby.
+
+432
+00:31:19,904 --> 00:31:22,628
+I usually like to do capitals for my scripts.
+
+433
+00:31:22,958 --> 00:31:25,584
+We can come in here and have all sorts of information.
+
+434
+00:31:25,870 --> 00:31:30,756
+First things first, I'm going to say class underscore name is lobby.
+
+435
+00:31:32,430 --> 00:31:34,788
+And then we'll start building out our lobby object.
+
+436
+00:31:35,150 --> 00:31:37,424
+So, what are some things that a lobby needs to know?
+
+437
+00:31:37,584 --> 00:31:39,104
+Well, I need to know who the host is.
+
+438
+00:31:39,184 --> 00:31:40,304
+So host ID, right?
+
+439
+00:31:40,610 --> 00:31:42,020
+I'll make that equal to an integer.
+
+440
+00:31:42,510 --> 00:31:44,544
+Uh, we need to know what players are in it.
+
+441
+00:31:44,624 --> 00:31:48,036
+So var players, I'll make that a dictionary.
+
+442
+00:31:48,686 --> 00:31:50,544
+We'll initialize that dictionary as well.
+
+443
+00:31:50,704 --> 00:31:56,544
+And I think I should probably capital H, capital P because I want to have some kind of naming convention.
+
+444
+00:31:56,624 --> 00:32:00,708
+So if it's gonna get used outside of the thing, then I want to keep track of that.
+
+445
+00:32:01,166 --> 00:32:02,784
+Outside of that, what else do we need?
+
+446
+00:32:02,944 --> 00:32:04,624
+Well, we need a way to initialize it.
+
+447
+00:32:04,784 --> 00:32:08,484
+So we'll say func underscore initialize, right?
+
+448
+00:32:08,944 --> 00:32:11,504
+And what are we expecting the player to have?
+
+449
+00:32:11,664 --> 00:32:14,864
+Well, when it gets initialized, we're gonna need to tell it who the host is.
+
+450
+00:32:15,024 --> 00:32:20,004
+So we'll pass it an ID, and I'll pass in host ID is equal to ID, right?
+
+451
+00:32:20,398 --> 00:32:21,984
+We need the ability to add a player.
+
+452
+00:32:22,224 --> 00:32:26,788
+So func add player, and we'll pass it an ID.
+
+453
+00:32:27,184 --> 00:32:38,308
+And I imagine that if we're adding a player, we're gonna want to do players bracket bracket ID is equal to, and we can pass in whatever information we want right there.
+
+454
+00:32:38,574 --> 00:32:41,860
+Now, what information do we want to pass in when we add a player?
+
+455
+00:32:42,254 --> 00:32:55,504
+Well, I imagine we're gonna want to add in an ID, we're gonna add want to add in possibly a name, and we'll probably want maybe their index if they have one, but I think that should be held by the actual server itself.
+
+456
+00:32:55,790 --> 00:33:00,064
+Now you might be asking what an index is used for, and don't worry, we'll get to that in a little bit.
+
+457
+00:33:00,206 --> 00:33:09,104
+So we'll say name colon name, comma, id colon id.
+
+458
+00:33:10,094 --> 00:33:25,156
+And then we'll say index colon, and I'm just gonna do players.size plus one and then we'll just return players ID like that, right?
+
+459
+00:33:25,504 --> 00:33:28,464
+And that's pretty much everything that we're gonna need to do for our lobby.
+
+460
+00:33:28,544 --> 00:33:41,104
+Now we could extend a node, or we if we want to just extend a base Godot object, we could do a ref counted, and that'll basically extend without having all that extra node stuff, so it doesn't have to exist inside of Godot's world.
+
+461
+00:33:41,264 --> 00:33:44,132
+So I'll do that just because it's gonna create a smaller object.
+
+462
+00:33:44,750 --> 00:33:49,444
+Now, if we go back to our server, how do we actually create a lobby?
+
+463
+00:33:50,064 --> 00:33:53,636
+Well, that's something that we have to build ourselves.
+
+464
+00:33:53,966 --> 00:33:56,464
+So, what we'll do is we'll create a function.
+
+465
+00:33:56,686 --> 00:33:59,904
+I don't know, somewhere down here by start server, I imagine.
+
+466
+00:34:00,110 --> 00:34:03,104
+So I'll just create one right here and we'll say funk join.
+
+467
+00:34:04,718 --> 00:34:05,872
+Lobby like that.
+
+468
+00:34:06,222 --> 00:34:09,952
+We'll pass in a user ID and a lobby ID.
+
+469
+00:34:10,286 --> 00:34:14,912
+Now, when we want to join our lobby, we're going to be passing in a user ID and a lobby ID.
+
+470
+00:34:15,072 --> 00:34:17,232
+The reason why is because we're joining a lobby.
+
+471
+00:34:17,312 --> 00:34:19,392
+But what if somebody doesn't have a lobby yet?
+
+472
+00:34:19,552 --> 00:34:22,352
+What if they don't know what the lobby ID is, right?
+
+473
+00:34:22,512 --> 00:34:25,632
+Because they haven't joined one yet and they're ready to start playing a game.
+
+474
+00:34:25,792 --> 00:34:28,672
+Well, that's where creating a lobby makes sense.
+
+475
+00:34:28,878 --> 00:34:30,192
+So we need to actually do that.
+
+476
+00:34:30,352 --> 00:34:34,032
+We can't have a lobby without having one already existing, right?
+
+477
+00:34:34,192 --> 00:34:41,072
+So we'll say if lobby ID is equal to empty, then we know that we have to create one.
+
+478
+00:34:41,232 --> 00:34:47,780
+So we'll pass lobby ID is equal to, and we need to generate a string.
+
+479
+00:34:48,206 --> 00:34:54,352
+And since Godot doesn't really have a GUID generation system, we actually have to build that out ourselves.
+
+480
+00:34:54,512 --> 00:35:01,348
+So I'm going to come in here and type funk generate random string.
+
+481
+00:35:02,446 --> 00:35:12,752
+And I'm going to say var result is equal to empty for I in range of 32.
+
+482
+00:35:12,912 --> 00:35:20,272
+So I'm going to make it a 32-bit character because I can't imagine that we'd have over a couple million lobbies.
+
+483
+00:35:20,352 --> 00:35:21,552
+So we'll do 32.
+
+484
+00:35:21,632 --> 00:35:24,032
+If you needed a bigger lobby number, right?
+
+485
+00:35:24,112 --> 00:35:33,632
+If you're having collisions or something, you could uh expand that into like a 64 or 128-bit string, but really 32 should be totally fine for most people.
+
+486
+00:35:33,712 --> 00:35:50,692
+We'll say var random index is equal to rand i percent sign, and we'll need to randomize our characters that we have.
+
+487
+00:35:51,374 --> 00:35:58,432
+Now we need to actually generate our random string, so we need to actually have a pool of letters and numbers that we can use.
+
+488
+00:35:58,512 --> 00:35:59,872
+So I'm going to scroll up to the top.
+
+489
+00:36:00,174 --> 00:36:17,792
+I'm going to say var characters is equal to quote a b c d e f g, h, i j k, l m n, o, p, q, r, s t u, v, w x y z.
+
+490
+00:36:18,094 --> 00:36:19,952
+And then I'm going to do capital versions of that.
+
+491
+00:36:20,112 --> 00:36:23,312
+So I'm going to type A B C D E F G.
+
+492
+00:36:30,272 --> 00:36:33,232
+And then we can do numbers as well.
+
+493
+00:36:33,312 --> 00:36:38,272
+So we can go zero, one, two, three, four, five, six, seven, eight, nine, and that should do it.
+
+494
+00:36:38,352 --> 00:36:47,300
+Now, if you want to, you could also add in symbols like so if you really wanted to, but really let's just stick with this because that should work totally fine.
+
+495
+00:36:47,472 --> 00:36:54,032
+Now, once we have our characters, we can scroll down here and we can basically just set up our stuff.
+
+496
+00:36:54,192 --> 00:36:59,552
+So we'll say var index is equal to rand.
+
+497
+00:36:59,712 --> 00:37:04,032
+i percent sign characters.
+
+498
+00:37:04,192 --> 00:37:06,272
+dot length like that.
+
+499
+00:37:06,352 --> 00:37:14,752
+and then we can go result plus equals characters, and then we can pass in that index.
+
+500
+00:37:15,182 --> 00:37:20,512
+Whoops, indent index like that, and then we can return our result.
+
+501
+00:37:21,582 --> 00:37:29,312
+And now we can go back here and we can go lobby id is equal to result, and then we can add our player,
+
+502
+00:37:34,254 --> 00:37:37,792
+and then we can add our lobby, so we can actually initialize our lobby.
+
+503
+00:37:37,872 --> 00:37:41,152
+So lobby, I believe I called it lobby.
+
+504
+00:37:41,392 --> 00:37:42,272
+I just called it lobby.
+
+505
+00:37:42,512 --> 00:37:43,876
+I think I should call this lobbies.
+
+506
+00:37:44,782 --> 00:37:46,752
+Lobbies, that'll probably be easier.
+
+507
+00:37:46,832 --> 00:37:57,712
+So lobbies, bracket, bracket, lobby id is equal to lobby.new, like that.
+
+508
+00:37:58,190 --> 00:38:02,672
+And you'll notice that it's gonna get mad at us and it says, hey, too few arguments called for new.
+
+509
+00:38:02,832 --> 00:38:08,592
+That's because we did an initialization right here where we require a host ID of some description.
+
+510
+00:38:08,846 --> 00:38:12,832
+So we'll come in here and we'll pass in our user ID like that.
+
+511
+00:38:12,912 --> 00:38:15,012
+And that's gonna create a new lobby.
+
+512
+00:38:15,694 --> 00:38:21,552
+And now all we have to do is add our player to that lobby.
+
+513
+00:38:21,712 --> 00:38:25,232
+So if you remember, we have a section here where it adds a player, right?
+
+514
+00:38:25,312 --> 00:38:27,012
+It creates a player and adds it.
+
+515
+00:38:27,438 --> 00:38:33,028
+So that means we could say var player is equal to lobbies.
+
+516
+00:38:36,814 --> 00:38:43,728
+Lobby ID dot and Godot's auto sense is being unhappy with me.
+
+517
+00:38:43,808 --> 00:38:49,572
+So we'll say add player and we'll pass in our user ID like that.
+
+518
+00:38:50,510 --> 00:38:52,448
+Now you might be asking, okay, hold on.
+
+519
+00:38:52,608 --> 00:38:56,128
+So why did we create this and then do this?
+
+520
+00:38:56,288 --> 00:39:02,928
+Why did we add a user or create a lobby with a user ID and then add a player with that user ID?
+
+521
+00:39:03,088 --> 00:39:09,328
+If you look at our lobby, we are setting up who our host is, and we only want to run that when a lobby is created.
+
+522
+00:39:09,408 --> 00:39:13,348
+When a lobby gets created, we need to say designate somebody as the host.
+
+523
+00:39:13,648 --> 00:39:20,608
+So that means that you need to have that information on creation, and then we can add them as a regular player.
+
+524
+00:39:20,750 --> 00:39:26,756
+So we're designating them as host on creation, and then we are adding them as a part of the actual lobby itself.
+
+525
+00:39:27,342 --> 00:39:30,852
+And that's basically how you create a very simple lobby.
+
+526
+00:39:31,214 --> 00:39:36,368
+Now we need to send that information back to the player, and that's actually pretty easy.
+
+527
+00:39:36,526 --> 00:39:54,528
+So first things, first, we'll say var data is equal to bracket, bracket quote, message bracket or colon message dot user connected id colon, user ID, comma,
+
+528
+00:39:57,888 --> 00:40:05,488
+host, colon lobbies, id, dot host ID.
+
+529
+00:40:05,568 --> 00:40:10,448
+And I believe we actually capitalized host ID for naming convention purposes.
+
+530
+00:40:10,528 --> 00:40:21,568
+So we'll say host ID, comma, player colon lobbies ID dot players.
+
+531
+00:40:21,774 --> 00:40:24,048
+Now you'll notice that we get IDs not declared.
+
+532
+00:40:24,128 --> 00:40:27,568
+That's because it needs to be a lobby id because I'm crazy and I forgot.
+
+533
+00:40:27,648 --> 00:40:31,008
+And we'll pass in our user ID like that.
+
+534
+00:40:31,088 --> 00:40:32,448
+And then we'll just send that data.
+
+535
+00:40:32,608 --> 00:40:43,088
+So to send the data, we'll do exactly what we did up here, where we want to do peer.get packet ID JSON, and then pass in that information.
+
+536
+00:40:43,248 --> 00:40:44,068
+So data.
+
+537
+00:40:46,318 --> 00:40:48,928
+And we'll need to pass in our user ID.
+
+538
+00:40:49,088 --> 00:40:51,728
+Now you might be thinking, man, this is kind of cumbersome.
+
+539
+00:40:51,888 --> 00:40:52,208
+Yes.
+
+540
+00:40:52,430 --> 00:40:55,808
+So what we'll do is we'll come in here and we'll make a function for this.
+
+541
+00:40:55,968 --> 00:41:02,528
+So func send send to player, and I'm going to pass in user ID, comma.
+
+542
+00:41:02,702 --> 00:41:03,968
+We'll pass in the data.
+
+543
+00:41:04,078 --> 00:41:16,836
+And then all I'm going to do is basically just take this guy, control X, paste, and then just do send to player and pass in our user ID, comma, data.
+
+544
+00:41:17,422 --> 00:41:21,488
+And that's just going to make things a little bit cleaner, especially since we're going to be sending data a lot.
+
+545
+00:41:21,614 --> 00:41:26,608
+So I want to make sure that our stuff gets sent properly across the wire.
+
+546
+00:41:26,768 --> 00:41:30,208
+So now we just need to actually join our lobby on our client side.
+
+547
+00:41:30,288 --> 00:41:35,728
+So we'll go into our client, we'll actually come over here, we'll copy this guy and paste it.
+
+548
+00:41:35,854 --> 00:41:39,088
+And instead of send test packet, we're going to disconnect that.
+
+549
+00:41:39,374 --> 00:41:44,608
+We'll change it from send test packet to join lobby.
+
+550
+00:41:44,846 --> 00:41:49,248
+And for us to be able to join a lobby, we're gonna need to have some kind of way to tell us what lobby it's gonna be.
+
+551
+00:41:49,328 --> 00:41:54,916
+So I'm gonna put in a line edit real quick right here, and we'll pull this guy over.
+
+552
+00:41:55,854 --> 00:42:04,164
+Now, when we want to join a lobby, if I drag this guy up here like this, and I select button, I'm gonna call this join lobby.
+
+553
+00:42:04,462 --> 00:42:10,084
+We're going to select our node button down and we'll connect that to our client and hit connect.
+
+554
+00:42:10,958 --> 00:42:15,968
+Now, when we want to join a lobby on our client side, it's actually relatively easy.
+
+555
+00:42:16,128 --> 00:42:24,356
+All we have to do is come in here and say var message equals bracket enter quote ID.
+
+556
+00:42:26,254 --> 00:42:31,920
+Is equal to our id, comma, I believe that's what we called it.
+
+557
+00:42:32,000 --> 00:42:32,260
+Yep.
+
+558
+00:42:32,560 --> 00:42:42,596
+Quote message colon message dot lobby, comma, quote, lobby value.
+
+559
+00:42:43,854 --> 00:42:46,000
+And we need to get a reference to our line edit.
+
+560
+00:42:46,080 --> 00:42:50,640
+So what I'm going to do to make this easier is I'm going to throw this under the client just because it's going to make things a little easier.
+
+561
+00:42:50,720 --> 00:42:55,748
+So we'll hit dollar sign line edit dot text.
+
+562
+00:42:56,846 --> 00:42:58,564
+And then we can send our data.
+
+563
+00:42:59,022 --> 00:43:11,840
+Peer dot put packet, and we'll pass in our json dot stringify, and we'll pass in our message dot to utf8 buffer, and that should just work.
+
+564
+00:43:12,334 --> 00:43:20,320
+So now if we hit control s, we hit play, we pull this over, we start our server, start our client, we'll hit join lobby, and you'll notice that nothing happens.
+
+565
+00:43:20,400 --> 00:43:23,940
+But if we click on output, you'll notice that we're getting the data that we expected.
+
+566
+00:43:24,430 --> 00:43:25,440
+So what gives, right?
+
+567
+00:43:25,520 --> 00:43:26,212
+What's going on?
+
+568
+00:43:26,800 --> 00:43:31,840
+Well, much like everything else, we need to parse that information.
+
+569
+00:43:32,000 --> 00:43:39,520
+If you look at your system here, when we throw a breakpoint here, we hit join lobby, we actually receive that data.
+
+570
+00:43:39,680 --> 00:43:44,640
+It exists, we have received it, but we haven't handled that packet properly.
+
+571
+00:43:44,878 --> 00:43:46,400
+So, how do we handle the packet properly?
+
+572
+00:43:46,560 --> 00:43:57,760
+Well, we can just check if our message data message is equal to message lobby.
+
+573
+00:43:58,320 --> 00:44:01,040
+And if it is, then we can join
+
+574
+00:44:03,054 --> 00:44:10,640
+lobby and we can pass in data.id, comma, data dot, and I believe I used the word
+
+575
+00:44:15,040 --> 00:44:16,000
+lobby value.
+
+576
+00:44:16,174 --> 00:44:18,116
+So we'll hit copy and paste.
+
+577
+00:44:19,150 --> 00:44:22,372
+So if I put a breakpoint here, I refresh everything.
+
+578
+00:44:23,440 --> 00:44:27,840
+I start my server, I start my client, I click join lobby.
+
+579
+00:44:27,920 --> 00:44:29,440
+You'll see we get a breakpoint here.
+
+580
+00:44:29,520 --> 00:44:32,320
+If we hit play, you'll see we get breakpoint right here.
+
+581
+00:44:32,480 --> 00:44:37,840
+You'll see that our data right here is our ID, our lobby value, and our message.
+
+582
+00:44:38,000 --> 00:44:40,720
+You'll also see that our data string is right here.
+
+583
+00:44:40,880 --> 00:44:43,520
+If we step into that, we're gonna join our lobby.
+
+584
+00:44:43,600 --> 00:44:53,200
+Our lobby is gonna come through and create a new lobby, which in this case, I think I made a mistake.
+
+585
+00:44:53,360 --> 00:44:55,840
+Let me take a look at our lobby ID here.
+
+586
+00:44:55,920 --> 00:44:57,280
+Our lobby ID is empty.
+
+587
+00:44:57,360 --> 00:45:02,640
+So, yep, this is gonna brick on us because we did not set up our generate random string.
+
+588
+00:45:02,734 --> 00:45:05,040
+So this needs to be generate random string.
+
+589
+00:45:05,294 --> 00:45:06,160
+So that's my fault.
+
+590
+00:45:06,240 --> 00:45:08,000
+So let's refresh this and try it again.
+
+591
+00:45:08,174 --> 00:45:11,120
+So we'll start our server, start our client, join our lobby.
+
+592
+00:45:11,200 --> 00:45:11,920
+It'll come through.
+
+593
+00:45:12,000 --> 00:45:12,836
+It comes through.
+
+594
+00:45:13,390 --> 00:45:14,720
+We'll come in here.
+
+595
+00:45:15,118 --> 00:45:18,160
+You'll notice that it's gonna attempt to generate a random string.
+
+596
+00:45:18,240 --> 00:45:20,800
+We'll put a breakpoint here just to verify that it worked.
+
+597
+00:45:20,880 --> 00:45:22,230
+So let's take a look at our result.
+
+598
+00:45:22,560 --> 00:45:23,360
+That is correct.
+
+599
+00:45:23,440 --> 00:45:24,320
+That's what we're expecting.
+
+600
+00:45:24,400 --> 00:45:26,880
+You can see it's a random string.
+
+601
+00:45:27,054 --> 00:45:29,120
+And then we can hit enter, enter.
+
+602
+00:45:29,280 --> 00:45:32,196
+It's gonna create a new lobby, like so.
+
+603
+00:45:32,686 --> 00:45:43,360
+If we take a look at our lobby that we got back, so if we go to our globals here, you can see we now have a lobby in our inspector.
+
+604
+00:45:43,502 --> 00:45:46,320
+So you can see right here, that is a lobby object.
+
+605
+00:45:46,400 --> 00:45:47,680
+So perfect, that's working.
+
+606
+00:45:47,840 --> 00:45:52,640
+We can add our player and we have a crash invalid call to function add player.
+
+607
+00:45:52,720 --> 00:45:53,920
+So that's not good.
+
+608
+00:45:54,240 --> 00:45:57,680
+Add player ID name, add player.
+
+609
+00:45:57,840 --> 00:46:00,100
+Did I do something incorrect here?
+
+610
+00:46:02,254 --> 00:46:05,056
+On base ref count lobby, expected two arguments.
+
+611
+00:46:05,136 --> 00:46:06,976
+Oh, it expected two arguments.
+
+612
+00:46:07,136 --> 00:46:08,256
+ID and name.
+
+613
+00:46:08,496 --> 00:46:11,856
+So something that we forgot to pass back from our client is our name.
+
+614
+00:46:11,936 --> 00:46:13,056
+So we'll pass that in.
+
+615
+00:46:13,136 --> 00:46:14,980
+So quote name.
+
+616
+00:46:16,206 --> 00:46:18,416
+We'll just pass something empty for right now.
+
+617
+00:46:18,496 --> 00:46:19,556
+I think that that's fine.
+
+618
+00:46:20,398 --> 00:46:25,216
+And then that means that when we want to add our player, we need to pass in a user ID.
+
+619
+00:46:25,376 --> 00:46:29,536
+In this case, I'm going to go ahead and pass in a user.
+
+620
+00:46:29,776 --> 00:46:34,496
+In this case, I think I'm going to pass in our user data.
+
+621
+00:46:34,576 --> 00:46:36,324
+So we'll say user instead.
+
+622
+00:46:37,198 --> 00:46:40,016
+And then I'm just going to pass in all of that data instead.
+
+623
+00:46:40,238 --> 00:46:51,456
+And then we'll come in here and just do user.id and then user.id, comma, user.name, like that.
+
+624
+00:46:51,616 --> 00:46:54,016
+And then we'll pass in for lobby id.
+
+625
+00:46:54,336 --> 00:46:56,576
+We'll just do user.lobbyid.
+
+626
+00:46:56,896 --> 00:46:58,496
+I believe that's what we used anyway.
+
+627
+00:46:58,656 --> 00:47:01,856
+If I take a look at our client, it's lobby value.
+
+628
+00:47:01,936 --> 00:47:03,076
+So that's my fault.
+
+629
+00:47:03,598 --> 00:47:06,020
+So we'll come back to server lobby value.
+
+630
+00:47:07,758 --> 00:47:09,136
+And it is very mad at us.
+
+631
+00:47:09,376 --> 00:47:11,716
+Lobby ID is not declared.
+
+632
+00:47:12,558 --> 00:47:15,776
+So we'll do user.lobby value.
+
+633
+00:47:15,936 --> 00:47:17,412
+We'll copy this guy.
+
+634
+00:47:19,086 --> 00:47:25,124
+User.lobby value, user.lobby value, user.lobby value, user.lobby value.
+
+635
+00:47:26,862 --> 00:47:32,736
+And we'll do user.id user.id.
+
+636
+00:47:35,726 --> 00:47:37,456
+User.id data.
+
+637
+00:47:37,616 --> 00:47:38,564
+I think that will work.
+
+638
+00:47:39,406 --> 00:47:40,548
+So let's try that again.
+
+639
+00:47:41,294 --> 00:47:44,336
+We'll make sure we have actually we'll make sure we have a breakpoint there.
+
+640
+00:47:44,496 --> 00:47:47,844
+We'll hit start server, start client, join lobby.
+
+641
+00:47:48,750 --> 00:47:50,948
+It's gonna run through this.
+
+642
+00:47:51,918 --> 00:47:53,136
+We'll join our lobby.
+
+643
+00:47:53,296 --> 00:47:55,856
+We'll run through, we'll generate a random string.
+
+644
+00:47:55,950 --> 00:47:59,696
+So user.lobby value is now set properly.
+
+645
+00:47:59,856 --> 00:48:01,136
+We'll come through here.
+
+646
+00:48:01,390 --> 00:48:04,416
+We just created our lobby.
+
+647
+00:48:04,496 --> 00:48:05,776
+We'll add in a player.
+
+648
+00:48:05,936 --> 00:48:07,376
+So that seems to have worked.
+
+649
+00:48:07,456 --> 00:48:14,016
+So if we take a look at our lobby real quick, you'll see that we have a lobby with a player in it.
+
+650
+00:48:14,176 --> 00:48:17,216
+And the player has an empty name, an ID, and an index.
+
+651
+00:48:17,376 --> 00:48:17,856
+Awesome.
+
+652
+00:48:18,016 --> 00:48:23,332
+So now if we do this, it'll send the data back to our player like that.
+
+653
+00:48:23,790 --> 00:48:26,016
+Now we don't have anything that's catching that data.
+
+654
+00:48:26,096 --> 00:48:29,056
+So we have to go into our client and actually do the exact same thing.
+
+655
+00:48:29,216 --> 00:48:32,896
+So you can see how this is passing in a message called user connected.
+
+656
+00:48:32,976 --> 00:48:36,388
+So we have to go back to our client and actually hook that up.
+
+657
+00:48:37,198 --> 00:48:53,924
+So we'll say if data.message lowercase m is equal to message.userconnected, then we need to actually set up that a user got connected.
+
+658
+00:48:54,096 --> 00:48:57,456
+So we'll just create a function for connecting a peer.
+
+659
+00:48:57,616 --> 00:49:03,936
+So we'll just say create peer and we'll pass in data.id.
+
+660
+00:49:04,256 --> 00:49:06,404
+At least for right now, we'll just pass in the ID.
+
+661
+00:49:07,246 --> 00:49:08,576
+And I'll just create a function for that.
+
+662
+00:49:08,656 --> 00:49:12,068
+So func create peer and we'll pass in an ID.
+
+663
+00:49:12,496 --> 00:49:14,496
+And I'll just pass for right now.
+
+664
+00:49:14,606 --> 00:49:19,876
+And the reason why is because this is where we're gonna put in our WebRTC connection stuff.
+
+665
+00:49:21,614 --> 00:49:25,412
+So we'll just scaffold that out a tiny bit and get that going.
+
+666
+00:49:27,216 --> 00:49:32,576
+So next, what we need to do is we need to set it up so that other players can join that lobby.
+
+667
+00:49:32,910 --> 00:49:38,496
+So if we head over to our server and we take a look at it, you can see that we have our join lobby code right here.
+
+668
+00:49:38,702 --> 00:49:42,016
+So what we're doing is we are creating our lobby, right?
+
+669
+00:49:42,158 --> 00:49:46,656
+And then we're coming in and we're creating some data and we're sending it back to our player.
+
+670
+00:49:46,816 --> 00:49:51,136
+Now, what happens if another user joins a lobby, right?
+
+671
+00:49:51,278 --> 00:49:59,908
+So if we actually print out our lobby information, so if we come in and say print, or actually, I think I'll do it up here.
+
+672
+00:50:00,334 --> 00:50:01,636
+So if we come up here.
+
+673
+00:50:04,398 --> 00:50:13,264
+And just say print user dot lobby value like that and we refresh this real quick.
+
+674
+00:50:13,424 --> 00:50:24,324
+If we create a lobby, so we start our server, start our client, join lobby, and we hit play and we hit play, we hit play, you'll see in our output we'll have a GUID right here.
+
+675
+00:50:24,750 --> 00:50:31,424
+Now, if we copy this GUID and I get rid of these breakpoints, we might want to keep one just here so that way we have it.
+
+676
+00:50:31,504 --> 00:50:40,784
+But if we take our other one, which I believe is this guy here, we start our client, so we connect, we paste, and we join.
+
+677
+00:50:41,230 --> 00:50:44,384
+You'll see we're going to hit a breakpoint, we're going to step in like so.
+
+678
+00:50:44,544 --> 00:50:48,464
+You'll see that we're going to skip over this guy, we're going to get added to that lobby.
+
+679
+00:50:48,544 --> 00:50:50,784
+So you'll see that we get added to the lobby properly.
+
+680
+00:50:50,864 --> 00:50:55,396
+So we can actually look at our lobby, and you can see we've been joined.
+
+681
+00:50:55,886 --> 00:51:00,864
+And then we're going to notify ourselves that we have that data.
+
+682
+00:51:00,944 --> 00:51:09,664
+So if we come over here and we throw a breakpoint here, we hit play, you'll see we've broken right here, and you can see that we are receiving that data.
+
+683
+00:51:09,824 --> 00:51:13,344
+Now, just one peer has actually received that data.
+
+684
+00:51:13,424 --> 00:51:20,676
+So if we were to have like a list of people inside of our level here, we would just see the one, right?
+
+685
+00:51:20,944 --> 00:51:24,836
+Because we're not handling the players properly.
+
+686
+00:51:25,902 --> 00:51:36,292
+And an easy way to tell if we're doing it properly is if we come up here, we could actually come in here and add in to our game manager right here, dot players.
+
+687
+00:51:37,070 --> 00:51:51,076
+And we could just pass in id is equal to, and we'll just put uh actually, I don't think it would be id, it'd be data dot id, and then I believe we would have to.
+
+688
+00:51:51,664 --> 00:51:54,304
+If we look at this, it'd be dot player.
+
+689
+00:51:54,384 --> 00:51:57,668
+So we'll say data dot player.
+
+690
+00:51:58,318 --> 00:52:08,464
+And now if we actually test this real quick, you'll see we'll start our server, start our client, join our lobby, we'll run through, we'll get our output, which will be this guy right here.
+
+691
+00:52:08,624 --> 00:52:13,904
+We'll copy it, we'll paste it, start our client, join our lobby, hit play.
+
+692
+00:52:13,984 --> 00:52:21,904
+And then if we go to our client and we drop a breakpoint on our process, if we go into our game manager here, you'll see that we have a dictionary of one.
+
+693
+00:52:22,094 --> 00:52:26,944
+If we go to session one and we do the same thing and we go to our dictionary, you'll notice that we have one player.
+
+694
+00:52:27,118 --> 00:52:31,024
+You'll also notice that they're different players two nine seven five.
+
+695
+00:52:31,264 --> 00:52:34,864
+And if we look at our other game manager, one eight one two.
+
+696
+00:52:35,184 --> 00:52:41,024
+Now, the reason for that is because we're not sending our data to everybody else in the lobby.
+
+697
+00:52:41,184 --> 00:52:45,104
+Everybody needs to be synchronized and everybody needs to be happy for everything to work properly.
+
+698
+00:52:45,264 --> 00:52:48,612
+So we need to actually have it so that everybody synchronizes up.
+
+699
+00:52:49,006 --> 00:52:49,904
+So, what does that mean?
+
+700
+00:52:50,062 --> 00:52:51,184
+How do we approach that?
+
+701
+00:52:51,344 --> 00:52:53,264
+Well, it's actually easier than you might think.
+
+702
+00:52:53,344 --> 00:53:00,864
+So if we go to our lobby and we look at our server, I'm sorry, and we look at our joint lobby here.
+
+703
+00:53:01,024 --> 00:53:08,708
+We actually need to basically run through, loop through all of our players, and then send that information to everybody.
+
+704
+00:53:09,038 --> 00:53:21,744
+So, what we'll do is we'll come in here and we'll say for p in lobbies, and we'll get back our lobby ID.
+
+705
+00:53:21,824 --> 00:53:29,024
+So user.lobby value dot players colon, and I believe it's players.
+
+706
+00:53:29,104 --> 00:53:30,144
+We'll double check real quick.
+
+707
+00:53:30,224 --> 00:53:32,464
+It's capital P, not lowercase p.
+
+708
+00:53:32,544 --> 00:53:36,224
+So we'll grab players for P in our players.
+
+709
+00:53:36,304 --> 00:53:45,508
+So we're basically pulling back all of our players in our lobby, and when we do that, we'll send our lobby information to everybody.
+
+710
+00:53:47,374 --> 00:54:04,912
+So we'll say var lobby info is equal to bracket bracket quote message colon message dot lobby comma and then we can come in here and pass in any additional information we need.
+
+711
+00:54:04,992 --> 00:54:06,992
+So in our case, we need our lobby information.
+
+712
+00:54:07,152 --> 00:54:12,112
+So lobby colon lobbies bracket bracket.
+
+713
+00:54:12,352 --> 00:54:16,432
+We'll pull back our user information lobby value like that.
+
+714
+00:54:16,672 --> 00:54:21,072
+And if you want to pass in additional information like player data, things like that, you can.
+
+715
+00:54:21,232 --> 00:54:30,752
+What I will do is I'll just pass in our lobby lobby value, and then I will say dot players, and I'm gonna wrap this in a json stringify.
+
+716
+00:54:30,832 --> 00:54:36,512
+So I'll wrap this like this, and I'll say json dot stringify.
+
+717
+00:54:36,832 --> 00:54:38,912
+Now you might be asking, okay, hold on a minute.
+
+718
+00:54:39,072 --> 00:54:42,912
+Why would you stringify something inside of your object?
+
+719
+00:54:43,086 --> 00:54:52,112
+Well, here's why because this is a list of objects, sometimes Godot gets really confused and has problems with transferring data like that.
+
+720
+00:54:52,272 --> 00:54:56,352
+So we may or may not need this, but a lot of times Godot gets funky.
+
+721
+00:54:56,432 --> 00:55:08,032
+So I just JSON stringify that it forces that into a string, and then it gets stringed into this object here, and it can help with making things a little bit simpler for Godot to understand.
+
+722
+00:55:08,206 --> 00:55:27,392
+And then we could just send message send to peer, and then we have a user ID, so it's gonna be P, comma and then lobby info like that, and that's gonna send that lobby info down to our clients, and then we can go to our clients, and then we can basically just set that up.
+
+723
+00:55:27,472 --> 00:55:31,952
+So I'm going to get rid of my game manager section here.
+
+724
+00:55:32,112 --> 00:55:37,792
+I'm going to add in the ability to read the lobby information, much like before.
+
+725
+00:55:37,872 --> 00:55:45,712
+So if data dot message is equal to message dot Lobby, then I know I'm getting my lobby information.
+
+726
+00:55:45,792 --> 00:55:49,552
+So I can actually parse that information and get my stuff going.
+
+727
+00:55:49,712 --> 00:55:58,192
+I know that my game manager dot players is going to be equal to my data dot lobby.
+
+728
+00:55:58,352 --> 00:55:59,632
+I believe we called it lobby.
+
+729
+00:55:59,712 --> 00:56:01,152
+That's probably not the best name for it.
+
+730
+00:56:01,232 --> 00:56:03,044
+It's probably better to have players.
+
+731
+00:56:03,712 --> 00:56:05,952
+Probably just because that is what this is.
+
+732
+00:56:06,112 --> 00:56:07,428
+It's the players information.
+
+733
+00:56:07,726 --> 00:56:08,832
+So we should probably do that.
+
+734
+00:56:08,912 --> 00:56:10,852
+So we'll pass that in players.
+
+735
+00:56:11,214 --> 00:56:14,672
+So I will go data players like that.
+
+736
+00:56:14,798 --> 00:56:19,712
+And something to keep in mind is that we're gonna need to JSON parse that information.
+
+737
+00:56:19,792 --> 00:56:26,592
+So we'll type json.parse string, and we'll pass this guy in like so.
+
+738
+00:56:27,310 --> 00:56:28,992
+And that should just work.
+
+739
+00:56:29,358 --> 00:56:38,756
+So now if we come in here, we drop a breakpoint right here, we hit play, start a server, start a client, join a lobby.
+
+740
+00:56:39,118 --> 00:56:41,392
+It's gonna send us our data here.
+
+741
+00:56:41,552 --> 00:56:47,632
+If we step over, we have a crash invalid get index player on base dictionary.
+
+742
+00:56:47,712 --> 00:56:48,752
+So let's see what's going on.
+
+743
+00:56:48,832 --> 00:56:53,552
+If we look at our dictionary, it's dot players, not dot players.
+
+744
+00:56:53,632 --> 00:56:54,788
+So we'll try that again.
+
+745
+00:56:55,118 --> 00:56:57,668
+So start server, start client join.
+
+746
+00:56:58,192 --> 00:56:59,712
+It will parse that data.
+
+747
+00:56:59,792 --> 00:57:01,152
+We're gonna let that run through.
+
+748
+00:57:01,326 --> 00:57:03,552
+And then we're gonna grab our second one here.
+
+749
+00:57:03,632 --> 00:57:10,308
+We're gonna go to our output, grab this information right here, copy it, paste, start client join lobby.
+
+750
+00:57:10,734 --> 00:57:14,592
+We'll hit play, and then let's see if we synchronized our data.
+
+751
+00:57:14,672 --> 00:57:19,684
+So we'll put a breakpoint on our poll real quick, and we'll also join right here.
+
+752
+00:57:20,334 --> 00:57:23,632
+If we take a look at our game manager, you'll see that we have our two players.
+
+753
+00:57:23,854 --> 00:57:28,752
+If we look at session two and we go to our game manager, you will see that we have our two players.
+
+754
+00:57:28,912 --> 00:57:29,392
+Perfect.
+
+755
+00:57:29,472 --> 00:57:30,916
+That's exactly what we wanted.
+
+756
+00:57:31,374 --> 00:57:34,352
+So now our lobby is basically done, right?
+
+757
+00:57:34,432 --> 00:57:36,592
+We're holding on to our players' information.
+
+758
+00:57:36,752 --> 00:57:39,392
+We have their ID, their index, and their name.
+
+759
+00:57:39,552 --> 00:57:45,312
+So when we set up the user sending over their name, we'll be able to have that information right on hand.
+
+760
+00:57:45,472 --> 00:57:48,432
+And this can be useful for sending any type of data.
+
+761
+00:57:48,592 --> 00:57:50,512
+You could send pictures, things like that.
+
+762
+00:57:50,752 --> 00:57:53,312
+You just store it in your lobby and then you're good to go.
+
+763
+00:57:53,472 --> 00:57:56,752
+Or of course, you could store it you know differently if you needed to.
+
+764
+00:57:56,912 --> 00:58:00,356
+But this is basically the basics of how to get that to work.
+
+765
+00:58:01,102 --> 00:58:09,988
+Now that we have our lobby stuff figured out, we basically need to set up how we're gonna transfer our data for WebRTC.
+
+766
+00:58:10,560 --> 00:58:16,640
+So if you remember at the beginning of the tutorial, we talked a lot about how WebRTC works, right?
+
+767
+00:58:16,880 --> 00:58:25,680
+You have this whole signal exchange, you have this information exchange, and then they basically transfer the data to each other, and then they're happy, right?
+
+768
+00:58:25,774 --> 00:58:27,364
+And then they create that connection.
+
+769
+00:58:27,920 --> 00:58:35,040
+So first things first, we need to create that peer information to be transferred, right?
+
+770
+00:58:35,214 --> 00:58:38,800
+So we'll come to our client here and we have this thing called create peer.
+
+771
+00:58:38,880 --> 00:58:49,280
+If you remember, we talked about how we were going to do a WebRTC connection here, and that was going off of our data message ID, data message user connected.
+
+772
+00:58:49,360 --> 00:58:52,560
+Now we don't actually have that set up in our lobby side yet.
+
+773
+00:58:52,720 --> 00:58:55,200
+So when a user connects, they get back that data.
+
+774
+00:58:55,360 --> 00:59:04,640
+If you remember, we have we have a loop right here that's gonna let us loop through our players, but we're gonna need to send our signaling information across the wire as well.
+
+775
+00:59:04,880 --> 00:59:08,960
+So since we have to do that, we're going to need to actually code that in here.
+
+776
+00:59:09,134 --> 00:59:13,600
+So let's go to our client, let's get our web RTC stuff settled, and then we'll go from there.
+
+777
+00:59:13,760 --> 00:59:17,040
+So first things first, we're gonna create a peer off that data ID.
+
+778
+00:59:17,166 --> 00:59:21,956
+So we'll first check if our ID does not equal our own ID.
+
+779
+00:59:22,318 --> 00:59:24,880
+And I believe we called it ID.
+
+780
+00:59:25,200 --> 00:59:28,240
+So we'll just say self.id colon.
+
+781
+00:59:28,640 --> 00:59:31,440
+And then what we're gonna do is we're gonna initialize a connection.
+
+782
+00:59:31,520 --> 00:59:43,200
+So we'll say var peer colon web rtc peer connection is equal to web rtc peer connection.new.
+
+783
+00:59:43,342 --> 00:59:46,020
+And that's gonna create a new web rtc peer connection.
+
+784
+00:59:46,350 --> 00:59:47,076
+Easy enough.
+
+785
+00:59:47,520 --> 00:59:53,360
+Now we need to actually initialize that connection.
+
+786
+00:59:53,646 --> 00:59:58,160
+So we'll say peer dot initialize and we need to pass in a configuration dictionary.
+
+787
+00:59:58,240 --> 01:00:15,120
+So we'll pass in a dictionary, and we will add in ice servers: colon space, bracket, bracket brackets, and we'll pass in an array of objects.
+
+788
+01:00:15,342 --> 01:00:25,840
+and we'll say quote URLs, colon space, and that'll be an array of strings.
+
+789
+01:00:26,160 --> 01:00:26,372
+here.
+
+790
+01:00:27,150 --> 01:00:40,800
+And what we'll do is we'll say stun colon stun dot google.com colon one nine three oh two.
+
+791
+01:00:41,422 --> 01:00:47,600
+Now, what this is is it's a stun server that Google allows people to use for free.
+
+792
+01:00:47,760 --> 01:00:53,200
+So if you need to use it for testing and things like that, that is what the stun server is for.
+
+793
+01:00:53,360 --> 01:01:01,280
+Now, I wouldn't expect to throw a bunch of data at it, but you can throw some test data and do some initial stuff like that.
+
+794
+01:01:01,520 --> 01:01:10,080
+I would strongly suggest that you set up your own stun server if you can, but you can use this temporarily while you're testing.
+
+795
+01:01:10,240 --> 01:01:21,760
+and then I'm going to print binding ID, plus Str ID.
+
+796
+01:01:21,966 --> 01:01:25,092
+And then I'm also going to notify what my ID is.
+
+797
+01:01:27,982 --> 01:01:31,600
+That way I can keep track of what my ID is.
+
+798
+01:01:31,790 --> 01:01:41,360
+So that way I actually have um an understanding of what kind of information I'm passing through the wires because I don't want to bind my own ID necessarily.
+
+799
+01:01:41,440 --> 01:01:45,920
+So I just want to make sure that everything's copacetic and that we have everything set up.
+
+800
+01:01:46,080 --> 01:01:51,680
+Now, once we have that, we're going to go in and actually create our session description.
+
+801
+01:01:51,760 --> 01:01:57,120
+So we'll say peer dot session description created dot connect.
+
+802
+01:01:57,454 --> 01:01:59,280
+And that is a signal, by the way.
+
+803
+01:01:59,360 --> 01:02:05,760
+So when the session description is created, I am going to connect that to myself dot
+
+804
+01:02:09,038 --> 01:02:11,360
+and we're going to make a function of some description.
+
+805
+01:02:11,440 --> 01:02:17,600
+So I'm going to add an offer created function, and then I'm going to pass in my ID.
+
+806
+01:02:20,398 --> 01:02:25,920
+And we're going to do a dot bind and we're going to pass in my own ID like that.
+
+807
+01:02:26,478 --> 01:02:33,120
+And then we need to do the exact same thing, but this time we have to do it for when our ice candidate is created.
+
+808
+01:02:33,200 --> 01:02:42,724
+So I'm going to say peer dot ice candidate created dot connect self dot ice candidate.
+
+809
+01:02:46,704 --> 01:02:47,344
+Created.
+
+810
+01:02:47,886 --> 01:02:50,624
+And we're going to bind our ID like that.
+
+811
+01:02:51,150 --> 01:02:52,864
+And that means we got to create these functions.
+
+812
+01:02:52,944 --> 01:02:57,584
+So we'll come in here and we'll say funk offer created.
+
+813
+01:02:57,664 --> 01:03:01,252
+And I'm going to pass it an ID and we'll pass for right now.
+
+814
+01:03:01,742 --> 01:03:09,380
+And then we'll come in here and say funk ice candidate created and we'll pass in our ID.
+
+815
+01:03:10,414 --> 01:03:11,204
+There we go.
+
+816
+01:03:11,918 --> 01:03:14,144
+I'm gonna make sure that these are exactly the same.
+
+817
+01:03:14,224 --> 01:03:19,744
+So we'll just copy these guys and paste them just to make sure that they're good and happy to work.
+
+818
+01:03:20,782 --> 01:03:27,424
+And then once we bind that information, then we can actually add them as a peer.
+
+819
+01:03:27,744 --> 01:03:35,264
+So when you add someone as a peer, you need to have that WebRTC multiplayer peer created, right?
+
+820
+01:03:35,344 --> 01:03:38,212
+So you have connections and you have peers, okay?
+
+821
+01:03:38,542 --> 01:03:42,224
+And much like how we have our WebSocket peer, it's the exact same thing.
+
+822
+01:03:42,304 --> 01:03:44,784
+So we'll say var RTC
+
+823
+01:03:48,110 --> 01:03:58,944
+peer is equal to WebRTC multiplayer peer, and we'll make that equal to a WebRTC multiplayer peer dot new.
+
+824
+01:03:59,086 --> 01:04:02,212
+And that's just going to create that WebRTC multiplayer peer.
+
+825
+01:04:03,406 --> 01:04:14,384
+And I need to do colon, not equals for that, but WebRTC multiplayer peer is basically your actual peer socket connection.
+
+826
+01:04:14,464 --> 01:04:18,148
+So it's how you do your actual connection to other people.
+
+827
+01:04:18,544 --> 01:04:22,944
+Down here, this peer connection describes that connection.
+
+828
+01:04:23,024 --> 01:04:30,064
+It basically says, this is who this person is, this is their information, this is how I do the connection.
+
+829
+01:04:30,384 --> 01:04:38,464
+So this guy here basically just explains, basically just does the connection itself.
+
+830
+01:04:38,544 --> 01:04:42,468
+And this guy explains how to do the connection, if that makes sense.
+
+831
+01:04:43,424 --> 01:04:56,944
+Now, once we have that, then we can just come in here and say rtc peer dot add peer, and we can add our peer, comma, our id.
+
+832
+01:04:57,614 --> 01:05:00,304
+And what this is is it's basically like adding a dictionary.
+
+833
+01:05:00,384 --> 01:05:04,384
+So we're associating this peer with that ID.
+
+834
+01:05:04,464 --> 01:05:13,540
+So we're saying that that ID is this person, and that way we can keep track of all of our users' information when we do our connections and our signaling.
+
+835
+01:05:13,870 --> 01:05:16,144
+And then we're gonna need to create an offer.
+
+836
+01:05:16,224 --> 01:05:17,584
+So we can just go peer.
+
+837
+01:05:20,398 --> 01:05:29,104
+Now, when you create an offer, you don't want to create an offer from the lobby, you only want to create an offer from the peers themselves.
+
+838
+01:05:29,486 --> 01:05:36,864
+So everyone's kind of connecting to one central person that's kind of distributing the connections to everyone else, if that makes sense.
+
+839
+01:05:37,038 --> 01:05:43,344
+So what we'll do is we'll say if not host self ID.
+
+840
+01:05:44,622 --> 01:05:46,704
+And actually, I should probably call this host ID.
+
+841
+01:05:46,864 --> 01:05:50,624
+Now you might be wondering, well, hold on, you don't actually have a host ID.
+
+842
+01:05:50,704 --> 01:05:51,332
+You're correct.
+
+843
+01:05:51,438 --> 01:05:58,436
+So what we'll do is we'll scroll up here, we'll say var host ID, and we'll make that into an integer like that.
+
+844
+01:05:58,894 --> 01:06:05,504
+And then when a user connects to the lobby, we actually pull back that information if I remember correctly.
+
+845
+01:06:05,584 --> 01:06:07,984
+So we can actually come in here and take a look.
+
+846
+01:06:08,064 --> 01:06:14,544
+I'm pretty sure we pull back right here under user ID, we pull back what our host is.
+
+847
+01:06:14,704 --> 01:06:25,124
+So we'll just come in here and under ID, we'll type host ID is equal to data dot host like that.
+
+848
+01:06:27,630 --> 01:06:29,764
+And in theory, that should work.
+
+849
+01:06:30,126 --> 01:06:35,792
+Now, unfortunately, I can't just say, okay, guys, like we can test this and show it, and it's gonna work.
+
+850
+01:06:36,032 --> 01:06:38,112
+Because unfortunately, we can't.
+
+851
+01:06:38,272 --> 01:06:46,912
+We can't actually do our test without building out the offer created, the ice candidate created, and all of that happy jazz.
+
+852
+01:06:47,072 --> 01:06:48,912
+So let's just build all of that out.
+
+853
+01:06:49,070 --> 01:06:53,636
+So we'll come down here to our offer created and we're gonna change our input parameters.
+
+854
+01:06:54,272 --> 01:06:58,352
+So I made a mistake on the ice created and the offer created.
+
+855
+01:06:58,512 --> 01:07:08,992
+We need to pass in the type, comma, the data, and the ID for offer created, and then we have to come in and basically create our local description.
+
+856
+01:07:09,232 --> 01:07:15,472
+So, first things first, we want to make sure and do some error checking to make sure that we actually have that peer, right?
+
+857
+01:07:15,552 --> 01:07:20,592
+Somebody actually exists and is able to be connected to us.
+
+858
+01:07:20,942 --> 01:07:38,756
+So we'll say if not RTC peer dot has peer, and we'll just pass in our ID just to make sure that if for some reason this function's called and we don't actually have a peer, we don't want that to blow up on us, right?
+
+859
+01:07:39,342 --> 01:07:45,712
+Because if you send an offer to somebody who's not a peer, then it just really can make WebRTC confused.
+
+860
+01:07:45,792 --> 01:07:48,832
+So we don't want that to happen, it can actually make the dough crash.
+
+861
+01:07:48,992 --> 01:07:54,192
+So we want to be careful about that, and then we need to actually set their local description.
+
+862
+01:07:54,272 --> 01:08:07,940
+So we'll say rtc peer dot git peer idot connection dot set underscore local underscore description.
+
+863
+01:08:09,774 --> 01:08:12,228
+And we'll pass in type, comma data.
+
+864
+01:08:13,457 --> 01:08:15,952
+And I might be asking, what does that mean?
+
+865
+01:08:16,192 --> 01:08:22,592
+So think of it like this: when you're setting your local description, you're setting your own local description.
+
+866
+01:08:22,832 --> 01:08:38,912
+So I send my local description, so I create one and then I send it to you, and that becomes your remote description, and then you create your own local description, and then in response, you're gonna send that to me, and then I have a remote description of you.
+
+867
+01:08:39,072 --> 01:08:42,192
+So that's the difference between a local description and a remote description.
+
+868
+01:08:42,272 --> 01:09:00,512
+A local description is my interpretation of me and how you can connect to me, and my remote description of somebody else, and that becomes the remote description for everyone else of my system, so that way they know how to communicate with me, if that makes sense.
+
+869
+01:09:00,672 --> 01:09:05,232
+Now, once we have that, we actually need to determine if our type is offer.
+
+870
+01:09:05,392 --> 01:09:11,712
+So if type is equal to quote offer, and if so, then we can send an offer.
+
+871
+01:09:11,792 --> 01:09:27,652
+So we'll say send offer like that, and we'll pass it an ID, comma data, and then else we know that our type is an answer, so we'll send answer like that, and we'll pass in an ID, comma, data.
+
+872
+01:09:28,110 --> 01:09:33,312
+Now we don't actually have a send offer and send answer created yet.
+
+873
+01:09:33,422 --> 01:09:34,592
+So we actually have to do that.
+
+874
+01:09:34,734 --> 01:09:39,712
+So we'll come down here and we'll create our send offer and send answer.
+
+875
+01:09:39,792 --> 01:09:45,552
+So func send offer ID, comma, data, colon.
+
+876
+01:09:45,792 --> 01:09:48,672
+We'll pass for right now, and then we'll do the same thing for send answer.
+
+877
+01:09:48,912 --> 01:09:52,672
+So func send answer, ID, comma, data.
+
+878
+01:09:52,782 --> 01:09:56,512
+And that's basically how we're gonna send our offer and our answer.
+
+879
+01:09:56,718 --> 01:10:09,072
+Remember, an offer is me reaching out to you saying, hey, here is my information, and an answer is you saying, Hey, here is my answer on that information.
+
+880
+01:10:09,806 --> 01:10:12,912
+Now, the nice thing about this is Godot makes it really, really easy.
+
+881
+01:10:13,072 --> 01:10:23,632
+So we'll just say, var message is equal to quote peer, comma, id, colon id quote.
+
+882
+01:10:23,792 --> 01:10:42,272
+We're gonna get an original peer, so or give peer colon self id, quote message colon message dot offer, comma, quote.
+
+883
+01:10:42,512 --> 01:10:52,512
+Data is going to be data, comma, and because we're gonna be sending our data and we're gonna be relaying some data, I'm gonna want to pass in my lobby information.
+
+884
+01:10:52,686 --> 01:10:57,792
+So I'll just pass in lobby colon and we should probably get some kind of lobby value.
+
+885
+01:10:57,952 --> 01:11:09,232
+Now, if we check, I actually don't have a link to my lobby information, so we'll say var lobby lobby value, and we're gonna make that equal to an empty string.
+
+886
+01:11:09,312 --> 01:11:11,392
+I believe we pass that data back.
+
+887
+01:11:11,472 --> 01:11:15,792
+If we check our server real quick, we do pass that data back.
+
+888
+01:11:16,752 --> 01:11:17,712
+Let me see.
+
+889
+01:11:21,134 --> 01:11:23,812
+Actually, I don't think we do pass that data back.
+
+890
+01:11:25,390 --> 01:11:26,880
+So we're gonna need to pass that data back.
+
+891
+01:11:26,960 --> 01:11:34,558
+So we'll come in here and just hit quote lobby value, and then we'll just pass in user.
+
+892
+01:11:34,558 --> 01:11:39,760
+dot lobby Value like that.
+
+893
+01:11:39,840 --> 01:11:41,520
+And that'll just pass back that information.
+
+894
+01:11:41,600 --> 01:11:42,400
+That way we have it.
+
+895
+01:11:42,560 --> 01:11:48,320
+And then if we look under user ID, we can go into our client, scroll down, find it real quick.
+
+896
+01:11:48,526 --> 01:11:55,044
+So I believe that's under user ID lobby value is equal to data dot lobby value.
+
+897
+01:11:55,566 --> 01:12:00,324
+And then we can just come down here and pass in our lobby value like that.
+
+898
+01:12:01,774 --> 01:12:03,120
+And then we have to send that data.
+
+899
+01:12:03,200 --> 01:12:16,960
+So we'll come in here peer dot put packet json dot stringify message dot to utf8 buffer like that.
+
+900
+01:12:17,326 --> 01:12:20,960
+And that'll basically just send our data to our server.
+
+901
+01:12:21,120 --> 01:12:29,360
+And then we're basically gonna copy this bad boy right here, and we're gonna do the exact same thing, literally the exact same thing for sending our answer.
+
+902
+01:12:29,550 --> 01:12:34,720
+And it's basically going to say instead of message offer, it's going to be message answer.
+
+903
+01:12:34,960 --> 01:12:35,684
+Simple enough.
+
+904
+01:12:37,102 --> 01:12:40,320
+Now you might think, okay, so you're good, right?
+
+905
+01:12:40,480 --> 01:12:41,280
+We're good to go.
+
+906
+01:12:41,390 --> 01:12:42,148
+We're happy.
+
+907
+01:12:42,574 --> 01:12:42,880
+Kinda.
+
+908
+01:12:43,200 --> 01:12:45,760
+But first, we need to actually create a candidate.
+
+909
+01:12:45,870 --> 01:12:46,080
+Okay.
+
+910
+01:12:46,240 --> 01:12:51,920
+And a candidate is kind of like saying, Hey, I'm making a ice connection, right?
+
+911
+01:12:52,000 --> 01:12:54,160
+I'm making a connection that exists.
+
+912
+01:12:54,320 --> 01:13:08,800
+So there's a lot of additional information, your ID, your uh media stream information, your index, and your SDP protocol description that you have to send over the wire before you can get started.
+
+913
+01:13:08,880 --> 01:13:12,240
+And that's where ICE candidate created exists.
+
+914
+01:13:12,400 --> 01:13:23,120
+We'll say mid name, comma, index name, comma, sdp name, comma, and finally ID.
+
+915
+01:13:23,360 --> 01:13:27,680
+I guess I should probably go with uh I don't like that.
+
+916
+01:13:27,840 --> 01:13:31,040
+So SDP name, I think that'll work.
+
+917
+01:13:31,182 --> 01:13:34,400
+That kind of follows the naming convention, and then ID.
+
+918
+01:13:34,560 --> 01:13:40,880
+And when we do our ICE candidate created, we're basically sending a candidate to the rest of our group.
+
+919
+01:13:40,960 --> 01:13:44,960
+So we'll say var message, blah, blah, blah.
+
+920
+01:13:45,200 --> 01:13:57,920
+May basically copy and paste this code and say original peer is my ID, message type is candidate, and then for our data, this is where things get a little bit funky.
+
+921
+01:13:58,000 --> 01:14:00,817
+So we need to pass in our mid index and SDP.
+
+922
+01:14:01,040 --> 01:14:17,360
+We can do this a lot of different ways, but really, in my opinion, the easiest way is going mid, mid name like that, copy, paste, paste, paste, index, sdp.
+
+923
+01:14:20,142 --> 01:14:20,740
+Like that.
+
+924
+01:14:22,320 --> 01:14:28,868
+And that'll give us basically a really easy way to pass that data up so we can create that candidate.
+
+925
+01:14:30,062 --> 01:14:32,560
+Now we have to handle all of that information.
+
+926
+01:14:32,814 --> 01:14:37,600
+It's a lot of information, it's gonna be a pretty long part of our tutorial.
+
+927
+01:14:37,680 --> 01:14:44,132
+So we'll come into our server here and we're gonna set up that stuff so that we can forward our data.
+
+928
+01:14:44,782 --> 01:14:52,960
+So, first things first, we need to set up when up here correct gets connected to our lobby so that way we can actually create the WebRTC connection.
+
+929
+01:14:53,070 --> 01:14:54,160
+So we'll come in here.
+
+930
+01:14:54,286 --> 01:14:58,400
+We're already looping through our players, so this should be relatively easy.
+
+931
+01:14:58,640 --> 01:15:09,520
+So let's come up here and let's say var data, and we'll pass in our players information so that way they can actually create their candidate.
+
+932
+01:15:09,600 --> 01:15:17,520
+So we'll do quote message message dot user connected, comma, quote ID.
+
+933
+01:15:18,990 --> 01:15:35,588
+I believe we had it under their ID is user.id, and then I'm gonna come down here and do send message send to player, and I'm going to pass in the p, comma, data.
+
+934
+01:15:35,918 --> 01:15:39,360
+And then we need to do the exact same thing, but the exact opposite.
+
+935
+01:15:39,520 --> 01:15:52,292
+So we'll grab this information like this, copy, paste, and then instead of id being user.id, we'll just do p and we'll say data to and then send to player.
+
+936
+01:15:53,710 --> 01:15:57,456
+User dot id, comma data to.
+
+937
+01:15:58,062 --> 01:15:59,136
+So what is this doing?
+
+938
+01:15:59,310 --> 01:16:04,256
+So first things first, we're sending our data to the first player in our lobby.
+
+939
+01:16:04,336 --> 01:16:12,656
+So think about it like this: if you're in the lobby and I join the lobby, the server is going to send information about both of us to both of us.
+
+940
+01:16:12,814 --> 01:16:17,136
+And it's also going to update our lobby information as well.
+
+941
+01:16:17,390 --> 01:16:20,736
+So that way we know that everybody's lobbies are up to date.
+
+942
+01:16:20,896 --> 01:16:26,496
+Could you go in and actually update your lobby information during this packet push?
+
+943
+01:16:26,656 --> 01:16:28,176
+Technically speaking, yes.
+
+944
+01:16:28,256 --> 01:16:31,616
+But if you did that, then you might get duplicate information.
+
+945
+01:16:31,776 --> 01:16:35,332
+So I separated it out just to make things a little bit easier.
+
+946
+01:16:35,982 --> 01:16:41,856
+So once we have that, that's gonna fire our candidate user connected, right?
+
+947
+01:16:42,158 --> 01:16:45,376
+So now we just need to do all of the rest of it, right?
+
+948
+01:16:45,456 --> 01:16:51,536
+So we need to do our actual offer creation, our candidate, and our answer.
+
+949
+01:16:51,616 --> 01:16:53,216
+And that's actually gonna be really easy.
+
+950
+01:16:53,296 --> 01:17:03,856
+So we'll come into our server, we'll scroll up to our peer get available packets, we'll come up here, and basically what we're gonna do is we're going to just pass the data.
+
+951
+01:17:04,016 --> 01:17:28,496
+So, all we're gonna do is say, if data.message is equal to message, dot, offer or data.message is equal to message.answer, or data.message is equal to message.candidate.
+
+952
+01:17:28,736 --> 01:17:32,576
+then we know that we need to pass that data to the other user.
+
+953
+01:17:32,736 --> 01:17:38,816
+And what we're gonna do is we're going to send the data across to our other user.
+
+954
+01:17:38,976 --> 01:17:46,976
+So basically, we'll just say send to player, we're going to say data.id, comma, data.
+
+955
+01:17:47,182 --> 01:17:50,336
+And in theory, that should just work, hopefully.
+
+956
+01:17:50,496 --> 01:17:58,896
+So, what this is gonna do is it's gonna relay the information, the offer, message, answer, and the candidate just over to the other peer.
+
+957
+01:17:58,976 --> 01:18:03,056
+So it's literally just gonna pass that data across and let it get handled.
+
+958
+01:18:03,216 --> 01:18:07,620
+And what I'm gonna do for visibility in our case is I'm going to print
+
+959
+01:18:11,630 --> 01:18:17,216
+source ID is str and I'm going to pass in data dot.
+
+960
+01:18:17,616 --> 01:18:20,976
+I believe we had when we did it original peer.
+
+961
+01:18:21,102 --> 01:18:31,696
+So we'll grab that original peer plus message data is, and we'll pass in data dot.
+
+962
+01:18:32,176 --> 01:18:34,736
+I believe we used data.
+
+963
+01:18:34,896 --> 01:18:39,616
+So we'll just pass that in so that way we can actually just take a look at it and see what it looks like.
+
+964
+01:18:39,790 --> 01:18:43,136
+And now we have to do the exact same thing, but on the client side.
+
+965
+01:18:43,216 --> 01:18:49,936
+So we'll go to the client side, we'll scroll up here, and basically we need to come through and parse that information, right?
+
+966
+01:18:50,016 --> 01:19:00,496
+So, what's going on is we can send the data and we can relay it with our server, but we need to be able to get the data on our client and then parse that data and actually do stuff with that data.
+
+967
+01:19:00,590 --> 01:19:03,616
+And this is where the actual work kind of comes in.
+
+968
+01:19:03,776 --> 01:19:15,296
+So, first things first, if data dot message is equal to message dot candidate, then we need to actually parse that information.
+
+969
+01:19:16,046 --> 01:19:34,096
+So we can say if rtc peer dot has peer, data dot, and I believe we did original peer, so or g peer, then we can say print.
+
+970
+01:19:37,614 --> 01:19:47,072
+Got candidate colon space plus data dot source or g peer like that.
+
+971
+01:19:47,152 --> 01:19:51,792
+And that's basically just gonna say, hey, I got a candidate and it's good to go.
+
+972
+01:19:51,872 --> 01:20:01,712
+And I'm also gonna pull back my ID just so that I know who this is because sometimes debugging can be really painful with WebRTC.
+
+973
+01:20:01,872 --> 01:20:08,112
+So we're gonna wanna make sure that we know what is going on here.
+
+974
+01:20:08,272 --> 01:20:28,192
+and then all we have to do is basically say rtcPeer.getPeer, and we'll say data.orgPeer connection, dot add underscore ice underscore candidate, like that.
+
+975
+01:20:28,366 --> 01:20:41,476
+And then we need to pass in our information, and this is where things are gonna get painful because if we look at the documentation of Godot here, add ice candidate requires our media, our index, and our name.
+
+976
+01:20:42,478 --> 01:20:52,996
+So what that means to us is that we need to pass our mid, if you remember, mid index and sdp, if I remember correctly.
+
+977
+01:20:53,518 --> 01:20:56,192
+Hopefully, this doesn't completely brick on us.
+
+978
+01:20:56,272 --> 01:20:59,620
+Uh we'll have a fun time if I'm wrong here.
+
+979
+01:21:00,032 --> 01:21:08,832
+So what it'll be is it's going to be data dot, and I believe we called it mid index and sdp.
+
+980
+01:21:08,912 --> 01:21:13,924
+So mid data dot index and data dot sdp, like that.
+
+981
+01:21:14,510 --> 01:21:19,232
+And in theory, with a little bit of finger crossing, this should work.
+
+982
+01:21:19,392 --> 01:21:23,072
+So we'll say to int just in case, because this has to be an integer.
+
+983
+01:21:23,152 --> 01:21:26,436
+So just in case it's not, we'll make it into an integer.
+
+984
+01:21:27,406 --> 01:21:30,192
+And hopefully this will just work.
+
+985
+01:21:30,766 --> 01:21:32,912
+Now, what happens if we get an offer?
+
+986
+01:21:33,230 --> 01:21:35,072
+So we'll hook that part up now.
+
+987
+01:21:35,232 --> 01:21:45,312
+So if data dot message is equal to a message dot offer, then we have to do the same thing.
+
+988
+01:21:45,392 --> 01:21:47,472
+So we have to check if we have that peer.
+
+989
+01:21:47,632 --> 01:22:12,432
+So if we have that peer, then we can say rtc peer, dot, get peer, and we can pass in our data dot org peer, dot connection, dot set underscore remote underscore description offer.
+
+990
+01:22:13,392 --> 01:22:16,832
+comma, data, dot data, like that.
+
+991
+01:22:17,326 --> 01:22:19,792
+And then we can do the exact same thing on answer.
+
+992
+01:22:19,952 --> 01:22:28,388
+So copy, paste, and answer like that, and change this to answer.
+
+993
+01:22:35,438 --> 01:22:41,872
+And now we have all of our offer, all of our candidate, and all of that stuff set up, which is great.
+
+994
+01:22:42,032 --> 01:22:57,472
+Now we just need to do one last thing before we can actually test this out, and that is we need to set up a function that basically sets up our RTC mesh connection, and that's gonna be under ID.
+
+995
+01:22:57,552 --> 01:23:09,552
+So when we know what our ID is going to be, we can create a function called connected, and it doesn't have to be named connected, but I'm going to call it connected just because that's easy for me to remember.
+
+996
+01:23:09,742 --> 01:23:15,152
+So we'll copy connected, we'll come down here and we'll say funk connected ID.
+
+997
+01:23:15,278 --> 01:23:21,472
+And all we're gonna do is just RTC peer dot create mesh ID.
+
+998
+01:23:22,670 --> 01:23:27,072
+And then we need to actually set up our multiplayer peer.
+
+999
+01:23:27,152 --> 01:23:28,644
+So multiplayer.
+
+1000
+01:23:30,414 --> 01:23:36,196
+Dot multiplayer peer is equal to RTC peer, like that.
+
+1001
+01:23:36,910 --> 01:23:49,648
+Now, what this part here is doing is basically creating a mesh network and it's basically saying I want from now on all of my multiplayer to go through this section.
+
+1002
+01:23:49,888 --> 01:23:55,248
+So all this is doing is it's hooking up the RPC calls inside of Godot.
+
+1003
+01:23:55,328 --> 01:24:07,248
+So if you've ever used Godot's networking libraries, or if you've ever gone through my previous tutorial, that at RPC over top of our function calls, that's what this is hooking up.
+
+1004
+01:24:07,328 --> 01:24:09,808
+It's just hooking all that up and making sure it's all good to go.
+
+1005
+01:24:09,966 --> 01:24:11,088
+So that's what that's for.
+
+1006
+01:24:11,168 --> 01:24:12,368
+So that way you guys know.
+
+1007
+01:24:12,528 --> 01:24:26,276
+So when we get back our ID from our host, we're setting up our multiplayer connection and setting up all of our stuff and saying that that we're good to actually start our WebRTC server, if that makes sense.
+
+1008
+01:24:26,608 --> 01:24:29,968
+Now that is a whole lot of information, okay?
+
+1009
+01:24:30,158 --> 01:24:32,928
+And I know that you guys probably aren't gonna fully understand it.
+
+1010
+01:24:33,008 --> 01:24:33,808
+So don't worry.
+
+1011
+01:24:33,902 --> 01:24:38,608
+Um, if you have questions, drop them in the comments below and I'll try to answer them as best of my abilities.
+
+1012
+01:24:38,702 --> 01:24:45,728
+I'll also run through the code once more once we test it all and verify that it works, and it'll probably break, but we'll find out.
+
+1013
+01:24:45,888 --> 01:24:51,888
+Something that I'm going to do is I'm gonna come up here and I'm gonna connect a couple of signals inside of my ready.
+
+1014
+01:24:52,048 --> 01:24:53,700
+So I'm gonna type multiplayer
+
+1015
+01:24:57,550 --> 01:25:07,204
+dot connected to server dot connect, and I'm gonna type RTC server connected.
+
+1016
+01:25:07,758 --> 01:25:09,568
+I'm gonna duplicate this a few times.
+
+1017
+01:25:09,728 --> 01:25:22,288
+I'm going to have one on peer underscore connected, and I'm going to say peer connected, and then I'm going to do also peer disconnected.
+
+1018
+01:25:23,568 --> 01:25:24,048
+Like that.
+
+1019
+01:25:24,208 --> 01:25:26,368
+And then I'm going to say peer.
+
+1020
+01:25:30,542 --> 01:25:31,088
+There we go.
+
+1021
+01:25:31,694 --> 01:25:33,860
+So now I'm going to create those functions real quick.
+
+1022
+01:25:35,886 --> 01:25:41,860
+And I'm going to say print server connected.
+
+1023
+01:25:43,118 --> 01:25:45,328
+Or I guess it'll be RTC server connected.
+
+1024
+01:25:45,408 --> 01:25:46,608
+That way we know the difference.
+
+1025
+01:25:46,688 --> 01:25:48,740
+So RTC server connected.
+
+1026
+01:25:49,390 --> 01:25:58,448
+I'm going to grab this peer connected ID, and I'm going to print RTC peer connected.
+
+1027
+01:25:58,574 --> 01:26:01,408
+And I'm going to pass in that ID real quick.
+
+1028
+01:26:01,550 --> 01:26:03,716
+And then we'll do the same thing but for disconnected.
+
+1029
+01:26:03,808 --> 01:26:11,808
+So I'll just grab this guy, paste, enter, and I will pass in disconnected real quick, like this.
+
+1030
+01:26:13,038 --> 01:26:14,848
+And we'll change this to disconnected.
+
+1031
+01:26:14,928 --> 01:26:18,116
+Now the reason why I added this is so that way we can actually do some testing.
+
+1032
+01:26:18,368 --> 01:26:22,608
+Because unfortunately, we can't just say, okay, we're good to go, right?
+
+1033
+01:26:22,688 --> 01:26:24,848
+Like everything's copacetic, we're happy.
+
+1034
+01:26:25,008 --> 01:26:25,328
+Okay.
+
+1035
+01:26:25,568 --> 01:26:32,208
+Because unfortunately, we can't really test if we're connected to each other via RTC without having some kind of logs.
+
+1036
+01:26:32,302 --> 01:26:33,248
+So that's what this is for.
+
+1037
+01:26:33,422 --> 01:26:36,288
+So I just want to make sure that we can see what's going on.
+
+1038
+01:26:36,462 --> 01:26:42,528
+So now in theory, hopefully, if everything's been done correctly, this should work.
+
+1039
+01:26:42,688 --> 01:26:44,688
+It probably won't, but we will see.
+
+1040
+01:26:44,768 --> 01:26:45,828
+So we're gonna hit play.
+
+1041
+01:26:46,414 --> 01:26:52,208
+We're gonna start a server, start a client, and we have a small crash, invalid host in base dictionary.
+
+1042
+01:26:52,288 --> 01:26:53,092
+So great.
+
+1043
+01:26:53,454 --> 01:26:57,088
+Uh we don't have a host ID or a value.
+
+1044
+01:26:57,248 --> 01:26:59,328
+So let's take a look at our server.
+
+1045
+01:26:59,488 --> 01:27:00,516
+Hit control F.
+
+1046
+01:27:00,910 --> 01:27:02,967
+Uh, let's look at message.
+
+1047
+01:27:02,967 --> 01:27:05,860
+ID That's right here.
+
+1048
+01:27:06,574 --> 01:27:15,248
+So actually, we don't we actually don't get back our host ID or anything because we're not joining a lobby.
+
+1049
+01:27:15,328 --> 01:27:16,448
+That would be under here.
+
+1050
+01:27:16,654 --> 01:27:17,568
+So that's my fault.
+
+1051
+01:27:17,728 --> 01:27:22,528
+So when we do our lobby message, is when we want to actually send that data across the wire.
+
+1052
+01:27:22,688 --> 01:27:26,768
+So let's go through and search for lobby inside of here.
+
+1053
+01:27:26,928 --> 01:27:33,008
+So message.lobby, and we'll want to pass that data in right here instead.
+
+1054
+01:27:33,088 --> 01:27:38,288
+So on a past host and lobby info.
+
+1055
+01:27:38,448 --> 01:27:42,180
+So we'll pass that in and lobby info right here.
+
+1056
+01:27:43,246 --> 01:27:44,036
+There we go.
+
+1057
+01:27:44,528 --> 01:27:49,540
+Instead, and it's unhappy because we need a comma right here.
+
+1058
+01:27:51,278 --> 01:27:52,144
+Let's refresh.
+
+1059
+01:27:52,224 --> 01:27:53,024
+Let's try that again.
+
+1060
+01:27:53,184 --> 01:27:55,264
+So start server, start client.
+
+1061
+01:27:55,424 --> 01:27:56,324
+We've connected.
+
+1062
+01:27:56,864 --> 01:27:59,504
+We did not get to see what.
+
+1063
+01:27:59,664 --> 01:28:00,384
+Oh, I'm sorry.
+
+1064
+01:28:00,464 --> 01:28:01,904
+We need to hit join lobby, don't we?
+
+1065
+01:28:02,064 --> 01:28:02,624
+Join lobby.
+
+1066
+01:28:02,734 --> 01:28:03,940
+So we've joined our lobby.
+
+1067
+01:28:04,366 --> 01:28:05,584
+We have our lobby value.
+
+1068
+01:28:05,664 --> 01:28:07,344
+We'll copy that, paste it in here.
+
+1069
+01:28:07,424 --> 01:28:08,224
+We'll start a client.
+
+1070
+01:28:08,366 --> 01:28:09,508
+We'll hit join lobby.
+
+1071
+01:28:09,998 --> 01:28:11,424
+And we have some crashes.
+
+1072
+01:28:11,664 --> 01:28:14,304
+Invalid index ID on data.
+
+1073
+01:28:14,384 --> 01:28:15,780
+So let's take a look at our data.
+
+1074
+01:28:17,198 --> 01:28:18,624
+Uh we called it peer.
+
+1075
+01:28:18,784 --> 01:28:23,584
+So technically it should be ID to maintain our naming convention.
+
+1076
+01:28:23,744 --> 01:28:28,304
+I don't know if I like peer, so but we'll do peer for now for testing purposes.
+
+1077
+01:28:28,384 --> 01:28:35,876
+So we'll refresh, start server, start client, join lobby, copy that guy, paste it in, start clients, join.
+
+1078
+01:28:36,366 --> 01:28:38,864
+And we got another crash here, so that's always good.
+
+1079
+01:28:39,054 --> 01:28:41,024
+Invalid data on dictionary.
+
+1080
+01:28:41,104 --> 01:28:43,024
+So let's take a look at our dictionary here.
+
+1081
+01:28:43,184 --> 01:28:52,384
+This guy doesn't have any data, and that's totally fine because we did not expect that mid-orge original peer peer SDP was going to be in here.
+
+1082
+01:28:52,544 --> 01:28:57,184
+So I guess what I'll do is I'll step through the code later instead of showing you guys this.
+
+1083
+01:28:57,550 --> 01:29:01,504
+We'll just do it this way because I don't want to brick this too much.
+
+1084
+01:29:01,584 --> 01:29:02,544
+So we'll try it again.
+
+1085
+01:29:02,702 --> 01:29:04,644
+So we'll copy this guy in here.
+
+1086
+01:29:05,870 --> 01:29:06,884
+We'll paste it.
+
+1087
+01:29:07,598 --> 01:29:09,188
+Start client join.
+
+1088
+01:29:09,838 --> 01:29:13,904
+Invalid operand string and float in operand.
+
+1089
+01:29:14,144 --> 01:29:22,704
+So that's because this needs to be str original peer, which leads me to believe that we'll probably run into nope.
+
+1090
+01:29:22,862 --> 01:29:24,304
+I think we'll just run into that here.
+
+1091
+01:29:24,526 --> 01:29:25,828
+So we'll try this one more time.
+
+1092
+01:29:26,318 --> 01:29:28,900
+Start server, start client join.
+
+1093
+01:29:29,422 --> 01:29:31,104
+We'll copy the lobby value.
+
+1094
+01:29:31,214 --> 01:29:32,304
+We'll paste it in here.
+
+1095
+01:29:32,464 --> 01:29:33,732
+Start client join.
+
+1096
+01:29:34,286 --> 01:29:36,384
+And another crash, as always.
+
+1097
+01:29:36,544 --> 01:29:39,824
+Non-existent function to int in base float.
+
+1098
+01:29:39,904 --> 01:29:41,104
+So this is actually a float.
+
+1099
+01:29:41,198 --> 01:29:44,944
+So actually, I think we can get away with just doing that since this is a float.
+
+1100
+01:29:45,024 --> 01:29:47,104
+So we'll get rid of that to int.
+
+1101
+01:29:47,424 --> 01:29:48,544
+We'll do the same thing.
+
+1102
+01:29:48,784 --> 01:29:52,144
+Start our client, start our server, join our lobby.
+
+1103
+01:29:52,224 --> 01:29:53,184
+Let's try it one more time.
+
+1104
+01:29:53,344 --> 01:29:55,012
+Start client, join lobby.
+
+1105
+01:29:56,624 --> 01:29:58,116
+Invalid index.
+
+1106
+01:30:00,302 --> 01:30:01,824
+Did I pull back the wrong thing?
+
+1107
+01:30:02,064 --> 01:30:02,784
+Very possible.
+
+1108
+01:30:03,022 --> 01:30:04,224
+Let's try this one more time.
+
+1109
+01:30:04,750 --> 01:30:06,064
+That's probably my fault.
+
+1110
+01:30:06,830 --> 01:30:07,716
+We'll hit play.
+
+1111
+01:30:08,462 --> 01:30:11,184
+Start server, start client, join lobby.
+
+1112
+01:30:11,824 --> 01:30:14,064
+We'll grab our lobby information.
+
+1113
+01:30:14,224 --> 01:30:18,384
+We'll come over here, paste it, start client, join lobby.
+
+1114
+01:30:19,598 --> 01:30:20,704
+And we've gotten here.
+
+1115
+01:30:20,974 --> 01:30:22,304
+RTC peer connected.
+
+1116
+01:30:22,894 --> 01:30:28,224
+So if we hit str bracket and bracket, I'm gonna do the same thing over here.
+
+1117
+01:30:28,464 --> 01:30:31,876
+We've just created our web RTC connection.
+
+1118
+01:30:32,624 --> 01:30:39,876
+So if we hit start, start join, we copy this guy, paste it, start join.
+
+1119
+01:30:42,478 --> 01:30:45,744
+We have an RTC peer connected right here.
+
+1120
+01:30:47,022 --> 01:30:51,492
+So what that means to us is that we actually successfully made a connection.
+
+1121
+01:30:51,918 --> 01:30:54,628
+Now there's a whole lot of information here, right?
+
+1122
+01:30:55,054 --> 01:30:55,824
+Don't worry.
+
+1123
+01:30:55,984 --> 01:30:59,744
+The whole purpose of this is just to show you basically how all this works.
+
+1124
+01:30:59,950 --> 01:31:03,744
+So first things first, we created a lobby, right?
+
+1125
+01:31:03,904 --> 01:31:04,452
+Right here.
+
+1126
+01:31:05,134 --> 01:31:06,704
+And then we created an offer.
+
+1127
+01:31:06,784 --> 01:31:13,904
+And you can see right here, we've got we got a big ol' IP address right here because this is an IPv6 IP address.
+
+1128
+01:31:14,064 --> 01:31:24,900
+And then we have our password to our connection, we have our ice connection, we have a fingerprint, we have all of the information that we need to create a connection.
+
+1129
+01:31:25,646 --> 01:31:27,780
+You can see we have my IP address right here.
+
+1130
+01:31:28,366 --> 01:31:43,076
+And then we come in here, we go into our lobby, we do a candidate connection, we get our host information, we grab our bundle information right here, and then we do a request right here to request our information.
+
+1131
+01:31:44,398 --> 01:31:48,864
+We do a candidate right here between each other.
+
+1132
+01:31:48,944 --> 01:32:03,584
+So we both do candidates to each other, and then we get our candidates, we pass our signaling information, we come through here, we do an acknowledgement and a candidate, and then we do our SDP information exchange.
+
+1133
+01:32:03,664 --> 01:32:09,904
+And it looks like it's working, and I'm doing that with a question mark because I'm not fully sure.
+
+1134
+01:32:10,064 --> 01:32:18,064
+So, what we can do, if we go to our 2D scene, let's grab send test packet, let's connect that button.
+
+1135
+01:32:18,286 --> 01:32:25,316
+So if you remember, we have that right here where we're sending our JSON data to our server and verifying that our server is working.
+
+1136
+01:32:25,742 --> 01:32:32,708
+Well, instead of doing that, what we could do is we can get rid of this and we can just go ping like that.
+
+1137
+01:32:34,030 --> 01:32:37,264
+Now we can come in here and just create a function for pinging.
+
+1138
+01:32:37,344 --> 01:32:43,024
+So ping like this, and we can basically just say print.
+
+1139
+01:32:45,664 --> 01:32:53,904
+Ping from plus multiplayer dot get remote sender id.
+
+1140
+01:32:55,182 --> 01:33:00,304
+and then up here, we can basically just go at RPC, any peer.
+
+1141
+01:33:00,846 --> 01:33:05,824
+and we can come in here and say, ping dot RPC like that.
+
+1142
+01:33:06,926 --> 01:33:07,904
+and it's gonna get mad at us.
+
+1143
+01:33:08,064 --> 01:33:09,904
+invalid, operand: string and int.
+
+1144
+01:33:10,144 --> 01:33:29,264
+So we'll just say str like that, and hopefully, if we refresh this and we redo our connection, so start server, start client, join lobby, we grab our lobby information, we come in here, paste start join, we do our connection, and then we send a test packet.
+
+1145
+01:33:29,358 --> 01:33:31,264
+You will see that we get our ping information.
+
+1146
+01:33:31,344 --> 01:33:34,788
+If we send a test packet, you'll see that we get our information.
+
+1147
+01:33:35,214 --> 01:33:35,744
+Awesome.
+
+1148
+01:33:35,984 --> 01:33:41,824
+So now our Web RTC stuff is actually working, which is amazing, right?
+
+1149
+01:33:41,904 --> 01:33:46,464
+We have our stuff actually working, and it's actually doing what we would expect it to do.
+
+1150
+01:33:46,624 --> 01:33:51,664
+So, at this point, We do need to set up a dedicated server.
+
+1151
+01:33:51,744 --> 01:33:57,104
+So, we have our server code here, but we actually need to set it up to be a dedicated server.
+
+1152
+01:33:57,326 --> 01:34:03,104
+Now, if you remember my previous tutorial, I talked about how to set up a dedicated server.
+
+1153
+01:34:03,264 --> 01:34:20,384
+but if you need a reminder, if we just go, if quote, dash, dash server in os, dot, get command line arguments, then all we have to do is just print hosting on str.
+
+1154
+01:34:21,264 --> 01:34:22,704
+and we'll pass in a port.
+
+1155
+01:34:22,864 --> 01:34:29,380
+In our case, I believe we're doing eight nine 15 but we'll probably have to just come up here and just go at export.
+
+1156
+01:34:30,304 --> 01:34:35,377
+Varhost port like that, and I'm just going to set this to eight nine 15.
+
+1157
+01:34:35,630 --> 01:34:41,584
+And then I'll just come in here, copy it and paste, that way we can actually have some kind of hosting system here.
+
+1158
+01:34:41,774 --> 01:34:50,624
+And then we can just go with peer create server host port like that, and we should be good to go.
+
+1159
+01:34:50,784 --> 01:35:01,092
+And that's going to allow us to set up a hosted server, and now all we really have to do is upload it to Digital Ocean or to whatever self-hosted system that you guys have.
+
+1160
+01:35:01,838 --> 01:35:10,864
+So let's go ahead and upload this to digital ocean all right so to get our stuff to work in DigitalOcean all we really need to do is create a droplet.
+
+1161
+01:35:10,944 --> 01:35:15,584
+Now I already have one created but I'll show you guys the process so you guys can see what it's like.
+
+1162
+01:35:15,726 --> 01:35:20,144
+So, if I click create droplet, you'll see that they have different locations.
+
+1163
+01:35:20,304 --> 01:35:30,304
+So, if you are in, you know, the United States, you can use the New York or San Francisco, or if you're over in Europe, you can use one of the European ones, right?
+
+1164
+01:35:30,464 --> 01:35:35,748
+So, you can basically pick whichever data center and region that's applicable to you.
+
+1165
+01:35:36,174 --> 01:35:45,104
+But once you pick that then you can pick what kind of image you want now in my case I'm doing Ubuntu but if you're a fan of Adora or Debian or something like that you can do that.
+
+1166
+01:35:45,184 --> 01:35:46,064
+That's totally fine.
+
+1167
+01:35:46,318 --> 01:36:05,024
+When they do choose size you can actually pick different optimized systems what I suggest for testing is either do the seven dollar premium AMD or go to regular and then hit over and you will see that there's a $4512 megabyte one CPU little guy here.
+
+1168
+01:36:05,184 --> 01:36:18,384
+You can use this one this one works for 99% of things that you're going to be doing just for testing purposes if you're going to be doing stuff that's a bit more in depth or a bit more difficult you can actually go up to the six or the 12 and that's totally fine.
+
+1169
+01:36:18,624 --> 01:36:36,720
+If you scroll down they're gonna have additional storage you're not going to need that uh be sure to throw a password in because then you can actually create a root password and that is the password that you're gonna use anytime you want to install something or adjust something that requires root on your machine And you can come and add these guys in if you want.
+
+1170
+01:36:36,880 --> 01:36:38,560
+I didn't because I don't need those.
+
+1171
+01:36:38,734 --> 01:36:45,360
+And then finally, you can set up which project it goes to, how many you want of them, and what the host name is going to be.
+
+1172
+01:36:45,520 --> 01:36:48,400
+Now, in my case, I already have a droplet.
+
+1173
+01:36:48,558 --> 01:36:49,040
+It's right here.
+
+1174
+01:36:49,120 --> 01:36:50,640
+It's called my YouTube droplet.
+
+1175
+01:36:50,880 --> 01:36:54,080
+And this is the one that I use for my YouTube channel.
+
+1176
+01:36:54,320 --> 01:37:03,760
+Now, once I get the service up and running, you guys should be able to connect to it and use my server for your own testing and your own playing around.
+
+1177
+01:37:03,920 --> 01:37:07,360
+But for right now, let's go ahead and set our stuff up.
+
+1178
+01:37:07,520 --> 01:37:11,600
+So, first things first, if you click on console, it's going to open up a console.
+
+1179
+01:37:11,760 --> 01:37:14,480
+So that way you have a console to your system.
+
+1180
+01:37:14,734 --> 01:37:22,560
+Now, something to keep in mind is you're going to need to set up transferring data to your DigitalOcean system.
+
+1181
+01:37:22,720 --> 01:37:29,840
+They have a tutorial on how to do it right here, which is basically how to transfer files with DigitalOcean.
+
+1182
+01:37:30,000 --> 01:37:34,720
+And they run through exactly how to configure it and set it all up and things like that.
+
+1183
+01:37:34,800 --> 01:37:36,240
+So you guys can follow that.
+
+1184
+01:37:36,400 --> 01:37:47,920
+But the TLDR is if you install a tool called Putty, it's going to install a tool called Putty Gen. And Putty Gen allows you to generate a private and public key.
+
+1185
+01:37:48,110 --> 01:37:52,640
+And basically, you can set up your putty gen to be however you want it to be.
+
+1186
+01:37:52,720 --> 01:38:00,000
+You click generate, you kind of move your mouse over the blank area, and that's going to create some randomness.
+
+1187
+01:38:00,398 --> 01:38:02,080
+And it will generate out a key.
+
+1188
+01:38:02,160 --> 01:38:06,724
+And once you have this key, you basically can just copy this guy.
+
+1189
+01:38:07,822 --> 01:38:11,520
+You can come into your digital ocean here.
+
+1190
+01:38:11,726 --> 01:38:22,800
+You can come in here and type nano tilde key slash dot ssh slash author authorized keys.
+
+1191
+01:38:22,926 --> 01:38:24,000
+And then we can hit enter.
+
+1192
+01:38:24,080 --> 01:38:26,800
+And you can see that there is a key right here.
+
+1193
+01:38:26,960 --> 01:38:29,280
+In your case, you probably don't have one.
+
+1194
+01:38:29,486 --> 01:38:30,320
+And that's totally fine.
+
+1195
+01:38:30,480 --> 01:38:37,920
+So what you could do is you could paste it, hit control X, it's gonna ask you to save, hit Y and Enter, and then it should be good to go.
+
+1196
+01:38:38,080 --> 01:38:47,520
+And then all you have to do is you come in here, you click save public key, and you save your public key out onto your hard drive.
+
+1197
+01:38:47,680 --> 01:38:50,640
+So in my case, I have a putty.ppk file.
+
+1198
+01:38:50,720 --> 01:38:54,320
+So you save that, and then you come in here and save your private key.
+
+1199
+01:38:54,400 --> 01:38:56,720
+It'll say, Hey, do you want to save this without a passphrase?
+
+1200
+01:38:56,960 --> 01:38:59,360
+I'm not too worried about it because it's my own local stuff.
+
+1201
+01:38:59,470 --> 01:39:01,760
+But if you need a passphrase, go ahead and put them right here.
+
+1202
+01:39:01,934 --> 01:39:08,516
+Hit yes and then change, click on putty ppk as well and save that guy.
+
+1203
+01:39:09,102 --> 01:39:23,680
+Once you've done that, if you go into your filezilla, which you can see I already have a filezilla here, you can click on edit settings, you can click on SFTP, and you can see right here I have linked my putty PPK.
+
+1204
+01:39:23,760 --> 01:39:29,200
+So we can click add key file, scroll down until you see your putty PPK file, and hit open.
+
+1205
+01:39:29,294 --> 01:39:33,220
+And then if you do that, it will add it to your project right here.
+
+1206
+01:39:33,614 --> 01:39:46,880
+All you have to do is you click on this little button right here, open site manager, and then you can add in a new site, change the thing to SFTP, set your host to your IP address that is right here.
+
+1207
+01:39:46,960 --> 01:39:48,560
+So it's this IP address.
+
+1208
+01:39:48,720 --> 01:39:50,160
+In my case, it's this IP address.
+
+1209
+01:39:50,320 --> 01:39:53,476
+In your case, it'll be whatever your IP address happens to be.
+
+1210
+01:39:54,030 --> 01:40:05,040
+And then your port is just going to be default, username is root, and then change your login type to interactive, and that should do it for you.
+
+1211
+01:40:05,120 --> 01:40:08,960
+So you should be able to click connect once you have that set up, and it should just connect.
+
+1212
+01:40:09,040 --> 01:40:13,760
+In my case, I already have one set up, so I'm gonna click droplet and it will connect to my droplet.
+
+1213
+01:40:13,920 --> 01:40:16,160
+You can see right here it's connected to my droplet.
+
+1214
+01:40:16,750 --> 01:40:21,280
+Now, once we have that, we need to set up exporting inside of Godot.
+
+1215
+01:40:21,520 --> 01:40:25,600
+So let's go out to our project here.
+
+1216
+01:40:26,510 --> 01:40:33,680
+Let's go to project, project settings, go to general, run, and set our main scene as our control scene.
+
+1217
+01:40:33,840 --> 01:40:39,760
+Hit close, hit control S, project, export, and let's set up a Linux export.
+
+1218
+01:40:39,840 --> 01:40:41,440
+So we'll go to add Linux.
+
+1219
+01:40:42,798 --> 01:40:46,416
+And all of this by default should be okay.
+
+1220
+01:40:46,766 --> 01:40:48,772
+So we'll click export project.
+
+1221
+01:40:49,358 --> 01:40:50,176
+We'll come in here.
+
+1222
+01:40:50,336 --> 01:40:55,268
+I'm going to create a folder called WebRTC Tutorial.
+
+1223
+01:40:55,662 --> 01:41:00,976
+And that's going to create a folder out in my documents folder called WebRTC Tutorial.
+
+1224
+01:41:01,056 --> 01:41:05,028
+I'm not going to export with debug, although you can, and that's totally fine.
+
+1225
+01:41:05,358 --> 01:41:09,056
+I'm going to click save and it's going to go ahead and export all of that out.
+
+1226
+01:41:09,216 --> 01:41:16,336
+So if we look in our documents folder here, you should see a WebRTC tutorial right here.
+
+1227
+01:41:16,576 --> 01:41:19,216
+you should see that there are three files right here.
+
+1228
+01:41:19,342 --> 01:41:23,936
+We have an SO file, a PCK file, and an x8664.
+
+1229
+01:41:24,176 --> 01:41:27,536
+X8664 is your actual executable.
+
+1230
+01:41:27,758 --> 01:41:29,376
+So it's like an exe in Windows.
+
+1231
+01:41:29,536 --> 01:41:30,976
+PCK is your package file.
+
+1232
+01:41:31,056 --> 01:41:36,416
+So it holds all of your Godot stuff like sprites and things like that that are being used.
+
+1233
+01:41:36,576 --> 01:41:41,988
+And so is all of your additional Godot information.
+
+1234
+01:41:42,350 --> 01:41:45,892
+So what we'll do is we'll go into our FZ right here.
+
+1235
+01:41:46,830 --> 01:42:02,096
+I'm going to go into my documents, scroll down until I see, I believe there should be a WebRTC tutorial, which is not actually showing up.
+
+1236
+01:42:02,176 --> 01:42:05,376
+So I'm going to do is I'll click on my documents here and I will look.
+
+1237
+01:42:05,536 --> 01:42:06,496
+There it is, right there.
+
+1238
+01:42:06,576 --> 01:42:08,736
+Sometimes this doesn't update all the time.
+
+1239
+01:42:08,942 --> 01:42:10,576
+You can see I have my three guys here.
+
+1240
+01:42:10,656 --> 01:42:20,096
+So what I'm going to do is I'm going to right click, create a directory, and I will call it WebRTC tutorial.
+
+1241
+01:42:20,176 --> 01:42:22,656
+I'll double-click on it and that's going to let me access it.
+
+1242
+01:42:22,816 --> 01:42:26,336
+I'll grab, drag these guys over, and it's going to upload.
+
+1243
+01:42:26,496 --> 01:42:28,096
+Now this could take a while.
+
+1244
+01:42:28,256 --> 01:42:29,456
+It might take five seconds.
+
+1245
+01:42:29,582 --> 01:42:33,988
+In my case, it was pretty quick, but sometimes it does take a long time to do.
+
+1246
+01:42:34,574 --> 01:42:38,336
+Now what we'll do next is we'll open up our console here.
+
+1247
+01:42:38,542 --> 01:42:44,576
+I'm going to hit ls to list all of the directories, and you'll see that we have a web rtc tutorial right here.
+
+1248
+01:42:44,974 --> 01:42:53,696
+So I'm going to type CD WebRTC tutorial ls, and you'll see that we have our files right here.
+
+1249
+01:42:54,574 --> 01:43:05,476
+So now all we have to do is hit dot slash quote webrtc with Godot tutorial.x8664 and we'll hit enter.
+
+1250
+01:43:05,774 --> 01:43:07,876
+And you'll see that we get a permission denied.
+
+1251
+01:43:08,302 --> 01:43:09,188
+So what does that mean?
+
+1252
+01:43:09,536 --> 01:43:12,176
+Well, that means that we actually don't have permission to run this.
+
+1253
+01:43:12,366 --> 01:43:15,056
+Linux doesn't know what this is, and it says, hey, hold on a minute.
+
+1254
+01:43:15,136 --> 01:43:16,736
+Like, are you sure you want to run this?
+
+1255
+01:43:16,896 --> 01:43:28,256
+Now, generally speaking, when doing permissions, you want to go with least permissions possible to make it so that you have the best possible success in securing your stuff.
+
+1256
+01:43:28,416 --> 01:43:36,416
+In my case, since this is a tutorial, I'm just going to go ch mod777, which I know I'm going to get some flack for, but it makes things a lot easier.
+
+1257
+01:43:36,576 --> 01:43:42,736
+Now I'm just going to hit quote W tab, and then I will hit dot P CK.
+
+1258
+01:43:43,214 --> 01:43:47,456
+We're gonna do dot X8664.
+
+1259
+01:43:47,694 --> 01:43:54,576
+And then we're gonna hit the up arrow and we'll pull this back, we'll type lib, and we'll hit tab and hit enter.
+
+1260
+01:43:54,656 --> 01:43:59,856
+And now if we just come up here and run it, you should see well, a bunch of errors.
+
+1261
+01:43:59,936 --> 01:44:01,412
+So what the heck happened, right?
+
+1262
+01:44:01,870 --> 01:44:08,388
+Well, what's going on is Godot is trying to run an executable with Vulcan.
+
+1263
+01:44:08,686 --> 01:44:10,820
+And we can't do that because this is a server.
+
+1264
+01:44:11,182 --> 01:44:14,660
+So we have to run it with dash dash headless.
+
+1265
+01:44:15,534 --> 01:44:17,856
+And that will run it inside of Godot.
+
+1266
+01:44:17,936 --> 01:44:18,816
+So you can see it's running.
+
+1267
+01:44:18,976 --> 01:44:19,536
+Awesome, right?
+
+1268
+01:44:19,616 --> 01:44:20,068
+We're done.
+
+1269
+01:44:20,398 --> 01:44:21,136
+Well, not quite.
+
+1270
+01:44:21,216 --> 01:44:22,628
+Our server hasn't started.
+
+1271
+01:44:22,926 --> 01:44:24,576
+So how can our server start?
+
+1272
+01:44:24,878 --> 01:44:26,256
+Well, that's actually really easy.
+
+1273
+01:44:26,496 --> 01:44:30,256
+Because we added dash dash server to our code.
+
+1274
+01:44:30,416 --> 01:44:38,276
+If we look right here, we added if dash dash server in command line arguments, then we can run our server, right?
+
+1275
+01:44:38,736 --> 01:44:39,696
+So that works.
+
+1276
+01:44:39,776 --> 01:44:44,964
+If we just hit dash dash server and hit enter, hosting on 8915.
+
+1277
+01:44:45,518 --> 01:44:49,296
+And now, whoops, I hit control C to copy this.
+
+1278
+01:44:49,376 --> 01:44:51,268
+So let me do right-click copy.
+
+1279
+01:44:51,886 --> 01:45:08,736
+If we take a look at our client and we change our web socket connection to 8915, and instead of 127.0.0.1, we go to digital ocean, we copy our IP address right here, which is 20448.28.159.
+
+1280
+01:45:09,230 --> 01:45:13,156
+If we come in here and we hit paste, control S, we hit play.
+
+1281
+01:45:14,350 --> 01:45:18,368
+If we hit start client, you'll notice that we have connected.
+
+1282
+01:45:18,528 --> 01:45:22,208
+If we hit join lobby, you will notice that we've joined our lobby.
+
+1283
+01:45:22,288 --> 01:45:31,408
+And then if we copy our lobby, paste it into our other client, we hit start client, join lobby, you'll see that we have done our RPC connection.
+
+1284
+01:45:31,566 --> 01:45:37,648
+So you can see that I can come in here and hit send test packet and I can ping my other user.
+
+1285
+01:45:37,808 --> 01:45:39,968
+And this is all without starting my server.
+
+1286
+01:45:40,048 --> 01:45:46,020
+You can see that my server out on digital ocean is doing all of the signaling and doing all of the work.
+
+1287
+01:45:47,022 --> 01:45:47,876
+So awesome.
+
+1288
+01:45:48,366 --> 01:45:51,008
+That's basically how we can do a dedicated server.
+
+1289
+01:45:51,168 --> 01:45:52,528
+Hey guys, editor Mitch here.
+
+1290
+01:45:52,608 --> 01:46:01,248
+So something that came up while I was editing this video, somebody actually hit me up and asked me how to run this service in the background.
+
+1291
+01:46:01,328 --> 01:46:06,048
+Because what would happen is they would run the process, right?
+
+1292
+01:46:06,208 --> 01:46:07,008
+Like so.
+
+1293
+01:46:07,408 --> 01:46:12,740
+And then as soon as they closed the window, it would crash out and stop the process from running.
+
+1294
+01:46:13,262 --> 01:46:14,608
+So how do you run it in the background?
+
+1295
+01:46:14,768 --> 01:46:16,128
+Well, that's actually really easy.
+
+1296
+01:46:16,288 --> 01:46:24,368
+All you have to do is you hit control Z to stop your process, type BG, and that will run it in the background.
+
+1297
+01:46:24,448 --> 01:46:29,008
+And then if you type jobs, you should see that it is running that in the background.
+
+1298
+01:46:29,248 --> 01:46:32,528
+And once you have that, you have to disown that process.
+
+1299
+01:46:32,608 --> 01:46:38,048
+So you can type disown dash H percent sign one.
+
+1300
+01:46:38,318 --> 01:46:44,208
+And that will disown it from you, and it'll get picked up by the system scheduler and it'll be held on to by that.
+
+1301
+01:46:44,430 --> 01:46:57,328
+So now if I hit close and then I hit play and I start my client and I join my lobby, you can see that everything's working, even though I closed my process, even though I closed my terminal, it's still running.
+
+1302
+01:46:57,488 --> 01:47:08,448
+I can still start my client, I can come in here, grab this lobby, I can join it, and then I can wait until my peers are connected and then send my packet, and then everything seems to work just fine.
+
+1303
+01:47:08,688 --> 01:47:10,128
+So just keep that in mind.
+
+1304
+01:47:10,288 --> 01:47:11,748
+That's how you guys can do that.
+
+1305
+01:47:12,206 --> 01:47:21,968
+And that's also what's gonna allow you guys to come in and actually play around with my server is by using my IP address plus 8915.
+
+1306
+01:47:22,048 --> 01:47:23,808
+And then I disown that process.
+
+1307
+01:47:23,968 --> 01:47:28,804
+That way I can have this process running in the background at all times.
+
+1308
+01:47:29,134 --> 01:47:38,208
+The easiest way to tell if your process is running is if you open up your console, you can come in and type jobs, and you'll notice that nothing's there, right?
+
+1309
+01:47:38,368 --> 01:47:39,968
+Oh no, what am I gonna do?
+
+1310
+01:47:40,128 --> 01:47:43,248
+Well, that's where ps AX comes in.
+
+1311
+01:47:43,328 --> 01:47:49,808
+So you can say ps-ax and you will see WebRTC headless server, and it has a PID.
+
+1312
+01:47:49,888 --> 01:47:58,244
+So if you need to kill it, you can just type kill and then you can grab this PID, copy it, and then paste.
+
+1313
+01:47:58,638 --> 01:48:03,556
+And then when you do PS-AX, that process is now dead, it's gone.
+
+1314
+01:48:04,048 --> 01:48:09,648
+So that'll take your server down and allow you to reset it or update it or things like that.
+
+1315
+01:48:09,808 --> 01:48:11,968
+So that's basically how you can do it.
+
+1316
+01:48:12,174 --> 01:48:15,728
+Now, what I now I'm gonna come in, I'm going to rerun this.
+
+1317
+01:48:15,918 --> 01:48:17,408
+So I'm going to do this.
+
+1318
+01:48:17,568 --> 01:48:20,528
+I'm gonna hit control X or control Z.
+
+1319
+01:48:20,688 --> 01:48:33,220
+I'm gonna come in, do my BG, and then I'm going to disown dash H percent sign one to get that to run, and then I can safely close this and everything should be good.
+
+1320
+01:48:33,742 --> 01:48:35,568
+So, anyway, let's go ahead and get back to the video.
+
+1321
+01:48:35,728 --> 01:48:42,288
+Now, from here at this point, you basically have everything that you need to be able to do a WebRTC connection.
+
+1322
+01:48:42,448 --> 01:48:49,808
+What we're gonna do next is we're going to make it so that it actually loads out my project, which is right here.
+
+1323
+01:48:49,968 --> 01:48:53,248
+And I built this all out for the multiplayer tutorial.
+
+1324
+01:48:53,328 --> 01:49:02,128
+So you guys can of course use this code for whatever you need, but we're gonna build this out so that way we can actually play our game.
+
+1325
+01:49:02,368 --> 01:49:09,924
+So, what we'll do is we'll come into our, I believe it's going to be our send test packet.
+
+1326
+01:49:10,222 --> 01:49:11,168
+So button three.
+
+1327
+01:49:11,248 --> 01:49:13,408
+You can see where we're doing our ping RPC.
+
+1328
+01:49:13,488 --> 01:49:22,768
+I'm gonna change this from ping to start game, and I'm gonna copy this, paste it, and instead of doing ping, I'm basically going to load my game.
+
+1329
+01:49:22,928 --> 01:49:39,168
+So what I'll do is I'll come in here and say var scene is equal to load res colon slash slash quote, and we're gonna come down here and find our scene.
+
+1330
+01:49:39,248 --> 01:49:44,288
+I believe it was called test scene from our original, so we'll go test scene dot
+
+1331
+01:49:48,224 --> 01:49:49,984
+Instantiate like so.
+
+1332
+01:49:50,318 --> 01:49:57,380
+And then we'll say get tree dot root dot add child and we'll add our scene.
+
+1333
+01:49:57,934 --> 01:50:05,824
+Now the nice thing is as long as we load this, because we set everything up with our game manager, it should just automatically work, which is great.
+
+1334
+01:50:06,064 --> 01:50:09,024
+So all we have to do is basically just hit play.
+
+1335
+01:50:09,198 --> 01:50:13,824
+We'll have our two guys, we'll make sure that our service is running on here.
+
+1336
+01:50:13,904 --> 01:50:15,300
+So we'll do that.
+
+1337
+01:50:15,758 --> 01:50:19,904
+It's gonna host start our game or start our client, join our lobby.
+
+1338
+01:50:20,014 --> 01:50:22,224
+You'll see that we have our lobby value right here.
+
+1339
+01:50:22,304 --> 01:50:23,024
+We'll copy it.
+
+1340
+01:50:23,184 --> 01:50:24,384
+Ah, I keep doing that.
+
+1341
+01:50:24,544 --> 01:50:25,744
+So now I gotta restart.
+
+1342
+01:50:25,870 --> 01:50:38,064
+So start our client, join our lobby, come in here, right click, copy, click on this guy, paste, start our client, join our lobby, and you'll see that we will have have gotten our exchange and everything will have worked.
+
+1343
+01:50:38,144 --> 01:50:42,224
+We'll hit start send test packet, and it kind of worked.
+
+1344
+01:50:42,304 --> 01:50:44,624
+This guy started the game, but the rest of them didn't.
+
+1345
+01:50:44,704 --> 01:50:46,144
+So let's see what's going on here.
+
+1346
+01:50:46,304 --> 01:50:49,904
+Node not found, multiplayer synchronizer relative to root.
+
+1347
+01:50:50,094 --> 01:50:56,944
+So that leads me to believe that for some reason our player is not done correctly.
+
+1348
+01:50:57,024 --> 01:50:58,144
+So if we hit control,
+
+1349
+01:51:01,710 --> 01:51:03,844
+go to session one, take a look at it.
+
+1350
+01:51:04,558 --> 01:51:07,716
+We look at session one, you can see that we have our two players spawned.
+
+1351
+01:51:09,166 --> 01:51:10,944
+It looks like we have a zero and a one.
+
+1352
+01:51:11,264 --> 01:51:15,584
+So that's going to be a problem because our index starts at zero.
+
+1353
+01:51:15,744 --> 01:51:19,584
+So my guess is our code is wrong.
+
+1354
+01:51:21,184 --> 01:51:29,104
+Because our scene manager says index is zero, we start at zero, but I believe our player index is going to be one.
+
+1355
+01:51:29,424 --> 01:51:35,984
+If we throw a breakpoint on our process here, we take a look at our game manager and our dictionary.
+
+1356
+01:51:36,064 --> 01:51:39,024
+You can see that we have our two guys, index two, index one.
+
+1357
+01:51:39,344 --> 01:51:41,264
+So that needs to start at one.
+
+1358
+01:51:41,584 --> 01:51:51,236
+And we need to take a look at instead of doing our players str ID, that's fine for their name.
+
+1359
+01:51:51,630 --> 01:51:54,304
+Add child current player for each that.
+
+1360
+01:51:54,478 --> 01:52:00,864
+If spawn name is equal to str index, this index here, then it should be good to go.
+
+1361
+01:52:01,024 --> 01:52:08,624
+What we should probably do is instead of using this game manager's index, we should probably just pull our actual index.
+
+1362
+01:52:08,864 --> 01:52:22,464
+So we can come in here and just go game manager dot players i dot index like that.
+
+1363
+01:52:22,798 --> 01:52:34,544
+And then we'll need to come into our local, we're gonna need to change this to two and then to one, and that will make it so that way our stuff should properly spawn.
+
+1364
+01:52:34,704 --> 01:52:49,344
+Now, the other question that I have is in my session two, if we take a look at our game manager, so if we look at our breakpoint here, I guess it's not getting this far.
+
+1365
+01:52:49,504 --> 01:52:52,944
+So the question is what is the second scene doing?
+
+1366
+01:52:53,024 --> 01:53:06,464
+If we refresh, we hit our control node, we play our game, we start client, join lobby, we pull back this lobby, we start our client, paste, join lobby, and then we send our test packet.
+
+1367
+01:53:08,206 --> 01:53:09,824
+Let's take a look at our game manager.
+
+1368
+01:53:09,984 --> 01:53:13,664
+This guy is correct, so that should be fine.
+
+1369
+01:53:19,406 --> 01:53:20,480
+Node not found.
+
+1370
+01:53:20,640 --> 01:53:22,320
+Oh, I think I know what's going on.
+
+1371
+01:53:22,480 --> 01:53:26,320
+So if we look at our client here, we have RPC any peer.
+
+1372
+01:53:26,400 --> 01:53:27,812
+We're not actually calling it local.
+
+1373
+01:53:28,000 --> 01:53:29,280
+So call local.
+
+1374
+01:53:29,360 --> 01:53:30,960
+And that should hopefully do it.
+
+1375
+01:53:31,040 --> 01:53:31,920
+So let's try it now.
+
+1376
+01:53:32,080 --> 01:53:34,400
+We'll hit start client, join lobby.
+
+1377
+01:53:34,560 --> 01:53:39,520
+We'll come in here, copy this guy, go into this guy, start client, paste, join lobby.
+
+1378
+01:53:39,680 --> 01:53:43,760
+So we'll you'll see that we've gotten all of our connection and then send past test packet.
+
+1379
+01:53:43,840 --> 01:53:46,400
+And you can see now it should just work.
+
+1380
+01:53:46,560 --> 01:53:52,036
+So I have one guy and the other guy, and they are now connected via WebRTC.
+
+1381
+01:53:52,494 --> 01:53:56,772
+So that's basically how we can convert our code to work with WebRTC.
+
+1382
+01:53:57,230 --> 01:54:05,280
+One of the things that we don't have working really is once we have our lobby created, we don't have a way to destroy it, right?
+
+1383
+01:54:05,518 --> 01:54:10,400
+So we need to basically destroy a lobby when it's not being used.
+
+1384
+01:54:10,606 --> 01:54:27,760
+So, something that we should do is come in here and say, "remove lobby like that." Message is equal to message.remove lobby.
+
+1385
+01:54:27,920 --> 01:54:39,120
+then we can basically just go into our lobby, kind of like we do here with our users, and say, lobbies.lobby id.
+
+1386
+01:54:40,942 --> 01:54:47,680
+and we'll need to copy this, go into our client, scroll up to the top, add in remove lobby.
+
+1387
+01:54:47,760 --> 01:54:59,972
+We'll scroll down to where we're joining right here, just before we start our game, we're gonna want to remove our lobby.
+
+1388
+01:55:00,400 --> 01:55:08,160
+So what we'll do is we'll come in here, we'll say peer dot put packet, json.string of fi.
+
+1389
+01:55:08,640 --> 01:55:14,160
+We'll get a message in a second to utf8 buffer, and we'll create a small data package.
+
+1390
+01:55:14,240 --> 01:55:22,800
+So we'll say data var message is equal to bracket, bracket, quote, message,
+
+1391
+01:55:27,150 --> 01:55:28,720
+message.remove lobby.
+
+1392
+01:55:28,878 --> 01:55:30,560
+and then we need to do lobby id.
+
+1393
+01:55:31,502 --> 01:55:34,320
+and we'll pass in our lobby value.
+
+1394
+01:55:34,400 --> 01:55:40,800
+Now I know that everyone's going to send this, so it's going to be multiple peers telling the the server to close a lobby.
+
+1395
+01:55:40,880 --> 01:55:41,360
+That's okay.
+
+1396
+01:55:41,440 --> 01:55:43,200
+We could just error check against that.
+
+1397
+01:55:43,280 --> 01:55:51,396
+Uh the reason why is because if for some reason the message gets missed, I'd rather have multiple people send it than just one person and have it get missed.
+
+1398
+01:55:51,694 --> 01:55:54,532
+So we'll have everyone send it and that should work.
+
+1399
+01:55:55,662 --> 01:56:08,320
+Now, if we go into our server here, we can just check if lobbies..has And we can pass in our data.lobby ID like this.
+
+1400
+01:56:08,717 --> 01:56:11,680
+colon tab, And there we go.
+
+1401
+01:56:11,760 --> 01:56:16,240
+And that'll basically just say if this lobby exists, go ahead and remove it and we're good to go.
+
+1402
+01:56:16,480 --> 01:56:24,640
+You also should create some kind of timer to time out lobbies if they're too old or if they've been, you know, held on for too long, something like a couple hours.
+
+1403
+01:56:24,846 --> 01:56:30,116
+I'll leave that up to you guys on how you do it, but it's relatively simple and easy to use.
+
+1404
+01:56:31,840 --> 01:56:36,720
+But at this point, we're probably about two hours into this tutorial, maybe two and a half.
+
+1405
+01:56:36,880 --> 01:56:38,160
+So I think we'll call it here.
+
+1406
+01:56:38,240 --> 01:56:41,840
+If there's any additional stuff you guys want for this tutorial, please let me know.
+
+1407
+01:56:42,000 --> 01:56:48,640
+I will create a follow-on and be more than happy to readjust things and change it and make it into what you guys need.
+
+1408
+01:56:48,960 --> 01:56:51,280
+But that is all I have for you guys today.
+
+1409
+01:56:51,360 --> 01:56:53,040
+So if you like this video, go and hit that like button.
+
+1410
+01:56:53,200 --> 01:56:57,120
+Hey, you know, if you dislike this video, go and hit that dislike button because I'm here to make content for you guys.
+
+1411
+01:56:57,360 --> 01:56:59,280
+This video was a viewer-suggested video.
+
+1412
+01:56:59,360 --> 01:57:05,040
+So if you have any suggestions, please leave them in the comments below and I'll be more than happy to add it to my GitHub.
+
+1413
+01:57:05,120 --> 01:57:13,732
+Or of course, you can jump on my GitHub and you know, add it directly there, and I'll be more than happy to put it on my list of tutorials to make.
+
+1414
+01:57:14,062 --> 01:57:16,080
+I'm always here to make tutorials for you guys.
+
+1415
+01:57:16,160 --> 01:57:17,440
+That's the whole point of this channel.
+
+1416
+01:57:17,520 --> 01:57:20,640
+If I don't get suggestions, then I usually don't make tutorials.
+
+1417
+01:57:20,800 --> 01:57:23,140
+So please leave suggestions, let me know.
+
+1418
+01:57:23,630 --> 01:57:28,000
+And hey, if you have any comments or questions, please leave them in the comments below or jump on my Discord.
+
+1419
+01:57:28,160 --> 01:57:32,480
+Link is in the description, I'll be more than happy to help you guys out, or really anybody there.
+
+1420
+01:57:32,640 --> 01:57:39,588
+We have a lot of really cool people there that are awesome, and I'm really happy that we have a good community that's willing to help you guys out.
+
+1421
+01:57:40,080 --> 01:57:42,000
+But that is all I have for you guys today.
+
+1422
+01:57:42,080 --> 01:57:46,240
+So thank you so much again for watching, and I'll see you all next time.
+
+1423
+01:57:46,720 --> 01:57:47,280
+Thanks.
+

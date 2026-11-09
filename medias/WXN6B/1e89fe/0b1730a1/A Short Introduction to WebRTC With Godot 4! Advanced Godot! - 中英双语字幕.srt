@@ -1,0 +1,7421 @@
+1
+00:00:00,160 --> 00:00:02,640
+嘿大家好，我是 Fine Point CGI 的米奇。
+Hey guys, this is Mitch with Fine Point CGI.
+
+2
+00:00:02,800 --> 00:00:06,640
+今天我们要聊聊如何在 Godot 中使用 WebRTC。
+And today we're going to talk about how to do WebRTC inside of Godot.
+
+3
+00:00:06,830 --> 00:00:08,160
+而且我们不会只停留在这一步。
+And we're not going to stop just there.
+
+4
+00:00:08,240 --> 00:00:18,000
+我们要聊聊如何构建完整的专用服务器，如何为你的游
+戏构建大厅系统，包括 GUID、加入系统等等这些内容。
+We're going to talk about how to build a fully dedicated server, how to build a lobby system for your game,
+including a GUID and a join system and all that happy jazz.
+
+5
+00:00:18,080 --> 00:00:21,360
+我们要聊聊如何处理信令以及如何处理候选者相关的内容。
+We're going to talk about how to do the signaling and how to do your candidate stuff.
+
+6
+00:00:21,440 --> 00:00:27,680
+我们要聊聊如何在服务器和客户端之间转发数据，这样他们就能建立握手并让一切运转起来。
+We're going to talk about relaying data between your server and your client
+so that way they can create their handshake and get everything going.
+
+7
+00:00:27,760 --> 00:00:35,680
+我们要聊聊 WebRTC 的工作原理，以及如何使用 WebRTC 建立点对点连接。
+We're going to talk about how WebRTC works and we're going to talk about how to do peer-to-peer connections using your WebRTC.
+
+8
+00:00:35,840 --> 00:00:43,360
+最后，我们要更新之前视频中做的多人游戏教程，让它能配合我们的 WebRTC 工作。
+And finally, we're going to update our multiplayer tutorial that we did in the previous videos to work with our WebRTC.
+
+9
+00:00:43,440 --> 00:00:45,040
+这就是我今天为大家准备的内容。
+So that's what I have in store for you guys today.
+
+10
+00:00:45,390 --> 00:00:46,372
+那我们现在就开始吧。
+So let's go ahead and get started.
+
+11
+00:00:46,830 --> 00:00:56,960
+好，首先我们要聊聊什么是 WebRTC 以及它不是什么，因为关于 WebRTC 的工作原理有很多误解。
+Okay, so the first thing that we have to do is we have to talk about what WebRTC is and what it's not,
+because there's a lot of misconceptions on how WebRTC works.
+
+12
+00:00:57,200 --> 00:01:03,600
+如果你只想看代码，想直接跳进去的话，那就直接跳到下一个时间点，完全没问题。
+Now, if you just want to see code and you just want to jump right in,
+then go ahead and jump to the next timestamp, and that's totally fine.
+
+13
+00:01:03,790 --> 00:01:08,480
+但首先，让我们稍微往回退一步，聊聊 WebRTC。
+But first, let's take a quick step back and let's talk about WebRTC.
+
+14
+00:01:08,640 --> 00:01:10,560
+那么，什么是 WebRTC？
+So, what is WebRTC?
+
+15
+00:01:10,640 --> 00:01:20,400
+嗯，WebRTC 是一种点对点网络连接，它允许你在游戏里通过点对点的方式与玩家进行通信。
+Well, WebRTC is a peer-to-peer network connection that allows you to communicate with your players inside of a game peer-to-peer.
+
+16
+00:01:20,480 --> 00:01:22,628
+所以这里不涉及服务器。
+So there's no server involved.
+
+17
+00:01:22,880 --> 00:01:25,040
+或者至少大多数人是这么说的。
+Or at least that's what most people say.
+
+18
+00:01:25,200 --> 00:01:30,480
+为了能够开始使用 WebRTC，你实际上需要一个所谓的信令服务器。
+To be able to start with WebRTC, you actually need what's called a signaling server.
+
+19
+00:01:30,640 --> 00:01:36,640
+现在，信令服务器是最初存放所有信息的地方。
+Now, a signaling server is the place where all of your information is held in the beginning.
+
+20
+00:01:36,800 --> 00:01:44,240
+所以你可以把它想象成，如果这个玩家想要主持一个大厅，
+他们需要联系信令服务器来主持那个大厅。
+So think of it kind of like if this player wants to host a lobby, they need to talk to the signaling server to host that lobby.
+
+21
+00:01:44,400 --> 00:01:48,480
+是你的专用服务器负责保存用户信息。
+It is your dedicated server that holds on to your user information.
+
+22
+00:01:48,560 --> 00:01:53,200
+它保存哪些大厅是开放的，这些大厅里有多少人，诸如此类的。
+It holds on to what lobbies are open, how many people are in those lobbies, things like that.
+
+23
+00:01:53,360 --> 00:02:00,800
+它也是负责在不同对等节点之间进行实际数据信令传输的东西。
+And it's also the thing that does the actual signaling of the data between your different peers.
+
+24
+00:02:01,006 --> 00:02:03,760
+所以你可能会问，好，那它是怎么发生的呢？
+So you might be asking, okay, so how does it happen?
+
+25
+00:02:03,920 --> 00:02:13,840
+嗯，当像这个家伙这样的用户告诉那个家伙，嘿，我想创建一个大厅时，他们创建了一个大厅，
+信令服务器基本上会记录一个 GUID。
+Well, when a user like this guy tells this guy, hey, I want to make a lobby, they
+create a lobby and the signaling server keeps track of like a GUID, basically.
+
+26
+00:02:14,160 --> 00:02:17,680
+然后这个 GUID 会传回给这个家伙。
+And that GUID gets passed back to this guy.
+
+27
+00:02:17,760 --> 00:02:27,280
+如果这个家伙想加入那个大厅，这个家伙可以把那个 GUID 或者那串信息发给那个家伙，
+然后他们就可以利用那个信息加入这个大厅。
+And if this guy wants to join that lobby, this guy can send this guy that GUID or that string of information,
+and then they can use that information to join this lobby.
+
+28
+00:02:27,440 --> 00:02:35,200
+现在，这些在技术上并不是必须的，但我会把它当作必须的来讲解，
+只是为了让你们有个大概的了解。
+Now, this is all not technically required, but I'm going to go with it as if it is required, just so you guys can kind of get an idea.
+
+29
+00:02:35,440 --> 00:02:46,560
+一旦发生这种情况，这个玩家说，嘿，我准备好开始游戏了，它就会发出一个所谓的候选者，
+这基本上就是在说，嘿，我准备好开始玩了，咱们开始行动吧，对吧？
+Once that happens and this player says, Hey, I'm ready to start the game, it sends out what's called a candidate,
+and that is basically saying, Hey, I'm ready to start playing, let's get moving, right?
+
+30
+00:02:46,766 --> 00:02:48,720
+所以它会向信令服务器发送一个候选者。
+So it sends out a candidate to the signaling server.
+
+31
+00:02:48,800 --> 00:02:51,440
+信令服务器会把它发给这个人。
+The signaling server is going to send it to this guy.
+
+32
+00:02:51,520 --> 00:02:54,960
+他们会做一个所谓的提议，然后发回到这里。
+They're going to do what's called an offer, which is going to send back here.
+
+33
+00:02:55,120 --> 00:02:59,840
+它会发给这个人，然后给你的信令服务器返回一个响应。
+It's going to send this guy, and then it's going to give back an answer to your signaling server.
+
+34
+00:02:59,920 --> 00:03:02,400
+信令服务器会把它中继给这个人。
+And the signaling server is going to relay it to this guy.
+
+35
+00:03:02,510 --> 00:03:11,920
+然后这会生成他们需要的所有必要信息，这样他们就能和他们的 STUN服务器或 ICE服务器通信了。
+And then that's going to create all of the necessary information that they
+need so that way they can talk to their stun server or their ice server.
+
+36
+00:03:12,110 --> 00:03:12,400
+好的。
+Okay.
+
+37
+00:03:12,640 --> 00:03:15,520
+你可能会问，好吧，但什么是 ICE服务器？
+And you might be going, okay, but what is an ice server?
+
+38
+00:03:15,600 --> 00:03:16,560
+什么是 STUN服务器？
+What is a stun server?
+
+39
+00:03:16,720 --> 00:03:21,200
+所以 STUN服务器的工作就是做所谓的 NAT连接。
+So a stun server's job is to do what's called the NAT connection.
+
+40
+00:03:21,422 --> 00:03:32,880
+它的作用是提供这两个人之间必要的关键信息，从而在你们
+的路由器之间建立端口映射，让这两个人能够进行直接通信。
+So what it does is it provides the necessary information between these two guys to create
+a port opening between your routers so that these guys can have a direct communication.
+
+41
+00:03:33,040 --> 00:03:37,760
+一旦建立了直接通信，就不再需要信令服务器了。
+Once that direct communication is established, the signaling server is no longer needed.
+
+42
+00:03:37,920 --> 00:03:43,280
+不再需要与它的通信，也不再需要 STUN服务器了。
+The communication with that is not needed anymore, and the stun server is no longer needed.
+
+43
+00:03:43,440 --> 00:03:56,000
+所以一旦系统，一旦这两个人确认 NAT连接或网络
+地址转换连接已建立，他们就跟这个连接没关系了。
+So once the system, once these two guys have verified that that NAT connection or network address translation connection has been
+made, then these guys have nothing to do with the connection anymore.
+
+44
+00:03:56,080 --> 00:03:58,240
+他们现在是点对点连接的。
+And these guys are peer to peer connected.
+
+45
+00:03:58,382 --> 00:04:02,660
+现在你可能会问，好吧，但如果点对点连接没建立成功怎么办？
+Now you might be asking, well, okay, but what happens if that peer to peer connection is not made?
+
+46
+00:04:02,960 --> 00:04:03,200
+对吧？
+Right?
+
+47
+00:04:03,360 --> 00:04:05,668
+如果中途出了点问题怎么办？
+What if something breaks along the way?
+
+48
+00:04:06,286 --> 00:04:09,040
+这就是 TURN服务器派上用场的地方。
+Well, that's where the turn server comes in.
+
+49
+00:04:09,200 --> 00:04:15,520
+现在，在这种情况下，在这个图示中，TURN服务器就是 STUN服务器，所以是同一个服务器，对吧？
+Now, in this case, in this diagram, the turn server is the stun server, so it's the same server, right?
+
+50
+00:04:15,600 --> 00:04:17,120
+是同一个 ICE服务器。
+It's the same ICE server.
+
+51
+00:04:17,920 --> 00:04:19,279
+但它不一定要是同一个。
+But it doesn't have to be.
+
+52
+00:04:19,360 --> 00:04:20,079
+它可以是任何东西。
+It could be anything.
+
+53
+00:04:20,160 --> 00:04:21,920
+它可以是另一台执行此操作的机器。
+It could be a second machine that does it.
+
+54
+00:04:22,079 --> 00:04:30,916
+它的作用是它是一台机器，就像一台直接托管的机器，负责在这两个人之间中继数据。
+But what it does is it's a machine, much like a direct hosted machine that relays the data between these two guys.
+
+55
+00:04:31,360 --> 00:04:37,440
+所以基本上就是这样工作的：这个人连接到信令服务器，那个人也连接到信令服务器。
+So that's basically how it works: is this guy connects up to the signaling server, this guy connects up to the signaling server.
+
+56
+00:04:37,520 --> 00:04:38,800
+他们交换一些数据。
+They exchange some data.
+
+57
+00:04:38,926 --> 00:04:46,320
+然后他们告诉 STUN服务器：这是 IP地址，这是端口，
+这是我需要的所有信息，以便能够连接到这个人。
+They then tell the stun server here's the IP address, here's the port,
+here's all the information that I need to be able to connect to this guy.
+
+58
+00:04:46,480 --> 00:04:49,040
+然后这个人就在这两个人之间建立连接。
+And then this guy creates a connection between these two.
+
+59
+00:04:49,134 --> 00:04:51,520
+这就是 WebRTC 基本的工作原理。
+And that's basically how WebRTC works.
+
+60
+00:04:51,600 --> 00:04:59,780
+如果这让你感到困惑，相信我，接下来还会更复杂，
+因为我们要手动构建所有这些，过程会非常有趣。
+Now, if that's confusing, trust me, it's gonna get worse because we're
+going to build all this out manually and it's going to be a fun time.
+
+61
+00:05:00,302 --> 00:05:02,788
+既然说到这了，那我们就开始吧。
+So with that being said, let's go ahead and get started.
+
+62
+00:05:03,600 --> 00:05:04,000
+好的。
+All right.
+
+63
+00:05:04,160 --> 00:05:08,320
+首先你会注意到，我有一个多人游戏教程的源码。
+So first thing you'll notice is that I have a multiplayer tutorial source.
+
+64
+00:05:08,400 --> 00:05:17,600
+实际上，这就是我之前做的 Godot 多人游戏基础教程的所有源码，链接就在描述栏里。
+Now, this is actually all of the source of my previous basics with
+Godot multiplayer tutorial, which I have a link to in the description.
+
+65
+00:05:17,760 --> 00:05:20,080
+所以我将从那个点开始。
+So I'm going to be starting from that point.
+
+66
+00:05:20,160 --> 00:05:22,800
+如果你不想用这个，也没关系。
+Now you don't have to have this if you don't want to.
+
+67
+00:05:23,022 --> 00:05:30,640
+你可以点击下方描述栏里的链接下载这个项目，它包
+含了基础项目，所有东西都准备就绪，可以直接开始。
+You can drop in the link in the description below and pull down this project,
+and it'll have the starter project, and everything will be ready and good to go.
+
+68
+00:05:30,800 --> 00:05:41,280
+但基本上，它包含的是像这样的场景，以及一个带有非
+常基础控制集的玩家，所以你可以移动、射击之类的。
+But basically, all it has is it has a scene like this, it has a player like this with a very basic control set,
+so you can you know move around, shoot things like that.
+
+69
+00:05:41,454 --> 00:05:45,200
+它还已经预设好了 RPC 调用之类的东西。
+It also already has pre-setup RPC calls and things like that.
+
+70
+00:05:45,280 --> 00:05:54,930
+随着教程的推进，我随时可以带大家过一遍，但我只是想让你们知道这个项目是存在的，
+它已经全部写好了，因为我不想把重新写代码的整个过程都带一遍，把这个教程搞成 5 小时长。
+And I can always run through that as the tutorial progresses, but I just want to let you guys know that this does exist,
+it already has all been coded because I don't want to run through the
+
+71
+00:05:54,930 --> 00:05:58,720
+随着教程的推进，我随时可以带大家过一遍，但我只是想让你们知道这个项目是存在的，
+它已经全部写好了，因为我不想把重新写代码的整个过程都带一遍，把这个教程搞成 5 小时长。
+whole process of recoding it all and make this tutorial five hours long.
+
+72
+00:05:58,880 --> 00:06:11,980
+现在，关于你的游戏，有一些重要的注意事项：在游戏管理器下，我有一个叫 players 的变量，
+它基本上是在项目设置的自动加载游戏管理器下设置的，那基本上就是我存放玩家的地方。
+Now, some of the big important things to note for your game is under game manager, I have a variable called players,
+and that basically is set up under project settings under auto load game manager,
+
+73
+00:06:11,980 --> 00:06:16,080
+现在，关于你的游戏，有一些重要的注意事项：在游戏管理器下，我有一个叫 players 的变量，
+它基本上是在项目设置的自动加载游戏管理器下设置的，那基本上就是我存放玩家的地方。
+and that's basically where my players are going to be housed.
+
+74
+00:06:16,160 --> 00:06:18,320
+如果你不想用这个，也没关系。
+Now, you don't have to have this if you don't want to.
+
+75
+00:06:18,480 --> 00:06:24,240
+这个教程在某种程度上是独立的，所以你不需要这个，但只要知道它存在就行。
+This tutorial is to an extent standalone, so you don't have to have this, but just know that that exists.
+
+76
+00:06:24,480 --> 00:06:37,200
+我有的另一个重要东西是场景管理器，我的场景管理器做的就是对玩家进行 for 循环，
+然后把玩家 Instantiate 到他们的生成点上。
+The other big thing that I have is I do have a scene manager, and all my scene manager does is it does a for loop on my players and
+then instantiates my players into their player spawn points.
+
+77
+00:06:37,454 --> 00:06:40,000
+当然，如果你想要这些信息，完全没问题。
+Now, again, if you want that information, that's totally fine.
+
+78
+00:06:40,160 --> 00:06:45,284
+只要先看一遍我的多人游戏基础教程，然后我们再过一遍那个。
+Just go one through my basics with multiplayer and then we'll go through that.
+
+79
+00:06:45,614 --> 00:06:58,240
+既然说到这了，我们首先要做的是添加 WebRTC 库，因为如果不使用 Godot WebRTC 原生库，
+你就没法在 Godot 里直接使用 WebRTC。
+Now, with that being said, the first thing that we need to do is we need to add in our WebRTC library because you can't just do WebRTC
+inside of Godot without using the Godot WebRTC native library.
+
+80
+00:06:58,400 --> 00:07:01,680
+现在，在我的情况下，我使用的是 Godot 4.1。
+Now, in my case, I am Godot 4.1.
+
+81
+00:07:01,840 --> 00:07:05,040
+所以我将进入发布页面。
+So I'm going to go into the release.
+
+82
+00:07:05,200 --> 00:07:07,360
+这是 4.1 的发布版本。
+This is the 4.1 release.
+
+83
+00:07:07,440 --> 00:07:08,080
+就在这里。
+It is right here.
+
+84
+00:07:08,160 --> 00:07:11,840
+所以你可以看到，如果我向下滚动，他们有一个 webrtc.zip。
+So you can see if I scroll down, they have a webrtc.zip.
+
+85
+00:07:11,920 --> 00:07:13,200
+那我们就快速把它下载下来。
+So we'll pull that down real quick.
+
+86
+00:07:13,360 --> 00:07:14,480
+点击保存。
+We'll click save.
+
+87
+00:07:14,640 --> 00:07:20,004
+我要点击文件图标，右键，提取，然后把它解压出来。
+I'm going to click on the file icon, right click, extract, and extract it.
+
+88
+00:07:20,814 --> 00:07:26,080
+现在你会看到它正在被解压，你会看到这里我们有了 WebRTC。
+Now you'll see it's going to get extracted, and you'll see right here we have our WebRTC.
+
+89
+00:07:26,240 --> 00:07:32,960
+现在，如果我们打开这个，你会看到我们有一个 lib，一个 WebRTC GD 扩展，还有一些许可证。
+Now, if we open this up, you'll see we have a lib, we have a WebRTC GD extension, we have our some licenses here.
+
+90
+00:07:33,120 --> 00:07:36,548
+现在，很多人只是把它拿过来，复制，然后粘贴。
+Now, a lot of people just grab this, copy, and paste it.
+
+91
+00:07:36,720 --> 00:07:38,560
+不幸的是，那样是行不通的。
+And unfortunately, that's not gonna work.
+
+92
+00:07:38,640 --> 00:07:43,040
+所以如果我们快速看一下我们的 GD 扩展文件。
+So if we take a look at our GD extension file real quick.
+
+93
+00:07:43,120 --> 00:07:51,760
+如果我用记事本打开它，你可以看到他们有一个 RES WebRTC lib webrtc native 之类的，对吧？
+So if I open that up with notepad, you can see they have a RES WebRTC lib webrtc native, blah, blah, blah, right?
+
+94
+00:07:51,920 --> 00:07:58,960
+这意味着我们需要把这个文件夹拉过来，复制它，然后把它带入到我们的项目中。
+So that means that we need to pull this folder here, we need to copy that, and we need to bring that into our project.
+
+95
+00:07:59,120 --> 00:08:04,960
+让我打开项目，抓取这个，拖进去，松开，你就会看到它成功了。
+So let me open up our project, grab this, drag it in, let go, and you will see that it worked.
+
+96
+00:08:05,120 --> 00:08:12,240
+现在，判断是否成功最好的办法就是没弹出任何窗口或错误，确保所有内容都正确加载了。
+Now, the best way to know if it worked is if you don't get any pop-ups or any errors, that everything loaded in correctly.
+
+97
+00:08:12,400 --> 00:08:18,960
+另一种测试方法是去场景，新建场景，创建一个新的用户界面场景。
+Now, the other way that we can test this is if we go to scene, new scene, we create a new user interface scene.
+
+98
+00:08:19,120 --> 00:08:22,880
+我们实际上可以开始构建这个非常基础的场景。
+We can actually start building out our very basic scene for this.
+
+99
+00:08:22,990 --> 00:08:26,400
+现在，我要把我们的代码分成两个部分。
+Now, I'm going to separate our code into two sections.
+
+100
+00:08:26,480 --> 00:08:28,720
+我们要有服务器，也要有客户端。
+We're gonna have server and we're gonna have client.
+
+101
+00:08:28,800 --> 00:08:31,680
+现在，我右键点击，添加一个子节点。
+Now, I will right click, attach a child node.
+
+102
+00:08:31,760 --> 00:08:34,400
+我要添加一个节点，并把它命名为 client。
+I'm gonna add in a node, and I'm gonna call this client.
+
+103
+00:08:35,470 --> 00:08:40,799
+然后我右键点击，附加一个脚本，我们把它叫 client.gd。
+And I'm gonna right click, attach a script, and we'll call it client.gd.
+
+104
+00:08:40,880 --> 00:08:41,476
+没问题。
+That's fine.
+
+105
+00:08:42,318 --> 00:08:49,520
+如果我们输入 WebRTC，如果你能看到 WebRTC 数据通道和对等连接，那就没问题了。
+If we type WebRTC, if you see WebRTC data channel and peer connection, then you are good to go.
+
+106
+00:08:49,710 --> 00:08:54,480
+这意味着一切都正确设置好了，你可以开始这套教程的其余部分了。
+That means that everything's set up correctly and you are good to get started with the rest of this tutorial.
+
+107
+00:08:54,640 --> 00:09:03,716
+如果不行，那就是你这里加载 WebRTC 的方式出了问题，你可能会在输出窗口看到错误。
+If not, then something's broken with how you've loaded in your WebRTC right here, and you may see an issue right here in your output.
+
+108
+00:09:04,320 --> 00:09:10,948
+但既然我的运行完美，那我就开始编写我的客户端代码了。
+But since mine worked perfectly fine, I'm going to go ahead and start coding out my client.
+
+109
+00:09:11,438 --> 00:09:18,480
+信令服务器的工作原理是，你必须构建一个专用服务器，并且必须构建一个专用客户端。
+So the way that a signaling server works is you have to build a dedicated server and you have to build a dedicated client.
+
+110
+00:09:18,640 --> 00:09:21,840
+不幸的是，构建它不会特别容易。
+And unfortunately, it's not going to be super easy to build.
+
+111
+00:09:22,000 --> 00:09:26,560
+我们需要进行一些数据包读取，并且需要能够进行一些数据包解析。
+We're going to have to do some packet reading and we're going to have to be able to do some packet parsing.
+
+112
+00:09:26,640 --> 00:09:28,800
+所以我们需要有一个消息枚举。
+So we're going to need to have a message enum.
+
+113
+00:09:28,960 --> 00:09:33,668
+所以我做的第一件事是输入 枚举，并把它命名为 message。
+So the first thing I'm going to do is I'm going to type enum and I'm going to call it message.
+
+114
+00:09:34,350 --> 00:09:35,600
+我们要有几个枚举。
+And we're going to have a couple of enums.
+
+115
+00:09:35,840 --> 00:09:38,160
+我们首先从获取 ID 开始。
+We'll first start off with getting an ID.
+
+116
+00:09:38,240 --> 00:09:39,280
+所以我们写 ID。
+So we'll say ID.
+
+117
+00:09:39,440 --> 00:09:43,760
+然后我们需要的另一个大概是 join，也就是拥有加入的能力。
+And then another one that we would need is like join, like having the ability to join.
+
+118
+00:09:43,920 --> 00:09:47,520
+我觉得如果用户连接成功，有一个相关的提示会很有用。
+Something I think would be useful would have if a user connects.
+
+119
+00:09:47,600 --> 00:09:49,828
+所以我们写 user connected。
+So we'll say user connected.
+
+120
+00:09:50,542 --> 00:09:54,640
+也许我们还可以有一个 user disconnected，对吧？
+And maybe we could have one for user disconnected, right?
+
+121
+00:09:54,720 --> 00:09:56,676
+因为用户需要能够断开连接。
+Because a user needs to be able to disconnect.
+
+122
+00:09:57,120 --> 00:09:59,760
+我们可能还需要一个用于大厅信息的。
+We probably need one for lobby information.
+
+123
+00:09:59,840 --> 00:10:01,060
+所以我们说大厅。
+So we'll say lobby.
+
+124
+00:10:01,454 --> 00:10:03,280
+呃，我们需要一个用于候选者的。
+uh, We're going to need one for the candidate.
+
+125
+00:10:03,440 --> 00:10:08,356
+所以候选者，我们需要一个用于提议的，还需要一个用于响应的。
+So candidate, we're going to need one for the offer, and we're going to need one for an answer.
+
+126
+00:10:10,222 --> 00:10:12,800
+除此之外，我们可能不需要其他的了。
+Outside of that, we probably don't need another one.
+
+127
+00:10:12,960 --> 00:10:18,400
+不过，如果我们想处理掉线的用户账号，可能应该加一个签到。
+Although maybe if we want to be able to handle dead user accounts, we probably should have a check-in.
+
+128
+00:10:18,670 --> 00:10:20,196
+所以我们也把那个加上。
+So we'll put that in as well.
+
+129
+00:10:21,614 --> 00:10:22,244
+就像这样。
+Like that.
+
+130
+00:10:23,086 --> 00:10:31,040
+现在，当我们做信令服务器时，我们的信令服务器需要配置 WebSocket 多人对等节点。
+Now, when we're doing our signaling server, our signaling server is going to need to be set up with WebSocket multiplayer peer.
+
+131
+00:10:31,200 --> 00:10:33,440
+你可以使用 Godot 的 WebSocket 对等节点。
+You could use Godot's WebSocket peer.
+
+132
+00:10:33,520 --> 00:10:36,560
+如果你愿意，你也可以使用他们的 e-net 多人对等节点。
+You could also use their e-net multiplayer peer if you want to.
+
+133
+00:10:36,720 --> 00:10:40,000
+你可以使用他们的多人扩展，对吧？
+You could use their multiplayer extensions, right?
+
+134
+00:10:40,080 --> 00:10:44,560
+你甚至可能还能用 WebRTC，如果你非常清楚自己在做什么的话。
+You could use their even you could probably even use WebRTC if you know exactly what you're doing.
+
+135
+00:10:44,720 --> 00:10:49,360
+但在我的情况下，我要调用 WebSocket 多人对等节点。
+But in my case, I'm going to pull the WebSocket multiplayer peer.
+
+136
+00:10:49,440 --> 00:10:54,160
+对我来说，这是我们可以使用的最灵活的多人库版本。
+That's to me is the most flexible version of the multiplayer library that we can use.
+
+137
+00:10:54,240 --> 00:11:01,520
+所以我写 var 对等节点 等于 web 套接字 多人对等节点.new()。
+So I'll say var peer is equal to web socket multiplayer peer dot new.
+
+138
+00:11:01,680 --> 00:11:06,800
+这样做会创建一个 WebSocket 多人对等节点实例。
+So what that's going to do is it's going to create a WebSocket multiplayer peer instance.
+
+139
+00:11:06,960 --> 00:11:17,280
+如果你还记得我的网络教程，我提到过 WebSocket 多人对等节点是网络的基础。
+And if you remember from my networking tutorial, I talked about how
+WebSocket multiplayer peer is the fundamental basis of your networking.
+
+140
+00:11:17,422 --> 00:11:19,040
+所以你必须确保把它包含进去。
+So you have to make sure that you have that in.
+
+141
+00:11:19,200 --> 00:11:20,000
+那很好。
+So that's great.
+
+142
+00:11:20,080 --> 00:11:21,200
+我们怎么建立连接？
+How do we do a connection?
+
+143
+00:11:21,360 --> 00:11:29,476
+嗯，我们在这里下面做一个叫 connect to server 的小函数，并填入一个 IP 地址。
+Well, we'll make a small function down here called connect to server, and we'll put in an IP address.
+
+144
+00:11:30,350 --> 00:11:39,748
+连接到服务器的最佳方式，这也是我选择这个库的部分原因，
+是因为它处理连接和断开请求非常简单。
+And the best way to connect to a server, and this is part of the reason why I chose this library,
+is because of how easy it is to do connect and disconnect requests.
+
+145
+00:11:39,920 --> 00:11:43,760
+所以要连接，你只需要输入 对等节点.create_client()。
+So to connect, all you have to do is type peer dot create client.
+
+146
+00:11:43,840 --> 00:11:45,520
+然后你得传入一个 URL。
+And then you have to pass in a URL.
+
+147
+00:11:45,680 --> 00:11:52,830
+在我的例子里，我将使用 WS: // 127.0.0.1。
+So in my case, I'm going to go with WS colon slash slash 127.0.0.1.
+
+148
+00:11:53,440 --> 00:11:56,160
+然后我们要选择一个端口。
+And we're going to choose a port of some description.
+
+149
+00:11:56,240 --> 00:11:59,040
+在我的例子里，我将使用 8915。
+So in my case, I'm going to go with 8915.
+
+150
+00:11:59,280 --> 00:12:01,200
+现在你可能会说，等一下。
+Now you might be going, okay, hold on.
+
+151
+00:12:01,280 --> 00:12:04,720
+你把 IP 写在这里，但你实际上是填入了信息。
+You put IP up here, but you actually put in the information.
+
+152
+00:12:04,910 --> 00:12:05,280
+是的。
+Yes.
+
+153
+00:12:05,440 --> 00:12:12,160
+我之所以这么做，是因为这里稍后会改为正确的 IP 地址。
+And the reason why I did that is because this will get changed later to have the proper IP address.
+
+154
+00:12:12,320 --> 00:12:16,560
+我只是想在最初的这个小测试中把它硬编码。
+I just want to make it hard-coded for this first little initial test.
+
+155
+00:12:16,686 --> 00:12:18,880
+这样我们就能知道事情是否运行正常。
+So that way we know that things are working correctly.
+
+156
+00:12:18,960 --> 00:12:20,240
+所以我现在要输入 print。
+So I'm going to type print.
+
+157
+00:12:20,320 --> 00:12:22,640
+我要写 started client。
+I'm going to say started client.
+
+158
+00:12:22,720 --> 00:12:23,760
+我想这样就可以了。
+And I think that will do it.
+
+159
+00:12:23,840 --> 00:12:24,880
+我要按 Ctrl+S。
+I'm going to hit control S.
+
+160
+00:12:24,960 --> 00:12:26,080
+我们要按回车。
+We'll hit enter.
+
+161
+00:12:26,240 --> 00:12:30,960
+这样我们至少可以尝试建立某种连接。
+And we should be ready to at least try to get some kind of connection going.
+
+162
+00:12:31,120 --> 00:12:33,760
+为了建立连接，我们实际上需要有一个服务器。
+So to get a connection going, we need to actually have a server.
+
+163
+00:12:33,966 --> 00:12:37,680
+你会注意到我会在服务器和客户端之间频繁切换。
+And you'll notice that I'm going to be bouncing between server and client quite a bit.
+
+164
+00:12:37,760 --> 00:12:39,600
+所以我现在要右键点击添加一个子节点。
+So I'm going to right click add a child node.
+
+165
+00:12:39,680 --> 00:12:40,800
+我要添加一个节点。
+I'm going to add in a node.
+
+166
+00:12:40,880 --> 00:12:42,212
+我要把它命名为 server。
+I'm going to call it server.
+
+167
+00:12:43,022 --> 00:12:46,400
+然后我右键点击并挂载一个脚本 server.gd。
+And I'm going to right click attach a script server.gd.
+
+168
+00:12:46,560 --> 00:12:50,800
+现在有了 server.gd，我们需要进去做同样的消息处理。
+Now with server.gd, we need to come in and do the same message.
+
+169
+00:12:50,880 --> 00:12:55,120
+所以让我们进入客户端，复制我们的枚举消息，然后把它粘贴过来。
+So let's go into our client, let's copy our enum message, and we can paste it.
+
+170
+00:12:55,200 --> 00:12:59,040
+如果你想把它抽象成一个工具函数，那是完全可以的。
+Now if you want to abstract this out to a utilities function, that's totally fine.
+
+171
+00:12:59,200 --> 00:13:03,200
+我只是不想处理额外的 utilities.message 之类的东西。
+I just don't want to deal with the additional utilities.message whatever.
+
+172
+00:13:03,406 --> 00:13:09,252
+所以在我的情况下，我打算把两个枚举都放在这里，虽然这会多出一点重复代码。
+So in my case, I'm just going to have both of the enums here, even though it's a little bit of extra duplicated code.
+
+173
+00:13:09,760 --> 00:13:13,120
+所以当我们想要启动服务器时，我们要为此创建一个函数。
+So when we want to start our server, we'll make a function for it.
+
+174
+00:13:13,200 --> 00:13:15,012
+所以写 func start_server。
+So func start server.
+
+175
+00:13:15,630 --> 00:13:19,280
+考虑到它是本地运行的，我应该用小写的 s。
+And I should probably go with a lowercase s considering it's going to be local.
+
+176
+00:13:19,440 --> 00:13:22,916
+然后我们要在那放个冒号。
+And we will put our colon there.
+
+177
+00:13:24,270 --> 00:13:27,408
+我们需要做和之前一样的事情，对吧？
+And we need to do the same thing that we did earlier, right?
+
+178
+00:13:27,488 --> 00:13:31,328
+我们需要创建一个新的 multiplayer web 套接字 对等节点。
+We need to create a new multiplayer web socket peer.
+
+179
+00:13:31,502 --> 00:13:38,468
+所以我们到这里，var 对等节点 = WebSocketMultiplayerPeer.new()。
+So we'll come up here, var peer is equal to web socket multiplayer peer dot new.
+
+180
+00:13:39,630 --> 00:13:41,924
+然后我们就可以到下面去启动我们的服务器。
+And then we can just come down here and start our server.
+
+181
+00:13:42,862 --> 00:13:47,728
+所以我们要输入 对等节点.create_server，并且必须填入一个端口。
+So we'll type peer dot create server and we have to put a port.
+
+182
+00:13:47,808 --> 00:13:52,048
+所以我们要填 8915，我想我选的就是这个。
+So we'll do 8915, I believe is what I chose.
+
+183
+00:13:52,590 --> 00:13:58,048
+等会儿我们把这个抽象到上面的端口里，大概需要五秒钟，但我们要确保它现在能跑通。
+Now we'll abstract that into a port up here in about five seconds, but we'll want to make sure that this works.
+
+184
+00:13:58,382 --> 00:14:03,808
+所以我们要打印出「started server」这样的内容。
+So we'll print quote started server like that.
+
+185
+00:14:04,608 --> 00:14:05,316
+挺简单的。
+Easy enough.
+
+186
+00:14:06,030 --> 00:14:08,048
+现在我们可以开始测试了。
+And now we can actually kind of test this.
+
+187
+00:14:08,128 --> 00:14:12,868
+所以如果我们来到这里的控制节点，右键点击添加子节点，再加一个按钮。
+So if we come to our control node here, we right click add a child node, add a button.
+
+188
+00:14:13,262 --> 00:14:14,768
+我们可以复制那个按钮。
+We can duplicate that button.
+
+189
+00:14:14,928 --> 00:14:18,916
+我们把一个叫 start server，另一个叫 start client。
+We'll call one start server and one start client.
+
+190
+00:14:22,894 --> 00:14:23,328
+就像这样。
+Like that.
+
+191
+00:14:23,790 --> 00:14:30,084
+然后我们可以先点 start client，再点 start server。
+And then we can call this start client and then start server.
+
+192
+00:14:30,382 --> 00:14:30,916
+就像这样。
+Like that.
+
+193
+00:14:31,470 --> 00:14:32,928
+我要把 start server 拿过来。
+I'm going to grab my start server.
+
+194
+00:14:33,008 --> 00:14:34,368
+把它拖到另一边。
+I'll drag it over to the other side.
+
+195
+00:14:34,448 --> 00:14:35,648
+这样我就不会搞混了。
+That way I don't get confused.
+
+196
+00:14:35,728 --> 00:14:38,916
+所以我就把这两个分别放在屏幕的两侧。
+So I'll just throw these guys both on the opposite sides of the screen.
+
+197
+00:14:39,214 --> 00:14:42,368
+我要去 start client，点击节点，按钮向下。
+And I'm going to go to my start client, click on node, button down.
+
+198
+00:14:42,510 --> 00:14:45,328
+双击它，点击我的 client，点连接。
+I'll double-click on that, click on my client, hit connect.
+
+199
+00:14:45,408 --> 00:14:49,648
+然后当我们这样做时，我们就这样连接到服务器。
+And then when we do this, we're going to just connect to server like that.
+
+200
+00:14:50,062 --> 00:14:53,008
+当我们想要启动服务器时，哦，我们得传给它一个 IP。
+When we want to start our server, oh, we have to pass it an IP.
+
+201
+00:14:53,168 --> 00:14:57,488
+所以我们会加个引号，让它保持为空，因为我们现在还没打算用它。
+So we'll put quotes just so that it's empty because we're not going to use it for right now.
+
+202
+00:14:57,614 --> 00:14:58,928
+我们要去 start server。
+We'll go to start server.
+
+203
+00:14:59,008 --> 00:15:00,848
+双击它，启动服务器。
+We'll double-click on it, start server.
+
+204
+00:15:01,008 --> 00:15:03,568
+把它连接到我们的服务器，然后点连接。
+We'll connect that to our server and we will hit connect.
+
+205
+00:15:03,728 --> 00:15:07,328
+然后我们要把它改成 start server，就像这样。
+And then we'll change this to start server like that.
+
+206
+00:15:07,488 --> 00:15:09,968
+现在如果我们一切都做得正确，就可以直接点播放了。
+And now if we've done everything correctly, we can just hit play.
+
+207
+00:15:10,128 --> 00:15:14,596
+我们过来这里，点 start server，显示 started
+server，点 start client，显示 started client。
+We'll come over here, we'll hit start server, started server, start client, started client.
+
+208
+00:15:15,150 --> 00:15:15,940
+挺简单的。
+Easy enough.
+
+209
+00:15:16,368 --> 00:15:22,368
+这虽然很酷，但我们怎么知道自己真的连接成功了呢？
+Now that's cool, but how do we know if we actually successfully connected ourselves, right?
+
+210
+00:15:22,448 --> 00:15:24,644
+因为它其实没告诉我们多少信息。
+Because it really doesn't tell us much.
+
+211
+00:15:25,102 --> 00:15:28,848
+嗯，这就是发送信息数据包派上用武之地的地方。
+Well, here's where sending packets of information comes in handy.
+
+212
+00:15:28,928 --> 00:15:34,020
+所以如果我们看这里的 client，你可以看到我们的连接到服务器，以及 start client 按钮。
+So if we go to our client here, you can see we have our connect to server, start client button.
+
+213
+00:15:34,670 --> 00:15:40,448
+我们需要创建一个按钮来实际向服务器发送数据，这样我们就能测试我们的东西了。
+We need to create a button to actually just send data to our server so that way we can actually test our stuff.
+
+214
+00:15:40,608 --> 00:15:44,548
+所以我现在点击右键，添加一个子节点，再添加一个按钮。
+So I'm going to right-click, add a child node, add another button.
+
+215
+00:15:44,910 --> 00:15:49,188
+我们把它叫作「发送测试数据包」。
+We'll call this send test packet.
+
+216
+00:15:49,614 --> 00:15:53,316
+然后我们把它连接到我们的客户端，就像这样。
+And we'll connect that to our client like that.
+
+217
+00:15:53,966 --> 00:15:55,248
+现在我要进入这里。
+Now I'm going to go in here.
+
+218
+00:15:55,328 --> 00:15:58,048
+我要把这个拖到下面，把它放到合适的位置。
+I'm going to drag this guy down so that it's in a proper spot.
+
+219
+00:15:58,208 --> 00:16:00,608
+去我的脚本里，它会显示在按钮按下时。
+Go to my script and it'll say on button button down.
+
+220
+00:16:00,848 --> 00:16:04,928
+然后我们写 对等节点.put_数据包。
+And we'll say peer dot put packet.
+
+221
+00:16:05,038 --> 00:16:06,128
+这就是发送数据的方法。
+And that's how you send data.
+
+222
+00:16:06,208 --> 00:16:09,168
+但你会注意到它需要一个打包字节数组。
+But you'll notice it requires a packed byte array.
+
+223
+00:16:09,294 --> 00:16:15,168
+这意味着我们必须把数据转换成某种编码数据。
+And what that means is that we have to actually change our data into some kind of encoded data.
+
+224
+00:16:15,328 --> 00:16:15,648
+好的。
+Okay.
+
+225
+00:16:15,886 --> 00:16:17,888
+所以让我们创建一些数据来进行测试。
+So let's create some data for us to test.
+
+226
+00:16:17,968 --> 00:16:22,628
+所以我写 var message 等于括号括号引号。
+So I'll say var message is equal to bracket bracket quote.
+
+227
+00:16:23,008 --> 00:16:33,488
+然后我们放点东西，比如 message 冒号 message.join，就这么写。
+And we'll put something like message colon message dot join, let's say.
+
+228
+00:16:33,678 --> 00:16:39,728
+然后我们进入这里，传入类似 data 冒号 test 的内容。
+And we'll come in here, we'll pass in something like data colon test.
+
+229
+00:16:40,334 --> 00:16:43,168
+我觉得这在这里测试起来挺简单的。
+I think that that's pretty a pretty easy thing to test here.
+
+230
+00:16:43,310 --> 00:16:45,648
+你会注意到当我按 S 的时候，那是由于这个正在运行。
+And you'll notice that when I hit S, that's because this is running.
+
+231
+00:16:45,728 --> 00:16:46,528
+所以我把它停止。
+So I'll stop it.
+
+232
+00:16:46,688 --> 00:16:53,808
+一旦我们有了数据，我们就必须把数据修改成某种二进制数据。
+Once we have our data, we have to actually modify our data into some kind of binary data.
+
+233
+00:16:53,888 --> 00:17:04,448
+所以我们写 var message_bytes 等于 JSON.stringify 我们的 message 数据。
+So we'll say var message bytes is equal to json dot stringify our message data.
+
+234
+00:17:04,608 --> 00:17:06,768
+所以是 message.to_bytes。
+So message dot two.
+
+235
+00:17:07,088 --> 00:17:08,848
+你会看到我们有不同的缓冲区。
+And you'll see we have different buffers.
+
+236
+00:17:08,928 --> 00:17:16,356
+如果你记得我之前的教程，我讲过 ASCII、UTF 8、UTF 16 和 UTF 32 之间的区别。
+If you remember from my previous tutorial, I talked about the difference between ASCII, UTF 8, UTF 16, and UTF 32.
+
+237
+00:17:16,877 --> 00:17:19,088
+ASCII 非常适合英文单词。
+ASCII is great for English words.
+
+238
+00:17:19,328 --> 00:17:22,768
+UTF 8 在大部分情况下也很好用。
+UTF 8 is great for English words for the most part.
+
+239
+00:17:22,928 --> 00:17:31,968
+UTF 16 非常适合英文和符号，而 UTF 32 则非常适合符号、英文以及基本上大多数语言。
+UTF 16 is great for English and symbols, and UTF 32 is great for symbols, English, and basically most languages.
+
+240
+00:17:32,206 --> 00:17:38,608
+所以在我的情况下，我要用 UTF 8，然后传入 message_bytes。
+So in my case, I'm going to do UTF 8, and then I'm going to pass in message bytes.
+
+241
+00:17:39,088 --> 00:17:40,608
+现在你可能会想，好吧，酷。
+Now you might think, okay, cool.
+
+242
+00:17:40,718 --> 00:17:43,364
+所以我们要把数据传到我们的服务器上，对吧？
+So we're going to pass our data across to our server, right?
+
+243
+00:17:43,854 --> 00:17:48,608
+嗯，是的，但我们的服务器得能读取这些数据。
+Well, yes, but our server needs to be able to read this data.
+
+244
+00:17:48,768 --> 00:17:50,368
+那我们该怎么读取这些数据呢？
+So how do we read that data?
+
+245
+00:17:50,528 --> 00:17:53,328
+这就是轮询派上用场的地方。
+Well, that's where server pulling comes in.
+
+246
+00:17:53,488 --> 00:17:56,288
+所以我们回到服务器这边。
+So we'll come down here to our server.
+
+247
+00:17:57,774 --> 00:17:59,728
+我可能得把这些全都关掉。
+And I should probably close all of these guys.
+
+248
+00:17:59,808 --> 00:18:01,248
+让我把所有东西都关了。
+So let me close everything.
+
+249
+00:18:01,422 --> 00:18:02,500
+打开这两个。
+Open up these two.
+
+250
+00:18:03,278 --> 00:18:07,076
+回到服务器，我们输入 对等节点 pull。
+We'll come to our server and we'll type peer pull.
+
+251
+00:18:08,238 --> 00:18:12,848
+如果这能理解的话，这就是在拉取我们的服务器套接字。
+And that's going to pull our server socket, if that makes sense.
+
+252
+00:18:13,038 --> 00:18:23,968
+所以轮询的作用基本上就是说：嘿，确保这个套接字是打开的，并确认你是否正在接收数据。
+So what polling does is polling basically just says, hey, make sure that this
+socket is open and make sure that you are receiving or not receiving data.
+
+253
+00:18:24,048 --> 00:18:28,772
+它基本上就是在说：嘿，把这个套接字保持打开状态一秒钟。
+It basically says, hey, hold this socket open for one second.
+
+254
+00:18:29,262 --> 00:18:32,580
+如果有任何数据传过来，就获取那些数据。
+And if any data comes through, then get that data.
+
+255
+00:18:33,582 --> 00:18:37,568
+现在，不幸的是，那并不是我们要做的唯一步骤。
+Now, unfortunately, that doesn't, that's not the only step that we have to do.
+
+256
+00:18:37,648 --> 00:18:39,248
+我们实际上还得获取那个数据包。
+We actually have to get that packet.
+
+257
+00:18:39,374 --> 00:18:49,088
+所以我们要说，如果 对等节点.getAvailable 数据包 count 大于零，
+那我们就可以去抓取那个数据包了。
+So we have to say, if peer dot getAvailable packet count is greater than zero, then we can go ahead and grab that packet.
+
+258
+00:18:49,168 --> 00:18:55,652
+所以 var 数据包 等于 对等节点.get_数据包()
+So var packet is equal to peer dot get packet.
+
+259
+00:18:56,608 --> 00:18:57,088
+就像这样。
+Like that.
+
+260
+00:18:58,382 --> 00:19:05,888
+如果我们的 数据包 不等于 null，那我们就可以开始解析数据了。
+If our packet does not equal null, then we can actually start parsing our data.
+
+261
+00:19:06,478 --> 00:19:10,288
+现在我们需要把数据从字节数组转换成字符串。
+Now we need to convert our data from a byte array to a string.
+
+262
+00:19:10,368 --> 00:19:23,568
+所以我们可以写 var data_string 等于 数据包.get_string()，
+而且我们必须选择完全相同的编码。
+So we can say var data string is equal to packet dot get string from, and we have to choose the exact same encoding.
+
+263
+00:19:23,694 --> 00:19:25,648
+所以在我们的例子里，我们用了 UTF-8。
+So in our case, we did UTF 8.
+
+264
+00:19:25,728 --> 00:19:27,684
+所以在这种情况下，我们用 UTF-8。
+So we'll do UTF 8 in this case.
+
+265
+00:19:29,230 --> 00:19:31,648
+然后我们需要提取数据并解析它。
+And then we need to pull back our data and parse it.
+
+266
+00:19:31,728 --> 00:19:39,968
+所以 var data 等于 JSON.parse(data_string)。
+So var data is equal to json dot parse string data string.
+
+267
+00:19:40,110 --> 00:19:41,604
+这样就能把我们的数据传回来了。
+And that'll pass back our data.
+
+268
+00:19:42,222 --> 00:19:43,408
+然后我们把它打印出来。
+So then we'll just print that out.
+
+269
+00:19:43,488 --> 00:19:44,644
+所以 print(data)。
+So print data.
+
+270
+00:19:46,094 --> 00:19:49,088
+我知道这可能有点让人困惑，所以让我们一步步过一遍。
+Now I know this might be a little confusing, so let's take a step through this.
+
+271
+00:19:49,294 --> 00:19:51,812
+首先，我们正在获取我们的 对等节点。
+So first things first, we're we're pulling our peer.
+
+272
+00:19:52,238 --> 00:19:55,408
+获取 对等节点 基本上就是获取我们的套接字。
+And pulling our peer is basically pulling our socket.
+
+273
+00:19:55,568 --> 00:19:57,728
+如果你愿意的话，也可以直接调用套接字。
+You could just call the socket if you want to.
+
+274
+00:19:57,838 --> 00:19:58,688
+这由你决定。
+That's up to you.
+
+275
+00:19:58,928 --> 00:20:02,768
+嗯，我把它叫成 对等节点 是因为它是一个 WebSocket 多人对等节点。
+Um I called it peer because it's a WebSocket multiplayer peer.
+
+276
+00:20:02,848 --> 00:20:03,968
+这就是我这么命名的原因。
+So that's why I called it that.
+
+277
+00:20:04,048 --> 00:20:04,848
+这由你们自己决定。
+It's up to you guys.
+
+278
+00:20:05,008 --> 00:20:07,008
+但首先，我们要获取对等节点数据。
+But first, we're pulling our peer data.
+
+279
+00:20:07,088 --> 00:20:09,168
+所以我们实际上是在获取，看看有没有收到数据。
+So we're actually pulling to see if we get data.
+
+280
+00:20:09,248 --> 00:20:11,888
+我们在检查是否收到了数据。
+We're checking to see if we have received data.
+
+281
+00:20:12,048 --> 00:20:13,728
+如果有，我们就获取那些数据。
+If we have, we're gonna get that data.
+
+282
+00:20:13,808 --> 00:20:18,288
+然后我们要验证它不是空的，确保没人给我们发垃圾数据。
+And then we're gonna verify that it's not empty, that somebody didn't send us garbage data.
+
+283
+00:20:18,368 --> 00:20:22,608
+接着我们获取来自 UTF-8 的字符串。
+Then we're gonna come through and we're going to get our string from UTF-8.
+
+284
+00:20:22,848 --> 00:20:30,768
+所以我们要从字节数组中获取数据，如果你还记得的
+话，字节数组基本上就是数据通过网络传输的方式。
+So we're gonna pull our data from our byte array, which if you remember,
+a byte array is basically just how data gets pushed through the network.
+
+285
+00:20:31,008 --> 00:20:36,128
+我们要把数据从字节数组转换成字符串，然后把它解析成一个对象。
+We're going to change our data from byte array to a string, and then we're going to parse that into an object.
+
+286
+00:20:36,238 --> 00:20:37,728
+这就是它的基本工作原理。
+And that's basically how this works.
+
+287
+00:20:37,888 --> 00:20:39,568
+现在，客户端端也是同样的操作。
+Now, same thing on the client end.
+
+288
+00:20:39,728 --> 00:20:41,648
+我们有一个包含数据的按钮。
+We have our button where we have our data.
+
+289
+00:20:41,808 --> 00:20:45,924
+我们要把它转换成字节数组，然后发送这些数据。
+We're going to make it into a byte array, and then we're going to send that data.
+
+290
+00:20:46,350 --> 00:20:50,244
+所以如果我点击播放，启动服务器，启动客户端，然后点击发送。
+So if I hit play and I start my server, I start my client, and then I hit send.
+
+291
+00:20:50,734 --> 00:20:51,968
+你会注意到什么也没发生。
+You'll notice nothing happens.
+
+292
+00:20:52,366 --> 00:20:53,732
+事实上，我们收到一个错误。
+Matter of fact, we're getting an error.
+
+293
+00:20:54,318 --> 00:20:55,168
+那这是怎么回事？
+So what's going on with that?
+
+294
+00:20:55,310 --> 00:21:02,208
+嗯，你可以看到这里显示：条件获取连接状态已连接为真，返回错误未配置。
+Well, you can see it says here condition get connection status connected is true, returning error unconfigured.
+
+295
+00:21:02,288 --> 00:21:03,364
+呃，发送数据包。
+Uh put packet.
+
+296
+00:21:03,726 --> 00:21:04,928
+嗯，这不太理想，对吧？
+Well, that's not ideal, right?
+
+297
+00:21:05,008 --> 00:21:07,248
+而且每当我们想要发送数据包时，都会发生这种情况，对吧？
+And that happens whenever we want to send a packet, right?
+
+298
+00:21:07,328 --> 00:21:09,796
+每当我们想发数据包时，它就卡住了。
+Anytime we want to send a packet, it bricks on us.
+
+299
+00:21:10,094 --> 00:21:10,688
+为什么会这样？
+Why is that?
+
+300
+00:21:10,848 --> 00:21:14,448
+嗯，那是由于我们的数据包对等端已关闭。
+Well, that's because our packet peer is closed.
+
+301
+00:21:14,608 --> 00:21:20,932
+当你创建数据包对等端，然后创建客户端时，它只保持开启一秒钟。
+When you create your packet peer, and then you create your client, only stays open for one second.
+
+302
+00:21:21,648 --> 00:21:27,076
+所以为了保持这些连接开启，你实际上需要获取你的对等节点。
+So to keep that stuff open, you need to actually pull your peer.
+
+303
+00:21:27,438 --> 00:21:29,220
+所以就是调用 对等节点。
+So peer pull.
+
+304
+00:21:30,158 --> 00:21:34,944
+只要你每一帧都这样做，它基本上就能一直保持套接字开启。
+And as long as you do that every frame, it's going to keep that socket open for basically ever.
+
+305
+00:21:35,342 --> 00:21:39,744
+所以我们点击运行，来到这里，启动服务器，启动客户端，发送。
+So we'll hit play, we'll come over here, start server, start client, send.
+
+306
+00:21:39,824 --> 00:21:42,304
+你会注意到我们已经接收到了数据。
+And you will notice that we have received our data.
+
+307
+00:21:42,464 --> 00:21:45,732
+也就是说，我们的服务器已经收到了客户端的信息。
+So our server has received our client's information.
+
+308
+00:21:46,224 --> 00:21:50,144
+我知道你可能在想，好吧，但我还是没明白。
+Now I know that you might be thinking, okay, but I don't understand.
+
+309
+00:21:50,382 --> 00:21:51,664
+我们是在同一台电脑上。
+We're on the same computer.
+
+310
+00:21:51,744 --> 00:21:54,372
+我们明明什么都没做，但实际上我们做了。
+We haven't done anything, but we actually have.
+
+311
+00:21:55,054 --> 00:21:57,984
+看看我有没有这两个窗口。
+See if I have two versions of this window.
+
+312
+00:21:58,144 --> 00:22:05,264
+如果我进入调试，运行多个实例，运行两个，然后点击运行，点击启动服务器。
+So if I go to debug, run multiple instances, run two, and I hit play, and I hit start server.
+
+313
+00:22:05,454 --> 00:22:06,624
+我会把这个家伙挪到这边。
+I'll move this guy over here.
+
+314
+00:22:06,734 --> 00:22:13,904
+然后我连接到那个服务器并发送，你会看到这个家伙收到了数据，而这个家伙发送了数据。
+And then I connect to that server and I send, you'll see that this guy got that data, and this guy sent that data.
+
+315
+00:22:14,064 --> 00:22:20,864
+所以这就是它的工作原理，我们可以通过这个方法向服务器发送和接收数据。
+So that's how it works is that we can actually send and receive data to our server doing this method.
+
+316
+00:22:21,024 --> 00:22:26,224
+而这基本上将构成我们整个专用服务器系统的基础。
+And this is basically going to form the basis of our entire dedicated server system.
+
+317
+00:22:26,702 --> 00:22:30,852
+现在，一旦我们有了这个，我们的基础通信就通了。
+Now, once we have this, we have our basic communication going.
+
+318
+00:22:31,184 --> 00:22:36,144
+我们现在基本上需要从服务器向客户端发送数据。
+We now need to basically send data from our server to our client.
+
+319
+00:22:36,224 --> 00:22:37,904
+所以我们要用完全相同的方法来做。
+So we're gonna do it the exact same way.
+
+320
+00:22:37,984 --> 00:22:43,024
+我基本上要进入这里，右键点击，添加一个子节点，我再加一个按钮，对吧？
+I'm basically going to come in here, I'm going to right click, add a child node, I'll add in another button, right?
+
+321
+00:22:43,184 --> 00:22:49,424
+我们将这个家伙拖出来，像这样，我们也会有一个发送测试数据包的按钮。
+We'll drag this guy out, something like this, and we'll have a send a test packet as well.
+
+322
+00:22:49,504 --> 00:22:52,784
+我们将连接我们的按钮，点击服务器，连接。
+So we'll connect our button, we'll click on server, we'll connect.
+
+323
+00:22:52,864 --> 00:22:55,984
+你会看到下面还有一个按钮，我们可以发送一个数据包。
+You'll see we have another button down here, and we can send a packet.
+
+324
+00:22:56,144 --> 00:22:58,624
+所以我们只需做完全相同的事情。
+So we'll just do the exact same thing.
+
+325
+00:22:58,944 --> 00:23:13,184
+变量 message 等于括号括号引号 message 冒号 message 点 ID 逗号引号，数据 冒号 test。
+Var message is equal to bracket bracket quote message colon message dot ID, comma, quote, data colon test.
+
+326
+00:23:14,510 --> 00:23:21,904
+然后我们只需要点击 对等节点 点 put 数据包，并且我们要放入一个字节数组。
+And then all we have to do is just hit peer dot put packet, and we have to put a byte array.
+
+327
+00:23:21,984 --> 00:23:30,980
+所以我们只需说 json 点 stringify 将我们的 message 点传递到 utf eight buffer。
+So we'll just say json dot stringify will pass in our message dot to utf eight buffer.
+
+328
+00:23:31,470 --> 00:23:34,064
+这基本上就是一种非常简便的实现方式。
+And that's basically a really shorthanded way of doing this.
+
+329
+00:23:34,144 --> 00:23:41,424
+现在，从技术上讲，如果你真的想用超级简便且极其晦涩的方法，技术上你也可以这样做。
+Now, technically, if you really wanted to be super shorthanded and extremely obtuse, you technically could just do this as well.
+
+330
+00:23:41,584 --> 00:23:44,944
+从技术上讲这是有效的，呃，而不是传递 message。
+And that's technically valid uh instead of passing in the message.
+
+331
+00:23:45,104 --> 00:23:49,984
+但我打算用这种方法，因为它比另一种做法更整洁一点，因为另一种做法相当粗糙。
+But I'm gonna do it this way because it's a little bit cleaner than doing it the other way because that's quite dirty.
+
+332
+00:23:50,638 --> 00:23:56,624
+但一旦我们有了这个，我们就可以去客户端，然后基本上就是复制我们的服务器代码，对吧？
+But once we have this, we can just go to our client and then basically just copy our server code, right?
+
+333
+00:23:56,704 --> 00:23:58,544
+所以我把这段代码复制到这里。
+So I'll just copy this bit of code here.
+
+334
+00:23:58,704 --> 00:24:03,332
+我基本上把整块内容抓取过来，复制，然后按回车粘贴，对吧？
+I'll just basically grab the whole thing, copy, and then just hit enter and paste, right?
+
+335
+00:24:03,758 --> 00:24:08,784
+然后如果我们点播放，就可以启动服务器、启动客户端，发送测试数据包。
+And then if we hit play, we can go start server, start client, send test packet.
+
+336
+00:24:08,864 --> 00:24:10,704
+你会看到它接收到了那个测试数据包。
+You'll see that it received that test packet.
+
+337
+00:24:10,784 --> 00:24:13,584
+如果我们点击这个，你会看到它接收到了另一个测试数据包。
+If we click this guy, you'll see it received the other test packet.
+
+338
+00:24:13,664 --> 00:24:14,624
+它们稍微有点不同。
+And they're slightly different.
+
+339
+00:24:14,704 --> 00:24:17,668
+你会看到这就是为什么我做了带 ID 和不带 ID 的区别，对吧？
+You'll see that's why I did ID versus not ID, right?
+
+340
+00:24:18,798 --> 00:24:19,844
+所以这很酷。
+So that's cool.
+
+341
+00:24:20,224 --> 00:24:23,744
+但如果我们连接，我这里还有第二个客户端，对吧？
+But if we connect, so I have a second guy here, right?
+
+342
+00:24:23,824 --> 00:24:27,264
+所以如果我抓取我的服务器，让我快点抓一下。
+So if I grab my server, so let me grab that real quick.
+
+343
+00:24:27,424 --> 00:24:30,704
+如果我连接这个，启动客户端，我连接成功了。
+If I connect this guy, so start client, I've connected.
+
+344
+00:24:30,864 --> 00:24:34,064
+如果我点这个，你会注意到我收到了两次。
+If I hit this, you'll notice that I get it twice.
+
+345
+00:24:34,542 --> 00:24:35,184
+你注意到没？
+Did you notice that?
+
+346
+00:24:35,344 --> 00:24:35,984
+我有两个。
+I have two.
+
+347
+00:24:36,078 --> 00:24:38,084
+那是由于我有两个客户端连接了。
+That's because I have two clients connected.
+
+348
+00:24:38,638 --> 00:24:39,904
+那这意味着什么呢？
+So what does that mean?
+
+349
+00:24:40,064 --> 00:24:45,444
+嗯，如果我们看我们的服务器，这意味着它在广播我们的数据。
+Well, if we look at our server, that means that this broadcasting our data.
+
+350
+00:24:46,702 --> 00:24:49,664
+它不是发送给某一个特定的对等节点。
+It's not sending it to one specific peer.
+
+351
+00:24:49,824 --> 00:24:51,300
+那这意味着什么呢？
+So what does that mean?
+
+352
+00:24:51,630 --> 00:24:57,024
+正如你可能记得的，当用户连接到某些东西时，他们会被分配一个 ID。
+As you may remember, when a user connects to something, they get assigned an ID.
+
+353
+00:24:57,184 --> 00:25:02,660
+而且我们在建立对等连接时，基本上需要跟踪那个 ID。
+And we need to basically keep track of that ID when we do our peer connection.
+
+354
+00:25:03,534 --> 00:25:07,184
+Godot 的好处是，他们实际上为此提供了一个函数。
+So the nice thing about Godot is that they actually have a function for that.
+
+355
+00:25:07,374 --> 00:25:20,132
+如果我们来到 ready 函数，输入 对等节点.connect, "对等节点_connected",
+然后我基本上把这个抓过来粘贴进去。
+If we come up to our ready and we type peer dot connect, quote, peer underscore connected, comma,
+and I'll just basically grab this guy and I will paste it.
+
+356
+00:25:20,430 --> 00:25:22,544
+对于断开连接，我们也可以做同样的事情。
+We can do the same thing for disconnected.
+
+357
+00:25:22,624 --> 00:25:27,264
+所以是 对等节点_disconnected，然后断开连接。
+So peer disconnected and then disconnected.
+
+358
+00:25:27,438 --> 00:25:31,104
+我基本上可以抓取这个，向下滚动，然后为它创建一个函数。
+And I could basically just grab this guy, scroll down, and make a function for it.
+
+359
+00:25:31,184 --> 00:25:37,504
+所以我到这里，func 对等节点_connected，传入他们的 ID，然后直接按 pass。
+So I'll come in here, func, peer connected, I'll pass in their ID, and then we can just hit pass.
+
+360
+00:25:37,664 --> 00:25:39,184
+对于断开连接，我们也可以做同样的事情。
+And we can do the same thing for disconnected.
+
+361
+00:25:39,344 --> 00:25:46,064
+func 对等节点_disconnected, ID，然后按 pass。
+Funk, peer underscore, peer disconnected, ID, and then pass.
+
+362
+00:25:47,246 --> 00:25:49,316
+现在，这个要做的事情是，现在有了...
+Now, what this is going to do is there's going now.
+
+363
+00:25:49,744 --> 00:25:51,620
+这段代码的作用是它将作为一个信号。
+What this is going to do is it's going to be a signal.
+
+364
+00:25:51,824 --> 00:25:56,932
+所以这些代码会在玩家连接或断开连接时运行。
+So these guys are going to run anytime a player connects or disconnects.
+
+365
+00:25:58,384 --> 00:25:59,972
+那我们能用它做什么呢？
+So what can we do with that?
+
+366
+00:26:00,384 --> 00:26:08,228
+嗯，如果我们写在这里，我们可以直接写 var users 等于方括号，
+这样我们就能追踪我们的用户了。
+Well, if we come up here, we can just say var users is equal to brackets, and that's going to allow us to keep track of our users.
+
+367
+00:26:09,070 --> 00:26:13,184
+然后我们可以写到下面，当一个对等节点连接时，我们可以写 print。
+And then we can come down here, and when a peer connects, we can say print.
+
+368
+00:26:15,374 --> 00:26:19,200
+对等节点已连接：加号 str ID。
+Peer connected colon plus str ID.
+
+369
+00:26:19,822 --> 00:26:28,880
+然后我们可以直接写 users 方括号 ID 等于，然后我们可以把那个用户的信息放进去。
+And then we can just say users brackets ID is equal to, and then we can put in information about that user.
+
+370
+00:26:29,040 --> 00:26:32,320
+在我的例子里，我会写 ID：ID。
+In my case, I'm going to say ID colon ID.
+
+371
+00:26:32,880 --> 00:26:35,440
+目前这样就可以了。
+And that should be it for right now.
+
+372
+00:26:35,600 --> 00:26:41,092
+我们可能稍后还会做一些额外的事情，但目前我觉得这样是最简单的。
+We're going to probably do additional stuff a little bit later, but for right now, I think that's going to be the simplest.
+
+373
+00:26:41,486 --> 00:26:48,100
+然后我们只需要把包含他们信息的消息发回给对等节点就行了。
+And then all we have to do is just send a message back to the peers with their information.
+
+374
+00:26:48,622 --> 00:26:49,600
+那我们该怎么做呢？
+So how do we do that?
+
+375
+00:26:49,774 --> 00:26:51,680
+嗯，我们这里有这个，对吧？
+Well, we have this right here, right?
+
+376
+00:26:51,760 --> 00:26:58,052
+所以我们基本上可以直接写 对等节点 点 send put 数据包。
+So we can basically just say peer dot send put packet.
+
+377
+00:26:59,086 --> 00:27:01,360
+然后我们可以传入我们的 数据包 字节数组，对吧？
+And then we can pass in our packet byte array, right?
+
+378
+00:27:01,440 --> 00:27:02,240
+就像我们刚才在这里做的一样。
+Just like we did here.
+
+379
+00:27:02,400 --> 00:27:05,732
+所以实际上，我基本上可以直接复制并粘贴它，对吧？
+So actually, I could basically just copy this and paste it, right?
+
+380
+00:27:06,320 --> 00:27:08,480
+嗯，不完全是，对吧？
+Well, not quite, right?
+
+381
+00:27:08,640 --> 00:27:12,708
+啊，我们的消息需要改成用户 ID，对吧？
+A, our message needs to be changed to user ID, right?
+
+382
+00:27:12,800 --> 00:27:15,280
+就像这样，用来发送那个数据。
+Like this, to send that data.
+
+383
+00:27:15,438 --> 00:27:18,000
+这样虽然能运行，但它会发给所有人。
+And this would work, but it's going to send it to everybody.
+
+384
+00:27:18,080 --> 00:27:21,956
+它不仅仅是发给我关心的那个玩家。
+It's not just going to send it to just the player that I care about.
+
+385
+00:27:22,542 --> 00:27:27,280
+那我们要怎么做，才能把那个数据发回给我们的玩家呢？
+So what do we have to do to get it so that we can send that data back to our player?
+
+386
+00:27:27,470 --> 00:27:30,400
+所以最简单的方法是获取你的 对等节点。
+So the easiest way to do it is to get your peer.
+
+387
+00:27:30,480 --> 00:27:35,040
+所以我们可以写 对等节点 点 get 对等节点，并且我们必须传入一个 ID。
+So we can say peer dot get peer, and we have to pass in an ID.
+
+388
+00:27:35,200 --> 00:27:42,080
+在我们的例子里，我们会写 ID 点 put 数据包，
+然后我们可以把我们的 JSON 字符串转换成 UTF-8。
+In our case, we'll say ID dot put packet, and then we can pass in our JSON string to UTF-8.
+
+389
+00:27:42,240 --> 00:27:43,364
+所以我们会把那个传进去。
+So we'll pass that in.
+
+390
+00:27:44,110 --> 00:27:50,400
+这样应该就能让我们把那个数据直接发回给我们的玩家了。
+And that should allow us to send that data directly back to our player.
+
+391
+00:27:51,022 --> 00:27:55,120
+那我们怎么知道数据是否已经直接发回给玩家了呢？
+So how do we know if we've sent that data back directly to the player?
+
+392
+00:27:55,280 --> 00:28:03,364
+嗯，如果我在这里加个逗号，我会写 quote message，
+用小写的 m，这今天可能会把我搞糊涂，但我们看看吧。
+Well, if I hit comma here, I'm going to hit quote message with a lowercase
+m, that's probably going to mess me up quite a bit today, but we'll see.
+
+393
+00:28:04,238 --> 00:28:06,385
+然后我输入冒号 message。
+And then I'll hit colon message.
+
+394
+00:28:06,385 --> 00:28:07,570
+点 ID。
+dot ID.
+
+395
+00:28:08,654 --> 00:28:13,920
+我们放好数据包，按 Ctrl+S，去客户端，然后接收到那个数据。
+We'll put our packet, we'll hit control S, we'll go to our client, and then we'll receive that data.
+
+396
+00:28:14,030 --> 00:28:28,580
+然后我会说，如果 data.message 等于 message.ID，那我就知道这个数据是我的 ID 数据包。
+And I will say if data dot message is equal to message dot ID, then I know that this data is my ID packet.
+
+397
+00:28:29,040 --> 00:28:29,360
+好的。
+Okay.
+
+398
+00:28:30,478 --> 00:28:35,840
+所以我现在到这里，把我的变量 id 设置为 0。
+So what I'll do is I'll come up here and I'll set my var id equal to zero.
+
+399
+00:28:35,982 --> 00:28:41,200
+然后我到这里，再到下面说 ID 等于 data 点。
+And I'll come up here, I'll come down here and I'll say ID is equal to data dot.
+
+400
+00:28:42,062 --> 00:28:44,480
+我想我刚才用了 ID 这个词。
+And I believe I used the words ID.
+
+401
+00:28:44,718 --> 00:28:45,600
+你看就在这里。
+You see right here.
+
+402
+00:28:45,680 --> 00:28:57,508
+所以我们到这里，写 data.ID，然后打印出我的 ID 是加上 str ID。
+So we'll come in here, we'll say data dot ID and then we'll print my ID is plus str ID.
+
+403
+00:28:59,054 --> 00:29:03,120
+我们按播放，启动服务器，启动客户端。
+We'll hit play, start server, start client.
+
+404
+00:29:03,214 --> 00:29:06,800
+你会看到当我点击启动客户端时，它显示对等节点已连接。
+You will see that when I clicked start client, it did a peer connected.
+
+405
+00:29:06,880 --> 00:29:09,360
+所以我们在这里运行了连接。
+So we ran through connected here.
+
+406
+00:29:09,520 --> 00:29:12,960
+我们创建了一个带有那个用户 ID 的对象。
+We created an object with that user ID.
+
+407
+00:29:13,200 --> 00:29:18,720
+我们把那个 ID 发回给那个特定的对等节点，它显示我的 ID 是这个。
+We sent back that ID to that specific peer and it says, my ID is this.
+
+408
+00:29:18,880 --> 00:29:20,480
+你会注意到我们只收到了一次。
+And you'll notice that we only got it once.
+
+409
+00:29:20,560 --> 00:29:23,840
+我们没有收到两次，这意味着我们的代码运行正常。
+We didn't get it twice, which means that our code is working properly.
+
+410
+00:29:23,920 --> 00:29:28,080
+我们拿到了正确的对等节点，并且把他们的数据专门发给了他们。
+We got back the correct peer and we sent their data to them specifically.
+
+411
+00:29:28,302 --> 00:29:30,800
+我们没有把它发给项目里的其他人。
+We didn't send it to anyone else in the project.
+
+412
+00:29:30,960 --> 00:29:34,160
+事实上，如果我们刷新一下，你会看到我有两个。
+As a matter of fact, if we refresh this, you'll see I have two of them.
+
+413
+00:29:34,320 --> 00:29:43,280
+如果我启动服务器，启动我的客户端，再启动另一个客户端，你会看到我有对等节点已连接、
+启动客户端、对等节点已连接，而且他们有两个不同的 ID。
+If I start my server, I start my client, and I start my client, you'll see that I
+have peer connected, started client, peer connected, and they have two different IDs.
+
+414
+00:29:43,662 --> 00:29:51,200
+事实上，如果我们在这里的服务器里打个断点，我们来看看，去我们的用户那里。
+As a matter of fact, if we drop a break point right here in our server and we take a look, we go to our users.
+
+415
+00:29:52,270 --> 00:29:54,224
+嗯，你会注意到我们的字典是 0。
+Well, you'll notice our dictionary is zero.
+
+416
+00:29:54,304 --> 00:29:56,544
+那可能是因为它需要在会话 1 中。
+That's probably because it needs to be in session one.
+
+417
+00:29:56,704 --> 00:30:04,544
+所以，给个专业建议，如果你对 Godot 的断点系统一
+窍不通，这里有两个会话，因为我打开了两个窗口。
+So, pro tip if you don't know anything about Godot's braking system, there's two sessions here because I have two windows open.
+
+418
+00:30:04,624 --> 00:30:09,860
+所以你可以看到我有窗口 1 和窗口 2，它们没打开是因为我把它们放在了断点模式里。
+So you can see I have window one and window two, which are not opening up because I have them in break mode.
+
+419
+00:30:09,984 --> 00:30:11,104
+但我有两个会话。
+But I have two sessions.
+
+420
+00:30:11,264 --> 00:30:13,184
+你会看到这里的用户是 0。
+You'll see here the user is zero.
+
+421
+00:30:13,264 --> 00:30:16,224
+原因是因为服务器没运行。
+And the reason why is because the server is not running.
+
+422
+00:30:16,430 --> 00:30:24,676
+但如果我切换到会话 1，你会注意到我这里有两个用户，它们都对应我真实的玩家。
+But if I go to session one, you'll notice that I have two users right here, and they both correspond with my actual players.
+
+423
+00:30:25,422 --> 00:30:28,464
+我们的用户注册系统基本上完成了。
+Our user registration system is basically done.
+
+424
+00:30:28,624 --> 00:30:37,584
+当然，如果你想要更复杂点的东西，比如用户身份
+验证之类的，你完全可以基于这个去扩展，对吧？
+Now, granted, if you wanted to have something a bit more crazy like user authentication and stuff like that,
+you can definitely basically use this and just expand on it, right?
+
+425
+00:30:37,744 --> 00:30:41,024
+创建一个数据库，存储用户凭据，诸如此类的。
+Create a database, store the user credentials, things like that.
+
+426
+00:30:41,264 --> 00:30:43,904
+但我们现在基本搞定了这一块。
+But we're basically done with this.
+
+427
+00:30:44,622 --> 00:30:47,812
+那么，服务器接下来要做什么呢？
+So what's next for a server, right?
+
+428
+00:30:48,270 --> 00:30:55,584
+嗯，通常你会有一些像大厅，或者多个房间、多个游戏同时进行之类的东西。
+Well, usually you have something like a lobby or something like multiple rooms or multiple games going on.
+
+429
+00:30:55,694 --> 00:30:57,824
+那我们该怎么构建这些呢？
+So what can we do to build that out?
+
+430
+00:30:57,934 --> 00:31:06,724
+好，如果我们回到服务器代码并向上滚动，首先我们需要的是一个 var 大厅，就像这样。
+Well, if we go to our server and we scroll up, the first thing we're gonna need is a var lobby, like that.
+
+431
+00:31:07,662 --> 00:31:11,332
+我绝对建议创建一个 大厅 对象。
+And I would definitely suggest making a lobby object.
+
+432
+00:31:11,584 --> 00:31:13,504
+那，你该怎么创建一个 大厅 对象呢？
+So, how can you make a lobby object?
+
+433
+00:31:13,664 --> 00:31:19,824
+好，我们到这里，新建脚本，然后输入 大厅 或者大写的 Lobby。
+Well, if we come up here, file new script, and just type lobby or capital L lobby.
+
+434
+00:31:19,904 --> 00:31:22,628
+我通常喜欢给我的脚本用大写字母。
+I usually like to do capitals for my scripts.
+
+435
+00:31:22,958 --> 00:31:25,584
+我们可以进入这里，包含各种信息。
+We can come in here and have all sorts of information.
+
+436
+00:31:25,870 --> 00:31:30,756
+首先，我要写 class _name is 大厅。
+First things first, I'm going to say class underscore name is lobby.
+
+437
+00:31:32,430 --> 00:31:34,788
+然后我们开始构建我们的 大厅 对象。
+And then we'll start building out our lobby object.
+
+438
+00:31:35,150 --> 00:31:37,424
+那么，一个 大厅 需要知道哪些信息呢？
+So, what are some things that a lobby needs to know?
+
+439
+00:31:37,584 --> 00:31:39,104
+嗯，我需要知道谁是主机。
+Well, I need to know who the host is.
+
+440
+00:31:39,184 --> 00:31:40,304
+所以是 主机ID，对吧？
+So host ID, right?
+
+441
+00:31:40,610 --> 00:31:42,020
+我会把它设为一个整数。
+I'll make that equal to an integer.
+
+442
+00:31:42,510 --> 00:31:44,544
+呃，我们需要知道里面有哪些玩家。
+Uh, we need to know what players are in it.
+
+443
+00:31:44,624 --> 00:31:48,036
+所以 var players，我会把它设为一个字典。
+So var players, I'll make that a dictionary.
+
+444
+00:31:48,686 --> 00:31:50,544
+我们也要初始化这个字典。
+We'll initialize that dictionary as well.
+
+445
+00:31:50,704 --> 00:31:56,544
+我觉得我应该用大写的 H 和 P，因为我想遵循某种命名规范。
+And I think I should probably capital H, capital P because I want to have some kind of naming convention.
+
+446
+00:31:56,624 --> 00:32:00,708
+所以如果它要在外部被使用，我就想追踪一下。
+So if it's gonna get used outside of the thing, then I want to keep track of that.
+
+447
+00:32:01,166 --> 00:32:02,784
+除了那个，我们还需要什么？
+Outside of that, what else do we need?
+
+448
+00:32:02,944 --> 00:32:04,624
+嗯，我们需要一种初始化它的方法。
+Well, we need a way to initialize it.
+
+449
+00:32:04,784 --> 00:32:08,484
+所以我们会写 func _initialize，对吧？
+So we'll say func underscore initialize, right?
+
+450
+00:32:08,944 --> 00:32:11,504
+那我们期望玩家提供什么呢？
+And what are we expecting the player to have?
+
+451
+00:32:11,664 --> 00:32:14,864
+嗯，当它被初始化时，我们需要告诉它谁是主机。
+Well, when it gets initialized, we're gonna need to tell it who the host is.
+
+452
+00:32:15,024 --> 00:32:20,004
+所以我们会传给它一个 ID，然后我会传 主机ID 等于 ID，对吧？
+So we'll pass it an ID, and I'll pass in host ID is equal to ID, right?
+
+453
+00:32:20,398 --> 00:32:21,984
+我们需要添加玩家的功能。
+We need the ability to add a player.
+
+454
+00:32:22,224 --> 00:32:26,788
+所以写个 func add_player，然后传给它一个 ID。
+So func add player, and we'll pass it an ID.
+
+455
+00:32:27,184 --> 00:32:38,308
+我想如果我们要添加玩家，我们肯定想做 players 括号括号 ID 等于，
+然后我们可以在那里传入任何我们想要的信息。
+And I imagine that if we're adding a player, we're gonna want to do players bracket bracket ID is equal to,
+and we can pass in whatever information we want right there.
+
+456
+00:32:38,574 --> 00:32:41,860
+现在，当我们添加玩家时，我们想传入什么信息呢？
+Now, what information do we want to pass in when we add a player?
+
+457
+00:32:42,254 --> 00:32:55,504
+嗯，我想我们可能要添加一个 ID，可能还要添加一个名字，
+而且我们可能还想要他们的索引（如果有的话），但我认为这应该由服务器本身来维护。
+Well, I imagine we're gonna want to add in an ID, we're gonna add want to add in possibly a name,
+and we'll probably want maybe their index if they have one, but I think that should be held by the actual server itself.
+
+458
+00:32:55,790 --> 00:33:00,064
+现在你可能会问索引是用来做什么的，别担心，我们一会儿就讲到那个。
+Now you might be asking what an index is used for, and don't worry, we'll get to that in a little bit.
+
+459
+00:33:00,206 --> 00:33:09,104
+所以我们写 name: name, id: id。
+So we'll say name colon name, comma, id colon id.
+
+460
+00:33:10,094 --> 00:33:25,156
+然后我们写 index:，我直接写成 players.size
+plus one，然后我们就这样返回 players ID，对吧？
+And then we'll say index colon, and I'm just gonna do players.size plus one and then we'll just return players ID like that, right?
+
+461
+00:33:25,504 --> 00:33:28,464
+这就是我们为大厅需要做的几乎所有事情了。
+And that's pretty much everything that we're gonna need to do for our lobby.
+
+462
+00:33:28,544 --> 00:33:38,800
+现在我们可以继承一个节点，或者如果我们只想继承一个基础 Godot 对象，
+我们可以做一个 引用计数，这样基本上就能在没有所有那些额外节点东西的情况下进行扩展，
+Now we could extend a node, or we if we want to just extend a base Godot object, we could do a ref counted,
+and that'll basically extend without having all that extra node stuff, so it doesn't have to exist inside of Godot's world.
+
+463
+00:33:38,800 --> 00:33:41,104
+所以它不需要存在于 Godot 的世界里。
+Now we could extend a node, or we if we want to just extend a base Godot object, we could do a ref counted,
+and that'll basically extend without having all that extra node stuff, so it doesn't have to exist inside of Godot's world.
+
+464
+00:33:41,264 --> 00:33:44,132
+所以我会这样做，因为这样能创建一个更小的对象。
+So I'll do that just because it's gonna create a smaller object.
+
+465
+00:33:44,750 --> 00:33:49,444
+现在，如果我们回到服务器，我们到底怎么创建一个大厅呢？
+Now, if we go back to our server, how do we actually create a lobby?
+
+466
+00:33:50,064 --> 00:33:53,636
+嗯，那是我们需要自己构建的东西。
+Well, that's something that we have to build ourselves.
+
+467
+00:33:53,966 --> 00:33:56,464
+所以，我们要做的就是创建一个函数。
+So, what we'll do is we'll create a function.
+
+468
+00:33:56,686 --> 00:33:59,904
+我不知道，大概就在 start_server 下面的位置。
+I don't know, somewhere down here by start server, I imagine.
+
+469
+00:34:00,110 --> 00:34:03,104
+所以我就在这里创建一个，我们写成 func join。
+So I'll just create one right here and we'll say funk join.
+
+470
+00:34:04,718 --> 00:34:05,872
+大厅就像那样。
+Lobby like that.
+
+471
+00:34:06,222 --> 00:34:09,952
+我们要传入一个用户 ID 和一个大厅 ID。
+We'll pass in a user ID and a lobby ID.
+
+472
+00:34:10,286 --> 00:34:14,911
+现在，当我们想要加入大厅时，我们将传入一个用户 ID 和一个大厅 ID。
+Now, when we want to join our lobby, we're going to be passing in a user ID and a lobby ID.
+
+473
+00:34:15,072 --> 00:34:17,232
+原因是因为我们要加入一个大厅。
+The reason why is because we're joining a lobby.
+
+474
+00:34:17,312 --> 00:34:19,391
+但如果有人还没有大厅呢？
+But what if somebody doesn't have a lobby yet?
+
+475
+00:34:19,552 --> 00:34:22,351
+如果他们不知道大厅 ID 是什么呢，对吧？
+What if they don't know what the lobby ID is, right?
+
+476
+00:34:22,512 --> 00:34:25,632
+因为他们还没有加入任何大厅，而且他们准备好开始玩游戏了。
+Because they haven't joined one yet and they're ready to start playing a game.
+
+477
+00:34:25,792 --> 00:34:28,672
+嗯，这就是创建大厅派上用场的地方。
+Well, that's where creating a lobby makes sense.
+
+478
+00:34:28,878 --> 00:34:30,192
+所以我们确实需要这样做。
+So we need to actually do that.
+
+479
+00:34:30,351 --> 00:34:34,032
+如果没有一个已经存在的大厅，我们就没法拥有一个大厅，对吧？
+We can't have a lobby without having one already existing, right?
+
+480
+00:34:34,192 --> 00:34:41,072
+所以我们写如果 大厅 ID 等于空，那么我们就知道必须创建一个。
+So we'll say if lobby ID is equal to empty, then we know that we have to create one.
+
+481
+00:34:41,232 --> 00:34:47,780
+所以我们要传入 大厅 ID 等于，并且我们需要生成一个字符串。
+So we'll pass lobby ID is equal to, and we need to generate a string.
+
+482
+00:34:48,206 --> 00:34:54,351
+由于 Godot 并没有真正的 GUID 生成系统，我们实际上得自己构建出来。
+And since Godot doesn't really have a GUID generation system, we actually have to build that out ourselves.
+
+483
+00:34:54,512 --> 00:35:01,348
+所以我现在要在这里输入 func generate_random_string。
+So I'm going to come in here and type funk generate random string.
+
+484
+00:35:02,446 --> 00:35:12,752
+然后我要写 var result 等于空，循环 32 次。
+And I'm going to say var result is equal to empty for I in range of 32.
+
+485
+00:35:12,912 --> 00:35:20,272
+我要把它做成 32 位字符，因为我不觉得会有超过几百万个大厅。
+So I'm going to make it a 32-bit character because I can't imagine that we'd have over a couple million lobbies.
+
+486
+00:35:20,352 --> 00:35:21,552
+所以我们就用 32。
+So we'll do 32.
+
+487
+00:35:21,632 --> 00:35:24,032
+如果你需要更大的大厅编号的话，对吧？
+If you needed a bigger lobby number, right?
+
+488
+00:35:24,112 --> 00:35:33,632
+如果你遇到冲突之类的，你可以把它扩展成 64 位或 128 位
+字符串，但实际上对于大多数人来说，32 位完全足够了。
+If you're having collisions or something, you could uh expand that into like a 64 or 128-bit string,
+but really 32 should be totally fine for most people.
+
+489
+00:35:33,712 --> 00:35:50,692
+我们要写 var random index 等于 randi() %，然后我们需要随机化我们拥有的字符。
+We'll say var random index is equal to rand i percent sign, and we'll need to randomize our characters that we have.
+
+490
+00:35:51,374 --> 00:35:58,432
+现在我们需要实际生成随机字符串，所以我们需要一个可以使用的字母和数字池。
+Now we need to actually generate our random string, so we need to actually have a pool of letters and numbers that we can use.
+
+491
+00:35:58,512 --> 00:35:59,872
+我要向上滚动到顶部。
+So I'm going to scroll up to the top.
+
+492
+00:36:00,174 --> 00:36:17,792
+我要写 var characters 等于「a b c d e f g, h,
+i j k, l m n, o, p, q, r, s t u, v, w x y z」。
+I'm going to say var characters is equal to quote a b c d e f g, h, i j k, l m n, o, p, q, r, s t u, v, w x y z.
+
+493
+00:36:18,094 --> 00:36:19,952
+然后我要写它的大写版本。
+And then I'm going to do capital versions of that.
+
+494
+00:36:20,112 --> 00:36:23,312
+我要输入 A B C D E F G。
+So I'm going to type A B C D E F G.
+
+495
+00:36:30,272 --> 00:36:33,232
+然后我们还可以加上数字。
+And then we can do numbers as well.
+
+496
+00:36:33,312 --> 00:36:38,272
+我们可以写 0, 1, 2, 3, 4, 5, 6, 7, 8, 9，这样就行了。
+So we can go zero, one, two, three, four, five, six, seven, eight, nine, and that should do it.
+
+497
+00:36:38,352 --> 00:36:47,300
+如果你想的话，也可以加上符号，如果你真的想加的话，但其实就用这些吧，这完全够用了。
+Now, if you want to, you could also add in symbols like so if you really wanted to,
+but really let's just stick with this because that should work totally fine.
+
+498
+00:36:47,472 --> 00:36:54,032
+现在有了字符，我们可以向下滚动，基本上就把东西设置好。
+Now, once we have our characters, we can scroll down here and we can basically just set up our stuff.
+
+499
+00:36:54,192 --> 00:36:59,552
+我们要写 var index 等于 rand。
+So we'll say var index is equal to rand.
+
+500
+00:36:59,712 --> 00:37:04,032
+i() % characters
+i percent sign characters.
+
+501
+00:37:04,192 --> 00:37:06,272
+点长度，就像那样。
+dot length like that.
+
+502
+00:37:06,352 --> 00:37:14,752
+然后我们可以写 result 加上等于 characters，然后传入那个 index。
+and then we can go result plus equals characters, and then we can pass in that index.
+
+503
+00:37:15,182 --> 00:37:20,512
+哎呀，缩进 index 这样，然后我们可以返回我们的 result。
+Whoops, indent index like that, and then we can return our result.
+
+504
+00:37:21,582 --> 00:37:29,312
+现在我们可以回到这里，写 大厅 id 等于 result，然后我们可以添加我们的玩家，
+And now we can go back here and we can go lobby id is equal to result, and then we can add our player,
+
+505
+00:37:34,254 --> 00:37:37,792
+然后我们可以添加我们的 大厅，这样我们就可以初始化我们的 大厅 了。
+and then we can add our lobby, so we can actually initialize our lobby.
+
+506
+00:37:37,872 --> 00:37:41,152
+所以 大厅，我想我把它叫成 大厅 了。
+So lobby, I believe I called it lobby.
+
+507
+00:37:41,392 --> 00:37:42,272
+我刚才把它叫成 大厅 了。
+I just called it lobby.
+
+508
+00:37:42,512 --> 00:37:43,876
+我觉得我应该把它叫成 lobbies。
+I think I should call this lobbies.
+
+509
+00:37:44,782 --> 00:37:46,752
+Lobbies，这样可能更容易点。
+Lobbies, that'll probably be easier.
+
+510
+00:37:46,832 --> 00:37:57,712
+所以 lobbies，括号，括号，大厅 id 等于 大厅.new，就像这样。
+So lobbies, bracket, bracket, lobby id is equal to lobby.new, like that.
+
+511
+00:37:58,190 --> 00:38:02,672
+你会注意到它会报错，说：嘿，new 调用参数太少。
+And you'll notice that it's gonna get mad at us and it says, hey, too few arguments called for new.
+
+512
+00:38:02,832 --> 00:38:08,592
+那是由于我们在这里做了一个初始化，要求提供一个主机ID或一些描述。
+That's because we did an initialization right here where we require a host ID of some description.
+
+513
+00:38:08,846 --> 00:38:12,832
+所以我们要到这里，然后传入我们的用户ID，就像这样。
+So we'll come in here and we'll pass in our user ID like that.
+
+514
+00:38:12,912 --> 00:38:15,012
+这将创建一个新大厅。
+And that's gonna create a new lobby.
+
+515
+00:38:15,694 --> 00:38:21,552
+现在我们只需要把玩家加入到那个大厅里。
+And now all we have to do is add our player to that lobby.
+
+516
+00:38:21,712 --> 00:38:25,232
+所以如果你还记得，我们这里有一段代码是用来添加玩家的，对吧？
+So if you remember, we have a section here where it adds a player, right?
+
+517
+00:38:25,312 --> 00:38:27,012
+它会创建一个玩家并将其添加进去。
+It creates a player and adds it.
+
+518
+00:38:27,438 --> 00:38:33,028
+所以这意味着我们可以写 var player 等于 lobbies。
+So that means we could say var player is equal to lobbies.
+
+519
+00:38:36,814 --> 00:38:43,728
+Lobby ID 点，Godot 的自动补全现在不太高兴。
+Lobby ID dot and Godot's auto sense is being unhappy with me.
+
+520
+00:38:43,808 --> 00:38:49,572
+所以我们写 add_player，然后像这样传入我们的用户 ID。
+So we'll say add player and we'll pass in our user ID like that.
+
+521
+00:38:50,510 --> 00:38:52,448
+现在你可能会问，等一下。
+Now you might be asking, okay, hold on.
+
+522
+00:38:52,608 --> 00:38:56,128
+那我们为什么要先创建这个，然后再做这个呢？
+So why did we create this and then do this?
+
+523
+00:38:56,288 --> 00:39:02,928
+为什么要用用户 ID 创建大厅，然后再用那个用户 ID 添加玩家呢？
+Why did we add a user or create a lobby with a user ID and then add a player with that user ID?
+
+524
+00:39:03,088 --> 00:39:09,328
+如果你看我们的 大厅，我们是在设置谁是主机，而且我们只想在创建大厅时运行这个。
+If you look at our lobby, we are setting up who our host is, and we only want to run that when a lobby is created.
+
+525
+00:39:09,408 --> 00:39:13,348
+当大厅被创建时，我们需要指定某个人作为主机。
+When a lobby gets created, we need to say designate somebody as the host.
+
+526
+00:39:13,648 --> 00:39:20,608
+这意味着你需要在创建时就拥有这个信息，然后我们才能把他们作为普通玩家添加进去。
+So that means that you need to have that information on creation, and then we can add them as a regular player.
+
+527
+00:39:20,750 --> 00:39:26,756
+所以我们在创建时就把他们指定为主机，然后我们再把他们作为实际大厅的一部分添加进去。
+So we're designating them as host on creation, and then we are adding them as a part of the actual lobby itself.
+
+528
+00:39:27,342 --> 00:39:30,852
+这就是创建非常简单的大厅的基本方法。
+And that's basically how you create a very simple lobby.
+
+529
+00:39:31,214 --> 00:39:36,368
+现在我们需要把那个信息发回给玩家，这其实挺简单的。
+Now we need to send that information back to the player, and that's actually pretty easy.
+
+530
+00:39:36,526 --> 00:39:54,528
+首先，我们写 var data 等于左括号，左括号，引号，message，右括号，或者冒号，
+message 点 user_connected_id 冒号，用户 ID，逗号
+So first things, first, we'll say var data is equal to bracket, bracket quote,
+message bracket or colon message dot user connected id colon, user ID, comma,
+
+531
+00:39:57,888 --> 00:40:05,488
+主机 冒号 lobbies 点 id 点 主机ID。
+host, colon lobbies, id, dot host ID.
+
+532
+00:40:05,568 --> 00:40:10,448
+而且我相信我们为了符合命名规范，把 主机ID 大写了。
+And I believe we actually capitalized host ID for naming convention purposes.
+
+533
+00:40:10,528 --> 00:40:21,568
+所以我们写 主机ID，逗号，player 冒号 lobbies ID 点 players。
+So we'll say host ID, comma, player colon lobbies ID dot players.
+
+534
+00:40:21,774 --> 00:40:24,048
+现在你会注意到我们拿到了没声明的 ID。
+Now you'll notice that we get IDs not declared.
+
+535
+00:40:24,128 --> 00:40:27,568
+那是由于它需要是 大厅 id，因为我太疯狂了，给忘了。
+That's because it needs to be a lobby id because I'm crazy and I forgot.
+
+536
+00:40:27,648 --> 00:40:31,008
+然后我们像这样传入我们的用户 ID。
+And we'll pass in our user ID like that.
+
+537
+00:40:31,088 --> 00:40:32,448
+接着我们就把那个数据发出去。
+And then we'll just send that data.
+
+538
+00:40:32,608 --> 00:40:43,088
+为了发送数据，我们会做和刚才完全一样的事情，就是调
+用 对等节点.get_数据包_id_json，然后传入那个信息。
+So to send the data, we'll do exactly what we did up here, where we
+want to do peer.get packet ID JSON, and then pass in that information.
+
+539
+00:40:43,248 --> 00:40:44,068
+也就是 data。
+So data.
+
+540
+00:40:46,318 --> 00:40:48,928
+然后我们需要传入我们的用户 ID。
+And we'll need to pass in our user ID.
+
+541
+00:40:49,088 --> 00:40:51,728
+现在你可能会在想，伙计，这操作有点繁琐。
+Now you might be thinking, man, this is kind of cumbersome.
+
+542
+00:40:51,888 --> 00:40:52,208
+没错。
+Yes.
+
+543
+00:40:52,430 --> 00:40:55,808
+所以我们要做的就是，进到这里为这个操作创建一个函数。
+So what we'll do is we'll come in here and we'll make a function for this.
+
+544
+00:40:55,968 --> 00:41:02,528
+所以，函数叫 send_to_player，我要传入用户 ID，逗号。
+So func send send to player, and I'm going to pass in user ID, comma.
+
+545
+00:41:02,702 --> 00:41:03,968
+我们要传入数据。
+We'll pass in the data.
+
+546
+00:41:04,078 --> 00:41:16,836
+然后我做的就是把这个，control X，粘贴，然后就是执行 send_to_player，
+并传入我们的用户 ID，逗号，数据。
+And then all I'm going to do is basically just take this guy, control X,
+paste, and then just do send to player and pass in our user ID, comma, data.
+
+547
+00:41:17,422 --> 00:41:21,488
+这样会让事情变得更整洁一点，尤其是因为我们要频繁发送数据。
+And that's just going to make things a little bit cleaner, especially since we're going to be sending data a lot.
+
+548
+00:41:21,614 --> 00:41:26,608
+所以我要确保我们的内容能正确地通过网络传输。
+So I want to make sure that our stuff gets sent properly across the wire.
+
+549
+00:41:26,768 --> 00:41:30,208
+现在我们只需要在客户端实际加入大厅。
+So now we just need to actually join our lobby on our client side.
+
+550
+00:41:30,288 --> 00:41:35,728
+所以我们要进入客户端，来到这里，复制这个然后粘贴。
+So we'll go into our client, we'll actually come over here, we'll copy this guy and paste it.
+
+551
+00:41:35,854 --> 00:41:39,088
+我们要把 send_test_数据包 删掉。
+And instead of send test packet, we're going to disconnect that.
+
+552
+00:41:39,374 --> 00:41:44,608
+我们要把它从 send_test_数据包 改成 join_大厅。
+We'll change it from send test packet to join lobby.
+
+553
+00:41:44,846 --> 00:41:49,248
+为了能加入大厅，我们需要某种方式来告诉我们要加入哪个大厅。
+And for us to be able to join a lobby, we're gonna need to have some kind of way to tell us what lobby it's gonna be.
+
+554
+00:41:49,328 --> 00:41:54,916
+所以我打算在这里快速放一个 LineEdit，然后把这个拖过来。
+So I'm gonna put in a line edit real quick right here, and we'll pull this guy over.
+
+555
+00:41:55,854 --> 00:42:04,164
+现在，当我们想要加入大厅时，如果我把这个拖到
+这里，然后选择按钮，我就把它命名为“加入大厅”。
+Now, when we want to join a lobby, if I drag this guy up here like this, and I select button, I'm gonna call this join lobby.
+
+556
+00:42:04,462 --> 00:42:10,084
+我们要选中下面的按钮节点，把它连接到我们的客户端，然后点击连接。
+We're going to select our node button down and we'll connect that to our client and hit connect.
+
+557
+00:42:10,958 --> 00:42:15,968
+现在，在客户端端加入大厅其实相对简单。
+Now, when we want to join a lobby on our client side, it's actually relatively easy.
+
+558
+00:42:16,128 --> 00:42:24,356
+我们只需要到这里写：var message 等于括号“ID
+All we have to do is come in here and say var message equals bracket enter quote ID.
+
+559
+00:42:26,254 --> 00:42:31,920
+等于我们的 id，逗号，我想我们就是这么叫它的。
+Is equal to our id, comma, I believe that's what we called it.
+
+560
+00:42:32,000 --> 00:42:32,260
+没错。
+Yep.
+
+561
+00:42:32,560 --> 00:42:42,596
+引号 message 冒号 message 点 大厅，逗号，引号，lobby_id。
+Quote message colon message dot lobby, comma, quote, lobby value.
+
+562
+00:42:43,854 --> 00:42:46,000
+我们需要获取 LineEdit 的引用。
+And we need to get a reference to our line edit.
+
+563
+00:42:46,080 --> 00:42:50,640
+为了让这事儿更容易，我打算把它放在客户端下面，因为这样会方便点。
+So what I'm going to do to make this easier is I'm going to throw this
+under the client just because it's going to make things a little easier.
+
+564
+00:42:50,720 --> 00:42:55,748
+所以我们要点 $LineEdit.text。
+So we'll hit dollar sign line edit dot text.
+
+565
+00:42:56,846 --> 00:42:58,564
+然后我们就可以发送数据了。
+And then we can send our data.
+
+566
+00:42:59,022 --> 00:43:11,840
+Peer.put_数据包，我们要传入 JSON.stringify，还要
+传入 message.to_utf8_buffer，这样应该就能行了。
+Peer dot put packet, and we'll pass in our json dot stringify, and
+we'll pass in our message dot to utf8 buffer, and that should just work.
+
+567
+00:43:12,334 --> 00:43:20,320
+现在如果我们按 control S，按播放，把这个拖过来，启动服务器，启动客户端，
+点击 join_大厅，你会发现什么也没发生。
+So now if we hit control s, we hit play, we pull this over, we start our server,
+start our client, we'll hit join lobby, and you'll notice that nothing happens.
+
+568
+00:43:20,400 --> 00:43:23,940
+但如果你点击输出，你会发现我们收到了预期的数据。
+But if we click on output, you'll notice that we're getting the data that we expected.
+
+569
+00:43:24,430 --> 00:43:25,440
+那问题出在哪呢？
+So what gives, right?
+
+570
+00:43:25,520 --> 00:43:26,212
+发生了什么？
+What's going on?
+
+571
+00:43:26,800 --> 00:43:31,840
+嗯，就像其他所有情况一样，我们需要解析那个信息。
+Well, much like everything else, we need to parse that information.
+
+572
+00:43:32,000 --> 00:43:39,520
+如果你看这里的系统，当我们在这里设置断点，点击 join_大厅 时，我们确实收到了那个数据。
+If you look at your system here, when we throw a breakpoint here, we hit join lobby, we actually receive that data.
+
+573
+00:43:39,680 --> 00:43:44,640
+它存在，我们已经收到了，但我们还没有正确处理那个数据包。
+It exists, we have received it, but we haven't handled that packet properly.
+
+574
+00:43:44,878 --> 00:43:46,400
+那么，我们该如何正确处理这个数据包呢？
+So, how do we handle the packet properly?
+
+575
+00:43:46,560 --> 00:43:57,760
+嗯，我们可以检查消息数据是否等于消息 大厅。
+Well, we can just check if our message data message is equal to message lobby.
+
+576
+00:43:58,320 --> 00:44:01,040
+如果相等，我们就可以加入
+And if it is, then we can join
+
+577
+00:44:03,054 --> 00:44:10,640
+大厅，并且我们可以传入 data.id，逗号，data 点，而且我想我当时用的词是
+lobby and we can pass in data.id, comma, data dot, and I believe I used the word
+
+578
+00:44:15,040 --> 00:44:16,000
+lobby_id。
+lobby value.
+
+579
+00:44:16,174 --> 00:44:18,116
+所以我们要点击复制粘贴。
+So we'll hit copy and paste.
+
+580
+00:44:19,150 --> 00:44:22,372
+如果我在这里打个断点，我刷新所有内容。
+So if I put a breakpoint here, I refresh everything.
+
+581
+00:44:23,440 --> 00:44:27,840
+我启动服务器，启动客户端，然后点击加入大厅。
+I start my server, I start my client, I click join lobby.
+
+582
+00:44:27,920 --> 00:44:29,440
+你会看到我们在这里触发了断点。
+You'll see we get a breakpoint here.
+
+583
+00:44:29,520 --> 00:44:32,320
+如果我们点击播放，你会看到我们就在这里触发了断点。
+If we hit play, you'll see we get breakpoint right here.
+
+584
+00:44:32,480 --> 00:44:37,840
+你会看到这里的数据就是我们的 ID、我们的 lobby_id 以及我们的消息。
+You'll see that our data right here is our ID, our lobby value, and our message.
+
+585
+00:44:38,000 --> 00:44:40,720
+你还会看到我们的数据字符串就在这里。
+You'll also see that our data string is right here.
+
+586
+00:44:40,880 --> 00:44:43,520
+如果我们进入那一步，我们就加入了我们的 大厅。
+If we step into that, we're gonna join our lobby.
+
+587
+00:44:43,600 --> 00:44:53,200
+我们的 大厅 会传过来并创建一个新大厅，但在这种情况下，我想我犯了个错误。
+Our lobby is gonna come through and create a new lobby, which in this case, I think I made a mistake.
+
+588
+00:44:53,360 --> 00:44:55,840
+让我看看这里的 大厅 ID。
+Let me take a look at our lobby ID here.
+
+589
+00:44:55,920 --> 00:44:57,280
+我们的 大厅 ID 是空的。
+Our lobby ID is empty.
+
+590
+00:44:57,360 --> 00:45:02,640
+所以，没错，这会导致程序崩溃，因为我们没有设置生成随机字符串。
+So, yep, this is gonna brick on us because we did not set up our generate random string.
+
+591
+00:45:02,734 --> 00:45:05,040
+所以这里需要改为生成随机字符串。
+So this needs to be generate random string.
+
+592
+00:45:05,294 --> 00:45:06,160
+这是我的错。
+So that's my fault.
+
+593
+00:45:06,240 --> 00:45:08,000
+那我们刷新一下再试一次。
+So let's refresh this and try it again.
+
+594
+00:45:08,174 --> 00:45:11,120
+我们要启动服务器，启动客户端，加入我们的 大厅。
+So we'll start our server, start our client, join our lobby.
+
+595
+00:45:11,200 --> 00:45:11,920
+它会传过来的。
+It'll come through.
+
+596
+00:45:12,000 --> 00:45:12,836
+它传过来了。
+It comes through.
+
+597
+00:45:13,390 --> 00:45:14,720
+我们进入这里。
+We'll come in here.
+
+598
+00:45:15,118 --> 00:45:18,160
+你会注意到它正尝试生成一个随机字符串。
+You'll notice that it's gonna attempt to generate a random string.
+
+599
+00:45:18,240 --> 00:45:20,800
+我们在这里打个断点， just 确认一下它是否成功了。
+We'll put a breakpoint here just to verify that it worked.
+
+600
+00:45:20,880 --> 00:45:22,230
+让我们看看结果。
+So let's take a look at our result.
+
+601
+00:45:22,560 --> 00:45:23,360
+那是正确的。
+That is correct.
+
+602
+00:45:23,440 --> 00:45:24,320
+这就是我们预期的结果。
+That's what we're expecting.
+
+603
+00:45:24,400 --> 00:45:26,880
+你可以看到它是一个随机字符串。
+You can see it's a random string.
+
+604
+00:45:27,054 --> 00:45:29,120
+然后我们可以按回车，回车。
+And then we can hit enter, enter.
+
+605
+00:45:29,280 --> 00:45:32,196
+它会创建一个新的大厅，就像这样。
+It's gonna create a new lobby, like so.
+
+606
+00:45:32,686 --> 00:45:43,360
+看看我们拿回来的那个大厅，如果我们去这里的全局变量，
+你可以看到我们的检查器里现在有一个大厅了。
+If we take a look at our lobby that we got back, so if we go to our globals here, you can see we now have a lobby in our inspector.
+
+607
+00:45:43,502 --> 00:45:46,320
+所以你可以看到就在这里，这是一个大厅对象。
+So you can see right here, that is a lobby object.
+
+608
+00:45:46,400 --> 00:45:47,680
+太棒了，这可以运行。
+So perfect, that's working.
+
+609
+00:45:47,840 --> 00:45:52,640
+我们可以添加玩家，然后它崩溃了，提示函数 add_player 调用无效。
+We can add our player and we have a crash invalid call to function add player.
+
+610
+00:45:52,720 --> 00:45:53,920
+那可不太好。
+So that's not good.
+
+611
+00:45:54,240 --> 00:45:57,680
+添加玩家 ID，名字，添加玩家。
+Add player ID name, add player.
+
+612
+00:45:57,840 --> 00:46:00,100
+我是不是哪儿弄错了？
+Did I do something incorrect here?
+
+613
+00:46:02,254 --> 00:46:05,056
+在 base_ref_count_大厅 上，预期有两个参数。
+On base ref count lobby, expected two arguments.
+
+614
+00:46:05,136 --> 00:46:06,976
+噢，它预期有两个参数。
+Oh, it expected two arguments.
+
+615
+00:46:07,136 --> 00:46:08,256
+ID 和名字。
+ID and name.
+
+616
+00:46:08,496 --> 00:46:11,856
+所以我们忘了从客户端传回的东西就是我们的名字。
+So something that we forgot to pass back from our client is our name.
+
+617
+00:46:11,936 --> 00:46:13,056
+所以我们要把那个传进去。
+So we'll pass that in.
+
+618
+00:46:13,136 --> 00:46:14,980
+所以是「名字」。
+So quote name.
+
+619
+00:46:16,206 --> 00:46:18,416
+我们现在就先传个空的东西进去。
+We'll just pass something empty for right now.
+
+620
+00:46:18,496 --> 00:46:19,556
+我觉得这样没问题。
+I think that that's fine.
+
+621
+00:46:20,398 --> 00:46:25,216
+这意味着当我们想要添加玩家时，我们需要传入一个用户 ID。
+And then that means that when we want to add our player, we need to pass in a user ID.
+
+622
+00:46:25,376 --> 00:46:29,536
+在这种情况下，我打算直接传进去一个用户。
+In this case, I'm going to go ahead and pass in a user.
+
+623
+00:46:29,776 --> 00:46:34,496
+在这种情况下，我想我打算传进去我们的用户数据。
+In this case, I think I'm going to pass in our user data.
+
+624
+00:46:34,576 --> 00:46:36,324
+所以我们改叫 user。
+So we'll say user instead.
+
+625
+00:46:37,198 --> 00:46:40,016
+然后我就直接把所有这些数据传进去。
+And then I'm just going to pass in all of that data instead.
+
+626
+00:46:40,238 --> 00:46:51,456
+然后我们回到这里，就写 user.id，然后是 user.id，逗号，user.name，就像这样。
+And then we'll come in here and just do user.id and then user.id, comma, user.name, like that.
+
+627
+00:46:51,616 --> 00:46:54,016
+然后我们要传 lobby_id。
+And then we'll pass in for lobby id.
+
+628
+00:46:54,336 --> 00:46:56,576
+我们就写 user.lobby_id。
+We'll just do user.lobbyid.
+
+629
+00:46:56,896 --> 00:46:58,496
+我想反正我们就是用的那个。
+I believe that's what we used anyway.
+
+630
+00:46:58,656 --> 00:47:01,856
+如果我看看我们的客户端，它是 lobby_id。
+If I take a look at our client, it's lobby value.
+
+631
+00:47:01,936 --> 00:47:03,076
+所以那是我的错。
+So that's my fault.
+
+632
+00:47:03,598 --> 00:47:06,020
+所以我们要回到服务器的 lobby_id。
+So we'll come back to server lobby value.
+
+633
+00:47:07,758 --> 00:47:09,136
+它对我们非常生气。
+And it is very mad at us.
+
+634
+00:47:09,376 --> 00:47:11,716
+Lobby ID 还没有声明。
+Lobby ID is not declared.
+
+635
+00:47:12,558 --> 00:47:15,776
+所以我们要用 user.lobby_id。
+So we'll do user.lobby value.
+
+636
+00:47:15,936 --> 00:47:17,412
+我们要复制这个变量。
+We'll copy this guy.
+
+637
+00:47:19,086 --> 00:47:25,124
+user.lobby_id，user.lobby_id，user.lobby_id，user.lobby_id。
+User.lobby value, user.lobby value, user.lobby value, user.lobby value.
+
+638
+00:47:26,862 --> 00:47:32,736
+然后我们要用 user.id，user.id。
+And we'll do user.id user.id.
+
+639
+00:47:35,726 --> 00:47:37,456
+user.id 数据。
+User.id data.
+
+640
+00:47:37,616 --> 00:47:38,564
+我觉得这样应该行。
+I think that will work.
+
+641
+00:47:39,406 --> 00:47:40,548
+那我们再试一次。
+So let's try that again.
+
+642
+00:47:41,294 --> 00:47:44,336
+我们要确保在那儿设个断点。
+We'll make sure we have actually we'll make sure we have a breakpoint there.
+
+643
+00:47:44,496 --> 00:47:47,844
+我们要点击启动服务器、启动客户端、加入大厅。
+We'll hit start server, start client, join lobby.
+
+644
+00:47:48,750 --> 00:47:50,948
+它会运行到这一步。
+It's gonna run through this.
+
+645
+00:47:51,918 --> 00:47:53,136
+我们要加入大厅。
+We'll join our lobby.
+
+646
+00:47:53,296 --> 00:47:55,856
+它会运行过去，生成一个随机字符串。
+We'll run through, we'll generate a random string.
+
+647
+00:47:55,950 --> 00:47:59,696
+现在 user.lobby_id 已经正确设置了。
+So user.lobby value is now set properly.
+
+648
+00:47:59,856 --> 00:48:01,136
+我们要运行到这里。
+We'll come through here.
+
+649
+00:48:01,390 --> 00:48:04,416
+我们刚刚创建了大厅。
+We just created our lobby.
+
+650
+00:48:04,496 --> 00:48:05,776
+我们要添加一个玩家。
+We'll add in a player.
+
+651
+00:48:05,936 --> 00:48:07,376
+看起来好像成功了。
+So that seems to have worked.
+
+652
+00:48:07,456 --> 00:48:14,016
+如果我们快速看一下大厅，你会看到里面有一个玩家。
+So if we take a look at our lobby real quick, you'll see that we have a lobby with a player in it.
+
+653
+00:48:14,176 --> 00:48:17,216
+这个玩家名字是空的，有一个 ID 和一个索引。
+And the player has an empty name, an ID, and an index.
+
+654
+00:48:17,376 --> 00:48:17,856
+太棒了。
+Awesome.
+
+655
+00:48:18,016 --> 00:48:23,332
+现在如果我们这样做，它就会把数据发回给我们的玩家。
+So now if we do this, it'll send the data back to our player like that.
+
+656
+00:48:23,790 --> 00:48:26,016
+现在我们还没有任何东西来接收这些数据。
+Now we don't have anything that's catching that data.
+
+657
+00:48:26,096 --> 00:48:29,056
+所以我们得去客户端里做同样的操作。
+So we have to go into our client and actually do the exact same thing.
+
+658
+00:48:29,216 --> 00:48:32,896
+你可以看到它是如何传递一个叫 user_connected 的消息的。
+So you can see how this is passing in a message called user connected.
+
+659
+00:48:32,976 --> 00:48:36,388
+所以我们要回到客户端把这个连接起来。
+So we have to go back to our client and actually hook that up.
+
+660
+00:48:37,198 --> 00:48:53,924
+所以我们要说，如果 data.message 的小写 m 等于 message.userconnected，
+那我们就得设置一个用户已连接的状态。
+So we'll say if data.message lowercase m is equal to message.userconnected, then we need to actually set up that a user got connected.
+
+661
+00:48:54,096 --> 00:48:57,456
+所以我们直接创建一个连接对等节点的函数。
+So we'll just create a function for connecting a peer.
+
+662
+00:48:57,616 --> 00:49:03,936
+所以我们直接写 create_对等节点，然后传入 data.id。
+So we'll just say create peer and we'll pass in data.id.
+
+663
+00:49:04,256 --> 00:49:06,404
+至少目前来说，我们只需要传入 ID 就行。
+At least for right now, we'll just pass in the ID.
+
+664
+00:49:07,246 --> 00:49:08,576
+我这就创建一个函数来处理这个。
+And I'll just create a function for that.
+
+665
+00:49:08,656 --> 00:49:12,068
+所以我们写个 create_对等节点 函数，然后传入一个 ID。
+So func create peer and we'll pass in an ID.
+
+666
+00:49:12,496 --> 00:49:14,496
+目前我先就这样传过去。
+And I'll just pass for right now.
+
+667
+00:49:14,606 --> 00:49:19,876
+原因是这里就是我们要放 WebRTC 连接相关代码的地方。
+And the reason why is because this is where we're gonna put in our WebRTC connection stuff.
+
+668
+00:49:21,614 --> 00:49:25,412
+所以我们先简单搭个脚手架，把框架弄出来。
+So we'll just scaffold that out a tiny bit and get that going.
+
+669
+00:49:27,216 --> 00:49:32,576
+接下来，我们需要设置好让其他玩家也能加入这个大厅。
+So next, what we need to do is we need to set it up so that other players can join that lobby.
+
+670
+00:49:32,910 --> 00:49:38,496
+如果我们去看看服务器代码，你可以看到我们的 join_大厅 代码就在这里。
+So if we head over to our server and we take a look at it, you can see that we have our join lobby code right here.
+
+671
+00:49:38,702 --> 00:49:42,016
+我们现在的操作是创建大厅，对吧？
+So what we're doing is we are creating our lobby, right?
+
+672
+00:49:42,158 --> 00:49:46,656
+然后我们进入里面，创建一些数据，并把它发回给玩家。
+And then we're coming in and we're creating some data and we're sending it back to our player.
+
+673
+00:49:46,816 --> 00:49:51,136
+现在，如果另一个用户加入这个大厅会发生什么呢？
+Now, what happens if another user joins a lobby, right?
+
+674
+00:49:51,278 --> 00:49:59,908
+如果我们把大厅信息打印出来，比如我们在这里写个 print，或者，我觉得我直接写在上面吧。
+So if we actually print out our lobby information, so if we come in and say print, or actually, I think I'll do it up here.
+
+675
+00:50:00,334 --> 00:50:01,636
+如果我们到这里来。
+So if we come up here.
+
+676
+00:50:04,398 --> 00:50:13,264
+直接写 print user.大厅_value，然后我们快速刷新一下。
+And just say print user dot lobby value like that and we refresh this real quick.
+
+677
+00:50:13,424 --> 00:50:24,324
+如果我们创建了一个大厅，也就是启动服务器、启动客户端、
+加入大厅，然后点播放，你会看到输出里有一个 GUID。
+If we create a lobby, so we start our server, start our client, join lobby, and we hit play and we hit play, we hit play,
+you'll see in our output we'll have a GUID right here.
+
+678
+00:50:24,750 --> 00:50:31,424
+现在，如果我们复制这个 GUID，把这些断点去掉，
+我们可能想保留一个在这里，这样我们就有它了。
+Now, if we copy this GUID and I get rid of these breakpoints, we might want to keep one just here so that way we have it.
+
+679
+00:50:31,504 --> 00:50:40,784
+但是如果我们用另一个，我想应该是这个，启动客户端，连接，粘贴，然后加入。
+But if we take our other one, which I believe is this guy here, we start our client, so we connect, we paste, and we join.
+
+680
+00:50:41,230 --> 00:50:44,384
+你会看到我们会触发一个断点，然后我们像这样进行单步执行。
+You'll see we're going to hit a breakpoint, we're going to step in like so.
+
+681
+00:50:44,544 --> 00:50:48,464
+你会看到我们会跳过这个，然后我们会被添加到那个大厅里。
+You'll see that we're going to skip over this guy, we're going to get added to that lobby.
+
+682
+00:50:48,544 --> 00:50:50,784
+所以你会看到我们被正确地添加到了大厅中。
+So you'll see that we get added to the lobby properly.
+
+683
+00:50:50,864 --> 00:50:55,396
+所以我们可以查看我们的大厅，你可以看到我们已经加入了。
+So we can actually look at our lobby, and you can see we've been joined.
+
+684
+00:50:55,886 --> 00:51:00,864
+然后我们会通知自己已经获取到了那些数据。
+And then we're going to notify ourselves that we have that data.
+
+685
+00:51:00,944 --> 00:51:09,664
+如果我们到这里来，并在这里放个断点，点播放，你会看到程序在这里停下来，
+你可以看到我们正在接收那些数据。
+So if we come over here and we throw a breakpoint here, we hit play, you'll see we've broken right here,
+and you can see that we are receiving that data.
+
+686
+00:51:09,824 --> 00:51:13,344
+现在，实际上只有一个对等节点接收到了那些数据。
+Now, just one peer has actually received that data.
+
+687
+00:51:13,424 --> 00:51:20,676
+所以如果我们在这个关卡里有一个人的列表，我们只会看到那一个，对吧？
+So if we were to have like a list of people inside of our level here, we would just see the one, right?
+
+688
+00:51:20,944 --> 00:51:24,836
+因为我们还没有正确处理玩家。
+Because we're not handling the players properly.
+
+689
+00:51:25,902 --> 00:51:36,292
+判断我们是否处理正确的一个简单方法是，如果我们到这里，
+我们可以在游戏管理器的 .players 里添加点东西。
+And an easy way to tell if we're doing it properly is if we come up here, we could
+actually come in here and add in to our game manager right here, dot players.
+
+690
+00:51:37,070 --> 00:51:51,076
+我们可以传进去 id 等于，然后我们放……其实我觉得不是 id，应该是 data.id，然后我想我们得……
+And we could just pass in id is equal to, and we'll just put uh actually, I don't
+think it would be id, it'd be data dot id, and then I believe we would have to.
+
+691
+00:51:51,664 --> 00:51:54,304
+如果我们看这个，应该是 .player。
+If we look at this, it'd be dot player.
+
+692
+00:51:54,384 --> 00:51:57,668
+所以我们写 data.player。
+So we'll say data dot player.
+
+693
+00:51:58,318 --> 00:52:08,464
+现在如果我们快速测试一下，你会看到我们启动服务器、启动
+客户端、加入大厅，运行一遍，我们就会得到输出，就是这个。
+And now if we actually test this real quick, you'll see we'll start our server, start our client, join our lobby, we'll run through,
+we'll get our output, which will be this guy right here.
+
+694
+00:52:08,624 --> 00:52:13,904
+我们复制它，粘贴进去，启动客户端，加入大厅，点击播放。
+We'll copy it, we'll paste it, start our client, join our lobby, hit play.
+
+695
+00:52:13,984 --> 00:52:21,904
+然后如果我们去客户端，在 process 函数上打个断点，进入我们的游戏管理器，
+你会看到我们有一个包含一个元素的字典。
+And then if we go to our client and we drop a breakpoint on our process, if
+we go into our game manager here, you'll see that we have a dictionary of one.
+
+696
+00:52:22,094 --> 00:52:26,944
+如果我们去 session one 也是同样的操作，看看我们的字典，你会发现我们有一个玩家。
+If we go to session one and we do the same thing and we go to our dictionary, you'll notice that we have one player.
+
+697
+00:52:27,118 --> 00:52:31,024
+你还会注意到他们是不同的玩家，一个是 2975。
+You'll also notice that they're different players two nine seven five.
+
+698
+00:52:31,264 --> 00:52:34,864
+如果我们看另一个游戏管理器，是 1812。
+And if we look at our other game manager, one eight one two.
+
+699
+00:52:35,184 --> 00:52:41,024
+之所以这样，是因为我们并没有把数据发送给大厅里的所有人。
+Now, the reason for that is because we're not sending our data to everybody else in the lobby.
+
+700
+00:52:41,184 --> 00:52:45,104
+为了让一切正常运行，每个人都需要保持同步，并且大家都得满意。
+Everybody needs to be synchronized and everybody needs to be happy for everything to work properly.
+
+701
+00:52:45,264 --> 00:52:48,612
+所以我们实际上需要让所有人都能同步。
+So we need to actually have it so that everybody synchronizes up.
+
+702
+00:52:49,006 --> 00:52:49,904
+那么，这意味着什么呢？
+So, what does that mean?
+
+703
+00:52:50,062 --> 00:52:51,184
+我们该怎么处理这个问题呢？
+How do we approach that?
+
+704
+00:52:51,344 --> 00:52:53,264
+嗯，其实这比你想象的要简单。
+Well, it's actually easier than you might think.
+
+705
+00:52:53,344 --> 00:53:00,864
+如果我们去大厅，看看我们的服务器，抱歉，看看我们这里的 joint 大厅。
+So if we go to our lobby and we look at our server, I'm sorry, and we look at our joint lobby here.
+
+706
+00:53:01,024 --> 00:53:08,708
+我们实际上需要遍历所有的玩家，然后把那个信息发给每一个人。
+We actually need to basically run through, loop through all of our players, and then send that information to everybody.
+
+707
+00:53:09,038 --> 00:53:21,744
+所以，我们要做的就是在这里写 for p in lobbies，然后获取我们的 lobby_id。
+So, what we'll do is we'll come in here and we'll say for p in lobbies, and we'll get back our lobby ID.
+
+708
+00:53:21,824 --> 00:53:29,024
+也就是 user.大厅_value.players，我想应该是 players。
+So user.lobby value dot players colon, and I believe it's players.
+
+709
+00:53:29,104 --> 00:53:30,144
+我们快速核实一下。
+We'll double check real quick.
+
+710
+00:53:30,224 --> 00:53:32,464
+是大写的 P，不是小写的 p。
+It's capital P, not lowercase p.
+
+711
+00:53:32,544 --> 00:53:36,224
+所以我们要获取 players，然后遍历我们的 players。
+So we'll grab players for P in our players.
+
+712
+00:53:36,304 --> 00:53:45,508
+所以我们基本上是把大厅里的所有玩家都拉出来，当我们这样做时，
+我们会把大厅信息发给每一个人。
+So we're basically pulling back all of our players in our lobby, and when we do that, we'll send our lobby information to everybody.
+
+713
+00:53:47,374 --> 00:54:04,912
+所以我们要写 var 大厅_info = [ [ "message": message.大厅 ],
+然后我们可以在这里传入任何我们需要的信息。
+So we'll say var lobby info is equal to bracket bracket quote message colon message dot
+lobby comma and then we can come in here and pass in any additional information we need.
+
+714
+00:54:04,992 --> 00:54:06,992
+所以在我们的例子中，我们需要大厅信息。
+So in our case, we need our lobby information.
+
+715
+00:54:07,152 --> 00:54:12,112
+也就是 大厅: lobbies [ [ ] ]。
+So lobby colon lobbies bracket bracket.
+
+716
+00:54:12,352 --> 00:54:16,432
+我们要拉取我们的用户信息 大厅_value，就像这样。
+We'll pull back our user information lobby value like that.
+
+717
+00:54:16,672 --> 00:54:21,072
+如果你想传入额外的信息，比如玩家数据之类的，也可以。
+And if you want to pass in additional information like player data, things like that, you can.
+
+718
+00:54:21,232 --> 00:54:30,752
+我打算直接传入我们的 大厅 大厅_value，然后加上 .players，
+我会把它用 json.stringify 包裹起来。
+What I will do is I'll just pass in our lobby lobby value, and then
+I will say dot players, and I'm gonna wrap this in a json stringify.
+
+719
+00:54:30,832 --> 00:54:36,512
+我会像这样包裹它，然后写 json.stringify。
+So I'll wrap this like this, and I'll say json dot stringify.
+
+720
+00:54:36,832 --> 00:54:38,912
+现在你可能会问，等一下。
+Now you might be asking, okay, hold on a minute.
+
+721
+00:54:39,072 --> 00:54:42,912
+为什么要在你对象里面对某些东西进行 stringify 呢？
+Why would you stringify something inside of your object?
+
+722
+00:54:43,086 --> 00:54:52,112
+原因是，因为这是一个对象列表，有时候 Godot 在传输这类数据时会非常混乱，会出现问题。
+Well, here's why because this is a list of objects, sometimes Godot
+gets really confused and has problems with transferring data like that.
+
+723
+00:54:52,272 --> 00:54:56,352
+所以我们可能需要，也可能不需要这样做，但很多时候 Godot 的表现就不太稳定。
+So we may or may not need this, but a lot of times Godot gets funky.
+
+724
+00:54:56,432 --> 00:55:08,032
+所以我用 JSON.stringify 把它强制转换成字符串，然后把它放进这个对象里，
+这能帮助 Godot 更容易理解数据。
+So I just JSON stringify that it forces that into a string, and then it gets stringed into this object here,
+and it can help with making things a little bit simpler for Godot to understand.
+
+725
+00:55:08,206 --> 00:55:22,500
+然后我们就可以调用 send_to_对等节点，我们有一个用户 ID，所以它会是 P，逗号，
+然后是 大厅 信息之类的，这样就能把 大厅 信息发给客户端，
+And then we could just send message send to peer, and then we have a user ID, so it's gonna be P, comma and then lobby info like that,
+and that's gonna send that lobby info down to our clients, and then
+
+726
+00:55:22,500 --> 00:55:22,740
+然后我们就可以调用 send_to_对等节点，我们有一个用户 ID，所以它会是 P，逗号，
+然后是 大厅 信息之类的，这样就能把 大厅 信息发给客户端，
+we can go to our clients, and then we can basically just set that up.
+
+727
+00:55:22,740 --> 00:55:27,392
+然后我们就可以在客户端里基本把事情搞定。
+we can go to our clients, and then we can basically just set that up.
+
+728
+00:55:27,472 --> 00:55:31,952
+所以我打算把这里的 游戏管理器 部分删掉。
+So I'm going to get rid of my game manager section here.
+
+729
+00:55:32,112 --> 00:55:37,792
+我要加上读取 大厅 信息的功能，就像之前一样。
+I'm going to add in the ability to read the lobby information, much like before.
+
+730
+00:55:37,872 --> 00:55:45,712
+所以如果 data.message 等于 message.大厅，我就知道我拿到 大厅 信息了。
+So if data dot message is equal to message dot Lobby, then I know I'm getting my lobby information.
+
+731
+00:55:45,792 --> 00:55:49,552
+这样我就能解析这些信息，然后让我的程序跑起来。
+So I can actually parse that information and get my stuff going.
+
+732
+00:55:49,712 --> 00:55:58,192
+我知道我的 游戏管理器.players 将会等于我的 data.大厅。
+I know that my game manager dot players is going to be equal to my data dot lobby.
+
+733
+00:55:58,352 --> 00:55:59,632
+我想我们之前管它叫 大厅。
+I believe we called it lobby.
+
+734
+00:55:59,712 --> 00:56:01,152
+这可能不是最好的名字。
+That's probably not the best name for it.
+
+735
+00:56:01,232 --> 00:56:03,044
+用 players 可能更好一点。
+It's probably better to have players.
+
+736
+00:56:03,712 --> 00:56:05,952
+大概是因为这就是它的内容。
+Probably just because that is what this is.
+
+737
+00:56:06,112 --> 00:56:07,428
+它是玩家信息。
+It's the players information.
+
+738
+00:56:07,726 --> 00:56:08,832
+所以我们最好这样做。
+So we should probably do that.
+
+739
+00:56:08,912 --> 00:56:10,852
+所以我们把它传给 players。
+So we'll pass that in players.
+
+740
+00:56:11,214 --> 00:56:14,672
+所以我会写成 data.players 这样。
+So I will go data players like that.
+
+741
+00:56:14,798 --> 00:56:19,712
+有一点要注意的是，我们需要对这些信息进行 JSON.parse。
+And something to keep in mind is that we're gonna need to JSON parse that information.
+
+742
+00:56:19,792 --> 00:56:26,592
+所以我们会写成 JSON.parse(string)，然后把这个参数传进去。
+So we'll type json.parse string, and we'll pass this guy in like so.
+
+743
+00:56:27,310 --> 00:56:28,992
+这样应该就能正常工作了。
+And that should just work.
+
+744
+00:56:29,358 --> 00:56:38,756
+现在如果我们到这里，在这里打个断点，然后点播放，启动服务器，启动客户端，加入 大厅。
+So now if we come in here, we drop a breakpoint right here, we hit play, start a server, start a client, join a lobby.
+
+745
+00:56:39,118 --> 00:56:41,392
+它会把数据发给我们这里。
+It's gonna send us our data here.
+
+746
+00:56:41,552 --> 00:56:47,632
+如果我们单步跳过，就会崩溃，提示在基础字典上获取玩家索引无效。
+If we step over, we have a crash invalid get index player on base dictionary.
+
+747
+00:56:47,712 --> 00:56:48,752
+那我们来看看发生了什么。
+So let's see what's going on.
+
+748
+00:56:48,832 --> 00:56:53,552
+如果我们看我们的字典，是 .players，不是 .players。
+If we look at our dictionary, it's dot players, not dot players.
+
+749
+00:56:53,632 --> 00:56:54,788
+那我们再试一次。
+So we'll try that again.
+
+750
+00:56:55,118 --> 00:56:57,668
+启动服务器，启动客户端，加入。
+So start server, start client join.
+
+751
+00:56:58,192 --> 00:56:59,712
+它会解析那些数据。
+It will parse that data.
+
+752
+00:56:59,792 --> 00:57:01,152
+我们让它跑一遍。
+We're gonna let that run through.
+
+753
+00:57:01,326 --> 00:57:03,552
+然后我们在这里抓取第二个。
+And then we're gonna grab our second one here.
+
+754
+00:57:03,632 --> 00:57:10,308
+我们去输出窗口，抓取这里的这些信息，复制，粘贴，启动客户端，加入 大厅。
+We're gonna go to our output, grab this information right here, copy it, paste, start client join lobby.
+
+755
+00:57:10,734 --> 00:57:14,592
+我们点播放，然后看看我们的数据是否同步了。
+We'll hit play, and then let's see if we synchronized our data.
+
+756
+00:57:14,672 --> 00:57:19,684
+那我们先在 poll 上打个断点，然后就在这里加入。
+So we'll put a breakpoint on our poll real quick, and we'll also join right here.
+
+757
+00:57:20,334 --> 00:57:23,632
+看看我们的游戏管理器，你会看到我们有两个玩家。
+If we take a look at our game manager, you'll see that we have our two players.
+
+758
+00:57:23,854 --> 00:57:28,752
+如果我们看 session 2，去游戏管理器，你会看到我们有两个玩家。
+If we look at session two and we go to our game manager, you will see that we have our two players.
+
+759
+00:57:28,912 --> 00:57:29,392
+完美。
+Perfect.
+
+760
+00:57:29,472 --> 00:57:30,916
+这正是我们想要的。
+That's exactly what we wanted.
+
+761
+00:57:31,374 --> 00:57:34,352
+所以现在我们的大厅基本上搞定了，对吧？
+So now our lobby is basically done, right?
+
+762
+00:57:34,432 --> 00:57:36,592
+我们保留了玩家的信息。
+We're holding on to our players' information.
+
+763
+00:57:36,752 --> 00:57:39,392
+我们有他们的 ID、索引和名字。
+We have their ID, their index, and their name.
+
+764
+00:57:39,552 --> 00:57:45,312
+所以当用户发送他们的名字时，我们就能随时获取到这些信息。
+So when we set up the user sending over their name, we'll be able to have that information right on hand.
+
+765
+00:57:45,472 --> 00:57:48,432
+这对于发送任何类型的数据都很有用。
+And this can be useful for sending any type of data.
+
+766
+00:57:48,592 --> 00:57:50,512
+你可以发送图片之类的东西。
+You could send pictures, things like that.
+
+767
+00:57:50,752 --> 00:57:53,312
+你只需要把它存在大厅里，然后就可以开始了。
+You just store it in your lobby and then you're good to go.
+
+768
+00:57:53,472 --> 00:57:56,752
+当然，如果你需要的话，你也可以用不同的方式来存储。
+Or of course, you could store it you know differently if you needed to.
+
+769
+00:57:56,912 --> 00:58:00,356
+但这基本上就是让它运行起来的基础方法。
+But this is basically the basics of how to get that to work.
+
+770
+00:58:01,102 --> 00:58:09,988
+既然我们搞定了大厅的东西，现在我们基本上需要设置好如何传输 WebRTC 的数据。
+Now that we have our lobby stuff figured out, we basically need to set up how we're gonna transfer our data for WebRTC.
+
+771
+00:58:10,560 --> 00:58:16,640
+如果你还记得教程开始时，我们聊了很多关于 WebRTC 是如何工作的，对吧？
+So if you remember at the beginning of the tutorial, we talked a lot about how WebRTC works, right?
+
+772
+00:58:16,880 --> 00:58:25,680
+你会有一整套信号交换，有一整套信息交换，然后他
+们基本上就把数据传输给彼此，然后就搞定了，对吧？
+You have this whole signal exchange, you have this information exchange, and then
+they basically transfer the data to each other, and then they're happy, right?
+
+773
+00:58:25,774 --> 00:58:27,364
+然后他们就建立了那个连接。
+And then they create that connection.
+
+774
+00:58:27,920 --> 00:58:35,040
+所以首先，我们需要创建要传输的对等节点信息，对吧？
+So first things first, we need to create that peer information to be transferred, right?
+
+775
+00:58:35,214 --> 00:58:38,800
+所以我们回到客户端这里，我们有一个叫 create 对等节点 的东西。
+So we'll come to our client here and we have this thing called create peer.
+
+776
+00:58:38,880 --> 00:58:49,280
+如果你记得的话，我们谈到了要在这一步如何建立 WebRTC 连接，
+那是基于我们的数据消息 ID，也就是数据消息用户已连接。
+If you remember, we talked about how we were going to do a WebRTC connection here,
+and that was going off of our data message ID, data message user connected.
+
+777
+00:58:49,360 --> 00:58:52,560
+现在我们还没在大厅端把那个设置好。
+Now we don't actually have that set up in our lobby side yet.
+
+778
+00:58:52,720 --> 00:58:55,200
+所以当用户连接时，他们会收到那些数据。
+So when a user connects, they get back that data.
+
+779
+00:58:55,360 --> 00:59:04,640
+如果你记得的话，我们这里有一个循环，可以让我们遍历玩家，
+但我们还需要把信令信息也通过网络传输过去。
+If you remember, we have we have a loop right here that's gonna let us loop through our players,
+but we're gonna need to send our signaling information across the wire as well.
+
+780
+00:59:04,880 --> 00:59:08,960
+既然必须这样做，我们就得在这里把代码写出来。
+So since we have to do that, we're going to need to actually code that in here.
+
+781
+00:59:09,134 --> 00:59:13,600
+所以让我们回到客户端，把 WebRTC 的东西搞定，然后我们再继续。
+So let's go to our client, let's get our web RTC stuff settled, and then we'll go from there.
+
+782
+00:59:13,760 --> 00:59:17,040
+首先，我们要根据那个数据 ID 创建一个对等节点。
+So first things first, we're gonna create a peer off that data ID.
+
+783
+00:59:17,166 --> 00:59:21,956
+所以我们先检查我们的 ID 是否不等于我们自己的 ID。
+So we'll first check if our ID does not equal our own ID.
+
+784
+00:59:22,318 --> 00:59:24,880
+我想我们把它叫作 ID。
+And I believe we called it ID.
+
+785
+00:59:25,200 --> 00:59:28,240
+所以我们只需写 self.id :
+So we'll just say self.id colon.
+
+786
+00:59:28,640 --> 00:59:31,440
+接下来我们要做的就是初始化连接。
+And then what we're gonna do is we're gonna initialize a connection.
+
+787
+00:59:31,520 --> 00:59:43,200
+所以我们要写 var 对等节点: WebRTCPeerConnection = WebRTCPeerConnection.new()。
+So we'll say var peer colon web rtc peer connection is equal to web rtc peer connection.new.
+
+788
+00:59:43,342 --> 00:59:46,020
+这就会创建一个新的 WebRTCPeerConnection。
+And that's gonna create a new web rtc peer connection.
+
+789
+00:59:46,350 --> 00:59:47,076
+挺简单的。
+Easy enough.
+
+790
+00:59:47,520 --> 00:59:53,360
+现在我们需要实际初始化这个连接。
+Now we need to actually initialize that connection.
+
+791
+00:59:53,646 --> 00:59:58,160
+所以我们要写 对等节点.initialize，并且需要传入一个配置字典。
+So we'll say peer dot initialize and we need to pass in a configuration dictionary.
+
+792
+00:59:58,240 --> 01:00:15,120
+我们要传入一个字典，并在里面添加 ICE 服务器：空格，括号，括号，然后传入一个对象数组。
+So we'll pass in a dictionary, and we will add in ice servers: colon
+space, bracket, bracket brackets, and we'll pass in an array of objects.
+
+793
+01:00:15,342 --> 01:00:25,840
+然后我们要写「URLs:」，那将是一个字符串数组。
+and we'll say quote URLs, colon space, and that'll be an array of strings.
+
+794
+01:00:26,160 --> 01:00:26,372
+就在这里。
+here.
+
+795
+01:00:27,150 --> 01:00:40,800
+我们要写 stun: stun.google.com:19302。
+And what we'll do is we'll say stun colon stun dot google.com colon one nine three oh two.
+
+796
+01:00:41,422 --> 01:00:47,600
+这个是 Google 允许人们免费使用的 STUN服务器。
+Now, what this is is it's a stun server that Google allows people to use for free.
+
+797
+01:00:47,760 --> 01:00:53,200
+所以如果你需要用它来做测试之类的，这就是 STUN服务器的用途。
+So if you need to use it for testing and things like that, that is what the stun server is for.
+
+798
+01:00:53,360 --> 01:01:01,280
+我不建议用它传输大量数据，但你可以传一些测试数据，做一些初步的操作。
+Now, I wouldn't expect to throw a bunch of data at it, but you can throw some test data and do some initial stuff like that.
+
+799
+01:01:01,520 --> 01:01:10,080
+我强烈建议如果你能的话，就搭建自己的 STUN服务器，但在测试期间你可以暂时用这个。
+I would strongly suggest that you set up your own stun server if you can, but you can use this temporarily while you're testing.
+
+800
+01:01:10,240 --> 01:01:21,760
+然后我要打印出 绑定 ID 加上 Str ID。
+and then I'm going to print binding ID, plus Str ID.
+
+801
+01:01:21,966 --> 01:01:25,092
+我还要通知一下我的 ID 是什么。
+And then I'm also going to notify what my ID is.
+
+802
+01:01:27,982 --> 01:01:31,600
+这样我就能追踪到我的 ID 是什么了。
+That way I can keep track of what my ID is.
+
+803
+01:01:31,790 --> 01:01:41,360
+这样我实际上就能了解我正通过网络传输什么样的信息，因为我不一定想绑定我自己的 ID。
+So that way I actually have um an understanding of what kind of information I'm
+passing through the wires because I don't want to bind my own ID necessarily.
+
+804
+01:01:41,440 --> 01:01:45,920
+我只是想确保一切正常，并且我们已经把所有东西都设置好了。
+So I just want to make sure that everything's copacetic and that we have everything set up.
+
+805
+01:01:46,080 --> 01:01:51,680
+现在有了这些，我们要去创建我们的会话描述。
+Now, once we have that, we're going to go in and actually create our session description.
+
+806
+01:01:51,760 --> 01:01:57,120
+所以我们要写 对等节点.session_description_created.connect()。
+So we'll say peer dot session description created dot connect.
+
+807
+01:01:57,454 --> 01:01:59,280
+顺便说一下，这是一个信号。
+And that is a signal, by the way.
+
+808
+01:01:59,360 --> 01:02:05,760
+所以当会话描述创建时，我要把它连接到 self.
+So when the session description is created, I am going to connect that to myself dot
+
+809
+01:02:09,038 --> 01:02:11,360
+然后我们要创建一个描述函数。
+and we're going to make a function of some description.
+
+810
+01:02:11,440 --> 01:02:17,600
+我要添加一个 提议_created 函数，然后传入我的 ID。
+So I'm going to add an offer created function, and then I'm going to pass in my ID.
+
+811
+01:02:20,398 --> 01:02:25,920
+我们要做一个 .bind，然后像这样传入我自己的 ID。
+And we're going to do a dot bind and we're going to pass in my own ID like that.
+
+812
+01:02:26,478 --> 01:02:33,120
+然后我们需要做同样的事情，但这次我们要为 ICE 候选者创建时做。
+And then we need to do the exact same thing, but this time we have to do it for when our ice candidate is created.
+
+813
+01:02:33,200 --> 01:02:42,724
+所以我要写 对等节点.ice_候选者_created.connect(self.ice_候选者)。
+So I'm going to say peer dot ice candidate created dot connect self dot ice candidate.
+
+814
+01:02:46,704 --> 01:02:47,344
+创建。
+Created.
+
+815
+01:02:47,886 --> 01:02:50,624
+然后我们要像那样绑定我们的 ID。
+And we're going to bind our ID like that.
+
+816
+01:02:51,150 --> 01:02:52,864
+这意味着我们得创建这些函数。
+And that means we got to create these functions.
+
+817
+01:02:52,944 --> 01:02:57,584
+所以我们到这里，写下 func offer_created。
+So we'll come in here and we'll say funk offer created.
+
+818
+01:02:57,664 --> 01:03:01,252
+我将传入一个 ID，目前先传为 false。
+And I'm going to pass it an ID and we'll pass for right now.
+
+819
+01:03:01,742 --> 01:03:09,380
+然后我们到这里写下 func ice_candidate_created，并传入我们的 ID。
+And then we'll come in here and say funk ice candidate created and we'll pass in our ID.
+
+820
+01:03:10,414 --> 01:03:11,204
+搞定。
+There we go.
+
+821
+01:03:11,918 --> 01:03:14,144
+我要确保这些完全一致。
+I'm gonna make sure that these are exactly the same.
+
+822
+01:03:14,224 --> 01:03:19,744
+所以我们直接复制这些，然后粘贴过去，确保它们没问题且能正常工作。
+So we'll just copy these guys and paste them just to make sure that they're good and happy to work.
+
+823
+01:03:20,782 --> 01:03:27,424
+一旦我们绑定了这些信息，我们就可以把它们添加为对等节点了。
+And then once we bind that information, then we can actually add them as a peer.
+
+824
+01:03:27,744 --> 01:03:35,264
+所以当你把某人添加为对等节点时，你需要先创建那个 WebRTC 多人对等节点，对吧？
+So when you add someone as a peer, you need to have that WebRTC multiplayer peer created, right?
+
+825
+01:03:35,344 --> 01:03:38,212
+所以你有连接，也有对等节点，明白了吗？
+So you have connections and you have peers, okay?
+
+826
+01:03:38,542 --> 01:03:42,224
+这和我们的 WebSocket 对等节点非常相似，完全是同样的东西。
+And much like how we have our WebSocket peer, it's the exact same thing.
+
+827
+01:03:42,304 --> 01:03:44,784
+所以我们写 var RTC
+So we'll say var RTC
+
+828
+01:03:48,110 --> 01:03:58,944
+对等节点 等于 WebRTC 多人对等节点，我们把它设为 WebRTC 多人对等节点.new()。
+peer is equal to WebRTC multiplayer peer, and we'll make that equal to a WebRTC multiplayer peer dot new.
+
+829
+01:03:59,086 --> 01:04:02,212
+这就会创建那个 WebRTC 多人对等节点。
+And that's just going to create that WebRTC multiplayer peer.
+
+830
+01:04:03,406 --> 01:04:14,384
+这里我需要用冒号而不是等号，但 WebRTC 多人对
+等节点 基本上就是你实际的对等节点套接字连接。
+And I need to do colon, not equals for that, but WebRTC multiplayer peer is basically your actual peer socket connection.
+
+831
+01:04:14,464 --> 01:04:18,148
+它是你与其他人建立实际连接的方式。
+So it's how you do your actual connection to other people.
+
+832
+01:04:18,544 --> 01:04:22,944
+下面的这个对等连接描述了那个连接。
+Down here, this peer connection describes that connection.
+
+833
+01:04:23,024 --> 01:04:30,064
+它基本上是在说，这个人是谁，这是他们的信息，这是我如何建立连接。
+It basically says, this is who this person is, this is their information, this is how I do the connection.
+
+834
+01:04:30,384 --> 01:04:38,464
+所以这个家伙基本上就是解释，基本上就是执行连接本身。
+So this guy here basically just explains, basically just does the connection itself.
+
+835
+01:04:38,544 --> 01:04:42,468
+而这个家伙解释了如何建立连接，如果这能让你理解的话。
+And this guy explains how to do the connection, if that makes sense.
+
+836
+01:04:43,424 --> 01:04:56,944
+现在有了这些，我们就可以到这里写 rtc_对等节点.add_对等节点，
+然后添加我们的对等节点和我们的 ID。
+Now, once we have that, then we can just come in here and say rtc peer dot add peer, and we can add our peer, comma, our id.
+
+837
+01:04:57,614 --> 01:05:00,304
+这基本上就像是添加一个字典。
+And what this is is it's basically like adding a dictionary.
+
+838
+01:05:00,384 --> 01:05:04,384
+所以我们将这个对等节点与那个 ID 关联起来。
+So we're associating this peer with that ID.
+
+839
+01:05:04,464 --> 01:05:13,540
+也就是说，我们说那个 ID 就是这个人，这样我们在建立连接和进行信令时，
+就能追踪所有用户的相关信息了。
+So we're saying that that ID is this person, and that way we can keep track
+of all of our users' information when we do our connections and our signaling.
+
+840
+01:05:13,870 --> 01:05:16,144
+然后我们需要创建一个提议。
+And then we're gonna need to create an offer.
+
+841
+01:05:16,224 --> 01:05:17,584
+所以我们可以直接写 对等节点。
+So we can just go peer.
+
+842
+01:05:20,398 --> 01:05:29,104
+现在，当你创建提议时，你不想从大厅创建提议，你只想从对等节点本身创建提议。
+Now, when you create an offer, you don't want to create an offer from
+the lobby, you only want to create an offer from the peers themselves.
+
+843
+01:05:29,486 --> 01:05:36,864
+也就是说，大家都是连接到一个中心人物，由他把连接分发给其他人，如果这能让你理解的话。
+So everyone's kind of connecting to one central person that's kind of
+distributing the connections to everyone else, if that makes sense.
+
+844
+01:05:37,038 --> 01:05:43,344
+所以我们要做的就是写 if not 主机 self_id。
+So what we'll do is we'll say if not host self ID.
+
+845
+01:05:44,622 --> 01:05:46,704
+实际上，我可能应该把它叫成 主机ID。
+And actually, I should probably call this host ID.
+
+846
+01:05:46,864 --> 01:05:50,624
+现在你可能会想，等等，你其实还没有主机ID。
+Now you might be wondering, well, hold on, you don't actually have a host ID.
+
+847
+01:05:50,704 --> 01:05:51,332
+你说得对。
+You're correct.
+
+848
+01:05:51,438 --> 01:05:58,436
+所以我们要做的就是往上滚动，写上 var 主机ID，然后把它设为一个整数。
+So what we'll do is we'll scroll up here, we'll say var host ID, and we'll make that into an integer like that.
+
+849
+01:05:58,894 --> 01:06:05,504
+然后当用户连接到大厅时，如果我没记错的话，我们实际上会获取到那个信息。
+And then when a user connects to the lobby, we actually pull back that information if I remember correctly.
+
+850
+01:06:05,584 --> 01:06:07,984
+所以我们可以进到这里看一下。
+So we can actually come in here and take a look.
+
+851
+01:06:08,064 --> 01:06:14,544
+我很确定我们就在 userID 下面获取了我们的主机信息。
+I'm pretty sure we pull back right here under user ID, we pull back what our host is.
+
+852
+01:06:14,704 --> 01:06:25,124
+所以我们进到这里，在 ID 下面输入 主机ID 等于 data.主机。
+So we'll just come in here and under ID, we'll type host ID is equal to data dot host like that.
+
+853
+01:06:27,630 --> 01:06:29,764
+理论上，这样应该就能行了。
+And in theory, that should work.
+
+854
+01:06:30,126 --> 01:06:35,792
+现在，很遗憾，我不能直接说，好伙计们，我们可以测试一下并展示它，它就能跑通。
+Now, unfortunately, I can't just say, okay, guys, like we can test this and show it, and it's gonna work.
+
+855
+01:06:36,032 --> 01:06:38,112
+因为很遗憾，我们没法这么做。
+Because unfortunately, we can't.
+
+856
+01:06:38,272 --> 01:06:46,912
+如果不构建 提议 created、ICE 候选者 created 以
+及所有这些相关内容，我们实际上没法进行测试。
+We can't actually do our test without building out the offer created, the ice candidate created, and all of that happy jazz.
+
+857
+01:06:47,072 --> 01:06:48,912
+所以让我们把这些全部构建出来。
+So let's just build all of that out.
+
+858
+01:06:49,070 --> 01:06:53,636
+我们来到 提议 created 这里，我们要修改输入参数。
+So we'll come down here to our offer created and we're gonna change our input parameters.
+
+859
+01:06:54,272 --> 01:06:58,352
+我在 ice created 和 提议 created 上犯了个错误。
+So I made a mistake on the ice created and the offer created.
+
+860
+01:06:58,512 --> 01:07:08,992
+我们需要为 提议 created 传入类型、数据和 ID，然后我们得进来基本上创建我们的本地描述。
+We need to pass in the type, comma, the data, and the ID for offer created,
+and then we have to come in and basically create our local description.
+
+861
+01:07:09,232 --> 01:07:15,472
+首先，我们要确保并进行一些错误检查，确保我们确实拥有那个对等节点，对吧？
+So, first things first, we want to make sure and do some error checking to make sure that we actually have that peer, right?
+
+862
+01:07:15,552 --> 01:07:20,592
+确保确实有人存在并且能够与我们连接。
+Somebody actually exists and is able to be connected to us.
+
+863
+01:07:20,942 --> 01:07:33,320
+所以我们要写 if not RTC 对等节点.has_对等节点，然后传入我们的 ID，
+只是为了确保如果由于某种原因这个函数被调用而
+So we'll say if not RTC peer dot has peer, and we'll just pass in our ID just to make sure that if for some reason this function's
+called and we don't actually have a peer, we don't want that to blow up on us, right?
+
+864
+01:07:33,320 --> 01:07:38,756
+我们实际上没有对等节点时，程序不会崩溃，对吧？
+So we'll say if not RTC peer dot has peer, and we'll just pass in our ID just to make sure that if for some reason this function's
+called and we don't actually have a peer, we don't want that to blow up on us, right?
+
+865
+01:07:39,342 --> 01:07:45,712
+因为如果你给一个不是对等节点的人发送提议，那真的会让 WebRTC 感到困惑。
+Because if you send an offer to somebody who's not a peer, then it just really can make WebRTC confused.
+
+866
+01:07:45,792 --> 01:07:48,832
+所以我们不想让那发生，那实际上可能会导致游戏崩溃。
+So we don't want that to happen, it can actually make the dough crash.
+
+867
+01:07:48,992 --> 01:07:54,192
+所以我们要小心点，然后我们需要实际设置他们的本地描述。
+So we want to be careful about that, and then we need to actually set their local description.
+
+868
+01:07:54,272 --> 01:08:07,940
+所以我们要写 rtc_对等节点.get_对等节点_id().connection.set_local_description()。
+So we'll say rtc peer dot git peer idot connection dot set underscore local underscore description.
+
+869
+01:08:09,774 --> 01:08:12,228
+然后我们传入类型和数据。
+And we'll pass in type, comma data.
+
+870
+01:08:13,457 --> 01:08:15,952
+你可能会问，那是什么意思？
+And I might be asking, what does that mean?
+
+871
+01:08:16,192 --> 01:08:22,591
+你可以这样理解：当你设置本地描述时，你是在设置你自己的本地描述。
+So think of it like this: when you're setting your local description, you're setting your own local description.
+
+872
+01:08:22,832 --> 01:08:34,360
+所以我发送我的本地描述，也就是我创建一个然后发给你，那就会变成你的远程描述，
+然后你创建你自己的本地描述，然后作为回应，你会把它发给我，然后我就有了你的远程描述。
+So I send my local description, so I create one and then I send it to you, and that becomes your remote description,
+and then you create your own local description, and then in response,
+
+873
+01:08:34,360 --> 01:08:38,912
+所以我发送我的本地描述，也就是我创建一个然后发给你，那就会变成你的远程描述，
+然后你创建你自己的本地描述，然后作为回应，你会把它发给我，然后我就有了你的远程描述。
+you're gonna send that to me, and then I have a remote description of you.
+
+874
+01:08:39,072 --> 01:08:42,192
+这就是本地描述和远程描述的区别。
+So that's the difference between a local description and a remote description.
+
+875
+01:08:42,272 --> 01:08:55,720
+本地描述是我对自己的解释，以及你如何连接到我，而我对他人的远程描述，
+那就会变成我系统里其他人的远程描述，这样他们就知道如何与我通信了，如果这好理解的话。
+A local description is my interpretation of me and how you can connect to me, and my remote description of somebody else,
+and that becomes the remote description for everyone else of my system,
+
+876
+01:08:55,720 --> 01:09:00,511
+本地描述是我对自己的解释，以及你如何连接到我，而我对他人的远程描述，
+那就会变成我系统里其他人的远程描述，这样他们就知道如何与我通信了，如果这好理解的话。
+so that way they know how to communicate with me, if that makes sense.
+
+877
+01:09:00,671 --> 01:09:05,232
+现在，一旦我们有了那个，我们实际上需要确定我们的类型是否是提议。
+Now, once we have that, we actually need to determine if our type is offer.
+
+878
+01:09:05,392 --> 01:09:11,712
+所以如果类型等于「提议」，如果是这样，我们就可以发送提议了。
+So if type is equal to quote offer, and if so, then we can send an offer.
+
+879
+01:09:11,792 --> 01:09:22,820
+所以我们会这样写 send 提议，并传入一个 ID，逗号，数据，
+然后 else 我们知道我们的类型是响应，所以我们会
+So we'll say send offer like that, and we'll pass it an ID, comma data, and then else we know that our type is an answer,
+so we'll send answer like that, and we'll pass in an ID, comma, data.
+
+880
+01:09:22,820 --> 01:09:27,652
+这样写 send 响应，并传入一个 ID，逗号，数据。
+So we'll say send offer like that, and we'll pass it an ID, comma data, and then else we know that our type is an answer,
+so we'll send answer like that, and we'll pass in an ID, comma, data.
+
+881
+01:09:28,109 --> 01:09:33,312
+现在我们实际上还没有创建 send 提议 和 send 响应。
+Now we don't actually have a send offer and send answer created yet.
+
+882
+01:09:33,421 --> 01:09:34,591
+所以我们确实得把它们做出来。
+So we actually have to do that.
+
+883
+01:09:34,734 --> 01:09:39,712
+所以我们到下面来创建我们的 send 提议 和 send 响应。
+So we'll come down here and we'll create our send offer and send answer.
+
+884
+01:09:39,792 --> 01:09:45,551
+所以 func send 提议 ID, 逗号, data, 冒号。
+So func send offer ID, comma, data, colon.
+
+885
+01:09:45,792 --> 01:09:48,671
+我们现在先传 pass，然后我们对 send 响应 做同样的操作。
+We'll pass for right now, and then we'll do the same thing for send answer.
+
+886
+01:09:48,912 --> 01:09:52,671
+所以 func send 响应, ID, 逗号, data。
+So func send answer, ID, comma, data.
+
+887
+01:09:52,782 --> 01:09:56,512
+这就是我们发送提议和响应的基本方法。
+And that's basically how we're gonna send our offer and our answer.
+
+888
+01:09:56,718 --> 01:10:09,072
+记住，提议是我联系你并说，嘿，这是我的信息，而响应是你说，嘿，这是我对那些信息的响应。
+Remember, an offer is me reaching out to you saying, hey, here is my information,
+and an answer is you saying, Hey, here is my answer on that information.
+
+889
+01:10:09,806 --> 01:10:12,912
+现在，这个很棒的一点是 Godot 让它变得非常非常简单。
+Now, the nice thing about this is Godot makes it really, really easy.
+
+890
+01:10:13,072 --> 01:10:23,632
+所以我们只需说，var message 等于「对等节点, id: id」。
+So we'll just say, var message is equal to quote peer, comma, id, colon id quote.
+
+891
+01:10:23,792 --> 01:10:42,272
+我们要获取原始对等节点，所以或者给 对等节点: self id, 「message: message.提议」。
+We're gonna get an original peer, so or give peer colon self id, quote message colon message dot offer, comma, quote.
+
+892
+01:10:42,512 --> 01:10:52,512
+数据将是数据，逗号，因为我们要发送我们的数据并且要转发一些数据，我想传入我的大厅信息。
+Data is going to be data, comma, and because we're gonna be sending our data and we're gonna be relaying some data,
+I'm gonna want to pass in my lobby information.
+
+893
+01:10:52,686 --> 01:10:57,792
+所以我只需传入 大厅:，我们可能应该获取某种 lobby_id。
+So I'll just pass in lobby colon and we should probably get some kind of lobby value.
+
+894
+01:10:57,952 --> 01:11:09,232
+现在，如果检查一下，我实际上没有连接到我的大厅信息，
+所以我们会说 var 大厅 lobby_id，然后把它设为空字符串。
+Now, if we check, I actually don't have a link to my lobby information, so we'll say var lobby lobby value,
+and we're gonna make that equal to an empty string.
+
+895
+01:11:09,312 --> 01:11:11,392
+我相信我们要把那个数据传回去。
+I believe we pass that data back.
+
+896
+01:11:11,472 --> 01:11:15,792
+如果我们快速检查一下我们的服务器，我们确实把那个数据传回去了。
+If we check our server real quick, we do pass that data back.
+
+897
+01:11:16,752 --> 01:11:17,712
+让我看看。
+Let me see.
+
+898
+01:11:21,134 --> 01:11:23,812
+实际上，我不认为我们把那个数据传回去了。
+Actually, I don't think we do pass that data back.
+
+899
+01:11:25,390 --> 01:11:26,880
+所以我们需要把那个数据传回去。
+So we're gonna need to pass that data back.
+
+900
+01:11:26,960 --> 01:11:34,558
+所以我们到这里，直接输入「lobby_id」，然后我们就传入 user
+So we'll come in here and just hit quote lobby value, and then we'll just pass in user.
+
+901
+01:11:34,558 --> 01:11:39,760
+点 lobby_id 这样。
+dot lobby Value like that.
+
+902
+01:11:39,840 --> 01:11:41,520
+这样就能把那个信息传回去了。
+And that'll just pass back that information.
+
+903
+01:11:41,600 --> 01:11:42,400
+这样我们就有了它。
+That way we have it.
+
+904
+01:11:42,560 --> 01:11:48,320
+然后如果我们看 user ID，我们可以进入我们的客户端，向下滚动，快速找到它。
+And then if we look under user ID, we can go into our client, scroll down, find it real quick.
+
+905
+01:11:48,526 --> 01:11:55,044
+所以我相信那是 under user ID lobby_id 等于 data.lobby_id。
+So I believe that's under user ID lobby value is equal to data dot lobby value.
+
+906
+01:11:55,566 --> 01:12:00,324
+然后我们就可以到下面来，像这样传入我们的 lobby_id。
+And then we can just come down here and pass in our lobby value like that.
+
+907
+01:12:01,774 --> 01:12:03,120
+然后我们必须发送那个数据。
+And then we have to send that data.
+
+908
+01:12:03,200 --> 01:12:16,960
+所以我们到这里，对等节点.put 数据包 JSON.stringify message.to utf8 buffer 这样。
+So we'll come in here peer dot put packet json dot stringify message dot to utf8 buffer like that.
+
+909
+01:12:17,326 --> 01:12:20,960
+这样基本上就把我们的数据发送到我们的服务器了。
+And that'll basically just send our data to our server.
+
+910
+01:12:21,120 --> 01:12:29,360
+然后我们基本上要把这个家伙复制过来，然后做同样的
+操作，真的是完全一样的操作，用来发送我们的响应。
+And then we're basically gonna copy this bad boy right here, and we're gonna do the exact same thing,
+literally the exact same thing for sending our answer.
+
+911
+01:12:29,550 --> 01:12:34,720
+基本上就是把「message 提议」换成「message 响应」。
+And it's basically going to say instead of message offer, it's going to be message answer.
+
+912
+01:12:34,960 --> 01:12:35,684
+很简单。
+Simple enough.
+
+913
+01:12:37,102 --> 01:12:40,320
+现在你可能会想，好，那现在搞定了，对吧？
+Now you might think, okay, so you're good, right?
+
+914
+01:12:40,480 --> 01:12:41,280
+我们可以开始了。
+We're good to go.
+
+915
+01:12:41,390 --> 01:12:42,148
+我们很开心。
+We're happy.
+
+916
+01:12:42,574 --> 01:12:42,880
+算是吧。
+Kinda.
+
+917
+01:12:43,200 --> 01:12:45,760
+但首先，我们需要实际创建一个候选者。
+But first, we need to actually create a candidate.
+
+918
+01:12:45,870 --> 01:12:46,080
+好的。
+Okay.
+
+919
+01:12:46,240 --> 01:12:51,920
+候选者有点像是说，嘿，我正在建立一个 ICE 连接，对吧？
+And a candidate is kind of like saying, Hey, I'm making a ice connection, right?
+
+920
+01:12:52,000 --> 01:12:54,160
+我正在建立一个存在的连接。
+I'm making a connection that exists.
+
+921
+01:12:54,320 --> 01:13:08,800
+所以有很多额外信息，你的 ID，你的媒体流信息，你的索引，以及你的 SDP 协议描述，
+这些你必须在开始之前通过网络传输。
+So there's a lot of additional information, your ID, your uh media stream information, your index,
+and your SDP protocol description that you have to send over the wire before you can get started.
+
+922
+01:13:08,880 --> 01:13:12,240
+这就是「ICE 候选者 created exists」的地方。
+And that's where ICE candidate created exists.
+
+923
+01:13:12,400 --> 01:13:23,120
+我们会写 mid name，index name，sdp name，最后是 ID。
+We'll say mid name, comma, index name, comma, sdp name, comma, and finally ID.
+
+924
+01:13:23,360 --> 01:13:27,680
+我想我应该用……呃，我不喜欢那个。
+I guess I should probably go with uh I don't like that.
+
+925
+01:13:27,840 --> 01:13:31,040
+所以用 SDP name，我觉得行。
+So SDP name, I think that'll work.
+
+926
+01:13:31,182 --> 01:13:34,400
+这符合命名规范，然后是 ID。
+That kind of follows the naming convention, and then ID.
+
+927
+01:13:34,560 --> 01:13:40,880
+当我们执行 ICE 候选者 created 时，我们基本上是把一个候选者发送给组里的其他人。
+And when we do our ICE candidate created, we're basically sending a candidate to the rest of our group.
+
+928
+01:13:40,960 --> 01:13:44,960
+所以我们会写 var message，等等等。
+So we'll say var message, blah, blah, blah.
+
+929
+01:13:45,200 --> 01:13:57,920
+基本上可以复制粘贴这段代码，说原始对等节点是我的 ID，消息类型是 候选者，
+然后到我们的数据部分，这里情况就有点复杂了。
+May basically copy and paste this code and say original peer is my ID, message type
+is candidate, and then for our data, this is where things get a little bit funky.
+
+930
+01:13:58,000 --> 01:14:00,817
+所以我们需要传入我们的 mid、index 和 SDP。
+So we need to pass in our mid index and SDP.
+
+931
+01:14:01,040 --> 01:14:17,360
+我们可以用很多不同的方法来实现，但真的，在我看来，最简单的方法就是写 mid、mid name，
+然后复制、粘贴、粘贴、粘贴，index、sdp。
+We can do this a lot of different ways, but really, in my opinion, the easiest
+way is going mid, mid name like that, copy, paste, paste, paste, index, sdp.
+
+932
+01:14:20,142 --> 01:14:20,740
+就像这样。
+Like that.
+
+933
+01:14:22,320 --> 01:14:28,868
+这样基本上就给了我们一个非常简单的办法来传递那些数据，以便我们能创建那个候选者。
+And that'll give us basically a really easy way to pass that data up so we can create that candidate.
+
+934
+01:14:30,062 --> 01:14:32,560
+现在我们必须处理所有这些信息。
+Now we have to handle all of that information.
+
+935
+01:14:32,814 --> 01:14:37,600
+信息量很大，这将是我们教程中相当长的一部分。
+It's a lot of information, it's gonna be a pretty long part of our tutorial.
+
+936
+01:14:37,680 --> 01:14:44,132
+所以我们要进入这里的服务器，设置那些东西，以便我们可以转发我们的数据。
+So we'll come into our server here and we're gonna set up that stuff so that we can forward our data.
+
+937
+01:14:44,782 --> 01:14:52,960
+首先，我们需要设置当用户连接到我们的大厅时，这样我们才能实际建立 WebRTC 连接。
+So, first things first, we need to set up when up here correct gets connected
+to our lobby so that way we can actually create the WebRTC connection.
+
+938
+01:14:53,070 --> 01:14:54,160
+所以我们要进入这里。
+So we'll come in here.
+
+939
+01:14:54,286 --> 01:14:58,400
+我们已经在遍历我们的玩家了，所以这应该相对容易。
+We're already looping through our players, so this should be relatively easy.
+
+940
+01:14:58,640 --> 01:15:09,520
+所以我们到这里，定义 var data，然后传入玩家信息，这样他们就能创建他们的候选者了。
+So let's come up here and let's say var data, and we'll pass in our
+players information so that way they can actually create their candidate.
+
+941
+01:15:09,600 --> 01:15:17,520
+我们要写「message.user_connected, ID」。
+So we'll do quote message message dot user connected, comma, quote ID.
+
+942
+01:15:18,990 --> 01:15:35,588
+我记得之前写的是 user.id，然后我到下面写 send_message_to_player，并传入 p 和 data。
+I believe we had it under their ID is user.id, and then I'm gonna come down here
+and do send message send to player, and I'm going to pass in the p, comma, data.
+
+943
+01:15:35,918 --> 01:15:39,360
+然后我们需要做同样的事情，但逻辑正好相反。
+And then we need to do the exact same thing, but the exact opposite.
+
+944
+01:15:39,520 --> 01:15:52,292
+所以我们要这样获取信息，复制粘贴，然后不再是 id 为
+user.id，而是直接用 p，然后写 data_to，再发给玩家。
+So we'll grab this information like this, copy, paste, and then instead of id being user.id,
+we'll just do p and we'll say data to and then send to player.
+
+945
+01:15:53,710 --> 01:15:57,456
+user.id, data_to。
+User dot id, comma data to.
+
+946
+01:15:58,062 --> 01:15:59,136
+那这部分是在做什么？
+So what is this doing?
+
+947
+01:15:59,310 --> 01:16:04,256
+首先，我们正把数据发送给大厅里的第一个玩家。
+So first things first, we're sending our data to the first player in our lobby.
+
+948
+01:16:04,336 --> 01:16:12,656
+你可以这样理解：如果你在大厅里，我加入了大厅，服务器会把我们两人的信息都发给彼此。
+So think about it like this: if you're in the lobby and I join the lobby,
+the server is going to send information about both of us to both of us.
+
+949
+01:16:12,814 --> 01:16:17,136
+同时，它也会更新我们的大厅信息。
+And it's also going to update our lobby information as well.
+
+950
+01:16:17,390 --> 01:16:20,736
+这样我们就能知道每个人的大厅信息都是最新的。
+So that way we know that everybody's lobbies are up to date.
+
+951
+01:16:20,896 --> 01:16:26,496
+你能在推送数据包的同时更新大厅信息吗？
+Could you go in and actually update your lobby information during this packet push?
+
+952
+01:16:26,656 --> 01:16:28,176
+从技术上讲，是可以的。
+Technically speaking, yes.
+
+953
+01:16:28,256 --> 01:16:31,616
+但如果你这样做，可能会收到重复的信息。
+But if you did that, then you might get duplicate information.
+
+954
+01:16:31,776 --> 01:16:35,332
+所以我把它们分开处理，是为了让事情变得简单一点。
+So I separated it out just to make things a little bit easier.
+
+955
+01:16:35,982 --> 01:16:41,856
+所以一旦我们有了这个，它就会触发 候选者.user_connected，对吧？
+So once we have that, that's gonna fire our candidate user connected, right?
+
+956
+01:16:42,158 --> 01:16:45,376
+现在我们只需要完成剩下的部分了，对吧？
+So now we just need to do all of the rest of it, right?
+
+957
+01:16:45,456 --> 01:16:51,536
+我们需要处理实际的提议创建、候选者和响应。
+So we need to do our actual offer creation, our candidate, and our answer.
+
+958
+01:16:51,616 --> 01:16:53,216
+这其实非常简单。
+And that's actually gonna be really easy.
+
+959
+01:16:53,296 --> 01:17:03,856
+我们回到服务器，滚动到 对等节点_get_available_packets，到这里，
+基本上我们只需要把数据传过去。
+So we'll come into our server, we'll scroll up to our peer get available packets, we'll come up here,
+and basically what we're gonna do is we're going to just pass the data.
+
+960
+01:17:04,016 --> 01:17:28,496
+所以我们只需要说，如果 data.message 等于 message.提议，
+或者 data.message 等于 message.响应，或者 data.message 等于 message.候选者。
+So, all we're gonna do is say, if data.message is equal to message, dot, offer or data.message is equal to message.answer,
+or data.message is equal to message.candidate.
+
+961
+01:17:28,736 --> 01:17:32,576
+那么我们就知道需要把这些数据传给另一个用户。
+then we know that we need to pass that data to the other user.
+
+962
+01:17:32,736 --> 01:17:38,816
+我们要做的就是把数据发送给另一个用户。
+And what we're gonna do is we're going to send the data across to our other user.
+
+963
+01:17:38,976 --> 01:17:46,976
+基本上，我们只需写 send_to_player，然后写 data.id 和 data。
+So basically, we'll just say send to player, we're going to say data.id, comma, data.
+
+964
+01:17:47,182 --> 01:17:50,336
+理论上，这应该就能正常工作，希望如此。
+And in theory, that should just work, hopefully.
+
+965
+01:17:50,496 --> 01:17:58,896
+所以，这做的就是把信息，也就是提议、消息、响应和候选者，转发给另一个对等节点。
+So, what this is gonna do is it's gonna relay the information, the offer, message, answer,
+and the candidate just over to the other peer.
+
+966
+01:17:58,976 --> 01:18:03,056
+它实际上只是把数据传过去，交给对方去处理。
+So it's literally just gonna pass that data across and let it get handled.
+
+967
+01:18:03,216 --> 01:18:07,620
+为了方便查看，我打算打印出来
+And what I'm gonna do for visibility in our case is I'm going to print
+
+968
+01:18:11,630 --> 01:18:17,216
+source_ID 是字符串，然后我传入 data。
+source ID is str and I'm going to pass in data dot.
+
+969
+01:18:17,616 --> 01:18:20,976
+我记得我们之前做的时候是 original_对等节点。
+I believe we had when we did it original peer.
+
+970
+01:18:21,102 --> 01:18:31,696
+所以我们会获取原始对等节点加上消息数据，然后传入 data 点。
+So we'll grab that original peer plus message data is, and we'll pass in data dot.
+
+971
+01:18:32,176 --> 01:18:34,736
+我想我们当时用的是 data。
+I believe we used data.
+
+972
+01:18:34,896 --> 01:18:39,616
+所以我们直接传进去，这样我们就能实际查看一下它长什么样。
+So we'll just pass that in so that way we can actually just take a look at it and see what it looks like.
+
+973
+01:18:39,790 --> 01:18:43,136
+现在我们得在客户端做同样的操作。
+And now we have to do the exact same thing, but on the client side.
+
+974
+01:18:43,216 --> 01:18:49,936
+所以我们去客户端，往上滚动，基本上我们需要解析这些信息，对吧？
+So we'll go to the client side, we'll scroll up here, and basically we need to come through and parse that information, right?
+
+975
+01:18:50,016 --> 01:19:00,496
+情况是这样的：我们可以发送数据并让服务器中继，但我们需要在客户端获取数据，
+然后解析这些数据并实际处理它们。
+So, what's going on is we can send the data and we can relay it with our server, but we need to be able to get the data on our client
+and then parse that data and actually do stuff with that data.
+
+976
+01:19:00,590 --> 01:19:03,616
+这就是实际工作开始的地方。
+And this is where the actual work kind of comes in.
+
+977
+01:19:03,776 --> 01:19:15,296
+首先，如果 data 点消息等于消息点候选者，那我们就得解析这些信息。
+So, first things first, if data dot message is equal to message dot candidate, then we need to actually parse that information.
+
+978
+01:19:16,046 --> 01:19:34,096
+所以我们可以说，如果 rtc 对等节点点有对等节点，data 点，
+我想我们当时用的是原始对等节点，或者 g 对等节点，那我们可以说打印。
+So we can say if rtc peer dot has peer, data dot, and I believe we did original peer, so or g peer, then we can say print.
+
+979
+01:19:37,614 --> 01:19:47,072
+获取候选者：空格加上 data 点源或 g 对等节点，就像这样。
+Got candidate colon space plus data dot source or g peer like that.
+
+980
+01:19:47,152 --> 01:19:51,792
+这基本上就是说，嘿，我拿到候选者了，准备就绪。
+And that's basically just gonna say, hey, I got a candidate and it's good to go.
+
+981
+01:19:51,872 --> 01:20:01,712
+我还要把我的 ID 拿出来，这样我就知道这是谁了，因为有时候 WebRTC 的调试过程真的很痛苦。
+And I'm also gonna pull back my ID just so that I know who this is because sometimes debugging can be really painful with WebRTC.
+
+982
+01:20:01,872 --> 01:20:08,112
+所以我们要确保搞清楚这里发生了什么。
+So we're gonna wanna make sure that we know what is going on here.
+
+983
+01:20:08,272 --> 01:20:28,192
+然后我们只需要说 rtcPeer.getPeer，然后说 data.orgPeer 连接点 add  underscore ice
+underscore 候选者，就像这样。
+and then all we have to do is basically say rtcPeer.getPeer, and we'll say data.orgPeer connection,
+dot add underscore ice underscore candidate, like that.
+
+984
+01:20:28,366 --> 01:20:41,476
+然后我们需要传入我们的信息，这就是最麻烦的地方，因为如果我们看这里的 Godot 文档，
+add ice 候选者需要我们的媒体、我们的索引和我们的名称。
+And then we need to pass in our information, and this is where things are gonna get painful because if we look at the documentation of
+Godot here, add ice candidate requires our media, our index, and our name.
+
+985
+01:20:42,478 --> 01:20:52,996
+所以这意味着我们需要传入我们的 媒体 ID，如果你
+记得的话，媒体 ID 索引和 SDP，如果我没记错的话。
+So what that means to us is that we need to pass our mid, if you remember, mid index and sdp, if I remember correctly.
+
+986
+01:20:53,518 --> 01:20:56,192
+希望这不会彻底搞砸我们的程序。
+Hopefully, this doesn't completely brick on us.
+
+987
+01:20:56,272 --> 01:20:59,620
+呃，如果我搞错了，那我们就倒霉了。
+Uh we'll have a fun time if I'm wrong here.
+
+988
+01:21:00,032 --> 01:21:08,832
+所以它应该是 data 点，我想我们把它叫做 mid 索引和 SDP。
+So what it'll be is it's going to be data dot, and I believe we called it mid index and sdp.
+
+989
+01:21:08,912 --> 01:21:13,924
+所以是 mid data 点索引和 data 点 SDP，就像这样。
+So mid data dot index and data dot sdp, like that.
+
+990
+01:21:14,510 --> 01:21:19,232
+理论上，只要运气好一点，这应该能行。
+And in theory, with a little bit of finger crossing, this should work.
+
+991
+01:21:19,392 --> 01:21:23,072
+所以我们加上 int 以防万一，因为这必须是个整数。
+So we'll say to int just in case, because this has to be an integer.
+
+992
+01:21:23,152 --> 01:21:26,436
+所以以防万一它不是，我们把它转换成整数。
+So just in case it's not, we'll make it into an integer.
+
+993
+01:21:27,406 --> 01:21:30,192
+希望这就能直接运行。
+And hopefully this will just work.
+
+994
+01:21:30,766 --> 01:21:32,912
+现在，如果我们收到一个提议会发生什么？
+Now, what happens if we get an offer?
+
+995
+01:21:33,230 --> 01:21:35,072
+所以我们现在把那部分连上。
+So we'll hook that part up now.
+
+996
+01:21:35,232 --> 01:21:45,312
+所以如果 data 点消息等于消息点提议，那我们就得做同样的事情。
+So if data dot message is equal to a message dot offer, then we have to do the same thing.
+
+997
+01:21:45,392 --> 01:21:47,472
+所以我们得检查我们是否有那个对等节点。
+So we have to check if we have that peer.
+
+998
+01:21:47,632 --> 01:22:12,432
+如果我们有那个对等节点，那我们可以说 rtc 对等节点点 getPeer，
+然后传入我们的 data 点 orgPeer 点连接点 set underscore 远程 underscore 描述提议。
+So if we have that peer, then we can say rtc peer, dot, get peer, and we can pass in our data dot org peer, dot connection,
+dot set underscore remote underscore description offer.
+
+999
+01:22:13,392 --> 01:22:16,832
+逗号，data 点 data，就像这样。
+comma, data, dot data, like that.
+
+1000
+01:22:17,326 --> 01:22:19,792
+然后我们可以在响应上做同样的操作。
+And then we can do the exact same thing on answer.
+
+1001
+01:22:19,952 --> 01:22:28,388
+所以复制、粘贴，把响应也写成那样，然后把这里改成响应。
+So copy, paste, and answer like that, and change this to answer.
+
+1002
+01:22:35,438 --> 01:22:41,872
+现在我们的提议、候选者以及所有这些内容都已经设置好了，这很好。
+And now we have all of our offer, all of our candidate, and all of that stuff set up, which is great.
+
+1003
+01:22:42,032 --> 01:22:57,472
+现在在真正测试之前，我们只需要再做最后一件事，那就是建立一个基本上是设置我们 RTC 网状
+连接的函数，它将放在 ID 下面。
+Now we just need to do one last thing before we can actually test this out, and that is we need to set up a function that basically
+sets up our RTC mesh connection, and that's gonna be under ID.
+
+1004
+01:22:57,552 --> 01:23:09,552
+所以当我们知道我们的 ID 会是什么时，我们可以创建一个名为 connected 的函数，
+它不一定要叫 connected，但我叫它 connected 是因为这样我更好记。
+So when we know what our ID is going to be, we can create a function called connected, and it doesn't have to be named connected,
+but I'm going to call it connected just because that's easy for me to remember.
+
+1005
+01:23:09,742 --> 01:23:15,152
+所以我们会复制 connected，然后到这里写 func connected ID。
+So we'll copy connected, we'll come down here and we'll say funk connected ID.
+
+1006
+01:23:15,278 --> 01:23:21,472
+我们只需要写 RTC 对等节点.create_mesh_id。
+And all we're gonna do is just RTC peer dot create mesh ID.
+
+1007
+01:23:22,670 --> 01:23:27,072
+然后我们需要实际设置我们的多人对等节点。
+And then we need to actually set up our multiplayer peer.
+
+1008
+01:23:27,152 --> 01:23:28,644
+所以 multiplayer。
+So multiplayer.
+
+1009
+01:23:30,414 --> 01:23:36,196
+点 multiplayer_对等节点 等于 RTC 对等节点，就像这样。
+Dot multiplayer peer is equal to RTC peer, like that.
+
+1010
+01:23:36,910 --> 01:23:49,648
+现在，这部分的作用基本上是创建一个网状网络，它基本上是在说，从现在起，
+我所有的多人连接都要通过这个部分。
+Now, what this part here is doing is basically creating a mesh network and it's
+basically saying I want from now on all of my multiplayer to go through this section.
+
+1011
+01:23:49,888 --> 01:23:55,248
+所以这一切都在做的是挂接 Godot 内部的 RPC 调用。
+So all this is doing is it's hooking up the RPC calls inside of Godot.
+
+1012
+01:23:55,328 --> 01:24:07,248
+所以如果你用过 Godot 的网络库，或者如果你看过我之前的教程，
+也就是在我们的函数调用之上运行 RPC，这就是它在挂接的内容。
+So if you've ever used Godot's networking libraries, or if you've ever gone through my previous tutorial,
+that at RPC over top of our function calls, that's what this is hooking up.
+
+1013
+01:24:07,328 --> 01:24:09,808
+它只是把所有这些挂接起来，确保一切准备就绪。
+It's just hooking all that up and making sure it's all good to go.
+
+1014
+01:24:09,966 --> 01:24:11,088
+这就是它的用途。
+So that's what that's for.
+
+1015
+01:24:11,168 --> 01:24:12,368
+这样你们就知道了。
+So that way you guys know.
+
+1016
+01:24:12,528 --> 01:24:26,276
+所以当我们从主机获取到 ID 后，我们就在设置我们的多人连接，设置我们所有的东西，
+并表示我们可以开始我们的 WebRTC 服务器了，如果这说得通的话。
+So when we get back our ID from our host, we're setting up our multiplayer connection and setting up all of our stuff and saying that
+that we're good to actually start our WebRTC server, if that makes sense.
+
+1017
+01:24:26,608 --> 01:24:29,968
+现在这是非常多的信息，好吗？
+Now that is a whole lot of information, okay?
+
+1018
+01:24:30,158 --> 01:24:32,928
+我知道你们可能不会完全理解它。
+And I know that you guys probably aren't gonna fully understand it.
+
+1019
+01:24:33,008 --> 01:24:33,808
+所以不用担心。
+So don't worry.
+
+1020
+01:24:33,902 --> 01:24:38,608
+嗯，如果你有任何问题，把它们发在下面的评论区，我会尽我能力的去回答它们。
+Um, if you have questions, drop them in the comments below and I'll try to answer them as best of my abilities.
+
+1021
+01:24:38,702 --> 01:24:45,728
+在测试并确认一切正常工作后，我还会再过一遍代码，它可能会报错，但我们会找出原因的。
+I'll also run through the code once more once we test it all and verify that it works, and it'll probably break, but we'll find out.
+
+1022
+01:24:45,888 --> 01:24:51,888
+我要做的一件事是，我要到这里来，并在我的 ready 函数里连接几个信号。
+Something that I'm going to do is I'm gonna come up here and I'm gonna connect a couple of signals inside of my ready.
+
+1023
+01:24:52,048 --> 01:24:53,700
+所以我要输入 multiplayer
+So I'm gonna type multiplayer
+
+1024
+01:24:57,550 --> 01:25:07,204
+点 connected_to_server 点 connect，然后我要输入 RTC server connected。
+dot connected to server dot connect, and I'm gonna type RTC server connected.
+
+1025
+01:25:07,758 --> 01:25:09,568
+我要把它复制几次。
+I'm gonna duplicate this a few times.
+
+1026
+01:25:09,728 --> 01:25:22,288
+我要有一个 对等节点_connected，然后写 对等节点 connected，
+接着我还要做 对等节点 disconnected。
+I'm going to have one on peer underscore connected, and I'm going to say peer connected,
+and then I'm going to do also peer disconnected.
+
+1027
+01:25:23,568 --> 01:25:24,048
+就像这样。
+Like that.
+
+1028
+01:25:24,208 --> 01:25:26,368
+然后我要写 对等节点。
+And then I'm going to say peer.
+
+1029
+01:25:30,542 --> 01:25:31,088
+好了，搞定。
+There we go.
+
+1030
+01:25:31,694 --> 01:25:33,860
+现在我快速创建这些函数。
+So now I'm going to create those functions real quick.
+
+1031
+01:25:35,886 --> 01:25:41,860
+我要写成 print server connected。
+And I'm going to say print server connected.
+
+1032
+01:25:43,118 --> 01:25:45,328
+或者我猜应该是 RTC server connected。
+Or I guess it'll be RTC server connected.
+
+1033
+01:25:45,408 --> 01:25:46,608
+这样我们就能区分开来了。
+That way we know the difference.
+
+1034
+01:25:46,688 --> 01:25:48,740
+所以是 RTC server connected。
+So RTC server connected.
+
+1035
+01:25:49,390 --> 01:25:58,448
+我要拿到这个 对等节点 connected ID，然后打印出 RTC 对等节点 connected。
+I'm going to grab this peer connected ID, and I'm going to print RTC peer connected.
+
+1036
+01:25:58,574 --> 01:26:01,408
+我快速把那个 ID 传进去。
+And I'm going to pass in that ID real quick.
+
+1037
+01:26:01,550 --> 01:26:03,716
+然后我们对 disconnected 也做同样的操作。
+And then we'll do the same thing but for disconnected.
+
+1038
+01:26:03,808 --> 01:26:11,808
+所以我直接把这个拿过来，粘贴，回车，然后快速把 disconnected 传进去，就像这样。
+So I'll just grab this guy, paste, enter, and I will pass in disconnected real quick, like this.
+
+1039
+01:26:13,038 --> 01:26:14,848
+然后我们把它改成 disconnected。
+And we'll change this to disconnected.
+
+1040
+01:26:14,928 --> 01:26:18,116
+我加这个的原因是这样我们才能做一些测试。
+Now the reason why I added this is so that way we can actually do some testing.
+
+1041
+01:26:18,368 --> 01:26:22,608
+因为不幸的是，我们不能直接说，好，搞定了，对吧？
+Because unfortunately, we can't just say, okay, we're good to go, right?
+
+1042
+01:26:22,688 --> 01:26:24,848
+就像所有事情都很顺利，我们很开心。
+Like everything's copacetic, we're happy.
+
+1043
+01:26:25,008 --> 01:26:25,328
+好。
+Okay.
+
+1044
+01:26:25,568 --> 01:26:32,208
+因为不幸的是，如果没有日志，我们没法测试我们是否通过 RTC 连接到了彼此。
+Because unfortunately, we can't really test if we're connected to each other via RTC without having some kind of logs.
+
+1045
+01:26:32,302 --> 01:26:33,248
+所以这就是它的用途。
+So that's what this is for.
+
+1046
+01:26:33,422 --> 01:26:36,288
+所以我只是想确保我们能看到发生了什么。
+So I just want to make sure that we can see what's going on.
+
+1047
+01:26:36,462 --> 01:26:42,528
+所以现在理论上，如果一切都做得正确，这应该能行。
+So now in theory, hopefully, if everything's been done correctly, this should work.
+
+1048
+01:26:42,688 --> 01:26:44,688
+它可能不行，但我们会看到结果的。
+It probably won't, but we will see.
+
+1049
+01:26:44,768 --> 01:26:45,828
+所以我们要点播放。
+So we're gonna hit play.
+
+1050
+01:26:46,414 --> 01:26:52,208
+我们要启动一个服务器，启动一个客户端，然后我们遇到了一个小崩溃，base 字典里主机ID无效。
+We're gonna start a server, start a client, and we have a small crash, invalid host in base dictionary.
+
+1051
+01:26:52,288 --> 01:26:53,092
+太棒了。
+So great.
+
+1052
+01:26:53,454 --> 01:26:57,088
+呃，我们没有主机ID或者任何值。
+Uh we don't have a host ID or a value.
+
+1053
+01:26:57,248 --> 01:26:59,328
+那我们来看看我们的服务器。
+So let's take a look at our server.
+
+1054
+01:26:59,488 --> 01:27:00,516
+按 Ctrl+F。
+Hit control F.
+
+1055
+01:27:00,910 --> 01:27:02,967
+呃，看看 message。
+Uh, let's look at message.
+
+1056
+01:27:02,967 --> 01:27:05,860
+ID，就在这里。
+ID That's right here.
+
+1057
+01:27:06,574 --> 01:27:15,248
+所以实际上，我们确实没拿到主机ID之类的，因为我们没加入大厅。
+So actually, we don't we actually don't get back our host ID or anything because we're not joining a lobby.
+
+1058
+01:27:15,328 --> 01:27:16,448
+那应该在下面这里。
+That would be under here.
+
+1059
+01:27:16,654 --> 01:27:17,568
+所以这是我的错。
+So that's my fault.
+
+1060
+01:27:17,728 --> 01:27:22,528
+所以当我们处理大厅消息时，就是我们想要把那些数据通过网络传输的时候。
+So when we do our lobby message, is when we want to actually send that data across the wire.
+
+1061
+01:27:22,688 --> 01:27:26,768
+那我们来找一下这里的 大厅。
+So let's go through and search for lobby inside of here.
+
+1062
+01:27:26,928 --> 01:27:33,008
+所以是 message.大厅，我们想把那些数据传到这里。
+So message.lobby, and we'll want to pass that data in right here instead.
+
+1063
+01:27:33,088 --> 01:27:38,288
+所以传过去主机和 大厅 信息。
+So on a past host and lobby info.
+
+1064
+01:27:38,448 --> 01:27:42,180
+所以我们把 大厅 信息传到这里。
+So we'll pass that in and lobby info right here.
+
+1065
+01:27:43,246 --> 01:27:44,036
+好了。
+There we go.
+
+1066
+01:27:44,528 --> 01:27:49,540
+换成这个，它报错了，因为这里需要一个逗号。
+Instead, and it's unhappy because we need a comma right here.
+
+1067
+01:27:51,278 --> 01:27:52,144
+刷新一下。
+Let's refresh.
+
+1068
+01:27:52,224 --> 01:27:53,024
+我们再试一次。
+Let's try that again.
+
+1069
+01:27:53,184 --> 01:27:55,264
+启动服务器，启动客户端。
+So start server, start client.
+
+1070
+01:27:55,424 --> 01:27:56,324
+我们连接成功了。
+We've connected.
+
+1071
+01:27:56,864 --> 01:27:59,504
+我们没看到什么。
+We did not get to see what.
+
+1072
+01:27:59,664 --> 01:28:00,384
+噢，抱歉。
+Oh, I'm sorry.
+
+1073
+01:28:00,464 --> 01:28:01,904
+我们需要点击加入大厅，对吧？
+We need to hit join lobby, don't we?
+
+1074
+01:28:02,064 --> 01:28:02,624
+加入大厅。
+Join lobby.
+
+1075
+01:28:02,734 --> 01:28:03,940
+所以我们加入了大厅。
+So we've joined our lobby.
+
+1076
+01:28:04,366 --> 01:28:05,584
+我们拿到了 lobby_id。
+We have our lobby value.
+
+1077
+01:28:05,664 --> 01:28:07,344
+我们把它复制，粘贴到这里。
+We'll copy that, paste it in here.
+
+1078
+01:28:07,424 --> 01:28:08,224
+我们启动一个客户端。
+We'll start a client.
+
+1079
+01:28:08,366 --> 01:28:09,508
+我们点击加入大厅。
+We'll hit join lobby.
+
+1080
+01:28:09,998 --> 01:28:11,424
+然后崩溃了。
+And we have some crashes.
+
+1081
+01:28:11,664 --> 01:28:14,304
+数据中的索引 ID 无效。
+Invalid index ID on data.
+
+1082
+01:28:14,384 --> 01:28:15,780
+那我们来看看我们的数据。
+So let's take a look at our data.
+
+1083
+01:28:17,198 --> 01:28:18,624
+呃，我们把它叫成了 对等节点。
+Uh we called it peer.
+
+1084
+01:28:18,784 --> 01:28:23,584
+所以从技术上讲，为了符合命名规范，它应该是 ID。
+So technically it should be ID to maintain our naming convention.
+
+1085
+01:28:23,744 --> 01:28:28,304
+我不知道我喜不喜欢用 对等节点，但为了测试目的，我们暂时用 对等节点。
+I don't know if I like peer, so but we'll do peer for now for testing purposes.
+
+1086
+01:28:28,384 --> 01:28:35,876
+所以我们刷新，启动服务器，启动客户端，加入大厅，复制那个，粘贴进去，启动客户端，加入。
+So we'll refresh, start server, start client, join lobby, copy that guy, paste it in, start clients, join.
+
+1087
+01:28:36,366 --> 01:28:38,864
+又崩溃了，这总是件好事。
+And we got another crash here, so that's always good.
+
+1088
+01:28:39,054 --> 01:28:41,024
+字典中的数据无效。
+Invalid data on dictionary.
+
+1089
+01:28:41,104 --> 01:28:43,024
+那我们来看看这里的字典。
+So let's take a look at our dictionary here.
+
+1090
+01:28:43,184 --> 01:28:52,384
+这家伙没有任何数据，这完全没问题，因为我们并不期望
+original original 对等节点对等节点 SDP 会出现在这里。
+This guy doesn't have any data, and that's totally fine because we did
+not expect that mid-orge original peer peer SDP was going to be in here.
+
+1091
+01:28:52,544 --> 01:28:57,184
+所以我打算稍后再带大家过一遍代码，而不是给你们展示这个。
+So I guess what I'll do is I'll step through the code later instead of showing you guys this.
+
+1092
+01:28:57,550 --> 01:29:01,504
+我们就按这种方式来，因为我不想把这玩意搞坏太多。
+We'll just do it this way because I don't want to brick this too much.
+
+1093
+01:29:01,584 --> 01:29:02,544
+所以我们再试一次。
+So we'll try it again.
+
+1094
+01:29:02,702 --> 01:29:04,644
+所以我们把这家伙复制到这里。
+So we'll copy this guy in here.
+
+1095
+01:29:05,870 --> 01:29:06,884
+我们把它粘贴进去。
+We'll paste it.
+
+1096
+01:29:07,598 --> 01:29:09,188
+启动客户端，加入。
+Start client join.
+
+1097
+01:29:09,838 --> 01:29:13,904
+操作数中的字符串和浮点数无效。
+Invalid operand string and float in operand.
+
+1098
+01:29:14,144 --> 01:29:22,704
+这是因为这里需要是 str original 对等节点，这让我觉得我们可能会遇到报错。
+So that's because this needs to be str original peer, which leads me to believe that we'll probably run into nope.
+
+1099
+01:29:22,862 --> 01:29:24,304
+我想我们就在这里遇到那个报错了。
+I think we'll just run into that here.
+
+1100
+01:29:24,526 --> 01:29:25,828
+所以我们再试这一次。
+So we'll try this one more time.
+
+1101
+01:29:26,318 --> 01:29:28,900
+启动服务器，启动客户端，加入。
+Start server, start client join.
+
+1102
+01:29:29,422 --> 01:29:31,104
+我们复制 lobby_id。
+We'll copy the lobby value.
+
+1103
+01:29:31,214 --> 01:29:32,304
+我们把它粘贴到这里。
+We'll paste it in here.
+
+1104
+01:29:32,464 --> 01:29:33,732
+启动客户端，加入。
+Start client join.
+
+1105
+01:29:34,286 --> 01:29:36,384
+又崩溃了，一如既往。
+And another crash, as always.
+
+1106
+01:29:36,544 --> 01:29:39,824
+基础浮点数中不存在转换为 int 的函数。
+Non-existent function to int in base float.
+
+1107
+01:29:39,904 --> 01:29:41,104
+所以这实际上是一个浮点数。
+So this is actually a float.
+
+1108
+01:29:41,198 --> 01:29:44,944
+所以实际上，我觉得既然这是个浮点数，我们直接这样做就行。
+So actually, I think we can get away with just doing that since this is a float.
+
+1109
+01:29:45,024 --> 01:29:47,104
+所以我们把那个转换为 int 的删掉。
+So we'll get rid of that to int.
+
+1110
+01:29:47,424 --> 01:29:48,544
+我们做同样的操作。
+We'll do the same thing.
+
+1111
+01:29:48,784 --> 01:29:52,144
+启动我们的客户端，启动我们的服务器，加入我们的大厅。
+Start our client, start our server, join our lobby.
+
+1112
+01:29:52,224 --> 01:29:53,184
+让我们再试一次。
+Let's try it one more time.
+
+1113
+01:29:53,344 --> 01:29:55,012
+启动客户端，加入大厅。
+Start client, join lobby.
+
+1114
+01:29:56,624 --> 01:29:58,116
+索引无效。
+Invalid index.
+
+1115
+01:30:00,302 --> 01:30:01,824
+我是不是把错误的东西拉出来了？
+Did I pull back the wrong thing?
+
+1116
+01:30:02,064 --> 01:30:02,784
+很有可能。
+Very possible.
+
+1117
+01:30:03,022 --> 01:30:04,224
+让我们再试一次。
+Let's try this one more time.
+
+1118
+01:30:04,750 --> 01:30:06,064
+那大概是我的错。
+That's probably my fault.
+
+1119
+01:30:06,830 --> 01:30:07,716
+我们要点播放了。
+We'll hit play.
+
+1120
+01:30:08,462 --> 01:30:11,184
+启动服务器，启动客户端，加入大厅。
+Start server, start client, join lobby.
+
+1121
+01:30:11,824 --> 01:30:14,064
+我们要获取大厅信息。
+We'll grab our lobby information.
+
+1122
+01:30:14,224 --> 01:30:18,384
+我们到这里，粘贴它，启动客户端，加入大厅。
+We'll come over here, paste it, start client, join lobby.
+
+1123
+01:30:19,598 --> 01:30:20,704
+现在我们到这一步了。
+And we've gotten here.
+
+1124
+01:30:20,974 --> 01:30:22,304
+RTC 对等节点已连接。
+RTC peer connected.
+
+1125
+01:30:22,894 --> 01:30:28,224
+所以如果我们输入 str 括号和括号，我在这边也会做同样的操作。
+So if we hit str bracket and bracket, I'm gonna do the same thing over here.
+
+1126
+01:30:28,464 --> 01:30:31,876
+我们刚刚创建了 WebRTC 连接。
+We've just created our web RTC connection.
+
+1127
+01:30:32,624 --> 01:30:39,876
+所以如果我们点击开始、开始、加入，我们复制这个，粘贴它，开始加入。
+So if we hit start, start join, we copy this guy, paste it, start join.
+
+1128
+01:30:42,478 --> 01:30:45,744
+我们这里有一个 RTC 对等节点已连接。
+We have an RTC peer connected right here.
+
+1129
+01:30:47,022 --> 01:30:51,492
+这意味着我们实际上已经成功建立了连接。
+So what that means to us is that we actually successfully made a connection.
+
+1130
+01:30:51,918 --> 01:30:54,628
+现在这里有很多信息，对吧？
+Now there's a whole lot of information here, right?
+
+1131
+01:30:55,054 --> 01:30:55,824
+别担心。
+Don't worry.
+
+1132
+01:30:55,984 --> 01:30:59,744
+这整个目的只是为了基本上向你们展示这一切是如何运作的。
+The whole purpose of this is just to show you basically how all this works.
+
+1133
+01:30:59,950 --> 01:31:03,744
+首先，我们创建了一个大厅，对吧？
+So first things first, we created a lobby, right?
+
+1134
+01:31:03,904 --> 01:31:04,452
+就在这里。
+Right here.
+
+1135
+01:31:05,134 --> 01:31:06,704
+然后我们创建了一个提议。
+And then we created an offer.
+
+1136
+01:31:06,784 --> 01:31:13,904
+你可以看到这里，我们有一个很大的 IP 地址，因为这是一个 IPv6 地址。
+And you can see right here, we've got we got a big ol' IP address right here because this is an IPv6 IP address.
+
+1137
+01:31:14,064 --> 01:31:24,900
+然后我们有连接密码，有 ICE 连接，有指纹，有创建连接所需的所有信息。
+And then we have our password to our connection, we have our ice connection, we have a fingerprint,
+we have all of the information that we need to create a connection.
+
+1138
+01:31:25,646 --> 01:31:27,780
+你可以看到我的 IP 地址就在这里。
+You can see we have my IP address right here.
+
+1139
+01:31:28,366 --> 01:31:43,076
+然后我们到这里，进入大厅，进行候选连接，获取主机信息，获取这里的捆绑信息，
+然后在这里发送请求来请求我们的信息。
+And then we come in here, we go into our lobby, we do a candidate connection, we get our host information,
+we grab our bundle information right here, and then we do a request right here to request our information.
+
+1140
+01:31:44,398 --> 01:31:48,864
+我们在彼此之间进行候选操作。
+We do a candidate right here between each other.
+
+1141
+01:31:48,944 --> 01:32:03,584
+所以我们双方都互相进行候选操作，然后获取候选者，传递信令信息，通过这里，
+进行确认和候选操作，然后进行 SDP 信息交换。
+So we both do candidates to each other, and then we get our candidates, we pass our signaling information, we come through here,
+we do an acknowledgement and a candidate, and then we do our SDP information exchange.
+
+1142
+01:32:03,664 --> 01:32:09,904
+看起来它在工作，我加个问号是因为我不完全确定。
+And it looks like it's working, and I'm doing that with a question mark because I'm not fully sure.
+
+1143
+01:32:10,064 --> 01:32:18,064
+所以，我们可以这样做，去我们的 2D 场景，获取发送测试数据包，连接那个按钮。
+So, what we can do, if we go to our 2D scene, let's grab send test packet, let's connect that button.
+
+1144
+01:32:18,286 --> 01:32:25,316
+如果你记得，我们就在这里发送 JSON 数据到服务器，并验证服务器是否正常工作。
+So if you remember, we have that right here where we're sending our JSON data to our server and verifying that our server is working.
+
+1145
+01:32:25,742 --> 01:32:32,708
+嗯，与其这样做，我们可以把它删掉，直接像那样发送 ping。
+Well, instead of doing that, what we could do is we can get rid of this and we can just go ping like that.
+
+1146
+01:32:34,030 --> 01:32:37,264
+现在我们可以到这里，创建一个用于 ping 的函数。
+Now we can come in here and just create a function for pinging.
+
+1147
+01:32:37,344 --> 01:32:43,024
+所以像这样 ping，我们基本上可以直接说 print。
+So ping like this, and we can basically just say print.
+
+1148
+01:32:45,664 --> 01:32:53,904
+从 plus multiplayer 点 get remote sender id 进行 ping。
+Ping from plus multiplayer dot get remote sender id.
+
+1149
+01:32:55,182 --> 01:33:00,304
+然后在上面，我们基本上可以直接去 RPC，任何对等节点。
+and then up here, we can basically just go at RPC, any peer.
+
+1150
+01:33:00,846 --> 01:33:05,824
+我们可以进到这里，写成 ping.RPC 这样。
+and we can come in here and say, ping dot RPC like that.
+
+1151
+01:33:06,926 --> 01:33:07,904
+它会报错的。
+and it's gonna get mad at us.
+
+1152
+01:33:08,064 --> 01:33:09,904
+无效操作数：字符串和整数。
+invalid, operand: string and int.
+
+1153
+01:33:10,144 --> 01:33:29,264
+所以我们直接写成 str 这样，如果刷新一下重新建立连接，也就是启动服务器、启动客户端、
+加入大厅，获取大厅信息，进到这里，粘贴 start join，建立连接，然后发送一个测试数据包。
+So we'll just say str like that, and hopefully, if we refresh this and we redo our connection, so start server, start client,
+join lobby, we grab our lobby information, we come in here, paste start join, we do our connection, and then we send a test packet.
+
+1154
+01:33:29,358 --> 01:33:31,264
+你会看到我们获取到了 ping 信息。
+You will see that we get our ping information.
+
+1155
+01:33:31,344 --> 01:33:34,788
+如果我们发送一个测试数据包，你会看到我们获取到了信息。
+If we send a test packet, you'll see that we get our information.
+
+1156
+01:33:35,214 --> 01:33:35,744
+太棒了。
+Awesome.
+
+1157
+01:33:35,984 --> 01:33:41,824
+现在我们的 WebRTC 相关功能实际上已经跑通了，这很神奇，对吧？
+So now our Web RTC stuff is actually working, which is amazing, right?
+
+1158
+01:33:41,904 --> 01:33:46,464
+我们的东西已经跑通了，而且它的表现正是我们预期的那样。
+We have our stuff actually working, and it's actually doing what we would expect it to do.
+
+1159
+01:33:46,624 --> 01:33:51,664
+所以，到这一步，我们需要搭建一个专用服务器。
+So, at this point, We do need to set up a dedicated server.
+
+1160
+01:33:51,744 --> 01:33:57,104
+我们这里有服务器代码，但我们实际上需要把它配置成专用服务器。
+So, we have our server code here, but we actually need to set it up to be a dedicated server.
+
+1161
+01:33:57,326 --> 01:34:03,104
+如果你还记得我之前的教程，我讲过如何搭建专用服务器。
+Now, if you remember my previous tutorial, I talked about how to set up a dedicated server.
+
+1162
+01:34:03,264 --> 01:34:20,384
+但如果你需要温习一下，如果我们直接去，如果引用，减号，
+减号 server in os.get_command_line_arguments，那我们只需要打印 hosting on str。
+but if you need a reminder, if we just go, if quote, dash, dash server in os, dot, get command line arguments,
+then all we have to do is just print hosting on str.
+
+1163
+01:34:21,264 --> 01:34:22,704
+然后我们传入一个端口。
+and we'll pass in a port.
+
+1164
+01:34:22,864 --> 01:34:29,380
+在我们的例子里，我想我们用的是 8915，但我们可能得进到这里，直接写 export。
+In our case, I believe we're doing eight nine 15 but we'll probably have to just come up here and just go at export.
+
+1165
+01:34:30,304 --> 01:34:35,377
+Var 主机_port 这样，我就把它设为 8915。
+Varhost port like that, and I'm just going to set this to eight nine 15.
+
+1166
+01:34:35,630 --> 01:34:41,584
+然后我进到这里，复制并粘贴，这样我们就能在这里拥有某种托管系统了。
+And then I'll just come in here, copy it and paste, that way we can actually have some kind of hosting system here.
+
+1167
+01:34:41,774 --> 01:34:50,624
+然后我们直接用 对等节点.create_server_主机_port 这样，我们就准备就绪了。
+And then we can just go with peer create server host port like that, and we should be good to go.
+
+1168
+01:34:50,784 --> 01:35:01,092
+这将允许我们搭建一个托管服务器，现在我们真正需要做的就是
+把它上传到 Digital Ocean 或者你们拥有的任何自托管系统上。
+And that's going to allow us to set up a hosted server, and now all we really have to
+do is upload it to Digital Ocean or to whatever self-hosted system that you guys have.
+
+1169
+01:35:01,838 --> 01:35:10,864
+所以让我们把这个上传到 Digital Ocean，好吗？为了让我们的
+东西在 DigitalOcean 上运行，我们只需要创建一个 droplet。
+So let's go ahead and upload this to digital ocean all right so to get our
+stuff to work in DigitalOcean all we really need to do is create a droplet.
+
+1170
+01:35:10,944 --> 01:35:15,584
+我现在已经创建了一个，但我会给你们展示一下过程，让你们看看那是怎样的。
+Now I already have one created but I'll show you guys the process so you guys can see what it's like.
+
+1171
+01:35:15,726 --> 01:35:20,144
+如果我点击创建 droplet，你会看到他们有不同的位置。
+So, if I click create droplet, you'll see that they have different locations.
+
+1172
+01:35:20,304 --> 01:35:30,304
+如果你在，你知道的，美国，你可以选择纽约或旧金山；如果你在欧洲，
+你可以选择欧洲的其中一个，对吧？
+So, if you are in, you know, the United States, you can use the New York or San
+Francisco, or if you're over in Europe, you can use one of the European ones, right?
+
+1173
+01:35:30,464 --> 01:35:35,748
+所以，你基本上可以选择任何适用于你的数据中心和区域。
+So, you can basically pick whichever data center and region that's applicable to you.
+
+1174
+01:35:36,174 --> 01:35:45,104
+一旦你选好了，接下来你可以选择想要哪种镜像。在我的例子里我用的是 Ubuntu，
+但如果你是 Adora 或 Debian 的粉丝，你也可以选那些。
+But once you pick that then you can pick what kind of image you want now in my case I'm doing Ubuntu but if you're a fan of Adora or
+Debian or something like that you can do that.
+
+1175
+01:35:45,184 --> 01:35:46,064
+完全没问题。
+That's totally fine.
+
+1176
+01:35:46,318 --> 01:36:05,024
+当他们让你选择尺寸时，你可以选择不同的优化系统。我建议用于测试的是 7 美元的 Premium
+AMD，或者选常规的，然后点击展开，你会看到这里有一个 4512MB、1 CPU 的小家伙。
+When they do choose size you can actually pick different optimized systems what I suggest for testing is either do the seven dollar
+premium AMD or go to regular and then hit over and you will see that there's a $4512 megabyte one CPU little guy here.
+
+1177
+01:36:05,184 --> 01:36:18,384
+你可以用这个，这个可以处理 99% 你要做的事情，仅仅是为了测试目的。
+如果你要做一些更深入或更困难的事情，你实际上可以选 6 或者 12，那完全没问题。
+You can use this one this one works for 99% of things that you're going to be doing just for testing purposes if you're going to be
+doing stuff that's a bit more in depth or a bit more difficult you can actually go up to the six or the 12 and that's totally fine.
+
+1178
+01:36:18,624 --> 01:36:31,470
+如果你向下滚动，他们会有额外的存储空间，你不需要那个。记得设置一个密码，
+因为这样你可以创建一个 root 密码，这就是你以后任何时候想要安装东西或调整机器上需要
+If you scroll down they're gonna have additional storage you're not going to need that uh be sure to throw a password in because then
+you can actually create a root password and that is the password that you're gonna use anytime you want to install something or adjust
+
+1179
+01:36:31,470 --> 01:36:31,980
+root 权限的操作时要用的密码。如果你愿意，你也可以把这些加进来。
+If you scroll down they're gonna have additional storage you're not going to need that uh be sure to throw a password in because then
+you can actually create a root password and that is the password that you're gonna use anytime you want to install something or adjust
+
+1180
+01:36:31,980 --> 01:36:36,720
+root 权限的操作时要用的密码。如果你愿意，你也可以把这些加进来。
+something that requires root on your machine And you can come and add these guys in if you want.
+
+1181
+01:36:36,880 --> 01:36:38,560
+我没加，因为我不需要那些。
+I didn't because I don't need those.
+
+1182
+01:36:38,734 --> 01:36:45,360
+最后，你可以设置它属于哪个项目，想要多少个，以及主机名是什么。
+And then finally, you can set up which project it goes to, how many you want of them, and what the host name is going to be.
+
+1183
+01:36:45,520 --> 01:36:48,400
+现在，我的情况是，我已经有一个 Droplet 了。
+Now, in my case, I already have a droplet.
+
+1184
+01:36:48,558 --> 01:36:49,040
+就在这里。
+It's right here.
+
+1185
+01:36:49,120 --> 01:36:50,640
+它叫我的 YouTube Droplet。
+It's called my YouTube droplet.
+
+1186
+01:36:50,880 --> 01:36:54,080
+这就是我用来我的 YouTube 频道的那个。
+And this is the one that I use for my YouTube channel.
+
+1187
+01:36:54,320 --> 01:37:03,760
+一旦我把服务跑起来，你们应该就能连接到它，用我的服务器来进行你们自己的测试和折腾。
+Now, once I get the service up and running, you guys should be able to connect
+to it and use my server for your own testing and your own playing around.
+
+1188
+01:37:03,920 --> 01:37:07,360
+但现在，让我们先把我们的东西设置好。
+But for right now, let's go ahead and set our stuff up.
+
+1189
+01:37:07,520 --> 01:37:11,600
+首先，如果你点击控制台，它就会打开一个控制台。
+So, first things first, if you click on console, it's going to open up a console.
+
+1190
+01:37:11,760 --> 01:37:14,480
+这样你就有了系统的控制台。
+So that way you have a console to your system.
+
+1191
+01:37:14,734 --> 01:37:22,560
+现在，有一点需要注意，你需要设置传输到你的 DigitalOcean 系统的数据。
+Now, something to keep in mind is you're going to need to set up transferring data to your DigitalOcean system.
+
+1192
+01:37:22,720 --> 01:37:29,840
+他们就在这里提供了一个教程，基本上就是如何与 DigitalOcean 传输文件。
+They have a tutorial on how to do it right here, which is basically how to transfer files with DigitalOcean.
+
+1193
+01:37:30,000 --> 01:37:34,720
+他们会详细讲解如何配置、如何设置等等。
+And they run through exactly how to configure it and set it all up and things like that.
+
+1194
+01:37:34,800 --> 01:37:36,240
+所以你们可以按照那个来做。
+So you guys can follow that.
+
+1195
+01:37:36,400 --> 01:37:47,920
+但简而言之，如果你安装一个叫 Putty 的工具，它会安装一个叫 PuTTYgen 的工具。
+PuTTYgen 允许你生成私钥和公钥。
+But the TLDR is if you install a tool called Putty, it's going to install a tool called Putty Gen.
+And Putty Gen allows you to generate a private and public key.
+
+1196
+01:37:48,110 --> 01:37:52,640
+基本上，你可以按你想要的方式来设置你的 PuTTYgen。
+And basically, you can set up your putty gen to be however you want it to be.
+
+1197
+01:37:52,720 --> 01:38:00,000
+你点击生成，把鼠标移动到空白区域，这样就会产生一些随机数。
+You click generate, you kind of move your mouse over the blank area, and that's going to create some randomness.
+
+1198
+01:38:00,398 --> 01:38:02,080
+然后它就会生成出一个密钥。
+And it will generate out a key.
+
+1199
+01:38:02,160 --> 01:38:06,724
+一旦你有了这个密钥，你基本上就可以直接复制它。
+And once you have this key, you basically can just copy this guy.
+
+1200
+01:38:07,822 --> 01:38:11,520
+你可以来到你的 DigitalOcean 这里。
+You can come into your digital ocean here.
+
+1201
+01:38:11,726 --> 01:38:22,800
+你可以进来这里，然后输入 nano ~/.ssh/authorized_keys
+You can come in here and type nano tilde key slash dot ssh slash author authorized keys.
+
+1202
+01:38:22,926 --> 01:38:24,000
+然后我们可以按回车。
+And then we can hit enter.
+
+1203
+01:38:24,080 --> 01:38:26,800
+你可以看到这里已经有一个密钥了。
+And you can see that there is a key right here.
+
+1204
+01:38:26,960 --> 01:38:29,280
+在你的情况下，你可能还没有一个。
+In your case, you probably don't have one.
+
+1205
+01:38:29,486 --> 01:38:30,320
+这完全没关系。
+And that's totally fine.
+
+1206
+01:38:30,480 --> 01:38:37,920
+所以你可以把它粘贴进去，按 control X，它会要求你保存，按 Y 然后按回车，这样就搞定了。
+So what you could do is you could paste it, hit control X, it's gonna
+ask you to save, hit Y and Enter, and then it should be good to go.
+
+1207
+01:38:38,080 --> 01:38:47,520
+然后你只需要进来这里，点击保存公钥，把你的公钥保存到你的硬盘上。
+And then all you have to do is you come in here, you click save public key, and you save your public key out onto your hard drive.
+
+1208
+01:38:47,680 --> 01:38:50,640
+所以我的情况是，我有一个 putty.ppk 文件。
+So in my case, I have a putty.ppk file.
+
+1209
+01:38:50,720 --> 01:38:54,320
+所以你保存那个，然后进来这里保存你的私钥。
+So you save that, and then you come in here and save your private key.
+
+1210
+01:38:54,400 --> 01:38:56,720
+它会提示：嘿，你想在不输入密码短语的情况下保存吗？
+It'll say, Hey, do you want to save this without a passphrase?
+
+1211
+01:38:56,960 --> 01:38:59,360
+我不太担心这个，因为这是我自己的本地东西。
+I'm not too worried about it because it's my own local stuff.
+
+1212
+01:38:59,470 --> 01:39:01,760
+但如果你需要密码短语，就在这里输入就行。
+But if you need a passphrase, go ahead and put them right here.
+
+1213
+01:39:01,934 --> 01:39:08,516
+点确定，然后更改，点击 putty ppk，然后保存它。
+Hit yes and then change, click on putty ppk as well and save that guy.
+
+1214
+01:39:09,102 --> 01:39:23,680
+完成后，进入你的 FileZilla（你可以看到我这里已经有一个了），点击编辑设置，点击 SFTP，
+你可以看到我这里已经关联了我的 putty PPK。
+Once you've done that, if you go into your filezilla, which you can see I already have a filezilla here,
+you can click on edit settings, you can click on SFTP, and you can see right here I have linked my putty PPK.
+
+1215
+01:39:23,760 --> 01:39:29,200
+然后我们可以点击添加密钥文件，向下滚动直到看到你的 putty PPK 文件，然后点击打开。
+So we can click add key file, scroll down until you see your putty PPK file, and hit open.
+
+1216
+01:39:29,294 --> 01:39:33,220
+这样操作后，它就会添加到你这里的项目里。
+And then if you do that, it will add it to your project right here.
+
+1217
+01:39:33,614 --> 01:39:46,880
+你只需要点击这个小按钮，打开站点管理器，然后你可以添加一个新站点，把类型改为 SFTP，
+把主机设置为你这里的 IP 地址。
+All you have to do is you click on this little button right here, open site manager, and then you can add in a new site,
+change the thing to SFTP, set your host to your IP address that is right here.
+
+1218
+01:39:46,960 --> 01:39:48,560
+就是这个 IP 地址。
+So it's this IP address.
+
+1219
+01:39:48,720 --> 01:39:50,160
+在我的情况下，就是这个 IP 地址。
+In my case, it's this IP address.
+
+1220
+01:39:50,320 --> 01:39:53,476
+在你的情况下，就是你的 IP 地址。
+In your case, it'll be whatever your IP address happens to be.
+
+1221
+01:39:54,030 --> 01:40:05,040
+然后端口保持默认，用户名是 root，接着把登录类型改为交互式，这样就可以了。
+And then your port is just going to be default, username is root, and
+then change your login type to interactive, and that should do it for you.
+
+1222
+01:40:05,120 --> 01:40:08,960
+设置好之后，你应该就能点击连接了，它就应该能连上。
+So you should be able to click connect once you have that set up, and it should just connect.
+
+1223
+01:40:09,040 --> 01:40:13,760
+我的情况是已经设置好了一个，所以我点一下 droplet，它就会连接到我的 droplet。
+In my case, I already have one set up, so I'm gonna click droplet and it will connect to my droplet.
+
+1224
+01:40:13,920 --> 01:40:16,160
+你可以看到它已经连接到我的 droplet 了。
+You can see right here it's connected to my droplet.
+
+1225
+01:40:16,750 --> 01:40:21,280
+现在有了这个，我们需要在 Godot 里设置导出。
+Now, once we have that, we need to set up exporting inside of Godot.
+
+1226
+01:40:21,520 --> 01:40:25,600
+那我们回到这里的项目。
+So let's go out to our project here.
+
+1227
+01:40:26,510 --> 01:40:33,680
+去项目，项目设置，进入常规，运行，把我们的主场景设置为控制场景。
+Let's go to project, project settings, go to general, run, and set our main scene as our control scene.
+
+1228
+01:40:33,840 --> 01:40:39,760
+点关闭，按 Ctrl+S，项目，导出，然后我们来设置 Linux 导出。
+Hit close, hit control S, project, export, and let's set up a Linux export.
+
+1229
+01:40:39,840 --> 01:40:41,440
+我们点击添加 Linux。
+So we'll go to add Linux.
+
+1230
+01:40:42,798 --> 01:40:46,416
+默认情况下，这些设置应该都没问题。
+And all of this by default should be okay.
+
+1231
+01:40:46,766 --> 01:40:48,772
+然后我们点击导出项目。
+So we'll click export project.
+
+1232
+01:40:49,358 --> 01:40:50,176
+我们到这里。
+We'll come in here.
+
+1233
+01:40:50,336 --> 01:40:55,268
+我要创建一个叫 WebRTC Tutorial 的文件夹。
+I'm going to create a folder called WebRTC Tutorial.
+
+1234
+01:40:55,662 --> 01:41:00,976
+这会在我的文档文件夹里创建一个叫 WebRTC Tutorial 的文件夹。
+And that's going to create a folder out in my documents folder called WebRTC Tutorial.
+
+1235
+01:41:01,056 --> 01:41:05,028
+我不会勾选带调试的导出，虽然你可以勾选，那也没问题。
+I'm not going to export with debug, although you can, and that's totally fine.
+
+1236
+01:41:05,358 --> 01:41:09,056
+我点击保存，它就会把所有内容导出出来。
+I'm going to click save and it's going to go ahead and export all of that out.
+
+1237
+01:41:09,216 --> 01:41:16,336
+如果我们看这里的文档文件夹，你应该能看到 WebRTC tutorial。
+So if we look in our documents folder here, you should see a WebRTC tutorial right here.
+
+1238
+01:41:16,576 --> 01:41:19,216
+你应该能看到这里有三个文件。
+you should see that there are three files right here.
+
+1239
+01:41:19,342 --> 01:41:23,936
+我们有一个 SO 文件，一个 PCK 文件，还有一个 x8664。
+We have an SO file, a PCK file, and an x8664.
+
+1240
+01:41:24,176 --> 01:41:27,536
+x8664 就是你的实际可执行文件。
+X8664 is your actual executable.
+
+1241
+01:41:27,758 --> 01:41:29,376
+它就像 Windows 里的 exe 文件一样。
+So it's like an exe in Windows.
+
+1242
+01:41:29,536 --> 01:41:30,976
+PCK 是你的包文件。
+PCK is your package file.
+
+1243
+01:41:31,056 --> 01:41:36,416
+所以它包含了你所有的 Godot 素材，比如精灵图之类的。
+So it holds all of your Godot stuff like sprites and things like that that are being used.
+
+1244
+01:41:36,576 --> 01:41:41,988
+还有你所有的额外 Godot 信息。
+And so is all of your additional Godot information.
+
+1245
+01:41:42,350 --> 01:41:45,892
+所以我们要做的就是进入这里的 FZ。
+So what we'll do is we'll go into our FZ right here.
+
+1246
+01:41:46,830 --> 01:42:02,096
+我要进入我的文档文件夹，向下滚动，我记得应该有个 WebRTC 教程，但现在没显示出来。
+I'm going to go into my documents, scroll down until I see, I believe
+there should be a WebRTC tutorial, which is not actually showing up.
+
+1247
+01:42:02,176 --> 01:42:05,376
+所以我打算点开这里的文档文件夹看看。
+So I'm going to do is I'll click on my documents here and I will look.
+
+1248
+01:42:05,536 --> 01:42:06,496
+就在那儿。
+There it is, right there.
+
+1249
+01:42:06,576 --> 01:42:08,736
+有时候它不会实时更新。
+Sometimes this doesn't update all the time.
+
+1250
+01:42:08,942 --> 01:42:10,576
+你可以看到我这里有三个文件。
+You can see I have my three guys here.
+
+1251
+01:42:10,656 --> 01:42:20,096
+我要做的就是右键点击，创建一个目录，把它命名为 WebRTC tutorial。
+So what I'm going to do is I'm going to right click, create a directory, and I will call it WebRTC tutorial.
+
+1252
+01:42:20,176 --> 01:42:22,656
+我双击它，这样我就能访问它了。
+I'll double-click on it and that's going to let me access it.
+
+1253
+01:42:22,816 --> 01:42:26,336
+我把这些文件拖过去，它就会上传。
+I'll grab, drag these guys over, and it's going to upload.
+
+1254
+01:42:26,496 --> 01:42:28,096
+现在这可能需要一点时间。
+Now this could take a while.
+
+1255
+01:42:28,256 --> 01:42:29,456
+可能需要五秒钟。
+It might take five seconds.
+
+1256
+01:42:29,582 --> 01:42:33,988
+我的情况很快就搞定了，但有时候确实需要挺长时间的。
+In my case, it was pretty quick, but sometimes it does take a long time to do.
+
+1257
+01:42:34,574 --> 01:42:38,336
+接下来我们要做的就是打开这里的控制台。
+Now what we'll do next is we'll open up our console here.
+
+1258
+01:42:38,542 --> 01:42:44,576
+我要输入 ls 来列出所有目录，你会看到我们这里有一个 web rtc tutorial。
+I'm going to hit ls to list all of the directories, and you'll see that we have a web rtc tutorial right here.
+
+1259
+01:42:44,974 --> 01:42:53,696
+所以我输入 CD WebRTC tutorial ls，你会看到我们的文件就在这里。
+So I'm going to type CD WebRTC tutorial ls, and you'll see that we have our files right here.
+
+1260
+01:42:54,574 --> 01:43:05,476
+现在我们只需要输入 ./webrtc with Godot tutorial.x8664 然后按回车。
+So now all we have to do is hit dot slash quote webrtc with Godot tutorial.x8664 and we'll hit enter.
+
+1261
+01:43:05,774 --> 01:43:07,876
+你会看到提示权限被拒绝。
+And you'll see that we get a permission denied.
+
+1262
+01:43:08,302 --> 01:43:09,188
+那是什么意思呢？
+So what does that mean?
+
+1263
+01:43:09,536 --> 01:43:12,176
+嗯，那意味着我们实际上没有运行这个的权限。
+Well, that means that we actually don't have permission to run this.
+
+1264
+01:43:12,366 --> 01:43:15,056
+Linux 不知道这是什么，它在说：嘿，等一下。
+Linux doesn't know what this is, and it says, hey, hold on a minute.
+
+1265
+01:43:15,136 --> 01:43:16,736
+就像是：你确定要运行这个吗？
+Like, are you sure you want to run this?
+
+1266
+01:43:16,896 --> 01:43:28,256
+通常来说，在处理权限时，你应该遵循最小权限原则，这样才能最大限度地确保你的东西安全。
+Now, generally speaking, when doing permissions, you want to go with least permissions
+possible to make it so that you have the best possible success in securing your stuff.
+
+1267
+01:43:28,416 --> 01:43:36,416
+我的情况既然是教程，我就直接用 chmod 777，我知道这可能会被批评，但它能让事情简单得多。
+In my case, since this is a tutorial, I'm just going to go ch mod777, which
+I know I'm going to get some flack for, but it makes things a lot easier.
+
+1268
+01:43:36,576 --> 01:43:42,736
+现在我只需输入 ./W 然后按 Tab 键，接着输入 .PCK
+Now I'm just going to hit quote W tab, and then I will hit dot P CK.
+
+1269
+01:43:43,214 --> 01:43:47,456
+我们要输入 .X8664。
+We're gonna do dot X8664.
+
+1270
+01:43:47,694 --> 01:43:54,576
+然后按上箭头把它拉回来，输入 lib，按 Tab 键然后按回车。
+And then we're gonna hit the up arrow and we'll pull this back, we'll type lib, and we'll hit tab and hit enter.
+
+1271
+01:43:54,656 --> 01:43:59,856
+现在如果我们直接运行它，你应该会看到……嗯，一堆错误。
+And now if we just come up here and run it, you should see well, a bunch of errors.
+
+1272
+01:43:59,936 --> 01:44:01,412
+所以到底发生了什么，对吧？
+So what the heck happened, right?
+
+1273
+01:44:01,870 --> 01:44:08,388
+嗯，情况是 Godot 正尝试用 Vulcan 运行一个可执行文件。
+Well, what's going on is Godot is trying to run an executable with Vulcan.
+
+1274
+01:44:08,686 --> 01:44:10,820
+但我们没法这么做，因为这是个服务器。
+And we can't do that because this is a server.
+
+1275
+01:44:11,182 --> 01:44:14,660
+所以我们必须加上 --headless 参数来运行它。
+So we have to run it with dash dash headless.
+
+1276
+01:44:15,534 --> 01:44:17,856
+这样它就会在 Godot 内部运行。
+And that will run it inside of Godot.
+
+1277
+01:44:17,936 --> 01:44:18,816
+所以你可以看到它正在运行。
+So you can see it's running.
+
+1278
+01:44:18,976 --> 01:44:19,536
+太棒了，对吧？
+Awesome, right?
+
+1279
+01:44:19,616 --> 01:44:20,068
+我们搞定了。
+We're done.
+
+1280
+01:44:20,398 --> 01:44:21,136
+嗯，还没完全搞定。
+Well, not quite.
+
+1281
+01:44:21,216 --> 01:44:22,628
+我们的服务器还没启动。
+Our server hasn't started.
+
+1282
+01:44:22,926 --> 01:44:24,576
+那我们的服务器该怎么启动呢？
+So how can our server start?
+
+1283
+01:44:24,878 --> 01:44:26,256
+其实这非常简单。
+Well, that's actually really easy.
+
+1284
+01:44:26,496 --> 01:44:30,256
+因为我们在代码里添加了 --server 参数。
+Because we added dash dash server to our code.
+
+1285
+01:44:30,416 --> 01:44:38,276
+如果我们看这里，我们添加了如果命令行参数中有
+--server，那么我们就可以运行服务器了，对吧？
+If we look right here, we added if dash dash server in command line arguments, then we can run our server, right?
+
+1286
+01:44:38,736 --> 01:44:39,696
+所以这样就行了。
+So that works.
+
+1287
+01:44:39,776 --> 01:44:44,964
+如果我们直接输入 --server 然后按回车，就在 8915 端口托管。
+If we just hit dash dash server and hit enter, hosting on 8915.
+
+1288
+01:44:45,518 --> 01:44:49,296
+哎呀，我按了 Ctrl+C 来复制这个。
+And now, whoops, I hit control C to copy this.
+
+1289
+01:44:49,376 --> 01:44:51,268
+让我用右键复制一下。
+So let me do right-click copy.
+
+1290
+01:44:51,886 --> 01:45:08,736
+如果我们看一下我们的客户端，把 WebSocket 连接改为 8915，而且不用 127.0.0.1，
+我们去 Digital Ocean，复制这里的 IP 地址，也就是 20448.28.159。
+If we take a look at our client and we change our web socket connection to 8915, and instead of 127.0.0.1, we go to digital ocean,
+we copy our IP address right here, which is 20448.28.159.
+
+1291
+01:45:09,230 --> 01:45:13,156
+如果我们到这里按粘贴，按 Ctrl+S，然后按播放。
+If we come in here and we hit paste, control S, we hit play.
+
+1292
+01:45:14,350 --> 01:45:18,368
+如果我们点击“启动客户端”，你会注意到我们已经连接上了。
+If we hit start client, you'll notice that we have connected.
+
+1293
+01:45:18,528 --> 01:45:22,208
+如果我们点击“加入大厅”，你会注意到我们已经加入了大厅。
+If we hit join lobby, you will notice that we've joined our lobby.
+
+1294
+01:45:22,288 --> 01:45:31,408
+然后如果我们复制我们的大厅，把它粘贴到另一个客户端，点击“启动客户端”，点击“加入大厅”，
+你会看到我们已经完成了 RPC 连接。
+And then if we copy our lobby, paste it into our other client, we hit start client, join lobby,
+you'll see that we have done our RPC connection.
+
+1295
+01:45:31,566 --> 01:45:37,648
+所以你可以看到我可以在这里点击“发送测试数据包”，我可以 ping 我的另一个用户。
+So you can see that I can come in here and hit send test packet and I can ping my other user.
+
+1296
+01:45:37,808 --> 01:45:39,968
+而这一切都是在没启动我的服务器的情况下完成的。
+And this is all without starting my server.
+
+1297
+01:45:40,048 --> 01:45:46,020
+你可以看到我在 Digital Ocean 上的服务器正在处理所有的信令和所有的工作。
+You can see that my server out on digital ocean is doing all of the signaling and doing all of the work.
+
+1298
+01:45:47,022 --> 01:45:47,876
+太棒了。
+So awesome.
+
+1299
+01:45:48,366 --> 01:45:51,008
+这就是我们实现专用服务器的基本方法。
+That's basically how we can do a dedicated server.
+
+1300
+01:45:51,168 --> 01:45:52,528
+嘿大家好，我是编辑米奇。
+Hey guys, editor Mitch here.
+
+1301
+01:45:52,608 --> 01:46:01,248
+在我剪辑这段视频的时候，有人联系我问我如何在后台运行这个服务。
+So something that came up while I was editing this video, somebody
+actually hit me up and asked me how to run this service in the background.
+
+1302
+01:46:01,328 --> 01:46:06,048
+因为会出现的情况是，他们运行了进程，对吧？
+Because what would happen is they would run the process, right?
+
+1303
+01:46:06,208 --> 01:46:07,008
+就像这样。
+Like so.
+
+1304
+01:46:07,408 --> 01:46:12,740
+然后只要他们关闭窗口，程序就会崩溃并停止运行。
+And then as soon as they closed the window, it would crash out and stop the process from running.
+
+1305
+01:46:13,262 --> 01:46:14,608
+那该怎么在后台运行它呢？
+So how do you run it in the background?
+
+1306
+01:46:14,768 --> 01:46:16,128
+嗯，其实非常简单。
+Well, that's actually really easy.
+
+1307
+01:46:16,288 --> 01:46:24,368
+你只需要按下 control Z 来停止进程，输入 BG，这样它就会在后台运行。
+All you have to do is you hit control Z to stop your process, type BG, and that will run it in the background.
+
+1308
+01:46:24,448 --> 01:46:29,008
+然后如果你输入 jobs，你应该能看到它正在后台运行。
+And then if you type jobs, you should see that it is running that in the background.
+
+1309
+01:46:29,248 --> 01:46:32,528
+一旦搞定这个，你就得把那个进程从当前会话中剥离出来。
+And once you have that, you have to disown that process.
+
+1310
+01:46:32,608 --> 01:46:38,048
+所以你可以输入 disown -H %1。
+So you can type disown dash H percent sign one.
+
+1311
+01:46:38,318 --> 01:46:44,208
+这样它就从你这里剥离了，它会被系统调度器接管并继续运行。
+And that will disown it from you, and it'll get picked up by the system scheduler and it'll be held on to by that.
+
+1312
+01:46:44,430 --> 01:46:57,328
+所以现在如果我点击关闭，然后点击播放，启动我的客户端并加入大厅，
+你可以看到一切都在正常工作，即使我关闭了进程，即使我关闭了终端，它依然在运行。
+So now if I hit close and then I hit play and I start my client and I join my lobby, you can see that everything's working,
+even though I closed my process, even though I closed my terminal, it's still running.
+
+1313
+01:46:57,488 --> 01:47:08,448
+我仍然可以启动客户端，进入这里，抓取这个大厅，加入它，然后等待对等节点连接，
+接着发送我的数据包，然后一切看起来都正常。
+I can still start my client, I can come in here, grab this lobby, I can join it, and then I can wait until my peers are connected and
+then send my packet, and then everything seems to work just fine.
+
+1314
+01:47:08,688 --> 01:47:10,128
+所以请记住这一点。
+So just keep that in mind.
+
+1315
+01:47:10,288 --> 01:47:11,748
+这就是你们可以操作的方法。
+That's how you guys can do that.
+
+1316
+01:47:12,206 --> 01:47:21,968
+这也是让你们能进来实际测试我的服务器的方法，就是使用我的 IP 地址加上 8915。
+And that's also what's gonna allow you guys to come in and actually play around with my server is by using my IP address plus 8915.
+
+1317
+01:47:22,048 --> 01:47:23,808
+然后我把那个进程剥离了。
+And then I disown that process.
+
+1318
+01:47:23,968 --> 01:47:28,804
+这样我就能让这个进程一直在后台运行。
+That way I can have this process running in the background at all times.
+
+1319
+01:47:29,134 --> 01:47:38,208
+判断进程是否在运行最简单的方法是，打开你的控制
+台，输入 jobs，你会发现那里什么都没有，对吧？
+The easiest way to tell if your process is running is if you open up your console, you can come in and type jobs,
+and you'll notice that nothing's there, right?
+
+1320
+01:47:38,368 --> 01:47:39,968
+噢不，我该怎么办？
+Oh no, what am I gonna do?
+
+1321
+01:47:40,128 --> 01:47:43,248
+嗯，这就是 ps-ax 发挥作用的地方。
+Well, that's where ps AX comes in.
+
+1322
+01:47:43,328 --> 01:47:49,808
+所以你可以输入 ps-ax，你会看到 WebRTC 无头服务器，并且它有一个 PID。
+So you can say ps-ax and you will see WebRTC headless server, and it has a PID.
+
+1323
+01:47:49,888 --> 01:47:58,244
+所以如果你需要杀死它，只需输入 kill，然后获取这个 PID，复制它，然后粘贴即可。
+So if you need to kill it, you can just type kill and then you can grab this PID, copy it, and then paste.
+
+1324
+01:47:58,638 --> 01:48:03,556
+然后当你再次执行 ps-ax 时，那个进程现在就死了，它消失了。
+And then when you do PS-AX, that process is now dead, it's gone.
+
+1325
+01:48:04,048 --> 01:48:09,648
+这样就能关闭你的服务器，让你能够重置它或者更新它之类的操作。
+So that'll take your server down and allow you to reset it or update it or things like that.
+
+1326
+01:48:09,808 --> 01:48:11,968
+所以基本上就是这么做的。
+So that's basically how you can do it.
+
+1327
+01:48:12,174 --> 01:48:15,728
+现在，我要重新运行一下这个。
+Now, what I now I'm gonna come in, I'm going to rerun this.
+
+1328
+01:48:15,918 --> 01:48:17,408
+我要这样做。
+So I'm going to do this.
+
+1329
+01:48:17,568 --> 01:48:20,528
+我要按下 control X 或者 control Z。
+I'm gonna hit control X or control Z.
+
+1330
+01:48:20,688 --> 01:48:33,220
+我要输入 BG，然后输入 disown -H %1 让它运行，然后我就能安全地关闭这个，一切就搞定了。
+I'm gonna come in, do my BG, and then I'm going to disown dash H percent sign one to get that to run,
+and then I can safely close this and everything should be good.
+
+1331
+01:48:33,742 --> 01:48:35,568
+总之，让我们回到视频内容中去吧。
+So, anyway, let's go ahead and get back to the video.
+
+1332
+01:48:35,728 --> 01:48:42,288
+现在，到这一步为止，你基本上已经拥有了建立 WebRTC 连接所需的一切内容。
+Now, from here at this point, you basically have everything that you need to be able to do a WebRTC connection.
+
+1333
+01:48:42,448 --> 01:48:49,808
+接下来我们要做的，是让它真正加载我的项目，就在这里。
+What we're gonna do next is we're going to make it so that it actually loads out my project, which is right here.
+
+1334
+01:48:49,968 --> 01:48:53,248
+我是专门为这个多人游戏教程构建的这些内容的。
+And I built this all out for the multiplayer tutorial.
+
+1335
+01:48:53,328 --> 01:49:02,128
+所以你们当然可以用这些代码来满足你们的需求，但
+我们要把它构建出来，这样我们就能真正玩到游戏了。
+So you guys can of course use this code for whatever you need, but
+we're gonna build this out so that way we can actually play our game.
+
+1336
+01:49:02,368 --> 01:49:09,924
+所以，我们要做的就是进入我们的，我想应该是发送测试数据包的部分。
+So, what we'll do is we'll come into our, I believe it's going to be our send test packet.
+
+1337
+01:49:10,222 --> 01:49:11,168
+就是按钮 3。
+So button three.
+
+1338
+01:49:11,248 --> 01:49:13,408
+你可以看到我们在这里执行 ping RPC。
+You can see where we're doing our ping RPC.
+
+1339
+01:49:13,488 --> 01:49:22,768
+我要把这个从 ping 改成 start game，然后我复制、
+粘贴，不再执行 ping，而是基本上加载我的游戏。
+I'm gonna change this from ping to start game, and I'm gonna copy this,
+paste it, and instead of doing ping, I'm basically going to load my game.
+
+1340
+01:49:22,928 --> 01:49:39,168
+所以我要做的就是在这里写 var scene = load_res: / / "，然后我们往下找我们的场景。
+So what I'll do is I'll come in here and say var scene is equal to load res colon slash slash quote,
+and we're gonna come down here and find our scene.
+
+1341
+01:49:39,248 --> 01:49:44,288
+我记得原来的叫 test scene，所以我们要找 test scene 点
+I believe it was called test scene from our original, so we'll go test scene dot
+
+1342
+01:49:48,224 --> 01:49:49,984
+Instantiate，就像这样。
+Instantiate like so.
+
+1343
+01:49:50,318 --> 01:49:57,380
+然后我们要说 get_tree.root.add_child，把我们的场景添加进去。
+And then we'll say get tree dot root dot add child and we'll add our scene.
+
+1344
+01:49:57,934 --> 01:50:05,824
+现在很棒的一点是，只要我们加载这个，因为我们已经用游戏管理器设置好了一切，
+它就应该能自动运行，这太棒了。
+Now the nice thing is as long as we load this, because we set everything up
+with our game manager, it should just automatically work, which is great.
+
+1345
+01:50:06,064 --> 01:50:09,024
+所以我们只需要点击运行就行了。
+So all we have to do is basically just hit play.
+
+1346
+01:50:09,198 --> 01:50:13,824
+我们有两个角色，我们要确保我们的服务在这里运行。
+We'll have our two guys, we'll make sure that our service is running on here.
+
+1347
+01:50:13,904 --> 01:50:15,300
+所以我们就这样做。
+So we'll do that.
+
+1348
+01:50:15,758 --> 01:50:19,904
+它将作为主机启动我们的游戏或者启动我们的客户端，加入我们的大厅。
+It's gonna host start our game or start our client, join our lobby.
+
+1349
+01:50:20,014 --> 01:50:22,224
+你会看到我们的 lobby_id 就在这里。
+You'll see that we have our lobby value right here.
+
+1350
+01:50:22,304 --> 01:50:23,024
+我们要复制它。
+We'll copy it.
+
+1351
+01:50:23,184 --> 01:50:24,384
+啊，我老是搞错。
+Ah, I keep doing that.
+
+1352
+01:50:24,544 --> 01:50:25,744
+所以现在我得重启。
+So now I gotta restart.
+
+1353
+01:50:25,870 --> 01:50:38,064
+所以启动我们的客户端，加入我们的大厅，进来这里，右键，复制，点击这个，粘贴，
+启动我们的客户端，加入我们的大厅，你会看到我们已经完成了交换，一切都正常了。
+So start our client, join our lobby, come in here, right click, copy, click on this guy, paste, start our client, join our lobby,
+and you'll see that we will have have gotten our exchange and everything will have worked.
+
+1354
+01:50:38,144 --> 01:50:42,224
+我们点击启动发送测试数据包，它好像成功了。
+We'll hit start send test packet, and it kind of worked.
+
+1355
+01:50:42,304 --> 01:50:44,624
+这个角色启动了游戏，但其他的都没有。
+This guy started the game, but the rest of them didn't.
+
+1356
+01:50:44,704 --> 01:50:46,144
+所以让我们看看这里发生了什么。
+So let's see what's going on here.
+
+1357
+01:50:46,304 --> 01:50:49,904
+找不到节点，相对于根节点的 multiplayer synchronizer。
+Node not found, multiplayer synchronizer relative to root.
+
+1358
+01:50:50,094 --> 01:50:56,944
+所以这让我相信，由于某种原因，我们的玩家没有被正确生成。
+So that leads me to believe that for some reason our player is not done correctly.
+
+1359
+01:50:57,024 --> 01:50:58,144
+所以如果我们按 Ctrl
+So if we hit control,
+
+1360
+01:51:01,710 --> 01:51:03,844
+去 session 1，看看它。
+go to session one, take a look at it.
+
+1361
+01:51:04,558 --> 01:51:07,716
+我们看 session 1，你可以看到我们已经生成了两个玩家。
+We look at session one, you can see that we have our two players spawned.
+
+1362
+01:51:09,166 --> 01:51:10,944
+看起来我们这里有一个 0 和一个 1。
+It looks like we have a zero and a one.
+
+1363
+01:51:11,264 --> 01:51:15,584
+所以这会是个问题，因为我们的索引是从 0 开始的。
+So that's going to be a problem because our index starts at zero.
+
+1364
+01:51:15,744 --> 01:51:19,584
+所以我猜我们的代码写错了。
+So my guess is our code is wrong.
+
+1365
+01:51:21,184 --> 01:51:29,104
+因为我们的场景管理器说索引是 0，我们从 0 开始，但我相信我们的玩家索引应该是 1。
+Because our scene manager says index is zero, we start at zero, but I believe our player index is going to be one.
+
+1366
+01:51:29,424 --> 01:51:35,984
+如果我们在这里的 process 函数上打个断点，看看我们的游戏管理器和字典。
+If we throw a breakpoint on our process here, we take a look at our game manager and our dictionary.
+
+1367
+01:51:36,064 --> 01:51:39,024
+你可以看到我们有两个家伙，索引 2 和索引 1。
+You can see that we have our two guys, index two, index one.
+
+1368
+01:51:39,344 --> 01:51:41,264
+所以这需要从 1 开始。
+So that needs to start at one.
+
+1369
+01:51:41,584 --> 01:51:51,236
+而且我们需要看一下，与其用玩家的 str ID，那可以作为他们的名字。
+And we need to take a look at instead of doing our players str ID, that's fine for their name.
+
+1370
+01:51:51,630 --> 01:51:54,304
+为每一个添加 child current player。
+Add child current player for each that.
+
+1371
+01:51:54,478 --> 01:52:00,864
+如果 spawn name 等于 str index，也就是这里的这个索引，那应该就没问题了。
+If spawn name is equal to str index, this index here, then it should be good to go.
+
+1372
+01:52:01,024 --> 01:52:08,624
+我们可能应该做的是，与其使用这个游戏管理器的索引，我们可能应该直接获取实际的索引。
+What we should probably do is instead of using this game manager's index, we should probably just pull our actual index.
+
+1373
+01:52:08,864 --> 01:52:22,464
+所以我们可以进到这里，直接写 游戏管理器 dot players i dot index 这样。
+So we can come in here and just go game manager dot players i dot index like that.
+
+1374
+01:52:22,798 --> 01:52:34,544
+然后我们需要进入我们的 local，我们需要把它改成 2 然后改成 1，
+这样我们的东西就能正确生成了。
+And then we'll need to come into our local, we're gonna need to change this to two and then to one,
+and that will make it so that way our stuff should properly spawn.
+
+1375
+01:52:34,704 --> 01:52:49,344
+现在，我有的另一个问题是，在我的 session 2 中，如果我们
+看看游戏管理器，看看这里的断点，我猜它还没运行到这一步。
+Now, the other question that I have is in my session two, if we take a look at our
+game manager, so if we look at our breakpoint here, I guess it's not getting this far.
+
+1376
+01:52:49,504 --> 01:52:52,944
+所以问题是，第二个场景在做什么？
+So the question is what is the second scene doing?
+
+1377
+01:52:53,024 --> 01:53:06,464
+如果我们刷新，点击我们的 control 节点，运行游戏，启动客户端，加入大厅，获取这个大厅，
+启动客户端，粘贴，加入大厅，然后发送我们的测试数据包。
+If we refresh, we hit our control node, we play our game, we start client, join lobby, we pull back this lobby, we start our client,
+paste, join lobby, and then we send our test packet.
+
+1378
+01:53:08,206 --> 01:53:09,824
+让我们看看游戏管理器。
+Let's take a look at our game manager.
+
+1379
+01:53:09,984 --> 01:53:13,664
+这个是对的，所以那应该没问题。
+This guy is correct, so that should be fine.
+
+1380
+01:53:19,406 --> 01:53:20,480
+找不到节点。
+Node not found.
+
+1381
+01:53:20,640 --> 01:53:22,320
+噢，我想我知道是怎么回事了。
+Oh, I think I know what's going on.
+
+1382
+01:53:22,480 --> 01:53:26,320
+所以如果我们看这里的客户端，我们有一个 RPC any 对等节点。
+So if we look at our client here, we have RPC any peer.
+
+1383
+01:53:26,400 --> 01:53:27,812
+我们实际上并没有调用 local。
+We're not actually calling it local.
+
+1384
+01:53:28,000 --> 01:53:29,280
+所以调用 local。
+So call local.
+
+1385
+01:53:29,360 --> 01:53:30,960
+那应该就能搞定了。
+And that should hopefully do it.
+
+1386
+01:53:31,040 --> 01:53:31,920
+那我们现在试一下。
+So let's try it now.
+
+1387
+01:53:32,080 --> 01:53:34,400
+点击启动客户端，加入大厅。
+We'll hit start client, join lobby.
+
+1388
+01:53:34,560 --> 01:53:39,520
+我们进到这里，复制这个，进入这个，启动客户端，粘贴，加入大厅。
+We'll come in here, copy this guy, go into this guy, start client, paste, join lobby.
+
+1389
+01:53:39,680 --> 01:53:43,760
+你会看到我们已经获取到了所有连接，然后发送测试数据包。
+So we'll you'll see that we've gotten all of our connection and then send past test packet.
+
+1390
+01:53:43,840 --> 01:53:46,400
+现在你可以看到它应该就能正常工作了。
+And you can see now it should just work.
+
+1391
+01:53:46,560 --> 01:53:52,036
+所以我有一个人，另一个也是，他们现在通过 WebRTC 连接在一起了。
+So I have one guy and the other guy, and they are now connected via WebRTC.
+
+1392
+01:53:52,494 --> 01:53:56,772
+这就是我们把代码转换成适配 WebRTC 的基本方法。
+So that's basically how we can convert our code to work with WebRTC.
+
+1393
+01:53:57,230 --> 01:54:05,280
+目前还没搞定的一点是，大厅创建好之后，我们还没有办法销毁它，对吧？
+One of the things that we don't have working really is once we have our lobby created, we don't have a way to destroy it, right?
+
+1394
+01:54:05,518 --> 01:54:10,400
+所以我们需要在不再使用时销毁大厅。
+So we need to basically destroy a lobby when it's not being used.
+
+1395
+01:54:10,606 --> 01:54:27,760
+所以我们应该在这里加上「remove 大厅 like that」。消息等于 message.remove 大厅。
+So, something that we should do is come in here and say, "remove lobby like that." Message is equal to message.remove lobby.
+
+1396
+01:54:27,920 --> 01:54:39,120
+然后我们基本上可以进入我们的 大厅，就像我们处理用户那样，写 lobbies.lobby_id。
+then we can basically just go into our lobby, kind of like we do here with our users, and say, lobbies.lobby id.
+
+1397
+01:54:40,942 --> 01:54:47,680
+我们需要复制这个，进入我们的客户端，滚动到最上方，添加 remove 大厅。
+and we'll need to copy this, go into our client, scroll up to the top, add in remove lobby.
+
+1398
+01:54:47,760 --> 01:54:59,972
+滚动到这里加入的地方，就在我们开始游戏之前，我们要移除我们的 大厅。
+We'll scroll down to where we're joining right here, just before we start our game, we're gonna want to remove our lobby.
+
+1399
+01:55:00,400 --> 01:55:08,160
+所以我们要这样做：在这里写 对等节点.put_数据包，然后是 JSON.string_to_utf8。
+So what we'll do is we'll come in here, we'll say peer dot put packet, json.string of fi.
+
+1400
+01:55:08,640 --> 01:55:14,160
+我们很快就会收到一个 utf8 缓冲区消息，然后创建一个小的数据包。
+We'll get a message in a second to utf8 buffer, and we'll create a small data package.
+
+1401
+01:55:14,240 --> 01:55:22,800
+所以我们写 data var message 等于括号，括号，引号，message,
+So we'll say data var message is equal to bracket, bracket, quote, message,
+
+1402
+01:55:27,150 --> 01:55:28,720
+message.remove 大厅,
+message.remove lobby.
+
+1403
+01:55:28,878 --> 01:55:30,560
+然后我们需要加上 lobby_id。
+and then we need to do lobby id.
+
+1404
+01:55:31,502 --> 01:55:34,320
+然后传入我们的 lobby_id 值。
+and we'll pass in our lobby value.
+
+1405
+01:55:34,400 --> 01:55:40,800
+我知道大家都会发送这个，所以会有多个对等节点告诉服务器关闭大厅。
+Now I know that everyone's going to send this, so it's going to be multiple peers telling the the server to close a lobby.
+
+1406
+01:55:40,880 --> 01:55:41,360
+没关系。
+That's okay.
+
+1407
+01:55:41,440 --> 01:55:43,200
+我们可以针对这个做错误检查。
+We could just error check against that.
+
+1408
+01:55:43,280 --> 01:55:51,396
+呃，原因是如果因为某些原因消息丢失了，我宁愿让多人发送，
+也不愿只有一个人发送然后消息丢失了。
+Uh the reason why is because if for some reason the message gets missed, I'd
+rather have multiple people send it than just one person and have it get missed.
+
+1409
+01:55:51,694 --> 01:55:54,532
+所以让大家都发送，这样应该就能行了。
+So we'll have everyone send it and that should work.
+
+1410
+01:55:55,662 --> 01:56:08,320
+现在，如果我们进入这里的服务器，我们可以检查 lobbies..has，
+然后传入我们的 data.lobby_id 就像这样。
+Now, if we go into our server here, we can just check if lobbies..has And we can pass in our data.lobby ID like this.
+
+1411
+01:56:08,717 --> 01:56:11,680
+冒号换行，搞定。
+colon tab, And there we go.
+
+1412
+01:56:11,760 --> 01:56:16,240
+这基本上就是说，如果这个大厅存在，就把它移除，然后就完成了。
+And that'll basically just say if this lobby exists, go ahead and remove it and we're good to go.
+
+1413
+01:56:16,480 --> 01:56:24,640
+你还应该创建一个定时器，如果大厅太旧或者被占用太久，比如几个小时，就让它超时。
+You also should create some kind of timer to time out lobbies if they're too old
+or if they've been, you know, held on for too long, something like a couple hours.
+
+1414
+01:56:24,846 --> 01:56:30,116
+具体怎么做交给你们去处理，但这相对简单且容易实现。
+I'll leave that up to you guys on how you do it, but it's relatively simple and easy to use.
+
+1415
+01:56:31,840 --> 01:56:36,720
+但到目前为止，我们大概已经讲了两个小时，甚至两个半小时了。
+But at this point, we're probably about two hours into this tutorial, maybe two and a half.
+
+1416
+01:56:36,880 --> 01:56:38,160
+所以我想我们到这里就结束了。
+So I think we'll call it here.
+
+1417
+01:56:38,240 --> 01:56:41,840
+如果你们对这个教程还有任何额外要求，请告诉我。
+If there's any additional stuff you guys want for this tutorial, please let me know.
+
+1418
+01:56:42,000 --> 01:56:48,640
+我会制作后续内容，非常乐意根据你们的需求去调整和修改。
+I will create a follow-on and be more than happy to readjust things and change it and make it into what you guys need.
+
+1419
+01:56:48,960 --> 01:56:51,280
+这就是我今天要给你们展示的所有内容了。
+But that is all I have for you guys today.
+
+1420
+01:56:51,360 --> 01:56:53,040
+所以如果你喜欢这个视频，请点个赞。
+So if you like this video, go and hit that like button.
+
+1421
+01:56:53,200 --> 01:56:57,120
+嘿，你知道，如果你不喜欢这个视频，也可以点个踩，因为我是为了给你们制作内容才来的。
+Hey, you know, if you dislike this video, go and hit that dislike button because I'm here to make content for you guys.
+
+1422
+01:56:57,360 --> 01:56:59,280
+这个视频是观众提议制作的。
+This video was a viewer-suggested video.
+
+1423
+01:56:59,360 --> 01:57:05,040
+所以如果你有任何建议，请在评论区留言，我很乐意把它加入到我的 GitHub 里。
+So if you have any suggestions, please leave them in the comments below and I'll be more than happy to add it to my GitHub.
+
+1424
+01:57:05,120 --> 01:57:13,732
+或者当然，你也可以直接去我的 GitHub 上添加，我很乐意把它放进我的待制作教程清单里。
+Or of course, you can jump on my GitHub and you know, add it directly there,
+and I'll be more than happy to put it on my list of tutorials to make.
+
+1425
+01:57:14,062 --> 01:57:16,080
+我一直都在这里为你们制作教程。
+I'm always here to make tutorials for you guys.
+
+1426
+01:57:16,160 --> 01:57:17,440
+这就是这个频道的全部意义。
+That's the whole point of this channel.
+
+1427
+01:57:17,520 --> 01:57:20,640
+如果没有收到建议，我通常就不会制作教程了。
+If I don't get suggestions, then I usually don't make tutorials.
+
+1428
+01:57:20,800 --> 01:57:23,140
+所以请留下你的建议，告诉我。
+So please leave suggestions, let me know.
+
+1429
+01:57:23,630 --> 01:57:28,000
+还有，如果你有任何评论或问题，请在评论区留言，或者加入我的 Discord。
+And hey, if you have any comments or questions, please leave them in the comments below or jump on my Discord.
+
+1430
+01:57:28,160 --> 01:57:32,480
+链接就在简介里，我很乐意帮助你们，或者帮助那里的任何人。
+Link is in the description, I'll be more than happy to help you guys out, or really anybody there.
+
+1431
+01:57:32,640 --> 01:57:39,588
+我们那里有很多非常酷且优秀的人，我很开心我们有一个愿意帮助你们的好社区。
+We have a lot of really cool people there that are awesome, and I'm really
+happy that we have a good community that's willing to help you guys out.
+
+1432
+01:57:40,080 --> 01:57:42,000
+好了，今天的内容就到这里。
+But that is all I have for you guys today.
+
+1433
+01:57:42,080 --> 01:57:46,240
+再次感谢大家的观看，我们下次见。
+So thank you so much again for watching, and I'll see you all next time.
+
+1434
+01:57:46,720 --> 01:57:47,280
+谢谢。
+Thanks.
+
