@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [Joo-Young Kim, HyperAccel CEO on AI Chips, LLM Inference & Efficiency](medias/23Q9B/) | Grace Gong | 2026-11-09 |
 | [A Short Introduction to WebRTC With Godot 4! Advanced Godot!](medias/WXN6B/) | FinePointCGI | 2026-11-08 |
 | [How to Make Games in Unreal Engine 5 with AI](medias/RNASP/) | Unreal Sensei | 2026-11-08 |
 | [Essentials: Neuralink & Technologies to Enhance Human Brains \| Dr. Matt MacDougall](medias/R29Q2/) | Andrew Huberman | 2026-11-08 |
