@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [Agentic AI Full Course in 8 Hours 2027 \| Complete Agentic AI Course For Beginners \| Simplilearn](medias/YDG4C/) | Simplilearn | 2026-11-10 |
 | [Stanford AA274A Principles of Robotic Autonomy \| Autumn 2019 \| Modern Computer Vision](medias/R2A8Q/) | Stanford Online | 2026-11-09 |
 | [AI Is Decompiling Every Game \| TheStandup](medias/QT96C/) | The PrimeTime | 2026-11-09 |
 | [This Game Was Built Only With AI in 11 Weeks](medias/NBKNK/) | Stefan 3D AI | 2026-11-09 |
