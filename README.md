@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [Complete Data Science Course FREE [2026] \| Data Science Tutorial for Beginners \| Intellipaat](medias/E694S/) | Intellipaat | 2026-11-11 |
 | [Agentic AI Full Course in 8 Hours 2027 \| Complete Agentic AI Course For Beginners \| Simplilearn](medias/YDG4C/) | Simplilearn | 2026-11-10 |
 | [Learn Data Science For Free (2026) \| Complete Full Data Science Course \| Intellipaat](medias/HNVC2/) | Intellipaat | 2026-11-10 |
 | [This Week in AI: Expanding the Possibilities](medias/CNBVT/) | O'Reilly | 2026-11-10 |
