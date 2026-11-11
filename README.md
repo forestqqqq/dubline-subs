@@ -6,6 +6,7 @@
 |---|---|---|
 | [Linux & OSS Maintainers Are Drowning in AI Slop](medias/X88FD/) | SavvyNik | 2026-11-11 |
 | [Complete Data Science Course FREE [2026] \| Data Science Tutorial for Beginners \| Intellipaat](medias/E694S/) | Intellipaat | 2026-11-11 |
+| [Ground to Cloud to Fabric: The State of Microsoft SQL](medias/6XSVK/) | Microsoft Developer | 2026-11-11 |
 | [Agentic AI Full Course in 8 Hours 2027 \| Complete Agentic AI Course For Beginners \| Simplilearn](medias/YDG4C/) | Simplilearn | 2026-11-10 |
 | [Learn Data Science For Free (2026) \| Complete Full Data Science Course \| Intellipaat](medias/HNVC2/) | Intellipaat | 2026-11-10 |
 | [This Week in AI: Expanding the Possibilities](medias/CNBVT/) | O'Reilly | 2026-11-10 |
