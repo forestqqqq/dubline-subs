@@ -5,6 +5,7 @@
 | 视频 | 原作者 | 更新 |
 |---|---|---|
 | [Ripple 65B: A Chip Design Lab Just Beat Every US Open Model](medias/GP7CW/) | Sam Witteveen | 2026-11-12 |
+| [Run a Weekly Research Report with ChatGPT Projects & Scheduled Tasks](medias/G7759/) | DataCamp | 2026-11-12 |
 | [AI fixes AI in MIT study, Mistral's open model & Google Genie 4](medias/EVKVQ/) | IBM Technology | 2026-11-12 |
 | [Linux & OSS Maintainers Are Drowning in AI Slop](medias/X88FD/) | SavvyNik | 2026-11-11 |
 | [Complete Data Science Course FREE [2026] \| Data Science Tutorial for Beginners \| Intellipaat](medias/E694S/) | Intellipaat | 2026-11-11 |
