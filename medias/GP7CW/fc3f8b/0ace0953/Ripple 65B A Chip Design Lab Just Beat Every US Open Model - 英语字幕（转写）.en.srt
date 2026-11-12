@@ -1,0 +1,836 @@
+1
+00:00:00,270 --> 00:00:07,520
+Okay, so if you look at the state of open models at the top of the agentic coding benchmarks right now, they're pretty big.
+
+2
+00:00:07,680 --> 00:00:09,680
+In fact, most of them are kind of huge.
+
+3
+00:00:09,840 --> 00:00:15,108
+You're talking about 500 billion parameters, a trillion, sometimes even multiple trillions.
+
+4
+00:00:15,200 --> 00:00:20,420
+Now that's great if you've got a data center, but it's not much use if you're trying to run something locally on your own box.
+
+5
+00:00:20,720 --> 00:00:32,000
+Well, yesterday a lab called Recursive released a 65 billion parameter dense model, trained from scratch, that they say beats every US open weight model on Terminal Bench 2.1.
+
+6
+00:00:32,238 --> 00:00:38,756
+Now I've actually got this running on the ZGX Fury in my office at the moment, hooked up to DSH, the Deep Seek harness.
+
+7
+00:00:39,246 --> 00:00:43,040
+So I'm actually going to put it to the test of how well this does for agentic coding.
+
+8
+00:00:43,278 --> 00:00:49,156
+The other thing, though, that's really interesting about this release is that they're being very open about some of the stats.
+
+9
+00:00:49,550 --> 00:00:51,840
+So the whole thing cost $32 million.
+
+10
+00:00:52,320 --> 00:00:54,880
+And they've actually told us how they actually did it.
+
+11
+00:00:55,150 --> 00:00:56,480
+Okay, so who are this group of people?
+
+12
+00:00:56,560 --> 00:00:58,240
+Because I hadn't heard of them before.
+
+13
+00:00:58,400 --> 00:01:07,120
+A quick note: this is Recursive with an eye, not to be confused with Recursive, Richard Socha's startup, which put out the Flint model recently.
+
+14
+00:01:07,200 --> 00:01:08,836
+That's a totally different company.
+
+15
+00:01:09,358 --> 00:01:15,200
+So Recursive is a fairly new lab, and their main business isn't language models at all, it's chip design.
+
+16
+00:01:15,502 --> 00:01:21,732
+The founders are the team behind Alpha Chip at Google, the reinforcement learning research for laying out chips.
+
+17
+00:01:22,190 --> 00:01:24,644
+And the pitch for that company is sort of closing the loop.
+
+18
+00:01:24,880 --> 00:01:29,680
+Use AI to design better chips, use better chips to train better AI.
+
+19
+00:01:30,080 --> 00:01:32,560
+Certainly a story we're hearing more and more often now.
+
+20
+00:01:32,878 --> 00:01:36,400
+So why would a chip design company pre-train an LLM from scratch?
+
+21
+00:01:36,686 --> 00:01:40,480
+Well, the answer is because they needed one to power their chip design platform.
+
+22
+00:01:40,560 --> 00:01:43,040
+And they wanted control over the whole stack.
+
+23
+00:01:43,214 --> 00:01:46,560
+The model, the training setup, the servings, the whole works there.
+
+24
+00:01:46,766 --> 00:01:52,240
+Now, what they've released is a general purpose version of the model that runs inside that platform.
+
+25
+00:01:52,430 --> 00:01:57,120
+Obviously, their fully decked out AI chipmaking version is staying proprietary.
+
+26
+00:01:57,422 --> 00:01:59,120
+And for me, I don't really mind about that.
+
+27
+00:01:59,280 --> 00:02:02,240
+That kind of makes sense with what their company is focused on.
+
+28
+00:02:02,320 --> 00:02:06,628
+And it's kind of cool that they've released this model and all the artifacts that they actually have.
+
+29
+00:02:07,040 --> 00:02:11,940
+So clearly, a chip design company putting out a coding model isn't something that we're seeing every week.
+
+30
+00:02:12,270 --> 00:02:20,160
+But when you read their blog posts, it's one of the more detailed write-ups of how a model was actually trained that we've seen from any lab in quite a while.
+
+31
+00:02:20,320 --> 00:02:22,960
+And that's a big part of why I wanted to make this video.
+
+32
+00:02:23,400 --> 00:02:24,880
+All right, so let's look at what actually came out.
+
+33
+00:02:24,974 --> 00:02:28,400
+So the model is Ripple 65B Preview.
+
+34
+00:02:28,560 --> 00:02:32,612
+It's a 65 billion parameter dense model, so not a mixture of experts.
+
+35
+00:02:32,942 --> 00:02:38,788
+It's pre-trained on 12 trillion tokens with support for up to a million tokens of context.
+
+36
+00:02:39,182 --> 00:02:41,920
+And already there, there are a number of things that are really interesting.
+
+37
+00:02:42,222 --> 00:02:46,308
+Well, 12 trillion tokens is huge by any sort of standard.
+
+38
+00:02:46,510 --> 00:02:51,588
+It's certainly a lot less than what we're seeing a lot of other models actually being trained on.
+
+39
+00:02:51,760 --> 00:02:56,160
+They've also released the instruction tune model, which is what I'm going to be testing with DSH.
+
+40
+00:02:56,320 --> 00:03:05,760
+They've released that in a BFloat 16 version, an NVFP4 version, and a base model as well, if you wanted to do your own sort of fine-tuning from scratch.
+
+41
+00:03:06,094 --> 00:03:11,012
+And I gotta say that that's pretty nice because a lot of the labs are no longer giving you the base model.
+
+42
+00:03:11,120 --> 00:03:14,852
+And if you want to do your own post-training, that's really what you kind of want there.
+
+43
+00:03:15,120 --> 00:03:18,080
+All right, another cool thing is it's Apache 2.0.
+
+44
+00:03:18,160 --> 00:03:25,680
+You can use it commercially, you can fine-tune it, you can pretty much do whatever you want with this with no custom license full of weird restrictions in there.
+
+45
+00:03:25,902 --> 00:03:30,960
+If you don't want to run it yourself, it's going to be on a bunch of different clouds, including Together, OpenRouter.
+
+46
+00:03:31,214 --> 00:03:33,252
+I think Fireworks AI is also coming.
+
+47
+00:03:33,600 --> 00:03:35,760
+Okay, so back to the headline numbers.
+
+48
+00:03:35,920 --> 00:03:40,640
+Well, on Terminal Bench 2.1, they're reporting 80.52.
+
+49
+00:03:41,120 --> 00:03:47,280
+Reflections beam model, which is a 500 billion parameter model, scored 80.1.
+
+50
+00:03:47,662 --> 00:03:56,080
+The MetaMuse Spark Open model, which I did a whole video about, that's 816 billion parameters, and that only scored 76.4.
+
+51
+00:03:56,366 --> 00:04:02,532
+And there are a couple of others further down on that link that come from other labs and are huge models, but are scoring less than this.
+
+52
+00:04:03,086 --> 00:04:09,440
+So a 65B model edging out a 500B model, that's going to get my attention pretty much every day of the week.
+
+53
+00:04:09,902 --> 00:04:12,288
+But here's the thing, and you have to read the claim carefully.
+
+54
+00:04:12,462 --> 00:04:17,088
+It's a US open weight state of the art, and that qualifier there is doing a lot of work.
+
+55
+00:04:17,486 --> 00:04:24,932
+But before I get into that, one of the things I want to ask from you is that my editors pointed out that the majority of people watching our videos are not subscribed.
+
+56
+00:04:25,326 --> 00:04:32,768
+And nowadays with YouTube's algorithm, it really is basically a game of luck if you're going to see the next videos we make, if you're not already subscribed to the channel.
+
+57
+00:04:33,070 --> 00:04:43,076
+So as much as I hate to do the YouTube thing, if you find the videos useful, please click like and subscribe so the videos actually get in front of a lot more people and hopefully you see them as they come out.
+
+58
+00:04:43,400 --> 00:04:43,584
+All right.
+
+59
+00:04:43,662 --> 00:04:44,928
+so back to that qualifier.
+
+60
+00:04:45,008 --> 00:04:46,528
+So let's put it into perspective.
+
+61
+00:04:46,688 --> 00:04:51,808
+If you read the announcement, you think that this is almost the best open coding model out there.
+
+62
+00:04:51,888 --> 00:04:52,848
+And it's not, right?
+
+63
+00:04:52,928 --> 00:05:02,368
+If you look at the Chinese open models and the numbers are quite a bit higher there, you've got D Seq Flash 4.1, which is reporting 90.6 on the same benchmark.
+
+64
+00:05:02,670 --> 00:05:12,036
+You've got Xiaomi's Mimo 2.6 Pro report at 89.9, and Kimi K3 and GLM 5.3 are both around 88.
+
+65
+00:05:12,494 --> 00:05:19,488
+In fact, I think there are roughly around 10 Chinese open models sitting at least 5 to 10 points above Ripple.
+
+66
+00:05:19,630 --> 00:05:23,648
+Now, some people might say that some of those models are actually benchmarks and stuff like that.
+
+67
+00:05:23,808 --> 00:05:24,932
+That may be the case.
+
+68
+00:05:25,326 --> 00:05:35,008
+And one of the things that interests me the most about this model is one, it is a very big dense model, and two, that it kind of wasn't made specifically just for agentic coding.
+
+69
+00:05:35,088 --> 00:05:40,036
+It was made specifically for another use case and just being repurposed for this.
+
+70
+00:05:40,430 --> 00:05:54,608
+So while there are mostly big mixture of expert models out there, like DeepSeek V4.1 Flash, which is around 763 billion total parameters, the fairer comparison for Ripple, I think, is the closest dense model.
+
+71
+00:05:54,688 --> 00:05:58,928
+And that would be Quen 3.827B, also Apache 2.0.
+
+72
+00:05:59,182 --> 00:06:03,808
+If you've watched the channel, you know that I'm a big fan of that model, and that's scoring at 73.
+
+73
+00:06:04,206 --> 00:06:10,208
+So Ripple is a bit over twice the size of that, but it is seven and a half points better on the terminal bench.
+
+74
+00:06:10,414 --> 00:06:18,180
+The other thing to keep in mind here is that almost all of these numbers that Ripple's included are self-reported using different harnesses.
+
+75
+00:06:18,510 --> 00:06:31,408
+When Valves ran Terminal Bench 2.1 independently, models like Mimo 2.6 Pro, Quen 3.8 Max came back actually in the high 60s, well below what other vendors had reported.
+
+76
+00:06:31,694 --> 00:06:40,996
+So if you saw the video I made about the DeepSeek harness there, you would have heard my comments talking about how everything is moving towards harnesses for getting the top benchmarks, not just the model.
+
+77
+00:06:41,294 --> 00:06:57,808
+So generally the thing I would say here is that perhaps this isn't the best model, but what it is is the strongest small dense model from a US lab with open weights, a base model, a published recipe, and something that's very competitive with the Chinese models that are already out there.
+
+78
+00:06:58,030 --> 00:07:02,756
+So if you're in the market for any of those things, this is definitely a model that you've got to check out.
+
+79
+00:07:03,022 --> 00:07:06,128
+All right, so how did they actually do this for $32 million?
+
+80
+00:07:06,542 --> 00:07:15,460
+Well, one of the things that I really like here is that they're clear that the $32 million is the full RD cost, not just the final training run.
+
+81
+00:07:15,758 --> 00:07:32,516
+So while we've seen some really good figures recently from things like MIMO 2.6, talking about $2.6 million for the RL training run and from perhaps some of the other labs, this actually is covering all the experiments, the data work, the evals, the post-training, all of it.
+
+82
+00:07:32,878 --> 00:07:38,768
+And it's interesting that they estimate it's about a tenth of what the previous open weight leader cost.
+
+83
+00:07:39,150 --> 00:07:42,340
+Now that's their estimate based on reported compute deals.
+
+84
+00:07:42,542 --> 00:07:47,808
+So you could take it with a grain of salt, but I gotta say it does ring very true to other things that I've heard as well.
+
+85
+00:07:48,142 --> 00:07:50,116
+Anyway, there are three things that stand out here.
+
+86
+00:07:50,368 --> 00:07:54,020
+The first is that they went for dense, not a mixture of experts.
+
+87
+00:07:54,510 --> 00:07:58,244
+Pretty much every other lab lately has been going for the MOE models.
+
+88
+00:07:58,448 --> 00:08:03,248
+Ripple's argument is that a dense is just simpler to train and simpler to serve.
+
+89
+00:08:03,408 --> 00:08:07,488
+They report around 40% MFU through pre-training and post-training.
+
+90
+00:08:07,662 --> 00:08:12,288
+And it's interesting that they didn't go for any custom kernels or quantization in here.
+
+91
+00:08:12,528 --> 00:08:15,044
+For a small team, all of that makes a lot of sense.
+
+92
+00:08:15,406 --> 00:08:27,888
+MOEs can give you cheaper inference per token, but you often pay for it in the infrastructure and complexity of actually having to have all of those experts and their weights in memory when you're actually serving it.
+
+93
+00:08:28,174 --> 00:08:30,468
+And it seems that Ripple just decided that wasn't worth it.
+
+94
+00:08:30,688 --> 00:08:33,168
+So the architecture itself is thin and deep.
+
+95
+00:08:33,248 --> 00:08:36,288
+It's got 80 layers, which is kind of interesting there.
+
+96
+00:08:36,494 --> 00:08:40,196
+They're actually using more attention heads than you would normally see.
+
+97
+00:08:40,462 --> 00:08:47,168
+And to make up for that, they use more sliding window attention layers with a smaller model and fewer global parameters.
+
+98
+00:08:47,694 --> 00:08:58,976
+And I can't help but wonder: is this a decision that they made based on gossip that they've learned from friends working on the Gemini team, perhaps working on some of the other Frontier labs as well?
+
+99
+00:08:59,246 --> 00:09:03,136
+On top of those details, there's also a handful of recent tricks that they've put in there.
+
+100
+00:09:03,216 --> 00:09:09,776
+So they've got gated attention, they've got no positional encoding on global layers, and none of these are new on their own.
+
+101
+00:09:09,966 --> 00:09:12,896
+The interesting bit, I think, is really how they chose them.
+
+102
+00:09:13,166 --> 00:09:17,284
+Which brings me to the second thing that stands out here, and that's laddering.
+
+103
+00:09:17,376 --> 00:09:36,896
+They started from the Omo 3 model ladder from AI2, which up until about a year ago were the only ones that really sort of published full open model weights, training data sets, recipes of how they were actually building their models, but because of their funding, most of the time their models were actually very small.
+
+104
+00:09:37,230 --> 00:09:42,660
+Now you can kind of think of this ladder as a series of small models at increasing sizes.
+
+105
+00:09:42,990 --> 00:09:47,376
+So you can test a change cheaply and see where it holds up to scale.
+
+106
+00:09:47,662 --> 00:09:49,616
+So they tested changes one at a time.
+
+107
+00:09:49,776 --> 00:09:51,216
+Some worked, some didn't.
+
+108
+00:09:51,502 --> 00:10:00,256
+They tried some variants of things like hyperconnections that looked really good at a small scale, but really did nothing at 4 billion parameters or above, so they dropped it.
+
+109
+00:10:00,526 --> 00:10:06,896
+And I got to say, this is something that's really cool because you don't actually see labs publishing these kinds of things that often.
+
+110
+00:10:07,182 --> 00:10:16,900
+To give you a little sidebar example, if you go and look at the architecture on the small Gemma models versus the bigger Gemma models, you will see they are different architectures.
+
+111
+00:10:17,136 --> 00:10:25,936
+And the reason is because what often works at a small level doesn't work when you go up to a 12B, 26B, 31B size of a model.
+
+112
+00:10:26,254 --> 00:10:29,136
+The third thing that I found really interesting in here is their post-trainings.
+
+113
+00:10:29,262 --> 00:10:31,456
+So they didn't buy any post-training data.
+
+114
+00:10:31,536 --> 00:10:34,976
+They built their own synthetic data pipelines and environments.
+
+115
+00:10:35,136 --> 00:10:39,136
+And they kept adding harder RL tasks as the model improved.
+
+116
+00:10:39,406 --> 00:10:44,228
+And they got that to the 80.5 with 1.4 million RL rollouts.
+
+117
+00:10:44,654 --> 00:10:50,372
+And it's interesting that they comment that that was probably around 70 times fewer than being used.
+
+118
+00:10:50,926 --> 00:10:54,416
+So I think the story here isn't some secret new architecture.
+
+119
+00:10:54,496 --> 00:11:01,540
+It's a lot of careful small-scale experiments on only scaling up things that actually held up.
+
+120
+00:11:01,966 --> 00:11:11,556
+And the other cool thing is that they've been upfront in that they've been building on the work from organizations like AI2, Prime Intellect, NVIDIA, and others to do it.
+
+121
+00:11:11,918 --> 00:11:22,816
+And I think this is one of the biggest challenges that we're seeing at the moment, as the sort of big frontier proprietary model labs stay fully closed, don't publish any research.
+
+122
+00:11:23,150 --> 00:11:25,616
+don't really give back anything beyond.
+
+123
+00:11:25,616 --> 00:11:29,856
+just at best, an open weights model, which they don't tell you how it was actually trained.
+
+124
+00:11:30,030 --> 00:11:39,696
+etc . makes it really hard for academia and for startups to find ways to actually make better models and improve the whole ecosystem as a whole.
+
+125
+00:11:40,014 --> 00:11:43,536
+All right, so they claim that this can basically run on a bunch of different hardware out there.
+
+126
+00:11:43,696 --> 00:11:47,056
+I'm sure we're going to see a bunch of different quantizations and stuff like that.
+
+127
+00:11:47,216 --> 00:11:53,296
+Today I'm going to be running the NVFP4 version on the ZGX Fury, which is a DGX station.
+
+128
+00:11:53,614 --> 00:11:56,816
+I should stress that this video is not sponsored by them or by anyone.
+
+129
+00:11:57,070 --> 00:12:02,256
+I just feel like while I've got this machine on load, I want to put it through its paces for as many models as possible.
+
+130
+00:12:02,638 --> 00:12:06,372
+Let's jump in and have a look at both the model and actually using it with the Deep Seek harness.
+
+131
+00:12:06,894 --> 00:12:13,376
+Okay, so jumping into the demo here, I've already come through and run the Agentic Pro tool calls and stuff like that.
+
+132
+00:12:13,616 --> 00:12:20,096
+All of that works as long as the model is configured right and as long as the serving setup is configured right.
+
+133
+00:12:20,334 --> 00:12:22,496
+So initially I had some issues with SG Lang.
+
+134
+00:12:22,736 --> 00:12:25,936
+Once that was fixed, everything was working really fine in here.
+
+135
+00:12:26,096 --> 00:12:32,336
+So the complicated ones work, and not surprisingly, all of the easier ones work in here as well.
+
+136
+00:12:32,462 --> 00:12:36,016
+And they're coming through very quickly, which is really cool here.
+
+137
+00:12:36,256 --> 00:12:44,736
+So that's a full pass on all the different tool calling, all the different resistance to prompt injection and tool baiting and things like that in there as well.
+
+138
+00:12:45,166 --> 00:12:53,376
+If we come up here and just run the test for writing a long essay in here, I think this is one of the things that I find interesting about this model in general.
+
+139
+00:12:54,048 --> 00:13:09,008
+Is that because it seems to be pre-trained on different data and perhaps not just trained on the same stack that everyone else has gone for, it definitely has its own feel to it more than you know some of the other ones.
+
+140
+00:13:09,230 --> 00:13:21,008
+So both for generating things like new essays and stuff out, or as in this case, where it's actually going through and critiquing an essay out that it generated itself.
+
+141
+00:13:21,262 --> 00:13:29,728
+The Chinese models will often generate out a really nice essay, and then you get it to fact-check that essay, and it will claim that there were lots and lots of errors in there.
+
+142
+00:13:29,968 --> 00:13:36,100
+This one finds a few errors in its own output, but it definitely seems more to the point.
+
+143
+00:13:36,302 --> 00:13:41,408
+Now, to get there, it did use 10,000 tokens of thinking, you know, going through there.
+
+144
+00:13:41,568 --> 00:13:44,288
+So that's something you definitely want to take into account as well.
+
+145
+00:13:44,528 --> 00:13:51,248
+If we look at things like the standard rag tests in here, again, it likes to use a decent amount of thinking.
+
+146
+00:13:51,438 --> 00:13:56,740
+Not a huge amount here though, but the answers out are very succinct and to the point.
+
+147
+00:13:56,928 --> 00:14:01,568
+In this case, we've got 1700 tokens of thinking, but our output is very sort of clear.
+
+148
+00:14:01,870 --> 00:14:04,608
+Again, for things like the logic puzzles and stuff like that.
+
+149
+00:14:04,768 --> 00:14:23,568
+The one that I find really kind of interesting is, if we look at the SVG tests, so all the kind of Chinese models and a lot of the models nowadays seem to produce very similar SVGs of the sort of Pelican on a bicycle, or like when I do the red dragon on a bicycle, etc.
+
+150
+00:14:24,048 --> 00:14:30,928
+And that really makes me suspicious, of, like, are they actually just being distilled for doing these kind of tasks?
+
+151
+00:14:31,022 --> 00:14:34,528
+or what sort of training data are people using for these kind of tasks?
+
+152
+00:14:34,768 --> 00:14:44,208
+One of the things here that I find, and I've run this about four or five times now, is that it really does produce out different looks.
+
+153
+00:14:44,398 --> 00:14:45,648
+I won't say that they're better.
+
+154
+00:14:45,808 --> 00:14:55,844
+Some of them are not necessarily better, but I do find that the look to them are very sort of original as opposed to what we've seen for a lot of the other models.
+
+155
+00:14:56,174 --> 00:14:57,728
+Okay, so finally it's done.
+
+156
+00:14:57,808 --> 00:15:02,660
+And if we come and look at it, we can see that the look of this one is very different.
+
+157
+00:15:03,008 --> 00:15:08,768
+And when I've rendered them out, they're definitely not as good as some of the Chinese models for this.
+
+158
+00:15:08,928 --> 00:15:13,568
+My guess is that this is not something that they've prioritized for really at all in here.
+
+159
+00:15:13,808 --> 00:15:20,368
+The thing that I find really interesting though is sometimes we get like almost a monochrome version of the picture.
+
+160
+00:15:20,528 --> 00:15:25,648
+They just have a very different style than what you see in the other models, etc.
+
+161
+00:15:25,998 --> 00:15:33,008
+Okay, if we give it a design task like the Dario's Wellness Retreat, we can see that actually does an okay job.
+
+162
+00:15:33,088 --> 00:15:44,528
+I wouldn't say it's going to win awards here for design, but compared to a lot of the other things out there, this is doing, you know, pretty good at being able to have all the elements and stuff in here.
+
+163
+00:15:45,006 --> 00:15:50,660
+The thing I strongly suspect with this is that it just was never actually built for doing this kind of task.
+
+164
+00:15:50,928 --> 00:15:58,756
+We look at the thinking, we've got good clear thinking in there for design, for doing things like the colors and managing, you know, all of that.
+
+165
+00:15:59,022 --> 00:16:11,888
+But my guess is that if you wanted to use this model for this kind of task, you probably want to do either some more continual pre training or certainly a bunch of SFT for the design kinds of tasks in here.
+
+166
+00:16:12,270 --> 00:16:16,068
+All right, let's jump into the Deep Seek Harness and try it out for different agentic tasks.
+
+167
+00:16:16,368 --> 00:16:22,288
+Okay, to set this up with Deep Seat Harness, we can basically just come in and set up the model.
+
+168
+00:16:22,478 --> 00:16:24,448
+I've got a custom model in here.
+
+169
+00:16:24,974 --> 00:16:28,100
+So this is where I've basically just defined it.
+
+170
+00:16:28,494 --> 00:16:30,224
+I've passed in a base URL.
+
+171
+00:16:30,304 --> 00:16:34,624
+I can basically just fetch the available models there, and then it will show up.
+
+172
+00:16:34,958 --> 00:16:41,252
+And then if I want to use it in here, you can see that I can basically just kick off a sort of standard job.
+
+173
+00:16:41,424 --> 00:16:50,864
+And you'll notice here that okay, one, I'm getting pretty good token speed going through this, and I've got multiple ones going on at the same time as we go through.
+
+174
+00:16:51,024 --> 00:16:52,944
+You can see I'm using quite a bit of tokens.
+
+175
+00:16:53,024 --> 00:17:04,784
+And also I've got the cache set up here so that I can see currently I've got the context window set to I think 256k, but I could make that bigger if I wanted to.
+
+176
+00:17:05,024 --> 00:17:08,384
+But here, this is basically showing me the cache hit in here.
+
+177
+00:17:08,622 --> 00:17:14,784
+And I can have it doing multiple projects at the same time, just like I would with T T code or something else like that.
+
+178
+00:17:15,024 --> 00:17:25,504
+Now, if we come in and look at some of these, so this was one of the standard prompts from Deep Seek to basically just get it to do, you know, things like the Eiffel Tower and stuff like that.
+
+179
+00:17:25,824 --> 00:17:30,944
+Not the best sort of things out of here, which is probably more telling about that.
+
+180
+00:17:31,024 --> 00:17:35,824
+This model is not necessarily being sort of RL'd for this kind of task.
+
+181
+00:17:36,064 --> 00:17:44,864
+You know, the new models that are being RL'd for sort of Blender, more for sort of 3JS kind of tasks and stuff like that, have a better sense of this kind of thing.
+
+182
+00:17:45,038 --> 00:17:51,024
+We can see with some of these that, you know, okay, we're getting very sort of basic renders in here.
+
+183
+00:17:51,342 --> 00:17:55,588
+But sure enough, it will keep going and grind away on these tasks.
+
+184
+00:17:56,110 --> 00:18:01,504
+And you can see things like making different sort of sidebar plugins and stuff like that is going on.
+
+185
+00:18:01,664 --> 00:18:07,904
+I'm burning sort of millions of tokens going through this, but they're actually that's including the cash hit there.
+
+186
+00:18:08,174 --> 00:18:12,324
+So the cash hit, the highest I think I've seen it is sort of high 70s.
+
+187
+00:18:12,704 --> 00:18:15,504
+So it does seem to really help when you can configure that.
+
+188
+00:18:15,744 --> 00:18:26,544
+To actually set that up, I'm using SG Lang for doing the serving here, and that allows me to configure all the different elements of the model in here to basically try and get the best results out.
+
+189
+00:18:26,862 --> 00:18:34,624
+For using it with Deep Seek harness at the moment, you want to make sure that you do configure it to actually support the tool calls properly and stuff like that.
+
+190
+00:18:34,734 --> 00:18:38,756
+Otherwise, you'll find it doing a bunch of different strange things in here.
+
+191
+00:18:39,278 --> 00:18:43,984
+But running it like this has no problems of doing background jobs, of doing you know different things like this.
+
+192
+00:18:44,270 --> 00:18:46,704
+And don't forget, this is 100% local in here.
+
+193
+00:18:46,864 --> 00:18:53,956
+We can see that it's basically doing the thinking as it goes through It could certainly be a decent model for working with this kind of thing.
+
+194
+00:18:54,318 --> 00:18:56,384
+Okay, so Ripple 65B.
+
+195
+00:18:56,590 --> 00:18:58,944
+Maybe it's not the best open coding model out there.
+
+196
+00:18:59,104 --> 00:19:01,984
+Perhaps there are some huge models out there that are gonna beat it.
+
+197
+00:19:02,224 --> 00:19:12,544
+But at 65 billion parameters and being a dense model that's Apache 2.0 with the base model available, a really useful write-up that shows how it was made.
+
+198
+00:19:12,704 --> 00:19:19,824
+This really is a big deal from a company that's whole goal is not about training open LLMs for people to use.
+
+199
+00:19:20,270 --> 00:19:27,824
+So I've got to say a lot of respect to Recursive for actually making this model open, for being so open about what they actually did here.
+
+200
+00:19:28,302 --> 00:19:30,756
+And forgives get a really good license to be able to use it.
+
+201
+00:19:31,118 --> 00:19:34,704
+Also, don't forget that this is the preview release.
+
+202
+00:19:34,944 --> 00:19:38,276
+So they say that they're scaling toward the frontier.
+
+203
+00:19:38,624 --> 00:19:42,692
+So we may even see something that's a lot better from them over the next couple of months.
+
+204
+00:19:43,150 --> 00:19:47,264
+As always, I've put the links to the blog post and the hugging face models in the description.
+
+205
+00:19:47,598 --> 00:19:51,824
+Let me know in the comments what you think, what you're interested to try this model out on.
+
+206
+00:19:52,206 --> 00:19:54,864
+If you do try it, let me know how it actually stacks up for you.
+
+207
+00:19:55,024 --> 00:19:58,704
+Anyway, as always, if you found the video useful, please click like and subscribe.
+
+208
+00:19:58,798 --> 00:20:00,304
+And I will talk to you in the next video.
+
+209
+00:20:00,558 --> 00:20:01,284
+Bye for now.
+
