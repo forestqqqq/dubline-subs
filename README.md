@@ -7,6 +7,7 @@
 | [Ripple 65B: A Chip Design Lab Just Beat Every US Open Model](medias/GP7CW/) | Sam Witteveen | 2026-11-12 |
 | [Run a Weekly Research Report with ChatGPT Projects & Scheduled Tasks](medias/G7759/) | DataCamp | 2026-11-12 |
 | [AI fixes AI in MIT study, Mistral's open model & Google Genie 4](medias/EVKVQ/) | IBM Technology | 2026-11-12 |
+| [Agentic Loops: Building AI Software You Can Trust](medias/1JYQB/) | AIDEAS Podcast | 2026-11-12 |
 | [This YC CTO Uses $10K/Month of AI Agents \| Zi Zhang (Proximitty, ex-Bloomberg)](medias/06J29/) | The CTO with AI | 2026-11-12 |
 | [Linux & OSS Maintainers Are Drowning in AI Slop](medias/X88FD/) | SavvyNik | 2026-11-11 |
 | [Complete Data Science Course FREE [2026] \| Data Science Tutorial for Beginners \| Intellipaat](medias/E694S/) | Intellipaat | 2026-11-11 |
