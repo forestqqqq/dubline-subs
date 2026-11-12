@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [Co-Design Bench: Multimodal Coding Agents (Deep Dive)](medias/Z1EN8/) | Latent AI | 2026-11-12 |
 | [Ripple 65B: A Chip Design Lab Just Beat Every US Open Model](medias/GP7CW/) | Sam Witteveen | 2026-11-12 |
 | [Run a Weekly Research Report with ChatGPT Projects & Scheduled Tasks](medias/G7759/) | DataCamp | 2026-11-12 |
 | [AI fixes AI in MIT study, Mistral's open model & Google Genie 4](medias/EVKVQ/) | IBM Technology | 2026-11-12 |
