@@ -1,0 +1,367 @@
+1
+00:00:00,078 --> 00:00:03,360
+计算机使用代理接收到一个任务和一个屏幕截图。
+A computer use agent gets a task and a screenshot.
+
+2
+00:00:03,662 --> 00:00:05,120
+它给出一个操作指令。
+It answers with an action.
+
+3
+00:00:05,358 --> 00:00:07,364
+比如点击这里、输入这个、按回车。
+Click here, type this, press enter.
+
+4
+00:00:07,600 --> 00:00:09,348
+然后它会收到下一个屏幕截图。
+Then it gets the next screenshot.
+
+5
+00:00:09,680 --> 00:00:10,884
+这个循环很简单。
+The loop is simple.
+
+6
+00:00:11,246 --> 00:00:13,284
+难点在于训练数据。
+The hard part is the training data.
+
+7
+00:00:13,600 --> 00:00:19,040
+一篇名为 CUA-Master 的新论文，通过嵌套的两个循环来构建这些数据。
+A new paper, see you a Master, builds that data with two loops, one inside the other.
+
+8
+00:00:19,310 --> 00:00:29,924
+在论文中，一个任务包含三个部分：指令、环境（这里是虚拟机）以及验证器，
+即判断任务是否完成的检查机制。
+In the paper, a task has three parts: an instruction, an environment here a
+virtual machine, and a verifier, a check that decides if the task got done.
+
+9
+00:00:30,510 --> 00:00:33,412
+屏幕和操作的记录被称为轨迹。
+The record of screens and actions is a trajectory.
+
+10
+00:00:33,840 --> 00:00:37,732
+在这里，训练数据是指通过验证器的轨迹。
+Here, training data means trajectories that pass their verifier.
+
+11
+00:00:38,080 --> 00:00:42,884
+人工可以记录轨迹，但这成本很高，而且覆盖的应用很少。
+People can record trajectories, but that is expensive and covers few apps.
+
+12
+00:00:43,342 --> 00:00:49,668
+生成的任务往往看起来很相似，难以控制，而且随着难度增加，失败率更高。
+Generated tasks tend to look alike, are hard to steer, and fail more often as they get harder.
+
+13
+00:00:50,190 --> 00:00:55,200
+而且如果模型只在自己的尝试上进行训练，它就只能停留在已知的范围内。
+And a model that trains only on its own attempts stays inside what it already knows.
+
+14
+00:00:55,470 --> 00:00:56,080
+第一部分。
+Part 1.
+
+15
+00:00:56,334 --> 00:00:59,440
+在内层循环中，这是第一个任务的来源。
+Inside the inner loop, where the first tasks come from.
+
+16
+00:00:59,680 --> 00:01:01,680
+它从教程视频开始。
+It starts with tutorial videos.
+
+17
+00:01:01,920 --> 00:01:07,908
+作者在 YouTube、TikTok 和 Billy Billy 上搜索超过 600 个应用。
+The authors search YouTube, TikTok, and Billy Billy app by app across more than 600 apps.
+
+18
+00:01:08,238 --> 00:01:13,668
+一个独立的、通常更强大的模型作为标注者，给每个视频打分，范围是 0 到 5 分。
+A separate, usually stronger model, the annotator, rates each video from 0 to 5.
+
+19
+00:01:14,158 --> 00:01:16,996
+它是否展示了真实的计算机操作步骤？
+Does it show real computer use step by step?
+
+20
+00:01:17,422 --> 00:01:19,812
+优质的视频会被切分成独立的任务。
+Good videos are cut into separate tasks.
+
+21
+00:01:20,110 --> 00:01:21,284
+这些就是种子任务。
+These are the seeds.
+
+22
+00:01:21,600 --> 00:01:24,452
+为了还原操作，必须有两个信号达成一致。
+To recover the actions, two signals must agree.
+
+23
+00:01:25,038 --> 00:01:28,484
+一个是旁白，比如「然后点击保存」这样的短语。
+One is the narration, a phrase like then click save.
+
+24
+00:01:29,040 --> 00:01:32,560
+另一个是画面，即屏幕发生变化的瞬间。
+The other is the picture, a moment when the screen changes.
+
+25
+00:01:32,910 --> 00:01:36,164
+如果两者都在一个时间窗口内，那它就是一个候选点。
+If both land within a time window, that is a candidate.
+
+26
+00:01:36,654 --> 00:01:41,828
+标注者会重新检查每个候选点，并记录点击位置或输入的文本。
+The annotator rechecks each candidate and writes down the click position or the type text.
+
+27
+00:01:42,080 --> 00:01:42,756
+第二部分。
+Part 2.
+
+28
+00:01:43,310 --> 00:01:49,508
+种子任务只覆盖了可能操作的一小部分，而且它们来自视频，而不是真实的运行过程。
+Seeds cover only a small part of what is possible and they come from videos, not from real runs.
+
+29
+00:01:49,742 --> 00:01:50,884
+所以它们需要被扩充。
+So they multiply.
+
+30
+00:01:51,214 --> 00:01:58,084
+每个种子任务都被分解成基础步骤，即在某个应用中可重复
+使用的步骤，包含它的前提条件、设置以及自身的检查机制。
+Each seed is broken into primitives, one reusable step in one app with its preconditions, its setup, and its own check.
+
+31
+00:01:58,606 --> 00:02:06,276
+比如，把表格导出为文件，用脚本计算一列的总和，然
+后把结果发邮件，这就是三个基础步骤，涉及三个应用。
+Say, export a sheet as a file, total a column with a script, email the result, three primitives, three apps.
+
+32
+00:02:06,574 --> 00:02:10,948
+标注人员编写一个任务，验证程序则负责合并这三个检查点。
+The annotator writes one task and its verifier combines the three checks.
+
+33
+00:02:11,246 --> 00:02:15,428
+两个调节旋钮来设定难度：基础步骤的数量和应用的数量。
+Two dials set the difficulty, how many primitives and how many apps.
+
+34
+00:02:15,600 --> 00:02:18,404
+长任务往往会在某一个错误的步骤上失败。
+Long tasks often fail at one wrong step.
+
+35
+00:02:18,830 --> 00:02:24,516
+从头开始重试会浪费已经完成的部分，所以机器会在过程中保存快照。
+Restarting from scratch wastes the good part, so the machine saves snapshots along the way.
+
+36
+00:02:25,038 --> 00:02:30,084
+失败后，标注人员会找出最早出现的错误步骤，比如是第七步。
+After a failure, the annotator finds the earliest bad step, say step seven.
+
+37
+00:02:30,638 --> 00:02:33,120
+机器会回退到第六个快照。
+The machine goes back to snapshot six.
+
+38
+00:02:33,280 --> 00:02:39,268
+智能体保留第一到第六步并重试，同时提供关于失败原因的提示，而不是直接给答案。
+The agent keeps steps one to six and retries, with a hint about what failed, not the answer.
+
+39
+00:02:39,822 --> 00:02:48,580
+对于跨越三个应用、包含40个基础步骤的任务，通过回退机制，
+通过率从重试时的约15%提升到了约50%。
+For tasks of 40 primitives across three apps, runs that passed went from about 15% with restarts to about 50 with rollback.
+
+40
+00:02:48,880 --> 00:02:49,572
+第三部分。
+Part 3.
+
+41
+00:02:49,966 --> 00:02:53,700
+外层循环：训练、找出薄弱环节，然后针对下一轮进行优化。
+The outer loop, train, find the weak spots, aim the next round.
+
+42
+00:02:54,000 --> 00:02:58,720
+模型从拥有270亿参数的 QN 3.5 开始。
+The model starts from QN 3.5 with 27 billion parameters.
+
+43
+00:02:58,926 --> 00:03:02,756
+它经过了微调，也就是在这些轨迹数据上进行了进一步训练。
+It is fine-tuned, that is, trained further on the trajectories.
+
+44
+00:03:03,040 --> 00:03:07,044
+每一轮之后，作者都会按领域和应用来检查模型失败的地方。
+After each round, the authors check where it fails by domain and by app.
+
+45
+00:03:07,534 --> 00:03:09,316
+下一批数据就针对这些薄弱环节进行构建。
+The next batch of data aims there.
+
+46
+00:03:09,600 --> 00:03:15,012
+一共三轮，任务数量分别为63,000个、38,000个，最后是14,000个。
+Three rounds, 63,000 tasks, then 38,000, then 14,000.
+
+47
+00:03:15,662 --> 00:03:17,892
+最后再进行一轮强化学习。
+Then a last round of reinforcement learning.
+
+48
+00:03:18,320 --> 00:03:23,492
+模型在虚拟机中尝试任务，验证程序的结果即作为奖励。
+The model tries tasks in virtual machines, and the verifier's result is the reward.
+
+49
+00:03:23,822 --> 00:03:28,004
+智能体还可以向 shell 输入命令，也就是用于输入命令的文本窗口。
+The agent can also type commands into a shell, the text window for commands.
+
+50
+00:03:28,480 --> 00:03:31,040
+shell 处理文件和批处理工作。
+The shell handles files and batchwork.
+
+51
+00:03:31,280 --> 00:03:33,828
+屏幕处理需要查看和点击的操作。
+The screen handles what has to be seen and clicked.
+
+52
+00:03:34,350 --> 00:03:40,260
+在同时需要这两种能力的 Weave Bench 基准测试中，仅靠屏幕操作时，该模型的得分低于7分。
+On Weave Bench, a benchmark that needs both, the same model scored under 7 with the screen alone.
+
+53
+00:03:40,814 --> 00:03:42,884
+加入 shell 后，得分接近44分。
+With the shell, almost 44.
+
+54
+00:03:43,280 --> 00:03:47,760
+在两个桌面基准测试中，得分略有下降，步骤也变少了。
+On the two desktop benchmarks, the score dipped slightly, with fewer steps.
+
+55
+00:03:48,014 --> 00:03:50,116
+第四部分，作者报告的内容。
+Part 4 What the authors report.
+
+56
+00:03:50,480 --> 00:03:54,468
+所有数据均为作者自己的运行结果，包括了对比模型。
+All numbers are the author's own runs, comparison models included.
+
+57
+00:03:54,832 --> 00:04:01,552
+在 OS World Verified 真实桌面任务中，基础模型的得分为54.6分。
+On OS World Verified, real desktop tasks, the base model scored 54.6.
+
+58
+00:04:02,032 --> 00:04:04,836
+CUA-Master 的得分为80.2分。
+CU a Master scores 80.2.
+
+59
+00:04:05,422 --> 00:04:13,072
+在 Agent's Last Exam 专家构建的工作任务基准测试中，
+它解决了四分之一的任务，从之前的约1%大幅提升。
+On Agent's Last Exam, a benchmark of expert-built work tasks, it fully solves a quarter, up from about 1%.
+
+60
+00:04:13,632 --> 00:04:23,140
+两个闭源模型，Claude Opus 5 和 GPT 5.6 SAL，在论文提到的四个主要基准测试中得分均更高。
+Two closed models, Claude Opus 5 and GPT 5.6 SAL, score higher on all four of the paper's main benchmarks.
+
+61
+00:04:23,472 --> 00:04:28,676
+其他模型在其中一些指标上也领先，包括同等规模的更新版 Q-Win。
+Other models lead on some of them too, including a newer Q-Win of the same size.
+
+62
+00:04:29,230 --> 00:04:30,052
+有一些注意事项。
+Some caveats.
+
+63
+00:04:30,606 --> 00:04:33,952
+截至 11 月初，我们还没有发现任何独立的结果。
+As of early November, we found no independent results.
+
+64
+00:04:34,286 --> 00:04:44,164
+作者同时运行了 2000 多台虚拟机并在 128 个 GPU 上进行训练，
+而且数据的质量取决于标注者的水平。
+The authors ran over 2,000 virtual machines at once and trained on 128 GPUs, and the data is only as good as the annotator.
+
+65
+00:04:44,512 --> 00:04:48,228
+当模型作为自己的标注者时，提升就没那么明显了。
+With the model as its own annotator, the gains were smaller.
+
+66
+00:04:48,654 --> 00:04:50,372
+权重和代码都是公开的。
+The weights and the code are public.
+
+67
+00:04:50,832 --> 00:04:52,420
+没有提供训练数据。
+No training data is linked.
+
+68
+00:04:52,910 --> 00:04:58,884
+所以任务来自真实的教程，通过基础步骤进行扩充，并记录了回滚过程。
+So tasks come from real tutorials, multiply as primitives, and are recorded with rollback.
+
+69
+00:04:59,438 --> 00:05:01,924
+模型的弱点决定了下一轮的任务。
+The model's weak spots choose the next round.
+
+70
+00:05:02,432 --> 00:05:11,876
+在我们这边，app WebentViklung.de 为没有界面或 API 的业务流程构建计算机使用代理。
+On our side, app WebentViklung.de builds computer use agents for business processes that have no interface or API.
+
+71
+00:05:12,334 --> 00:05:13,956
+链接就在描述栏里。
+The link is in the description.
+
+72
+00:05:14,286 --> 00:05:17,252
+论文、代码和模型链接都在下方。
+The paper, the code, and the model are linked below.
+

@@ -1,0 +1,288 @@
+1
+00:00:00,078 --> 00:00:03,360
+A computer use agent gets a task and a screenshot.
+
+2
+00:00:03,662 --> 00:00:05,120
+It answers with an action.
+
+3
+00:00:05,358 --> 00:00:07,364
+Click here, type this, press enter.
+
+4
+00:00:07,600 --> 00:00:09,348
+Then it gets the next screenshot.
+
+5
+00:00:09,680 --> 00:00:10,884
+The loop is simple.
+
+6
+00:00:11,246 --> 00:00:13,284
+The hard part is the training data.
+
+7
+00:00:13,600 --> 00:00:19,040
+A new paper, see you a Master, builds that data with two loops, one inside the other.
+
+8
+00:00:19,310 --> 00:00:29,924
+In the paper, a task has three parts: an instruction, an environment here a virtual machine, and a verifier, a check that decides if the task got done.
+
+9
+00:00:30,510 --> 00:00:33,412
+The record of screens and actions is a trajectory.
+
+10
+00:00:33,840 --> 00:00:37,732
+Here, training data means trajectories that pass their verifier.
+
+11
+00:00:38,080 --> 00:00:42,884
+People can record trajectories, but that is expensive and covers few apps.
+
+12
+00:00:43,342 --> 00:00:49,668
+Generated tasks tend to look alike, are hard to steer, and fail more often as they get harder.
+
+13
+00:00:50,190 --> 00:00:55,200
+And a model that trains only on its own attempts stays inside what it already knows.
+
+14
+00:00:55,470 --> 00:00:56,080
+Part 1.
+
+15
+00:00:56,334 --> 00:00:59,440
+Inside the inner loop, where the first tasks come from.
+
+16
+00:00:59,680 --> 00:01:01,680
+It starts with tutorial videos.
+
+17
+00:01:01,920 --> 00:01:07,908
+The authors search YouTube, TikTok, and Billy Billy app by app across more than 600 apps.
+
+18
+00:01:08,238 --> 00:01:13,668
+A separate, usually stronger model, the annotator, rates each video from 0 to 5.
+
+19
+00:01:14,158 --> 00:01:16,996
+Does it show real computer use step by step?
+
+20
+00:01:17,422 --> 00:01:19,812
+Good videos are cut into separate tasks.
+
+21
+00:01:20,110 --> 00:01:21,284
+These are the seeds.
+
+22
+00:01:21,600 --> 00:01:24,452
+To recover the actions, two signals must agree.
+
+23
+00:01:25,038 --> 00:01:28,484
+One is the narration, a phrase like then click save.
+
+24
+00:01:29,040 --> 00:01:32,560
+The other is the picture, a moment when the screen changes.
+
+25
+00:01:32,910 --> 00:01:36,164
+If both land within a time window, that is a candidate.
+
+26
+00:01:36,654 --> 00:01:41,828
+The annotator rechecks each candidate and writes down the click position or the type text.
+
+27
+00:01:42,080 --> 00:01:42,756
+Part 2.
+
+28
+00:01:43,310 --> 00:01:49,508
+Seeds cover only a small part of what is possible and they come from videos, not from real runs.
+
+29
+00:01:49,742 --> 00:01:50,884
+So they multiply.
+
+30
+00:01:51,214 --> 00:01:58,084
+Each seed is broken into primitives, one reusable step in one app with its preconditions, its setup, and its own check.
+
+31
+00:01:58,606 --> 00:02:06,276
+Say, export a sheet as a file, total a column with a script, email the result, three primitives, three apps.
+
+32
+00:02:06,574 --> 00:02:10,948
+The annotator writes one task and its verifier combines the three checks.
+
+33
+00:02:11,246 --> 00:02:15,428
+Two dials set the difficulty, how many primitives and how many apps.
+
+34
+00:02:15,600 --> 00:02:18,404
+Long tasks often fail at one wrong step.
+
+35
+00:02:18,830 --> 00:02:24,516
+Restarting from scratch wastes the good part, so the machine saves snapshots along the way.
+
+36
+00:02:25,038 --> 00:02:30,084
+After a failure, the annotator finds the earliest bad step, say step seven.
+
+37
+00:02:30,638 --> 00:02:33,120
+The machine goes back to snapshot six.
+
+38
+00:02:33,280 --> 00:02:39,268
+The agent keeps steps one to six and retries, with a hint about what failed, not the answer.
+
+39
+00:02:39,822 --> 00:02:48,580
+For tasks of 40 primitives across three apps, runs that passed went from about 15% with restarts to about 50 with rollback.
+
+40
+00:02:48,880 --> 00:02:49,572
+Part 3.
+
+41
+00:02:49,966 --> 00:02:53,700
+The outer loop, train, find the weak spots, aim the next round.
+
+42
+00:02:54,000 --> 00:02:58,720
+The model starts from QN 3.5 with 27 billion parameters.
+
+43
+00:02:58,926 --> 00:03:02,756
+It is fine-tuned, that is, trained further on the trajectories.
+
+44
+00:03:03,040 --> 00:03:07,044
+After each round, the authors check where it fails by domain and by app.
+
+45
+00:03:07,534 --> 00:03:09,316
+The next batch of data aims there.
+
+46
+00:03:09,600 --> 00:03:15,012
+Three rounds, 63,000 tasks, then 38,000, then 14,000.
+
+47
+00:03:15,662 --> 00:03:17,892
+Then a last round of reinforcement learning.
+
+48
+00:03:18,320 --> 00:03:23,492
+The model tries tasks in virtual machines, and the verifier's result is the reward.
+
+49
+00:03:23,822 --> 00:03:28,004
+The agent can also type commands into a shell, the text window for commands.
+
+50
+00:03:28,480 --> 00:03:31,040
+The shell handles files and batchwork.
+
+51
+00:03:31,280 --> 00:03:33,828
+The screen handles what has to be seen and clicked.
+
+52
+00:03:34,350 --> 00:03:40,260
+On Weave Bench, a benchmark that needs both, the same model scored under 7 with the screen alone.
+
+53
+00:03:40,814 --> 00:03:42,884
+With the shell, almost 44.
+
+54
+00:03:43,280 --> 00:03:47,760
+On the two desktop benchmarks, the score dipped slightly, with fewer steps.
+
+55
+00:03:48,014 --> 00:03:50,116
+Part 4 What the authors report.
+
+56
+00:03:50,480 --> 00:03:54,468
+All numbers are the author's own runs, comparison models included.
+
+57
+00:03:54,832 --> 00:04:01,552
+On OS World Verified, real desktop tasks, the base model scored 54.6.
+
+58
+00:04:02,032 --> 00:04:04,836
+CU a Master scores 80.2.
+
+59
+00:04:05,422 --> 00:04:13,072
+On Agent's Last Exam, a benchmark of expert-built work tasks, it fully solves a quarter, up from about 1%.
+
+60
+00:04:13,632 --> 00:04:23,140
+Two closed models, Claude Opus 5 and GPT 5.6 SAL, score higher on all four of the paper's main benchmarks.
+
+61
+00:04:23,472 --> 00:04:28,676
+Other models lead on some of them too, including a newer Q-Win of the same size.
+
+62
+00:04:29,230 --> 00:04:30,052
+Some caveats.
+
+63
+00:04:30,606 --> 00:04:33,952
+As of early November, we found no independent results.
+
+64
+00:04:34,286 --> 00:04:44,164
+The authors ran over 2,000 virtual machines at once and trained on 128 GPUs, and the data is only as good as the annotator.
+
+65
+00:04:44,512 --> 00:04:48,228
+With the model as its own annotator, the gains were smaller.
+
+66
+00:04:48,654 --> 00:04:50,372
+The weights and the code are public.
+
+67
+00:04:50,832 --> 00:04:52,420
+No training data is linked.
+
+68
+00:04:52,910 --> 00:04:58,884
+So tasks come from real tutorials, multiply as primitives, and are recorded with rollback.
+
+69
+00:04:59,438 --> 00:05:01,924
+The model's weak spots choose the next round.
+
+70
+00:05:02,432 --> 00:05:11,876
+On our side, app WebentViklung.de builds computer use agents for business processes that have no interface or API.
+
+71
+00:05:12,334 --> 00:05:13,956
+The link is in the description.
+
+72
+00:05:14,286 --> 00:05:17,252
+The paper, the code, and the model are linked below.
+

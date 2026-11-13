@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [How AI agents learn to use a computer: inside CUA-Master's data](medias/S2YDJ/) | DATUREX GmbH | 2026-11-13 |
 | [Claude Opus 5.5 is INCREDIBLE at building video games](medias/PHDNP/) | Alex Finn | 2026-11-13 |
 | [Does Scaling Toward AGI Depend on What System 1 Lets System 2 Execute?](medias/E8PF4/) | Knut Jägersberg | 2026-11-13 |
 | [The Ultimate AI Product Management Toolkit: Every Product Manager Must Know in 2027](medias/7PC9K/) | codebasics | 2026-11-13 |
