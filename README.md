@@ -7,6 +7,7 @@
 | [Full Walkthrough: Workflow for AI Coding — Matt Pocock](medias/XQ6FX/) | AI Engineer | 2026-11-13 |
 | [How AI agents learn to use a computer: inside CUA-Master's data](medias/S2YDJ/) | DATUREX GmbH | 2026-11-13 |
 | [Claude Opus 5.5 is INCREDIBLE at building video games](medias/PHDNP/) | Alex Finn | 2026-11-13 |
+| [[Agent] Three steps to a strong agent? \| Axion 1.0: Open Agent Foundation Models, Simplified](medias/MG3PK/) | Daily Frontier Papers | 2026-11-13 |
 | [I Have Spent 1000+ Hours With Claude Code. This Is What I Learned](medias/JG3EY/) | The Coding Sloth | 2026-11-13 |
 | [Does Scaling Toward AGI Depend on What System 1 Lets System 2 Execute?](medias/E8PF4/) | Knut Jägersberg | 2026-11-13 |
 | [The Ultimate AI Product Management Toolkit: Every Product Manager Must Know in 2027](medias/7PC9K/) | codebasics | 2026-11-13 |

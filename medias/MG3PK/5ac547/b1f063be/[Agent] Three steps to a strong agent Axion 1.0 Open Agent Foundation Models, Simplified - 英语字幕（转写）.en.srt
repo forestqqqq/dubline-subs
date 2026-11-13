@@ -1,0 +1,544 @@
+1
+00:00:00,000 --> 00:00:01,920
+This is Daily Frontier Papers.
+
+2
+00:00:02,000 --> 00:00:06,960
+Today's paper is led by ByteDance, and it's called Axion One.
+
+3
+00:00:07,040 --> 00:00:08,644
+The subtitle is The Pitch.
+
+4
+00:00:09,102 --> 00:00:10,948
+Open Agent Foundation Models.
+
+5
+00:00:11,438 --> 00:00:11,920
+Simplified.
+
+6
+00:00:12,080 --> 00:00:13,440
+The question behind it is blunt.
+
+7
+00:00:13,600 --> 00:00:18,720
+When you train a strong agent model today, how much of that long training pipeline do you actually need?
+
+8
+00:00:18,960 --> 00:00:19,760
+Some context.
+
+9
+00:00:19,920 --> 00:00:22,080
+Language models are turning into agents.
+
+10
+00:00:22,240 --> 00:00:27,280
+They search, run code, call tools, and work through tasks that take many steps.
+
+11
+00:00:27,470 --> 00:00:29,636
+The pipelines that build them keep growing.
+
+12
+00:00:30,062 --> 00:00:35,280
+Mid-training, several supervised stages, preference optimization, reinforcement learning.
+
+13
+00:00:35,440 --> 00:00:43,440
+The author's point is that each piece may be well motivated, but stacked together, it's hard to tell which ones matter, and the whole thing is expensive to reproduce.
+
+14
+00:00:43,600 --> 00:00:44,720
+There's a second problem.
+
+15
+00:00:44,880 --> 00:00:48,880
+Many so-called open models release their weights and little else.
+
+16
+00:00:49,040 --> 00:00:52,080
+How the data was built, filtered, and verified stays private.
+
+17
+00:00:52,240 --> 00:00:53,840
+The paper names a few recent systems.
+
+18
+00:00:54,158 --> 00:01:00,880
+MuralThinker 1.7 combines mid-training, supervised fine-tuning, preference optimization, and RL.
+
+19
+00:01:01,040 --> 00:01:01,572
+Agents.
+
+20
+00:01:02,222 --> 00:01:05,360
+A1 uses domain-routed on policy distillation.
+
+21
+00:01:05,582 --> 00:01:10,560
+Apidex 1.1 explores executable environments and coordinating multiple agents.
+
+22
+00:01:10,734 --> 00:01:14,000
+On the data side, Evo Instruct makes tasks harder.
+
+23
+00:01:14,286 --> 00:01:22,080
+Through repeated rewriting, TaskCraft expands verifiable multi-tool tasks, and WebShaper gives structure to the complexity of search tasks.
+
+24
+00:01:22,350 --> 00:01:27,280
+Axion's key idea: simplify the pipeline, but don't simplify the learning problem.
+
+25
+00:01:27,440 --> 00:01:30,720
+Put the effort into data that is hard and automatically verifiable.
+
+26
+00:01:30,880 --> 00:01:32,548
+Training has just three steps.
+
+27
+00:01:33,166 --> 00:01:37,040
+Two light supervised fine-tuning stages, then reinforcement learning.
+
+28
+00:01:37,200 --> 00:01:42,000
+No dedicated mid-training, no DPO, no on-policy distillation.
+
+29
+00:01:42,190 --> 00:01:45,348
+Stage one teaches reasoning that needs no outside information.
+
+30
+00:01:45,998 --> 00:01:51,120
+Stage two teaches reasoning with tools, and RL hardens long, multi-step interaction.
+
+31
+00:01:51,370 --> 00:01:53,120
+And open here means more than weights.
+
+32
+00:01:53,280 --> 00:01:59,920
+Data construction, filtering, verification, prompts, and training code are all released.
+
+33
+00:02:00,080 --> 00:02:04,260
+Start with the stage one data, which the paper calls self-contained reasoning.
+
+34
+00:02:04,782 --> 00:02:06,160
+Everything you need is in the question.
+
+35
+00:02:06,350 --> 00:02:12,292
+The authors collect public problems in math, physics, chemistry, biology, and computer science.
+
+36
+00:02:12,622 --> 00:02:14,000
+But they don't train on them directly.
+
+37
+00:02:14,160 --> 00:02:16,320
+They use them as seeds for harder questions.
+
+38
+00:02:16,480 --> 00:02:17,920
+The first move is composition.
+
+39
+00:02:18,094 --> 00:02:24,320
+A generator model takes a quantity computed in the seed solution and writes a new question that needs it as an intermediate result.
+
+40
+00:02:24,494 --> 00:02:27,600
+The answer must be checkable, and the seed must not leak.
+
+41
+00:02:27,694 --> 00:02:28,880
+The clever part comes next.
+
+42
+00:02:29,134 --> 00:02:32,560
+The base model tries the new question with Python but no search.
+
+43
+00:02:32,720 --> 00:02:35,120
+If it fails, the question goes straight into the bank.
+
+44
+00:02:35,280 --> 00:02:44,800
+If it succeeds, its solution goes back to the generator, which applies one of four hardening operations at random, aimed squarely at the strategy the model just used.
+
+45
+00:02:44,974 --> 00:02:46,480
+The figure has a toy example.
+
+46
+00:02:46,670 --> 00:02:50,000
+The base model knows 1 plus 2 up to 10 is 55.
+
+47
+00:02:50,160 --> 00:02:51,760
+Composition adds one more step.
+
+48
+00:02:51,982 --> 00:02:55,200
+Parameterization swaps 10 for n and asks for a formula.
+
+49
+00:02:55,360 --> 00:02:58,080
+Range shift picks a number too big to add term by term.
+
+50
+00:02:58,240 --> 00:03:02,960
+Case analysis alternates the signs, so the answer depends on whether n is even or odd.
+
+51
+00:03:03,054 --> 00:03:04,400
+How do they know the answers are right?
+
+52
+00:03:04,560 --> 00:03:15,840
+GPT 5.5 solves each question three times, independently, and the reference answer is accepted only if all three agree and the derivations check out.
+
+53
+00:03:16,000 --> 00:03:21,440
+Then a separate model solves the bank, and only correct, well formed trajectories are kept.
+
+54
+00:03:21,600 --> 00:03:24,640
+The figure puts this stage at 10.8,000 trajectories.
+
+55
+00:03:24,800 --> 00:03:27,520
+Stage 2 is about questions that need tools.
+
+56
+00:03:27,694 --> 00:03:39,040
+The authors gather public structured data in areas like biology, chemistry, math, geography, and aviation, and use deterministic programs to build each question and compute its answer.
+
+57
+00:03:39,662 --> 00:03:44,656
+Filter, select, compute, and finally have a language model phrase it naturally.
+
+58
+00:03:44,816 --> 00:03:45,636
+Their example.
+
+59
+00:03:46,094 --> 00:03:53,572
+Filter for planets with rings, select the least massive one, which is Uranus, and ask for its mean density.
+
+60
+00:03:54,030 --> 00:03:57,216
+About 1.27 grams per cubic centimeter.
+
+61
+00:03:57,326 --> 00:04:06,852
+The solver has to identify Uranus, look up its mass and radius, and do the math. To force real tool use, the construction databases are blocked during solving.
+
+62
+00:04:07,246 --> 00:04:14,096
+The model only gets search, web page visits, and Python, and questions answerable without tools are removed.
+
+63
+00:04:14,190 --> 00:04:16,580
+Again, only correct trajectories survive.
+
+64
+00:04:17,006 --> 00:04:18,576
+7,500 of them.
+
+65
+00:04:18,766 --> 00:04:21,216
+The second fine-tuning stage continues from the first.
+
+66
+00:04:21,376 --> 00:04:24,516
+Loss is computed only on what the model writes itself.
+
+67
+00:04:25,006 --> 00:04:27,696
+Its reasoning, tool calls, and final answer.
+
+68
+00:04:27,886 --> 00:04:29,776
+Tool outputs are context only.
+
+69
+00:04:29,936 --> 00:04:36,896
+Step 3 is reinforcement learning with GRPO, which samples several trajectories per question and compares each with the rest of its group.
+
+70
+00:04:37,056 --> 00:04:39,936
+The reward, a correct answer, earns one.
+
+71
+00:04:40,096 --> 00:04:43,844
+A wrong answer can still earn partial credit for verified intermediate steps.
+
+72
+00:04:44,110 --> 00:04:49,696
+Up to 0.3, minus 0.1 if no answer was submitted, and never below 0.
+
+73
+00:04:49,856 --> 00:04:51,616
+How are intermediate steps checked?
+
+74
+00:04:51,790 --> 00:04:56,816
+The stage 2 program already recorded every intermediate result, such as which planet was selected.
+
+75
+00:04:56,910 --> 00:04:58,564
+These are checked in dependency order.
+
+76
+00:04:58,990 --> 00:05:01,936
+And a later step only counts if every step before it was right.
+
+77
+00:05:02,158 --> 00:05:03,456
+Task selection matters too.
+
+78
+00:05:03,616 --> 00:05:11,616
+The current model attempts each question four times, and a question is kept only if at least one attempt is correct and the four rewards aren't all the same.
+
+79
+00:05:11,776 --> 00:05:12,976
+One engineering detail.
+
+80
+00:05:13,136 --> 00:05:21,376
+Axion is a mixture of experts model, or MOE, and the inference engine and the training engine can route the same token to different experts.
+
+81
+00:05:21,536 --> 00:05:26,416
+A method called R3 records the experts chosen during rollout and replays them in training.
+
+82
+00:05:26,576 --> 00:05:27,136
+The setup.
+
+83
+00:05:27,296 --> 00:05:29,536
+Both main models are mixture of experts.
+
+84
+00:05:29,806 --> 00:05:36,496
+A 35B model initialized from Quen 3.6 and a 122B model from Quen 3.5.
+
+85
+00:05:36,718 --> 00:05:42,736
+At evaluation time, they get web search, web page visits, scholarly retrieval, and Python.
+
+86
+00:05:42,830 --> 00:05:44,096
+Supervised training is cheap.
+
+87
+00:05:44,256 --> 00:05:56,576
+The 122B model takes 7.5 hours for both stages on 32 GPUs, about 240 GPU hours, and the 35B model about 90.
+
+88
+00:05:56,750 --> 00:05:58,816
+The paper doesn't give total compute for RL.
+
+89
+00:05:58,896 --> 00:06:00,816
+The main results are in Table 1.
+
+90
+00:06:01,006 --> 00:06:04,176
+Start with Humanity's Last Exam, or HLE.
+
+91
+00:06:04,462 --> 00:06:06,976
+Expert level questions across many fields.
+
+92
+00:06:07,214 --> 00:06:15,136
+With sites like Hugging Face blocked, the 35B model scores 52.2 and the 122B 59.
+
+93
+00:06:15,296 --> 00:06:19,456
+Without that restriction, is 59.1 and 64.8.
+
+94
+00:06:19,536 --> 00:06:33,696
+Against agents A1, an open model of similar size, the 35B model is ahead by 4.6 points on HLE, 5.8 on the Search Heavy SEAL, 0, and 7 on the Frontier Science Olympiad set.
+
+95
+00:06:33,856 --> 00:06:46,576
+On Frontier Science Research, the 122B model scores 66.7 against 63.3 for GPT 5.6 soul as measured by the authors, and 40 for agents A1, but it doesn't lead everywhere.
+
+96
+00:06:46,766 --> 00:06:56,496
+On HLE, Claude Fable 5 and Claude Opus 5 report 63.8 and 63.6 above Axion's restricted 59.
+
+97
+00:06:56,622 --> 00:07:09,856
+On the hard subset of Biomystery Bench, the 122B models 41.7 trails, Claude Opus 5, GPT 5.6 Soul, and Claude Fable 5, Table 2 shows what each step adds.
+
+98
+00:07:10,096 --> 00:07:13,296
+These are checkpoints along the training sequence, not ablations.
+
+99
+00:07:13,536 --> 00:07:27,056
+For the 35B model, on a 130 question HLE subset, the base score is 47.7, then 59.2 after stage 1, 66.2 after stage 2, and 70 after RL.
+
+100
+00:07:27,246 --> 00:07:30,656
+The tool data helps most where the task needs lookup and data analysis.
+
+101
+00:07:31,246 --> 00:07:37,376
+The 35B model's biomystery bench score goes from 17.6 to 35.3.
+
+102
+00:07:37,616 --> 00:07:44,496
+Oddly, stage 1 had pushed that same score down from 23.5 to 17.6.
+
+103
+00:07:44,736 --> 00:07:49,892
+RL improves the HLE subset and seal 0 at both sizes.
+
+104
+00:07:50,350 --> 00:07:55,776
+The 35B model's seal 0 goes from 53.2 to 62.2.
+
+105
+00:07:55,936 --> 00:07:59,456
+But on some science reasoning sets, the 35B model slips a little.
+
+106
+00:07:59,630 --> 00:08:06,096
+The author's summary Much of the gain comes from the two fine-tuning stages, and RL adds more on selected benchmarks.
+
+107
+00:08:06,256 --> 00:08:07,296
+Two more experiments.
+
+108
+00:08:07,534 --> 00:08:25,216
+Starting from a weaker base, Quen 3.5 at 35B, the same fine-tuning shrinks its HLE subset gap to Quen 3.6 from 9.2 points to 0.8, and a 9B model with fine-tuning only, no RL, reaches 63.1 on the HLE subset.
+
+109
+00:08:25,376 --> 00:08:31,616
+Compared with MuralThinker or Agents A1, the first difference is a shorter pipeline.
+
+110
+00:08:31,776 --> 00:08:36,868
+On data, work like Absolute Zero and Agent Zero also adapts difficulty to the model.
+
+111
+00:08:37,326 --> 00:08:42,816
+But Axion specifically hardens the questions the base model already solves along its own strategy.
+
+112
+00:08:42,990 --> 00:08:48,096
+For tool tasks, a program computes the answer before a language model writes the question.
+
+113
+00:08:48,256 --> 00:08:57,696
+Still, the paper itself cautions that many baseline numbers in table 1 come from official reports or other papers, with possibly different tools and settings.
+
+114
+00:08:57,934 --> 00:09:00,816
+Those crosshorts comparisons are indicative, not controlled.
+
+115
+00:09:00,976 --> 00:09:04,816
+My read is that the most valuable thing here isn't any single score.
+
+116
+00:09:04,896 --> 00:09:06,336
+It's a reproducible baseline.
+
+117
+00:09:06,446 --> 00:09:13,776
+A three-step recipe with its data pipelines and code means others can change one piece at a time and see what actually matters.
+
+118
+00:09:13,936 --> 00:09:19,216
+The paper has no separate limitations section, but the text carries several caveats worth noting.
+
+119
+00:09:19,376 --> 00:09:21,056
+First, the evaluation protocol.
+
+120
+00:09:21,454 --> 00:09:31,936
+Axion and the models the authors ran themselves get three runs per benchmark, five for Biomystery Bench, and the paper reports the best single run, not the average.
+
+121
+00:09:32,110 --> 00:09:40,576
+Second, table two is a sequence of checkpoints, and the authors say explicitly it's not an ablation, so it can't tell you what happens if a step is removed.
+
+122
+00:09:40,846 --> 00:09:45,376
+RL's effect also varies by size and benchmark, and some scores went down.
+
+123
+00:09:45,536 --> 00:09:50,816
+Third, the authors say the score differences with R3 can't be pinned on R3 alone.
+
+124
+00:09:50,896 --> 00:09:58,736
+And with R3, the 122B models seal, zero fell from 63.1 to 58.6.
+
+125
+00:09:58,896 --> 00:10:01,376
+Fourth, the size comparison isn't controlled.
+
+126
+00:10:01,582 --> 00:10:10,576
+The 35B and 122B models start from different bases and also go through RL, and the authors say it shouldn't be read as a scaling experiment.
+
+127
+00:10:10,736 --> 00:10:12,416
+The paper says little about next steps.
+
+128
+00:10:12,654 --> 00:10:18,736
+Its stated hope is that the release data pipelines and training code become a reproducible starting point for future agent model research.
+
+129
+00:10:18,926 --> 00:10:21,412
+My read is that the result worth remembering is this.
+
+130
+00:10:21,934 --> 00:10:27,296
+Much of the game comes from two fine-tuning stages, on fewer than 20,000 trajectories in total.
+
+131
+00:10:27,376 --> 00:10:31,856
+The difficulty and verifiability of the data may matter more than the number of training stages.
+
+132
+00:10:32,046 --> 00:10:34,656
+My read is also that the scores deserve some caution.
+
+133
+00:10:34,766 --> 00:10:44,336
+They're the best of several runs, many rivals' numbers come from other sources, and on restricted HLE and Bio Mystery Bench, it still trails the strongest closed models.
+
+134
+00:10:44,430 --> 00:10:47,616
+The real test is whether others can reproduce it from the released recipe.
+
+135
+00:10:47,776 --> 00:10:49,348
+That's today's Daily Frontier paper.
+
+136
+00:10:49,456 --> 00:10:50,976
+The paper is linked in the description.
+
