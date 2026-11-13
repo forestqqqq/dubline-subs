@@ -6,6 +6,7 @@
 |---|---|---|
 | [The Ultimate AI Product Management Toolkit: Every Product Manager Must Know in 2027](medias/7PC9K/) | codebasics | 2026-11-13 |
 | [Cyber Security Full Course 2026 in 26 Hours \| Master Ethical Hacking & Network Security\| Simplilearn](medias/68X67/) | Simplilearn | 2026-11-13 |
+| [Making agents real \| Why AI Agents Ace Coding but Stumble in the Boardroom \| Nagarro](medias/5Z7KX/) | Nagarro | 2026-11-13 |
 | [AI Agents for Data Engineering Workflows: Best Practices & Challenges](medias/ZGST2/) | Upriver | 2026-11-12 |
 | [Co-Design Bench: Multimodal Coding Agents (Deep Dive)](medias/Z1EN8/) | Latent AI | 2026-11-12 |
 | [How Do We Know AI Is Getting Better?](medias/VVWC2/) | fal | 2026-11-12 |
