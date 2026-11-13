@@ -1,0 +1,2515 @@
+1
+00:00:04,302 --> 00:00:14,800
+现在，让我们专注于这个特定的项目，ANTLR4 Example Visitor，
+我们将考虑 ANTLR 生成的与访问者模式相关的类。
+For now, let's focus on this particular project, Antler Example Visitor, where we're gonna consider the generated classes by Antler
+that are related to the visitor design pattern.
+
+2
+00:00:15,182 --> 00:00:19,920
+首先，让我们创建一个新的包，用来存储所谓的模型类。
+For now, let's first of all create a new package for storing the so-called model classes.
+
+3
+00:00:20,206 --> 00:00:25,520
+我会解释为什么我们需要这些类，而不是仅仅使用 ANTLR 预定义的类。
+I'll justify why we need such class as opposed to just the predefined classes by Antler.
+
+4
+00:00:25,774 --> 00:00:27,440
+好的，确实有这个需求。
+Okay, there's a need for this.
+
+5
+00:00:27,982 --> 00:00:30,916
+在 source 上点击右键，选择新建包。
+Right-click on the source and say new package.
+
+6
+00:00:31,726 --> 00:00:33,220
+然后我们输入 expression。
+And then we'll say expression.
+
+7
+00:00:35,918 --> 00:00:38,400
+好的，然后我们要在这一块创建几个类。
+Okay, and then we're gonna create several classes over here.
+
+8
+00:00:38,574 --> 00:00:44,836
+在我和大家一起开始实现这些类之前，我想先谈谈这些类的设计。
+Before I go ahead and implement the classes along with you, I would like to talk about the design of these classes.
+
+9
+00:00:45,422 --> 00:01:00,080
+好的，让我们看一下这里的层次结构，这应该对你来说非常熟悉，因为你学过组合模式，
+也就是为了递归对象结构而建立的继承层次结构。
+Okay, let's go over the hierarchy over here, and this should be very familiar to you because you learned about the composite design
+pattern about having the inheritance hierarchy for recursive object structure.
+
+10
+00:01:00,302 --> 00:01:05,440
+所以这是你可能想从之前的软件设计课程中复习的内容。
+So that's something you may want to review from your previous software design course.
+
+11
+00:01:05,870 --> 00:01:08,452
+但让我们快速过一遍这个特定的设计。
+But let's go over this particular design very quickly.
+
+12
+00:01:08,878 --> 00:01:11,760
+在最顶层，我们有一个叫 program 的类。
+At the top level, we have a class called program.
+
+13
+00:01:12,590 --> 00:01:13,040
+就在这里。
+Over here.
+
+14
+00:01:13,326 --> 00:01:14,436
+好的，让我换个颜色。
+Okay, let me change the color.
+
+15
+00:01:14,958 --> 00:01:23,908
+我们有一个叫 program 的类，顶层的 program 有一个表达式列表，
+每个表达式成员都是 expression 类型。
+We have a class called program, and the program at the top level has a list of expressions,
+and each expression member is of type expression.
+
+16
+00:01:24,142 --> 00:01:33,412
+你可以把这个特定的类看作是抽象的、未实现的，然后在它下面我们有几个可以实例化的子类。
+You can think about this particular class is abstract, unimplemented, and then
+under which we got several subclasses over there that can be instantiated.
+
+17
+00:01:33,582 --> 00:01:48,800
+我们有 number，例如，它代表输入比如 2，我们还有 variable，例如 i，还有变量修饰，例如，
+你说 i 类型为整数应该等于 5，对吧？
+We have number, we have for example, it will should represent input such as like a two, and also we got variable, for example, i,
+and also we got variable decoration, for example, you say i of type integer should be equal to five, right?
+
+18
+00:01:48,880 --> 00:01:59,556
+所以你会希望把这样的输入转换成相应的模型对象，我们
+还有 modification，例如 2 乘以 i，还有 addition。
+So somehow you will like the input like this to be turned into the corresponding model objects, and also we got modification,
+for example, two times i, and also we got addition.
+
+19
+00:02:00,430 --> 00:02:03,200
+呃，那可能是 i 加 j。
+Uh that could be maybe i plus j.
+
+20
+00:02:04,014 --> 00:02:15,440
+这些就是我们要创建的模型类，然后我们将看看这个特定的对象结构究竟应该如何与我们在上一
+个教程视频中看到的解析树相关联。
+So these are the model classes we are going to create, and then we're gonna see how exactly this particular object structure should be
+related to the parse tree that we looked at in the previous tutorial video.
+
+21
+00:02:15,520 --> 00:02:23,040
+你可能会 wondering 为什么我们需要这些类，既然解析树本身可能已经是运行时结构了。
+And you might be wondering why we need these classes, provided that maybe the parse tree already itself is a runtime structure.
+
+22
+00:02:23,246 --> 00:02:26,724
+我们难道不能直接在解析树结构上进行操作吗？
+Can we not just manipulate directly on the parse tree structure?
+
+23
+00:02:26,960 --> 00:02:35,120
+这就是我一直强调的问题，就是拥有这个特定的模型对象结构完全由你控制。
+That's the question I would keep emphasizing uh that having this particular model object structure is completely under your control.
+
+24
+00:02:35,470 --> 00:02:45,520
+另一方面，如果你尝试操作太多，如果你过度依赖
+ANTLR 提供给你的解析树结构，那就不是由你控制了。
+On the other hand, if you try to only manipulate too much, if you rely too heavily on the uh parse tree structure that's given to you
+by Antler, that that's gonna be on your control.
+
+25
+00:02:45,600 --> 00:02:48,612
+当事情变得太复杂时，调试起来会很困难。
+It's hard to debug when things get uh too substantial.
+
+26
+00:02:49,006 --> 00:02:52,160
+好的，现在让我们回到 Eclipse。
+Okay, let's now go to Eclipse over here.
+
+27
+00:02:52,400 --> 00:02:55,760
+既然我们理解了设计，现在让我们快速把它们写出来。
+Now that we understand the design, let's now program them quickly.
+
+28
+00:02:56,014 --> 00:02:58,500
+好的，让我按照我想遵循的顺序来。
+Okay, so let me just follow the order I would like to follow.
+
+29
+00:02:58,862 --> 00:03:02,560
+所以现在，首先，让我们创建一个叫 expression 的类。
+So now, first of all, let's go to let's create a class called expression.
+
+30
+00:03:02,798 --> 00:03:04,068
+好的，那将是顶层。
+Okay, that'll be the top level.
+
+31
+00:03:04,560 --> 00:03:08,836
+在 expression 包下面，我要创建一个叫 expression 的类。
+Under expression cluster package, I'm gonna have a class called expression.
+
+32
+00:03:11,278 --> 00:03:13,636
+这个类将是抽象类。
+And this class is going to be abstract.
+
+33
+00:03:14,062 --> 00:03:15,840
+好的，我选 抽象。
+Okay, I'll choose abstract.
+
+34
+00:03:16,334 --> 00:03:20,240
+然后在这里，expression 类，我们该放点什么吗？
+And over here, expression class, should we put anything over here?
+
+35
+00:03:20,526 --> 00:03:25,920
+好吧，实际上，对于这个特定的教学视频，我们并不追求最好的设计。
+Okay, actually, for this particular tutorial video, we are not really aiming for the best design.
+
+36
+00:03:26,062 --> 00:03:33,028
+目前，我什么都不放，就像个占位符，就像是一个呃，一个供我们稍后声明的类型。
+For now, I just wouldn't put anything here, just like a placeholder, like a uh like a type for us to declare later.
+
+37
+00:03:33,390 --> 00:03:41,520
+好的，然后我要做的就是，因为这是抽象类，所以它为任何 expression 对象提供了静态类型。
+Okay, and then what I'll do is so this is abstract, so this gives the static type for any expression objects.
+
+38
+00:03:41,838 --> 00:03:44,420
+接下来我想做的是 program 类。
+And the next one I want to do is the program class.
+
+39
+00:03:44,720 --> 00:03:47,204
+好的，现在让我们创建一个叫 program 的类。
+Okay, so now let's create a class called program.
+
+40
+00:03:51,470 --> 00:03:54,720
+对于 program 类，它只是个普通类，应该被实现。
+And for the program class, it's just a normal class, it should be implemented.
+
+41
+00:03:55,054 --> 00:03:58,052
+现在让我去 program 类看看我们该放点什么。
+So now let me just go to the program class and see what we should put there.
+
+42
+00:03:58,318 --> 00:04:01,600
+思路就像我们在这里看到的架构图一样。
+The idea would be as we see for the design diagram over here.
+
+43
+00:04:01,902 --> 00:04:06,080
+所以我们确实应该说 program 应该包含一个 expression 列表。
+So we should really say program should contain a list of expressions.
+
+44
+00:04:06,574 --> 00:04:08,160
+好的，这就是我们要做的。
+Okay, that's something we're gonna do.
+
+45
+00:04:08,494 --> 00:04:12,388
+然后我来看看我们该怎么做，然后我们一起动手。
+And then I'm just going to see what we should do, and then we'll do it together.
+
+46
+00:04:13,166 --> 00:04:15,520
+首先，让我们在这里声明属性。
+First of all, let's declare attributes over here.
+
+47
+00:04:15,726 --> 00:04:18,560
+现在再次强调，我并不是在追求最好的设计。
+And now again, I'm not trying to aim me for the best design.
+
+48
+00:04:18,670 --> 00:04:20,800
+目前，我打算破坏封装。
+For now, I'm just gonna break encapsulation.
+
+49
+00:04:20,910 --> 00:04:22,800
+我打算把属性设为 public。
+I'm just gonna make the attribute public.
+
+50
+00:04:23,040 --> 00:04:26,560
+所以我明确表示，这不是最好的设计。
+So I I explicitly say that this is not the best design.
+
+51
+00:04:27,054 --> 00:04:31,040
+当你做项目或作业时，你真的应该追求最好的设计。
+When you do your project or assignment, you really should aim for the best design.
+
+52
+00:04:31,150 --> 00:04:35,520
+目前，为了节省时间，我直接用 public 属性。
+For now, for saving the time, I'm gonna say just public attributes.
+
+53
+00:04:36,878 --> 00:04:38,640
+好的，现在我要写 list。
+Okay, so now I'm gonna say list.
+
+54
+00:04:39,086 --> 00:04:43,840
+我要用 uh 工具包里的 list，然后是 expression 的列表。
+So I'm gonna in uh use the list from the utility package and list of expression.
+
+55
+00:04:44,078 --> 00:04:55,012
+你可以看到这里的 expression 是我们讨论过的抽象类，而运行时对象可以是任何动态类型，
+可以是 expression 的任何派生类，包括 variable、变量修饰等等。
+You can see the expression here is the abstract class that we talked about, and the runtime object can be any dynamic type,
+can be any of the descending classes of expression, including variable, variable decoration, and etc.
+
+56
+00:04:55,918 --> 00:04:59,364
+然后在这里我要写 expressions。
+And over here I'm gonna say expressions.
+
+57
+00:04:59,790 --> 00:05:07,120
+好的，现在这就是我们唯一的属性，然后让我们在这里声明 program 构造函数，好吗。
+Okay, so now this will be the only attributes we have, and then let's declare the constructor program over here, okay.
+
+58
+00:05:07,374 --> 00:05:13,220
+不带参数，然后这个点 expressions，就把它初始化为空。
+Taking no parameter and this dot expressions, just initialize that to be empty.
+
+59
+00:05:13,360 --> 00:05:15,364
+最初，那里就没有任何 expression。
+Initially, just no expression over there.
+
+60
+00:05:15,694 --> 00:05:18,480
+我们说这里用 array list，好吗。
+Let's say array list over here, okay.
+
+61
+00:05:18,606 --> 00:05:20,868
+为了简略起见，我们不需要这个，好吗。
+For abbreviation, we don't need this, okay.
+
+62
+00:05:21,454 --> 00:05:32,612
+那将是构造函数，然后我们唯一的修改方法是 void at expression，接着是 expression e。
+That'll be the constructor, and then the only mutator we have is we say void at expression and then expression e.
+
+63
+00:05:33,102 --> 00:05:37,200
+然后我们只需写 expressions，也就是一个 list 点 e。
+And then we simply say expressions, which is a list dot at e.
+
+64
+00:05:37,710 --> 00:05:39,520
+好了，这就是我们的 program 类，对吧？
+Okay, that's our program class, right?
+
+65
+00:05:39,600 --> 00:05:43,920
+所以现在你可以非常清楚地看到 program 和 expression 之间的客户端供应关系。
+So now you can see very clearly the client-supply relation between program and expression.
+
+66
+00:05:44,238 --> 00:05:47,040
+现在让我们创建 expression 的所有派生类。
+So now let's create all the descending classes of expression.
+
+67
+00:05:47,182 --> 00:05:48,580
+好，我们快速把它们做出来。
+Okay, let's do them very quickly.
+
+68
+00:05:48,800 --> 00:05:52,720
+每一个都很简单，所以我们不需要写太多代码。
+Each one of them is rather simple, so we don't have to type too much.
+
+69
+00:05:52,942 --> 00:05:54,308
+好，我们一个一个来写。
+Okay, let's just type it one by one.
+
+70
+00:05:55,598 --> 00:05:58,724
+现在我想创建的第一个类是 number 类。
+So now the first class I would like to create is the number class.
+
+71
+00:05:59,118 --> 00:06:05,444
+所以我会写 class number，然后父类应该是 expression。
+So I would say class, number, and then the super class should be expression.
+
+72
+00:06:07,694 --> 00:06:14,800
+好，我写 finish，所以现在 number 继承自 expression，然后我唯一的属性就是 number，num。
+Okay, I'll say finish, and so now number extends expression, and then the only attribute I have is just number, num.
+
+73
+00:06:15,918 --> 00:06:22,320
+所以是 public，然后 number，构造函数接收另一个 number 来创建 number 对象。
+So public, and then number for the constructor to take taking another number to create the number objects.
+
+74
+00:06:22,542 --> 00:06:23,972
+这个 num 就是 num。
+This num is num.
+
+75
+00:06:24,720 --> 00:06:26,160
+好，编程非常简单。
+Okay, very easy to program.
+
+76
+00:06:26,560 --> 00:06:33,920
+现在假设我稍后也想，你会看到实际需要把你的 expression 对象打印出来进行美化打印。
+And now let's say I also want to later on you will see the need to actually print out to pre-print uh your expression object.
+
+77
+00:06:34,000 --> 00:06:40,068
+再次提醒大家，我们的目标不是为了实现最好的设计来做美化打印。
+Again, I would like to remind you that we're not aiming for the best design to really do pretty printing.
+
+78
+00:06:40,240 --> 00:06:48,708
+你可能需要考虑创建你自己的访问者层级，然后创建一个用于美化打印的访问者，
+就像你在之前的软件设计课程中学到的那样。
+You may want to consider creating your own visitor hierarchy and then create a visitor for pretty printing okay,
+as you learned from the previous software design course.
+
+79
+00:06:48,814 --> 00:06:52,080
+但现在，我要用最糟糕的设计，好吗？
+But for now, I'm going to do the worst design, okay?
+
+80
+00:06:53,038 --> 00:06:58,160
+好，所以我只是要嗯，重写这里的 toString 方法。
+Okay, so I'm just going to um read overwrite the toString method over here.
+
+81
+00:06:58,414 --> 00:07:03,600
+那么，我到底该如何呃，为 number 返回 toString 值呢？
+So, how do I actually uh return the toStream value for a number?
+
+82
+00:07:03,790 --> 00:07:04,640
+只需返回一个值。
+Just return a value.
+
+83
+00:07:04,846 --> 00:07:13,220
+所以我可以说 return，然后我将使用一个 integer 类来从 none 中创建，然后说 toString。
+So I can say return, and then I'm going to use an integer class to create out of the none and then say toString.
+
+84
+00:07:18,414 --> 00:07:20,676
+好，这就是 number 类。
+Okay, so that would be the number class.
+
+85
+00:07:20,974 --> 00:07:27,280
+好，下一个我想创建的可能是变量修饰。
+Okay, the next one would be I want to create maybe just the variable decoration.
+
+86
+00:07:27,534 --> 00:07:29,680
+好，这只是遵循逻辑顺序。
+Okay, that just followed the logical order.
+
+87
+00:07:29,998 --> 00:07:36,292
+好，现在对于变量修饰，我要创建 new 然后是 class 变量修饰。
+Okay, so now for the variable decoration, I'm going to create new and then class variable decoration.
+
+88
+00:07:40,880 --> 00:07:44,800
+让我们把 expression 作为这里的父类。
+And let's put expression as a superclass over here.
+
+89
+00:07:45,006 --> 00:07:48,240
+现在对于变量修饰，我们有三个属性。
+And now for variable decoration, we got three attributes.
+
+90
+00:07:48,320 --> 00:07:52,320
+我们有 public string ID，好，例如，I。
+We got public string ID, okay, for example, I.
+
+91
+00:07:53,230 --> 00:07:55,940
+还有 public string 类型。
+And also public string the type.
+
+92
+00:07:56,238 --> 00:07:59,760
+在这种情况下，就像关键字一样，整数 int，对吧？
+And in this case, just like a keyword, the integer int, right?
+
+93
+00:08:00,014 --> 00:08:08,612
+稍后，如果你想扩展这个特定教程视频的项目，你可能想把类型本身也做成另一个类，对吧？
+Later on, if you want to extend your project for this particular tutorial video,
+you may want to make the type of the type itself maybe another class, right?
+
+94
+00:08:08,800 --> 00:08:09,760
+另一种层级结构。
+Another hierarchy.
+
+95
+00:08:09,840 --> 00:08:11,460
+好，这只是个设计建议。
+Okay, just a design suggestion.
+
+96
+00:08:11,822 --> 00:08:15,120
+还有 public，你可以说整数值。
+And also public and you can say integer value.
+
+97
+00:08:15,200 --> 00:08:20,228
+例如，类型为整数的 i 的初始值被赋值为 5。
+The value of the initial value for for example i of type integer is assigned to 5.
+
+98
+00:08:21,454 --> 00:08:23,876
+那么现在我们怎么写构造函数呢？
+So now how do we do the constructor?
+
+99
+00:08:24,080 --> 00:08:34,240
+所以变量修饰，然后是 string ID，string 类型，还有 int 值，对吧？
+So variable decoration, and then string ID, string type, and also int value, right?
+
+100
+00:08:34,414 --> 00:08:35,679
+所以我打算把它们全部初始化。
+So I'm gonna initialize all of them.
+
+101
+00:08:35,840 --> 00:08:37,679
+这个 id 被赋值给 id。
+This.id is assigned to id.
+
+102
+00:08:39,022 --> 00:08:42,480
+这个 type 被赋值给 type，还有这个。
+This type is assigned to type, also this.
+
+103
+00:08:49,742 --> 00:08:57,200
+当然，我还没讲到如何将我们在上一个教程视频中看到的解析树链接到模型对象结构中。
+Of course, I haven't talked about how you can link from the parse tree
+that we saw in the previous tutorial video into model object structure.
+
+104
+00:08:57,280 --> 00:08:58,560
+我马上就讲到那里。
+I'll get there in just a moment.
+
+105
+00:08:58,640 --> 00:09:00,324
+让我们先完成实现。
+Let's finish the implementation first.
+
+106
+00:09:00,878 --> 00:09:04,640
+好了，现在我们完成了变量修饰。
+Okay, so now we're done with a variable decoration.
+
+107
+00:09:04,974 --> 00:09:06,756
+下一个将是，比如说，变量。
+The next one will be let's say variable.
+
+108
+00:09:07,054 --> 00:09:16,320
+例如，如果你只是引用 i，假设 i 已经被声明，那么最终我们想要评估的是 i 的值应该是多少。
+For example, if you simply refer to i, assuming that i is declared,
+then eventually what we want to evaluate uh what I's value should be.
+
+109
+00:09:16,480 --> 00:09:19,908
+所以现在我可以写 new 然后是类。
+So now I can say new and then class.
+
+110
+00:09:20,590 --> 00:09:26,724
+假设这里是变量，然后我想让它继承自表达式。
+Let's say variable over here, and then I want to extend it from expression.
+
+111
+00:09:30,990 --> 00:09:35,140
+好了，对于变量，我唯一的属性就是 ID。
+Okay, so now for variable, the only attribute I have is the ID.
+
+112
+00:09:36,240 --> 00:09:44,036
+String ID，然后我可以在这里写 public variable string ID。
+String ID, and then I can say public variable string ID over here.
+
+113
+00:09:46,542 --> 00:09:49,348
+这个 ID 被赋值给 ID。
+This ID is assigned to ID.
+
+114
+00:09:49,582 --> 00:09:53,760
+你可能在 wondering，对于变量修饰，我们是否应该重写 toString 方法？
+So you might be wondering for the variable decoration, should we override a toString method?
+
+115
+00:09:53,902 --> 00:09:56,960
+嗯，我会说为了我的演示目的，我不需要它。
+Well, I would say for the purpose of my illustration, I don't need it.
+
+116
+00:09:57,040 --> 00:09:59,760
+不过，也许你想根据自己的需求来定义它。
+However, maybe you want to define that just on your own.
+
+117
+00:09:59,920 --> 00:10:05,124
+但同样，最好的设计是使用访问者模式来进行美化打印。
+But again, the best design would be to use a visitor pattern for the pretty printer.
+
+118
+00:10:05,998 --> 00:10:08,000
+好，让我回到这里的变量。
+Okay, let me go back to variable over here.
+
+119
+00:10:08,238 --> 00:10:13,124
+好了，对于变量，目前在这种情况下，为了我的目的，我需要重新定义 toString 方法。
+Okay, so for variable for now in this case, for my purpose, I need to redefine the toString method.
+
+120
+00:10:13,486 --> 00:10:20,560
+好的，我写 toString，然后我直接返回 ID 即可。
+Okay, I'll say toString, and then I'll simply say return just the ID.
+
+121
+00:10:20,686 --> 00:10:21,764
+好了，这很简单。
+Okay, that's easy.
+
+122
+00:10:22,190 --> 00:10:26,320
+现在我们还有两样东西要声明，要定义。
+So now we got two more things uh to declare, to define.
+
+123
+00:10:26,542 --> 00:10:30,628
+一个是乘法，另一个是加法，它们看起来非常相似。
+One is the multiplication, the other one is addition, and they look very similar.
+
+124
+00:10:30,926 --> 00:10:42,720
+当然，你也可以把它们提取到一个通用的父类中，比如叫二进制运算，但再次强调，
+我们这个教程的目标不是追求最完美的架构。
+Of course, you could have uh pulled them up maybe into a common superclass, maybe called binary operation, but uh again,
+that's we are not aiming for the best design for this tutorial.
+
+125
+00:10:43,342 --> 00:10:49,956
+假设我们要做乘法，那么这里的父类就是表达式。
+Let's say we want to do multiplication, and then the superclass over here is expression.
+
+126
+00:10:52,686 --> 00:10:55,120
+好，那我们现在应该有多少个属性呢？
+Okay, so now how many attributes should we have?
+
+127
+00:10:55,280 --> 00:10:59,172
+左边和右边，它们每一个都是递归的对象结构。
+Left and right, and each one of them that's a recursive object structure.
+
+128
+00:10:59,280 --> 00:11:01,316
+所以这应该是复合结构。
+So this should be the composite.
+
+129
+00:11:01,742 --> 00:11:05,220
+基本上就是表达式的递归情况，然后是表达式。
+Expression recursive case basically, and then expression.
+
+130
+00:11:06,190 --> 00:11:13,840
+这就是为什么你可以从模型对象中构建任意复杂的表达式，同样在语法中也是如此。
+This is how this is why you can build arbitrarily complicated expression uh from the model objects, and similarly in the grammar.
+
+131
+00:11:14,766 --> 00:11:16,772
+好，那构造函数呢？
+Okay, so now what about a constructor?
+
+132
+00:11:16,960 --> 00:11:33,440
+所以是乘法，然后我们有表达式左，表达式右，然后这个左被赋值给左，当然，
+你可以随意使用 Eclipse 里的代码生成功能。
+So multiplication, and then we have expression left, expression right, and then this left is assigned to left, and of course,
+feel free to use the code generation facility in eclipse.
+
+133
+00:11:33,600 --> 00:11:35,440
+我只是在尝试自己手打。
+I'm just trying to type myself.
+
+134
+00:11:37,870 --> 00:11:46,720
+好，然后我们还需要实际定义 toString 方法来更精确地重写它，那我们该怎么做呢？
+Okay, and then again, we also need to actually define the toString method to override it more precisely, and then what should we do?
+
+135
+00:11:46,880 --> 00:11:53,680
+嗯，在某种程度上，相关的表达式应该已经定义了 toString 方法，所以我们可以调用它们。
+Well, in some way the toString method presumably have been defined for the relevant expression, so we can call them instead.
+
+136
+00:11:54,062 --> 00:11:58,800
+所以这就像是一个递归调用。
+So it's just more like a recursive call.
+
+137
+00:11:59,040 --> 00:12:08,964
+左边点 toString 加上在这种情况下操作符应该是乘号，然后加右边点 toString。
+Left dot to string plus in this case the operator should be multiply and then plus right to dot to string.
+
+138
+00:12:09,326 --> 00:12:10,320
+好，就像这样。
+Okay, like that.
+
+139
+00:12:10,640 --> 00:12:15,364
+然后我还要定义加法，它会非常相似。
+And then I'm going to define also the addition, which will be very similar.
+
+140
+00:12:15,758 --> 00:12:18,560
+好，我等一下会做一些复制粘贴。
+Okay, so I'm gonna do some copy and paste in a moment.
+
+141
+00:12:18,990 --> 00:12:19,360
+加法。
+Addition.
+
+142
+00:12:20,270 --> 00:12:23,236
+然后父类应该是表达式。
+And then the superclass should be expression.
+
+143
+00:12:25,230 --> 00:12:28,480
+好，现在这就是一个正确的继承层次结构。
+Okay, so now that's a proper inheritance hierarchy structure.
+
+144
+00:12:28,560 --> 00:12:31,120
+所以我直接从乘法里复制粘贴过来。
+So I will just copy and paste from multiplication.
+
+145
+00:12:31,200 --> 00:12:37,476
+再次强调，你可以把公共属性提取到公共父类中，但你可以这样做。
+Again, you could have pulled the common attributes up into a common superclass, but you can do it.
+
+146
+00:12:39,022 --> 00:12:42,436
+所以左边和右边，现在而不是乘法，应该是加法。
+So left and right, so now rather than multiplication, that should be addition.
+
+147
+00:12:42,734 --> 00:12:46,160
+现在对于这两个字符串，而不是星号，我应该说加号。
+And now for the two strings, rather than star, I should say plus.
+
+148
+00:12:46,350 --> 00:12:46,640
+好吗？
+Okay?
+
+149
+00:12:46,990 --> 00:12:48,800
+所以这些就是我们得到的加法类。
+So these are the classes we got addition.
+
+150
+00:12:48,960 --> 00:12:53,796
+那让我们看看我们有多少个子类：一，二，三，四，五。
+So let's see how many descendants we have: one, two, three, four, and five.
+
+151
+00:12:54,350 --> 00:12:56,640
+所以，一、二、三、四、五。
+So one, two, three, four, and five.
+
+152
+00:12:56,720 --> 00:12:58,660
+再加上 program 和 expression，对吧？
+And plus the program and also the expression, right?
+
+153
+00:12:58,800 --> 00:13:01,840
+所以我们现在完成了 expression 包。
+So we are now done with the expression package.
+
+154
+00:13:02,000 --> 00:13:07,588
+我们稍后可能还要再添加一到两个类，但目前没问题。
+We we still have to add maybe one or more or two more classes there a little bit later, but for now we are okay.
+
+155
+00:13:08,142 --> 00:13:17,040
+好了，到目前为止，我们已经看到了模型类的设计，
+并且已经在 Eclipse 的独立包中快速实现了它们。
+Okay, so what we have achieved so far is we have seen the design for our model classes,
+and also we have implemented them quickly in Eclipse in a separate package.
+
+156
+00:13:17,262 --> 00:13:21,700
+所以把不同的关注点分开到不同的包里总是很好的。
+So it's always nice to separate different concerns into different packages.
+
+157
+00:13:21,998 --> 00:13:27,280
+现在 expression 基本就是包含应用程序所有逻辑的模型包。
+So now the expression is basically the model package for all the logic about your application.
+
+158
+00:13:27,598 --> 00:13:34,640
+ANTLR4 只用于存放生成的类，加上来自 ANTLR4 的语法规范文件。
+Antler is only for holding generated classes plus the grammar specification file in the uh from the Antler.
+
+159
+00:13:35,534 --> 00:13:38,720
+好了，现在让我把这里的类都关掉。
+Okay, so now let me close all the classes over here.
+
+160
+00:13:38,990 --> 00:13:44,320
+现在我假设你已经熟悉这个结构以及每个类中的属性了。
+So now I assume you are familiar with this particular structure and what attributes are there in each class.
+
+161
+00:13:44,558 --> 00:13:51,108
+现在我可以谈谈解析树和运行时模型对象之间的联系了。
+So now I can talk about the connection between parse tree and also the model objects at the runtime.
+
+162
+00:13:51,886 --> 00:14:02,560
+好了，在我开始之前，我想再做一件事，在谈论如何实例化模型对象之前。
+Okay, before I do that, I would like to just do one more thing, okay, before I talk about how you can instantiate model objects.
+
+163
+00:14:03,342 --> 00:14:11,040
+如果你回到这里的 Eclipse 项目，你可以看到基本上生成了不同的访问者类。
+So now if you go back to your Eclipse project over here, you can see
+there there are basically different visitor classes that's generated.
+
+164
+00:14:11,278 --> 00:14:14,800
+所以现在我将非常快速地带大家过一下，好吗？
+So now for that I'll just go over something very quickly with you, okay?
+
+165
+00:14:15,054 --> 00:14:19,200
+只是为了理解结构，然后看看我们如何扩展它们。
+Just to understand the structure and then to see how we can extend them.
+
+166
+00:14:19,598 --> 00:14:22,400
+基本上蓝色的就是生成的。
+So basically the blue ones are the ones generated.
+
+167
+00:14:22,670 --> 00:14:26,320
+一个叫 expression visitor，另一个叫 expression-based visitor。
+One is called expression visitor, the other one expression based visitor.
+
+168
+00:14:26,560 --> 00:14:29,360
+这两个类只是泛型的。
+And these two classes are simply generic.
+
+169
+00:14:29,550 --> 00:14:34,692
+好了，一个 expression visitor 是一个实际上未实现的接口，当然。
+Okay, so one expression visitor is an interface that's actually unimplemented, of course.
+
+170
+00:14:34,990 --> 00:14:41,636
+Expression-based visitor 是一个实现类，它不是抽象的，并且实现了该接口。
+Expression-based visitor is an implementing class that's actually not abstract and it implements from the interface.
+
+171
+00:14:41,840 --> 00:14:50,080
+正如我稍后要解释的，我们稍后要做的是在 Expression Based Visitor 下创建两个派生类。
+What we want to do later on, as I will explain, is to uh create two descending classes under Expression Based Visitor.
+
+172
+00:14:50,254 --> 00:14:55,012
+一个叫 antlrToProgram，把它更多地看作是一个转换器。
+So one is called entler toProgram, thinking about this more like a transformer.
+
+173
+00:14:55,680 --> 00:15:03,428
+这个类将从 ANTLR 解析树转换到我们谈论过的模型对象，具体来说是 program 类型。
+So this class is going to go from antler parse tree into the model object that we talked about, specifically the program type.
+
+174
+00:15:03,726 --> 00:15:12,160
+另一个访问者类将是 antlrToExpression，从概念上
+讲，它将从解析树节点转换到 expression 类型对象。
+And another visitor class will be antler to expression, and conceptually
+that will be from the parse tree nodes into expression type objects.
+
+175
+00:15:12,430 --> 00:15:17,680
+好了，这两个类我们必须实现它们，但我们只会在下一个教程视频中实现它们。
+Okay, and these two classes we have to implement them, but we'll implement it only in the next tutorial video.
+
+176
+00:15:17,934 --> 00:15:33,440
+对于这个视频，我们需要理解如何谈论、如何思考访问者模式，
+然后如何使用访问者模式将 ANTLR 解析树转换为我们的 expression 模型对象。
+For this video, we need to understand how how we can talk, how can we think about the visitor pattern and then how can we use a
+visitor pattern to transform from the antler parse tree into our expression model objects.
+
+177
+00:15:33,520 --> 00:15:34,560
+了解这一点非常重要。
+That's really important to know.
+
+178
+00:15:34,702 --> 00:15:36,004
+好了，现在让我们过一下那个。
+Okay, let's go over that now.
+
+179
+00:15:37,550 --> 00:15:41,600
+现在让我回到之前的幻灯片。
+So now let me go back to the previous the slides over here.
+
+180
+00:15:41,760 --> 00:15:42,640
+好了，就在这里。
+Okay, just over here.
+
+181
+00:15:42,800 --> 00:15:45,760
+好了，让我们用这个特定的例子来思考一下。
+Okay, let's use this particular example to think about.
+
+182
+00:15:45,934 --> 00:15:53,092
+好了，现在为了理清大局，看这里的这个绿色部分，这个家伙。
+Okay, so now just to get a big uh big picture straight, the green one over here, this guy here.
+
+183
+00:15:55,920 --> 00:16:01,680
+这个框，这是这个特定输入程序的解析树。
+This box over here, this is a parse tree for this particular input program.
+
+184
+00:16:01,774 --> 00:16:17,280
+好了，我们有一个装饰，还有一个装饰，还有一个表达式，那
+个表达式整体上只是一个加法，因为乘法的优先级更高，对吧？
+Okay, so we have one decoration and we have another decoration and we have another expression,
+that expression there is simply just overall is an addition because the multiplication takes higher precedence, right?
+
+185
+00:16:17,454 --> 00:16:23,680
+所以这就是为什么你可以看到这里我们有一个程序，它有三个子树，对吧？
+So we got so that's why you can see over here we got a program which got three subtrees over here, right?
+
+186
+00:16:23,840 --> 00:16:26,212
+咱们先不管 EOF 就好。
+Let's let's disregard EOF just for now.
+
+187
+00:16:26,798 --> 00:16:30,560
+三个子树，然后每一个都是那边的叶子节点。
+Three subtrees, and then each one of them is uh the leaves over there.
+
+188
+00:16:30,862 --> 00:16:31,844
+你可以看到这些叶子节点。
+You can see the leaves.
+
+189
+00:16:32,320 --> 00:16:34,372
+呃，好，让我高亮一下这些叶子节点。
+Uh okay, let me highlight the leaves.
+
+190
+00:16:35,040 --> 00:16:43,748
+这个是叶子节点之一，还有叶子节点，还有 I 加 J 乘以 3。
+I this is one of the leaves and leaves, and also I plus j multiply three.
+
+191
+00:16:44,046 --> 00:16:47,600
+所以所有的叶子节点加在一起，实际上应该对应回输入程序，对吧？
+So all the leaves together should really correspond back to the input program, right?
+
+192
+00:16:47,680 --> 00:16:49,600
+这也是我们在课堂上讨论过的内容。
+That's something also we discuss in the class.
+
+193
+00:16:49,774 --> 00:16:51,236
+好了，快速回顾一下。
+Okay, just a very quick review.
+
+194
+00:16:51,760 --> 00:17:03,360
+我们最终真正想要实现的是，当生成的 ANTLR Java
+类返回给我们这个特定解析树的运行时结构时。
+What we really want to achieve eventually is to say when the generated antler
+Java classes get back to us a runtime structure of this particular parse tree.
+
+195
+00:17:03,600 --> 00:17:07,588
+正如我所说，我们不想直接在解析树上进行操作。
+And as I said, we don't want to manipulate directly on this parse tree.
+
+196
+00:17:07,839 --> 00:17:19,030
+好了，我们不想操作，抱歉。
+Okay, we do not want to manipulates, sorry.
+
+197
+00:17:19,348 --> 00:17:27,906
+空间不够了，直接在解析树上进行操作。
+running out of space, manipulates directly upon this parse tree.
+
+198
+00:17:29,518 --> 00:17:41,200
+我想强调这一点，因为理论上你也可以这样做，让一
+切程序逻辑依然正常运行，但实际上这没必要复杂化。
+I want to emphasize this because you could in theory you can also you can do that and
+make everything still work programmatically, but it's actually unnecessarily complicated.
+
+199
+00:17:41,440 --> 00:17:45,200
+再次强调，ANTLR 的类结构实际上非常复杂。
+Again, the antler class structure is actually very complicated.
+
+200
+00:17:45,760 --> 00:17:53,924
+我只会向你们展示一些有用的功能，但你们已经意识到它比必要的要复杂得多。
+I will only show you some useful features over there, but you will already realize it's quite more complicated than necessary.
+
+201
+00:17:54,606 --> 00:18:02,000
+然后我们真正要做的是，在运行时将这个特定的解析树结构转换成以下的对象结构。
+And then what we really want to do is to transform this particular
+parse tree structure at a runtime into the following object structure.
+
+202
+00:18:02,080 --> 00:18:03,680
+让我快速带大家过一遍。
+Let me just go over with you very quickly.
+
+203
+00:18:03,840 --> 00:18:13,120
+好了，基本上，这里的粉红色图表仅仅是我们刚刚谈到的模型对象设计的实例化，对吧？
+Okay, basically, the pink diagram over here is simply an instantiation
+of the design of the model objects that we just talked about, right?
+
+204
+00:18:13,326 --> 00:18:17,600
+所以现在你可以看到，所有的类名应该与这里的对象标题相匹配。
+So now you can see all the class names should maybe match the title of the objects over here.
+
+205
+00:18:17,774 --> 00:18:19,300
+让我们快速聊聊。
+Let's talk about it very quickly.
+
+206
+00:18:20,014 --> 00:18:22,880
+总的来说，我们有一个程序，程序对象，对吧？
+Overall, we have a program, program objects, right?
+
+207
+00:18:22,960 --> 00:18:30,240
+类型是 Program，它的表达式列表应该指向这里的三个子节点，对吧？
+Of type program, and its expression list should point to actually three children over here, right?
+
+208
+00:18:30,480 --> 00:18:35,440
+第一个对应这里的第一行，应该是一个装饰。
+The first one corresponding to the first line over here should be a decoration.
+
+209
+00:18:35,520 --> 00:18:40,800
+所以类型为 integer 的 i 最初应该是值 5，对吧？
+So i of type integer should be of value five initially, right?
+
+210
+00:18:41,038 --> 00:18:44,420
+第二个以类似的方式对应第二行。
+The second one in a similar way is going to correspond to the second line.
+
+211
+00:18:44,750 --> 00:18:50,960
+所以类型为整数的 i 初始值实际上是 7。
+So I of type integer is actually of initial value seven.
+
+212
+00:18:51,246 --> 00:18:52,160
+好，这就是第二行。
+Okay, that's the second line.
+
+213
+00:18:52,270 --> 00:18:53,156
+那第三行呢？
+What about the third line?
+
+214
+00:18:53,454 --> 00:18:58,880
+第三行，因为这里的乘法优先级更高。
+The third line, because multiplication over here takes higher precedence over here.
+
+215
+00:18:59,118 --> 00:19:04,804
+所以这就是为什么你可以看到整体的树是一个加法，因为乘法应该先执行，对吧？
+So that's why you can see overall the tree is an addition because multiplication should be done first, right?
+
+216
+00:19:05,040 --> 00:19:07,680
+这是你确实需要注意的一点。
+That's something you should really note.
+
+217
+00:19:08,238 --> 00:19:17,680
+所以现在当我们实际处理这里的加法，也就是加法对象时，
+这里的左侧对象应该是一个表达式，而它本身就只是 i。
+So now when we actually handle the addition over here, addition objects, the left
+object over here should be an expression, and that itself should just be just i.
+
+218
+00:19:17,920 --> 00:19:25,316
+你可以把这一部分看作是右子树，这一部分，而这一部分应该是左子树，对吧？
+You can think about this part should be the right subtree, this part here, and this one should be the left subtree, right?
+
+219
+00:19:25,646 --> 00:19:39,300
+所以左边是 i，右边就是这里的另一个乘法，乘法，左边应该是变量 j，右边应该是数值 3。
+So this would be i for the left, and for the right is simply just another multiplication over here, multiplication,
+and the left should be a variable j and the right over here should be the value 3.
+
+220
+00:19:40,270 --> 00:19:45,156
+好，这就是我们想要为解析树创建的对象结构。
+Okay, so now this is kind of the object structure we would like to create for the parse tree.
+
+221
+00:19:45,280 --> 00:19:47,200
+但具体该怎么做呢？
+But how exactly do we do that?
+
+222
+00:19:47,310 --> 00:19:49,956
+好，这就是我们要回答的问题。
+Okay, that's the uh the question we want to answer.
+
+223
+00:19:51,822 --> 00:20:00,880
+为了说明如何将 ANTLR 在运行时提供的解析树转换为我们的模型表达式对象，
+现在让我们看一个更清晰的页面。
+To illustrate the idea about transforming the parse tree provided by Antler at
+the runtime into our model expression objects, let's now consider a cleaner page.
+
+224
+00:20:01,486 --> 00:20:05,600
+让我回到一个带有相同示例的新页面。
+let me go back to a uh fresh page with the same example.
+
+225
+00:20:06,160 --> 00:20:09,040
+让我跟你们讲讲原理。
+let me just talk to you about the principle.
+
+226
+00:20:09,520 --> 00:20:14,880
+当然，针对你们特定的应用，你们可以随意发挥创意，尝试稍微修改一下。
+of course, for your particular application, you can feel free to be more creative and try to modify that a little bit.
+
+227
+00:20:15,150 --> 00:20:17,760
+好，让我告诉你们这个特定情况。
+Okay, let me tell you for this particular case.
+
+228
+00:20:19,182 --> 00:20:24,160
+我假设你们已经稍微回顾了一下访问者模式的工作原理。
+I assume you already uh you try to review a little bit about how the visitor design pattern works.
+
+229
+00:20:24,302 --> 00:20:28,420
+这超出了本教程视频的范围，但我直接告诉你们结果。
+It's beyond the scope of this particular tutorial video, but I'll just tell you the outcome.
+
+230
+00:20:28,590 --> 00:20:31,120
+好，这将是非常理想的。
+Okay, it would be very ideal.
+
+231
+00:20:31,566 --> 00:20:34,372
+想想看，记得我们在课堂上说了什么吗？
+Think about, remember what we said in the class?
+
+232
+00:20:35,150 --> 00:20:48,400
+每一个内部节点，比如程序、变量修饰，还有表达式，
+当然，表达式本身可能对应加法，或者对应乘法，对吧？
+Every internal note, like a program, decoration, and also expression, for example, and also this, of course,
+the expression itself might correspond to either a plus we might correspond to multiplication, right?
+
+233
+00:20:48,560 --> 00:20:50,720
+你可以把每一个内部节点
+You can think about every internal note.
+
+234
+00:20:52,110 --> 00:20:54,852
+都看作是对应到某种变量类型。
+Corresponds to somehow some variable type.
+
+235
+00:20:55,904 --> 00:20:59,824
+而且每一个内部节点也应该对应到某种模型类。
+And also every internal should also correspond to some model class.
+
+236
+00:20:59,984 --> 00:21:04,548
+例如，这里的变量修饰对应到变量修饰类。
+For example, decoration over here corresponds to variable decoration class.
+
+237
+00:21:04,944 --> 00:21:12,144
+而这种特定类型的表达式类对应到你表达式包中的加法类。
+And the expression class of this particular kind corresponds to the addition class in your in your expression package.
+
+238
+00:21:12,366 --> 00:21:15,716
+还有这里的表达式对应到乘法。
+And also the expression over here correspond to multiplication.
+
+239
+00:21:15,970 --> 00:21:16,150
+好吗？
+okay?
+
+240
+00:21:16,558 --> 00:21:28,624
+所以现在，为了使用访问者模式，如果每一个模型表达
+式类型都有一个对应的 visit 方法，那就非常方便了。
+So now, in order to use the visitor pattern, it will be very convenient if for
+every model expression type you actually have a corresponding visit method.
+
+241
+00:21:28,814 --> 00:21:34,052
+例如，我们应该有一个叫 visit 装饰 的方法。
+For example, we should have one method called visit decoration.
+
+242
+00:21:34,704 --> 00:21:35,024
+好吗？
+Okay?
+
+243
+00:21:35,438 --> 00:21:37,904
+我们还应该有另一个叫 visit program 的方法。
+And we should have another method called visit program.
+
+244
+00:21:38,926 --> 00:21:41,984
+另外我们还有一个叫 visit expression 的方法。
+And also we have another method called visit expression.
+
+245
+00:21:42,126 --> 00:21:44,612
+或者它也可以是，呃，可以是 visit addition，对吧？
+Or it could be miss uh could be visit addition, right?
+
+246
+00:21:45,184 --> 00:21:47,300
+这取决于你如何定义你的访问者。
+Depending on how you define your visitor.
+
+247
+00:21:47,598 --> 00:21:50,144
+而且还会有一个，嗯，这会非常方便。
+And also there will be um it will be very convenient.
+
+248
+00:21:50,224 --> 00:21:54,052
+还有一个叫 visit multiplication 的。
+There's another one called visit multiplication.
+
+249
+00:21:55,214 --> 00:22:00,388
+基本上，原则上每一个内部节点都对应一个模型表达式类。
+Basically, for every internal node, it corresponds to a model expression class in principle.
+
+250
+00:22:00,750 --> 00:22:09,584
+对于每一个模型表达式类，我们想要有一个对应的 visit 方法，
+用来真正把节点转换成表达式对象。
+And for every model expression class, we want to have a corresponding
+visit method to really convert from the node into the expression objects.
+
+251
+00:22:09,678 --> 00:22:11,332
+所以这里我告诉你们这个原则。
+So here I tell you the principle.
+
+252
+00:22:12,014 --> 00:22:15,204
+好，我把它写下来，为了更精确一点。
+Okay, I'll write it down here, just to be very precise.
+
+253
+00:22:17,038 --> 00:22:33,252
+所以每个内部节点都对应一个表达式。
+So each internal nodes corresponds to a and expression.
+
+254
+00:22:38,350 --> 00:22:38,944
+好，对吧？
+Okay, right?
+
+255
+00:22:39,150 --> 00:22:43,812
+所以你可以这样想，这是 ANTLR4，这是我们的模型概念，好吗？
+So this you can think about this is Antler and this is our model concept, okay?
+
+256
+00:22:44,206 --> 00:22:45,636
+然后，第二点。
+And then, second points.
+
+257
+00:22:48,142 --> 00:22:51,876
+对于每种表达式类型，
+for every expression type,
+
+258
+00:22:57,584 --> 00:23:05,252
+我们想要有一个对应的
+we want to have a corresponding
+
+259
+00:23:08,302 --> 00:23:09,252
+visit 方法，
+visit method,
+
+260
+00:23:14,446 --> 00:23:15,424
+它将执行以下操作。
+which will do the following.
+
+261
+00:23:27,918 --> 00:23:30,704
+假设给出一个，哦，这是另一个。
+Maybe given let's say, oh, this is another one.
+
+262
+00:23:30,798 --> 00:23:34,308
+实际上，这是另一种思考方式。
+Actually, this is very uh this is another way to think about it.
+
+263
+00:23:34,944 --> 00:23:38,244
+呃，这个这个可能对应变量，对吧？
+Uh this this one will correspond to maybe variable, right?
+
+264
+00:23:39,150 --> 00:23:45,984
+嗯，这个在解析树里，其实它不是，嗯，在解析树里，它实际上当然是一个词法单元。
+Well, this one is also like a in the parse tree, it's not really um in the parse tree, it's actually a token, of course.
+
+265
+00:23:46,064 --> 00:23:48,704
+有时候词法单元也可以变成某些表达式类型。
+Sometimes token can also become some expression type.
+
+266
+00:23:48,784 --> 00:23:51,584
+在这种情况下，它会对应到这里的变量。
+In this case, you will correspond to variable over here.
+
+267
+00:23:51,790 --> 00:23:59,652
+好，另一个例子就是，假设给出一个特定的变量 j，你会把它转换成一个变量对象。
+Okay, and another example would be maybe given this particular maybe variable j, you will turn that into a variable object.
+
+268
+00:24:01,230 --> 00:24:02,788
+好，这些都是不同的例子。
+Okay, so these are different examples.
+
+269
+00:24:03,104 --> 00:24:07,204
+这就是原则，你要搞清楚的这两点。
+So that's kind of the principle two points you want to get straight.
+
+270
+00:24:07,534 --> 00:24:14,704
+现在让我们看看，假设我们有了这些访问者方法，让我们思考一下它在运行时将如何发生。
+And now let's see, assuming that we got such visitor methods, and let's think about how it's going to happen at the runtime.
+
+271
+00:24:15,022 --> 00:24:17,664
+所以它的运行方式是自底向上的。
+So the way it's gonna happen is gonna be bottom up.
+
+272
+00:24:17,902 --> 00:24:28,350
+好，你可以这样理解：叶子节点实际上会先被匹配，然后它们被用来构建较小的子树，
+较小的子树再合并在一起构建更大的子树，最终所有内容都会在程序下汇总。
+Okay, you can think about somehow the leaves will actually be matched first, and then they will be used to build maybe a smaller
+subtree, and smaller subtree will be combined together to build a larger subtree,
+
+273
+00:24:28,350 --> 00:24:31,424
+好，你可以这样理解：叶子节点实际上会先被匹配，然后它们被用来构建较小的子树，
+较小的子树再合并在一起构建更大的子树，最终所有内容都会在程序下汇总。
+and eventually everything will be joined under the program.
+
+274
+00:24:31,726 --> 00:24:36,064
+好，现在我将使用高亮来告诉大家具体是怎么运作的。
+Okay, so now I'm gonna use highlighter to actually tell you how things will actually work.
+
+275
+00:24:36,224 --> 00:24:41,504
+好，首先让我把所有细节都填进去。
+Okay, so now, first of all, let me just fill in all the details first.
+
+276
+00:24:41,744 --> 00:24:46,624
+好，也许我最好保持高亮的一致性。
+Okay, so maybe it's better for me to be consistent with my highlighter.
+
+277
+00:24:46,862 --> 00:24:48,384
+所以让我在这里用蓝色。
+So let me use blue over here.
+
+278
+00:24:48,558 --> 00:25:00,932
+好，假设第一个被匹配的是，比如说第一个是这个特定的 i，
+这个类型为 integer 的 i 被赋值为 5。
+Okay, so let's say the first one to be uh to be matched would be let's say the first one would be let's say this particular i is this
+i of type integer integer is assigned to five.
+
+279
+00:25:01,646 --> 00:25:04,292
+i 的类型是 integer，被赋予初始值 5。
+I is of type integer is assigned an initial value five.
+
+280
+00:25:04,544 --> 00:25:23,744
+在这种情况下，当我们尝试访问这个特定的节点，当我们尝试访问这个特定节点上的变量修饰，
+或者这个特定的子树，或者你可以理解为这个特定的节点时。
+In that case, when we try to visit this particular one, when we try to let's say visit decoration on this particular node over here,
+on this particular subtree, or you can think about on this particular node.
+
+281
+00:25:23,918 --> 00:25:27,664
+在这种情况下，它将返回相应的对象，就像这样。
+In that case, it's going to return the corresponding object like this.
+
+282
+00:25:27,744 --> 00:25:29,316
+好，我将对应地画出来。
+Okay, I'll draw that correspondingly.
+
+283
+00:25:30,464 --> 00:25:34,916
+它的作用就是这个特定的变量修饰。
+What that will do is it's going to be this particular variable decoration.
+
+284
+00:25:36,864 --> 00:25:37,664
+就这一个。
+Just this one.
+
+285
+00:25:37,744 --> 00:25:44,944
+然后当我们创建它时，我们将填入 i，还有 integer，还有 5。
+And then when we create it, we're going to fill in i and also integer and also 5.
+
+286
+00:25:45,134 --> 00:25:47,744
+好，那将是运行时创建的第一个对象。
+Okay, that will be the first object to create at the runtime.
+
+287
+00:25:47,904 --> 00:25:53,572
+好，请注意我只是用高亮来表示对象创建的顺序。
+Okay, just notice that I'm just using highlighter to denote the order of object creation.
+
+288
+00:25:53,870 --> 00:25:59,716
+下一个将是，比如说这里的这个，第二个变量修饰。
+And the next one will be let's say this one here, the second variable decoration.
+
+289
+00:25:59,824 --> 00:26:04,624
+如果我们实际上在这个特定节点上调用 visit 装饰，那就非常完美了。
+And it will be very nice if we actually got visit decoration on this particular note.
+
+290
+00:26:04,974 --> 00:26:13,732
+假设我们调用那边的那个，也就是说我们调用这个特定内部节点上的 visit 装饰。
+Let's say if we call that over there, so let's say we call visit decoration on this particular internal nodes.
+
+291
+00:26:13,904 --> 00:26:19,524
+它的作用就是在运行时实际创建这个特定的对象。
+What that would do is it's going to actually create this particular object at the runtime.
+
+292
+00:26:19,758 --> 00:26:23,664
+然后我们将填入 uh j integer 7。
+And then we're going to fill in uh j integer7.
+
+293
+00:26:24,384 --> 00:26:27,104
+j integer 和 7。
+J integer and seven.
+
+294
+00:26:27,342 --> 00:26:34,224
+你可以理解为，通过访问每个内部节点，它将创建两个互不相关的对象。
+You can think about by visiting each internal node, it's going to create two objects that are not really connected to each other.
+
+295
+00:26:34,384 --> 00:26:39,424
+但希望一旦你到达访问的上层，你就能把它们连接在一起。
+But hopefully, once you get to the upper level for the visit, you actually can join them together.
+
+296
+00:26:39,598 --> 00:26:41,744
+你会在代码中看到具体是怎么做的。
+You will see exactly what do that in the coding.
+
+297
+00:26:41,838 --> 00:26:46,820
+我只是想在尝试去做之前，确保它在视觉上对你们来说是直观的。
+I just want to make sure it's it's gonna visual it's going to make visual sense to you before I try to do it.
+
+298
+00:26:47,502 --> 00:26:58,464
+好，然后 uh 下一个是，比如说这里我们可能会看到这个 i，
+我们可能也会看到这个 j，我们可能还会看到这个 uh 3。
+Okay, and then uh the next one will be uh let's say here we might see this
+i here, we might also see this j here, we might also see this uh 3 here.
+
+299
+00:26:58,766 --> 00:26:59,812
+i、j 和 3。
+I j and 3.
+
+300
+00:26:59,950 --> 00:27:05,444
+它将对应于这三个对象：i、j 以及 3。
+It will correspond to these three objects i, j, and also 3.
+
+301
+00:27:06,862 --> 00:27:09,024
+然后让我把它写下来。
+And then let me put it down.
+
+302
+00:27:09,518 --> 00:27:14,704
+所以这里就是 i，这里还有 j，还有这里的 3，对吧？
+So that'll be i here, and also we got j here, and also we got 3 here, right?
+
+303
+00:27:14,894 --> 00:27:25,316
+所以当我们访问，比如这个特定的节点上的变量时，它将返回这个特定的变量对象。
+So when we visit, for example, this will be visit a variable on this particular note,
+it's going to return this particular variable objects.
+
+304
+00:27:25,806 --> 00:27:27,780
+然后我们往上走一级。
+And then let's go a little bit upper level.
+
+305
+00:27:28,334 --> 00:27:34,532
+现在当你尝试访问，比如说这个特定的表达式，比如乘法时。
+And now when you try to visit, let's say this particular expression, let's say multiplication.
+
+306
+00:27:35,374 --> 00:27:37,984
+如果你能调用 visit multiplication 就太好了。
+So it would be very nice if you got visit multiplication.
+
+307
+00:27:38,222 --> 00:27:44,676
+如果你为这个特定的表达式节点调用 visit multiplication，那么现在它将创建这个特定的对象。
+If you say visit multiplication for this particular expression node, so now it's going to create this particular one.
+
+308
+00:27:44,864 --> 00:27:51,140
+不仅如此，它还会链接到之前创建的两个对象。
+Not only that, it's also going to link to the previously created two objects.
+
+309
+00:27:51,344 --> 00:27:54,340
+一个是这个变量，另一个是这个数字。
+One is this variable, the other one is the number.
+
+310
+00:27:55,534 --> 00:28:04,224
+现在我们还可以访问这个特定的表达式节点，它对应的是加法。
+and now we can also visit this particular expression node, in which case it corresponds to addition.
+
+311
+00:28:04,334 --> 00:28:11,876
+所以我们会在这里创建这个特定的加法对象，不仅如此，它还会把左边连到这里，右边连到这里。
+So we will create this particular addition objects over here, and not
+only that, it's going to join the left to here and the right to here.
+
+312
+00:28:12,334 --> 00:28:18,944
+好了，你可以看到我们构建树的方式与我们构建模型对象的方式非常相似。
+Okay, you can see the way we build a tree is very similar to how we build the model objects.
+
+313
+00:28:19,024 --> 00:28:20,224
+好了，希望你们明白这一点。
+Okay, hopefully you get a point.
+
+314
+00:28:20,304 --> 00:28:36,944
+最终，当你在这个特定的节点上，也就是根节点的顶部，调用 visit program 时，
+它将创建这个特定的程序对象，然后相应地设置它的三个子节点。
+And eventually, when you say visit, when you say visit program on this particular note, the top of the root note, when you do that,
+it's going to create this particular program objects and then it's going to set its three children accordingly.
+
+315
+00:28:37,024 --> 00:28:37,264
+对吧？
+Right?
+
+316
+00:28:37,422 --> 00:28:38,784
+这就是我们构建对象结构的方式。
+That's how we build an object structure.
+
+317
+00:28:39,086 --> 00:28:51,104
+所以你可以认为，我们将不得不调用很多次 visit 方法，无论是访问装饰、变量、数字还是程序。
+So you can think about there will be many instances of the visit method that we have to call either to visit the decoration,
+visit the variable, or to visit number, or to visit the program.
+
+318
+00:28:51,694 --> 00:28:53,824
+我们将看到会有非常非常多次这样的调用。
+We're gonna see that lots a lot lots of that.
+
+319
+00:28:53,934 --> 00:29:00,420
+我们调用 visit 的顺序对应于我们尝试自底向上构建树的顺序。
+And the order in which we call the visit corresponds to the order in which we try to build a tree bottom up.
+
+320
+00:29:00,974 --> 00:29:02,948
+好了，这就是我想说的要点。
+Okay, that's kind of the remark I would like to say.
+
+321
+00:29:03,534 --> 00:29:11,744
+好了，考虑到这一点，现在让我们看看 ANTLR 生成的类实际上支持哪些 visit 方法。
+Okay, having this in mind, so now let's see what kind of visit methods are actually supported by antler generated classes.
+
+322
+00:29:11,824 --> 00:29:12,484
+让我们来看看。
+Let's take a look.
+
+323
+00:29:12,718 --> 00:29:16,384
+好了，我想向你们展示的是这个。
+Okay, so what I would like to point to you is this.
+
+324
+00:29:16,544 --> 00:29:19,584
+记得我们之前提到的这个特定的层级结构。
+Remember we said before this particular hierarchy.
+
+325
+00:29:19,744 --> 00:29:23,744
+所以有一个叫做 expression visitor 的类，它是泛型的。
+So there is a class called expression visitor, okay, which is generic.
+
+326
+00:29:23,918 --> 00:29:27,984
+让我们先看看那个类，看看有哪些可用的 visit 方法。
+Let's take a look at that class first and see what visit methods are available.
+
+327
+00:29:28,398 --> 00:29:32,420
+如果你去那个特定的类，也就是 expression visitor。
+If you go to that particular class, so expression visitor.
+
+328
+00:29:33,774 --> 00:29:38,784
+好了，如果你在 ANTLR 下看它，当然，你可以看到首先它在这里是一个接口。
+Okay, if you look at that under Antler, of course, you can see first of all it's an interface over here.
+
+329
+00:29:39,022 --> 00:29:40,064
+那么，我们有哪些类呢？
+So, what classes do we have?
+
+330
+00:29:40,144 --> 00:29:45,264
+如果你去大纲视图，你可以看到我们有 visit program、visit 装饰 和 visit expression。
+If you go to the outline view, you can see we got visit proc, visit decoration, and visit expression.
+
+331
+00:29:45,422 --> 00:29:46,784
+现在我要问你们一个问题。
+So now I have a question for you.
+
+332
+00:29:47,278 --> 00:29:53,952
+你能告诉我，为什么 ANTLR4 知道我们要生成恰好这三个 visit 方法吗？
+Can you tell me why Antler would know we should generate exactly these three visit methods?
+
+333
+00:29:54,190 --> 00:29:59,684
+一个是 visit program，另一个是 visit 装饰，还有一个是 visit expression。
+One is called visit proc, the other one is called visit decoration, and the other one is called visit expression.
+
+334
+00:30:00,206 --> 00:30:03,392
+更准确地说，为什么 visit 方法要这样拼写？
+More precisely, why such spelling for the visit method?
+
+335
+00:30:03,472 --> 00:30:04,676
+ANTLR4 是怎么知道的？
+How does Antler know?
+
+336
+00:30:05,198 --> 00:30:05,792
+这是一个问题。
+That's a question.
+
+337
+00:30:05,952 --> 00:30:06,192
+好吗？
+Okay?
+
+338
+00:30:06,446 --> 00:30:13,712
+还有一点需要注意，你可以看到这里的这个特定的 visitor 类也是泛型的。
+And one thing to note, you can see the this this particular visitor uh class over here also is generic.
+
+339
+00:30:13,872 --> 00:30:23,012
+所以这里的类型告诉你，无论你在这里提交什么 t，它可以是 program，
+或者是我们那边 expression 包里的任何类型，对吧？
+So the type over here tells you whatever t you commit to here, it can be program,
+uh any of the uh types that it does in our expression package over there, right?
+
+340
+00:30:23,662 --> 00:30:26,672
+它可能是 program，也可能是 expression。
+It could be maybe program or maybe it can be expression.
+
+341
+00:30:26,752 --> 00:30:28,100
+你会看到这两种情况。
+You're gonna see these two cases.
+
+342
+00:30:28,366 --> 00:30:34,432
+所以我们可以通过将 t 实例化为 program 来实例化这个特定的类。
+So we can instantiate uh we can instantiate this particular class by instantiating t into program.
+
+343
+00:30:34,734 --> 00:30:38,832
+我们也可以通过将 t 实例化为 expression 来实例化这个类。
+We can also instantiate this class by instantiating t into expression.
+
+344
+00:30:39,054 --> 00:30:40,004
+好，这就是我们可以做的。
+Okay, that's what we can do.
+
+345
+00:30:40,302 --> 00:30:51,812
+好，之所以默认有 program、装饰 和 expression，
+是因为让我们回到之前的教程视频中提到的语法文件。
+Okay, so the reason that you have program, you got decoration, and also you got expression here by default is because let's go back to
+our grammar file, which we did in the previous tutorial video.
+
+346
+00:30:52,272 --> 00:31:01,060
+如果你进入 ANTLR4 文件夹，找到那个 expression.g4 文件，看看里面有多少个产生式规则？
+If you go to your Antler folder and then remember this expression.g4, if you look at that, how many production rules we have?
+
+347
+00:31:01,312 --> 00:31:02,212
+正好三个。
+Exactly three.
+
+348
+00:31:02,542 --> 00:31:05,712
+它们被命名为 program、装饰 和 expression。
+They are called proc decoration and expression.
+
+349
+00:31:05,806 --> 00:31:06,916
+它们只是首字母大写了。
+They just capitalize it.
+
+350
+00:31:07,278 --> 00:31:20,484
+好，所以默认情况下，如果你不做任何自定义，你就会得到 visit program、
+visit 装饰 和 visit expression，就像我之前幻灯片里说的一样。
+Okay, so by default, if you didn't do anything customized, you would just get visit proc, visit decoration, and visit expression,
+exactly like what I said in the previous slides.
+
+351
+00:31:20,686 --> 00:31:24,356
+这里有一个用于访问 program 的方法。
+You have one method for visiting program over here.
+
+352
+00:31:24,814 --> 00:31:29,472
+你有 visit program，它将负责处理像这样的事情。
+You have the visit proc, which is going to be handled going to handle things like this.
+
+353
+00:31:29,552 --> 00:31:30,192
+好，program。
+Okay, proc.
+
+354
+00:31:30,512 --> 00:31:35,232
+此外，你还有 visit 装饰，还有 visit expression。
+Also, you got visit decoration, also you also got a visit expression.
+
+355
+00:31:35,472 --> 00:31:45,252
+但是现在，正如我试图解释的，我怎么知道有时需要实例化加法，有时又想实例化乘法呢？
+But now, as I also try to explain, how do I know sometimes I need to
+instantiate addition and sometimes I want to instantiate multiplication?
+
+356
+00:31:45,518 --> 00:31:48,612
+这真的取决于我正在讨论的是哪一个产生式规则，对吧？
+It really depends on which production rule I'm talking about, right?
+
+357
+00:31:48,912 --> 00:31:54,468
+如果我匹配到这个特定的产生式规则，我应该创建一个乘法对象。
+If I'm matching this particular production rule, I should really create a multiplication object.
+
+358
+00:31:54,734 --> 00:31:59,312
+如果我匹配到这个特定的，我应该创建一个加法对象。
+If I'm matching this particular one, I should really create a maybe addition object.
+
+359
+00:31:59,470 --> 00:32:03,556
+如果我匹配到这个特定的，我应该做变量，这个是数字。
+If I'm matching this particular one, I should do variable and this one here, number.
+
+360
+00:32:03,982 --> 00:32:16,772
+所以如果我能说我创建一个 visit 方法，或者更准确地说，
+我希望 ANTLR4 工具为每个备选方案生成一个 visit 方法，那就太棒了。
+So you'll be very nice if I can say I create a visit method, I or more precisely,
+I want the antler tool to generate a visit method for every alternative.
+
+361
+00:32:17,262 --> 00:32:19,108
+例如，在这种情况下，我该怎么做呢？
+In this case, for example, how can I do that?
+
+362
+00:32:19,662 --> 00:32:24,164
+好了，在讲具体怎么做之前，我先再说明一点。
+Okay, so let me just say one more thing before I talk about how we can do it.
+
+363
+00:32:24,462 --> 00:32:38,512
+我只是想让你们意识到，我们这里正好有三个 visit 方法，
+而且它们的名字就是直接来自语法文件里的变量名。
+So all I want you to realize is we have exactly three visit methods over here, and their
+name simply just comes from simply just come from the variable name in the grammar file.
+
+364
+00:32:38,734 --> 00:32:41,152
+好了，但现在我们可以自定义它，我们可以做到这一点。
+Okay, but now we can customize it, we can do it.
+
+365
+00:32:41,390 --> 00:32:47,044
+注意这个注释，你可以把它想象成，比如说 visit program。
+And notice that the note, you can think of let's say visit program.
+
+366
+00:32:48,046 --> 00:32:52,612
+在 ANTLR4 端，这个特定节点在运行时是什么类型？
+What's the type of this particular node at the runtime from the antler side?
+
+367
+00:32:53,038 --> 00:32:54,112
+它是这个特定类型。
+It is of this particular type.
+
+368
+00:32:54,192 --> 00:32:57,072
+它是 expression parser dot programming context。
+It's expression parser dot programming context.
+
+369
+00:32:57,262 --> 00:32:58,192
+所以这是一个类型。
+So this is a type.
+
+370
+00:32:58,478 --> 00:33:02,432
+我们还有另外两个，一个叫 装饰 context，另一个叫 expression context。
+And also we got another one called decoration context, another one called expression context.
+
+371
+00:33:02,512 --> 00:33:13,872
+所以这些类可能不像我们刚才看到的那些包含 expression、variable、
+number 的模型层次结构那么好用。
+So these classes may not be as easy to work with as this particular
+hierarchy with all the expression variable number, the one we just have seen.
+
+372
+00:33:14,030 --> 00:33:16,832
+所以现在我要再次强调我的观点。
+So now this is again emphasize my arguments.
+
+373
+00:33:17,102 --> 00:33:32,032
+为了真正构建大型编译器项目，你确实需要为所有的模型概念
+做好设计，比如使用组合模式，或者可能结合客户端供应关系。
+So in order for you to really uh build a large project for your compiler, you really want to have a good design for all your model
+concept as uh using the composite or composite pattern, or possibly in combination with client supply relationship.
+
+374
+00:33:32,302 --> 00:33:44,612
+而不是仅仅直接使用 ANTLR4 提供的预定义类，比如 programming context 或 expression
+context 等，这就是我的核心观点。
+Rather than just a uh rather than just working directly with the predefined classes over here provided by Antler, for example,
+programming context or expression context, and etc. that's my point.
+
+375
+00:33:45,486 --> 00:33:47,844
+还有一件事要说。
+So now one more thing to say.
+
+376
+00:33:48,974 --> 00:33:54,736
+根据这里的图表，我们还要看另一个类，就是 expression-based visitor。
+According to the diagram over here, there's another class we want to look at, which is expression-based visitor.
+
+377
+00:33:54,862 --> 00:33:57,856
+这个类实现了这里的接口。
+So this class here implements the interface over here.
+
+378
+00:33:58,016 --> 00:34:01,216
+显然，它将实现我们讨论过的所有三个方法。
+Apparently, it will implement all the three methods that we talked about.
+
+379
+00:34:01,296 --> 00:34:02,596
+我只是想快速给你们展示一下。
+I just want to show you very quickly.
+
+380
+00:34:02,894 --> 00:34:06,468
+它们只是提供了一些非常默认的实现。
+They just provide some very uh default implementation.
+
+381
+00:34:06,894 --> 00:34:15,295
+如果我去看这里的 expression-based visitor，你们可
+以看到，如果看大纲视图，我们这里又有了这三个方法。
+If I go to expression-based visitor over here, you can see again, if
+you see the outline view, we got again these three methods over here.
+
+382
+00:34:15,469 --> 00:34:18,255
+而且这个类仍然是泛型的。
+And this class remain to be uh generic.
+
+383
+00:34:18,576 --> 00:34:24,772
+所以它还没有确定要返回什么类型，但当我们定义自己的 visitor 类时，就会确定。
+So we it hasn't really committed to what type it's gonna uh return, but we will when we define our own visitor classes.
+
+384
+00:34:25,902 --> 00:34:28,976
+你们可以看到这里，它们只是简单地写了重写，对吧？
+You can see over here, they simply just say overwrite over here, right?
+
+385
+00:34:29,136 --> 00:34:32,656
+它们尝试重新定义，然后只是简单地写了 visit children。
+They try to redefine, and then they simply just say visit children over here.
+
+386
+00:34:32,813 --> 00:34:34,308
+好了，非常默认的实现。
+Okay, very default implementation.
+
+387
+00:34:34,496 --> 00:34:36,896
+目前你们不需要担心这些是怎么工作的。
+You don't need to worry about how this works for now.
+
+388
+00:34:37,166 --> 00:34:49,188
+好了，我们要看看具体如何构建我们的 visitor 方法，我们
+实现 visitor 方法的方式将和我刚才演示的那样一样，好吗？
+Okay, we're gonna see exactly how we can build our visitor methods, and the way we implement our visitor methods will be just like how
+I illustrated visually a few more a few moments ago, okay?
+
+389
+00:34:49,742 --> 00:34:52,868
+就像我们根据 visit 的结果来构建对象一样。
+Like how we build objects based on the visit results.
+
+390
+00:34:54,446 --> 00:35:01,188
+现在让我们看看如何重新生成所有 visitor 方法，使其成为我们真正觉得方便的那种。
+So now let's see how we can regenerate all the visitor methods to be the ones that we really find convenient.
+
+391
+00:35:01,550 --> 00:35:05,856
+所以，我想做的就是带大家回到这里的语法文件。
+So, what I want to do is show you back to the grammar file over here.
+
+392
+00:35:06,126 --> 00:35:11,056
+所以，我们现在要做的是在产生式规则旁边添加所谓的标签。
+So, what we want to do now is to add so-called labels besides the production rule.
+
+393
+00:35:11,246 --> 00:35:17,376
+好，让我给你们展示一下细节，现在你们应该打开你们的语法文件。
+Okay, let me just be show you all the details and for now you should really open up your grammar file.
+
+394
+00:35:17,550 --> 00:35:18,736
+让我们一起动手操作。
+And let's do it all together.
+
+395
+00:35:19,086 --> 00:35:22,180
+好，让我看一下我这里的参考资料。
+Okay, let me just go to look up my reference over here.
+
+396
+00:35:23,694 --> 00:35:27,396
+好，我首先要做的是针对起始符号。
+Okay, so the first one I want to do is for the start symbol.
+
+397
+00:35:27,566 --> 00:35:34,336
+好，它的语法是在这个特定的备选方案旁边，嗯，对于 program，你只有一个备选方案。
+Okay, the syntax for that is besides this particular alternative, well, you only got one alternative for the program.
+
+398
+00:35:34,734 --> 00:35:36,976
+我会写井号，然后是 program。
+I'll say hash sign and then program.
+
+399
+00:35:37,856 --> 00:35:44,656
+到后来当我们重新生成解析器代码时，你会看到一个叫做 visit program 的访问者方法。
+What you can expect later when we regenerate a parser code, you're going to have a visitor method called visit program.
+
+400
+00:35:45,326 --> 00:35:50,596
+好，然后对于这个特定的，我想说可能是 装饰。
+Okay, and then for this particular one, I want to say maybe decoration.
+
+401
+00:35:52,366 --> 00:36:00,576
+好，当你这里有多个备选方案时，要求要么你不为
+它们指定任何标签，要么你要为它们全部指定标签。
+Okay, when you got multiple alternative over here, enter require either you
+don't specify any labels for them or you're going to specify labels for them all.
+
+402
+00:36:00,814 --> 00:36:01,956
+好，现在我就这样做。
+Okay, for now I'll just do that.
+
+403
+00:36:02,190 --> 00:36:07,588
+好，现在我真的可以自定义，让我的访问者方法更有意义，也更细粒度。
+Okay, so now I can really customize and make my visit methods more meaningful and more fine-grained.
+
+404
+00:36:07,982 --> 00:36:13,572
+好，然后对于现在这个，我会说 multiplication，这是合理的。
+Okay, and then so for now for this one here I would say multiplication, it makes sense.
+
+405
+00:36:14,606 --> 00:36:18,692
+所以到后来我将会有一些叫做 visit multiplication 和 addition 的东西。
+So later on I will have something called visit multiplication and also addition.
+
+406
+00:36:21,230 --> 00:36:24,644
+然后我还有一个叫做 variable 的。
+And then I have another one called variable.
+
+407
+00:36:25,710 --> 00:36:31,204
+所以到后来我将有一个 visit variable 方法，另外我还有 number。
+So I'm gonna have a visit variable method later, and also I have number.
+
+408
+00:36:31,502 --> 00:36:33,216
+所以到后来我将有一个 visit number。
+So I'm gonna have visit number later.
+
+409
+00:36:33,422 --> 00:36:37,296
+好，现在我添加了 1、2、3、4、5、6，一共 6 个标签。
+Okay, so now I've added one, two, three, four, five, six, six labels.
+
+410
+00:36:37,376 --> 00:36:43,216
+这意味着我预期会看到 6 个不同的访问者方法，它们的名称将与这些标签相对应。
+So that means I'm gonna expect to see six different visit methods whose name will correspond to them.
+
+411
+00:36:43,438 --> 00:36:50,736
+而且它们还会确保类型，也就是上下文，与解析中的内部注释相对应。
+And then they will also make sure the type, the context will correspond
+to the corresponding note uh in the internal notes in the parse.
+
+412
+00:36:51,214 --> 00:36:56,096
+好，然后我们将在下一个视频中看到我们如何编写这些访问者方法。
+Okay, and then we're going to see exactly in the next video how we can program these visit methods.
+
+413
+00:36:56,176 --> 00:37:04,176
+它们并不难，你只需要从视觉上理解如何将每个访问者方法与此类对象结构的构建联系起来。
+They are not hard, you just got to understand, visually speaking, how you
+can relate each visit methods to the construction of such object structure.
+
+414
+00:37:04,302 --> 00:37:05,124
+这就是你将看到的。
+That's what you're gonna see.
+
+415
+00:37:05,296 --> 00:37:11,524
+但我建议你可能想回顾一下你在之前的软件设计课程中学到的访问者模式。
+But I will advise you may want to review the visitor design pattern that you learned in the previous software design course.
+
+416
+00:37:11,616 --> 00:37:13,252
+我强烈推荐这样做。
+I will highly recommend.
+
+417
+00:37:14,350 --> 00:37:16,336
+好，既然我们完成了这一步。
+Okay, so now that we're done with this.
+
+418
+00:37:16,622 --> 00:37:19,716
+所以我们现在应该做的是重新生成所有的解析器代码。
+So what we should do now is to regenerate all the parser code.
+
+419
+00:37:20,014 --> 00:37:22,096
+好，现在让我确认一下我是否在正确的位置。
+Okay, so now let me make sure I'm in the right place.
+
+420
+00:37:22,286 --> 00:37:26,980
+现在在命令行中，我不在这个特定的访问者对象，访问者项目里。
+So now in the command line, I'm not in this particular visitor objects, visitor projects.
+
+421
+00:37:27,374 --> 00:37:32,420
+我现在进入 source，好，然后是 ANTLR。
+I'll now go into the source, okay, and then antler.
+
+422
+00:37:33,070 --> 00:37:36,900
+好了，现在我想重新生成这里所有的类，对吧？
+Okay, now I want to regenerate all the classes over here, right?
+
+423
+00:37:37,390 --> 00:37:43,776
+所以我打算做的，呃，我假设目前不用 Gradle，所以我不打算在当前文件夹重新编译。
+So what I want to do, uh I assuming that I'm not gonna use a G run at the moment, so I'm not gonna recompile in this folder.
+
+424
+00:37:44,016 --> 00:37:47,492
+只要我刷新一下，Eclipse 就会帮我重新编译。
+Eclipse will just recompile for me, provided that I refresh.
+
+425
+00:37:48,654 --> 00:37:52,496
+现在我要输入 ANTLR4。
+So now I'll say Antler 4.
+
+426
+00:37:52,814 --> 00:37:57,216
+好了，把它们正确地打出来，现在我要说的是 visitor 选项。
+Okay, just type it out right uh correctly, and then now I'm talking about a visitor option.
+
+427
+00:37:57,376 --> 00:38:02,308
+所以是 visitor 然后是 expression.g4。
+So visitor and then expression g4.
+
+428
+00:38:03,246 --> 00:38:04,068
+好了，我就这么做。
+Okay, I'll do that.
+
+429
+00:38:04,462 --> 00:38:06,736
+好了，现在所有内容都重新生成了。
+Okay, so now everything is regenerated.
+
+430
+00:38:07,022 --> 00:38:11,850
+当然，如果你使用的是 Linux 之类的环境，我们可以简单地检查时间戳。
+Of course, if you're using a Linux like environment, we can simply check the time frame, the time stamp.
+
+431
+00:38:12,046 --> 00:38:13,284
+它就显示为当前时间。
+You will just be the current one.
+
+432
+00:38:13,536 --> 00:38:14,564
+好了，不管怎样。
+Okay, anyway.
+
+433
+00:38:15,790 --> 00:38:18,416
+现在我要回到这里的 Eclipse。
+So now I will go back to Eclipse over here.
+
+434
+00:38:18,606 --> 00:38:25,136
+为了让你看到更新，我得去操作一下这里的包资源管理器。
+In order for you to see the updates, you have to actually let me just go by the package explorer over here.
+
+435
+00:38:25,454 --> 00:38:27,776
+现在让我重新……刷新一下。
+So now I let me just re uh refresh.
+
+436
+00:38:32,014 --> 00:38:34,832
+好了，如果我刷新了，你可以看到所有内容都编译过了，对吧？
+Okay, if I refresh, you can see everything compiles, right?
+
+437
+00:38:35,086 --> 00:38:40,912
+不知为什么，错误信息显示得有点不一致，但那是由于我之前没刷新。
+Somehow it shows a little bit inconsistent with the error messages, but that's because I didn't refresh.
+
+438
+00:38:40,992 --> 00:38:46,980
+好了，确保在重新生成所有 ANTLR 相关类之后，一定要刷新一下。
+Okay, make sure you always refresh after regenerated after regenerating all the antler related classes.
+
+439
+00:38:47,662 --> 00:38:49,476
+现在让我们再次确认一下。
+So now let's reaffirm.
+
+440
+00:38:49,998 --> 00:39:00,832
+好了，再次说一下，如果你还记得这里的层级结构，我们不仅想在这个类里，
+还想在这里的这个类里看到对应我们标签的所有六个方法。
+Okay, again, if you recall this hierarchy over here, we want to see all the six methods
+corresponding to our labels in not only this class but also this class over here.
+
+441
+00:39:00,912 --> 00:39:05,700
+所以我们可以相应地创建两个子类，这稍后会完成。
+So we can create two subclasses accordingly, which will be done later.
+
+442
+00:39:07,214 --> 00:39:08,512
+好了，现在让我们回到这里。
+Okay, so now let's go back here.
+
+443
+00:39:08,750 --> 00:39:10,372
+首先，让我们去查看接口。
+First of all, let's go to the interface.
+
+444
+00:39:10,670 --> 00:39:12,832
+那就是 expression visitor。
+So that would be expression visitor.
+
+445
+00:39:13,358 --> 00:39:18,992
+如果我点进去看大纲视图，你可以看到一、二、三、四、五、六。
+If I go there and I see the outline view, you can see one, two, three, four, five, six.
+
+446
+00:39:19,152 --> 00:39:22,672
+不出所料，你可以看到我们有了 visit program。
+And not surprisingly, you can see we got visit program.
+
+447
+00:39:23,392 --> 00:39:27,908
+这再次对应于语法文件里的这个 program。
+And this again correspond to the program over here in the grammar file.
+
+448
+00:39:28,174 --> 00:39:29,952
+而且我们还有 visit 装饰。
+And also we got visit decoration.
+
+449
+00:39:30,158 --> 00:39:33,152
+不出所料，你可以看到这里的这个 装饰 等等。
+Not surprisingly, you can see this decoration here, and etc.
+
+450
+00:39:33,392 --> 00:39:38,724
+注意，第一个参数的类型被称为 program context。
+And notice that the type for the parameter one is called a program context.
+
+451
+00:39:38,912 --> 00:39:45,392
+所以 program context 基本上是指这里的这个特定的内部节点 program。
+So program context basically is referring to this particular internal notes program over here.
+
+452
+00:39:45,486 --> 00:39:46,672
+好了，就是这个。
+Okay, this this one here.
+
+453
+00:39:46,752 --> 00:39:49,472
+好，让我快点把它写下来。
+Okay, let me let me write it down quickly.
+
+454
+00:39:49,934 --> 00:39:58,244
+基本上，这里的这个 program 节点，它的类型确实是 program context。
+Basically, this guy here, program over here, is really of type program context.
+
+455
+00:40:01,038 --> 00:40:05,712
+好，同理，你可以看到另一个是 装饰 context。
+Okay, and similarly, so you can see another one is decoration context.
+
+456
+00:40:05,902 --> 00:40:07,076
+所以那个是给 装饰 用的。
+So that'll be for decoration.
+
+457
+00:40:07,438 --> 00:40:12,196
+所以现在你可以认为这个特定节点的类型是 装饰 context。
+So now you can think about the type for this particular note is decoration context.
+
+458
+00:40:16,878 --> 00:40:17,312
+等等，以此类推。
+And etc.
+
+459
+00:40:17,552 --> 00:40:23,712
+好，当然你还有 variable 的类型，还有 addition 和 multiplication 的类型，对吧？
+Okay, of course you have a type of the variable, and also you have a type for also addition and multiplication, right?
+
+460
+00:40:24,032 --> 00:40:24,804
+等等，以此类推。
+And etc.
+
+461
+00:40:26,158 --> 00:40:37,028
+好，现在我们有了这六个 visit 方法，现在我们需要重新生成它，现在让我们来看看其他的类。
+Okay, so now we got all these six uh visit methods, so now we have got we have we
+have to regenerate it and now let's also take a look to see the the other class.
+
+462
+00:40:38,126 --> 00:40:41,796
+还要记得，我真的得提醒你们一下层级结构。
+And remember again, I should really remind you of the hierarchy.
+
+463
+00:40:42,112 --> 00:40:46,992
+我们已经确认这个特定的接口在重新生成的代码中拥有六个方法。
+We have confirmed that this particular interface got six methods uh in the regenerated code.
+
+464
+00:40:47,152 --> 00:40:52,192
+当我确认这个非抽象类也拥有这六个方法时，它理应如此，对吧？
+When I confirm also this particular class that's not abstract also got the six methods, it should, right?
+
+465
+00:40:52,272 --> 00:40:53,092
+确认过了。
+That's confirmed.
+
+466
+00:40:53,422 --> 00:40:58,192
+如果你去看 expression base visitor，这就是那个非抽象类。
+If you go to expression base visitor, so this is the class that's not abstract.
+
+467
+00:40:58,272 --> 00:41:02,980
+你可以看到这个类实现了 expression visitor。
+You can see this class over here it implements the expression visitor.
+
+468
+00:41:03,150 --> 00:41:07,460
+你不需要担心这个特定的类，它来自 JAR 文件，你无法获取。
+You don't need to worry about this particular class, it comes from the JA file, which is not available to you.
+
+469
+00:41:08,238 --> 00:41:09,952
+好，我们有了 visit program。
+Okay, we got a visit program.
+
+470
+00:41:10,094 --> 00:41:13,792
+呃，如果你看大纲视图，我们这里依然有同样的六个方法。
+Uh if you look see the outline view, again, we got the same six method here.
+
+471
+00:41:13,952 --> 00:41:16,912
+一，二，三，四，五，六。
+One, two, three, four, five, six.
+
+472
+00:41:17,072 --> 00:41:21,284
+而且再次强调，你可以看到这个特定的类是泛型的。
+And again, you can see for this particular class it is generic.
+
+473
+00:41:21,710 --> 00:41:32,432
+这意味着，当你声明具体内容时，无论你决定把 t 提交成什么，
+visit 方法的每一个返回类型都将是相同的 t。
+Which means whatever t you decide to commit to when you declare something concrete,
+every return type of the visit method is going to be the same t.
+
+474
+00:41:32,512 --> 00:41:38,432
+例如，如果我把 t 实例化为 program，那么在这种情况下，visit program 将返回 program。
+For example, if I instantiate t to be program, in that case, it's gonna visit program is gonna return program.
+
+475
+00:41:38,990 --> 00:41:44,992
+如果我把 t 实例化为 expression，例如，那么 visit 装饰 将返回一个 expression。
+If I instantiate t to be expression, for example, then visit decoration is going to return an expression.
+
+476
+00:41:45,102 --> 00:41:48,228
+动态来说，它会是一个 变量修饰 对象。
+Dynamically, it would be a variable decoration object.
+
+477
+00:41:48,750 --> 00:41:50,436
+希望这些对你来说仍然好理解。
+Hopefully everything still makes sense to you.
+
+478
+00:41:52,782 --> 00:41:56,592
+好，所以现在希望通过这个视频，你能看到这里的宏观全貌。
+Okay, so now hopefully for this video you can see the big picture over here.
+
+479
+00:41:56,752 --> 00:42:04,352
+我建议你在继续之前先回顾一下，因为在下一个视频中，我们将开始实现两个 visitor 类。
+I would suggest before you go on, because in the next video we're gonna start implementing the two visitor classes.
+
+480
+00:42:04,432 --> 00:42:12,330
+一个是把我们的一些内部节点转换为 program，另
+一个类是将一些内部节点转换为 expression 节点。
+One is to convert our uh some internal nodes into program, and another
+class will be converts some internal nodes into expression notes.
+
+481
+00:42:12,558 --> 00:42:24,112
+我们还没有看到具体如何实现它们，但只要你能从我们构建树的方式中获得直觉，
+就像我之前演示的那样，我认为实现起来应该不会太难。
+And we didn't see exactly how to implement those, but as long as you can get intuition from how we build a tree,
+like what I have illustrated previously, I think the implementation should not be so hard.
+
+482
+00:42:24,272 --> 00:42:24,432
+好吗？
+Okay?
+
+483
+00:42:24,878 --> 00:42:26,340
+在继续之前先复习一下。
+Review that before you go on.
+

@@ -11,6 +11,7 @@
 | [[Agent] Three steps to a strong agent? \| Axion 1.0: Open Agent Foundation Models, Simplified](medias/MG3PK/) | Daily Frontier Papers | 2026-11-13 |
 | [I Have Spent 1000+ Hours With Claude Code. This Is What I Learned](medias/JG3EY/) | The Coding Sloth | 2026-11-13 |
 | [Does Scaling Toward AGI Depend on What System 1 Lets System 2 Execute?](medias/E8PF4/) | Knut Jägersberg | 2026-11-13 |
+| [EECS4302 ANTLR4 Parser Generator Tutorial: Part 3](medias/CPW0N/) | Jackie Wang | 2026-11-13 |
 | [The biggest AI breakthrough in medicine & drug discovery](medias/94R50/) | AI Search | 2026-11-13 |
 | [The Ultimate AI Product Management Toolkit: Every Product Manager Must Know in 2027](medias/7PC9K/) | codebasics | 2026-11-13 |
 | [Cyber Security Full Course 2026 in 26 Hours \| Master Ethical Hacking & Network Security\| Simplilearn](medias/68X67/) | Simplilearn | 2026-11-13 |
