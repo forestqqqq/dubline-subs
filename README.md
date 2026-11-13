@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [Full Walkthrough: Workflow for AI Coding — Matt Pocock](medias/XQ6FX/) | AI Engineer | 2026-11-13 |
 | [How AI agents learn to use a computer: inside CUA-Master's data](medias/S2YDJ/) | DATUREX GmbH | 2026-11-13 |
 | [Claude Opus 5.5 is INCREDIBLE at building video games](medias/PHDNP/) | Alex Finn | 2026-11-13 |
 | [Does Scaling Toward AGI Depend on What System 1 Lets System 2 Execute?](medias/E8PF4/) | Knut Jägersberg | 2026-11-13 |
