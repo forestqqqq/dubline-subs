@@ -1,0 +1,1928 @@
+1
+00:00:00,240 --> 00:00:08,080
+I would say like it is less than 50% the demos or like POCs that you do that actually make it to production and actually generate revenue.
+
+2
+00:00:08,400 --> 00:00:10,080
+Customers always blame you, right?
+
+3
+00:00:10,160 --> 00:00:12,080
+They say like we didn't change anything.
+
+4
+00:00:12,400 --> 00:00:17,520
+Have you said to a founder that you really don't need an agent for this at this moment?
+
+5
+00:00:17,840 --> 00:00:20,320
+Because why are you overcomplicating things?
+
+6
+00:00:20,560 --> 00:00:26,880
+If you stop learning even for a week or a month, you will just burn off that 1 million context window in five minutes.
+
+7
+00:00:31,360 --> 00:00:32,800
+This is off the backlog.
+
+8
+00:00:33,040 --> 00:00:35,120
+Tools, trade-offs, and 2AM incident.
+
+9
+00:00:35,470 --> 00:00:42,468
+I'm Dishankarji, and every episode I ask one data practitioner three things what they built, what broke, and what they would delete.
+
+10
+00:00:42,640 --> 00:00:43,492
+Let's get into it.
+
+11
+00:00:43,694 --> 00:00:48,800
+Today I'm joined by Akshay, who is startup solution architect at AWS.
+
+12
+00:00:49,160 --> 00:00:55,268
+Akshay started much closer to incidents, troubleshooting, Linux, and infrastructure problem in cloud support.
+
+13
+00:00:55,440 --> 00:01:03,840
+Before he moved into solution architect role and eventually working with the startup across UK on cloud, AI and agentic system.
+
+14
+00:01:04,160 --> 00:01:12,000
+His career has taken him from support in Portland to enterprise architecture in Seattle and now startup architecture in London.
+
+15
+00:01:12,240 --> 00:01:23,120
+He also studied and worked across India, US, and the UK, which gives him an interesting perspective on how different types of teams build their technology across region.
+
+16
+00:01:23,440 --> 00:01:32,548
+Today we are getting into what startup get wrong about scaling, what separates a good AI demo from something you can actually trust in production.
+
+17
+00:01:32,800 --> 00:01:40,800
+How support shaped the way he thinks about architecture and some of the technical decision where there actually isn't one right answer.
+
+18
+00:01:41,262 --> 00:01:42,720
+Akshay, thanks for joining me.
+
+19
+00:01:43,040 --> 00:01:44,960
+Yeah, thank you for having me here.
+
+20
+00:01:45,120 --> 00:01:48,800
+And I've been through your first few episodes and they look great.
+
+21
+00:01:49,440 --> 00:01:52,080
+You have a different perspective in every of your call.
+
+22
+00:01:52,160 --> 00:01:52,480
+So
+
+23
+00:01:52,480 --> 00:01:52,960
+thank you.
+
+24
+00:01:53,280 --> 00:01:54,640
+Good job getting all right.
+
+25
+00:01:55,200 --> 00:01:55,920
+Thanks a lot.
+
+26
+00:01:56,160 --> 00:02:04,640
+It means really because I'm just starting off, so it really means coming from someone who has been establishing their career and getting feedback like that.
+
+27
+00:02:04,800 --> 00:02:05,120
+Thank you.
+
+28
+00:02:05,440 --> 00:02:08,960
+I want to start with something you have seen from two different sites.
+
+29
+00:02:09,199 --> 00:02:12,080
+You have worked with a large enterprise customer in the US.
+
+30
+00:02:12,240 --> 00:02:14,800
+Now you are working with startups here in the UK.
+
+31
+00:02:15,120 --> 00:02:21,600
+What do startups tend to get wrong about cloud and AI that bigger companies understand better?
+
+32
+00:02:21,760 --> 00:02:25,920
+And where do enterprise tends to overcomplicate things as well?
+
+33
+00:02:26,400 --> 00:02:27,840
+No, great question.
+
+34
+00:02:28,080 --> 00:02:32,880
+So if you want me to answer in like two words, I think it's scale and costs.
+
+35
+00:02:33,120 --> 00:02:36,160
+Enterprises work only with one thing in mind: scale.
+
+36
+00:02:36,480 --> 00:02:46,480
+It's everything is about scale and handling different uh like performance issues, latency issues at scale because they already estimate the number of queries they're going to get.
+
+37
+00:02:46,640 --> 00:02:54,720
+On the other hand, startups they start out even for 10 customers with EKS, like microservices, which they don't really need.
+
+38
+00:02:54,960 --> 00:03:06,400
+And then when they get hit with the large customer that they sign, a 25,000 seat customer, it's very difficult for them to handle the scale and offer those services.
+
+39
+00:03:06,640 --> 00:03:10,960
+So enterprises, they from the very beginning, they've already thought about this.
+
+40
+00:03:11,040 --> 00:03:15,840
+So on AWS, you have control tower, you have separation of AWS accounts.
+
+41
+00:03:16,080 --> 00:03:21,840
+You also understand how to divide the cost per tenant that you have.
+
+42
+00:03:22,080 --> 00:03:33,760
+On the other hand, because startups haven't really thought about like these large enterprise customers that they eventually sign or go after, they have they might have like a single subscription model.
+
+43
+00:03:33,920 --> 00:03:34,240
+Yeah.
+
+44
+00:03:34,480 --> 00:03:42,560
+So I was working with a startup who's trying to do agent tick frameworks and isolate tenants on those agents.
+
+45
+00:03:42,720 --> 00:03:45,440
+However, they have like a flat pricing fee.
+
+46
+00:03:45,520 --> 00:03:54,560
+Now, the issue there is let's say they have like 10 customers, 10 tenants, and like two of those tenants are using 80% of the resources.
+
+47
+00:03:54,734 --> 00:04:07,200
+And if they're on the same instance or a cluster or like a set of clusters, it's very difficult for the other eight to justify the cost that they are paying and getting the same performance from those agents.
+
+48
+00:04:07,406 --> 00:04:21,760
+And this creates like multiple issues, like noisy neighbor, where like those two tenants are like thrashing your like agents with queries, but the other eight are like even querying like a few queries per day, and they're not getting the performance as expected.
+
+49
+00:04:22,000 --> 00:04:31,280
+So that is something that enterprises get right because they also have the resources to even isolate tenants according to different customers.
+
+50
+00:04:31,440 --> 00:04:38,000
+So that is something that startups need to get right from the beginning and understand the best practices.
+
+51
+00:04:38,414 --> 00:04:38,800
+I think
+
+52
+00:04:38,800 --> 00:04:39,760
+on building on cloud.
+
+53
+00:04:40,080 --> 00:04:42,800
+I think they have a tendency of we will fix that later.
+
+54
+00:04:44,000 --> 00:04:44,320
+Exactly.
+
+55
+00:04:44,720 --> 00:04:47,360
+When you have that tendency, it gets expensive also.
+
+56
+00:04:47,630 --> 00:05:00,320
+Because you have invested so much and with startup because there are so much siloed ideas which a person knows and he has taken some decision or she has taken some decision that the other person doesn't know.
+
+57
+00:05:00,560 --> 00:05:04,320
+Moving it from one thing to another, it can be very expensive.
+
+58
+00:05:04,560 --> 00:05:09,120
+Have you seen that also with the startup or is just a common notion?
+
+59
+00:05:09,380 --> 00:05:10,080
+A hundred percent.
+
+60
+00:05:10,880 --> 00:05:21,440
+I think what works for startups is adopting a hybrid approach, but usually they might not in the beginning, and they might just go with like one, it's a one way door.
+
+61
+00:05:21,600 --> 00:05:24,320
+Like we just have to get this up and running, and that's it.
+
+62
+00:05:24,480 --> 00:05:25,520
+That's what they focus on.
+
+63
+00:05:25,680 --> 00:05:43,840
+Usually what that also means is like I have a cybersecurity startup and they've been in the business for like eight years, but just because they had like one way of doing things, they have like petabytes of data that's just sitting, and then they need to make some meaning out of it and like then sell it as a product.
+
+64
+00:05:43,920 --> 00:05:46,560
+Now we're at that stage where I mean, where do we start?
+
+65
+00:05:46,720 --> 00:05:46,948
+Right?
+
+66
+00:05:47,246 --> 00:05:51,120
+So that's what startups need to get right from the beginning.
+
+67
+00:05:51,280 --> 00:05:51,652
+Yeah.
+
+68
+00:05:52,238 --> 00:05:53,280
+To focus on this business.
+
+69
+00:05:53,360 --> 00:05:58,880
+It's not always easy because, like you also said, they want to get something off, like ship a product out.
+
+70
+00:05:58,960 --> 00:05:59,120
+Yeah.
+
+71
+00:05:59,520 --> 00:06:05,040
+Also get it to their like VCs and like funding backers that, hey, it's ready and up and running.
+
+72
+00:06:05,360 --> 00:06:11,364
+Yeah, because I have seen that usually they get into trouble because they have moved so quickly.
+
+73
+00:06:12,160 --> 00:06:18,404
+and then there is no way that they can scale it in a manner they need to.
+
+74
+00:06:18,766 --> 00:06:29,760
+And that's the lag where they need you mentioned that you have to have a hybrid approach where you don't need to scale everything, but you can't leave few things without scaling.
+
+75
+00:06:30,320 --> 00:06:31,440
+Exactly, exactly.
+
+76
+00:06:31,600 --> 00:06:35,876
+One other aspect that I would like to highlight is, and you might know the security, right?
+
+77
+00:06:36,080 --> 00:06:44,560
+So the startups, I mean, let's not get into the nitty-gritty, but unless and until they have to hit something like a SOC2,
+
+78
+00:06:44,560 --> 00:06:45,092
+yeah.
+
+79
+00:06:45,646 --> 00:07:00,800
+They don't really look at their security infrastructure, security posture, and sometimes like they also want to sell through the AWS marketplace where they're required to have a well-architected review, adhere to those best practices, and also meet these compliance regulations.
+
+80
+00:07:01,040 --> 00:07:03,040
+And that's a nightmare for startups.
+
+81
+00:07:03,280 --> 00:07:17,840
+On the other hand, like for enterprises, it's easier because they've already dealt with these, they have like compliance teams who make sure that our frameworks, are like workloads match those compliance workloads.
+
+82
+00:07:18,080 --> 00:07:26,640
+And I think like the EU has tried regulating it a lot, like with a lot of new regulations coming in, but they still not there yet.
+
+83
+00:07:27,040 --> 00:07:27,920
+Some work to do, yeah, yeah.
+
+84
+00:07:28,240 --> 00:07:30,916
+At least it's better than other part of the world.
+
+85
+00:07:31,534 --> 00:07:32,996
+Exactly, exactly.
+
+86
+00:07:33,440 --> 00:07:36,640
+That's true, and I think that's one of the major reasons.
+
+87
+00:07:36,814 --> 00:07:43,920
+It's not about startup, also, it's with major companies who are working on the tier of implementation and security.
+
+88
+00:07:44,160 --> 00:07:47,040
+Security is always in the tech dep backlog.
+
+89
+00:07:47,310 --> 00:07:53,840
+It means I know they have teams and everyone, but it's on the lower risk until the audit comes into the place.
+
+90
+00:07:54,800 --> 00:07:55,360
+Exactly.
+
+91
+00:07:55,600 --> 00:07:59,360
+And that's the thing we need to get better at, I think, with time.
+
+92
+00:07:59,920 --> 00:08:10,160
+Instead of thinking of security as a later part of the business, we should embed it into our day-to-day, like what we are doing with other parts of business.
+
+93
+00:08:10,400 --> 00:08:16,560
+And to be fair, like with these, like agentic systems, I don't know how aware you are of the AWS stack.
+
+94
+00:08:16,782 --> 00:08:27,840
+but like these cloud platforms now also have like good services and tools that make it very easy for customers, which is also what I bring up to my customers in customer conversations, that, "Hey.
+
+95
+00:08:27,920 --> 00:08:31,920
+we have this security agent that will do the work for you Just turn it on.
+
+96
+00:08:32,014 --> 00:08:37,892
+and like you can ask it questions in natural language or regulate your environment for compliance, look for things.
+
+97
+00:08:38,159 --> 00:08:45,120
+Usually in the past, I've seen like before like the AgenTech boom and AI solutions, there were partners, right?
+
+98
+00:08:45,200 --> 00:08:46,372
+Like who would do this.
+
+99
+00:08:46,640 --> 00:08:52,640
+And because they're so expensive, like enterprises would sign partners, but startups wouldn't.
+
+100
+00:08:52,880 --> 00:08:57,200
+But I think again with like agentic AI, like it's becoming easier to get there.
+
+101
+00:08:57,520 --> 00:08:58,000
+Ah yeah.
+
+102
+00:08:58,240 --> 00:09:05,440
+We as I was working with the enterprise a few years back and they were looking into AWS to do the security tooling.
+
+103
+00:09:05,680 --> 00:09:19,968
+Yeah, we went with it later in, but I it was quite long transition to Get through that one because we were at GCP and we were trying to have a security posture in AWS.
+
+104
+00:09:20,048 --> 00:09:22,608
+So you learn something every day on that also.
+
+105
+00:09:23,168 --> 00:09:23,488
+Okay.
+
+106
+00:09:23,568 --> 00:09:31,488
+Uh when you were working in Linux support at AWS, you were troubleshooting customer in infrastructure problem every day.
+
+107
+00:09:31,662 --> 00:09:36,768
+Is there one incident or a custom case from that period that really stayed with you?
+
+108
+00:09:37,008 --> 00:09:38,436
+So there are multiple.
+
+109
+00:09:39,118 --> 00:09:39,328
+Yeah.
+
+110
+00:09:39,568 --> 00:09:46,128
+And as you can imagine, even in your case, like support was my very first job out of like grad school.
+
+111
+00:09:46,368 --> 00:09:51,008
+And you always pick up so many things from your first role that kind of stay with you.
+
+112
+00:09:51,248 --> 00:09:51,728
+Yeah.
+
+113
+00:09:52,398 --> 00:09:58,128
+There's not like one single incident, but like multiple series of incidents on the same line.
+
+114
+00:09:58,288 --> 00:09:58,608
+Yeah.
+
+115
+00:09:59,118 --> 00:10:03,408
+Because I was doing Linux, EC2 was my core service.
+
+116
+00:10:03,568 --> 00:10:07,008
+And you know, like people don't adhere to best practices.
+
+117
+00:10:07,088 --> 00:10:15,488
+They have like one production instance and that goes down, it reboots, and then it's just not coming back on, and their entire app is down.
+
+118
+00:10:15,728 --> 00:10:24,688
+So I've been through so many of these incidents that some things that I've seen that are very common are customers always blame you, right?
+
+119
+00:10:24,848 --> 00:10:27,408
+Like they say, like, we didn't change anything.
+
+120
+00:10:27,568 --> 00:10:32,528
+I didn't do a single thing, and it's your system that is messed up.
+
+121
+00:10:32,848 --> 00:10:39,168
+So just to handle the emotional aspect of like just calming the customer down.
+
+122
+00:10:39,328 --> 00:10:48,928
+Sometimes, yes, it is a business impact, but if we are in like hyper stages, like we're very hyper about it, the problem is not going to get solved, right?
+
+123
+00:10:49,008 --> 00:10:49,248
+Yeah.
+
+124
+00:10:49,408 --> 00:10:51,248
+So let's let's try and focus.
+
+125
+00:10:51,408 --> 00:11:04,928
+So I think the major ones for me were application level issues where something on their end in the application wouldn't meet or like map the vulnerabilities, then there's a new update that comes out.
+
+126
+00:11:05,088 --> 00:11:10,368
+Or they just simply change an instance type and then it suddenly changes the architecture.
+
+127
+00:11:10,528 --> 00:11:17,968
+Like they don't understand, like NVMe architecture is different, it requires like different sets of like parameters and configurations.
+
+128
+00:11:18,208 --> 00:11:21,328
+They would simply just go to the AWS console, upgrade the instance.
+
+129
+00:11:21,488 --> 00:11:23,808
+I'm paying more, the application should come up.
+
+130
+00:11:24,288 --> 00:11:25,604
+But no, it doesn't work that way.
+
+131
+00:11:25,808 --> 00:11:29,248
+But in order to like diagnose it, it would take a long time, right?
+
+132
+00:11:29,648 --> 00:11:36,528
+So I think what I learned best from those situations is like handling those customer like sentiments.
+
+133
+00:11:36,688 --> 00:11:36,964
+Yes.
+
+134
+00:11:37,838 --> 00:11:42,288
+Like just making them feel like comfortable, like, okay, we're here, we're here to support you.
+
+135
+00:11:42,448 --> 00:11:46,368
+And then going step by step because every problem would be different.
+
+136
+00:11:46,688 --> 00:11:52,580
+Sometimes it's an application level issue, sometimes it's an OS issue or OS mismatch to the hardware type.
+
+137
+00:11:53,088 --> 00:11:54,448
+Exactly, exactly.
+
+138
+00:11:54,688 --> 00:12:01,988
+So I feel that has also propagated in my like solutions architect role that I take things step by step.
+
+139
+00:12:02,288 --> 00:12:07,076
+Usually, like in the support mindset, is you bring me a problem and then I solve it.
+
+140
+00:12:07,248 --> 00:12:09,488
+Like problem A, answer A.
+
+141
+00:12:09,648 --> 00:12:11,968
+But a solutions architect role is very different.
+
+142
+00:12:12,128 --> 00:12:16,448
+Like it's I feel more than you designing architectures.
+
+143
+00:12:16,686 --> 00:12:20,448
+I think one thing that people get wrong, an essay job is about listening.
+
+144
+00:12:20,608 --> 00:12:20,928
+Yes.
+
+145
+00:12:21,168 --> 00:12:25,488
+You need to really understand like what's going on and take it step by step.
+
+146
+00:12:25,568 --> 00:12:35,888
+So I think from that role, it still helps me today to take things step by step Yeah, and actually understand, like make an effort to understand the customers and the business problems.
+
+147
+00:12:36,608 --> 00:12:37,088
+That's true.
+
+148
+00:12:37,358 --> 00:12:43,408
+So instead of only thinking what the problem is, you started looking differently from the design perspective.
+
+149
+00:12:43,648 --> 00:12:53,568
+You started analyzing things from design instead of just looking what was the issue and just because I started my career as a support engineer as well.
+
+150
+00:12:53,838 --> 00:12:55,328
+I was doing integration support.
+
+151
+00:12:55,408 --> 00:13:07,780
+Not many of the people know, but yeah, I started as an integration support engineer and I used to integrate, and mostly people are angry because they're angry because the thing things are not working, and these are mostly small businesses.
+
+152
+00:13:08,110 --> 00:13:11,204
+So if something happened their thing, they will be angry.
+
+153
+00:13:11,488 --> 00:13:14,928
+But you know the solution, but you have to convey them.
+
+154
+00:13:15,088 --> 00:13:28,368
+First, you have to come and then you have to convey them that XYZ, please, I can help you, but in order to help you, you have to listen to me a little bit, and then if it doesn't work, then we can go another way, whatever you prefer to.
+
+155
+00:13:29,328 --> 00:13:29,648
+Exactly.
+
+156
+00:13:29,808 --> 00:13:31,648
+Even they should be willing to work with us, right?
+
+157
+00:13:31,968 --> 00:13:32,228
+Yeah.
+
+158
+00:13:32,608 --> 00:13:34,848
+And that's what I think like was the most challenging.
+
+159
+00:13:35,248 --> 00:13:41,888
+Any specific customers that you always think about, like, oh, I don't want people from this country.
+
+160
+00:13:42,208 --> 00:13:48,688
+Because at start, I was mostly working with Indian SME, and then I started working with enterprise businesses.
+
+161
+00:13:48,848 --> 00:13:55,968
+I found SMEs were at least okay, but enterprise businesses were kind of difficult because they were thinking like they pay us, so
+
+162
+00:13:55,968 --> 00:13:56,448
+yeah.
+
+163
+00:13:57,998 --> 00:14:01,764
+There should be no inconveniences at their end.
+
+164
+00:14:02,894 --> 00:14:04,576
+Yeah, exactly, exactly.
+
+165
+00:14:04,736 --> 00:14:08,016
+And I'm pretty sure like back then, like even you didn't have AI.
+
+166
+00:14:08,336 --> 00:14:10,816
+So it was all like manually going through their metrics.
+
+167
+00:14:11,616 --> 00:14:14,696
+I don't know uh how we survive with Stack
+
+168
+00:14:14,696 --> 00:14:15,616
+Overflow.
+
+169
+00:14:16,656 --> 00:14:17,096
+I
+
+170
+00:14:17,096 --> 00:14:23,216
+I still miss Stack Overflow because We are like going through Stack Overflow.
+
+171
+00:14:23,456 --> 00:14:25,668
+AI came I think five years back.
+
+172
+00:14:25,856 --> 00:14:28,616
+So I feel like old
+
+173
+00:14:28,616 --> 00:14:31,136
+I know, I know things have changed so much.
+
+174
+00:14:31,216 --> 00:14:34,576
+I'm pretty sure like the support job even today is so different than what it was.
+
+175
+00:14:34,816 --> 00:14:35,076
+Yeah.
+
+176
+00:14:35,502 --> 00:14:41,700
+Right now it's mostly agent tech means agents and bots answering you and then they transfer it to the customer.
+
+177
+00:14:42,016 --> 00:14:42,336
+Yeah.
+
+178
+00:14:43,216 --> 00:14:43,696
+Exactly.
+
+179
+00:14:43,936 --> 00:14:54,416
+So coming from that experience, seeing where the system actually feels feels feels quite relevant of what you're doing now, especially with AI agents.
+
+180
+00:14:54,576 --> 00:14:59,456
+So there's obviously a huge amount of excitement around AI agents at the moment.
+
+181
+00:14:59,616 --> 00:15:02,656
+And you're actually helping startup build the system.
+
+182
+00:15:02,926 --> 00:15:10,016
+What is the biggest difference an agent that looks impressive in a demo and one you would genuinely trust in production?
+
+183
+00:15:10,254 --> 00:15:12,176
+What the biggest difference look like right now?
+
+184
+00:15:12,496 --> 00:15:12,736
+Yeah.
+
+185
+00:15:12,896 --> 00:15:18,532
+So as you can imagine, like even startups are all about like focusing on like agentic frameworks these days.
+
+186
+00:15:19,022 --> 00:15:20,896
+Because somewhere I understand, right?
+
+187
+00:15:21,230 --> 00:15:27,376
+Like their founders or their like VCs, they also want to ship products that look amazing.
+
+188
+00:15:29,070 --> 00:15:30,576
+And that's going to make profit, right?
+
+189
+00:15:30,736 --> 00:15:38,788
+If you just write like EKS observability Kubernetes stack versus like agentic Kubernetes stack, that makes a difference.
+
+190
+00:15:39,216 --> 00:15:47,216
+I think like what customers get wrong with agents is firstly they don't know where and where they shouldn't use an agent.
+
+191
+00:15:47,776 --> 00:15:50,816
+So it's identifying the use case with customers.
+
+192
+00:15:50,976 --> 00:15:58,896
+And because this field at the beginning of this year was relatively newer, we didn't have use cases pertaining to different industries.
+
+193
+00:15:58,976 --> 00:16:01,856
+So in AWS, we are verticalized according to industry.
+
+194
+00:16:01,936 --> 00:16:05,316
+So I take care of specific industry domain customers.
+
+195
+00:16:05,776 --> 00:16:18,336
+And before this, like when we used to go and present to customers on like other AWS solutions, we already had a list of, yeah, if you're in like retail, these are the things that you can go after, like these are the use cases.
+
+196
+00:16:18,416 --> 00:16:22,256
+But with agentic systems, like everyone is figuring it out, right?
+
+197
+00:16:22,446 --> 00:16:27,056
+I think the number one thing that they get wrong is let's say you've built an agent and you're testing it out now.
+
+198
+00:16:27,136 --> 00:16:35,296
+Because of the non-deterministic nature of an agent, Yeah, you test it like one or two, probably three steps, right?
+
+199
+00:16:35,536 --> 00:16:39,136
+But the deeper you go, which the customer is going to, right?
+
+200
+00:16:39,216 --> 00:16:48,656
+Like if it's a chatbot trying to ask the customer is trying to ask questions, they're going to go deeper, like even step eight, step nine, step ten.
+
+201
+00:16:48,976 --> 00:16:57,216
+As deeper as you go, there comes a recency problem where the agent is only taking in context of step six, seven, eight.
+
+202
+00:16:57,390 --> 00:17:00,976
+It's already forgotten what steps one to five was discussed.
+
+203
+00:17:01,376 --> 00:17:13,856
+And that's where the outcome or the output becomes so non-deterministic that it becomes difficult for the testers or like the customers to even predict what will happen with our agent in production.
+
+204
+00:17:14,016 --> 00:17:23,695
+So I think that's the biggest takeaway for even startups to put an agentic system directly into production or demo it, like going from a demo to production.
+
+205
+00:17:24,016 --> 00:17:38,656
+Which is why in like startups, we see I wouldn't reveal the actual number, but I would say like it is less than 50%, percent the demos or like POCs that you do that actually make it to production and actually generate revenue.
+
+206
+00:17:38,896 --> 00:17:44,488
+That's a good number you have said for the first time because normally I don't hear more than 10%, percent, 20%.
+
+207
+00:17:44,488 --> 00:17:49,696
+percent So I think you're doing better at than any other people.
+
+208
+00:17:53,968 --> 00:17:55,088
+Is there any case?
+
+209
+00:17:55,248 --> 00:18:01,888
+Like, have you said to a founder that you really don't need an agent for this at this moment?
+
+210
+00:18:02,158 --> 00:18:04,688
+Is there something have you done lately?
+
+211
+00:18:05,008 --> 00:18:13,248
+I have like a couple of times, and obviously the account manager isn't happy because they're like commissioned on like AI quota, right?
+
+212
+00:18:13,408 --> 00:18:16,288
+But like solutions architect at AWS aren't.
+
+213
+00:18:16,448 --> 00:18:16,688
+Yeah.
+
+214
+00:18:16,928 --> 00:18:22,928
+So my framework is like I go to the customer and I ask them, like, okay, what is it that you're trying to solve?
+
+215
+00:18:23,088 --> 00:18:24,928
+Okay, and then they say like XYZ.
+
+216
+00:18:25,168 --> 00:18:35,968
+Then I say, like, what are the top 10 things that you expect customers or whoever's using the product to ask the system or like agentic system that you're trying to build?
+
+217
+00:18:36,128 --> 00:18:43,888
+Then like we do like a half-day whiteboarding session where I actually give them like 15 minutes and like come up with the top 10 questions.
+
+218
+00:18:44,048 --> 00:18:50,128
+In one instance, it just so happened that eight out of the 10 questions were very deterministic.
+
+219
+00:18:50,208 --> 00:18:52,848
+Like, for example, like what are the error rates?
+
+220
+00:18:53,038 --> 00:18:54,608
+What is my P99?
+
+221
+00:18:54,798 --> 00:18:56,048
+What is the latency?
+
+222
+00:18:56,334 --> 00:18:57,888
+Those type of metrics, right?
+
+223
+00:18:58,048 --> 00:19:06,928
+And then I asked them, like, do you think it would be better to actually just build a querying system rather than building an agentic system?
+
+224
+00:19:07,568 --> 00:19:14,848
+Because why are you overcomplicating things where you can just put in a simple query through something like Athena, export your data to S3?
+
+225
+00:19:16,608 --> 00:19:19,248
+And these are some things like people get wrong, right?
+
+226
+00:19:19,502 --> 00:19:26,768
+Yeah, that's something I'm seeing day by day because people just want agents and AI in the mix.
+
+227
+00:19:27,408 --> 00:19:29,568
+But sometimes you don't need the agent.
+
+228
+00:19:29,808 --> 00:19:33,604
+It will not spice things up, it will just make things worse.
+
+229
+00:19:34,048 --> 00:19:35,408
+Exactly, exactly.
+
+230
+00:19:35,568 --> 00:19:37,088
+And more expensive, right?
+
+231
+00:19:37,262 --> 00:19:41,808
+Because with every tool call, with every context that you're passing it, it's going to go up.
+
+232
+00:19:42,208 --> 00:19:50,928
+Everyone is spending so much money in AI, but not every project, like you said, it's 50% where they get the money back.
+
+233
+00:19:51,758 --> 00:19:58,084
+But in most of the cases, it's less than 20% that people don't get their money back.
+
+234
+00:19:58,448 --> 00:20:06,288
+And it's too high where you whatever the amount you're investing and what you are getting out of it is the thing is where it's
+
+235
+00:20:06,288 --> 00:20:06,848
+the ratio.
+
+236
+00:20:06,848 --> 00:20:08,288
+yeah, Exactly.
+
+237
+00:20:08,448 --> 00:20:08,848
+Exactly.
+
+238
+00:20:09,008 --> 00:20:21,648
+And I think what people get wrong is they can use the LLM part of it to as I wouldn't say like front end, but an LLM part to convert the natural language querying into an actual query, right?
+
+239
+00:20:21,808 --> 00:20:24,928
+So on the back end, they don't need an agent system.
+
+240
+00:20:25,008 --> 00:20:31,488
+And I think that comes in when they actually understand like what an agent is and what an agent is not.
+
+241
+00:20:31,728 --> 00:20:38,848
+So a big part of my role, I feel, is to also run those enablements where we talk about like what it is and what it isn't.
+
+242
+00:20:39,088 --> 00:20:39,396
+Yeah.
+
+243
+00:20:39,790 --> 00:20:40,408
+Making them
+
+244
+00:20:40,408 --> 00:20:41,008
+aware.
+
+245
+00:20:43,408 --> 00:20:44,048
+Exactly.
+
+246
+00:20:44,270 --> 00:20:49,028
+So yeah, I've been through this a couple of times where like, hey, do you really need it?
+
+247
+00:20:49,774 --> 00:20:53,636
+And people will be like, you are saying something very unnatural now.
+
+248
+00:20:54,254 --> 00:20:55,648
+Yeah, exactly, exactly.
+
+249
+00:20:55,808 --> 00:21:01,408
+But again, like I think maybe if this role was commission-based, I don't know.
+
+250
+00:21:01,888 --> 00:21:02,688
+You would have suggested.
+
+251
+00:21:02,928 --> 00:21:04,608
+Yeah, you would have suggested okay.
+
+252
+00:21:04,688 --> 00:21:06,928
+Because we have talked about architecture a lot.
+
+253
+00:21:07,118 --> 00:21:12,848
+In architecture, there are plenty of decisions where there isn't really one correct answer.
+
+254
+00:21:13,088 --> 00:21:23,008
+What's the trade-off you come across when you see you have seen two different good teams making completely different decisions?
+
+255
+00:21:23,168 --> 00:21:25,888
+What is the trade-off mostly happen on that one?
+
+256
+00:21:26,128 --> 00:21:31,808
+I think the if you have to categorize it, it's mostly costs versus performance.
+
+257
+00:21:32,368 --> 00:21:34,288
+That's the biggest trade-off that I've seen.
+
+258
+00:21:34,448 --> 00:21:42,288
+And I think this question in enterprise, when I was in enterprise, was way like more complicated, like having those trade-off conversations.
+
+259
+00:21:42,510 --> 00:21:44,848
+But in startups, it's about costs.
+
+260
+00:21:45,008 --> 00:21:48,900
+Like there's like costs dominate everything, especially this year.
+
+261
+00:21:49,088 --> 00:21:53,568
+Whenever there's been a trade-off conversation, customers have always chosen costs.
+
+262
+00:21:53,728 --> 00:22:03,088
+And I think that's also the reason why customers are in the beginning when they were looking at like let's say anthropic models or like Gemini models and open AI models.
+
+263
+00:22:03,248 --> 00:22:07,408
+Now they're also pivoting towards like these open source exactly.
+
+264
+00:22:07,854 --> 00:22:10,448
+Open weight model, yeah, open weight.
+
+265
+00:22:10,928 --> 00:22:11,328
+Exactly.
+
+266
+00:22:11,488 --> 00:22:16,768
+And they're actually getting good results out of it, even like having like model tiering, right?
+
+267
+00:22:16,848 --> 00:22:18,148
+Implementing model tiering.
+
+268
+00:22:18,448 --> 00:22:28,448
+So the trade-off conversation has always, I would say, there's not been a single time in startups that I've seen like, hey, we want performance, let's go for the most expensive one.
+
+269
+00:22:28,688 --> 00:22:30,340
+It's more of the money.
+
+270
+00:22:30,798 --> 00:22:31,408
+Money, exactly.
+
+271
+00:22:32,208 --> 00:22:39,408
+that you uh I know I have you done things with big organization lately, or it's always a startup right now.
+
+272
+00:22:39,648 --> 00:22:42,288
+So my role is primarily startups.
+
+273
+00:22:42,768 --> 00:22:48,848
+And whenever I've engaged with enterprises in this role, it's part of just a one off engagement.
+
+274
+00:22:49,088 --> 00:22:49,316
+Okay.
+
+275
+00:22:50,512 --> 00:22:53,712
+And then money is not a conversation usually.
+
+276
+00:22:54,032 --> 00:22:54,272
+Okay.
+
+277
+00:22:54,512 --> 00:22:57,632
+It's more so like delivering the things that you promise.
+
+278
+00:22:57,792 --> 00:22:57,872
+Yeah.
+
+279
+00:22:58,032 --> 00:22:59,952
+Like the P ninety nines, the latency.
+
+280
+00:23:00,192 --> 00:23:00,352
+Yeah.
+
+281
+00:23:00,592 --> 00:23:08,272
+And then it kind of becomes, hey, let's get the service team on this and let's make sure that we are delivering what we are promising.
+
+282
+00:23:10,112 --> 00:23:10,432
+Okay.
+
+283
+00:23:10,990 --> 00:23:13,792
+I ask this question normally, but people don't want it.
+
+284
+00:23:14,094 --> 00:23:15,780
+So I have now flipped the question.
+
+285
+00:23:16,046 --> 00:23:23,872
+So on much practical level, what's one tool or workflow you personally couldn't do your job without nowadays?
+
+286
+00:23:24,112 --> 00:23:25,872
+It has to be hands-down Kiro.
+
+287
+00:23:26,192 --> 00:23:27,392
+I don't know if you know.
+
+288
+00:23:28,110 --> 00:23:30,192
+I Come to know about last week and only.
+
+289
+00:23:30,432 --> 00:23:30,672
+Okay.
+
+290
+00:23:31,278 --> 00:23:36,432
+I was interviewing someone and she mentioned Kiro, and then I had a little bit of research of it.
+
+291
+00:23:36,592 --> 00:23:41,392
+I have not used it, but I heard about Kiro and then I read a little bit about it.
+
+292
+00:23:41,552 --> 00:23:42,672
+So it looks promising.
+
+293
+00:23:42,912 --> 00:23:47,792
+Yeah, so so yeah, it I mean you can think of like an Amazon version of VS Code, right?
+
+294
+00:23:48,032 --> 00:23:55,952
+So even if you look at like go to Kiro.dev, you won't find any AWS branding on it because they wanted to not limit it to AWS.
+
+295
+00:23:56,192 --> 00:24:04,752
+I think nowadays I cannot imagine my life without like coding agent, MCP servers, and like the tools that come with it.
+
+296
+00:24:04,832 --> 00:24:04,992
+Yeah.
+
+297
+00:24:05,152 --> 00:24:06,352
+It's just impossible.
+
+298
+00:24:06,638 --> 00:24:15,460
+Previously, when we used to go into like browsers, open the AWS console, or even open like ERP systems that we need to log like our admin stuff on.
+
+299
+00:24:15,632 --> 00:24:17,712
+Now everything's replaced by Kiro, right?
+
+300
+00:24:17,792 --> 00:24:22,912
+Like everything's replaced by an agent session, like where you just go and like tell like do this, do that.
+
+301
+00:24:23,232 --> 00:24:39,232
+It is something that I cannot imagine the solutions architect role uh being without because like it's so powerful to even in your day-to-day like architecture, architectural conversations, yeah, you just know the customer better because it's researching so much for you.
+
+302
+00:24:39,392 --> 00:24:39,752
+Okay,
+
+303
+00:24:39,752 --> 00:24:48,272
+and I think like that can't be like that's why I can't go back to the days before like AI tooling, right?
+
+304
+00:24:48,992 --> 00:24:49,312
+No one
+
+305
+00:24:49,312 --> 00:24:50,352
+can go back now.
+
+306
+00:24:50,592 --> 00:24:53,956
+I don't know if I know the basic coding anymore.
+
+307
+00:24:54,382 --> 00:24:55,232
+I know, I know.
+
+308
+00:24:55,392 --> 00:24:58,512
+Like when was the last time you wrote like a line of code?
+
+309
+00:24:58,992 --> 00:25:01,112
+I I use open code a lot,
+
+310
+00:25:01,112 --> 00:25:02,352
+which is nice, yeah, yeah.
+
+311
+00:25:02,672 --> 00:25:08,772
+Open source, and you can use it with your whatever choice of model you want to use.
+
+312
+00:25:09,472 --> 00:25:14,672
+Now I just tell him I need this, and it's just deploys it.
+
+313
+00:25:14,752 --> 00:25:16,432
+I'm like, that's nice.
+
+314
+00:25:16,672 --> 00:25:17,312
+Yeah.
+
+315
+00:25:17,872 --> 00:25:19,952
+Yeah, why are we even here anymore, right?
+
+316
+00:25:20,592 --> 00:25:21,472
+Don't go there.
+
+317
+00:25:21,792 --> 00:25:24,112
+It's one of the fear thing I am going
+
+318
+00:25:24,112 --> 00:25:25,392
+to I know, I know.
+
+319
+00:25:25,632 --> 00:25:26,912
+Everyone's with everyone.
+
+320
+00:25:27,072 --> 00:25:27,392
+Yeah.
+
+321
+00:25:28,832 --> 00:25:35,712
+Quite a lot talk about the technical decision, but I also want to understand what the role itself actually looked like.
+
+322
+00:25:36,032 --> 00:25:46,512
+Because when I wrote your profile it's like solutions, uh startup solutions architect which is quite different, and I've never heard about it.
+
+323
+00:25:46,592 --> 00:25:54,112
+And I'm like I want to interview with this guy because it sounds interesting enough to ask questions like what it is.
+
+324
+00:25:54,352 --> 00:25:57,232
+So, what does your job actually look like in a normal way?
+
+325
+00:25:57,632 --> 00:26:00,352
+Yeah, so you already know what a solutions architect does, right?
+
+326
+00:26:00,592 --> 00:26:15,072
+like in a nutshell, I work with like startups who are already on AWS, but they're either starting out, or mostly I work with engaged startups where they're in the AWS ecosystem for the last two to three years, but now they're talking about like scaling, right?
+
+327
+00:26:15,152 --> 00:26:20,432
+Like they've signed like big enterprise customers, they want to scale, they want to kick off new initiatives.
+
+328
+00:26:20,592 --> 00:26:20,752
+Yeah.
+
+329
+00:26:20,912 --> 00:26:32,672
+So my day-to-day in a week looks like 60% customer work, which we've also touched on a little bit, like what types of different things we talk about with CTOs, with founders, with engineering teams.
+
+330
+00:26:32,974 --> 00:26:40,112
+We are also paired with an account manager, but on the essay side, there are some more things that our day-to-day entails.
+
+331
+00:26:40,192 --> 00:26:42,432
+So, first is like content creation, right?
+
+332
+00:26:42,832 --> 00:26:51,044
+Whatever signals we're getting from customers or whatever, like what's new things that are coming out, how to implement them on AWS.
+
+333
+00:26:51,232 --> 00:26:59,232
+The AWS org relies a lot on the essay org to build this content out to make it easier for customers to bridge that gap, right?
+
+334
+00:26:59,392 --> 00:27:06,112
+So when you're helping a customer, we are thinking how do I scale this to like 10 other customers or 20 other customers?
+
+335
+00:27:06,414 --> 00:27:10,432
+So that is through like demos, building workshops, pushing blogs out.
+
+336
+00:27:10,592 --> 00:27:12,192
+There's also a builder community, right?
+
+337
+00:27:12,352 --> 00:27:12,676
+Nice.
+
+338
+00:27:13,326 --> 00:27:19,136
+We can just quickly write a blog, do a quick demo, and then put it out there for other customers.
+
+339
+00:27:19,296 --> 00:27:21,536
+So that's 20% of the week.
+
+340
+00:27:21,616 --> 00:27:27,616
+Like I would say, we spend around four to six hours at the minimum per week on that.
+
+341
+00:27:27,856 --> 00:27:31,856
+Then uh the third thing is getting feedback to the service teams.
+
+342
+00:27:32,016 --> 00:27:39,856
+You might have heard of this AWS principle that 90% of our features that we launch come from customer feedback.
+
+343
+00:27:40,016 --> 00:27:45,216
+And that feedback primarily comes from solutions architects because we are at the forefront.
+
+344
+00:27:45,376 --> 00:27:48,976
+So we deal with a lot of like software developers, product managers.
+
+345
+00:27:49,136 --> 00:27:50,576
+We are trying to influence roadmap.
+
+346
+00:27:50,656 --> 00:27:53,056
+There's an internal system to create feature requests.
+
+347
+00:27:53,296 --> 00:27:56,736
+We are trying to get those early signals.
+
+348
+00:27:56,896 --> 00:28:01,456
+For example, yeah, this model is not available in this region, customers are asking for it.
+
+349
+00:28:01,536 --> 00:28:03,216
+There are like hundreds of customers.
+
+350
+00:28:03,406 --> 00:28:04,804
+Get this done ASAP.
+
+351
+00:28:05,070 --> 00:28:07,056
+So those are the signals that we're getting.
+
+352
+00:28:07,296 --> 00:28:11,376
+Lastly, and you might also be knowing this, like training and certification, right?
+
+353
+00:28:11,758 --> 00:28:19,776
+Like our job has become so much ambiguous day by day that we also need to keep like up to date with things, and that comes with training.
+
+354
+00:28:20,014 --> 00:28:25,696
+It doesn't need to be like a cert or stuff because certs are not being able to keep up with what's going on, right?
+
+355
+00:28:25,936 --> 00:28:26,256
+Yeah.
+
+356
+00:28:26,446 --> 00:28:31,296
+Uh so it's mostly like what's new, how do I implement this, those type of things.
+
+357
+00:28:31,696 --> 00:28:35,056
+Reading and keeping up with the newsletters, I think.
+
+358
+00:28:35,376 --> 00:28:36,256
+Newsletters, yeah.
+
+359
+00:28:36,416 --> 00:28:37,616
+So many of them.
+
+360
+00:28:38,096 --> 00:28:39,140
+Which one to follow?
+
+361
+00:28:40,096 --> 00:28:40,176
+yeah.
+
+362
+00:28:40,416 --> 00:28:45,536
+These days I just like follow my Slack channels because what everyone's reading, like I'll just read that.
+
+363
+00:28:46,016 --> 00:28:51,536
+because in big companies you have something for everyone post on a single Slack.
+
+364
+00:28:51,776 --> 00:28:52,656
+Exactly, exactly.
+
+365
+00:28:52,816 --> 00:29:00,260
+And it's just like in startups especially, you feel very like if you're looking for meaning and purpose, you see that impact, right?
+
+366
+00:29:00,846 --> 00:29:05,376
+With new things coming, you're talking to your customers that next week you're seeing it in production.
+
+367
+00:29:05,582 --> 00:29:12,816
+That was one thing that I missed in enterprise where it's a little bit challenging to go through approvals to get changes done, to get things done.
+
+368
+00:29:13,070 --> 00:29:15,376
+Start on the leg go take my money and do it.
+
+369
+00:29:16,110 --> 00:29:16,896
+Yeah, nice.
+
+370
+00:29:17,166 --> 00:29:24,736
+So you joined AWS around 2020 and then moved into solution architecture and then this startup role in 2025.
+
+371
+00:29:24,976 --> 00:29:28,816
+Looking back, what do you think really made the progression possible?
+
+372
+00:29:29,056 --> 00:29:32,576
+I think the number one thing would be learn and be curious.
+
+373
+00:29:32,656 --> 00:29:34,016
+It's also an AWS principle.
+
+374
+00:29:34,176 --> 00:29:34,336
+Yes.
+
+375
+00:29:34,896 --> 00:29:35,776
+Leadership principle.
+
+376
+00:29:35,936 --> 00:29:38,336
+I think I'll go back to the Indian mindset.
+
+377
+00:29:39,776 --> 00:29:47,296
+Yeah, because I think like from our childhood we've been like listening that hey, just do schooling and then you'll be fine.
+
+378
+00:29:47,456 --> 00:29:49,696
+Then hey, just do college and you'll be fine.
+
+379
+00:29:49,936 --> 00:29:51,856
+Hey, just get like a degree, you'll be fine.
+
+380
+00:29:52,078 --> 00:29:53,936
+Now, hey, just get a job, you'll be fine.
+
+381
+00:29:54,096 --> 00:29:57,536
+But no one really emphasizes the need for learning, right?
+
+382
+00:29:57,616 --> 00:29:58,216
+Yeah, like
+
+383
+00:29:58,216 --> 00:29:59,376
+continuous learning.
+
+384
+00:29:59,536 --> 00:30:10,016
+And I think though in the first two years I was fortunate enough to be on like great teams where I was surrounded by very smart individuals, and that kind of motivated me to keep learning.
+
+385
+00:30:10,176 --> 00:30:10,416
+Yeah,
+
+386
+00:30:10,416 --> 00:30:19,216
+and that has continued in AWS, and sometimes it's a struggle, but the quicker you realize that learning can never stop, especially in this field.
+
+387
+00:30:19,536 --> 00:30:21,136
+In our field now, you can't.
+
+388
+00:30:21,376 --> 00:30:21,936
+Exactly.
+
+389
+00:30:22,336 --> 00:30:28,896
+If you stop learning even for a week or a month, you're already like outdated on like things that are happening.
+
+390
+00:30:29,296 --> 00:30:34,736
+With AI coming into play, every day there's new model, new thing, and you have to learn.
+
+391
+00:30:35,100 --> 00:30:38,096
+A year ago it was only LLM kind of thing.
+
+392
+00:30:38,176 --> 00:30:40,736
+Now it's agent, everyone is doing agentic AI.
+
+393
+00:30:40,816 --> 00:30:42,244
+Now you have to keep up with it.
+
+394
+00:30:42,656 --> 00:30:42,896
+Yep.
+
+395
+00:30:43,296 --> 00:30:46,176
+Once you do the agentic AI, now it's like which model to use?
+
+396
+00:30:46,496 --> 00:30:59,440
+Earlier we were doing uh models now they are going for open weight model and okay now you have to learn about these as we talked about like people were talking uh doing paid subscription now they are moving on to other ones because it's cost.
+
+397
+00:30:59,760 --> 00:31:07,120
+So every day you find a way to go through some new challenges and it's too exactly too much sometime to keep up.
+
+398
+00:31:07,440 --> 00:31:13,040
+But if you don't then you are not capable enough to follow survive next six months also.
+
+399
+00:31:13,280 --> 00:31:21,600
+Yeah exactly exactly which is why like if there's one thing that whoever's listening like I want to take one thing to take away is like keep learning.
+
+400
+00:31:21,760 --> 00:31:24,400
+Like after college like doesn't mean that you stop learning.
+
+401
+00:31:24,560 --> 00:31:25,360
+Just keep learning.
+
+402
+00:31:25,680 --> 00:31:26,160
+That's true.
+
+403
+00:31:26,320 --> 00:31:34,320
+I have seen that because you mentioned like you were into technical committee building, you were doing at university.
+
+404
+00:31:34,320 --> 00:31:39,280
+Also, now you are working and mentoring people who are coming to AWS.
+
+405
+00:31:39,520 --> 00:31:50,560
+Looking back, because I know at our time not many people really helped genuinely, and it was difficult for us to move across countries and make the path for us.
+
+406
+00:31:50,800 --> 00:31:58,880
+What you want to teach this new early career that can help them genuinely to grow in their career as well.
+
+407
+00:31:59,120 --> 00:32:14,080
+I think one thing is be uncomfortable with not knowing right be sorry like be comfortable not be uncomfortable I was I meant to say be comfortable with the changes and not knowing things and get out of your comfort zone.
+
+408
+00:32:14,350 --> 00:32:21,920
+I think when you move countries when you go out that's a big sign that you're going outside of your comfort zone but keep doing it.
+
+409
+00:32:22,080 --> 00:32:30,800
+I mean, in our like, early like, I would say, education, right, in college and stuff, we didn't do a lot of like public speaking like some people do, but I was not that one.
+
+410
+00:32:30,880 --> 00:32:37,120
+That's why we're doing this, so I think that helps build your confidence.
+
+411
+00:32:37,280 --> 00:32:50,640
+If someone's like just looking to start out, just throw yourself in like the unknown, just throw yourself in situations where which are very uncomfortable, and once you start doing them, you'll actually surprise yourself, and that's how you'll grow, right?
+
+412
+00:32:50,720 --> 00:32:52,560
+Like, you don't grow in your comfort zone.
+
+413
+00:32:52,720 --> 00:32:53,640
+Yeah if
+
+414
+00:32:53,640 --> 00:33:00,080
+you move for a career or like for a grad degree or master's that's going out of your comfort zone.
+
+415
+00:33:00,174 --> 00:33:03,040
+But pretty soon that will become your comfort zone.
+
+416
+00:33:03,200 --> 00:33:10,240
+What I would like to say to people is keep challenging yourself even then like do things that you wouldn't normally do.
+
+417
+00:33:10,480 --> 00:33:26,160
+And that eventually will come down in your career as well and it would reflect in your career the things that you take on the projects that you take on the challenges that you work with your customers they all stem from this confidence that you build when you get out of your comfort zone.
+
+418
+00:33:26,480 --> 00:33:36,420
+Understood what a piece of career advice people say a lot but it's little overrated because I keep hearing some of these but I feel like it's overrated.
+
+419
+00:33:36,718 --> 00:33:42,480
+So, what's one piece of advice you have heard a lot, but you think, like, it was not the worst,
+
+420
+00:33:42,480 --> 00:33:44,880
+uh, career advice?
+
+421
+00:33:44,960 --> 00:33:46,240
+That was not worth it.
+
+422
+00:33:46,400 --> 00:33:47,040
+Let me think.
+
+423
+00:33:47,200 --> 00:33:47,920
+Good question.
+
+424
+00:33:48,270 --> 00:33:52,400
+Yeah, I don't want to offend people, because all career advice is good, right?
+
+425
+00:33:54,574 --> 00:33:55,720
+Overrated one,
+
+426
+00:33:55,720 --> 00:34:02,480
+I think, in the beginning, like, people used to say that your network is your net worth.
+
+427
+00:34:02,640 --> 00:34:02,980
+Yes.
+
+428
+00:34:03,840 --> 00:34:05,760
+Which I felt was overrated.
+
+429
+00:34:05,840 --> 00:34:10,800
+I felt like it was all about what you know, not who you know, and I didn't take that seriously.
+
+430
+00:34:11,040 --> 00:34:25,123
+But I think like that was a good piece of advice that I disregarded continuously, because it's not always the technical skills that you have, it's not always like the knowledge you bring to the table, it's also how easy you are to work with.
+
+431
+00:34:25,520 --> 00:34:26,960
+How amiable you are.
+
+432
+00:34:27,120 --> 00:34:31,679
+How much like, easily people can come to you and ask questions, how you perform in a team.
+
+433
+00:34:32,000 --> 00:34:40,000
+The solutions architect role is very like icy individual but still you work with cross functional teams and I think that's important.
+
+434
+00:34:40,159 --> 00:34:43,960
+So yeah I would say that your network is your net worth
+
+435
+00:34:43,960 --> 00:34:57,072
+nice we have talked about quite a lot between different chapters of your career today How you moved from US to UK to enterprise to startup and now AI.
+
+436
+00:34:57,232 --> 00:35:03,952
+Looking back, what one decision or experience that changed the direction of your career more than you expected?
+
+437
+00:35:04,192 --> 00:35:07,232
+I think it was coming to the essay role, to be honest.
+
+438
+00:35:07,472 --> 00:35:14,272
+When I was in support, like everything was very like data-based, like very metric driven.
+
+439
+00:35:14,352 --> 00:35:18,692
+Like, yeah, you need to do X amount of cases, you need to solve X amount of tickets.
+
+440
+00:35:19,150 --> 00:35:23,232
+But the essay role, the ambiguity that came with it, I wasn't prepared for it.
+
+441
+00:35:23,392 --> 00:35:26,432
+It's not just about building things with your customers.
+
+442
+00:35:26,592 --> 00:35:35,072
+It's actually also about like these unsaid goals or like KPIs that you need to meet to become a good essay.
+
+443
+00:35:35,232 --> 00:35:39,072
+And I think like that just brought the best in me, the ambiguity.
+
+444
+00:35:39,152 --> 00:35:53,028
+I thought like I was very goal-oriented person, but you know, just like exploring myself in this way, like getting public speaking opportunities, getting like content creation opportunities, writing stuff.
+
+445
+00:35:53,472 --> 00:35:55,632
+that was something that I was very surprised with.
+
+446
+00:35:55,792 --> 00:35:57,552
+And I wouldn't do that in support.
+
+447
+00:35:57,632 --> 00:36:02,272
+So I think the essay org like operated at a different level that changed my career.
+
+448
+00:36:02,512 --> 00:36:08,228
+It challenges you on every aspect of life, technical, public speaking, networking.
+
+449
+00:36:09,294 --> 00:36:09,792
+Exactly.
+
+450
+00:36:10,032 --> 00:36:11,712
+And your writing skill as well.
+
+451
+00:36:11,792 --> 00:36:13,508
+So I think that's a good one.
+
+452
+00:36:13,742 --> 00:36:16,432
+It's a comprehensive role in altogether.
+
+453
+00:36:16,592 --> 00:36:17,712
+And I will finish with this.
+
+454
+00:36:17,952 --> 00:36:22,272
+What's something in technology right now that makes you feel like a beginner again?
+
+455
+00:36:22,512 --> 00:36:24,272
+It has to be what we talked about, right?
+
+456
+00:36:24,432 --> 00:36:25,632
+Like agents.
+
+457
+00:36:25,902 --> 00:36:29,472
+I think just doing like single prompts is fine.
+
+458
+00:36:29,712 --> 00:36:35,312
+But then once you start getting deep into it, that's when you understand like you need to learn how to use agents.
+
+459
+00:36:35,472 --> 00:36:38,352
+Like there's like sub-agents, there are like context windows.
+
+460
+00:36:38,592 --> 00:36:46,432
+If you just like do stuff one by one by one by one, and you're not making the most out of these resources and tools that we have available.
+
+461
+00:36:46,832 --> 00:36:51,872
+So it's very critical that even I learn how to use them, right?
+
+462
+00:36:52,112 --> 00:36:53,072
+Like to the best.
+
+463
+00:36:53,232 --> 00:37:00,352
+So yeah, I feel a very I feel a beginner when it comes to like agentic AI and like building these tools and even using them myself.
+
+464
+00:37:01,072 --> 00:37:05,632
+You if you don't know, you'll just burn off that one million context window in like five minutes.
+
+465
+00:37:05,792 --> 00:37:06,912
+And you'd be like, what?
+
+466
+00:37:07,152 --> 00:37:08,272
+I just asked the two questions.
+
+467
+00:37:08,752 --> 00:37:10,432
+You have to stop somewhere.
+
+468
+00:37:12,302 --> 00:37:14,992
+once you've won that one, then you know that you have won it.
+
+469
+00:37:15,152 --> 00:37:15,912
+Now what
+
+470
+00:37:15,912 --> 00:37:17,792
+exactly, exactly.
+
+471
+00:37:18,318 --> 00:37:20,272
+Akshay, thank you for joining me.
+
+472
+00:37:20,432 --> 00:37:29,152
+It has been great hearing the story behind the architecture, particularly how your time in support still shaped the way you are building today.
+
+473
+00:37:29,358 --> 00:37:29,712
+Thank you.
+
+474
+00:37:29,952 --> 00:37:30,352
+Awesome.
+
+475
+00:37:30,432 --> 00:37:30,752
+Thank you.
+
+476
+00:37:30,832 --> 00:37:31,792
+Thank you for having me.
+
+477
+00:37:32,174 --> 00:37:32,912
+Great talking to you.
+
+478
+00:37:33,198 --> 00:37:34,212
+That was Akshay.
+
+479
+00:37:34,352 --> 00:37:41,552
+If you got your story about something you built, something that broke, or something you would happily delete from your stack, I would love to hear it.
+
+480
+00:37:41,792 --> 00:37:43,232
+New episode every Thursday.
+
+481
+00:37:43,470 --> 00:37:44,612
+That's the backlog.
+
+482
+00:37:44,832 --> 00:37:45,552
+Thank you.
+

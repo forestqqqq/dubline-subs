@@ -10,6 +10,7 @@
 | [#124 - AI SLOP, Compute Campuses Accountability, GIFs with GPT-Image-2.6, LifeVal, GPT-6 Cyber etc](medias/RC28K/) | The AI Files | 2026-11-12 |
 | [Ripple 65B: A Chip Design Lab Just Beat Every US Open Model](medias/GP7CW/) | Sam Witteveen | 2026-11-12 |
 | [Run a Weekly Research Report with ChatGPT Projects & Scheduled Tasks](medias/G7759/) | DataCamp | 2026-11-12 |
+| [Do You Really Need an AI Agent? AWS Startup Architect Explains Akshay  on Cloud, Scale & Career](medias/FSEGF/) | Off The Backlog | 2026-11-12 |
 | [AI fixes AI in MIT study, Mistral's open model & Google Genie 4](medias/EVKVQ/) | IBM Technology | 2026-11-12 |
 | [System Design in the Era of AI Coding Agents \| The Future of 10x Engineers \| LIVE Podcast](medias/6KJ38/) | ANALYTICS📊WITH🕺ANAND | 2026-11-12 |
 | [Agentic Loops: Building AI Software You Can Trust](medias/1JYQB/) | AIDEAS Podcast | 2026-11-12 |
