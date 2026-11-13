@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [AI Agents for Data Engineering Workflows: Best Practices & Challenges](medias/ZGST2/) | Upriver | 2026-11-12 |
 | [Co-Design Bench: Multimodal Coding Agents (Deep Dive)](medias/Z1EN8/) | Latent AI | 2026-11-12 |
 | [#124 - AI SLOP, Compute Campuses Accountability, GIFs with GPT-Image-2.6, LifeVal, GPT-6 Cyber etc](medias/RC28K/) | The AI Files | 2026-11-12 |
 | [Ripple 65B: A Chip Design Lab Just Beat Every US Open Model](medias/GP7CW/) | Sam Witteveen | 2026-11-12 |
