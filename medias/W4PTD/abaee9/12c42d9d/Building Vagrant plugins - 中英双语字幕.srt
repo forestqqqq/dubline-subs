@@ -1,0 +1,797 @@
+1
+00:00:00,654 --> 00:00:03,040
+大家好，感谢收看我的演讲。
+Hey everyone, thanks for tuning into my talk.
+
+2
+00:00:03,360 --> 00:00:06,640
+今天我们要聊聊如何用 Go 语言构建 Vagrant 插件。
+Today we're going to talk about building Vagrant plugins with Go.
+
+3
+00:00:07,200 --> 00:00:09,440
+内容会比较简短，那我们直接进入正题吧。
+It's going to be a pretty quick one, so let's get into it.
+
+4
+00:00:09,520 --> 00:00:10,320
+我是 Sophia。
+I'm Sophia.
+
+5
+00:00:10,560 --> 00:00:13,120
+我是 Vagrant 团队的软件工程师。
+I'm a software engineer on the Vagrant team.
+
+6
+00:00:13,422 --> 00:00:24,800
+去年我们就在这里，聊了聊 Vagrant、Go 和 Ruby，以及我们计划如何将 Vagrant 从 Ruby 项目
+转型为 Go 项目，以及我们将如何实现这一目标。
+So last year we were here and we talked a little bit about Vagrant and Go and Ruby and how we were planning on transitioning from
+Vagrant being a Ruby project to Go and how we're going to make that happen.
+
+7
+00:00:25,040 --> 00:00:29,120
+今天，我们将实际动手构建一个 Vagrant Go 插件。
+Today we're going to actually be building a Vagrant Go plugin.
+
+8
+00:00:29,920 --> 00:00:33,840
+那我们先快速回顾一下整个架构是怎样的。
+So let's take a little bit of a refresher on how that whole architecture looks.
+
+9
+00:00:34,000 --> 00:00:41,764
+基本上，我们有一个用 Go 编写的 Vagrant 核心，
+然后我们使用 Go 插件来与所有的插件进行交互。
+Basically, what we have we have like a Vagrant core written in Go,
+and then we use Go plugin in order to interact with all of our plugins.
+
+10
+00:00:42,880 --> 00:00:47,600
+所以我们有实现我们 SDK 的 Vagrant Go 插件。
+So we have like Vagrant Go plugins that implements our SDK.
+
+11
+00:00:47,760 --> 00:01:00,868
+而在 Ruby 端，我们有一个 Vagrant Shim，它充当翻译层，
+用于在 Go 插件所需的 gRPC API 与实际的 Ruby API 之间进行交互。
+And then on the Ruby side, we have like this Vagrant Shim, which acts as like a translation layer between being able to interact with
+the GRPC API, which Go plugin needs, and the actual like a Ruby API.
+
+12
+00:01:01,102 --> 00:01:06,800
+我们可以看一下我们服务的 RPC 定义。
+We can take a look at the RPC definitions for our services.
+
+13
+00:01:06,960 --> 00:01:08,800
+它们的结构都非常相似。
+They all kind of have the similar form.
+
+14
+00:01:08,960 --> 00:01:11,120
+它们包含了你真正想要的功能。
+They have like the functionality that you actually want.
+
+15
+00:01:11,280 --> 00:01:14,880
+对于我们的 guest 服务，我们需要能够检测 guest 插件。
+So for our guest service, we need to be able to detect a guest plugin.
+
+16
+00:01:15,214 --> 00:01:17,732
+然后它们还有相应的 spec。
+And then they have their corresponding spec.
+
+17
+00:01:18,240 --> 00:01:24,560
+这为插件的实现提供了一定的灵活性。
+And that allows a little bit of flexibility on the plugin implementation side.
+
+18
+00:01:24,640 --> 00:01:28,320
+所以当我们构建插件时，就能看到这些结果。
+So we're going to see the results of that when we build our plugin.
+
+19
+00:01:28,720 --> 00:01:32,480
+然后在 SDK 端，我们有这个组件接口。
+And then on the SDK side, we have this component interface.
+
+20
+00:01:32,880 --> 00:01:34,320
+它们的结构也都很相似。
+They all have similar forms as well.
+
+21
+00:01:34,480 --> 00:01:39,040
+就像是你想要的功能，然后是 func 作为名称。
+It's like the functionality that you want, and then func as the name.
+
+22
+00:01:39,200 --> 00:01:41,840
+而且它们都不带参数，并返回一个接口。
+And then they all take no arguments and return an interface.
+
+23
+00:01:41,920 --> 00:01:49,252
+这个接口将是你想运行的实际函数，也就是负责执行该功能核心逻辑的部分。
+And it's going to be interface is going to be the function that you actually
+want to run that like does the you know the heavy lifting of that functionality.
+
+24
+00:01:49,760 --> 00:01:52,388
+那我们开始动手做点东西吧。
+So let's go ahead and build something.
+
+25
+00:01:53,134 --> 00:01:56,640
+今天我选择了构建一个 Parrot OS guest 插件。
+So today I've chosen to build a parrot OS guest plugin.
+
+26
+00:01:57,040 --> 00:01:58,960
+这是一个基于 Debian 的操作系统。
+This is a Debian-based OS.
+
+27
+00:01:59,840 --> 00:02:05,440
+既然你们现在对 Parrot OS 的了解和我一样多了，那我们可以一起动手构建它。
+And now that you know as much about Parrot OS as I do, we can all build this together.
+
+28
+00:02:05,680 --> 00:02:09,280
+首先我们要做的就是克隆我们的仓库。
+So the first thing we're going to do is clone our repo.
+
+29
+00:02:09,600 --> 00:02:11,360
+我们有一个简单的骨架仓库。
+So we have like a little skeleton repo.
+
+30
+00:02:11,600 --> 00:02:15,360
+接下来我们将实现 detect 和 parrot 函数。
+We're going to then implement our like detect and parent functions.
+
+31
+00:02:15,440 --> 00:02:18,308
+所以我们要实现 guest 接口。
+So implement our guest interface.
+
+32
+00:02:18,958 --> 00:02:20,000
+然后我们要构建一个插件。
+And we're going to build a plugin.
+
+33
+00:02:20,320 --> 00:02:23,920
+我们要把它安装到更大的项目里，然后运行它。
+We're going to install it into a bigger project and we're going to run it.
+
+34
+00:02:24,160 --> 00:02:25,920
+那我们开始吧。
+So here we go.
+
+35
+00:02:26,094 --> 00:02:28,036
+我已经把仓库克隆下来了。
+I've already copied down the repo.
+
+36
+00:02:29,102 --> 00:02:29,840
+就在这里。
+Here it is.
+
+37
+00:02:30,126 --> 00:02:31,600
+这就是第一步，搞定。
+So that's step one for free.
+
+38
+00:02:31,840 --> 00:02:37,760
+接下来是第二步，我们要运行 go mod init 来初始化项目。
+On to step two, we're going to do a go mod init to like start up a project.
+
+39
+00:02:37,840 --> 00:02:44,800
+所以运行 go mod init，然后呃，命名为 vagrant guest parrot os。
+So go mod init and then uh soapy one and then a vagrant guest parrot os.
+
+40
+00:02:45,280 --> 00:02:48,080
+这是这个插件的一个描述性名称。
+That is a descriptive name for this plugin.
+
+41
+00:02:48,880 --> 00:02:52,800
+我们要忽略终端显示的提示，因为它在撒谎。
+We're going to ignore what the terminal says because it lies.
+
+42
+00:02:52,960 --> 00:02:56,480
+第三步实际上是去更新一些相关内容。
+And step three is actually to go update some stuff around.
+
+43
+00:02:56,718 --> 00:03:00,720
+嗯，我们现在有一个占位符，叫 my special guest。
+Um, so we have like a placeholder, my special guest.
+
+44
+00:03:00,880 --> 00:03:02,640
+这里的命名我们可以做得更好点。
+We can we can do better on naming here.
+
+45
+00:03:02,720 --> 00:03:05,040
+我们把它叫成 guest parrot os。
+We'll call this guest parrot os.
+
+46
+00:03:07,810 --> 00:03:08,290
+还有其他相关内容。
+and all that.
+
+47
+00:03:08,320 --> 00:03:10,052
+然后我们要更新注释。
+And then we'll update the comment.
+
+48
+00:03:11,600 --> 00:03:13,840
+接着进入 main 部分。
+And then moving on to main.
+
+49
+00:03:14,080 --> 00:03:15,920
+这个 my special guest 不再存在了。
+This my special guest doesn't exist anymore.
+
+50
+00:03:16,000 --> 00:03:17,200
+它实际上是 parrot os。
+It's actually parrot os.
+
+51
+00:03:17,550 --> 00:03:20,516
+这个插件的名字我们也叫 parrot os。
+And the name of this plugin we'll call parrot os as well.
+
+52
+00:03:21,870 --> 00:03:24,960
+然后我们得更新这里的导入。
+And then we gotta update this import here.
+
+53
+00:03:31,750 --> 00:03:38,628
+Parrot OS。
+Parrot OS.
+
+54
+00:03:39,280 --> 00:03:41,120
+所以这些看起来都没问题。
+So that all looks good.
+
+55
+00:03:41,520 --> 00:03:48,516
+下一步是运行 mod tidy，然后我们可以构建它来确保一切正常运行。
+Next step is to do a mod tidy, and then we can build it to make sure it all works.
+
+56
+00:03:57,134 --> 00:03:57,540
+酷。
+Cool.
+
+57
+00:03:58,512 --> 00:04:00,112
+所以我们现在状态很好。
+So we're in a good state.
+
+58
+00:04:00,192 --> 00:04:04,992
+这意味着我们可以继续去填充具体的实现。
+That means we can go ahead and fill in the implementation.
+
+59
+00:04:06,126 --> 00:04:07,172
+那我们就开始做吧。
+So let's go ahead and do that.
+
+60
+00:04:08,912 --> 00:04:11,712
+这就是我们的 guest 插件。
+So here is our guest plugin.
+
+61
+00:04:11,952 --> 00:04:13,632
+我们可以看到它有 guest detect 函数。
+We see it has the guest detect func.
+
+62
+00:04:13,712 --> 00:04:18,500
+这就是我们需要实现的部分，以符合我们的组件接口。
+So that's the bit that we need to implement to satisfy our component interface.
+
+63
+00:04:19,278 --> 00:04:21,399
+它将返回一个函数和 detect。
+It's going to return a function and detect.
+
+64
+00:04:21,952 --> 00:04:36,272
+为了检测我们是否在运行某些 guest，这意味着我们需要在 guest 机器上运行一个命令，
+看看我们运行的确实是我们认为的那个。
+So in order to detect if we're running some guest, that means we need to run a
+command on the guest machine to see if we're running what we think we're running.
+
+65
+00:04:36,432 --> 00:04:42,084
+所以我们要做的第一件事是从这个 target 中提取出 machine。
+So the first thing we're going to do is pull out a machine from this target.
+
+66
+00:04:42,926 --> 00:04:53,072
+target 就像是 machine 的一个更通用的版本，如果你
+深入研究过 Vagrant 内部，你应该很熟悉 machine。
+So target is like a more generic version of the machine that you know and love if you've been inside of Vagrant Internals.
+
+67
+00:04:56,686 --> 00:05:04,752
+target 是我们在这个版本的 Vagrant 中引入的，但我们这里将使用 machine。
+The target is something we introduced in this version of Vagrant, but we're going to use the machine here.
+
+68
+00:05:05,102 --> 00:05:09,284
+如果我们获取 machine 时遇到问题，我们可以输出一点错误信息。
+We can output a little bit error if we have trouble getting the machine.
+
+69
+00:05:09,838 --> 00:05:10,404
+我们不应该报错。
+We shouldn't.
+
+70
+00:05:10,672 --> 00:05:11,268
+应该没问题。
+Should be good.
+
+71
+00:05:13,070 --> 00:05:18,832
+好的，让我们确保我们拿到了那个大家熟悉且喜爱的 machine。
+Okay, so let's make sure we have the machine that we all know and love.
+
+72
+00:05:25,198 --> 00:05:25,632
+酷。
+Cool.
+
+73
+00:05:25,792 --> 00:05:33,956
+然后通过这个 machine，我们可以提取出 communicator，
+因为那是我们需要在 guest 上运行命令的东西。
+And then with this machine, we can pull out a communicator because that's the thing that we need to run a command on the guest.
+
+74
+00:05:35,312 --> 00:05:38,912
+所以这只是运行 communicate 函数。
+So that's just running the communicate function.
+
+75
+00:05:39,278 --> 00:05:40,644
+Machine.communicate。
+Machine.communicate.
+
+76
+00:05:41,614 --> 00:05:43,460
+我们可以在这里做一点错误检查。
+We can do a little bit of error checking here.
+
+77
+00:05:53,774 --> 00:05:54,352
+酷。
+Cool.
+
+78
+00:05:56,592 --> 00:05:57,312
+噢，不。
+Oh no.
+
+79
+00:06:02,352 --> 00:06:05,712
+好的，现在我们需要决定我们要运行什么命令。
+Okay, so now we need to decide what command we want to run.
+
+80
+00:06:05,792 --> 00:06:08,512
+这就是 guest 插件的核心所在。
+This is like the money of like the guest plugins.
+
+81
+00:06:09,072 --> 00:06:11,952
+嗯。
+Ummand.
+
+82
+00:06:12,432 --> 00:06:17,380
+我们将说 cat /etc/os-release。
+And we'll say cat etc os releases.
+
+83
+00:06:19,278 --> 00:06:22,244
+我们想寻找 id 等于 parrot 的内容。
+And we want to look for id equals parrot.
+
+84
+00:06:24,398 --> 00:06:24,832
+酷。
+Cool.
+
+85
+00:06:25,472 --> 00:06:31,072
+现在我们将使用 communicator 来运行测试函数。
+So now we're going to use the communicator to run the test function.
+
+86
+00:06:32,174 --> 00:06:34,660
+它将连接到 guest 机器。
+And that's going to connect to the guest machine.
+
+87
+00:06:35,152 --> 00:06:36,512
+所以我们把 machine 给它。
+So we give it the machine.
+
+88
+00:06:36,878 --> 00:06:40,612
+它将运行我们的命令。
+And it's going to run our command on it.
+
+89
+00:06:43,790 --> 00:06:46,832
+然后它将输出一个布尔值或一个错误。
+And then it's going to output a Boolean or an error.
+
+90
+00:06:46,992 --> 00:06:50,832
+布尔值将表示是成功还是失败。
+The Boolean will be like if it succeeded or if it failed.
+
+91
+00:06:51,952 --> 00:07:05,152
+为了让这个演示更清晰，现在我们可以搞个终端 UI，把信息输出给用户。
+So one nice thing to do at this point for our own sanity for this demo
+is to get a terminal, UI, so we can output that message to the user.
+
+92
+00:07:08,032 --> 00:07:09,312
+就是这样。
+So here it is.
+
+93
+00:07:09,472 --> 00:07:17,860
+我们可以运行 UI.output，然后说我们找到了或者没找到。
+We can run a UI.output and we can say we we found it or we didn't find it.
+
+94
+00:07:30,896 --> 00:07:31,056
+然后
+And
+
+95
+00:07:31,056 --> 00:07:33,616
+我们可以根据是否找到来返回结果。
+then we can return if it's found or if it's not found.
+
+96
+00:07:34,176 --> 00:07:41,216
+嗯，是的，这个 detect 函数看起来没问题。
+And um yeah, that detect function looks okay to me.
+
+97
+00:07:41,376 --> 00:07:50,016
+接下来，我们有 parent func，这也是我们需要实现的一部分 API 或接口。
+So moving on, we have parent func, and that also is part of the API that we need to,
+or part of the interface that we need to implement.
+
+98
+00:07:50,350 --> 00:08:01,216
+嗯，我之前提到 Parrot OS 是基于 Debian 的，我知道确实有一个内置的 Ruby 插件叫 Debian。
+Um, so I mentioned earlier that Parrot OS is based on Debian, and I know for
+a fact there is a built-in Ruby plugin for Debian, and it's called Debian.
+
+99
+00:08:01,456 --> 00:08:08,656
+所以我们在这里给它命名，然后我们就能使用那个插件定义的所有功能了。
+So we'll name that here, and um we'll be able to use all of the capabilities that are defined by that plugin.
+
+100
+00:08:09,536 --> 00:08:17,056
+我们可以继续为 Parrot OS 定义更多功能，但为了让 Vagrant up 正常工作，其实不需要。
+So we could go ahead and define a few more capabilities for Parrot OS, but we really don't need to in order for a Vagrant up to work.
+
+101
+00:08:17,376 --> 00:08:18,948
+所以我们现在先跳过这一步。
+so we're going to skip that for now.
+
+102
+00:08:22,766 --> 00:08:32,900
+另外要注意，这个 Debian 是个 Debian 插件，不是 Ruby，
+所以你可以在 Go 插件里调用 Ruby 插件，反之亦然。
+also note that this Debian is a Debian plugin isn't Ruby, so you're able to use Ruby plugins from within Go plugins and vice versa.
+
+103
+00:08:34,096 --> 00:08:39,135
+那我们开始构建这个东西吧，看起来不错。
+So let's go ahead and build this thing, and that looks good.
+
+104
+00:08:39,376 --> 00:08:42,148
+我们要把它安装到我们的项目中。
+So we're going to install it into our project.
+
+105
+00:08:42,416 --> 00:08:44,896
+我已经把这个 Vagrant 项目设置好了。
+So I already have this Vagrant project set up.
+
+106
+00:08:45,216 --> 00:08:46,896
+它是 Parrot OS。
+it's Paired OS.
+
+107
+00:08:47,376 --> 00:08:59,652
+它使用的是我叫 Parrot OS 的镜像，我已经把它本地构建好并导入到 Vagrant 了，
+就是大家可能熟悉的 Vagrant box 命令。
+it's using the box that I called Paired OS, and I've already imported, I built it locally
+and imported into Vagrant using the Vagrant box command you might be familiar with.
+
+108
+00:09:00,176 --> 00:09:02,976
+现在我们需要安装插件。
+So now we need to install the plugin.
+
+109
+00:09:03,376 --> 00:09:09,892
+Vagrant 插件或 Vagrant Go 插件的安装路径是 Vagrant plugins。
+So plugin installs for Vagrant plugins or for Vagrant Go plugins goes into Vagrant plugins.
+
+110
+00:09:10,510 --> 00:09:15,876
+所以我们创建那个目录，然后把我们的二进制文件放进去就行了。
+So we make that directory and then we can just plop our binary into that folder.
+
+111
+00:09:18,496 --> 00:09:20,736
+这样 Vagrant 就应该知道这个插件存在了。
+so now Vagrant should know that that plugin exists.
+
+112
+00:09:20,816 --> 00:09:22,404
+我们可以运行 Vagrant up。
+We can run a Vagrant up.
+
+113
+00:09:24,942 --> 00:09:30,416
+到这一步，Vagrant 正在启动 Ruby 并加载所有插件。
+So at this point, Vagrant is like starting up Ruby and loading up all the plugins.
+
+114
+00:09:30,496 --> 00:09:38,096
+它会去我们的 .vagrant/plugins 目录里找，也就是我们放插件的地方。
+So it'll be looking in our um.vagrant slash plugins directory, which is where we plopped in our plugin.
+
+115
+00:09:38,496 --> 00:09:44,496
+它还会去基础目录里寻找任何存在的插件。
+And then it'll also be looking in like the basis directory for any plugins that are there.
+
+116
+00:09:44,576 --> 00:09:49,216
+所以那是你可以安装全局 Vagrant 插件的地方。
+So that's where you can install like Vagrant wide plugins.
+
+117
+00:09:49,296 --> 00:09:54,736
+目前这个插件只能在这个 Vagrant 项目里使用。
+So right now this plugin is only usable by like this vagrant project.
+
+118
+00:09:54,976 --> 00:09:57,776
+现在我们开始导入那个基础镜像。
+So we're going ahead and importing that base box.
+
+119
+00:09:58,096 --> 00:10:03,588
+你会注意到我们正通过虚拟镜像提供程序启动这台机器。
+you notice that we're bringing this machine up with the virtual box provider.
+
+120
+00:10:04,558 --> 00:10:06,656
+那实际上是一个 Ruby 插件。
+So that's actually a Ruby plugin.
+
+121
+00:10:10,446 --> 00:10:14,276
+然后我们可以看看正在运行的进程。
+And then we can take a look at the processes that are running.
+
+122
+00:10:14,496 --> 00:10:22,576
+所以我们启动了 Vagrant，这是我们运行的一个命令，然后你可以看到这个 Ruby 进程正在运行。
+So we have our Vagrant up, which is a command we ran, and then you can see that we have this Ruby process running.
+
+123
+00:10:22,656 --> 00:10:25,936
+所以 Ruby 进程就像是这个 Vagrant serve。
+So the Ruby process is running like this Vagrant serve.
+
+124
+00:10:26,318 --> 00:10:32,548
+Vagrant serve 是我们添加的一个命令，它把 Vagrant 作为 gRPC 服务器启动起来。
+Vagrant serve is a command we added, and that starts up Vagrant as a gRPC server.
+
+125
+00:10:33,136 --> 00:10:39,936
+所以它就像是一个长驻进程，充当 shim。
+so that's like a long running process that is going to serve as like the shim.
+
+126
+00:10:40,256 --> 00:10:46,276
+所以我们可以在 Go 中使用 Ruby 插件，反之亦然。
+So we can use like Ruby plugins in Go and vice versa.
+
+127
+00:10:47,118 --> 00:10:52,896
+所以你可以看到这里 VBox Manage 是由那个进程运行的。
+So you can see here that VBox Manage is being run by that process.
+
+128
+00:10:54,094 --> 00:11:03,556
+这很符合逻辑，因为我们在配置界面看到我们是使用 VirtualBox 提供商运行的。
+and that tracks because we saw in our uh figuring UI that we were running with a VirtualBox provider.
+
+129
+00:11:04,096 --> 00:11:13,536
+然后我们看到另外几个插件，其他插件、我的插件、HTTP downloader，
+这些是我在环境中设置的几个内置插件。
+Then we see these other couple of plugins, other plugin, my plugin, HTTP downloader,
+and those are a couple of built in plugins that I have set up in my environment.
+
+130
+00:11:13,696 --> 00:11:19,556
+然后我们有 Vagrant Guest Parrot OS，这就是我们构建并安装的插件。
+And then we have our Vagrant Guest Parrot OS, and that's the plugin that we built and installed.
+
+131
+00:11:20,768 --> 00:11:27,008
+所以这里是 Vagrant 在启动我们的 guest，或者说 VirtualBox 在启动我们的 guest。
+So here Vagrant is booting our guest, or VirtualBox is booting our guest.
+
+132
+00:11:27,968 --> 00:11:31,328
+Vagrant 正在等待 SSH 可用。
+And Vagrant is waiting for SSH to become available.
+
+133
+00:11:31,488 --> 00:11:36,388
+这就是你熟悉的经典 Vagrant 体验。
+So classic, classic Vagrant experience that you're familiar with.
+
+134
+00:11:37,358 --> 00:11:41,380
+趁机器启动的时候，是个伸个懒腰的好机会。
+Good time to stretch your legs while the machine is booting.
+
+135
+00:11:44,462 --> 00:11:53,328
+机器启动并建立 SSH 连接后，guest 检测就会发生。
+And so once the machine is booted and SSH connection is established, then that'll be when the guest detection is happening.
+
+136
+00:11:53,568 --> 00:11:59,168
+所以我们可以预期我们的 Parrot OS 插件会在某个时间点运行。
+So we can expect our parrot OS plugin to be running at some point.
+
+137
+00:11:59,328 --> 00:12:00,288
+它就在那儿。
+And there it is.
+
+138
+00:12:00,448 --> 00:12:03,268
+这就是我们输出的小消息。
+That's our little message that we output.
+
+139
+00:12:04,174 --> 00:12:06,020
+Taking Parrot 等于 true。
+Taking Parrot equals true.
+
+140
+00:12:06,128 --> 00:12:07,568
+这意味着我们的插件运行了。
+So that means our plugin ran.
+
+141
+00:12:07,888 --> 00:12:12,128
+这意味着我们的 communicate 函数起作用了。
+It means that our communicate function worked.
+
+142
+00:12:12,288 --> 00:12:16,448
+这就是在我们的 Go 插件内部使用 Ruby 插件。
+So that's using a Ruby plugin from inside our Go plugin.
+
+143
+00:12:18,222 --> 00:12:21,568
+然后我们看到我们现在正在挂载共享文件夹。
+And then we see that we're mounting our shared folders now.
+
+144
+00:12:21,888 --> 00:12:35,808
+所以那将是运行来自 Debian guest 插件的功能，正如我们所说，
+我们刚刚定义的 Parrot OS 插件就像是它的子插件。
+And so that's going to be running capabilities from the Debian guest plugin,
+which we said that our Parrot OS plugin that we just defined is like the child of.
+
+145
+00:12:36,174 --> 00:12:39,808
+所以这是一个成功的 vagrant up。
+So that was a successful vagrant up.
+
+146
+00:12:41,070 --> 00:12:44,528
+所以这是一个成功的插件构建。
+So that was a successful build of a uh plugin.
+
+147
+00:12:45,168 --> 00:12:58,596
+如果你想为 Parrot OS guest 插件做贡献，它就在我的 GitHub 用户下，
+Sopy1/Vagrant-Guest-ParrotOS。
+So if you would like to contribute to the Parrot OS guest plugin, it's up under my GitHub user at Sopy1 slash Vagrant-Guest ParadOS.
+
+148
+00:12:58,848 --> 00:13:02,848
+如果你愿意，你可以自己构建它并运行 Vagrant。
+You can build it yourself if you want and uh run Vagrant with it.
+
+149
+00:13:03,168 --> 00:13:06,368
+或者你可以去构建你自己的 Vagrant Guest 插件。
+Or uh you can go ahead and build your own Vagrant Guest plugin.
+
+150
+00:13:06,608 --> 00:13:08,688
+我们已经准备好了一个模板仓库。
+We have a template repository set up.
+
+151
+00:13:08,768 --> 00:13:12,644
+就在 Sopy1 旗下的 Vagrant Guest Plugin Skeleton 仓库里。
+It's at Sopy1 slash Vagrant Guest Plugin Skeleton.
+
+152
+00:13:13,262 --> 00:13:19,088
+那只是个模板仓库，GitHub 的功能会让你们轻松上手。
+That's just a template repo, so um GitHub magic will make that easy for you to get going.
+
+153
+00:13:19,328 --> 00:13:24,848
+呃，谢谢大家的收看，希望你们接下来的演讲一切顺利。
+Uh thanks for tuning in, um, and I hope you have wonderful uh rest of your talks.
+
+154
+00:13:25,198 --> 00:13:25,668
+谢谢。
+Thanks.
+
+155
+00:13:26,126 --> 00:13:26,688
+再见。
+Bye.
+

@@ -1,0 +1,620 @@
+1
+00:00:00,654 --> 00:00:03,040
+Hey everyone, thanks for tuning into my talk.
+
+2
+00:00:03,360 --> 00:00:06,640
+Today we're going to talk about building Vagrant plugins with Go.
+
+3
+00:00:07,200 --> 00:00:09,440
+It's going to be a pretty quick one, so let's get into it.
+
+4
+00:00:09,520 --> 00:00:10,320
+I'm Sophia.
+
+5
+00:00:10,560 --> 00:00:13,120
+I'm a software engineer on the Vagrant team.
+
+6
+00:00:13,422 --> 00:00:24,800
+So last year we were here and we talked a little bit about Vagrant and Go and Ruby and how we were planning on transitioning from Vagrant being a Ruby project to Go and how we're going to make that happen.
+
+7
+00:00:25,040 --> 00:00:29,120
+Today we're going to actually be building a Vagrant Go plugin.
+
+8
+00:00:29,920 --> 00:00:33,840
+So let's take a little bit of a refresher on how that whole architecture looks.
+
+9
+00:00:34,000 --> 00:00:41,764
+Basically, what we have we have like a Vagrant core written in Go, and then we use Go plugin in order to interact with all of our plugins.
+
+10
+00:00:42,880 --> 00:00:47,600
+So we have like Vagrant Go plugins that implements our SDK.
+
+11
+00:00:47,760 --> 00:01:00,868
+And then on the Ruby side, we have like this Vagrant Shim, which acts as like a translation layer between being able to interact with the GRPC API, which Go plugin needs, and the actual like a Ruby API.
+
+12
+00:01:01,102 --> 00:01:06,800
+We can take a look at the RPC definitions for our services.
+
+13
+00:01:06,960 --> 00:01:08,800
+They all kind of have the similar form.
+
+14
+00:01:08,960 --> 00:01:11,120
+They have like the functionality that you actually want.
+
+15
+00:01:11,280 --> 00:01:14,880
+So for our guest service, we need to be able to detect a guest plugin.
+
+16
+00:01:15,214 --> 00:01:17,732
+And then they have their corresponding spec.
+
+17
+00:01:18,240 --> 00:01:24,560
+And that allows a little bit of flexibility on the plugin implementation side.
+
+18
+00:01:24,640 --> 00:01:28,320
+So we're going to see the results of that when we build our plugin.
+
+19
+00:01:28,720 --> 00:01:32,480
+And then on the SDK side, we have this component interface.
+
+20
+00:01:32,880 --> 00:01:34,320
+They all have similar forms as well.
+
+21
+00:01:34,480 --> 00:01:39,040
+It's like the functionality that you want, and then func as the name.
+
+22
+00:01:39,200 --> 00:01:41,840
+And then they all take no arguments and return an interface.
+
+23
+00:01:41,920 --> 00:01:49,252
+And it's going to be interface is going to be the function that you actually want to run that like does the you know the heavy lifting of that functionality.
+
+24
+00:01:49,760 --> 00:01:52,388
+So let's go ahead and build something.
+
+25
+00:01:53,134 --> 00:01:56,640
+So today I've chosen to build a parrot OS guest plugin.
+
+26
+00:01:57,040 --> 00:01:58,960
+This is a Debian-based OS.
+
+27
+00:01:59,840 --> 00:02:05,440
+And now that you know as much about Parrot OS as I do, we can all build this together.
+
+28
+00:02:05,680 --> 00:02:09,280
+So the first thing we're going to do is clone our repo.
+
+29
+00:02:09,600 --> 00:02:11,360
+So we have like a little skeleton repo.
+
+30
+00:02:11,600 --> 00:02:15,360
+We're going to then implement our like detect and parent functions.
+
+31
+00:02:15,440 --> 00:02:18,308
+So implement our guest interface.
+
+32
+00:02:18,958 --> 00:02:20,000
+And we're going to build a plugin.
+
+33
+00:02:20,320 --> 00:02:23,920
+We're going to install it into a bigger project and we're going to run it.
+
+34
+00:02:24,160 --> 00:02:25,920
+So here we go.
+
+35
+00:02:26,094 --> 00:02:28,036
+I've already copied down the repo.
+
+36
+00:02:29,102 --> 00:02:29,840
+Here it is.
+
+37
+00:02:30,126 --> 00:02:31,600
+So that's step one for free.
+
+38
+00:02:31,840 --> 00:02:37,760
+On to step two, we're going to do a go mod init to like start up a project.
+
+39
+00:02:37,840 --> 00:02:44,800
+So go mod init and then uh soapy one and then a vagrant guest parrot os.
+
+40
+00:02:45,280 --> 00:02:48,080
+That is a descriptive name for this plugin.
+
+41
+00:02:48,880 --> 00:02:52,800
+We're going to ignore what the terminal says because it lies.
+
+42
+00:02:52,960 --> 00:02:56,480
+And step three is actually to go update some stuff around.
+
+43
+00:02:56,718 --> 00:03:00,720
+Um, so we have like a placeholder, my special guest.
+
+44
+00:03:00,880 --> 00:03:02,640
+We can we can do better on naming here.
+
+45
+00:03:02,720 --> 00:03:05,040
+We'll call this guest parrot os.
+
+46
+00:03:07,810 --> 00:03:08,290
+and all that.
+
+47
+00:03:08,320 --> 00:03:10,052
+And then we'll update the comment.
+
+48
+00:03:11,600 --> 00:03:13,840
+And then moving on to main.
+
+49
+00:03:14,080 --> 00:03:15,920
+This my special guest doesn't exist anymore.
+
+50
+00:03:16,000 --> 00:03:17,200
+It's actually parrot os.
+
+51
+00:03:17,550 --> 00:03:20,516
+And the name of this plugin we'll call parrot os as well.
+
+52
+00:03:21,870 --> 00:03:24,960
+And then we gotta update this import here.
+
+53
+00:03:31,750 --> 00:03:38,628
+Parrot OS.
+
+54
+00:03:39,280 --> 00:03:41,120
+So that all looks good.
+
+55
+00:03:41,520 --> 00:03:48,516
+Next step is to do a mod tidy, and then we can build it to make sure it all works.
+
+56
+00:03:57,134 --> 00:03:57,540
+Cool.
+
+57
+00:03:58,512 --> 00:04:00,112
+So we're in a good state.
+
+58
+00:04:00,192 --> 00:04:04,992
+That means we can go ahead and fill in the implementation.
+
+59
+00:04:06,126 --> 00:04:07,172
+So let's go ahead and do that.
+
+60
+00:04:08,912 --> 00:04:11,712
+So here is our guest plugin.
+
+61
+00:04:11,952 --> 00:04:13,632
+We see it has the guest detect func.
+
+62
+00:04:13,712 --> 00:04:18,500
+So that's the bit that we need to implement to satisfy our component interface.
+
+63
+00:04:19,278 --> 00:04:21,400
+It's going to return a function and detect.
+
+64
+00:04:21,952 --> 00:04:36,272
+So in order to detect if we're running some guest, that means we need to run a command on the guest machine to see if we're running what we think we're running.
+
+65
+00:04:36,432 --> 00:04:42,084
+So the first thing we're going to do is pull out a machine from this target.
+
+66
+00:04:42,926 --> 00:04:53,072
+So target is like a more generic version of the machine that you know and love if you've been inside of Vagrant Internals.
+
+67
+00:04:56,686 --> 00:05:04,752
+The target is something we introduced in this version of Vagrant, but we're going to use the machine here.
+
+68
+00:05:05,102 --> 00:05:09,284
+We can output a little bit error if we have trouble getting the machine.
+
+69
+00:05:09,838 --> 00:05:10,404
+We shouldn't.
+
+70
+00:05:10,672 --> 00:05:11,268
+Should be good.
+
+71
+00:05:13,070 --> 00:05:18,832
+Okay, so let's make sure we have the machine that we all know and love.
+
+72
+00:05:25,198 --> 00:05:25,632
+Cool.
+
+73
+00:05:25,792 --> 00:05:33,956
+And then with this machine, we can pull out a communicator because that's the thing that we need to run a command on the guest.
+
+74
+00:05:35,312 --> 00:05:38,912
+So that's just running the communicate function.
+
+75
+00:05:39,278 --> 00:05:40,644
+Machine.communicate.
+
+76
+00:05:41,614 --> 00:05:43,460
+We can do a little bit of error checking here.
+
+77
+00:05:53,774 --> 00:05:54,352
+Cool.
+
+78
+00:05:56,592 --> 00:05:57,312
+Oh no.
+
+79
+00:06:02,352 --> 00:06:05,712
+Okay, so now we need to decide what command we want to run.
+
+80
+00:06:05,792 --> 00:06:08,512
+This is like the money of like the guest plugins.
+
+81
+00:06:09,072 --> 00:06:11,952
+Ummand.
+
+82
+00:06:12,432 --> 00:06:17,380
+And we'll say cat etc os releases.
+
+83
+00:06:19,278 --> 00:06:22,244
+And we want to look for id equals parrot.
+
+84
+00:06:24,398 --> 00:06:24,832
+Cool.
+
+85
+00:06:25,472 --> 00:06:31,072
+So now we're going to use the communicator to run the test function.
+
+86
+00:06:32,174 --> 00:06:34,660
+And that's going to connect to the guest machine.
+
+87
+00:06:35,152 --> 00:06:36,512
+So we give it the machine.
+
+88
+00:06:36,878 --> 00:06:40,612
+And it's going to run our command on it.
+
+89
+00:06:43,790 --> 00:06:46,832
+And then it's going to output a Boolean or an error.
+
+90
+00:06:46,992 --> 00:06:50,832
+The Boolean will be like if it succeeded or if it failed.
+
+91
+00:06:51,952 --> 00:07:05,152
+So one nice thing to do at this point for our own sanity for this demo is to get a terminal, UI, so we can output that message to the user.
+
+92
+00:07:08,032 --> 00:07:09,312
+So here it is.
+
+93
+00:07:09,472 --> 00:07:17,860
+We can run a UI.output and we can say we we found it or we didn't find it.
+
+94
+00:07:30,896 --> 00:07:31,056
+And
+
+95
+00:07:31,056 --> 00:07:33,616
+then we can return if it's found or if it's not found.
+
+96
+00:07:34,176 --> 00:07:41,216
+And um yeah, that detect function looks okay to me.
+
+97
+00:07:41,376 --> 00:07:50,016
+So moving on, we have parent func, and that also is part of the API that we need to, or part of the interface that we need to implement.
+
+98
+00:07:50,350 --> 00:08:01,216
+Um, so I mentioned earlier that Parrot OS is based on Debian, and I know for a fact there is a built-in Ruby plugin for Debian, and it's called Debian.
+
+99
+00:08:01,456 --> 00:08:08,656
+So we'll name that here, and um we'll be able to use all of the capabilities that are defined by that plugin.
+
+100
+00:08:09,536 --> 00:08:17,056
+So we could go ahead and define a few more capabilities for Parrot OS, but we really don't need to in order for a Vagrant up to work.
+
+101
+00:08:17,376 --> 00:08:18,948
+so we're going to skip that for now.
+
+102
+00:08:22,766 --> 00:08:32,900
+also note that this Debian is a Debian plugin isn't Ruby, so you're able to use Ruby plugins from within Go plugins and vice versa.
+
+103
+00:08:34,096 --> 00:08:39,136
+So let's go ahead and build this thing, and that looks good.
+
+104
+00:08:39,376 --> 00:08:42,148
+So we're going to install it into our project.
+
+105
+00:08:42,416 --> 00:08:44,896
+So I already have this Vagrant project set up.
+
+106
+00:08:45,216 --> 00:08:46,896
+it's Paired OS.
+
+107
+00:08:47,376 --> 00:08:59,652
+it's using the box that I called Paired OS, and I've already imported, I built it locally and imported into Vagrant using the Vagrant box command you might be familiar with.
+
+108
+00:09:00,176 --> 00:09:02,976
+So now we need to install the plugin.
+
+109
+00:09:03,376 --> 00:09:09,892
+So plugin installs for Vagrant plugins or for Vagrant Go plugins goes into Vagrant plugins.
+
+110
+00:09:10,510 --> 00:09:15,876
+So we make that directory and then we can just plop our binary into that folder.
+
+111
+00:09:18,496 --> 00:09:20,736
+so now Vagrant should know that that plugin exists.
+
+112
+00:09:20,816 --> 00:09:22,404
+We can run a Vagrant up.
+
+113
+00:09:24,942 --> 00:09:30,416
+So at this point, Vagrant is like starting up Ruby and loading up all the plugins.
+
+114
+00:09:30,496 --> 00:09:38,096
+So it'll be looking in our um.vagrant slash plugins directory, which is where we plopped in our plugin.
+
+115
+00:09:38,496 --> 00:09:44,496
+And then it'll also be looking in like the basis directory for any plugins that are there.
+
+116
+00:09:44,576 --> 00:09:49,216
+So that's where you can install like Vagrant wide plugins.
+
+117
+00:09:49,296 --> 00:09:54,736
+So right now this plugin is only usable by like this vagrant project.
+
+118
+00:09:54,976 --> 00:09:57,776
+So we're going ahead and importing that base box.
+
+119
+00:09:58,096 --> 00:10:03,588
+you notice that we're bringing this machine up with the virtual box provider.
+
+120
+00:10:04,558 --> 00:10:06,656
+So that's actually a Ruby plugin.
+
+121
+00:10:10,446 --> 00:10:14,276
+And then we can take a look at the processes that are running.
+
+122
+00:10:14,496 --> 00:10:22,576
+So we have our Vagrant up, which is a command we ran, and then you can see that we have this Ruby process running.
+
+123
+00:10:22,656 --> 00:10:25,936
+So the Ruby process is running like this Vagrant serve.
+
+124
+00:10:26,318 --> 00:10:32,548
+Vagrant serve is a command we added, and that starts up Vagrant as a gRPC server.
+
+125
+00:10:33,136 --> 00:10:39,936
+so that's like a long running process that is going to serve as like the shim.
+
+126
+00:10:40,256 --> 00:10:46,276
+So we can use like Ruby plugins in Go and vice versa.
+
+127
+00:10:47,118 --> 00:10:52,896
+So you can see here that VBox Manage is being run by that process.
+
+128
+00:10:54,094 --> 00:11:03,556
+and that tracks because we saw in our uh figuring UI that we were running with a VirtualBox provider.
+
+129
+00:11:04,096 --> 00:11:13,536
+Then we see these other couple of plugins, other plugin, my plugin, HTTP downloader, and those are a couple of built in plugins that I have set up in my environment.
+
+130
+00:11:13,696 --> 00:11:19,556
+And then we have our Vagrant Guest Parrot OS, and that's the plugin that we built and installed.
+
+131
+00:11:20,768 --> 00:11:27,008
+So here Vagrant is booting our guest, or VirtualBox is booting our guest.
+
+132
+00:11:27,968 --> 00:11:31,328
+And Vagrant is waiting for SSH to become available.
+
+133
+00:11:31,488 --> 00:11:36,388
+So classic, classic Vagrant experience that you're familiar with.
+
+134
+00:11:37,358 --> 00:11:41,380
+Good time to stretch your legs while the machine is booting.
+
+135
+00:11:44,462 --> 00:11:53,328
+And so once the machine is booted and SSH connection is established, then that'll be when the guest detection is happening.
+
+136
+00:11:53,568 --> 00:11:59,168
+So we can expect our parrot OS plugin to be running at some point.
+
+137
+00:11:59,328 --> 00:12:00,288
+And there it is.
+
+138
+00:12:00,448 --> 00:12:03,268
+That's our little message that we output.
+
+139
+00:12:04,174 --> 00:12:06,020
+Taking Parrot equals true.
+
+140
+00:12:06,128 --> 00:12:07,568
+So that means our plugin ran.
+
+141
+00:12:07,888 --> 00:12:12,128
+It means that our communicate function worked.
+
+142
+00:12:12,288 --> 00:12:16,448
+So that's using a Ruby plugin from inside our Go plugin.
+
+143
+00:12:18,222 --> 00:12:21,568
+And then we see that we're mounting our shared folders now.
+
+144
+00:12:21,888 --> 00:12:35,808
+And so that's going to be running capabilities from the Debian guest plugin, which we said that our Parrot OS plugin that we just defined is like the child of.
+
+145
+00:12:36,174 --> 00:12:39,808
+So that was a successful vagrant up.
+
+146
+00:12:41,070 --> 00:12:44,528
+So that was a successful build of a uh plugin.
+
+147
+00:12:45,168 --> 00:12:58,596
+So if you would like to contribute to the Parrot OS guest plugin, it's up under my GitHub user at Sopy1 slash Vagrant-Guest ParadOS.
+
+148
+00:12:58,848 --> 00:13:02,848
+You can build it yourself if you want and uh run Vagrant with it.
+
+149
+00:13:03,168 --> 00:13:06,368
+Or uh you can go ahead and build your own Vagrant Guest plugin.
+
+150
+00:13:06,608 --> 00:13:08,688
+We have a template repository set up.
+
+151
+00:13:08,768 --> 00:13:12,644
+It's at Sopy1 slash Vagrant Guest Plugin Skeleton.
+
+152
+00:13:13,262 --> 00:13:19,088
+That's just a template repo, so um GitHub magic will make that easy for you to get going.
+
+153
+00:13:19,328 --> 00:13:24,848
+Uh thanks for tuning in, um, and I hope you have wonderful uh rest of your talks.
+
+154
+00:13:25,198 --> 00:13:25,668
+Thanks.
+
+155
+00:13:26,126 --> 00:13:26,688
+Bye.
+
