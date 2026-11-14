@@ -13,6 +13,7 @@
 | [How AI agents learn to use a computer: inside CUA-Master's data](medias/S2YDJ/) | DATUREX GmbH | 2026-11-13 |
 | [EECS4302 ANTLR4 Parser Generator Tutorial: Part 6](medias/S19D5/) | Jackie Wang | 2026-11-13 |
 | [Claude Opus 5.5 is INCREDIBLE at building video games](medias/PHDNP/) | Alex Finn | 2026-11-13 |
+| [The AI Godfather Just Proved The Entire AI Industry Wrong](medias/P9N28/) | TheAIGRID | 2026-11-13 |
 | [End To End Document Q&A RAG App With Gemma And Groq API](medias/P0AG1/) | Krish Naik | 2026-11-13 |
 | [4-Langchain Series-Getting Started With RAG Pipeline Using Langchain Chromadb And FAISS](medias/NSY2A/) | Krish Naik | 2026-11-13 |
 | [EECS4302 ANTLR4 Parser Generator Tutorial: Part 4](medias/N9VVN/) | Jackie Wang | 2026-11-13 |
