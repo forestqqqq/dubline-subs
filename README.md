@@ -5,6 +5,7 @@
 | 视频 | 原作者 | 更新 |
 |---|---|---|
 | [Building RAG With OpenAI GPT-4o(omni) Model Using Objectbox Vector Database](medias/S008J/) | Krish Naik | 2026-11-14 |
+| [Hugging Face x LangChain:A new partner package in LangChain](medias/QZQ1J/) | Krish Naik | 2026-11-14 |
 | [EECS4302 ANTLR4 Parser Generator Tutorial: Part 1](medias/9EKJ8/) | Jackie Wang | 2026-11-14 |
 | [Fresh And Updated Langchain Series- Understanding Langchain Ecosystem](medias/97F8N/) | Krish Naik | 2026-11-14 |
 | [1- Lets Learn About Langchain-What We Will Learn And Demo Projects](medias/38FAT/) | Krish Naik | 2026-11-14 |
