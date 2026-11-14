@@ -1,0 +1,284 @@
+1
+00:00:00,750 --> 00:00:03,040
+Hi everyone, this is Bing Han Hee.
+
+2
+00:00:03,120 --> 00:00:11,360
+So today I want to talk about a control problem of a robot moving among some polytopic regions in its workspace.
+
+3
+00:00:11,886 --> 00:00:25,828
+So we want the robot anti factor to be able to start from any position in this yellow initial region and move to one position in this blue desired region without going through any of these red obstacle regions.
+
+4
+00:00:26,862 --> 00:00:37,412
+You can consider a quadratic programming method using the control barrier functions, which tries to figure out the control input for enforcing a safe trajectory.
+
+5
+00:00:38,414 --> 00:00:43,840
+But this method assumes you have convex constraints which are not guaranteed in our problem.
+
+6
+00:00:45,358 --> 00:00:50,244
+And this method is not able to enforce the input constraint at the same time.
+
+7
+00:00:50,830 --> 00:00:58,660
+For solving the non-convex workspace problems, we may consider a sampling-based method such as RRT.
+
+8
+00:00:59,822 --> 00:01:05,156
+But notice that the original RRT method has no stabilizing controller for your robot.
+
+9
+00:01:06,126 --> 00:01:16,900
+An LQR tree method is a combination of a sample trajectory and some stabilizing controllers generated with some LQR subproblems.
+
+10
+00:01:17,774 --> 00:01:22,500
+But these LQR subproblems do not consider state-space constraints themselves.
+
+11
+00:01:23,374 --> 00:01:26,960
+So I'm going to show you a new method to solve this problem.
+
+12
+00:01:27,566 --> 00:01:32,900
+I want to introduce you two concepts before showing you our proposed new method.
+
+13
+00:01:33,280 --> 00:01:39,716
+The first one is called barrier pair, which is a pair of a barrier function and a stabilizing controller.
+
+14
+00:01:40,366 --> 00:01:47,492
+When you are using this stabilizing controller, the sub-level set of this barrier function becomes an invariant set.
+
+15
+00:01:47,918 --> 00:01:53,060
+Inside this invariant set, the state and input constraint are both satisfied.
+
+16
+00:01:54,446 --> 00:01:59,268
+Many controllers can create this kind of invariant set and form barrier pairs.
+
+17
+00:01:59,918 --> 00:02:14,372
+If you consider a quadratic barrier function and a full-state feedback controller, you obtain an ellipsoidal region of attraction, and the barrier pair synthesis problem will become a linear matrix inequality problem.
+
+18
+00:02:14,670 --> 00:02:17,796
+I will introduce this kind of synthesis later.
+
+19
+00:02:18,862 --> 00:02:27,396
+Another thing I want to recall is the RRT algorithm, and it will be used later for dealing with the non-convex state space constraints.
+
+20
+00:02:28,334 --> 00:02:33,060
+I will only recall the three key steps of expanding the RRT graph.
+
+21
+00:02:33,440 --> 00:02:46,084
+Sample a random configuration, find the nearest point in your graph, and expanding the nearest point toward a random configuration with a constant descent delta.
+
+22
+00:02:47,022 --> 00:02:51,716
+And here is our proposed method, an RRT of barrier pairs.
+
+23
+00:02:52,174 --> 00:02:57,796
+We start from the desired region and synthesize a barrier pair subject to its nearby constraint.
+
+24
+00:02:59,086 --> 00:03:09,668
+Then inside this barrier pair, we sample a new equilibrium and synthesize a new barrier pair subject to its nearby state space constraint.
+
+25
+00:03:10,400 --> 00:03:21,796
+Then inside all the existing barrier pairs, we sample another new equilibrium and synthesize another new barrier pair subject to its nearby state space constraint.
+
+26
+00:03:23,150 --> 00:03:31,076
+And this process continues to finally we find one barrier pair contains the entire initial region.
+
+27
+00:03:31,918 --> 00:03:44,612
+Then a chain of barrier pairs can be obtained and guide the robot from the initial region to the desired region without passing through any of these red obstacle regions.
+
+28
+00:03:45,678 --> 00:03:53,060
+So in order to build these barrier pairs along the RT, we need to consider the multibody dynamics of the robot.
+
+29
+00:03:53,486 --> 00:04:01,124
+So here is a Lagrangian dynamics of the robot with a joint configuration vector Q and joint torque vector U.
+
+30
+00:04:01,902 --> 00:04:09,120
+Its Cartesian workspace vector y can be considered as the output vector of its state space model.
+
+31
+00:04:09,920 --> 00:04:18,948
+In order to create a subproblem of barrier pair synthesis, we need to linearize the robot dynamics around a predefined equilibrium.
+
+32
+00:04:19,470 --> 00:04:27,460
+However, the linearized state space model becomes invalid when the state starts to deviate from this equilibrium.
+
+33
+00:04:28,430 --> 00:04:41,668
+A solution to this issue is to consider the bounded state space region Z around the equilibrium and calculate the norm bound uncertainty of the robot for all the state inside this Z region.
+
+34
+00:04:42,510 --> 00:04:50,724
+This process can be done by a quadratic inclusion program method, and we obtain a robust normbound linear model.
+
+35
+00:04:51,246 --> 00:04:57,920
+The nearby obstacles around the equilibrium will provide us some position bound to define this z region.
+
+36
+00:04:58,542 --> 00:05:02,660
+And we also need to consider the velocity limit at each joint.
+
+37
+00:05:03,822 --> 00:05:09,600
+This position and velocity limits together help us to define this z region.
+
+38
+00:05:10,190 --> 00:05:16,356
+And for the barrel pairs synthesis problem, we also need to consider the input constraint at each joint.
+
+39
+00:05:17,518 --> 00:05:24,740
+Then we can write the position, velocity, and input constraint into linear matrix inquires.
+
+40
+00:05:25,710 --> 00:05:40,484
+Together with another linear matrix in quality for enforcing the Lapstability, we can create a barrier pair synthesis problem with a cost function which tries to maximize the volume of the ellipsoidal region of attraction.
+
+41
+00:05:41,454 --> 00:05:45,092
+Now I can introduce the barrier pair RRT algorithm to you.
+
+42
+00:05:45,678 --> 00:05:53,476
+If you recall the three steps of RRT, sample random configuration, find the nearest point, and sample a new point.
+
+43
+00:05:54,126 --> 00:05:56,452
+Barrier pair RRT has something similar.
+
+44
+00:05:57,038 --> 00:06:02,404
+The vertices of RRT becomes barrier pairs of BPRT.
+
+45
+00:06:03,150 --> 00:06:16,292
+Instead of expanding the graph with a constant distance delta, we create a new equilibrium at the level set of the nearest barrier pair corresponding to a smaller than zero value epsilon.
+
+46
+00:06:17,166 --> 00:06:21,860
+Then we can create a new barrier pair centered at this new equilibrium.
+
+47
+00:06:22,318 --> 00:06:28,708
+It will guarantee the new barrier pair always automatically connected with the existing barrier pair.
+
+48
+00:06:29,326 --> 00:06:37,188
+To prove this concept, I will show you a simulation of a two-doveff manipulator moving its end factor in its workspace.
+
+49
+00:06:37,934 --> 00:06:45,860
+So this manipulator has two point mass located at the distal ends of its two lengths.
+
+50
+00:06:46,574 --> 00:06:51,716
+The two point masses are equal and the lengths of these two lengths are also the same.
+
+51
+00:06:52,366 --> 00:06:55,812
+So you can see some polytopic regions in the workspace.
+
+52
+00:06:56,686 --> 00:07:03,748
+Region A0, A1, and A2 represent the regions with some manipulation text for the n factor.
+
+53
+00:07:04,240 --> 00:07:08,356
+And region A3, A4, and A5 represent obstacles.
+
+54
+00:07:08,910 --> 00:07:14,372
+And we also have this region A6 represents the base of this manipulator.
+
+55
+00:07:15,790 --> 00:07:23,040
+So you may already notice that this is a non-convex workspace manipulation problem.
+
+56
+00:07:23,502 --> 00:07:34,628
+But to make this problem more interesting, sometimes you may have temporal logic specification that constraints the motion of your manipulation tasks.
+
+57
+00:07:34,990 --> 00:07:38,980
+So here we design a set of temporal logic constraints.
+
+58
+00:07:39,790 --> 00:07:51,940
+We have the robot start from region A0, and we want the robot and the factor to visit A0, A1, and A2 infinitely often and never go to any shadow regions.
+
+59
+00:07:53,230 --> 00:07:58,244
+And this temporal logic specification can be transferred into a bookie automata.
+
+60
+00:07:59,342 --> 00:08:14,020
+From this booky automata, we can see a second run that satisfies the temporal logic specification is to visit A0, A1, A2, and then comes back to visit A0, A1, A2 again and again.
+
+61
+00:08:15,758 --> 00:08:27,556
+Then we just need to use the barrier pair RT algorithm to build the paths from A0 region to A1 region, from A1 region to A2 region, and from A2 region back to A0 region.
+
+62
+00:08:28,078 --> 00:08:38,340
+Notice that when we build the paths between two text regions, the third text region becomes a non-passable region in the barrier pair RT synthesis problem.
+
+63
+00:08:39,630 --> 00:08:45,796
+This is because we want the robot strictly follow the guidance of the accepting run for the Buhi automata.
+
+64
+00:08:47,022 --> 00:08:50,276
+And here I will show you a video of the chase execution.
+
+65
+00:08:51,342 --> 00:08:58,756
+So except for the polytopic regions that represent for the desired regions and obstacle regions.
+
+66
+00:08:59,470 --> 00:09:08,292
+We also have this ellipsoidal shape, which represents the zero sub-level set of barrier function for barrier pair.
+
+67
+00:09:08,686 --> 00:09:16,036
+The cross at the center of this ellipsoid represents the sampled equilibrium point of this barrier pair.
+
+68
+00:09:16,654 --> 00:09:29,572
+Every time this NDFactor wants to start from the edge of this ellipsoidal shape and goes to the center, but before it really reaches the center, it enters another barrier pair.
+
+69
+00:09:30,222 --> 00:09:49,604
+And the sequence of this bar of the barrier pair RT will guide the robot antifactor to move from A0 region to A1 region and to A2 region and back to A0 region again and again without going through any of these shadowed obstacle regions.
+
+70
+00:09:50,542 --> 00:09:52,304
+That is all for my presentation.
+
+71
+00:09:52,526 --> 00:09:53,732
+Thank you for your listening.
+

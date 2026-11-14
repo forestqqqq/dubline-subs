@@ -1,0 +1,388 @@
+1
+00:00:00,750 --> 00:00:03,040
+大家好，我是韩冰翰。
+Hi everyone, this is Bing Han Hee.
+
+2
+00:00:03,120 --> 00:00:11,360
+今天我想讲讲机器人移动在工作空间中某些多面体区域的控制问题。
+So today I want to talk about a control problem of a robot moving among some polytopic regions in its workspace.
+
+3
+00:00:11,886 --> 00:00:25,828
+我们希望机器人能够从这个黄色初始区域的任何位置出发，
+移动到这个蓝色目标区域中的一个位置，且不能经过任何这些红色的障碍区域。
+So we want the robot anti factor to be able to start from any position in this yellow initial region and move to one position in this
+blue desired region without going through any of these red obstacle regions.
+
+4
+00:00:26,862 --> 00:00:37,412
+你可以考虑使用控制屏障函数的一种二次规划方法，
+它试图找出用于强制执行安全轨迹的控制输入。
+You can consider a quadratic programming method using the control barrier functions,
+which tries to figure out the control input for enforcing a safe trajectory.
+
+5
+00:00:38,414 --> 00:00:43,840
+但这种方法假设你有凸约束，而我们的问题中并不保证这一点。
+But this method assumes you have convex constraints which are not guaranteed in our problem.
+
+6
+00:00:45,358 --> 00:00:50,244
+而且这种方法无法同时强制执行输入约束。
+And this method is not able to enforce the input constraint at the same time.
+
+7
+00:00:50,830 --> 00:00:58,660
+为了解决非凸工作空间问题，我们可以考虑诸如 RRT 之类的基于采样的方法。
+For solving the non-convex workspace problems, we may consider a sampling-based method such as RRT.
+
+8
+00:00:59,822 --> 00:01:05,156
+但请注意，原始的 RRT 方法并没有为你的机器人提供稳定控制器。
+But notice that the original RRT method has no stabilizing controller for your robot.
+
+9
+00:01:06,126 --> 00:01:16,900
+LQR tree 方法是采样轨迹与通过某些 LQR 子问题生成的若干稳定控制器的结合。
+An LQR tree method is a combination of a sample trajectory and some stabilizing controllers generated with some LQR subproblems.
+
+10
+00:01:17,774 --> 00:01:22,500
+但这些 LQR 子问题本身并没有考虑状态空间约束。
+But these LQR subproblems do not consider state-space constraints themselves.
+
+11
+00:01:23,374 --> 00:01:26,960
+所以我要向大家展示一种解决这个问题的新方法。
+So I'm going to show you a new method to solve this problem.
+
+12
+00:01:27,566 --> 00:01:32,900
+在展示我们提出的新方法之前，我想先向大家介绍两个概念。
+I want to introduce you two concepts before showing you our proposed new method.
+
+13
+00:01:33,280 --> 00:01:39,716
+第一个叫屏障对，它是屏障函数和稳定控制器的组合。
+The first one is called barrier pair, which is a pair of a barrier function and a stabilizing controller.
+
+14
+00:01:40,366 --> 00:01:47,492
+当你使用这个稳定控制器时，这个屏障函数的次级集就变成了一个不变集。
+When you are using this stabilizing controller, the sub-level set of this barrier function becomes an invariant set.
+
+15
+00:01:47,918 --> 00:01:53,060
+在这个不变集内部，状态和输入约束都能得到满足。
+Inside this invariant set, the state and input constraint are both satisfied.
+
+16
+00:01:54,446 --> 00:01:59,268
+许多控制器可以创建这种不变集并构成屏障对。
+Many controllers can create this kind of invariant set and form barrier pairs.
+
+17
+00:01:59,918 --> 00:02:14,372
+如果你考虑二次屏障函数和全状态反馈控制器，你就会得到一个椭球形的吸引区域，
+那么屏障对合成问题就会变成线性矩阵不等式问题。
+If you consider a quadratic barrier function and a full-state feedback controller, you obtain an ellipsoidal region of attraction,
+and the barrier pair synthesis problem will become a linear matrix inequality problem.
+
+18
+00:02:14,670 --> 00:02:17,796
+我稍后会介绍这种合成方法。
+I will introduce this kind of synthesis later.
+
+19
+00:02:18,862 --> 00:02:27,396
+我还要回顾一下 RRT 算法，稍后将用于处理非凸状态空间约束。
+Another thing I want to recall is the RRT algorithm, and it will be
+used later for dealing with the non-convex state space constraints.
+
+20
+00:02:28,334 --> 00:02:33,060
+我只回顾扩展 RRT 图的三个关键步骤。
+I will only recall the three key steps of expanding the RRT graph.
+
+21
+00:02:33,440 --> 00:02:46,084
+采样一个随机构型，找到图中的最近点，然后以恒定的下降增量将最近点向随机构型方向扩展。
+Sample a random configuration, find the nearest point in your graph, and expanding
+the nearest point toward a random configuration with a constant descent delta.
+
+22
+00:02:47,022 --> 00:02:51,716
+这就是我们提出的方法：屏障对 RRT。
+And here is our proposed method, an RRT of barrier pairs.
+
+23
+00:02:52,174 --> 00:02:57,796
+我们从目标区域开始，并根据其附近的约束合成一个屏障对。
+We start from the desired region and synthesize a barrier pair subject to its nearby constraint.
+
+24
+00:02:59,086 --> 00:03:09,668
+然后在这个屏障对内部，我们采样一个新的平衡点，
+并根据其附近的状态空间约束合成一个新的屏障对。
+Then inside this barrier pair, we sample a new equilibrium and synthesize
+a new barrier pair subject to its nearby state space constraint.
+
+25
+00:03:10,400 --> 00:03:21,796
+接着，在所有现有的屏障对内部，我们再采样另一个新的平衡点，
+并根据其附近的状态空间约束合成另一个新的屏障对。
+Then inside all the existing barrier pairs, we sample another new equilibrium and
+synthesize another new barrier pair subject to its nearby state space constraint.
+
+26
+00:03:23,150 --> 00:03:31,076
+这个过程一直持续下去，直到我们找到一个包含整个初始区域的屏障对。
+And this process continues to finally we find one barrier pair contains the entire initial region.
+
+27
+00:03:31,918 --> 00:03:44,612
+然后就可以得到一串屏障对，引导机器人从初始区域移动到目标区域，
+且不经过任何这些红色的障碍区域。
+Then a chain of barrier pairs can be obtained and guide the robot from the initial
+region to the desired region without passing through any of these red obstacle regions.
+
+28
+00:03:45,678 --> 00:03:53,060
+为了沿着 RRT 构建这些屏障对，我们需要考虑机器人的多体动力学。
+So in order to build these barrier pairs along the RT, we need to consider the multibody dynamics of the robot.
+
+29
+00:03:53,486 --> 00:04:01,124
+这是机器人的拉格朗日动力学，其中关节构型向量为 Q，关节转矩向量为 U。
+So here is a Lagrangian dynamics of the robot with a joint configuration vector Q and joint torque vector U.
+
+30
+00:04:01,902 --> 00:04:09,120
+它的笛卡尔工作空间向量 y 可以被视为其状态空间模型的输出向量。
+Its Cartesian workspace vector y can be considered as the output vector of its state space model.
+
+31
+00:04:09,920 --> 00:04:18,947
+为了创建屏障对合成的子问题，我们需要在预定义的平衡点附近对机器人动力学进行线性化。
+In order to create a subproblem of barrier pair synthesis, we need to linearize the robot dynamics around a predefined equilibrium.
+
+32
+00:04:19,470 --> 00:04:27,460
+然而，当状态开始偏离这个平衡点时，线性化的状态空间模型就会失效。
+However, the linearized state space model becomes invalid when the state starts to deviate from this equilibrium.
+
+33
+00:04:28,430 --> 00:04:41,668
+解决这个问题的一个办法是考虑平衡点周围的受限状态空间区域 Z，
+并计算该 Z 区域内所有状态的机器人范数界限不确定性。
+A solution to this issue is to consider the bounded state space region Z around the equilibrium and calculate the norm bound
+uncertainty of the robot for all the state inside this Z region.
+
+34
+00:04:42,510 --> 00:04:50,724
+这个过程可以通过二次包含程序方法来完成，从而我们能获得一个鲁棒的范数界限线性模型。
+This process can be done by a quadratic inclusion program method, and we obtain a robust normbound linear model.
+
+35
+00:04:51,246 --> 00:04:57,920
+平衡点附近的障碍物将为我们提供一些位置界限，用来定义这个 Z 区域。
+The nearby obstacles around the equilibrium will provide us some position bound to define this z region.
+
+36
+00:04:58,542 --> 00:05:02,660
+我们还需要考虑每个关节的速度限制。
+And we also need to consider the velocity limit at each joint.
+
+37
+00:05:03,822 --> 00:05:09,600
+这些位置和速度限制共同帮助我们定义这个 Z 区域。
+This position and velocity limits together help us to define this z region.
+
+38
+00:05:10,190 --> 00:05:16,356
+对于屏障对合成问题，我们还需要考虑每个关节的输入约束。
+And for the barrel pairs synthesis problem, we also need to consider the input constraint at each joint.
+
+39
+00:05:17,518 --> 00:05:24,740
+然后我们可以将位置、速度和输入约束写成线性矩阵不等式。
+Then we can write the position, velocity, and input constraint into linear matrix inquires.
+
+40
+00:05:25,710 --> 00:05:40,484
+结合用于强制拉普拉斯稳定性的另一个线性矩阵不等式，我们可以创建一个屏障对合成问题，
+其代价函数旨在最大化椭球吸引域的体积。
+Together with another linear matrix in quality for enforcing the Lapstability, we can create a barrier pair synthesis problem with a
+cost function which tries to maximize the volume of the ellipsoidal region of attraction.
+
+41
+00:05:41,454 --> 00:05:45,092
+现在我可以向大家介绍 BPRT 算法了。
+Now I can introduce the barrier pair RRT algorithm to you.
+
+42
+00:05:45,678 --> 00:05:53,476
+如果你还记得 RRT 的三个步骤：采样随机配置、寻找最近点、采样新点。
+If you recall the three steps of RRT, sample random configuration, find the nearest point, and sample a new point.
+
+43
+00:05:54,126 --> 00:05:56,452
+Barrier pair RRT 有一些类似之处。
+Barrier pair RRT has something similar.
+
+44
+00:05:57,038 --> 00:06:02,404
+RRT 的顶点变成了 BPRT 的屏障对。
+The vertices of RRT becomes barrier pairs of BPRT.
+
+45
+00:06:03,150 --> 00:06:16,292
+我们不再用固定的距离 delta 来扩展图，而是在对应于小于零
+的 epsilon 值的最近屏障对的水平集上创建一个新的平衡点。
+Instead of expanding the graph with a constant distance delta, we create a new equilibrium at the level set of the nearest barrier
+pair corresponding to a smaller than zero value epsilon.
+
+46
+00:06:17,166 --> 00:06:21,860
+然后我们可以在这个新平衡点上创建一个新的屏障对。
+Then we can create a new barrier pair centered at this new equilibrium.
+
+47
+00:06:22,318 --> 00:06:28,708
+这将保证新的屏障对始终自动与现有的屏障对相连。
+It will guarantee the new barrier pair always automatically connected with the existing barrier pair.
+
+48
+00:06:29,326 --> 00:06:37,188
+为了证明这个概念，我将展示一个双臂机械臂在其工作空间内移动末端执行器的仿真。
+To prove this concept, I will show you a simulation of a two-doveff manipulator moving its end factor in its workspace.
+
+49
+00:06:37,934 --> 00:06:45,860
+这个机械臂有两个点质量，分别位于两个连杆的远端。
+So this manipulator has two point mass located at the distal ends of its two lengths.
+
+50
+00:06:46,574 --> 00:06:51,716
+这两个点质量相等，这两个连杆的长度也相同。
+The two point masses are equal and the lengths of these two lengths are also the same.
+
+51
+00:06:52,366 --> 00:06:55,812
+你可以看到工作空间中有一些多面体区域。
+So you can see some polytopic regions in the workspace.
+
+52
+00:06:56,686 --> 00:07:03,748
+区域 A0、A1 和 A2 代表末端执行器具有某些操作任务的区域。
+Region A0, A1, and A2 represent the regions with some manipulation text for the n factor.
+
+53
+00:07:04,240 --> 00:07:08,356
+区域 A3、A4 和 A5 代表障碍物。
+And region A3, A4, and A5 represent obstacles.
+
+54
+00:07:08,910 --> 00:07:14,372
+我们还有一个区域 A6，代表这个机械臂的基座。
+And we also have this region A6 represents the base of this manipulator.
+
+55
+00:07:15,790 --> 00:07:23,040
+所以你们可能已经注意到，这是一个非凸工作空间的操作问题。
+So you may already notice that this is a non-convex workspace manipulation problem.
+
+56
+00:07:23,502 --> 00:07:34,628
+但为了让这个问题更有趣，有时你可能会有时间逻辑规范来约束操作任务的运动。
+But to make this problem more interesting, sometimes you may have temporal
+logic specification that constraints the motion of your manipulation tasks.
+
+57
+00:07:34,990 --> 00:07:38,980
+所以这里我们设计了一套时间逻辑约束。
+So here we design a set of temporal logic constraints.
+
+58
+00:07:39,790 --> 00:07:51,940
+机器人从区域 A0 开始，我们希望机器人和末端执行器无限次地访问 A0、A1 和 A2，
+并且永远不要进入任何阴影区域。
+We have the robot start from region A0, and we want the robot and the factor to visit A0, A1,
+and A2 infinitely often and never go to any shadow regions.
+
+59
+00:07:53,230 --> 00:07:58,244
+这个时间逻辑规范可以转换成布基自动机。
+And this temporal logic specification can be transferred into a bookie automata.
+
+60
+00:07:59,342 --> 00:08:14,020
+从这个布基自动机中，我们可以看到满足时间逻辑规范的第二条运行路径是：访问 A0、A1、A2，
+然后回到 A0、A1、A2，如此反复循环。
+From this booky automata, we can see a second run that satisfies the temporal logic specification is to visit A0, A1, A2,
+and then comes back to visit A0, A1, A2 again and again.
+
+61
+00:08:15,758 --> 00:08:27,556
+然后我们只需要用屏障对 RRT 算法来构建从 A0 区域到 A1 区域、从 A1 区域到 A2 区域，
+以及从 A2 区域回到 A0 区域的路径。
+Then we just need to use the barrier pair RT algorithm to build the paths from A0
+region to A1 region, from A1 region to A2 region, and from A2 region back to A0 region.
+
+62
+00:08:28,078 --> 00:08:38,340
+注意，当我们构建两个目标区域之间的路径时，第三个目标
+区域在屏障对 RRT 合成问题中就变成了不可通过的区域。
+Notice that when we build the paths between two text regions, the third text
+region becomes a non-passable region in the barrier pair RT synthesis problem.
+
+63
+00:08:39,630 --> 00:08:45,796
+这是因为我们希望机器人严格遵循 Buchi 自动机接受运行的指引。
+This is because we want the robot strictly follow the guidance of the accepting run for the Buhi automata.
+
+64
+00:08:47,022 --> 00:08:50,276
+接下来我将展示一段任务执行的视频。
+And here I will show you a video of the chase execution.
+
+65
+00:08:51,342 --> 00:08:58,756
+除了代表目标区域和障碍区域的多面体区域外，
+So except for the polytopic regions that represent for the desired regions and obstacle regions.
+
+66
+00:08:59,470 --> 00:09:08,292
+我们还有这个椭球形，它代表屏障对屏障函数的零子水平集。
+We also have this ellipsoidal shape, which represents the zero sub-level set of barrier function for barrier pair.
+
+67
+00:09:08,686 --> 00:09:16,036
+这个椭球中心的十字代表该屏障对采样的平衡点。
+The cross at the center of this ellipsoid represents the sampled equilibrium point of this barrier pair.
+
+68
+00:09:16,654 --> 00:09:29,572
+每当这个机器人想要从这个椭球形的边缘出发并前往中心
+时，但在它真正到达中心之前，它就进入了另一个屏障对。
+Every time this NDFactor wants to start from the edge of this ellipsoidal shape and goes to the center,
+but before it really reaches the center, it enters another barrier pair.
+
+69
+00:09:30,222 --> 00:09:49,604
+屏障对 RRT 的这一序列将引导机器人不断从 A0 区域移动到 A1 区域、A2 区域，
+然后再回到 A0 区域，且不会经过任何这些阴影障碍区域。
+And the sequence of this bar of the barrier pair RT will guide the robot antifactor to move from A0 region to A1 region and to A2
+region and back to A0 region again and again without going through any of these shadowed obstacle regions.
+
+70
+00:09:50,542 --> 00:09:52,304
+我的演讲就到这里。
+That is all for my presentation.
+
+71
+00:09:52,526 --> 00:09:53,732
+谢谢大家的聆听。
+Thank you for your listening.
+

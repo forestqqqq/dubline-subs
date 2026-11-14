@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [Talk Binghan He on Barrier-Pairs RRT - CDC 2020](medias/T9ZE0/) | UT Human Centered Robotics Lab | 2026-11-14 |
 | [Building RAG With OpenAI GPT-4o(omni) Model Using Objectbox Vector Database](medias/S008J/) | Krish Naik | 2026-11-14 |
 | [Hugging Face x LangChain:A new partner package in LangChain](medias/QZQ1J/) | Krish Naik | 2026-11-14 |
 | [Democratizing Robot-Use Agents: A Unified Harness with Open Models (Nov 2026)](medias/QB9JR/) | AI Paper Slop | 2026-11-14 |
