@@ -1,0 +1,2479 @@
+1
+00:00:00,590 --> 00:00:03,600
+大家好，我是 Krish Naik，欢迎来到我的 YouTube 频道。
+Hello, all my name is Krishnaik and welcome to my YouTube channel.
+
+2
+00:00:03,726 --> 00:00:09,920
+各位，在今天的视频中，我们将实现一个非常棒的混合搜索 RAG 应用。
+So, guys, in this specific video, we are going to implement an amazing hybrid search rag application.
+
+3
+00:00:10,318 --> 00:00:21,920
+首先，我们将从理论层面了解混合搜索，然后开始开发一个完整的端到端项目，
+我们甚至会在云端创建向量数据库。
+Initially, we will go ahead with the theoretical understanding about hybrid search and then we will proceed with developing an amazing
+end-to-end project where we will be creating vector database even in cloud.
+
+4
+00:00:22,080 --> 00:00:30,000
+我们将使用像 Pinecone 这样的向量数据库，并看看如何在特定的向量数据库上实现混合搜索。
+We will be using vector database like Pinecone, and we'll be seeing that
+how we can implement an hybrid search on a specific vector database.
+
+5
+00:00:30,160 --> 00:00:32,560
+所以，这些内容都将在本视频中涵盖。
+So, all these things will be covered in this particular video.
+
+6
+00:00:32,718 --> 00:00:34,640
+那么，让我们开始享受这段视频吧。
+So let's go ahead and enjoy this video.
+
+7
+00:00:34,926 --> 00:00:48,080
+在继续之前，各位，我想快速宣布一下我最近在 Udemy 上
+推出的三门超棒的课程，价格非常实惠，只要 399 卢比。
+So before I proceed, guys, uh, here is a quick announcement on this three amazing course that I have recently launched in Udemy,
+which is at a very affordable price that is nothing but 399 rupees INR.
+
+8
+00:00:48,400 --> 00:00:51,760
+呃，你们可以在这个视频的描述栏里找到链接。
+Uh, you'll be able to find out the link in the description of this particular video.
+
+9
+00:00:51,840 --> 00:00:55,396
+这里有一门完整的包含 Langchain 和 Hugging Face 的 Generative AI 课程。
+So here you have this complete Gen AD VI course with Langchain and Hugging Face.
+
+10
+00:00:55,920 --> 00:01:00,644
+还有这门完整的机器学习和 NLP 训练营，包含用于部署的 MLOps。
+Then you have this complete machine learning and NLP bootcamp MLOps for deployment.
+
+11
+00:01:00,910 --> 00:01:05,120
+它包含大约 78 小时的内容，非常出色。
+It has somewhere around 78 hours of content, which is quite amazing.
+
+12
+00:01:05,200 --> 00:01:09,600
+而且随着新事物的出现，我也会不断更新这些内容。
+And I'm also updating this content again and again as new things comes up.
+
+13
+00:01:09,680 --> 00:01:15,200
+还有另一门课程叫做“构建 Generative AI 应用，
+包含 12 个以上的实操项目，并使用 Gemini Pro”。
+And there is also another course which is called as Building Gen AI app 12 plus hands-on project with Gemini Pro.
+
+14
+00:01:15,280 --> 00:01:16,640
+所以你们可以去看看。
+So you can go ahead and check it out.
+
+15
+00:01:16,800 --> 00:01:21,604
+如果你真的想要其中任何一门课程，它都会在视频的描述栏里提供。
+Any of these courses, if you really want, it'll be available in the description of this particular video.
+
+16
+00:01:22,702 --> 00:01:28,480
+大家好，在今天的视频中，我们将讨论一种叫做混合搜索的东西。
+Hello guys, so in this video, we are going to discuss about something called as hybrid search.
+
+17
+00:01:28,720 --> 00:01:36,800
+好的，呃，这种搜索我们专门用于我们的 RAG 应用，对吧？
+Okay, and uh this kind of search specifically uh we use in our rag applications, also, right?
+
+18
+00:01:37,230 --> 00:01:43,920
+到目前为止，如果你一直在关注所有的模块，你知道我们专门创建的那个 RAG。
+So till now, if you are following all the modules, uh the rag that we have specifically created, you know.
+
+19
+00:01:44,000 --> 00:01:54,400
+假设我有这些文档，如果这些是我的文档，那么我们做的就是尝试把这些文档分成若干个文档块。
+Let's say that if I have uh documents, let's say if this is my documents, then
+what we do is that we try to divide these documents into chunk of documents.
+
+20
+00:01:54,480 --> 00:02:00,240
+假设这是 d1，这是 d2，这是 d3，以此类推。
+Let's say this is d1, this is d2, this is d3, like this.
+
+21
+00:02:00,320 --> 00:02:04,160
+我们通常会把它们分成多个文档块，对吧？
+We usually divide into multiple chunk of documents, right?
+
+22
+00:02:04,590 --> 00:02:07,440
+然后这是 d。
+And this is d now.
+
+23
+00:02:07,520 --> 00:02:15,524
+在把所有这些文档分成文档块之后，我们会专门把它们转换成向量，对吧？
+After dividing all these documents into chunk of documents, then we specifically convert this into vectors, right?
+
+24
+00:02:16,430 --> 00:02:22,084
+所以这里我们基本上是转换成嵌入向量。
+So here we are basically converting into embedding vectors.
+
+25
+00:02:23,918 --> 00:02:38,080
+然后在我们把所有这些文本转换成向量之后，下一步
+就是把所有这些向量存储在某种向量数据库中，对吧？
+Then after we convert all this text to vectors, the next step is that
+we we store all these vectors in some kind of vector database, right?
+
+26
+00:02:38,606 --> 00:02:50,884
+比如我们已经见过的向量数据库之一，我们也可以称之为向量存储数据库。
+So let's say one of the vector databases that we have already seen vector database,
+we also say it as something called as vector store db.
+
+27
+00:02:53,166 --> 00:02:59,440
+现在，一旦所有这些信息基本上都存储在这里，对吧？
+Right now, once this entire information is basically stored over here, right?
+
+28
+00:02:59,598 --> 00:03:02,240
+它们会以向量的形式存储，对吧？
+It will be stored it in the form of vectors, right?
+
+29
+00:03:02,400 --> 00:03:05,988
+我们这里本身就会有一些数字，对吧？
+We will be having some kind of numbers over here itself, right?
+
+30
+00:03:06,480 --> 00:03:17,760
+现在，当用户发起查询，每当用户在这里发起查询时，通常在这种情况下会发生什么呢？
+Now, when a user queries, whenever a user queries, right, over here, then what happens usually in this particular scenario?
+
+31
+00:03:17,920 --> 00:03:28,836
+这个查询也会被转换成向量，然后基本上会进行稠密向量搜索或向量搜索。
+This particular query is also converted into vectors, and then a vector dense search or vector search is basically done.
+
+32
+00:03:30,286 --> 00:03:35,844
+向量搜索基本上是在这个特定的向量数据库中进行的。
+Vector search is basically done in this particular vector database.
+
+33
+00:03:36,430 --> 00:03:48,180
+所以一旦我们有了这些向量，我们就从这个向量数据库中进行向量搜索，这里有一些算法，
+比如其中一种算法可能会在这里运行，基本上是为了匹配精确的向量搜索。
+So once we have this particular vectors, we do a vector search from this particular vector database,
+and here are some of the algorithms like over here, one of the algorithm that
+
+34
+00:03:48,180 --> 00:03:53,540
+所以一旦我们有了这些向量，我们就从这个向量数据库中进行向量搜索，这里有一些算法，
+比如其中一种算法可能会在这里运行，基本上是为了匹配精确的向量搜索。
+may you know take place over here for basically to match the exact vector search.
+
+35
+00:03:53,934 --> 00:03:56,800
+我们实际上可以使用余弦相似度，对吧？
+We can actually use cosine similarity, right?
+
+36
+00:03:56,960 --> 00:04:03,108
+而且基于这个余弦相似度的检查，我们就能得到响应，对吧？
+And based on this cosine similarity check, we will be able to get the response, right?
+
+37
+00:04:03,822 --> 00:04:09,508
+一旦我们得到这个响应，我们就可以把它和我们的提示词模板结合起来。
+And once we get this response, we can combine this with our prompt template.
+
+38
+00:04:12,686 --> 00:04:19,684
+再加上大语言模型，最后，我们就可以把任何信息总结成最终的输出，对吧？
+Plus LLM model, and finally, we can summarize any information as my final output, right?
+
+39
+00:04:20,303 --> 00:04:25,424
+所以，在这种情况下，你可以看到我们正在做的这种搜索，对吧？
+So, in this scenario, you will be able to see that the kind of search that we are doing, right?
+
+40
+00:04:25,584 --> 00:04:27,012
+就是稠密向量搜索。
+The vector dense search.
+
+41
+00:04:27,470 --> 00:04:30,724
+这种搜索基本上被称为语义搜索。
+This search is basically called as semantic search.
+
+42
+00:04:32,558 --> 00:04:33,424
+语义搜索。
+Semantic search.
+
+43
+00:04:33,646 --> 00:04:44,644
+语义搜索基本上意味着我们正试图从这个特定的向量数据库中找到相似的向量，并且基于此，
+当相似性搜索完成后，我们就能得到响应。
+Semantic search basically means we are trying to find out the similar vectors from this particular vector database, and based on that,
+when that similarity search is done, we are able to get the response.
+
+44
+00:04:45,774 --> 00:04:49,744
+而且这种 RAG，大多数 RAG 应用都使用这种搜索。
+And this kind of RAC, most of the RAG application uses this kind of search.
+
+45
+00:04:49,824 --> 00:04:55,524
+如果我谈到像 Pinecone、Chroma 这样的向量数据库，对吧？
+And if I talk about vector databases like fires, Chroma, right?
+
+46
+00:04:56,910 --> 00:04:59,204
+它们都有这些完整的特性，对吧？
+They have this entire features like this, right?
+
+47
+00:05:00,334 --> 00:05:06,144
+但我真的很想谈谈另一种神奇的搜索机制，叫做混合搜索。
+But I really want to talk about one more amazing search mechanism, which is called as hybrid search.
+
+48
+00:05:06,414 --> 00:05:12,708
+好了，所以这里我有这个混合搜索。
+Okay, so here I have this hybrid search.
+
+49
+00:05:14,094 --> 00:05:21,796
+现在在混合搜索内部，我们不仅仅关注稠密向量搜索机制，对吧？
+Now inside this hybrid search, here we are just not focusing on only vector dense search mechanism, right?
+
+50
+00:05:22,414 --> 00:05:32,260
+这里我们专门结合了多种搜索技术，
+Here we specifically combine combine multiple search techniques,
+
+51
+00:05:37,198 --> 00:05:37,424
+对吧？
+right?
+
+52
+00:05:38,224 --> 00:05:44,224
+那我们具体会在这里应用什么样的技术呢？
+And what kind of techniques we will specifically apply over here?
+
+53
+00:05:44,384 --> 00:05:46,468
+我们将结合多种搜索技术。
+We'll be combining multiple search techniques.
+
+54
+00:05:46,784 --> 00:05:54,020
+现在，如果我真的想把所有这些技术分开，一种是语义搜索。
+Now, specifically, if I really want to divide all this particular technique, one is the semantic search.
+
+55
+00:05:57,550 --> 00:06:01,316
+第二种是被称为合成搜索的东西。
+The second one is something called as synthetic search.
+
+56
+00:06:02,382 --> 00:06:02,624
+好的。
+Okay.
+
+57
+00:06:03,854 --> 00:06:05,264
+现在我将更多地谈论它。
+Now I will talk more about it.
+
+58
+00:06:05,344 --> 00:06:07,332
+这些搜索到底是什么？
+What exactly are this kind of search?
+
+59
+00:06:07,504 --> 00:06:11,108
+基本上，一个是语义搜索，一个是合成搜索。
+Basically, so one is semantic search, one is synthetic search.
+
+60
+00:06:11,502 --> 00:06:16,900
+具体来说，我们说语义搜索包含稠密向量搜索。
+Semantic search specifically, we say it has a dense vector search.
+
+61
+00:06:19,022 --> 00:06:24,772
+所以这里我们专门在尝试搜索相似的元素，对吧？
+So here we are specifically trying to search elements that are similar, right?
+
+62
+00:06:25,454 --> 00:06:32,132
+显然，当我们使用这种稠密向量搜索时，我们基本上是在检查相似的内容，对吧？
+And obviously, when we are using this dense vector search, we basically are checking out the similar kind of content, right?
+
+63
+00:06:32,464 --> 00:06:35,588
+如果我用合成搜索来说的话，对吧？
+If I probably say with respect to synthetic search, right?
+
+64
+00:06:35,904 --> 00:06:39,460
+或者我也可以把它称为精确搜索。
+Or I can also say this as exact search.
+
+65
+00:06:40,974 --> 00:06:44,944
+我也可以把它称为关键词搜索，对吧？
+I can also say this as keyword search, right?
+
+66
+00:06:45,344 --> 00:06:46,692
+关键词搜索。
+Keyword search.
+
+67
+00:06:47,214 --> 00:07:02,468
+如果我还想提供一些其他的名称，比如精确搜索和关键词搜索，这通常是针对智能稀疏，
+或者我也可以把它称为稀疏向量搜索。
+And if I also want to probably provide some more names, like exact search and keyword search,
+and this usually happens with respect to a smart sparse, or I can also say this as sparse vector search.
+
+68
+00:07:04,366 --> 00:07:09,984
+所以在这里你可以看到，在语义搜索中我有一个向量存储数据库，对吧？
+So here you could see in semantic search I have a vector store, right?
+
+69
+00:07:10,064 --> 00:07:13,092
+这里包含了所有嵌入的向量，对吧？
+Which has all the vectors embedded over here, right?
+
+70
+00:07:13,422 --> 00:07:26,788
+所以这里所有的文本基本上都被转换成了稠密向量，而且这
+些稠密向量基本上是存储在我的向量存储数据库里的，对吧？
+So here all my text is basically converted into dense vectors, and this dense
+vector is basically stored it in my stored in my uh uh my vector store DB, right?
+
+71
+00:07:27,790 --> 00:07:32,544
+在合成搜索的情况下，你会看到我们将拥有稀疏指标。
+In the case of synthetic search, you will be able to see that we will be having sparse metrics.
+
+72
+00:07:32,704 --> 00:07:37,156
+所以所有的这些文本基本上都会被转换成稀疏指标。
+So all this text will basically be converted into sparse metrics.
+
+73
+00:07:37,344 --> 00:07:43,904
+现在，如果你记得或者你知道，什么是稀疏指标，以及我们如何获得稀疏矩阵？
+Now, if you remember or if you know, right, what is sparse metrics and how do we get a sparse matrix?
+
+74
+00:07:43,984 --> 00:07:53,892
+呃，如果你记得或者你知道这些技术，比如独热编码、词袋模型或者 TFIDF，对吧？
+Uh if you remember if you know about these techniques like one hot encoding, bag of words, or TFIDF, right?
+
+75
+00:07:54,702 --> 00:08:00,292
+每当我们尝试使用这些技术时，我们就能把文本转换成稀疏矩阵。
+Whenever we try to use these techniques, we will be able to convert our text into sparse matrix.
+
+76
+00:08:00,384 --> 00:08:08,164
+现在，当我们说稀疏矩阵时，那基本上意味着会有大量的零和一，对吧？
+Now, when we say sparse matrix, that basically means there will be maximum numbers of zeros and ones, right?
+
+77
+00:08:08,686 --> 00:08:15,104
+只要句子中出现特定的词，那个位置就是一，其余全部都是零，对吧？
+Wherever a specific word will be available in a sentence, that will be one and remaining all will be zeros, right?
+
+78
+00:08:15,694 --> 00:08:18,916
+所以这基本上就被称为稀疏矩阵。
+So this this is basically called as a sparse matrix.
+
+79
+00:08:20,046 --> 00:08:26,960
+通过这个稀疏矩阵，我们这里只是专注于特定的关键词，比如这个关键词，对吧？
+And with the help of this parse matrix, here we are just focusing on a specific keyword, like this keyword, right?
+
+80
+00:08:27,120 --> 00:08:29,572
+就是我们实际上想要搜索的任何关键词。
+Whatever keyword we are actually trying to search.
+
+81
+00:08:30,400 --> 00:08:40,480
+而且这个稀疏矩阵还有一些非常重要的特性，因为通过它，我们大概可以进行关键词搜索本身。
+And this sparse matrix also has some very important properties because
+from this we will be able to probably do the keyword search itself.
+
+82
+00:08:40,640 --> 00:08:44,131
+而这不外乎就是可以被视为精确搜索。
+And this is nothing but it can also be considered as an exact search.
+
+83
+00:08:44,686 --> 00:08:56,480
+所以在混合搜索的情况下，它只是将这两种特定的技术结合起来，也就是语义搜索和合成搜索，
+或者我也可以把它称为精确搜索或关键词搜索，对吧？
+So in the case of hybrid search, it is just going to combine both this particular techniques that is semantic search and synthetic
+search, or I can also say this as exact search or keyword search, right?
+
+84
+00:08:56,814 --> 00:09:00,800
+它不会仅仅依赖于其中一种搜索机制。
+It is just not going to be dependent on one of the search mechanisms.
+
+85
+00:09:00,880 --> 00:09:04,644
+同样地，还有不同种类的数据库可用。
+And similarly, there are different kinds of databases that are available.
+
+86
+00:09:05,326 --> 00:09:12,100
+只是为了给你们举个例子，呃，比如有一个像 Cassandra 这样的数据库，对吧？
+Just to show you as an example, uh uh, like there's a database like Cassandra, right?
+
+87
+00:09:12,590 --> 00:09:15,812
+嗯，我们将使用一个叫做 Cashew 的库，对吧？
+Um, we will be using a library called as Cashew, right?
+
+88
+00:09:16,142 --> 00:09:20,720
+通过这个 Cashew，你会看到我们可以访问 Cassandra 数据库。
+And with the help of this Cashio, you'll be able to see that we'll be able to access the Cassandra database.
+
+89
+00:09:20,880 --> 00:09:22,560
+我稍后会演示这个。
+I will show this as we go ahead.
+
+90
+00:09:22,720 --> 00:09:28,400
+好的，但现在先试着理解一下，混合搜索到底在做什么，对吧？
+Okay, but right now just try to understand over here what exactly hybrid search is doing, right?
+
+91
+00:09:28,480 --> 00:09:31,556
+它提供的是，它结合了多种搜索方法。
+It is providing it is combining multiple search methodologies.
+
+92
+00:09:32,880 --> 00:09:40,772
+而且如果我大概说在大多数电商网站之类的平台上，混合搜索肯定是在后端实现的，好吗？
+and if I probably talk about in most of the e-commerce website and all, hybrid search is definitely implemented in the back end, okay.
+
+93
+00:09:41,742 --> 00:09:45,700
+现在让我们继续看看混合搜索是怎么工作的，好吗？
+Now let's go ahead and see that how does an hybrid search work, okay?
+
+94
+00:09:46,158 --> 00:09:55,440
+所以这里我们将继续写混合搜索是如何工作的。
+So here we'll go ahead and write how does hybrid search work.
+
+95
+00:10:00,142 --> 00:10:06,880
+那么假设在混合搜索的情况下，会发生什么？
+So let's say in the case of hybrid search, what happens?
+
+96
+00:10:07,040 --> 00:10:20,150
+假设我有一堆特定的文档，当我们把这些文档存入我们的向量数据库时，
+假设这是我的向量数据库，好吗？这个向量数据库同时支持两种模式，对吧？
+Let's say if I have a specific documents for all these documents, when we are storing this,
+when we are storing this in our vector database, let's say this is my
+
+97
+00:10:20,150 --> 00:10:26,160
+假设我有一堆特定的文档，当我们把这些文档存入我们的向量数据库时，
+假设这是我的向量数据库，好吗？这个向量数据库同时支持两种模式，对吧？
+vector database, okay, and this vector database supports both, right?
+
+98
+00:10:26,702 --> 00:10:28,110
+它基本上支持什么？
+What does it basically supports?
+
+99
+00:10:28,366 --> 00:10:34,884
+它支持向量搜索、稠密向量搜索，同时它也支持关键词搜索。
+It supports vector search, dense vector search, along with this, it also supports keyword search.
+
+100
+00:10:37,230 --> 00:10:39,716
+它具有这两个特定的属性，对吧？
+It has both this particular property, right?
+
+101
+00:10:40,080 --> 00:10:57,700
+现在，每当我把这个特定的文档放入这个特定的数据库或这个特定的向量存储数据库中时，
+这些文档也会通过 TFIDF 或词袋模型等技术被转换成稀疏矩阵，对吧？
+Now, whenever I have this particular document inside this inside this particular database or inside this particular vector store db,
+this documents will also be converted into a sparse matrix, right, by using techniques like TFIDF or bag of words.
+
+102
+00:10:59,182 --> 00:11:03,280
+所以这类嵌入会被转换，并存储在这个特定的向量数据库中。
+So this kind of embeddings it will be converted and it will be stored inside this particular vector database.
+
+103
+00:11:03,440 --> 00:11:09,760
+与此同时，对于同样的文档，我们还会尝试将其转换为向量，也就是我的稠密向量。
+Along with that, for the same documents, we will also try to convert this into vectors, which will be my dense vectors.
+
+104
+00:11:09,920 --> 00:11:13,040
+稠密向量不会包含大量的零或一。
+Dense vectors does not have maximum number of zeros or ones.
+
+105
+00:11:13,200 --> 00:11:14,084
+好，这就是区别所在。
+Okay, that is the difference.
+
+106
+00:11:14,560 --> 00:11:18,640
+我们将尝试把这些特定的向量存入这个特定的向量存储数据库中。
+And we will try to store this particular vectors inside this particular vector store DB.
+
+107
+00:11:18,720 --> 00:11:21,028
+同样，在这里你可以使用不同的技术。
+And again, here you can use different different techniques.
+
+108
+00:11:21,760 --> 00:11:25,440
+技术可以是任何你想要的，就像我们看到的，对吧？
+The techniques can be anything as you want, like we have seen, right?
+
+109
+00:11:25,678 --> 00:11:27,760
+我们使用了不同的嵌入技术。
+We have used different different embedding techniques.
+
+110
+00:11:27,840 --> 00:11:35,204
+我们使用了 OpenAI 嵌入技术，我们使用了 Ollama 嵌入技术，
+或者如果你想要 Hugging Face 嵌入技术也可以。
+We have used OpenAI embedding techniques, we have used Olama embedding techniques, or if you want hugging face embedding techniques.
+
+111
+00:11:36,014 --> 00:11:43,588
+所以，通过所有这些嵌入技术，我们可以把文本转换成稠密向量，
+并把它们存入这个特定的向量数据库。
+So, by all these embedding techniques, we can convert our text into
+dense vectors and we can store this in this particular vector database.
+
+112
+00:11:44,942 --> 00:11:46,560
+现在，思路非常简单。
+Now, the idea is very simple.
+
+113
+00:11:46,830 --> 00:11:52,068
+既然我们同时以两种格式存储这些数据，即稀疏指标和稠密向量指标。
+Since we are storing this in both this particular format, sparse metrics and dense vector metrics.
+
+114
+00:11:52,750 --> 00:12:02,440
+每当用户输入任何类型的查询时，针对这个特定的查询，我将能够检索出两种不同类型的结果。
+Whenever a user puts up any kind of queries, now with respect to this particular query,
+I will be able to retrieve two different kind of result.
+
+115
+00:12:03,374 --> 00:12:11,268
+好，其中一个结果将与我的精确匹配、精确搜索或关键词搜索相关。
+Okay, one result uh will be something related to my exact match or exact search or keyword search.
+
+116
+00:12:12,782 --> 00:12:19,204
+至于这个关键词搜索，假设我得到的所有结果，它们将是我的前K个结果，对吧？
+And with respect to this keyword search, let's say whatever results I am getting, it will be my top K results, right?
+
+117
+00:12:20,430 --> 00:12:23,360
+这将基于这个特定的关键词搜索或精确搜索。
+This will be based on this particular keyword search or exact search.
+
+118
+00:12:23,440 --> 00:12:28,164
+所以这里，抱歉，关键词搜索，我把它写在下面了，对吧？
+So here, sorry, keyword search, I have written it downwards, right?
+
+119
+00:12:29,038 --> 00:12:30,340
+所以在这里你就能看到。
+So here you'll be able to see that.
+
+120
+00:12:31,278 --> 00:12:37,956
+每当用户从这个特定的向量数据库中查询任何信息时。
+I'll be whenever a user probably queries any information over here from this particular vector database.
+
+121
+00:12:38,510 --> 00:12:47,236
+首先，对于用户查询，他们的查询也会被分为两种
+类型，它将被转换成两种类型，一种是稀疏向量。
+First of all, for the user query, again their query will also be divided into two types,
+it will be converted into two types one is the sparse vectors.
+
+122
+00:12:49,518 --> 00:12:52,228
+另一种就像是稠密向量，对吧？
+And the other one is something like dense vectors, right?
+
+123
+00:12:53,294 --> 00:12:55,204
+所以这两种向量都会被转换。
+So both these vectors it will be converted.
+
+124
+00:12:55,854 --> 00:12:57,856
+然后这是基于稀疏向量的。
+Then this sparse based on the sparse vectors.
+
+125
+00:12:58,016 --> 00:13:03,216
+呃，这里我们专门获取关键词搜索，然后在这里获取结果，对吧？
+Uh here we are specifically going to get the keyword search, and here we are going to get the results, right?
+
+126
+00:13:03,296 --> 00:13:06,084
+假设我在这里获取的前K个结果。
+Let's say the top k results I'll be getting over here.
+
+127
+00:13:06,446 --> 00:13:12,336
+基于这些稠密向量，我实际上要进行向量搜索，然后我在这里会得到另外一些结果。
+Based on this dense vectors, I'm actually going to do the vector search, and again I'll be getting another another results over here.
+
+128
+00:13:12,500 --> 00:13:12,640
+对吧？
+right?
+
+129
+00:13:12,736 --> 00:13:15,012
+假设这是我的结果1。
+Let's say this is my result 1.
+
+130
+00:13:16,910 --> 00:13:21,828
+结果1，前K个结果中的第1个，这是我的前K个结果中的第2个。
+Result 1, top k result 1, and this is my top k result 2.
+
+131
+00:13:22,176 --> 00:13:22,436
+好的。
+Okay.
+
+132
+00:13:23,374 --> 00:13:26,916
+现在，前K个结果中的第1个和第2个就在这里。
+Now top k result 1 and top k result 2 are specifically there.
+
+133
+00:13:27,534 --> 00:13:31,616
+这基本上是基于向量搜索完成的，也就是语义搜索。
+This is basically done on the vector search, which is nothing but it is a semantic search.
+
+134
+00:13:31,696 --> 00:13:37,616
+这基本上是语义搜索，寻找类似的元素，而这只是关键词搜索，对吧？
+This is basically a semantic search, similar kind of elements, and this is nothing but this is the keyword search, right?
+
+135
+00:13:37,696 --> 00:13:39,940
+这是基于我们实际获取的稀疏向量。
+Based on the sparse vectors that we have actually taken.
+
+136
+00:13:40,686 --> 00:13:46,020
+现在在混合搜索中，我们要做的是根据权重将两者结合起来。
+Now in hybrid search, what we do is that we combine both of them based on weightage.
+
+137
+00:13:46,702 --> 00:13:46,976
+好的。
+Okay.
+
+138
+00:13:47,854 --> 00:13:50,244
+然后我们最终得到最终的响应。
+And then we finally get the final response.
+
+139
+00:13:51,150 --> 00:14:01,572
+现在问题来了，我们打算如何根据获取到的信息，将这个结果1和结果2按权重结合起来？
+Now the question rises, how we are going to probably combine this particular
+result 1 and result 2 to weightage based on this information that we have got.
+
+140
+00:14:02,336 --> 00:14:08,868
+最后，当我们得到响应时，我们可以进一步将其与我们的大语言模型结合，并总结所有这些数据。
+And for and finally, when we get the response, we can then further combine this with our LLM model and summarize this entire data.
+
+141
+00:14:09,136 --> 00:14:10,416
+好的，这就是主题。
+Okay, that is subject.
+
+142
+00:14:11,470 --> 00:14:20,096
+但问题仍然是，我们如何结合结果1和结果2，以及如何根据权重得出最终结果？
+But still, the question rises how do we combine result 1 and result 2, and how based on weightage we take our final result?
+
+143
+00:14:21,486 --> 00:14:21,776
+对吧？
+Right?
+
+144
+00:14:22,096 --> 00:14:26,788
+最终结果，这就是我们将在下一个视频中看到的内容。
+Final result, and that is what we will be seeing in our next video.
+
+145
+00:14:27,696 --> 00:14:40,676
+这个技术非常简单，技术名称叫做混合搜索中的倒数排名融合。
+the technique is very simple, the technique name is something called as reciprocal, reciprocal rank fusion in hybrid search.
+
+146
+00:14:42,382 --> 00:14:43,616
+好的，在混合搜索中。
+Okay, in hybrid search.
+
+147
+00:14:43,696 --> 00:14:52,656
+所以我们将在下一个视频中讨论这个技术，它是这种混合搜索的核心。
+So this technique we will be discussing in our next video, which will be the core behind this particular hybrid search.
+
+148
+00:14:52,736 --> 00:14:53,616
+但这个思路非常简单。
+But the idea is very simple.
+
+149
+00:14:53,696 --> 00:15:05,696
+在混合搜索中，我们结合两种不同的事物，我们尝试基于语义搜索进行检索，
+它是稠密向量搜索和精确搜索或关键词搜索的结合。
+In hybrid search, we take a combination of two different things, we try to do the search based on semantic synthetic,
+which will be the combination of dense vector search and exact search or keyword search.
+
+150
+00:15:05,776 --> 00:15:08,036
+好的，所以我们基本上使用这两种技术。
+Okay, so both this particular technique we basically use.
+
+151
+00:15:08,430 --> 00:15:12,496
+当我提到前K个结果中的第1个、第2个时，我可能会得到5个结果，对吧？
+When I say top K result 1, top K result 2, that I may get five results, right?
+
+152
+00:15:12,622 --> 00:15:17,252
+基于关键词搜索，我可能会得到5个结果，基于向量搜索，大概就是这样，对吧？
+Based on the keyword search, I may get five results based on the vector search, something like that, right?
+
+153
+00:15:18,030 --> 00:15:24,096
+好了，各位，现在让我们继续讨论倒数排名融合和混合搜索。
+So, guys, now let's go ahead and proceed with the discussion with respect to reciprocal rank fusion and hybrid search.
+
+154
+00:15:24,176 --> 00:15:36,580
+正如我所说，每当我们尝试查询，或者用户从这个支持向量搜索和关键词搜索的向量数据库中进
+行查询时，它是语义搜索和精确搜索的结合。
+As I said, whenever we try to query or whenever user queries from this particular vector database,
+which supports both vector search and keyword search, which is a combination of semantic search and exact search.
+
+155
+00:15:37,070 --> 00:15:48,068
+首先，为了获取关键词搜索，我们必须将其转换为稀疏向量，
+这些稀疏向量可能会从这个特定的向量数据库中进行搜索，然后我们得到前K个结果。
+Over here, first of all, to get the keyword search, we have to convert this into sparse vectors,
+and the sparse vectors will be probably searching from this particular vector database, and we get top k results.
+
+156
+00:15:48,302 --> 00:15:53,936
+同样地，借助稠密向量，我们也能获得向量搜索，这里我们也会得到一个结果。
+Similarly, with the help of dense vectors, we also get a vector search, and here we are going to get a result too.
+
+157
+00:15:54,126 --> 00:15:55,296
+也就是前K个结果。
+That is top K results.
+
+158
+00:15:55,376 --> 00:16:00,416
+好，现在要把这两者结合起来，我们可能需要考虑一个响应，对吧？
+Okay, now combining both of them, we have to probably consider a response, right?
+
+159
+00:16:00,496 --> 00:16:02,416
+该如何获得最终的响应呢？
+How to probably get the final response?
+
+160
+00:16:02,496 --> 00:16:04,356
+这就是我现在要讨论的内容。
+That is what I'm actually going to discuss now.
+
+161
+00:16:04,496 --> 00:16:13,732
+好，所以这里，呃，通过倒数排名融合和混合搜索，我们将考虑两个重要的事情，好吗。
+Okay, so here uh with the help of reciprocal rank fusion and hybrid search, we will be considering two important things, okay.
+
+162
+00:16:14,382 --> 00:16:17,316
+假设这是我的向量数据库，好吗。
+Let's say this is my vector database, okay.
+
+163
+00:16:20,046 --> 00:16:35,696
+从这个向量数据库中，你知道每当用户查询时，基于这些查询，假设这是我的稠密向量，
+我们首先将进行向量搜索，并获得前K个结果，对吧？
+And from this vector database, you know that whenever user queries, so based on this queries, let's say if this is my dense vectors,
+first we are going to do the vector search, and we are going to get the top key results, right?
+
+164
+00:16:35,886 --> 00:16:40,336
+所以当我提到前K个结果时，假设这是我的第一个文档，对吧？
+So when I say top key results, let's say that this is my first document, right?
+
+165
+00:16:41,056 --> 00:16:44,976
+这可以是我的第二个文档，对吧？
+this can be my second document, right?
+
+166
+00:16:45,136 --> 00:16:47,456
+而这可以是我的第三个文档。
+And this can be my third document.
+
+167
+00:16:48,366 --> 00:16:50,256
+就像这样，我将获得很多文档。
+Like this, I will be getting a lot of documents.
+
+168
+00:16:50,416 --> 00:16:57,860
+同样地，在这里，基于我的稀疏矩阵搜索，也就是关键词搜索。
+Similarly, over here, based on my sparse matrix search, that is the keyword search.
+
+169
+00:16:59,438 --> 00:17:01,988
+那不就是关键词搜索吗。
+That is nothing but keyword search.
+
+170
+00:17:03,950 --> 00:17:06,884
+我实际上将获得我的前K个文档。
+I'm actually going to get my top key document.
+
+171
+00:17:07,086 --> 00:17:08,932
+所以这里我也将继续画出这个。
+So here also I will go ahead and draw this.
+
+172
+00:17:09,772 --> 00:17:10,564
+所以假设。
+So let's say.
+
+173
+00:17:13,518 --> 00:17:15,776
+在这里我将获得一些其他的句子。
+Here I'm going to get some other sentences.
+
+174
+00:17:15,935 --> 00:17:16,256
+好。
+Okay.
+
+175
+00:17:16,814 --> 00:17:18,496
+而且排序会不同，对吧？
+And the ordering will be different, right?
+
+176
+00:17:18,606 --> 00:17:21,776
+所以这里，假设这是我实际获得的顺序。
+So here, let's say this is the order that I've actually got.
+
+177
+00:17:22,060 --> 00:17:25,536
+但我这里拿到的文档是1、2、3、4、5。
+But this I got document one, two, three, four, five.
+
+178
+00:17:25,772 --> 00:17:28,256
+假设这是我实际拿到的五个文档。
+Let's say the five documents I've actually got.
+
+179
+00:17:28,526 --> 00:17:30,916
+而这里我们也获得了一些其他的文档。
+And here also we have got some other documents.
+
+180
+00:17:32,110 --> 00:17:33,828
+所以假设是一些其他的文档。
+So let's say some other documents.
+
+181
+00:17:33,936 --> 00:17:35,588
+但这里的编号是不同的。
+But here the numbering is different.
+
+182
+00:17:36,206 --> 00:17:41,856
+假设编号是像4、3、2、5、1这样。
+Let's say the number is like four, three, two, five, one.
+
+183
+00:17:42,256 --> 00:17:42,500
+好的。
+Okay.
+
+184
+00:17:43,214 --> 00:17:44,336
+这里的编号不一样。
+The numbering is different.
+
+185
+00:17:44,656 --> 00:17:53,060
+这是我的第一个前K个结果，这是我的第二个前K个结果。
+This is my result one top K documents, and this is my result two top K documents.
+
+186
+00:17:53,550 --> 00:17:53,856
+好的。
+Okay.
+
+187
+00:17:54,926 --> 00:18:02,724
+现在考虑到这个，呃，你看这里我得到的顺序是第一、二、三、四、五句。
+Now considering this, uh see here I've got in this ordering that is one, two, three, four, five sentence.
+
+188
+00:18:02,896 --> 00:18:07,936
+也就是说，我在前K个结果里得到了文档一、文档二、文档三、文档四、文档五。
+That is that I I got in my top K like document one, document two, document three, document four, document five.
+
+189
+00:18:08,016 --> 00:18:11,936
+同样地，在这里是文档四、文档三、文档二、文档五、文档一。
+Similarly, over here, document four, document three, document two, document five, document one.
+
+190
+00:18:12,096 --> 00:18:14,340
+这就是我们具体得到的排名。
+This is the ranks that we have specifically got.
+
+191
+00:18:15,118 --> 00:18:18,416
+那么，如何计算最终得分呢？
+Now, how to calculate the final score?
+
+192
+00:18:18,736 --> 00:18:23,856
+因为这里这个是基于我的语义搜索，这个是基于我的关键词搜索。
+Because here this is based on my semantic search, this is based on my keyword search.
+
+193
+00:18:23,936 --> 00:18:30,212
+当我提到语义搜索时，基本上是基于余弦相似度的。
+When I say semantic search, that is basically uh based on cosine similarity.
+
+194
+00:18:30,416 --> 00:18:36,292
+好的，所以我们是试图找出相似的向量，然后试图找出我们的最终得分。
+Okay, so we are trying to find out the similar vectors and then we are trying to find out our final score.
+
+195
+00:18:36,878 --> 00:18:40,176
+所以，为了计算最终得分，公式非常简单。
+So, in order to calculate the final score, the formula is very simple.
+
+196
+00:18:40,336 --> 00:18:51,012
+这里我们将写成 1 除以一个常数加上文档排名之和，好吗。
+Here we'll write summation of one divided by a constant plus plus the rank of documents, okay.
+
+197
+00:18:51,982 --> 00:18:56,932
+现在，这个特定的常数 C，它取决于不同的数据库。
+Now, this particular constant that is C, it depends on various database.
+
+198
+00:18:57,966 --> 00:19:04,324
+它取决于不同的数据库。
+it depends on various databases.
+
+199
+00:19:04,736 --> 00:19:10,532
+好的，对于不同的数据库，这个数值可能在 1 到 60 之间。
+Okay, now with respect to various databases, this may range between 1 to 60.
+
+200
+00:19:11,022 --> 00:19:12,736
+好的，各位，这是一个常数。
+Okay, and this is a constant, guys.
+
+201
+00:19:12,816 --> 00:19:20,260
+好的，在不同的数据库中，他们会把这个值设为 10、20，你知道的，
+在某些数据库里我看到这个值是 60。
+Okay, in various databases, they'll set this value to 10, 20, you know, in some of the databases I've seen the value to 60.
+
+202
+00:19:20,656 --> 00:19:20,900
+好的。
+Okay.
+
+203
+00:19:21,838 --> 00:19:25,216
+既然这是一个常数，我们就不用太关注它。
+So since this is a constant, we are just not going to focus much into this.
+
+204
+00:19:25,296 --> 00:19:27,696
+相反，我现在就直接用这个公式。
+Instead, I will just take up this formula now.
+
+205
+00:19:27,886 --> 00:19:32,772
+i 的求和等于嗯，1 除以 t 的排名。
+Summation of i is equal to um 1 divided by rank of t.
+
+206
+00:19:32,976 --> 00:19:33,188
+好的。
+Okay.
+
+207
+00:19:33,966 --> 00:19:46,180
+既然这是一个常数，呃，在计算每一个……每个文档的排名时，相对于那个特定常数，
+大概都会给你相同的答案，也就是产生的相同影响。
+Since this is a constant uh for calculating in every uh the rank of every uh documents will probably give you the same answer with
+respect to that particular constant, like same impact it may be creating.
+
+208
+00:19:46,416 --> 00:19:49,616
+好的，现在我们如何计算排名，对吧？
+Okay, now how do we compute the rank, right?
+
+209
+00:19:49,696 --> 00:19:53,316
+所以对于这个特定的句子，你会看到 1 除以 D 的排名。
+So for this particular sentence, you'll be seeing one divided by rank of D.
+
+210
+00:19:53,678 --> 00:19:56,676
+所以如果我继续计算这个，这不就是 1 除以 1，好吗。
+So if I go ahead and compute this, this is nothing but one by one, okay.
+
+211
+00:19:57,230 --> 00:20:00,496
+呃，这不就是 1 除以 2，因为这是排名二，对吧？
+Uh, this is nothing but one by two because this is rank two, right?
+
+212
+00:20:00,576 --> 00:20:04,452
+这是排名三，所以我会得到 1 除以 3，这不就是 0.33。
+This is rank three, so I'll get one by three, this is nothing but point three three.
+
+213
+00:20:04,910 --> 00:20:08,656
+然后这里我有 0.25，这是我的第五个文档。
+Then here I have 0.25, and this is my fifth document.
+
+214
+00:20:08,816 --> 00:20:10,496
+假设排名是五。
+Let's say the rank is five.
+
+215
+00:20:10,798 --> 00:20:12,612
+实际上我得到的是 0.2，好吗。
+I'm actually going to get 0.2, okay.
+
+216
+00:20:13,230 --> 00:20:17,216
+同样地，在这个特定情况下，这是我的第四个文档，对吧？
+Similarly, in this particular case, this is my document four, right?
+
+217
+00:20:17,550 --> 00:20:27,136
+如果我尝试计算这个特定的排名，好吗，它依然是 1
+除以 1，1 除以 2，1 除以 3，1 除以 4，1 除以 5。
+And if I try to compute this particular rank, okay, it will be again one by one, one by two, one by three, one by four, one by five.
+
+218
+00:20:27,246 --> 00:20:35,456
+所以这基本上意味着 D4 文档在关键词搜索中的排名是 1。
+So that basically means the document of D4 is basically getting a rank of one in this keyword search.
+
+219
+00:20:35,758 --> 00:20:37,956
+这里 D4 基本上得到的是 0.25。
+Here D4 is basically getting 0.25.
+
+220
+00:20:38,176 --> 00:20:38,404
+好。
+Okay.
+
+221
+00:20:39,022 --> 00:20:43,652
+现在，当我们尝试合并最终得分时，好，这一点很重要。
+Now, when we try to combine the final score, okay, this is important.
+
+222
+00:20:44,238 --> 00:20:44,580
+看这个。
+See this.
+
+223
+00:20:45,006 --> 00:20:55,216
+所以如果我最终拿走第一个文档，如果这是我的第一
+个文档，如果我尝试计算总体排名，那我们该怎么做？
+So if I finally go ahead and take up document one, so if this is my document
+one, and if I try to calculate the overall rank, then what we have to do?
+
+224
+00:20:55,296 --> 00:20:56,256
+我们必须进行求和。
+We have to do the summation.
+
+225
+00:20:56,366 --> 00:21:00,416
+所以我们来看看，第一个文档在这里给出了 1，还有 1.5，也就是 1 除以 5。
+So let's see, document one is giving one over here and one point five one by five.
+
+226
+00:21:00,526 --> 00:21:03,456
+所以我直接把 1 加 0.2。
+So I will just go ahead and write one plus point two.
+
+227
+00:21:03,696 --> 00:21:05,540
+所以这将是 1.2，对吧？
+So this will be one point two, right?
+
+228
+00:21:06,030 --> 00:21:10,976
+同样地，如果我继续计算第二个文档，对吧？
+Similarly, if I go ahead and calculate for document two, right?
+
+229
+00:21:12,174 --> 00:21:15,296
+所以这里的第二个文档给出了 0.5，对吧？
+So document two over here gives point five, right?
+
+230
+00:21:15,534 --> 00:21:23,936
+所以这里我实际上会得到 0.5，加上这里的第二个文档是 1 除以 3，也就是 0.33，对吧？
+So here I'm actually going to get point five plus the document two over here is one by three, that is nothing but 0.33, right?
+
+231
+00:21:24,430 --> 00:21:28,280
+所以这里你可以看到我实际上会得到 0.83。
+So here you can see I'm actually going to get 0.83.
+
+232
+00:21:29,006 --> 00:21:43,460
+这就是我实际得到的得分，显然，这个得分比那个得分更好，
+所以基于我 50% 的权重分配在关键词搜索上的概率，我会得到第一个文档。
+So this is my score that I'm actually going to get, and obviously, this score is better than this score,
+so I will be getting the document one based on my 50% probability of 50% uh focus on keyword search.
+
+233
+00:21:45,006 --> 00:21:49,348
+对，还有 50% 分配在语义搜索上。
+Right and 50% on semantic search.
+
+234
+00:21:49,616 --> 00:21:49,892
+对。
+Right.
+
+235
+00:21:50,286 --> 00:21:56,016
+如果你改变权重，对，如果你改变权重，你就能看到某些数值也会随之改变。
+If you change the weightage, right, if you change the weightage, then you'll be able to see that some values may also change.
+
+236
+00:21:56,176 --> 00:21:58,020
+同样地，你还有这个第三个文档。
+Similarly, you have this document 3.
+
+237
+00:21:58,816 --> 00:22:03,460
+在第三个文档的情况下，你可以看到这里我有 0.33。
+In the case of document 3, you'll be able to see that here I have 0.33.
+
+238
+00:22:04,430 --> 00:22:10,656
+所以让我们计算一下，0.33 加第三个文档，也就是 0.5。
+So let's calculate this 0.33 plus document 3 is nothing but 0.5.
+
+239
+00:22:11,342 --> 00:22:13,956
+同样，这里我得到的还是相同的值，看，是 0.83。
+Again, here I'm going to get the same value, see 0.83.
+
+240
+00:22:14,336 --> 00:22:16,324
+现在这两个排名是一样的，对吧？
+Now both these ranks are same, right?
+
+241
+00:22:16,846 --> 00:22:20,836
+所以如果我想检索前K个结果，显然这个会排在最前面。
+So if I want to retrieve the top K result, obviously this will be shown first.
+
+242
+00:22:21,294 --> 00:22:23,056
+而且也会基于这个，对吧？
+And then based on this too, right?
+
+243
+00:22:23,216 --> 00:22:26,496
+重点是在关键词搜索还是语义搜索上。
+Where the focus is more, whether it is on keyword search or semantic search.
+
+244
+00:22:26,670 --> 00:22:32,976
+假设我把 70% 的权重放在关键词搜索上，那么你可以看到这里的 0.5 比 0.3 高。
+Let's say if I say 70% focus is there on the keyword search, then over here you can see 0.5 value is higher than 0.3.
+
+245
+00:22:33,198 --> 00:22:38,336
+所以它只会把文档 3 显示在第二名，对吧？
+So it is just going to give you the display the document 3 in the second rank, right?
+
+246
+00:22:38,734 --> 00:22:43,376
+这样就可以为关键词搜索和语义搜索提供权重了。
+So this way the weightage can also be provided in keyword search and semantic search.
+
+247
+00:22:43,456 --> 00:22:43,696
+好的。
+Okay.
+
+248
+00:22:44,014 --> 00:22:46,596
+同样地，我们继续计算每一个文档。
+And similarly, we go ahead and calculate each and every documents.
+
+249
+00:22:47,150 --> 00:22:57,600
+最后，你可以看到这里我们可以结合结果 2 和结果 1 的前K个结果，
+然后通过分配排名在混合搜索中使用倒数排名融合，我们就能计算出一个最终作为响应的分数。
+So finally, you can see that here we can combine result 2 and result 1 top key elements,
+and then we can use this reciprocal rank fusion in hybrid search by assigning ranks,
+
+250
+00:22:57,600 --> 00:23:02,576
+最后，你可以看到这里我们可以结合结果 2 和结果 1 的前K个结果，
+然后通过分配排名在混合搜索中使用倒数排名融合，我们就能计算出一个最终作为响应的分数。
+and we will be able to calculate a score which will be finally given as a response.
+
+251
+00:23:02,736 --> 00:23:09,476
+在这里我们还可以分配权重，并将其与提示词模板
+结合，然后用我们的大语言模型进行总结，对吧？
+And here we can also assign weightage and this can be combined with an prompt template and we can summarize with our LLM model, right?
+
+252
+00:23:10,190 --> 00:23:15,296
+所以这概括了目前的整个混合搜索。
+So this gives an idea about the entire hybrid search right now.
+
+253
+00:23:15,440 --> 00:23:30,060
+在接下来的部分，我们将看到混合搜索基本上是如何实现的实际案例，但在那之前，
+如果你还知道另一种搜索，那就是基于图知识搜索。
+in this section in this next section what we're going to do is that we're going to also see a practical example of how an hybrid
+search is basically done but before that if you know about one more search right that is based on graph knowledge search.
+
+254
+00:23:31,022 --> 00:23:34,404
+好的，图知识搜索。
+Okay, graph knowledge search.
+
+255
+00:23:35,950 --> 00:23:41,412
+在图知识搜索中，我希望你们可能听说过图数据库。
+So in this graph knowledge search, uh I hope you may have heard about Graph DB.
+
+256
+00:23:41,696 --> 00:23:45,572
+最流行的开源图数据库之一是 Neo4j。
+One of the most popular open source graph db is Neo4j.
+
+257
+00:23:45,936 --> 00:23:46,148
+好的。
+Okay.
+
+258
+00:23:46,798 --> 00:23:53,616
+现在如果我们专门使用图数据库来存储向量。
+Now if we are specifically using Graph Knowledge, uh sorry, GraphDB to store the vectors.
+
+259
+00:23:53,776 --> 00:23:59,536
+假设这是我的数据库，而这个数据库就是我的图数据库。
+Let's say if this is my database and this database is nothing but it is my GraphDB.
+
+260
+00:23:59,616 --> 00:24:06,308
+在图数据库的情况下，我将拥有像这样的节点，它们通过关系连接在一起，对吧？
+In the case of GraphDB, I will be having like this nodes which will be connected with relationships, right?
+
+261
+00:24:06,990 --> 00:24:11,396
+所以这可以是我的节点 1，这可以是我的节点 2，它们将通过关系连接。
+So this can be my node one, this can be my node two, and it will be connected with relationships.
+
+262
+00:24:11,536 --> 00:24:17,732
+每当用户尝试查询，用户尝试在其中查询时。
+And we can whenever a user tries to query, user tries to query in this.
+
+263
+00:24:20,976 --> 00:24:28,016
+一个是关键词搜索，也可以称为语义搜索。
+One is keyword search, which it can also be called as semantic search.
+
+264
+00:24:28,336 --> 00:24:35,204
+抱歉，这也可以称为合成搜索，或者也可以称为精确搜索。
+Sorry, this can be also called as synthetic search, or it can be also called as exact search.
+
+265
+00:24:36,016 --> 00:24:41,056
+然后除此之外，还有语义搜索，对吧？
+then along with this, it's also suppose semantic search, right?
+
+266
+00:24:42,190 --> 00:24:48,576
+最后，你还会看到它支持关键词搜索和语义搜索。
+And finally, you'll be also able to see that it supports keyword search, semantic search.
+
+267
+00:24:48,736 --> 00:24:52,836
+除此之外，还有另一种搜索叫做图知识搜索。
+Along with this, one more search is there that is called as graph knowledge search.
+
+268
+00:24:54,096 --> 00:24:59,536
+图知识搜索，所以它支持所有这些技术，这非常神奇。
+Graph knowledge search, so it supports all these techniques, which is quite amazing.
+
+269
+00:24:59,696 --> 00:25:10,896
+想象一下，如果混合搜索只支持这两类，但现在有了图知识搜索的帮助，
+我们仍然能够创建一个非常出色且高效的 RAG 应用，对吧？
+Just imagine hybrid search just supports this two type, but now with this help of graph knowledge search,
+we will still be able to create a very good, efficient rag application, right?
+
+270
+00:25:11,150 --> 00:25:20,548
+借助图数据库，我们将在接下来的部分看到关于图数据库的内容。
+With the help of GraphDB, and this we will be seeing about GraphDB in the upcoming videos, uh in the upcoming sections.
+
+271
+00:25:21,166 --> 00:25:25,636
+但让我们继续看看混合搜索的一些实际案例。
+But let's go ahead and see some practical example for uh hybrid search.
+
+272
+00:25:26,510 --> 00:25:38,060
+大家好，我们将继续关于混合搜索的讨论，现在我们将利
+用 Langchain 和混合搜索来实现一个完整的精彩项目。
+Hello guys, so we are going to continue the discussion with respect to the hybrid search,
+and here now we are going to implement a complete amazing project with the help of hybrid search using langchain.
+
+273
+00:25:38,928 --> 00:25:44,516
+现在为此我们将使用一个叫做 Pinecone 的向量数据库。
+Now for this we will be using a vector database which is called as Pinecore.
+
+274
+00:25:44,848 --> 00:25:49,488
+现在，Pinecone 向量数据库同时提供这两项，对吧？
+Now, Pinecone vector database provides you this both, right?
+
+275
+00:25:49,568 --> 00:25:54,128
+也就是说，你可以进行关键词搜索，也可以进行语义搜索。
+Like you will be able to do the keyword search, you will be able to do the semantic search.
+
+276
+00:25:54,382 --> 00:26:06,368
+所以首先，我们要设置好账号，然后通过代码来编写所有内容，
+我们可能会直接创建向量数据库本身。
+So let's go ahead and first of all, we will set up our account and then with the help of code,
+we will try to write each and everything, and we'll try to probably go ahead and create our you know the vector database itself.
+
+277
+00:26:06,478 --> 00:26:10,528
+首先，直接在这里注册，这是完全免费的。
+So, first of all, just go ahead and sign up over here, it is completely for free.
+
+278
+00:26:10,798 --> 00:26:15,168
+呃，前两到三个实例是可以完全免费创建的。
+Uh, first two first two to three instances you can create completely for free.
+
+279
+00:26:15,406 --> 00:26:18,048
+我已经注册过了，所以我现在登录一下。
+So I have already signed up, so I will go ahead and log in.
+
+280
+00:26:18,128 --> 00:26:20,048
+你只需要访问 pinecone.io。
+You have to just go to pinecone.io.
+
+281
+00:26:20,686 --> 00:26:26,288
+进入这里后，你会看到我已经创建了一个 Pinecone 混合搜索，对吧？
+Now, once you go inside this, you'll be able to see that I have already created one pine cone hybrid search, right?
+
+282
+00:26:26,448 --> 00:26:31,012
+如果你点进去，你会看到这里已经有一些数据了，对吧？
+And if you go inside this, there are some kind of data that is already available over here, right?
+
+283
+00:26:31,568 --> 00:26:37,892
+但按惯例，我们可能不会用这些，而是去创建一个新的索引，好吗？
+But as usual, we will not probably work with this, but instead we'll go ahead and create our new index, okay?
+
+284
+00:26:38,414 --> 00:26:45,408
+但因为我真的很想通过代码完成所有操作，所以我们甚至会尝试通过代码来创建实例。
+But since I really want to do everything from with the help of code, so we will try to create the instance even with the help of code.
+
+285
+00:26:45,568 --> 00:26:48,608
+首先，你实际需要的是你的 API 密钥。
+So, first of all, that you actually require is your API key.
+
+286
+00:26:48,718 --> 00:27:02,084
+好的，点击 API 密钥，确保这是这里提供的默认 API 密钥，你也可以轮换密钥值，
+比如如果有人看到的话，你可以把它改掉，对吧？
+Okay, so just click on API key, just make sure that this will be the default API key that will be provided over here,
+and you can also rotate the key values, like you can probably go ahead and change it if somebody probably sees it, right?
+
+287
+00:27:02,368 --> 00:27:07,876
+所以，我把这个特定的密钥值复制下来，然后开始在这里写代码，对吧？
+So, here I will copy this particular key value and then I will start my coding over here, right?
+
+288
+00:27:08,590 --> 00:27:12,848
+在这里，我将创建我的实例，以及其他所有内容。
+So here I will be creating my instance, everything as such.
+
+289
+00:27:12,928 --> 00:27:24,516
+好的，现在快速看一下，我这里有一些 requirements.txt，你会看到很多不同的库，
+但对于 Langchain，显然你需要很多库。
+Okay, now just quickly to go ahead with I have some good requirement or txt here, you'll be able to see so many different libraries,
+but uh for lang chain, obviously, you require a lot of libraries.
+
+290
+00:27:25,038 --> 00:27:30,608
+但如果我专门谈到 Pinecone，我会在这里安装一些库。
+but if I probably talk about with respect to pinecone, I will be installing some of the libraries over here.
+
+291
+00:27:30,862 --> 00:27:35,044
+让我快速把它们粘贴到这里。
+So let me quickly go ahead and you know just paste it over here.
+
+292
+00:27:35,470 --> 00:27:39,728
+我要安装 PineCone client、Pine Cone Text 和 Pinecone notebooks。
+So I'll be installing PineCone client, Pine Cone Text, and Pinecone notebooks.
+
+293
+00:27:39,808 --> 00:27:44,164
+好的，这些是我们需要的基础库。
+Okay, so uh these are the initial libraries that we will be requiring.
+
+294
+00:27:44,288 --> 00:27:48,528
+我已经完成了安装，因为我不想让视频变得太长。
+So I have already done the installation since I don't want to make my video very long.
+
+295
+00:27:48,750 --> 00:27:50,468
+所以在这里你可以看到绿色的勾。
+So here you'll be able to see a green tick.
+
+296
+00:27:51,168 --> 00:27:57,008
+整个安装过程基本上已经完成了。
+and already the entire uh you know the installation has basically happened.
+
+297
+00:27:57,248 --> 00:27:59,844
+然后我来写我的 API_KEY。
+Then I will go ahead and write my API underscore key.
+
+298
+00:27:59,968 --> 00:28:06,404
+这个 API_KEY 基本上会被这里的数值替换掉，对吧？
+This API underscore key will basically be replaced with the values over here, right?
+
+299
+00:28:07,278 --> 00:28:08,928
+所以我打算创建这个特定的变量。
+So I'm just going to create this particular variable.
+
+300
+00:28:09,008 --> 00:28:11,620
+如果你愿意的话，也可以创建一个环境变量，好吗？
+You can also create an environment variable if you want, okay?
+
+301
+00:28:12,398 --> 00:28:12,868
+完美。
+Perfect.
+
+302
+00:28:13,550 --> 00:28:22,768
+现在，既然我们正在使用 Langchain，请确保我们
+从 langchain_community.retrievers 导入这个。
+Now uh since we are using Langchin, so please make sure that we will go
+ahead and import this from Langchin underscore community dot retrievers.
+
+303
+00:28:23,214 --> 00:28:31,972
+我要导入一个库，也就是 Pinecone Hybrid Search 检索器。
+I'm going to import I'm going to import a library which is nothing but Pinecone Hybrid Search Retriever.
+
+304
+00:28:32,526 --> 00:28:38,848
+现在，这个类负责执行语义搜索和合成搜索，对吧？
+Now, this this class is responsible in doing both the semantic search and synthetic search, right?
+
+305
+00:28:39,246 --> 00:28:49,408
+也就是说，关键词搜索包含了稀疏指标和稠密向量搜索的结
+合，为此我们需要创建一个检索器，这就是我们要用的类。
+So keyword search, like it it has the combination of both the sparse metrics and dense vector search,
+and for that we have to create a retriever, and this is the class that we are going to use.
+
+306
+00:28:49,678 --> 00:28:51,808
+那我们开始执行吧。
+So let's go ahead and execute this.
+
+307
+00:28:51,888 --> 00:29:00,608
+执行完这个之后，下一步我们需要确保首先在 Pinecone 中创建索引，对吧？
+And after executing this, the next thing will be that we need to make
+sure that we first of all create our index in our pine cone, right?
+
+308
+00:29:00,688 --> 00:29:02,244
+如果没有这个，它就没用了。
+Without this, it will be of no use.
+
+309
+00:29:02,862 --> 00:29:09,568
+那我现在快速操作一下，我先导入 OS，因为我已经导入了 Pinecone。
+So here uh quickly, what I will do, I will just go ahead and import import OS since I have already imported Pinecone.
+
+310
+00:29:09,648 --> 00:29:17,808
+我接着写 from pinecone import Pinecone, serverless_spec。
+So I will go ahead and write from Pinecone import Pinecone, comma, serverless spec.
+
+311
+00:29:18,128 --> 00:29:21,808
+好的，然后我来创建我的索引名称。
+Okay, and then I will just go ahead and create my index name.
+
+312
+00:29:22,030 --> 00:29:23,408
+现在，这里的索引名称。
+Now, index name over here.
+
+313
+00:29:23,488 --> 00:29:31,648
+我把它设为 hybrid_search_example，请确保你全部用小写字母，否则你会报错。
+I will say hey, this will be my hybrid search example, and please make sure that
+you give all this in a smaller letter, otherwise, you'll be getting an error.
+
+314
+00:29:31,886 --> 00:29:35,248
+所以我写成 hybrid_search_langchain_pinecone。
+So I will say hey, hybrid search lang chain pine cone.
+
+315
+00:29:35,328 --> 00:29:37,636
+好的，这就是我的索引名称。
+Okay, so this will basically be my index name.
+
+316
+00:29:38,048 --> 00:29:38,340
+好的。
+Okay.
+
+317
+00:29:39,022 --> 00:29:45,508
+嗯，创建好索引名称后，我们得初始化 Pinecone client。
+Uh, once I probably create the index name, we have to initialize the pine cone.
+
+318
+00:29:46,798 --> 00:29:59,844
+好的，为了初始化 Pinecone client，我写 PC = Pinecone，
+然后用我创建的这个 API 密钥来初始化，就在这里。
+Client okay then for initializing the Pinecone client I'll write PC is equal to PineCone and we will initialize with this API key that
+I have actually created right so over here is my API key.
+
+319
+00:30:00,080 --> 00:30:02,880
+你可以创建自己的 API 密钥，没必要用我的，好吗？
+You can create your own API keys, no need to use mine, okay?
+
+320
+00:30:03,040 --> 00:30:07,268
+因为一旦我上传这个视频，这个密钥就会被删除，好吗？
+Because as soon as I upload this video, uh this will get deleted, okay.
+
+321
+00:30:07,566 --> 00:30:08,612
+或者我会轮换密钥。
+Or I'll rotate the key.
+
+322
+00:30:09,134 --> 00:30:21,700
+然后我们来创建索引，这里我基本上要写：如果 index_name 不在 PC.list_indexes 里，对吧？
+Then uh we will go ahead and create the index, and here I'm going to
+basically write if index underscore name is not in PC dot list indexes, right?
+
+323
+00:30:22,160 --> 00:30:23,360
+我们正在列出所有的索引。
+We are listing all the indexes.
+
+324
+00:30:23,440 --> 00:30:28,720
+如果这个特定的名称不在里面，那我们才去创建它。
+If this particular name is not there, then only we should probably go ahead and create this.
+
+325
+00:30:28,910 --> 00:30:41,668
+所以我写 PC.create_index，这里我给 name 等于 index_name，
+也就是我们刚才设定的那个索引名称。
+So I will write PC dot create index create underscore index, and here I'm going to give my name is equal to index underscore name,
+whatever index underscore name we have specifically taken.
+
+326
+00:30:42,382 --> 00:30:46,000
+嗯，每当我们尝试创建索引时，也必须提供维度。
+Uh whenever we try to create an index, we also have to give out dimension.
+
+327
+00:30:46,094 --> 00:30:49,040
+好的，所以这里的向量维度是多少？
+Okay, so here uh like what will be the vector dimension.
+
+328
+00:30:49,198 --> 00:30:52,292
+这里我把向量维度设为 384。
+So here I'm going to use the vector dimension is equal to 384.
+
+329
+00:30:52,800 --> 00:30:54,160
+原因非常简单。
+The reason is very simple.
+
+330
+00:30:54,320 --> 00:31:00,260
+嗯，我之所以用这个，是因为这就是我稠密模型的维度，好吗？
+Uh the reason why I'm using and this is nothing but this is my dimension of dense model, okay.
+
+331
+00:31:00,718 --> 00:31:01,508
+稠密向量。
+Dense vector.
+
+332
+00:31:02,638 --> 00:31:14,800
+原因很简单，我之所以用 384，是因为我实际要用的嵌入技术是 Hugging Face 的嵌入技术，
+也就是句子转换器，它默认会将任何文本转换为 384 维。
+The reason is very simple why I'm using 384 because the embedding technique that I'm actually going to use is a hugging face embedding
+technique, which is nothing but sentence transformer that by default converts any text into 384 dimension.
+
+333
+00:31:14,880 --> 00:31:19,748
+这就是为什么我用这个维度来创建这个特定索引的原因，好吗。
+So that is the reason why I'm creating this particular index with this dimension, okay.
+
+334
+00:31:20,400 --> 00:31:23,520
+除此之外，接下来我要用的是度量标准。
+along with this, the next thing that I'm going to use is metric.
+
+335
+00:31:23,886 --> 00:31:27,200
+所以这里的度量标准，我将使用点积。
+so for my metric here, I will be using a dot product.
+
+336
+00:31:27,342 --> 00:31:32,400
+这些都是你在创建索引时需要提供的特定信息。
+So this is all information you specifically get when you are creating an index.
+
+337
+00:31:32,560 --> 00:31:38,000
+假设我到这里去创建索引，它会要求你输入维度，对吧？
+Let's say if I go to over here and create my index, so it's ask you for the dimension, right?
+
+338
+00:31:38,080 --> 00:31:43,440
+在这里，默认情况下，你可以看到度量标准，它也会问你想用点积、余弦相似度等等。
+Over here by default, you can see metrics also it asks you whether you want to go with dot product, cosine, and all right.
+
+339
+00:31:43,520 --> 00:31:45,040
+你可以选择这些特定的度量标准中的任何一个。
+You can select any of this particular metric.
+
+340
+00:31:45,200 --> 00:31:48,640
+这就是我在这里提供度量标准的原因，对吧？
+So that is the reason why I am giving a metric over here, right?
+
+341
+00:31:48,720 --> 00:31:50,480
+所以我说，直接选就行了。
+So I'm saying hey, just go ahead and do it.
+
+342
+00:31:50,560 --> 00:31:51,556
+选点积，好吗？
+The dot product, okay?
+
+343
+00:31:52,334 --> 00:31:57,956
+而且这个点积，我专门是为稀疏值使用的，对吧？
+And this dot product specifically I am going to do it for sparse values, right?
+
+344
+00:31:58,734 --> 00:32:06,116
+稀疏值仅支持点积，因为我们要为两者创建混合搜索，对吧？
+Sparse value supported only for dot product because we are creating this hybrid search for both of them, right?
+
+345
+00:32:06,830 --> 00:32:19,520
+最后，关于这个特定的规范，我将使用无服务器规范，
+我可能得提供我的云信息，比如 AWS，以及所在的区域。
+And then finally, you have the spec is equal to for this particular spec, I will be using serverless spec,
+and I have to probably give my cloud information like AWS it is, and which reason.
+
+346
+00:32:19,680 --> 00:32:26,320
+你也能在那个特定的……所以我直接写 US East1 就行。
+This also you'll be able to get inside that particular uh so I will just go ahead and write US East1.
+
+347
+00:32:26,640 --> 00:32:31,360
+好的，如果你还记得，我们刚才也看到了这个特定的索引。
+Okay, so if you remember, uh just now we saw this particular index also.
+
+348
+00:32:31,534 --> 00:32:35,680
+所以如果我继续看这里，这里有无服务器选项，好吗。
+So if I go ahead and see this, here you have the serverless, okay.
+
+349
+00:32:35,918 --> 00:32:37,508
+所有信息都在这里。
+All the information is over here.
+
+350
+00:32:38,062 --> 00:32:41,280
+来看看，这里你可以选择 US East1 等等。
+Let's see, and here you can select this US each 1 and all.
+
+351
+00:32:41,360 --> 00:32:43,360
+这是锁定的，这就是我写这个的原因。
+This is locked, so that is the reason I've written this.
+
+352
+00:32:43,440 --> 00:32:48,484
+我选了 AWS，如果你选 Google，你就得写这个，对吧？
+I've selected AWS, If you go ahead with Google, you have to go ahead and write this, right?
+
+353
+00:32:49,006 --> 00:32:50,880
+这只是一个入门计划。
+So this is just a starter plan to go ahead with.
+
+354
+00:32:50,960 --> 00:32:53,200
+所以我打算用这个免费的，好吗？
+So I'm going to use this free one, okay?
+
+355
+00:32:53,742 --> 00:32:54,080
+完美。
+Perfect.
+
+356
+00:32:54,254 --> 00:32:56,960
+那我们来看看它能不能执行成功。
+So let's see uh whether this gets executed.
+
+357
+00:32:57,120 --> 00:32:59,428
+我觉得这里的一切看起来都没问题。
+So here I think everything looks good enough.
+
+358
+00:32:59,760 --> 00:33:05,444
+我有我的索引名称，呃，pc.create，这里我直接写个逗号。
+I have my index name, uh, pc.create, and here I will just write comma.
+
+359
+00:33:05,600 --> 00:33:05,920
+好的。
+Okay.
+
+360
+00:33:10,414 --> 00:33:14,692
+好的，稍等一下，我把整个内容更新一下。
+Okay, just a second, I will just update this entire thing.
+
+361
+00:33:16,846 --> 00:33:17,508
+好的，完美。
+Okay, perfect.
+
+362
+00:33:17,840 --> 00:33:20,080
+现在看起来完全没问题了，对吧？
+Now this looks good exactly, right?
+
+363
+00:33:20,160 --> 00:33:21,600
+呃，我现在有了所有细节。
+Uh, I have all the details now.
+
+364
+00:33:21,680 --> 00:33:23,012
+让我们开始创建这个索引。
+Let's go ahead and create this index.
+
+365
+00:33:23,214 --> 00:33:30,240
+所以在这里你可以看到，创建这个索引需要一点时间，但它会直接创建在我们的向量数据库里。
+So here you will be able to see it will take some amount of time to create this index,
+but this is going to get created directly inside our vector database.
+
+366
+00:33:30,480 --> 00:33:35,780
+现在，如果我点击索引并刷新一下，我想它应该就创建好了。
+now, if I go ahead and click on index, if I reload this, I think it should get created.
+
+367
+00:33:36,494 --> 00:33:39,440
+好了，这是我的混合搜索 Langchain Pinecone。
+Okay, so here is my hybrid search lang chain pine cone.
+
+368
+00:33:39,520 --> 00:33:41,600
+目前维度是 384。
+And right now the dimension is 384.
+
+369
+00:33:41,680 --> 00:33:43,590
+我没设置任何东西，指标是点积。
+I don't have anything, the metric is dot product.
+
+370
+00:33:43,950 --> 00:33:47,108
+使用这个指标的原因是我真的想同时支持两者。
+The reason of using metric is that I really want to support both.
+
+371
+00:33:47,470 --> 00:33:50,468
+呃，那是为了我的稀疏指标和我的向量索引，对吧？
+Uh, that is for my sparse metrics and my vector index, right?
+
+372
+00:33:50,670 --> 00:33:53,120
+所以现在我有了所有的细节。
+So here I have my all details now.
+
+373
+00:33:53,200 --> 00:33:56,000
+让我们继续在这里写更多的代码。
+Let's go ahead and further do the more coding over here.
+
+374
+00:33:56,070 --> 00:33:57,520
+我已经创建了我的 API。
+I've already created my API.
+
+375
+00:33:57,600 --> 00:34:05,030
+现在，点击我的索引，我将定义 pc.index，好的，pc.index。
+Now, let's click on my index and I will say hey PC dot index, Okay, PC dot index.
+
+376
+00:34:05,646 --> 00:34:08,068
+在这里我只需要提供我的索引名称。
+and here I'm just going to give my index underscore name.
+
+377
+00:34:08,525 --> 00:34:11,492
+所以让我们开始创建这里的这个索引。
+So let's go ahead and create see this index over here.
+
+378
+00:34:11,712 --> 00:34:18,112
+这是我在特定内存位置的 Pinecone 索引，显然你可以在这里看到我的索引名称。
+So this is my Pinecone index at this particular memory location, and obviously, my index name that you'll be able to see over here.
+
+379
+00:34:18,192 --> 00:34:21,472
+基于这个索引名称，我正尝试获取那些细节。
+That index name, based on this index name, I'm trying to take out that details.
+
+380
+00:34:21,712 --> 00:34:22,032
+好的。
+Okay.
+
+381
+00:34:23,598 --> 00:34:27,552
+现在首先，你知道的，对吧？
+now first thing first, you know that, right?
+
+382
+00:34:27,792 --> 00:34:32,032
+我们的整个项目是两种不同技术的结合。
+Our entire project is a combination of two different one.
+
+383
+00:34:32,192 --> 00:34:37,219
+我将尝试创建一个向量嵌入，而另一个我将尝试创建一个稀疏矩阵，好吗。
+I'll try to create a vector embedding, and the other one I will try to create a sparse matrix, okay.
+
+384
+00:34:37,614 --> 00:34:40,324
+这就是混合搜索基本上要求你去做的事情。
+And that is what hybrid search basically tells you to do it right.
+
+385
+00:34:40,592 --> 00:34:54,672
+所以，首先我要做的，是导入 OS，然后在这里写 from dot.env import load_dot_env，好吗，
+我们现在将加载所有的环境变量。
+So, first of all, what I will do, I will go ahead and import OS, and here I will write from dot env import load underscore dot env
+okay, and we will be loading all our environment variables right now.
+
+386
+00:34:55,150 --> 00:35:08,260
+为了让你了解环境变量的情况，因为我将使用来自 Langchain 和 Hugging Face 本身的开源嵌入
+技术，所以我将导入 from langchain_huggingface。
+Just to give you an idea about the environment variables, since I'm going to use an open source embedding technique from Langchain
+from Hugging Face itself, so I will go ahead and import from Langchain underscore hugging face.
+
+387
+00:35:08,782 --> 00:35:13,156
+好的，我要导入我的 Hugging Face 嵌入，好吗。
+Okay, I'm going to import my hugging face embeddings, okay.
+
+388
+00:35:13,614 --> 00:35:28,112
+在这里，我们经常使用的一种嵌入技术，并且考虑到相同的维度，
+我将使用这个 Hugging Face 嵌入，这里我将使用我的模型名称等于 all-mini。
+And here, one of the embedding technique that we regularly use, and with respect to the same dimensions,
+I'll be using this hugging face embeddings, and here I'm going to use my model underscore name is equal to all dash mini.
+
+389
+00:35:28,192 --> 00:35:34,436
+这是句子转换器 lm l6 版本 v2。
+This is a sentence transformer lm l6 and version v2.
+
+390
+00:35:34,672 --> 00:35:38,468
+好的，所以这专门就是我的嵌入。
+Okay, so this will specifically be my embeddings.
+
+391
+00:35:39,822 --> 00:35:43,012
+所以这里让我们快速看一下这里的嵌入。
+So here let's go ahead and see the embeddings over here quickly.
+
+392
+00:35:44,846 --> 00:35:48,992
+呃，是的，我的嵌入正在下载，这可能需要一点时间。
+Uh yeah, so my embedding is getting downloaded, and this will probably take some amount of time.
+
+393
+00:35:49,072 --> 00:35:51,876
+在这里你可以看到，嵌入维度就是 384。
+And here you can see the word embedding is nothing but 384.
+
+394
+00:35:52,398 --> 00:36:01,476
+请注意，在执行之前，如果你直接运行它，它是没法工作的，
+因为它之所以能运行是因为我已经导入了 os.environ。
+Please note uh before doing this, if you directly execute it, it will not work
+because the reason it is working because I have already imported OS.invirn.
+
+395
+00:36:01,966 --> 00:36:03,952
+你得创建这个 Hugging Face token，对吧？
+You have to create this hugging face token, right?
+
+396
+00:36:04,192 --> 00:36:08,612
+hf_token，这个已经在我的环境变量里了。
+hf underscore token, and this is already present in my environment variable.
+
+397
+00:36:08,974 --> 00:36:13,952
+所以我接下来会写 os.getenv，它就是 hf_token。
+So I will go ahead and write oh.getenv is nothing but hf underscore token.
+
+398
+00:36:14,032 --> 00:36:16,100
+你得和这个一起执行。
+You have to execute along with this.
+
+399
+00:36:16,672 --> 00:36:20,512
+如果你没有 hf_token，它就没法加载。
+If you have not, if you do not have the hf underscore token, this will not get loaded.
+
+400
+00:36:20,592 --> 00:36:23,152
+好的，所以请确保你有这段特定的代码。
+Okay, so please make sure that you have this particular code.
+
+401
+00:36:23,312 --> 00:36:23,652
+完美。
+Perfect.
+
+402
+00:36:23,952 --> 00:36:25,476
+就是这些内容。
+So this was it.
+
+403
+00:36:26,112 --> 00:36:28,164
+现在让我们再次运行一下。
+now let's go ahead and execute it once again.
+
+404
+00:36:28,592 --> 00:36:31,364
+现在我将获得完整的 Hugging Face 嵌入。
+And now I will be having my entire hugging face embedding.
+
+405
+00:36:31,872 --> 00:36:35,140
+现在，这种嵌入技术被用来创建你的稠密向量。
+Now, this embedding technique is used to create your dense vectors.
+
+406
+00:36:35,312 --> 00:36:48,992
+呃，如果我继续往下走，对于我的稀疏指标，我将使用另一个，
+也就是 pinecone.pinecone_text 来处理我的稀疏数据。
+Uh if I go ahead and proceed further, for my sparse metrics, I'm going to use
+one more that is pine cone dot and pine cone underscore text for my sparse.
+
+407
+00:36:49,232 --> 00:36:55,908
+这里有一个被称为 bm25_编码器 的编码器。
+There is a there is there is an encoder which is called as bm25 encoder.
+
+408
+00:36:56,270 --> 00:36:59,872
+现在，这个特定的编码器默认使用 TF IDF，好吗。
+Now, this particular encoder uses the TF IDF by default, okay.
+
+409
+00:37:00,142 --> 00:37:01,188
+TFIDF 技术。
+Tfidf techniques.
+
+410
+00:37:01,472 --> 00:37:06,788
+所以这里我要写 bm25_编码器。
+So here I'm going to write PF25 underscore encoder.
+
+411
+00:37:06,926 --> 00:37:15,684
+好的，它等于……我直接初始化这个编码器，并告诉它使用默认的，也就是 TFIDF。
+Okay, is equal to nothing, but I will just go ahead and initialize this encoder and I will say hey,
+use the default one which is nothing but tfidf.
+
+412
+00:37:15,872 --> 00:37:19,876
+好的，这基本上就成了我的 bm25_编码器，好吗。
+Okay, and this basically becomes my bf25 encoder, okay.
+
+413
+00:37:20,112 --> 00:37:24,832
+它负责处理任何查询或任何文本的稀疏矩阵转换。
+And this is responsible in doing the sparse matrix conversion for any queries or for any text.
+
+414
+00:37:24,992 --> 00:37:37,552
+好的，现在，我希望你们现在对这些事情都很清楚了，现在大概能完成所有这些了不起的操作了。
+Okay, now uh I hope you are very much clear with all these things now, and
+you are able to probably do all all these amazing stuffs and all right now.
+
+415
+00:37:37,632 --> 00:37:39,712
+我将尝试创建一些句子。
+I will try to create some sentences.
+
+416
+00:37:39,872 --> 00:37:44,644
+让我们来创建一些句子，这些句子将是一个列表，好吗。
+Let's go ahead and create some sentences, and the sentences will be a list, okay.
+
+417
+00:37:45,072 --> 00:37:50,916
+为了给你们展示一个例子，我将针对这个特定的列表在这里创建一些句子。
+And just to show you one example, I will just be creating some sentences over here with respect to this particular list.
+
+418
+00:37:51,392 --> 00:37:52,992
+我将有这三个句子。
+I will have this three sentences.
+
+419
+00:37:53,072 --> 00:38:01,732
+比如，2023 年我去了巴黎，2022 年我去了纽约，2021 年我去了奥尔良。
+Let's say in 2023 I visited Paris, in 2022 I visited New York, and in 20 and 2021 I visited Orleana.
+
+420
+00:38:01,952 --> 00:38:10,180
+好的，现在我将获取所有这些信息，快速地写下 bm25_编码器。
+Okay, now I will take all this information and quickly I will go ahead and write BM25 underscore encoder.
+
+421
+00:38:10,638 --> 00:38:14,532
+点，我们只需对这些完整的句子进行拟合，好吗。
+dot, We are just going to fit on these entire sentences, okay.
+
+422
+00:38:15,086 --> 00:38:25,028
+一旦我们完成了这个，简而言之，我们就是在这些句子上应用 TFIDF 值，好吗。
+So once we do this, uh in short, we are just applying tf idf values on this sentences, okay.
+
+423
+00:38:25,998 --> 00:38:26,468
+完美。
+Perfect.
+
+424
+00:38:27,022 --> 00:38:37,540
+所以当我完成这个拟合后，我还会做一件事，就是把这些值存到 JSON 文件里，好吗。
+So once I do this fit, along with this, what I will do, I will store the Values to a JSON file, okay.
+
+425
+00:38:38,350 --> 00:38:55,428
+所以这里我直接写 Pf Bm BM25 编码器 点 dump，好吗，
+我基本上要把我的 bm25_ 值以 .JSON 的形式 dump 出来。
+So here I will just go ahead and write Pf Bm BM25 encoder dot dump okay, and
+I'm going to basically dump my bm25 underscore values in the form of dot JSON.
+
+426
+00:38:55,808 --> 00:39:01,828
+好，在这里你可以看到我实际上正在 dump 所有的这些信息。
+Okay, and here you'll be able to see that I'm actually dumping this entire information.
+
+427
+00:39:02,318 --> 00:39:06,768
+你也可以继续加载它，以此来确保你拿到了完整的 dump 文件。
+You can also go ahead and load this just to make sure that you have that entire dump.
+
+428
+00:39:06,862 --> 00:39:08,164
+好，你也可以加载它。
+Okay, and you can also load it.
+
+429
+00:39:08,848 --> 00:39:11,968
+报错说没有 dump 属性，好吗。
+So has no attribute dumpy okay.
+
+430
+00:39:12,128 --> 00:39:13,380
+是 dump，别担心。
+It was dump, no worries.
+
+431
+00:39:13,966 --> 00:39:17,860
+好，现在你可以看到我有我的编码器，这是专门用于稀疏指标的。
+Okay, so now here you can see that I have my encoder, and this is specifically for sparse metrics.
+
+432
+00:39:18,128 --> 00:39:18,340
+好。
+Okay.
+
+433
+00:39:19,630 --> 00:39:29,488
+现在还有一件事你可以看到，就是当我完成这个特定
+的稀疏指标 dump 后，我已经为这个创建了稀疏指标。
+now one more thing that you will be able to see over here is that once I do this particular sparse metrics dump,
+so I've actually created the sparse metrics for this right now.
+
+434
+00:39:29,648 --> 00:39:44,836
+让我们继续创建我的检索器，这个检索器很重要，因为只有通过这个特定的检索器，
+我才能结合嵌入技术和显然的稀疏嵌入技术，对吧？
+Let's go ahead and create my retriever, and this retriever will be important because with the help of this specific retriever only,
+I will have the combination of both uh the embedding techniques and obviously the sparse embedding techniques, right?
+
+435
+00:39:45,198 --> 00:39:49,444
+所以为此，我将创建这个 Pinecone 混合搜索检索器。
+So for that, I will go ahead and create this pine cone hybrid search retriever.
+
+436
+00:39:49,742 --> 00:39:50,768
+在这里我将使用
+and here I'm going to use.
+
+437
+00:39:50,768 --> 00:39:53,728
+我的 embeddings 等于我所使用的任何嵌入技术。
+my embeddings is equal to whatever embedding technique I have used.
+
+438
+00:39:53,902 --> 00:39:55,728
+也就是 Hugging Face 嵌入。
+that is nothing but hugging face embeddings.
+
+439
+00:39:55,918 --> 00:40:03,588
+然后是我的稀疏编码器，它将被分配给我的 BM25 编码器。
+and then my sparse encoder, which will be assigned to my BI BM25 encoder.
+
+440
+00:40:03,728 --> 00:40:05,888
+我还必须指定我的索引。
+and I have to also specify my index.
+
+441
+00:40:06,062 --> 00:40:06,288
+对吧？
+right?
+
+442
+00:40:06,414 --> 00:40:07,844
+所以这基本上就是我的索引了。
+So this will basically be my index now.
+
+443
+00:40:08,448 --> 00:40:10,768
+一旦我执行这个，这就是我的检索器。
+Once I execute this, this is my retriever.
+
+444
+00:40:10,848 --> 00:40:18,208
+现在，通过这个特定的检索器，它同时支持向量稠密嵌入技术和稀疏矩阵。
+Now, with the help of this particular retriever, it supports both embedding
+the vector dense embedding technique, and along with that the sparse matrix.
+
+445
+00:40:18,670 --> 00:40:20,528
+好，这就是我的检索器。
+Okay, so this is my retriever.
+
+446
+00:40:20,608 --> 00:40:24,036
+所以我就直接显示我的检索器，好吗？
+So I'll just go ahead and display my retriever, okay?
+
+447
+00:40:24,494 --> 00:40:28,132
+这就是我的检索器，这就是你可以看到的所有信息，对吧？
+So this is my retriever, and this is the entire information that you'll be able to see, right?
+
+448
+00:40:28,590 --> 00:40:34,448
+最后，咱们做一件事，快速把我想添加的所有文本都加进去，好吗？
+So finally, uh, let's do one thing, let's quickly go ahead and add all the text that I want, right?
+
+449
+00:40:34,574 --> 00:40:41,408
+所以我会说，嘿，我们要继续添加文本，我们要添加的文本就是我索引里所有的句子，对吧？
+So I will say, Hey, we will go ahead and add the text, and the text
+that we are going to add is all my sentences inside my index, right?
+
+450
+00:40:41,488 --> 00:40:42,848
+那么，我的句子是什么呢？
+So, what are my sentences?
+
+451
+00:40:42,928 --> 00:40:43,652
+给你们看。
+Here you go.
+
+452
+00:40:44,110 --> 00:40:47,268
+我会复制这个并把它粘贴到这里。
+I will copy this and I will paste it over here.
+
+453
+00:40:47,568 --> 00:40:50,208
+好，那我们开始执行这个吧。
+Okay, so let's go ahead and execute this.
+
+454
+00:40:50,288 --> 00:40:55,248
+现在，我们可以看到它会被插入到那个特定的索引中，对吧？
+Now, here we'll be able to see that it will get inserted inside that particular index, right?
+
+455
+00:40:55,488 --> 00:40:57,968
+就是我们创建的那个 Pinecone 索引。
+The index, uh the pine cone index that we have created.
+
+456
+00:40:58,062 --> 00:41:01,488
+现在我们可以开始检索任何结果了。
+Now it's time we can probably retrieve any results.
+
+457
+00:41:01,582 --> 00:41:03,808
+首先，让我们看看它是否已经被插入了。
+First of all, let's see whether it has got inserted or not.
+
+458
+00:41:03,888 --> 00:41:05,728
+如果我点到这里，这里就能看到。
+So if I go over here, here you can see.
+
+459
+00:41:05,808 --> 00:41:13,476
+你看，它正在加载，这三句话现在都可用了，而且全部都是 384 维，对吧？
+See, it's loading, and all these three sentences are now available, and this is all 384 dimensions, right?
+
+460
+00:41:13,966 --> 00:41:18,128
+所以这一条是 2021 年我访问了新奥尔良，2023 年。
+So this one in 2021 I visited context, Orleans in 2023.
+
+461
+00:41:18,208 --> 00:41:20,928
+我访问了纽约、巴黎，现在全部都在。
+I visited New York, Paris, and all right now.
+
+462
+00:41:21,008 --> 00:41:25,828
+让我们继续提问，这次它将结合两种搜索方式，对吧？
+Let's go ahead and ask some questions, and this time it is going to use the combination of both, right?
+
+463
+00:41:26,254 --> 00:41:28,608
+也就是你的向量稠密搜索和另一种搜索。
+Your vector dense search and the other search.
+
+464
+00:41:28,688 --> 00:41:34,928
+所以这里我会说，我最后访问的是哪个城市？
+So here I'll say, with what city did I visit last?
+
+465
+00:41:35,248 --> 00:41:39,968
+好的，这里你可以看到最后访问的。
+Okay, so here you'll be able to see visit last.
+
+466
+00:41:41,614 --> 00:41:48,768
+所以这里你可以看到，2021 年我访问了新奥尔良，然后是纽约，接着访问了巴黎。
+So here you can see I in 2021 I visited New Orleans, then New York, then visited Paris.
+
+467
+00:41:48,928 --> 00:41:52,740
+所有这些页面内容基本上都能显示在这里，因为它们同时被使用了。
+All this page content is basically able to come over here it is used both.
+
+468
+00:41:53,198 --> 00:41:59,008
+呃，因为这个整个混合搜索检索器同时使用了嵌入和稀疏指标。
+Uh, because this entire hybrid search retriever using both embeddings and the sparse metrics.
+
+469
+00:41:59,088 --> 00:42:07,076
+好的，如果我说最近，那么 2021 年的所有这些信息基本上都会显示出来。
+Okay, if I say recent, so in 2021, all this information is basically coming up.
+
+470
+00:42:07,168 --> 00:42:10,848
+好的，我第一个访问的是哪个城市？
+Okay, With city did I visit first?
+
+471
+00:42:11,408 --> 00:42:15,008
+好的，这里你可以看到 2021 年我访问了新……
+Okay, so here you can see in 2021 I visited new.
+
+472
+00:42:15,328 --> 00:42:26,980
+所以所有这些信息你基本上都能在这里看到，但在内部它结合了混合搜索的两种方式，
+这是一个非常棒的例子，你们也可以去尝试一下。
+So all the information are basically you're able to see it over here, but internally it is taking a combination of both hybrid search,
+and this is what is an amazing example, which you can also go ahead and do it.
+
+473
+00:42:27,088 --> 00:42:29,968
+好的，我希望你们喜欢这个视频。
+Okay, so I hope you like this particular video.
+
+474
+00:42:30,448 --> 00:42:33,088
+我们下个视频再见。
+I will see you all in the next video.
+
+475
+00:42:33,262 --> 00:42:34,528
+谢谢，保重，拜拜。
+Thank you, take care, bye bye.
+
