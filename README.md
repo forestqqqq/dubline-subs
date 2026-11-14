@@ -22,6 +22,7 @@
 | [EECS4302 ANTLR4 Parser Generator Tutorial: Part 2](medias/796JJ/) | Jackie Wang | 2026-11-13 |
 | [Cyber Security Full Course 2026 in 26 Hours \| Master Ethical Hacking & Network Security\| Simplilearn](medias/68X67/) | Simplilearn | 2026-11-13 |
 | [Making agents real \| Why AI Agents Ace Coding but Stumble in the Boardroom \| Nagarro](medias/5Z7KX/) | Nagarro | 2026-11-13 |
+| [6-Building Advanced RAG Q&A Project With Multiple Data Sources With Langchain](medias/5HYXD/) | Krish Naik | 2026-11-13 |
 | [EECS4302 ANTLR4 Parser Generator Tutorial: Part 5](medias/4M0F7/) | Jackie Wang | 2026-11-13 |
 | [5-Langchain Series-Advanced RAG Q&A Chatbot With Chain And Retrievers Using Langchain](medias/3YHWC/) | Krish Naik | 2026-11-13 |
 | [2-Langchain Series-Building Chatbot Using Paid And Open Source LLM's using Langchain And Ollama](medias/241H6/) | Krish Naik | 2026-11-13 |
