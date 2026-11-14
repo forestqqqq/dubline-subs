@@ -1,0 +1,1526 @@
+1
+00:00:03,822 --> 00:00:10,560
+现在让我们完成这个特定的访问者 ANTLR 项目的最后一部分。
+Let's now finish the final piece for this particular visitor antler projects.
+
+2
+00:00:10,862 --> 00:00:13,956
+现在让我们回顾一下为什么要进行错误处理。
+So now let's recall why we are doing the error handling.
+
+3
+00:00:14,160 --> 00:00:16,932
+为什么我们对现有的错误处理不满意？
+Why are we not happy with the existing error handling?
+
+4
+00:00:17,134 --> 00:00:18,244
+好，让我们来看看。
+Okay, let's take a look.
+
+5
+00:00:18,734 --> 00:00:24,036
+记得在之前的教程视频中，我们尝试在测试编号 0 上运行我们的编译器。
+So remember in the previous tutorial video we try to run our compiler on test number zero.
+
+6
+00:00:24,480 --> 00:00:25,280
+让我们看看这个。
+Let's look at this.
+
+7
+00:00:25,454 --> 00:00:27,920
+不知怎么一来，这里的错误信息就是这样的。
+And somehow this is the error message over here.
+
+8
+00:00:28,014 --> 00:00:28,250
+对吧？
+right?
+
+9
+00:00:28,718 --> 00:00:34,468
+让我把这个特定的错误信息和输入文件一起复制到这里。
+So let me just copy this particular error message over here together with the input file.
+
+10
+00:00:34,606 --> 00:00:40,708
+让我们在 iPad 上看看，试着理解为什么目前的处理方式并不理想。
+And let's take a look on the iPad and try to understand why the current handling is not ideal.
+
+11
+00:00:43,566 --> 00:00:50,788
+嘿，让我把它粘贴到我的 iPad 上，然后我们来看看。
+Hey, let me now paste it to my iPad over here, and then let's now take a look.
+
+12
+00:00:51,120 --> 00:00:51,360
+好的。
+Okay.
+
+13
+00:00:52,462 --> 00:00:55,680
+基本上，你会看到这里，让我们看看这个。
+Basically, you will see that over here, let's see this.
+
+14
+00:00:55,840 --> 00:01:00,320
+我们想要区分语法错误和语义错误。
+We want to distinguish between syntax error versus semantic error.
+
+15
+00:01:00,400 --> 00:01:04,160
+当然，语法错误也可以被称为语法错误。
+Of course, syntax error also is can be referred to grammatical error.
+
+16
+00:01:04,430 --> 00:01:09,188
+它是呃，与不符合语法相关的错误。
+It's the error uh that's related to not satisfying the grammar.
+
+17
+00:01:09,966 --> 00:01:14,724
+现在让我就针对这个我们已经见过很多次的例子来说一下。
+So now let's say uh let me just tell you for this particular example, which we have seen many times.
+
+18
+00:01:15,534 --> 00:01:30,080
+这个特定的例子被认为是语法错误，因为正如我刚才说的，你看这个 ID，
+我们期望这里有一个冒号，但实际上它是一个等号。
+So this particular one here is considered as a syntax error because over here as I said, over here,
+so you can see follow this particular ID, we are expecting like here some colon, but it's actually a equal sign.
+
+19
+00:01:30,320 --> 00:01:34,052
+所以解析器就无法从这个特定的地方继续运行了。
+So the parser just cannot continue from this particular one.
+
+20
+00:01:34,190 --> 00:01:38,628
+所以这个基本上就是解析错误。
+So this one is simply just uh just parsing error basically.
+
+21
+00:01:41,678 --> 00:01:46,160
+好，另一方面，这里的语义错误就像是这样的。
+Okay, on the other hand, the semantic error over here would be something like this.
+
+22
+00:01:46,240 --> 00:01:59,200
+例如，你可以看到这一行，当我们这样做时，呃，这在这里并不是那么致命，
+因为在这里我们仍然可以尝试解释用户可能想要做什么。
+For example, you can see over here for this particular line, you can see when we are doing this, uh this is not so fatal over here,
+because this one here we can still try to interpret what the user may intend to do.
+
+23
+00:01:59,360 --> 00:02:03,440
+但在这种情况下，显然我们想告诉他们，在回来之前最好先修复它。
+But now in this case, apparently we're gonna want to tell them you better fix it before you come back.
+
+24
+00:02:03,726 --> 00:02:08,479
+现在你可以看到这个特定的 I 已经被之前声明过了。
+So now you can see this particular one, I is was already previously declared.
+
+25
+00:02:08,654 --> 00:02:12,068
+所以这个更多是关于类型或语义的。
+So this one is more to do with like a type or semantic.
+
+26
+00:02:13,966 --> 00:02:19,556
+好，然而，蓝色和粉红色是不同类别的错误。
+Okay, however, the blue and the pink, they are different categories of error.
+
+27
+00:02:19,760 --> 00:02:22,000
+所以粉红色的错误要严重得多。
+So the pink one is much more severe.
+
+28
+00:02:22,190 --> 00:02:26,756
+好，所以现在，呃，语法错误
+Okay, so now the uh syntax error
+
+29
+00:02:31,342 --> 00:02:43,204
+必须全部修复后，才能报告语义错误。
+must be all fixed before semantic error can be reported.
+
+30
+00:02:44,174 --> 00:02:45,316
+这就是基本原则。
+That's kind of the principle.
+
+31
+00:02:52,590 --> 00:02:59,680
+所以现在你可以看到我们的程序，把这里的语法错误和语义错误混在了一起。
+So now you can see our current program we are mixing the syntax error over here together with the semantic error.
+
+32
+00:02:59,822 --> 00:03:00,960
+它们混在了一起。
+So they're mixing together.
+
+33
+00:03:01,040 --> 00:03:03,440
+这是不可接受的。
+So that's not acceptable.
+
+34
+00:03:03,600 --> 00:03:07,280
+这就是为什么我们真的想防止这种情况发生。
+So that's why we want to really uh prevent this from happening.
+
+35
+00:03:07,534 --> 00:03:16,240
+实现的方法是，当解析器实际尝试解析程序时……让我回到相关的类看看我们该如何进行扩展。
+And the way to do this is by saying when the parser was actually trying to parse the program,
+let me just go back to the relevant class and see how we can make that extension.
+
+36
+00:03:16,590 --> 00:03:27,876
+现在，如果我去看这里的应用程序类，你可以看到这一行，我们正尝试让 ANTLR 给出解析树。
+So now, if I go to our application class over here, so you can see this particular line over here,
+we are trying to ask Antler to actually give us the parse tree.
+
+37
+00:03:28,110 --> 00:03:37,600
+通过执行对应于起始符号 proc 的方法来获取解析树。
+give us the parse tree from executing the method that corresponds to the start symbol proc.
+
+38
+00:03:38,254 --> 00:03:45,392
+然而，如果在解析过程中发生了语法错误，我们是不知道的。
+However, if syntax error occur in the middle of the parsing Process we wouldn't know about it.
+
+39
+00:03:45,552 --> 00:03:56,912
+在这种情况下，仅仅检查是否发生了语义错误是不够的，因为我们要确保如果发生了像这里粉色
+高亮显示的那种情况，我们必须知道。
+In that case, only checking to see if any semantic error actually occurred is actually not good enough,
+because we want to make sure if things like the pink highlight over here occurred, we want to know about it.
+
+40
+00:03:57,072 --> 00:04:08,490
+而且，如果存在任何与语法相关的错误，我们甚至不需要打印语义错误，
+因为用户应该立即修复粉色的错误，而不是说「我只修复
+And then, we if there's any errors related to the syntax, we don't even bother to print out the semantic error, because the user,
+they should really fix the pink ones right away rather than say, "I'll only fix the blue ones without worrying about the pink ones
+
+41
+00:04:08,490 --> 00:04:10,090
+蓝色的，不用管粉色的」。希望你能看到我这里担心的点。
+And then, we if there's any errors related to the syntax, we don't even bother to print out the semantic error, because the user,
+they should really fix the pink ones right away rather than say, "I'll only fix the blue ones without worrying about the pink ones
+
+42
+00:04:10,090 --> 00:04:13,700
+蓝色的，不用管粉色的」。希望你能看到我这里担心的点。
+Okay, you can hopefully you can see what I'm concerned about over here.
+
+43
+00:04:14,126 --> 00:04:23,044
+所以，我们要做的是稍微扩展一下解析过程，这样我们就能知道在解析过程中是否出了问题。
+So, what we want to do is to extend our parsing process a little bit so that we would
+know if there's anything that went wrong in the middle of the parsing process over here.
+
+44
+00:04:23,758 --> 00:04:28,612
+好的，在 ANTLR 中实现这一点的标准方法是添加一个监听器。
+Okay, the standard way of doing this in Antler is by adding a listener.
+
+45
+00:04:28,910 --> 00:04:40,780
+监听器就像你在第一年编程课程中写程序一样，比如你尝试做安卓移动应用，
+当你点击屏幕上的某个按钮时，那个按钮应该触发一个监听器，并在你点击按钮时执行某些操作。
+So listener is more like when you were programming uh when you are doing your first year programming course,
+either you try to do Android mobile app, in that case, when you are when you click on a particular button on the screen,
+
+46
+00:04:40,780 --> 00:04:46,432
+监听器就像你在第一年编程课程中写程序一样，比如你尝试做安卓移动应用，
+当你点击屏幕上的某个按钮时，那个按钮应该触发一个监听器，并在你点击按钮时执行某些操作。
+so that one should really trigger some listener that will actually do something if you click on the button.
+
+47
+00:04:46,574 --> 00:04:47,472
+原理类似。
+So something similar.
+
+48
+00:04:47,726 --> 00:05:01,220
+所以我们要给解析器添加一个监听器，这个监听器只
+是用来追踪在解析过程中是否发生了任何语法错误。
+So we're going to add a listener to the parser, and that listener only is just going to keep track of uh if to see if there's any uh
+syntax error that occur uh during the uh parsing process, during the parsing process.
+
+49
+00:05:01,422 --> 00:05:06,692
+如果有这样的错误，就报告它，我们就不再继续报告语义错误了。
+If there's any such error, report it, and we don't go ahead to actually report a semantic error.
+
+50
+00:05:06,912 --> 00:05:11,300
+如果没有这样的语法错误，我们就可以继续去做我们需要做的事情。
+If if there's no such syntax error, we can go ahead and do whatever we gotta do.
+
+51
+00:05:12,450 --> 00:05:15,044
+好了，让我们快速把这个做出来，好吗？
+All right, let's do that, do this very quickly, okay?
+
+52
+00:05:15,232 --> 00:05:18,592
+嗯，你也可以参考 ANTLR4 的书。
+Um you can also refer to the book for the Angular 4.
+
+53
+00:05:18,672 --> 00:05:22,432
+他们还介绍了一些更高级的错误报告方法。
+They also introduce some more fancy way of reporting error.
+
+54
+00:05:22,542 --> 00:05:24,752
+为了你的兴趣，你真的应该去研究一下。
+For your interest, you should really look into it.
+
+55
+00:05:25,102 --> 00:05:27,552
+现在，首先让我告诉你该怎么做。
+So now let me just first of all tell you what to do.
+
+56
+00:05:27,872 --> 00:05:39,152
+做法是创建一个新的监听器类，你必须让这个类继承自特定的错误处理监听器类。
+the way to do it is by having a new class for listener, and you you must inherit you
+must inherit that particular class from a particular error handling listener class.
+
+57
+00:05:39,342 --> 00:05:40,324
+好的，我来展示怎么做。
+Okay, I'll show you what to do.
+
+58
+00:05:40,526 --> 00:05:45,392
+现在这也是我们逻辑的一部分，所以我们应该把它放在 表达式 类下面。
+So now it's also part of our logic, so we should really go under the expression class.
+
+59
+00:05:45,742 --> 00:05:51,392
+好的，我首先要做的是在 表达式 下创建一个新类。
+Okay, so what I would do first of all, I'm going to create a new class under expression.
+
+60
+00:05:52,814 --> 00:05:55,844
+然后我简单地写 new class。
+And then I will simply say new class.
+
+61
+00:05:56,558 --> 00:06:00,112
+然后这个类可以是……让我把它弄得更直观一点。
+And then the class could be let me just make it a little bit more intuitive.
+
+62
+00:06:00,192 --> 00:06:04,832
+就叫 MyErrorListener。
+Let's say my error listener.
+
+63
+00:06:05,134 --> 00:06:07,952
+好的，或者叫 MySyntaxErrorListener，或者别的什么。
+Okay, or my syntax error listener or whatever.
+
+64
+00:06:08,078 --> 00:06:12,452
+所以最好把监听器放在最后作为后缀，这样信息更明确点。
+So you better keep the listener at the end as a suffix just to be more informative.
+
+65
+00:06:13,358 --> 00:06:15,312
+好，那父类呢？
+Okay, and then what about the superclass?
+
+66
+00:06:15,502 --> 00:06:18,596
+所以你需要一个叫基础错误监听器的东西。
+So what you need is something called base error listener.
+
+67
+00:06:19,072 --> 00:06:21,952
+基础错误监听器。
+Base error listener.
+
+68
+00:06:22,126 --> 00:06:28,452
+这个来自 ANTLR4 运行时库中的某个类，所以你最好直接用它。
+So this comes from one of the uh class classes in the antlere 4, runtime library, so you should really just use it.
+
+69
+00:06:29,838 --> 00:06:36,512
+好，现在假设这里写完，显然基础错误监听器不在那儿。
+Okay, so now let's say finish over here, and apparently uh base error listener is not there.
+
+70
+00:06:36,814 --> 00:06:41,316
+所以我打算把这里的这个特定导入删掉，如果你们能跟上我的思路的话。
+So what I would do, okay, let me just get rid of this particular import over here, in case you follow me.
+
+71
+00:06:41,678 --> 00:06:43,392
+现在我可以简单地写 import。
+So now I can simply say import.
+
+72
+00:06:43,632 --> 00:06:45,872
+好，这样就可以导入了。
+Okay, so now in this way it can be imported.
+
+73
+00:06:46,158 --> 00:06:51,072
+把鼠标移到红色下划线上，然后写 import from ANTLR。
+Move your mouse over the red underline and then say import from uh antler.
+
+74
+00:06:51,392 --> 00:06:52,992
+好，现在它就在那儿了。
+Okay, so now it is there.
+
+75
+00:06:53,326 --> 00:06:58,788
+现在你唯一真正需要重写的方法就是叫语法错误的东西。
+So now I the only method you should really override is something called syntax error.
+
+76
+00:06:59,374 --> 00:07:00,672
+好，语法错误。
+Okay, syntax error.
+
+77
+00:07:00,752 --> 00:07:05,472
+噢，抱歉，按 Ctrl+空格来补全代码，然后我们现在要重写这个特定方法。
+Oh, sorry, control space to complete the code, and then now we're gonna override this particular method.
+
+78
+00:07:05,902 --> 00:07:09,392
+好，让我稍微整理一下参数，让它更易读一点。
+Okay, let me organize the parameter a little bit to make it a little bit more readable.
+
+79
+00:07:09,712 --> 00:07:16,992
+它们有很多参数，有一些识别器，好，还有一些违规符号，就是出问题的那个符号。
+They got many parameters, they got some recognizer, okay, they got some offending symbol, whatever symbol that that's the issue.
+
+80
+00:07:17,072 --> 00:07:21,392
+例如，在这个特定情况下，违规符号是 J 等于号。
+For example, for this particular case, the offending symbol is the J equals.
+
+81
+00:07:21,632 --> 00:07:22,752
+这就是违规符号。
+That's the offending symbol.
+
+82
+00:07:23,118 --> 00:07:27,312
+好，还有行号，还有行中的字符位置。
+Okay, also the line number, uh, also the character position in line.
+
+83
+00:07:27,392 --> 00:07:29,792
+记得，我们之前就是用这个来处理标记的。
+Remember, we used that right previously for the token.
+
+84
+00:07:30,062 --> 00:07:34,592
+还有我们得到了字符串消息，还有识别异常。
+And also we got string message, and also we got uh recognition exception.
+
+85
+00:07:34,766 --> 00:07:36,592
+所以字符串消息就像这样。
+So string message is something like this.
+
+86
+00:07:36,910 --> 00:07:43,472
+好，通过重写这个特定方法，如果你愿意的话，你可以自定义你的错误消息。
+Okay, we'll just we can so by redef uh by overriding this particular method, you can customize your error message if you wish.
+
+87
+00:07:43,694 --> 00:07:47,312
+你也可以参考 ANTLR4 权威指南。
+You can also refer to the Antler 4 definitive guidebook.
+
+88
+00:07:47,502 --> 00:07:51,364
+他们还会展示一种更高级的错误消息报告方法。
+They also show you a fancier way to actually do your error message reporting.
+
+89
+00:07:52,302 --> 00:07:53,840
+我们先做点简单的。
+Let's just do something simple.
+
+90
+00:07:54,080 --> 00:07:58,080
+而且，发挥创意其实是非常值得的。
+And also, it would be really worthwhile to actually be creative.
+
+91
+00:07:58,240 --> 00:08:04,160
+现在，我了解解析过程中是否出错的方法是这样的。
+Now, the way for me to know about if there's anything that goes wrong during the parsing process is like this.
+
+92
+00:08:04,430 --> 00:08:05,920
+我要在这里放一个属性。
+I'm gonna have an attribute over here.
+
+93
+00:08:06,000 --> 00:08:13,444
+我们把它设为 public static，这样我就不需要实例化监听器就能访问它了。
+Let's call that public static so that I don't need to instantiate the listener in order to get access to it.
+
+94
+00:08:14,094 --> 00:08:19,172
+然后我会写 Boolean，接着是 has error，默认值设为 false。
+And then I'll say Boolean and then has error and then by default simply false.
+
+95
+00:08:19,758 --> 00:08:21,892
+我说的后续逻辑是这样的。
+I'm saying the follow-up the logic goes like this.
+
+96
+00:08:22,320 --> 00:08:31,908
+如果语法错误被调用了一次，比如在这里，只要发生语法错误，语法错误 就会被调用。
+If the syntax error is ever called once, so for example, over here,
+you will syntax error will be called for every occasion of syntax error.
+
+97
+00:08:32,174 --> 00:08:36,419
+在这种情况下，如果这个方法被调用，就意味着这个标志位应该被设为 true。
+In that case, if this is ever called, so that means this flag should be set to true.
+
+98
+00:08:36,640 --> 00:08:48,740
+在这种情况下，当我回到我的表达式应用程序时，如果我能检查到我的监听器，
+也就是我的错误监听器，在解析过程中是否真的把标志位设为了 true，
+In that case, when I go back to my expression application program there, if I can check to see if my listener,
+my error listener actually ever set the flag to be true during the parsing process,
+
+99
+00:08:48,740 --> 00:08:49,000
+那就意味着我不应该继续打印任何语义错误（如果有的话）。
+In that case, when I go back to my expression application program there, if I can check to see if my listener,
+my error listener actually ever set the flag to be true during the parsing process,
+
+100
+00:08:49,000 --> 00:08:53,700
+那就意味着我不应该继续打印任何语义错误（如果有的话）。
+that means I should not proceed to print out any semantic errors, if any.
+
+101
+00:08:54,080 --> 00:08:55,972
+好，希望这能让你们明白。
+Okay, hopefully that makes sense to you.
+
+102
+00:08:57,358 --> 00:09:08,480
+所以现在我要做的就是，在这种情况下，如果语法错误方法被调用，
+我首先会在这里把 has error 赋值为 true。
+So now what I will do is in that case, if the syntax error method is ever called,
+I'm gonna say has error will be assigned to true over here, first of all.
+
+103
+00:09:08,654 --> 00:09:10,852
+好，当然，你得拼写正确。
+Okay, of course, you gotta spell it correctly.
+
+104
+00:09:12,270 --> 00:09:15,840
+然后我在这里稍微自定义一下错误信息。
+And then I'm gonna just customize the error message a little bit over here.
+
+105
+00:09:15,920 --> 00:09:17,280
+好，请稍微耐心等我一下。
+Okay, I'll just uh bear with me.
+
+106
+00:09:17,360 --> 00:09:18,116
+我要把它打出来。
+I'm gonna type it out.
+
+107
+00:09:19,182 --> 00:09:25,440
+好，首先我要用 Java 工具类里的 List，然后我会写 String。
+Okay, first of all, I'm gonna use the list from Java utility, and then I would say string.
+
+108
+00:09:25,806 --> 00:09:26,960
+我要把它当成一个栈来用。
+I'm gonna use it like a stack.
+
+109
+00:09:27,214 --> 00:09:28,880
+好，我要打印出一些栈信息。
+Okay, I'm gonna print out some stack information.
+
+110
+00:09:28,960 --> 00:09:37,124
+记得我们追踪解析算法的时候，我们展示了非终结符的栈，
+所以有时候在错误信息里显示这个可能会很有用。
+Remember when we were tracing the parsing algorithm, we actually showed a stack of the non-terminals,
+so this might be useful to show in the error message sometimes.
+
+111
+00:09:37,806 --> 00:09:44,004
+好，然后是 recognizer，现在它保证是一个 parser，因为我们正在做解析。
+Okay, and then the recognizer, so now it's guaranteed is going to be a parser since we're doing parsing.
+
+112
+00:09:46,190 --> 00:09:51,012
+然后我要，哎呀，我要做一个强制类型转换。
+And then I'm going to oops, I'm going to do a cast.
+
+113
+00:09:51,310 --> 00:09:53,040
+好，让我们确保这是正确的。
+Okay, let's just make sure this is okay.
+
+114
+00:09:53,120 --> 00:09:54,308
+所以它是 parser。
+So it's parser there.
+
+115
+00:09:54,800 --> 00:09:56,740
+好，在这种情况下，我们要导入一个 parser。
+Okay, in that case, we're gonna import a parser.
+
+116
+00:09:57,166 --> 00:10:00,228
+所以我们要导入一个 ANTLR4 运行时的 parser。
+So we're gonna import a parser for antler v4 runtime.
+
+117
+00:10:00,974 --> 00:10:07,684
+好，从那里导入，然后点 get 规则调用栈。
+Okay, import it from there, and then dot get rule invocation stack.
+
+118
+00:10:08,078 --> 00:10:18,240
+好，只是一个要用 recognizer 的方法，然后在那之
+后，我们要反转栈，以便我们按正确的顺序显示它。
+Okay, just a method gonna use recognizer, and then after that, we're
+going to reverse the stack so we show it in the appropriate order.
+
+119
+00:10:18,702 --> 00:10:22,884
+在这里用 Collections.reverse，然后我们取出栈。
+Collections.reverse over here, and then we pull the stack.
+
+120
+00:10:24,942 --> 00:10:33,732
+好，在那之后我们要说，呃，synthet.error.printLine。
+Okay, after that we're going to say uh synthet.error dot print line.
+
+121
+00:10:34,414 --> 00:10:36,180
+好，让我把标签页最大化一下。
+Okay, let me just maximize the tab.
+
+122
+00:10:36,520 --> 00:10:39,108
+好，在这里，给你们留出更多空间。
+Okay, over here and give you a little bit more space.
+
+123
+00:10:41,102 --> 00:10:44,068
+好，printLine，首先我们要说语法错误。
+Okay, print line, and then first of all we say syntax error.
+
+124
+00:10:48,686 --> 00:10:57,360
+然后我们要说 system.error.printLine，然后我要在这里打印一条长消息。
+And then we'll say system dot error dot print line, and then I'm gonna print a long message over here.
+
+125
+00:10:57,550 --> 00:10:58,468
+看看我们能做点什么。
+Let's see what we can do.
+
+126
+00:10:58,958 --> 00:11:09,280
+所以你可以这样写，首先说 token，然后说一个具体的 token。
+So you can say over here, first of all, we'll say token, and then we say a particular token.
+
+127
+00:11:09,390 --> 00:11:10,520
+让我把它加上引号。
+So let me put it in quote.
+
+128
+00:11:10,560 --> 00:11:13,188
+所以你得转义双引号，好吗？
+So you gotta escape, the double quote, okay?
+
+129
+00:11:13,774 --> 00:11:17,348
+然后加个 plus，好，我又要做一次强制类型转换。
+And then plus a okay, I'm gonna do a cast again.
+
+130
+00:11:18,000 --> 00:11:25,840
+所以 token 违规符号实际上是一个 token，记住我们可以获取文本、获取行号等等。
+So token offending uh symbol is actually a token, and remember we can get a text, we can get a line number, and etc.
+
+131
+00:11:26,080 --> 00:11:26,320
+对吧？
+Right?
+
+132
+00:11:26,510 --> 00:11:28,560
+我们可以说违规符号。
+We can say offending symbol.
+
+133
+00:11:28,640 --> 00:11:31,120
+显然，token 还没有导入。
+Apparently, token is not imported just yet.
+
+134
+00:11:31,200 --> 00:11:31,840
+来把它加上。
+Let's do it.
+
+135
+00:11:32,206 --> 00:11:36,420
+Token 控制空格，然后你得从 ANTLR4 导入一个。
+Token control space, and then you gotta import a one from antler v4.
+
+136
+00:11:38,126 --> 00:11:43,748
+好，然后我要说这里的这个，点 get 哦，抱歉，弄错了。
+Okay, and then I'm gonna say this one here, dot get oh, sorry, wrong one.
+
+137
+00:11:44,120 --> 00:11:46,000
+点 get text。
+Dot get text.
+
+138
+00:11:46,766 --> 00:11:50,460
+好，然后在这之后，我要说加个结束引号。
+Okay, and then after this, I'm gonna say plus the end quote.
+
+139
+00:11:50,958 --> 00:11:55,360
+基本上，我是在尝试把那个特定的 token 用双引号括起来，对吧？
+Basically, I'm trying to quote that particular token in uh in a double quote, right?
+
+140
+00:11:55,694 --> 00:11:56,772
+你会看到输出。
+You will see the output.
+
+141
+00:11:57,038 --> 00:11:59,428
+一旦你看到控制台输出，你就能看到我在这里做了什么。
+You will see what I'm doing here once you see the console output.
+
+142
+00:11:59,840 --> 00:12:00,080
+好。
+Okay.
+
+143
+00:12:02,286 --> 00:12:04,800
+好，然后我要说加个 plus，好。
+Okay, and then I would say plus okay.
+
+144
+00:12:04,880 --> 00:12:06,724
+让我把内容缩进得更整齐点。
+Let me just put things more indented.
+
+145
+00:12:10,446 --> 00:12:15,844
+好，然后我要在这里加个 plus，然后我要在这里报告一个行号。
+Okay, and then I would say plus over here, and then I'm gonna report a line number here.
+
+146
+00:12:16,142 --> 00:12:18,340
+所以我可以说 line。
+So I can say line.
+
+147
+00:12:20,270 --> 00:12:21,444
+好，行号应该是多少？
+Okay, what should be the line?
+
+148
+00:12:21,582 --> 00:12:23,204
+哦，实际上，line 直接就在这里。
+Oh, actually, line is directly here.
+
+149
+00:12:23,312 --> 00:12:26,436
+好，所以现在它就在这里，它是参数的一部分。
+Okay, so now it's simply here, it's part of the parameter.
+
+150
+00:12:26,980 --> 00:12:42,512
+我说 line 然后加个 plus，接着是逗号、冒号，然后加个空格，再加个 plus，
+记住这个特定的字符位置是从零开始的，但为了更直观，你最好给它加一。
+I say line and then plus, followed by comma, colon, and then with a space, and plus,
+and remember this particular character position start with a zero, but to be more intuitive, you better plus one to it.
+
+151
+00:12:42,832 --> 00:12:52,912
+行号加一再加个 plus，好，你要说闭括号，然后在这里加个 plus，再加个冒号。
+Character precision in line plus one and plus, okay, you're gonna say closing parentheses, and then plus over here, and colon.
+
+152
+00:12:53,072 --> 00:13:00,192
+最后，你还要打印出那条消息，这对于告诉你具体问题是什么很有用。
+Finally, you're gonna also print out the message that will be useful to uh to tell you what exactly was the issue.
+
+153
+00:13:00,494 --> 00:13:18,628
+好，所以现在我们有了自定义的组合，最后我们可以输出一个 stack system.error.print line，
+而且这里我们可以说 rule stack，基本上就是非终结符的堆栈再加个 plus 堆栈。
+Okay, so now we just have a customized combination of things, and finally we can output a stack system.error dot print line,
+and also here we can say rule stack, basically the stack of the non-terminals and plus the stack.
+
+154
+00:13:18,912 --> 00:13:22,672
+好，这就是对语法错误的重新定义。
+Okay, so that's like a redefinition for the syntax error.
+
+155
+00:13:22,832 --> 00:13:32,932
+如果你不重新定义这个，你看到的就是像之前的教程视频那样，在这种情况下，
+你在解析时根本无法知道是否存在语法错误。
+If you didn't redefine this, what you will see is like the previous tutorial video,
+in which case you have no way to really know if there's any syntax error when you are doing the parsing.
+
+156
+00:13:33,152 --> 00:13:41,700
+好了，搞定这些后，我们基本上得在解析之前，把这些新的监听器对象添加到解析器中。
+Okay, having this done, we have to basically add this particular new listener objects into the parser before the parsing.
+
+157
+00:13:41,806 --> 00:13:42,468
+好，我们开始吧。
+Okay, let's do it.
+
+158
+00:13:43,662 --> 00:13:48,452
+现在我们回到应用程序类。
+So then uh so now we are back to our application class.
+
+159
+00:13:48,782 --> 00:14:01,472
+现在我要做的第一件事是去这个私有的辅助方法，我之前说过，除了对应语法名称的类型外，
+各个应用程序之间的内容基本是一样的。
+So now I would say the first thing to do is to go to this particular private helper method here,
+which I said it should be more or less the same between applications except for the type that correspond to the grammar name.
+
+160
+00:14:01,774 --> 00:14:09,152
+现在我需要做的是，在这一步初始化解析器之后，我需要做两件事。
+So now what I need to do is to say after I initialize the parser over here, I need to do two things.
+
+161
+00:14:09,486 --> 00:14:10,852
+好的，我给你们读一下注释。
+Okay, I'll read the comments for you.
+
+162
+00:14:11,392 --> 00:14:15,792
+所以是语法错误处理。
+So syntax error handling.
+
+163
+00:14:15,872 --> 00:14:19,712
+好的，第一点，我应该移除所有现有的解析器，只用我自己的。
+Okay, so number one, I should remove all the existing parser only use mine.
+
+164
+00:14:19,952 --> 00:14:22,148
+所以我先移除所有现有的。
+So I'll remove all the existing ones first.
+
+165
+00:14:22,702 --> 00:14:26,948
+所以是 parser.remove 呃 错误监听器。
+So parser.remove uh error listeners.
+
+166
+00:14:28,238 --> 00:14:32,228
+好的，然后我要添加我刚刚创建的监听器。
+Okay, and then I'm gonna add the listener that I just created.
+
+167
+00:14:32,592 --> 00:14:35,792
+Parser.add 错误监听器。
+Parser dot add error listener.
+
+168
+00:14:36,046 --> 00:14:39,140
+然后我写 new my error listener，对吧？
+And then I'll say new my error listener, right?
+
+169
+00:14:39,566 --> 00:14:40,512
+就是我刚刚创建的那个。
+that's the thing I just created.
+
+170
+00:14:40,782 --> 00:14:41,732
+第一步完成。
+Step number one.
+
+171
+00:14:42,318 --> 00:14:48,644
+完成这一步后，可以保证稍后当我实际调用这一行进行解析时，
+And then once I've done this, it's guaranteed later when I actually call this line here for the parsing.
+
+172
+00:14:48,942 --> 00:14:56,740
+如果出现任何语法错误，每发生一次语法错误，这个特定的语法错误方法就会被调用。
+If there's any syntax error for every occurrence of the syntax error, this particular syntax error method will be called.
+
+173
+00:14:56,912 --> 00:15:06,020
+第一次发生时，它会把一个标志设为 true，并且把错误输出到标准错误流，
+在这种情况下就是控制台或终端。
+And for the very first time, it's gonna set a flag to be true, and also it's gonna output the error into the standard error,
+which will be the console in this case or terminal.
+
+174
+00:15:07,374 --> 00:15:21,028
+好，我现在最后要做的是，在这次解析之后，我基本上想说，只有在没有语法错误的情况下，
+我才会继续执行剩下的操作，对吧？
+Okay, so what I will do now finally is to say after this particular parsing, I want to basically say, Well,
+I will only go ahead to actually perform the rest if there's no syntax error, right?
+
+175
+00:15:21,678 --> 00:15:31,492
+所以我现在可以这样做：如果我这里的错误监听器，也就是那个静态属性，有错误。
+So what I can do now is I can say if my error listener over here, it's a static attribute there, has error.
+
+176
+00:15:32,512 --> 00:15:41,060
+如果它有错误，我就简单地让语法错误报告到标准错误流中。
+If that one has error, so I'll simply just let the syntax error be reported to the standard error.
+
+177
+00:15:41,774 --> 00:15:46,672
+否则，我可以继续执行剩下的操作，也就是我之前做的那部分。
+Otherwise, I can go ahead and do the rest, basically, what I did previously.
+
+178
+00:15:46,990 --> 00:15:52,272
+这就是我想添加的 if 条件，就是说如果存在任何语法错误，就不要做其他任何事情。
+That's just the if condition I would like to add up to say if there's any syntax error, don't do anything else.
+
+179
+00:15:52,432 --> 00:15:54,148
+让用户先去修复那个错误。
+Let the user fix that first.
+
+180
+00:15:54,352 --> 00:15:57,232
+好，这就是这里完整的逻辑。
+Okay, so that's uh about a complete logic here.
+
+181
+00:15:57,422 --> 00:15:59,012
+现在让我们快速测试一下。
+So now let's test it very quickly.
+
+182
+00:16:00,238 --> 00:16:05,476
+现在如果我回到我的项目，我想测试 test 0、1 和 2。
+So now if I go back to my particular project over here, I want to test 0, 1, and 2.
+
+183
+00:16:05,742 --> 00:16:08,068
+我们先测 test 0，因为那是我们担心的部分，对吧？
+Let's test 0 because that's what we worry about, right?
+
+184
+00:16:08,366 --> 00:16:15,152
+现在让我们看看它是否只会为第 3 行打印出自定义版本的语法错误。
+So now let's see if it will only print out the syntax error, the customized version, only for line 3.
+
+185
+00:16:15,312 --> 00:16:18,832
+而这里的语义错误就不应该被报告出来，对吧？
+Whereas this semantic error here should not be reported, right?
+
+186
+00:16:18,958 --> 00:16:21,540
+我们不想再看到这种混杂的情况了。
+We don't want to have this kind of mixing scenario again.
+
+187
+00:16:21,934 --> 00:16:27,940
+如果我说运行，然后确保我没在那个示例访问者里。
+If I say run, and then let's make sure I'm not really in the example visitor one.
+
+188
+00:16:28,238 --> 00:16:31,812
+所以我要去 tests，去 test zero，然后点开。
+So I'll go to tests and go to test zero and say open.
+
+189
+00:16:32,590 --> 00:16:43,152
+现在你可以看到它在运行，因为现在你可以看到我所有的内容都是红色的，
+这意味着它们被打印到了标准错误中，而且你可以看到我们之前的那个语义错误现在消失了。
+So now this time you can see it's working because now you can see everything I have is red,
+which means it's printed to the standard error, and you can see the semantic error that we had before is now gone.
+
+190
+00:16:43,310 --> 00:16:43,552
+对吧？
+Right?
+
+191
+00:16:43,694 --> 00:16:45,444
+那个根本就不在里面了。
+That one's simply not even there.
+
+192
+00:16:46,510 --> 00:16:48,132
+好的，这很好。
+Okay, that's good.
+
+193
+00:16:48,526 --> 00:16:56,452
+现在我打算测试其他的，然后我还想给你们展示一件事，就是调试器，这也很重要。
+And now I'm just going to uh test the other ones, and then I want to show
+you one more thing, which is the debugger, which is also very important.
+
+194
+00:16:56,942 --> 00:16:57,152
+好的。
+Okay.
+
+195
+00:16:58,414 --> 00:17:06,819
+所以现在如果我再次尝试测试编号 1，你可以看到
+我们仍然报告了一个语义错误，因为没有语法错误。
+So now if I try again to maybe test number one, you can see we still actually report a semantic error because there's no syntax error.
+
+196
+00:17:06,960 --> 00:17:08,164
+那个依然有效。
+That one's still working.
+
+197
+00:17:09,326 --> 00:17:14,339
+然后如果我在这里尝试测试编号 2，那个你可以看到它依然有效。
+And then if I try test number two over here, that one there you can see it's still working.
+
+198
+00:17:14,574 --> 00:17:16,880
+没有语法错误，也没有语义错误。
+No syntax error, no semantic error.
+
+199
+00:17:16,960 --> 00:17:20,079
+所以现在我们可以对这里的每一个出现情况进行评估。
+So now we can do evaluation for every occurrence over here.
+
+200
+00:17:20,270 --> 00:17:24,640
+好的，所以现在这个特定的访问者项目完全正常运行了。
+Okay, so now it's completely working for this particular project for visitor.
+
+201
+00:17:24,910 --> 00:17:26,400
+还有一件事我想给你们展示。
+There's one more thing I want to show you.
+
+202
+00:17:26,670 --> 00:17:32,420
+既然我们现在在 集成开发环境 上使用 Eclipse，必要时你们真的应该利用调试器。
+Given that we are now doing Eclipse on the IDE, you should really make use of debugger when necessary.
+
+203
+00:17:33,102 --> 00:17:38,160
+所以在结束这个特定项目之前，我还想给你们展示一件事。
+So there's one more thing I want to show you before I draw a closure for this particular project.
+
+204
+00:17:38,734 --> 00:17:44,960
+现在我要你们去这个特定的类，就是 application 类，对吧？
+So now I want you to go to this particular class, the application class, right?
+
+205
+00:17:45,040 --> 00:17:48,400
+这就是一个你可以尝试放置断点的地方。
+Just one possible place where you can try to put a breakpoint.
+
+206
+00:17:48,814 --> 00:17:56,960
+你现在可以做的是，你可以看到这就是我们实际尝试解析程序的地方。
+What you can do now is you can see this is where we actually try to uh actually uh parse the program.
+
+207
+00:17:57,134 --> 00:18:09,600
+好的，当然，如果你想看看特定的语法错误是否真的发生了，你绝对可以放一个断点，
+也许就在这个 my error listener 里，把它放那儿，看看实际上发生了哪个语法错误。
+Okay, of course, if you want to see if a particular syntax error actually occurred, you can definitely put a breakpoint,
+maybe in this particular my error listener, put it there and see which syntax error is actually occurring.
+
+208
+00:18:09,680 --> 00:18:12,160
+你可以把它放那儿，但那不是我要展示的内容。
+You can put it there, but let's that's not what I want to show you.
+
+209
+00:18:12,430 --> 00:18:18,320
+我要展示的是，哦，让我先把那个删掉，否则我待会儿会被中断。
+What I want to show you is oh, let me just remove that first, otherwise I'll be interrupted later.
+
+210
+00:18:18,574 --> 00:18:26,404
+所以现在我要给你们展示的是，在这里的 else 部分，这意味着我的程序根本就没有语法错误。
+So now what I want to show you uh in the else part over here, that means my program is simply just has no syntax error.
+
+211
+00:18:26,560 --> 00:18:33,220
+好的，在这种情况下，我基本上想看看解析树到底长什么样。
+Okay, in that case, I would like to basically see exactly how the parse tree would look like.
+
+212
+00:18:33,614 --> 00:18:36,452
+好的，我要给你们展示，我要给你们展示这两行。
+Okay, I want to show you, I want to show you these two lines.
+
+213
+00:18:36,782 --> 00:18:41,636
+所以基本上，我要运行调试器，然后在第 36 行暂停。
+So basically, I'm gonna execute a debugger and then I'm gonna pause and line number 36.
+
+214
+00:18:42,062 --> 00:18:47,748
+在执行完第 36 行之后，我想看看解析树的结构。
+And let me let after executing line number 36, I want to see the parse tree structure.
+
+215
+00:18:48,142 --> 00:18:53,280
+在第 37 行之后，我想看看模型表达式对象的结构。
+And after line number 37, I want to see the model expression object structure.
+
+216
+00:18:53,454 --> 00:18:55,840
+那也是你可以看到的东西，只是为了确认一下。
+That's something you can see as well, just to confirm.
+
+217
+00:18:56,110 --> 00:19:01,520
+当然，调试是我想说，我假设你们在之前的编程课程中已经学过了。
+And of course, debugging that's something I will I I assume you actually know from your previous programming courses.
+
+218
+00:19:01,600 --> 00:19:05,028
+我想向你们展示，这就是使用 集成开发环境 的优势。
+I want to show you that's the advantage of using an IDE.
+
+219
+00:19:06,382 --> 00:19:09,600
+好了，现在我在这里放一个断点。
+Okay, so now I put a pr uh put the breakpoint over here.
+
+220
+00:19:09,806 --> 00:19:17,412
+现在我只需右键点击应用程序类，然后选择“作为 Java 应用程序进行调试”。
+So now I will simply right-click on the application class and say debug as Java application.
+
+221
+00:19:19,022 --> 00:19:20,880
+好了，我可以选择一个文件。
+Okay, uh, I can choose a file.
+
+222
+00:19:20,960 --> 00:19:24,880
+假设我选择文件 2，它完全没有任何问题。
+Let's say I choose file 2, which has no issue whatsoever.
+
+223
+00:19:25,040 --> 00:19:29,348
+然后我选择“记住我的选择”，并切换到调试器视图。
+And then I'll say remember my decision, switch to the debugger perspective.
+
+224
+00:19:30,222 --> 00:19:32,160
+现在我们进入了调试器视图。
+So now we're in the debugger perspective.
+
+225
+00:19:32,240 --> 00:19:35,920
+如果你能看到这里的图标显示为调试，就可以确认了。
+If you can confirm that by seeing the icon over here, it shows debug.
+
+226
+00:19:36,078 --> 00:19:37,920
+通常我们是在 Java 视图中。
+And normally we're in the Java perspective.
+
+227
+00:19:38,000 --> 00:19:40,400
+确保在需要的时候切换回来。
+Make sure you switch back and forth where you need to.
+
+228
+00:19:40,622 --> 00:19:43,760
+然后左边的这个面板就是堆栈轨迹。
+And then the left panel over here is the stack trace over here.
+
+229
+00:19:44,014 --> 00:19:50,080
+你可以看到堆栈轨迹显示了方法被调用的顺序，有时候这很有用。
+You can see the stack trace shows the order in which the methods are being called, could be useful sometimes.
+
+230
+00:19:50,222 --> 00:19:59,108
+好了，确保点击回去，否则你会找不到这里的“逐行执行”按钮，然后你可以在左边看到。
+Okay, and then just make sure you click back, otherwise, you will
+lose the step over button over here, and then you can see on the left.
+
+231
+00:19:59,278 --> 00:20:03,108
+所以这两个是最重要的面板，你们真的应该多留意一下。
+So these are the most important two panels that you should really pay attention to.
+
+232
+00:20:03,374 --> 00:20:06,480
+一个叫变量，另一个叫表达式。
+One is called variables, the other one is called expressions.
+
+233
+00:20:06,670 --> 00:20:11,760
+好了，让我确认一下我现在是不是在正确的那个。
+Okay, uh, let me just make sure I'm now in the right way, in the right one.
+
+234
+00:20:11,950 --> 00:20:14,500
+好了，现在我应该在表达式 app 和 main 中。
+Okay, so now I should be in the expression app and main.
+
+235
+00:20:14,720 --> 00:20:18,596
+好了，现在你可以看到这里所有的变量。
+Okay, so now over here you can see these are all the variables.
+
+236
+00:20:19,360 --> 00:20:22,960
+当然，变量取决于你点击堆栈轨迹中的哪一个。
+Of course, the variables depend on which one you're clicking on the stack trace.
+
+237
+00:20:23,054 --> 00:20:24,800
+确保你点击了正确的那一个。
+Make sure you click on the correct one.
+
+238
+00:20:25,198 --> 00:20:30,720
+现在在变量里，它会显示当前上下文中的所有相关变量。
+So now on the variables, it shows you all the uh all the relevant variables in the context.
+
+239
+00:20:30,894 --> 00:20:33,828
+在 parser 下，你这里有这么多东西，对吧？
+Under parser, you got this many things over here, right?
+
+240
+00:20:34,254 --> 00:20:42,640
+还有比如文件名，你可以看到目前它只显示路径，然后关于 test two，比如这个就是我刚刚选的。
+And also under also, for example, file name, you can see currently you simply show
+me the path and then about test two, for example, this that's the one I just chose.
+
+241
+00:20:43,086 --> 00:20:47,600
+至于表达式，你可以放入任何符合当前上下文的内容。
+And for expressions, this uh you can put anything that makes sense at the current context.
+
+242
+00:20:47,680 --> 00:20:50,212
+例如，我可以在这里简单地写 parser。
+For example, I can simply say parser over here.
+
+243
+00:20:50,606 --> 00:20:57,188
+我也可以说，既然没有错误，但我还是可以双重检查一下。
+I can also say uh since there's no error, but I can just double check.
+
+244
+00:20:58,542 --> 00:21:03,876
+如果我把这个特定的表达式复制粘贴到这里，简单地写 false。
+If I simply copy and paste this particular expression over here, simply say false.
+
+245
+00:21:04,080 --> 00:21:08,480
+这很合理，因为它确实是 false，这就是为什么我进入了这个 else 分支。
+That makes sense because it's false, that's why I'm entering this else branch.
+
+246
+00:21:08,800 --> 00:21:10,480
+好的，我现在继续。
+So now I'm going okay.
+
+247
+00:21:10,640 --> 00:21:21,540
+如果你没看到变量或表达式面板，你应该去窗口，选择显示视图，
+然后你可以选择显示变量或显示表达式。
+In case you don't see the variables or the expressions panel, you should really go to window, go to show view,
+and then you can say I want to show variables or I want to show expressions.
+
+248
+00:21:21,870 --> 00:21:23,748
+好的，你随时可以把它们找回来。
+Okay, so you can always bring them back.
+
+249
+00:21:24,910 --> 00:21:26,240
+让我们看看接下来的内容。
+Let's see the following.
+
+250
+00:21:26,510 --> 00:21:29,732
+现在我想单步跳过。
+So now I want to uh step over.
+
+251
+00:21:30,030 --> 00:21:34,532
+我想看看执行这个操作的后果是什么。
+I want to see what's going to be the consequence of uh executing this.
+
+252
+00:21:35,246 --> 00:21:38,628
+呃，因为我想看看解析树是什么样的。
+Uh because I want to see what the uh parse tree is.
+
+253
+00:21:39,182 --> 00:21:43,588
+嗯，实际上解析树已经在那里了，因为现在是 ANTLR 抽象语法树，对吧？
+Well, actually the parse tree is already there because now it's uh antler AST, right?
+
+254
+00:21:43,694 --> 00:21:50,116
+你可以看到目前 ANTLR 抽象语法树 只是空的。
+You can see at the moment the antler ast is simply just empty.
+
+255
+00:21:50,926 --> 00:21:51,972
+让我们看看是不是这样。
+Let's see if that's the case.
+
+256
+00:21:56,366 --> 00:22:09,376
+但如果你真的试着看这里，呃，实际上，所以呃，不要被
+这里的这个输出给误导了，你应该展开这里的对象结构。
+But if you actually try to see this over here, uh actually, so uh don't be uh don't be uh uh deceived actually by this particular
+output here, you should really expand the object structure over here.
+
+257
+00:22:09,614 --> 00:22:15,696
+所以如果你看到这里的 ANTLR 抽象语法树，那个地方只是会显示出这里所有的子节点。
+So if you see antler ast over here, that one there is simply just going to show you all the children over here.
+
+258
+00:22:15,950 --> 00:22:24,816
+如果你展开这里的子节点，0, 1, 2, 3, 4，所有这
+些子节点应该正好对应这里的这八个节点，对吧？
+If you expand the children over here, 0, 1, 2, 3, 4, the all these
+children should just correspond to the eight uh nodes over here, right?
+
+259
+00:22:25,070 --> 00:22:29,892
+就像我们之前说的，你得到了一个，两个，哦，实际上不是这一个。
+What we said before, you got uh one, two, oh actually not this particular one.
+
+260
+00:22:30,350 --> 00:22:41,508
+好的，让我……我手头没有那个解析树，但如果你看之前的教程视频，我们在那里选择了一个运行，
+实际上我们展示了测试二的解析树，你正好得到了八个子树。
+Okay, let me uh I don't have that uh parse tree with me, but if you look up in the previous tutorial video where we choose a G run,
+where we actually show the parse tree for test two, you got exactly eight subtrees.
+
+261
+00:22:41,646 --> 00:22:43,056
+这正是这里显示的。
+That's exactly what's shown over here.
+
+262
+00:22:43,136 --> 00:22:45,188
+它们是相互一致的。
+They are consistent with each other.
+
+263
+00:22:45,456 --> 00:22:47,236
+所以接下来有趣的部分是这个。
+So what's gonna be interesting is this.
+
+264
+00:22:47,534 --> 00:22:53,700
+如果我说单步跳过，显然我正尝试去……我创建了一个程序访问者。
+If I say step over, apparently I'm trying to I created a program visitor.
+
+265
+00:22:54,030 --> 00:23:04,676
+好的，现在我要用程序访问者来生成一个程序……来访
+问这个特定的 抽象语法树 节点，这里有八个子节点。
+Okay, so now I'm going to use a program visitor to actually generate a pro uh to
+visit this particular route of the uh AST, which has eight children over here.
+
+266
+00:23:05,902 --> 00:23:12,772
+你可以看到我们实际上有了九个子节点，最后一个我记得是 EOF。
+You can see we got uh actually nine uh nine children, and the the last one I remember is actually EOF.
+
+267
+00:23:12,896 --> 00:23:14,084
+所以我们只是在确认这一点。
+So we're just confirming this.
+
+268
+00:23:14,318 --> 00:23:19,376
+所以我想确保如果我现在说单步跳过，那么现在就是程序 proc。
+So I want to make sure if I say step over right now, so now the program proc.
+
+269
+00:23:20,046 --> 00:23:27,936
+所以现在这个包含了所有的程序……程序表达式子树，表达式树，大概就是这样。
+So now this one contains all the program uh the program uh expression subtree, the expression tree, something like this.
+
+270
+00:23:28,206 --> 00:23:29,636
+好的，现在让我们来看看。
+Okay, so now let's take a look.
+
+271
+00:23:30,990 --> 00:23:34,416
+现在我可以做的是去这里的表达式。
+So now what I can do is I can go to expressions over here.
+
+272
+00:23:34,670 --> 00:23:42,816
+如果我简单地输入，比如说这里的 proc，你可以看到 proc 下面我有表达式，
+所以现在我这里有了不同的表达式。
+If I simply type, let's say proc over here, you can see under the proc I got expressions, so now I got different expression here.
+
+273
+00:23:43,022 --> 00:23:48,896
+我有变量声明，我有变量声明，我有 i，我有 j，我有 i 加 j 等等。
+I got variable decoration, I got variable decoration, I got i, I got j, I got i plus j and etc.
+
+274
+00:23:49,056 --> 00:23:49,216
+对吧？
+Right?
+
+275
+00:23:49,296 --> 00:23:53,296
+如果你继续展开这些，你可以看到 ID 类型和值等等。
+If you expand these further, you can see the ID type and value, and etc.
+
+276
+00:23:53,536 --> 00:23:56,656
+所以这就是 ID 类型和值。
+So that's exactly uh ID type and value.
+
+277
+00:23:56,736 --> 00:23:57,860
+这就是它的结构。
+That's exactly the structure.
+
+278
+00:23:58,222 --> 00:24:11,250
+所以在集成开发环境里拥有这种调试器和断点机制非常有用，不仅可以用来调试解析过程，
+看看你的表达式树是不是你预期的样子，而且以后在你做转换的时候，也可以尝试去调试它。
+So having this debugger and breakpoint mechanism in the IDE is very useful for you to debug not just the parsing process and to see if
+your AS uh if your expression tree is really the one you're expecting, but
+
+279
+00:24:11,250 --> 00:24:15,856
+所以在集成开发环境里拥有这种调试器和断点机制非常有用，不仅可以用来调试解析过程，
+看看你的表达式树是不是你预期的样子，而且以后在你做转换的时候，也可以尝试去调试它。
+also later on when you do transformation, you can also try to debug that.
+
+280
+00:24:16,078 --> 00:24:18,496
+好了，这就是我想向大家展示的内容。
+Okay, that's something uh that's all I want to show you.
+
+281
+00:24:18,576 --> 00:24:22,980
+所以确保你在需要的时候充分利用调试器。
+So make sure you exploit debugger uh whenever you need to.
+
+282
+00:24:23,662 --> 00:24:27,588
+好了，让我关掉这个，然后切换回 Java 视角。
+Okay, let me close this and then switch back to the Java perspective.
+
+283
+00:24:27,776 --> 00:24:32,016
+好了，这个特定项目到此就结束了。
+Okay, so that will be about the end of this particular project over here.
+
+284
+00:24:32,176 --> 00:24:41,060
+现在剩下的就是看看我们如何尝试另一种语法文件风格，也就是所谓的非监听器模式。
+What's left right now is to see how we can try another style of the grammar file, which will be let's say the dash no listener.
+
+285
+00:24:41,230 --> 00:24:44,896
+所以你可能会发现访问者模式对你来说非常直观。
+So you might find the visitor approach very uh straightforward to you.
+
+286
+00:24:45,056 --> 00:24:50,416
+当然，它最大的特点是这里的语法文件非常整洁。
+Of course, the biggest uh characteristic about it is the grammar file is very clean over here.
+
+287
+00:24:50,576 --> 00:25:04,736
+然而，你究竟将如何构建表达式类型的抽象语法树，它将分布在这些特定类中的所有访问方法里。
+However, exactly how you are going to build the abstract syntax tree of expression type,
+it will be distributed to all the visit methods in these two particular classes.
+
+288
+00:25:04,974 --> 00:25:07,216
+从某种程度上说，你把它们分成了两个部分。
+In some way, you're separating them into two parts.
+
+289
+00:25:07,502 --> 00:25:11,044
+这究竟是件好事还是坏事，我觉得这是个人选择。
+Whether that's a really good thing or bad thing, I would say it's a personal choice.
+
+290
+00:25:12,206 --> 00:25:25,604
+我个人在学习编译器的时候，并不是用这种方式来写编译器的，
+但我会在下一个视频里快速向大家展示，如何尝试另一种不同的方式来构建你的解析器。
+I personally, when I was learning my compiler, this is not the way I used to actually write my compiler,
+but I'm gonna show you in the next video very quickly how you can try another different way to actually build your parser.
+
+291
+00:25:26,350 --> 00:25:35,216
+不出所料，我们唯一需要更改的就是 expression.g4，然后其他内容基本上都一样。
+And not surprisingly, the only thing that we have to change will be expression.g4,
+and then everything else will be more or less the same.
+
+292
+00:25:35,406 --> 00:25:37,252
+好了，那我们就在下一个视频里这样做。
+Okay, so let's do that in the next video.
+

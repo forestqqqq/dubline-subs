@@ -1,0 +1,1144 @@
+1
+00:00:03,822 --> 00:00:10,560
+Let's now finish the final piece for this particular visitor antler projects.
+
+2
+00:00:10,862 --> 00:00:13,956
+So now let's recall why we are doing the error handling.
+
+3
+00:00:14,160 --> 00:00:16,932
+Why are we not happy with the existing error handling?
+
+4
+00:00:17,134 --> 00:00:18,244
+Okay, let's take a look.
+
+5
+00:00:18,734 --> 00:00:24,036
+So remember in the previous tutorial video we try to run our compiler on test number zero.
+
+6
+00:00:24,480 --> 00:00:25,280
+Let's look at this.
+
+7
+00:00:25,454 --> 00:00:27,920
+And somehow this is the error message over here.
+
+8
+00:00:28,014 --> 00:00:28,250
+right?
+
+9
+00:00:28,718 --> 00:00:34,468
+So let me just copy this particular error message over here together with the input file.
+
+10
+00:00:34,606 --> 00:00:40,708
+And let's take a look on the iPad and try to understand why the current handling is not ideal.
+
+11
+00:00:43,566 --> 00:00:50,788
+Hey, let me now paste it to my iPad over here, and then let's now take a look.
+
+12
+00:00:51,120 --> 00:00:51,360
+Okay.
+
+13
+00:00:52,462 --> 00:00:55,680
+Basically, you will see that over here, let's see this.
+
+14
+00:00:55,840 --> 00:01:00,320
+We want to distinguish between syntax error versus semantic error.
+
+15
+00:01:00,400 --> 00:01:04,160
+Of course, syntax error also is can be referred to grammatical error.
+
+16
+00:01:04,430 --> 00:01:09,188
+It's the error uh that's related to not satisfying the grammar.
+
+17
+00:01:09,966 --> 00:01:14,724
+So now let's say uh let me just tell you for this particular example, which we have seen many times.
+
+18
+00:01:15,534 --> 00:01:30,080
+So this particular one here is considered as a syntax error because over here as I said, over here, so you can see follow this particular ID, we are expecting like here some colon, but it's actually a equal sign.
+
+19
+00:01:30,320 --> 00:01:34,052
+So the parser just cannot continue from this particular one.
+
+20
+00:01:34,190 --> 00:01:38,628
+So this one is simply just uh just parsing error basically.
+
+21
+00:01:41,678 --> 00:01:46,160
+Okay, on the other hand, the semantic error over here would be something like this.
+
+22
+00:01:46,240 --> 00:01:59,200
+For example, you can see over here for this particular line, you can see when we are doing this, uh this is not so fatal over here, because this one here we can still try to interpret what the user may intend to do.
+
+23
+00:01:59,360 --> 00:02:03,440
+But now in this case, apparently we're gonna want to tell them you better fix it before you come back.
+
+24
+00:02:03,726 --> 00:02:08,480
+So now you can see this particular one, I is was already previously declared.
+
+25
+00:02:08,654 --> 00:02:12,068
+So this one is more to do with like a type or semantic.
+
+26
+00:02:13,966 --> 00:02:19,556
+Okay, however, the blue and the pink, they are different categories of error.
+
+27
+00:02:19,760 --> 00:02:22,000
+So the pink one is much more severe.
+
+28
+00:02:22,190 --> 00:02:26,756
+Okay, so now the uh syntax error
+
+29
+00:02:31,342 --> 00:02:43,204
+must be all fixed before semantic error can be reported.
+
+30
+00:02:44,174 --> 00:02:45,316
+That's kind of the principle.
+
+31
+00:02:52,590 --> 00:02:59,680
+So now you can see our current program we are mixing the syntax error over here together with the semantic error.
+
+32
+00:02:59,822 --> 00:03:00,960
+So they're mixing together.
+
+33
+00:03:01,040 --> 00:03:03,440
+So that's not acceptable.
+
+34
+00:03:03,600 --> 00:03:07,280
+So that's why we want to really uh prevent this from happening.
+
+35
+00:03:07,534 --> 00:03:16,240
+And the way to do this is by saying when the parser was actually trying to parse the program, let me just go back to the relevant class and see how we can make that extension.
+
+36
+00:03:16,590 --> 00:03:27,876
+So now, if I go to our application class over here, so you can see this particular line over here, we are trying to ask Antler to actually give us the parse tree.
+
+37
+00:03:28,110 --> 00:03:37,600
+give us the parse tree from executing the method that corresponds to the start symbol proc.
+
+38
+00:03:38,254 --> 00:03:45,392
+However, if syntax error occur in the middle of the parsing Process we wouldn't know about it.
+
+39
+00:03:45,552 --> 00:03:56,912
+In that case, only checking to see if any semantic error actually occurred is actually not good enough, because we want to make sure if things like the pink highlight over here occurred, we want to know about it.
+
+40
+00:03:57,072 --> 00:04:13,700
+And then, we if there's any errors related to the syntax, we don't even bother to print out the semantic error, because the user, they should really fix the pink ones right away rather than say, "I'll only fix the blue ones without worrying about the pink ones Okay, you can hopefully you can see what I'm concerned about over here.
+
+41
+00:04:14,126 --> 00:04:23,044
+So, what we want to do is to extend our parsing process a little bit so that we would know if there's anything that went wrong in the middle of the parsing process over here.
+
+42
+00:04:23,758 --> 00:04:28,612
+Okay, the standard way of doing this in Antler is by adding a listener.
+
+43
+00:04:28,910 --> 00:04:46,432
+So listener is more like when you were programming uh when you are doing your first year programming course, either you try to do Android mobile app, in that case, when you are when you click on a particular button on the screen, so that one should really trigger some listener that will actually do something if you click on the button.
+
+44
+00:04:46,574 --> 00:04:47,472
+So something similar.
+
+45
+00:04:47,726 --> 00:05:01,220
+So we're going to add a listener to the parser, and that listener only is just going to keep track of uh if to see if there's any uh syntax error that occur uh during the uh parsing process, during the parsing process.
+
+46
+00:05:01,422 --> 00:05:06,692
+If there's any such error, report it, and we don't go ahead to actually report a semantic error.
+
+47
+00:05:06,912 --> 00:05:11,300
+If if there's no such syntax error, we can go ahead and do whatever we gotta do.
+
+48
+00:05:12,450 --> 00:05:15,044
+All right, let's do that, do this very quickly, okay?
+
+49
+00:05:15,232 --> 00:05:18,592
+Um you can also refer to the book for the Angular 4.
+
+50
+00:05:18,672 --> 00:05:22,432
+They also introduce some more fancy way of reporting error.
+
+51
+00:05:22,542 --> 00:05:24,752
+For your interest, you should really look into it.
+
+52
+00:05:25,102 --> 00:05:27,552
+So now let me just first of all tell you what to do.
+
+53
+00:05:27,872 --> 00:05:39,152
+the way to do it is by having a new class for listener, and you you must inherit you must inherit that particular class from a particular error handling listener class.
+
+54
+00:05:39,342 --> 00:05:40,324
+Okay, I'll show you what to do.
+
+55
+00:05:40,526 --> 00:05:45,392
+So now it's also part of our logic, so we should really go under the expression class.
+
+56
+00:05:45,742 --> 00:05:51,392
+Okay, so what I would do first of all, I'm going to create a new class under expression.
+
+57
+00:05:52,814 --> 00:05:55,844
+And then I will simply say new class.
+
+58
+00:05:56,558 --> 00:06:00,112
+And then the class could be let me just make it a little bit more intuitive.
+
+59
+00:06:00,192 --> 00:06:04,832
+Let's say my error listener.
+
+60
+00:06:05,134 --> 00:06:07,952
+Okay, or my syntax error listener or whatever.
+
+61
+00:06:08,078 --> 00:06:12,452
+So you better keep the listener at the end as a suffix just to be more informative.
+
+62
+00:06:13,358 --> 00:06:15,312
+Okay, and then what about the superclass?
+
+63
+00:06:15,502 --> 00:06:18,596
+So what you need is something called base error listener.
+
+64
+00:06:19,072 --> 00:06:21,952
+Base error listener.
+
+65
+00:06:22,126 --> 00:06:28,452
+So this comes from one of the uh class classes in the antlere 4, runtime library, so you should really just use it.
+
+66
+00:06:29,838 --> 00:06:36,512
+Okay, so now let's say finish over here, and apparently uh base error listener is not there.
+
+67
+00:06:36,814 --> 00:06:41,316
+So what I would do, okay, let me just get rid of this particular import over here, in case you follow me.
+
+68
+00:06:41,678 --> 00:06:43,392
+So now I can simply say import.
+
+69
+00:06:43,632 --> 00:06:45,872
+Okay, so now in this way it can be imported.
+
+70
+00:06:46,158 --> 00:06:51,072
+Move your mouse over the red underline and then say import from uh antler.
+
+71
+00:06:51,392 --> 00:06:52,992
+Okay, so now it is there.
+
+72
+00:06:53,326 --> 00:06:58,788
+So now I the only method you should really override is something called syntax error.
+
+73
+00:06:59,374 --> 00:07:00,672
+Okay, syntax error.
+
+74
+00:07:00,752 --> 00:07:05,472
+Oh, sorry, control space to complete the code, and then now we're gonna override this particular method.
+
+75
+00:07:05,902 --> 00:07:09,392
+Okay, let me organize the parameter a little bit to make it a little bit more readable.
+
+76
+00:07:09,712 --> 00:07:16,992
+They got many parameters, they got some recognizer, okay, they got some offending symbol, whatever symbol that that's the issue.
+
+77
+00:07:17,072 --> 00:07:21,392
+For example, for this particular case, the offending symbol is the J equals.
+
+78
+00:07:21,632 --> 00:07:22,752
+That's the offending symbol.
+
+79
+00:07:23,118 --> 00:07:27,312
+Okay, also the line number, uh, also the character position in line.
+
+80
+00:07:27,392 --> 00:07:29,792
+Remember, we used that right previously for the token.
+
+81
+00:07:30,062 --> 00:07:34,592
+And also we got string message, and also we got uh recognition exception.
+
+82
+00:07:34,766 --> 00:07:36,592
+So string message is something like this.
+
+83
+00:07:36,910 --> 00:07:43,472
+Okay, we'll just we can so by redef uh by overriding this particular method, you can customize your error message if you wish.
+
+84
+00:07:43,694 --> 00:07:47,312
+You can also refer to the Antler 4 definitive guidebook.
+
+85
+00:07:47,502 --> 00:07:51,364
+They also show you a fancier way to actually do your error message reporting.
+
+86
+00:07:52,302 --> 00:07:53,840
+Let's just do something simple.
+
+87
+00:07:54,080 --> 00:07:58,080
+And also, it would be really worthwhile to actually be creative.
+
+88
+00:07:58,240 --> 00:08:04,160
+Now, the way for me to know about if there's anything that goes wrong during the parsing process is like this.
+
+89
+00:08:04,430 --> 00:08:05,920
+I'm gonna have an attribute over here.
+
+90
+00:08:06,000 --> 00:08:13,444
+Let's call that public static so that I don't need to instantiate the listener in order to get access to it.
+
+91
+00:08:14,094 --> 00:08:19,172
+And then I'll say Boolean and then has error and then by default simply false.
+
+92
+00:08:19,758 --> 00:08:21,892
+I'm saying the follow-up the logic goes like this.
+
+93
+00:08:22,320 --> 00:08:31,908
+If the syntax error is ever called once, so for example, over here, you will syntax error will be called for every occasion of syntax error.
+
+94
+00:08:32,174 --> 00:08:36,420
+In that case, if this is ever called, so that means this flag should be set to true.
+
+95
+00:08:36,640 --> 00:08:53,700
+In that case, when I go back to my expression application program there, if I can check to see if my listener, my error listener actually ever set the flag to be true during the parsing process, that means I should not proceed to print out any semantic errors, if any.
+
+96
+00:08:54,080 --> 00:08:55,972
+Okay, hopefully that makes sense to you.
+
+97
+00:08:57,358 --> 00:09:08,480
+So now what I will do is in that case, if the syntax error method is ever called, I'm gonna say has error will be assigned to true over here, first of all.
+
+98
+00:09:08,654 --> 00:09:10,852
+Okay, of course, you gotta spell it correctly.
+
+99
+00:09:12,270 --> 00:09:15,840
+And then I'm gonna just customize the error message a little bit over here.
+
+100
+00:09:15,920 --> 00:09:17,280
+Okay, I'll just uh bear with me.
+
+101
+00:09:17,360 --> 00:09:18,116
+I'm gonna type it out.
+
+102
+00:09:19,182 --> 00:09:25,440
+Okay, first of all, I'm gonna use the list from Java utility, and then I would say string.
+
+103
+00:09:25,806 --> 00:09:26,960
+I'm gonna use it like a stack.
+
+104
+00:09:27,214 --> 00:09:28,880
+Okay, I'm gonna print out some stack information.
+
+105
+00:09:28,960 --> 00:09:37,124
+Remember when we were tracing the parsing algorithm, we actually showed a stack of the non-terminals, so this might be useful to show in the error message sometimes.
+
+106
+00:09:37,806 --> 00:09:44,004
+Okay, and then the recognizer, so now it's guaranteed is going to be a parser since we're doing parsing.
+
+107
+00:09:46,190 --> 00:09:51,012
+And then I'm going to oops, I'm going to do a cast.
+
+108
+00:09:51,310 --> 00:09:53,040
+Okay, let's just make sure this is okay.
+
+109
+00:09:53,120 --> 00:09:54,308
+So it's parser there.
+
+110
+00:09:54,800 --> 00:09:56,740
+Okay, in that case, we're gonna import a parser.
+
+111
+00:09:57,166 --> 00:10:00,228
+So we're gonna import a parser for antler v4 runtime.
+
+112
+00:10:00,974 --> 00:10:07,684
+Okay, import it from there, and then dot get rule invocation stack.
+
+113
+00:10:08,078 --> 00:10:18,240
+Okay, just a method gonna use recognizer, and then after that, we're going to reverse the stack so we show it in the appropriate order.
+
+114
+00:10:18,702 --> 00:10:22,884
+Collections.reverse over here, and then we pull the stack.
+
+115
+00:10:24,942 --> 00:10:33,732
+Okay, after that we're going to say uh synthet.error dot print line.
+
+116
+00:10:34,414 --> 00:10:36,180
+Okay, let me just maximize the tab.
+
+117
+00:10:36,520 --> 00:10:39,108
+Okay, over here and give you a little bit more space.
+
+118
+00:10:41,102 --> 00:10:44,068
+Okay, print line, and then first of all we say syntax error.
+
+119
+00:10:48,686 --> 00:10:57,360
+And then we'll say system dot error dot print line, and then I'm gonna print a long message over here.
+
+120
+00:10:57,550 --> 00:10:58,468
+Let's see what we can do.
+
+121
+00:10:58,958 --> 00:11:09,280
+So you can say over here, first of all, we'll say token, and then we say a particular token.
+
+122
+00:11:09,390 --> 00:11:10,520
+So let me put it in quote.
+
+123
+00:11:10,560 --> 00:11:13,188
+So you gotta escape, the double quote, okay?
+
+124
+00:11:13,774 --> 00:11:17,348
+And then plus a okay, I'm gonna do a cast again.
+
+125
+00:11:18,000 --> 00:11:25,840
+So token offending uh symbol is actually a token, and remember we can get a text, we can get a line number, and etc.
+
+126
+00:11:26,080 --> 00:11:26,320
+Right?
+
+127
+00:11:26,510 --> 00:11:28,560
+We can say offending symbol.
+
+128
+00:11:28,640 --> 00:11:31,120
+Apparently, token is not imported just yet.
+
+129
+00:11:31,200 --> 00:11:31,840
+Let's do it.
+
+130
+00:11:32,206 --> 00:11:36,420
+Token control space, and then you gotta import a one from antler v4.
+
+131
+00:11:38,126 --> 00:11:43,748
+Okay, and then I'm gonna say this one here, dot get oh, sorry, wrong one.
+
+132
+00:11:44,120 --> 00:11:46,000
+Dot get text.
+
+133
+00:11:46,766 --> 00:11:50,460
+Okay, and then after this, I'm gonna say plus the end quote.
+
+134
+00:11:50,958 --> 00:11:55,360
+Basically, I'm trying to quote that particular token in uh in a double quote, right?
+
+135
+00:11:55,694 --> 00:11:56,772
+You will see the output.
+
+136
+00:11:57,038 --> 00:11:59,428
+You will see what I'm doing here once you see the console output.
+
+137
+00:11:59,840 --> 00:12:00,080
+Okay.
+
+138
+00:12:02,286 --> 00:12:04,800
+Okay, and then I would say plus okay.
+
+139
+00:12:04,880 --> 00:12:06,724
+Let me just put things more indented.
+
+140
+00:12:10,446 --> 00:12:15,844
+Okay, and then I would say plus over here, and then I'm gonna report a line number here.
+
+141
+00:12:16,142 --> 00:12:18,340
+So I can say line.
+
+142
+00:12:20,270 --> 00:12:21,444
+Okay, what should be the line?
+
+143
+00:12:21,582 --> 00:12:23,204
+Oh, actually, line is directly here.
+
+144
+00:12:23,312 --> 00:12:26,436
+Okay, so now it's simply here, it's part of the parameter.
+
+145
+00:12:26,980 --> 00:12:42,512
+I say line and then plus, followed by comma, colon, and then with a space, and plus, and remember this particular character position start with a zero, but to be more intuitive, you better plus one to it.
+
+146
+00:12:42,832 --> 00:12:52,912
+Character precision in line plus one and plus, okay, you're gonna say closing parentheses, and then plus over here, and colon.
+
+147
+00:12:53,072 --> 00:13:00,192
+Finally, you're gonna also print out the message that will be useful to uh to tell you what exactly was the issue.
+
+148
+00:13:00,494 --> 00:13:18,628
+Okay, so now we just have a customized combination of things, and finally we can output a stack system.error dot print line, and also here we can say rule stack, basically the stack of the non-terminals and plus the stack.
+
+149
+00:13:18,912 --> 00:13:22,672
+Okay, so that's like a redefinition for the syntax error.
+
+150
+00:13:22,832 --> 00:13:32,932
+If you didn't redefine this, what you will see is like the previous tutorial video, in which case you have no way to really know if there's any syntax error when you are doing the parsing.
+
+151
+00:13:33,152 --> 00:13:41,700
+Okay, having this done, we have to basically add this particular new listener objects into the parser before the parsing.
+
+152
+00:13:41,806 --> 00:13:42,468
+Okay, let's do it.
+
+153
+00:13:43,662 --> 00:13:48,452
+So then uh so now we are back to our application class.
+
+154
+00:13:48,782 --> 00:14:01,472
+So now I would say the first thing to do is to go to this particular private helper method here, which I said it should be more or less the same between applications except for the type that correspond to the grammar name.
+
+155
+00:14:01,774 --> 00:14:09,152
+So now what I need to do is to say after I initialize the parser over here, I need to do two things.
+
+156
+00:14:09,486 --> 00:14:10,852
+Okay, I'll read the comments for you.
+
+157
+00:14:11,392 --> 00:14:15,792
+So syntax error handling.
+
+158
+00:14:15,872 --> 00:14:19,712
+Okay, so number one, I should remove all the existing parser only use mine.
+
+159
+00:14:19,952 --> 00:14:22,148
+So I'll remove all the existing ones first.
+
+160
+00:14:22,702 --> 00:14:26,948
+So parser.remove uh error listeners.
+
+161
+00:14:28,238 --> 00:14:32,228
+Okay, and then I'm gonna add the listener that I just created.
+
+162
+00:14:32,592 --> 00:14:35,792
+Parser dot add error listener.
+
+163
+00:14:36,046 --> 00:14:39,140
+And then I'll say new my error listener, right?
+
+164
+00:14:39,566 --> 00:14:40,512
+that's the thing I just created.
+
+165
+00:14:40,782 --> 00:14:41,732
+Step number one.
+
+166
+00:14:42,318 --> 00:14:48,644
+And then once I've done this, it's guaranteed later when I actually call this line here for the parsing.
+
+167
+00:14:48,942 --> 00:14:56,740
+If there's any syntax error for every occurrence of the syntax error, this particular syntax error method will be called.
+
+168
+00:14:56,912 --> 00:15:06,020
+And for the very first time, it's gonna set a flag to be true, and also it's gonna output the error into the standard error, which will be the console in this case or terminal.
+
+169
+00:15:07,374 --> 00:15:21,028
+Okay, so what I will do now finally is to say after this particular parsing, I want to basically say, Well, I will only go ahead to actually perform the rest if there's no syntax error, right?
+
+170
+00:15:21,678 --> 00:15:31,492
+So what I can do now is I can say if my error listener over here, it's a static attribute there, has error.
+
+171
+00:15:32,512 --> 00:15:41,060
+If that one has error, so I'll simply just let the syntax error be reported to the standard error.
+
+172
+00:15:41,774 --> 00:15:46,672
+Otherwise, I can go ahead and do the rest, basically, what I did previously.
+
+173
+00:15:46,990 --> 00:15:52,272
+That's just the if condition I would like to add up to say if there's any syntax error, don't do anything else.
+
+174
+00:15:52,432 --> 00:15:54,148
+Let the user fix that first.
+
+175
+00:15:54,352 --> 00:15:57,232
+Okay, so that's uh about a complete logic here.
+
+176
+00:15:57,422 --> 00:15:59,012
+So now let's test it very quickly.
+
+177
+00:16:00,238 --> 00:16:05,476
+So now if I go back to my particular project over here, I want to test 0, 1, and 2.
+
+178
+00:16:05,742 --> 00:16:08,068
+Let's test 0 because that's what we worry about, right?
+
+179
+00:16:08,366 --> 00:16:15,152
+So now let's see if it will only print out the syntax error, the customized version, only for line 3.
+
+180
+00:16:15,312 --> 00:16:18,832
+Whereas this semantic error here should not be reported, right?
+
+181
+00:16:18,958 --> 00:16:21,540
+We don't want to have this kind of mixing scenario again.
+
+182
+00:16:21,934 --> 00:16:27,940
+If I say run, and then let's make sure I'm not really in the example visitor one.
+
+183
+00:16:28,238 --> 00:16:31,812
+So I'll go to tests and go to test zero and say open.
+
+184
+00:16:32,590 --> 00:16:43,152
+So now this time you can see it's working because now you can see everything I have is red, which means it's printed to the standard error, and you can see the semantic error that we had before is now gone.
+
+185
+00:16:43,310 --> 00:16:43,552
+Right?
+
+186
+00:16:43,694 --> 00:16:45,444
+That one's simply not even there.
+
+187
+00:16:46,510 --> 00:16:48,132
+Okay, that's good.
+
+188
+00:16:48,526 --> 00:16:56,452
+And now I'm just going to uh test the other ones, and then I want to show you one more thing, which is the debugger, which is also very important.
+
+189
+00:16:56,942 --> 00:16:57,152
+Okay.
+
+190
+00:16:58,414 --> 00:17:06,820
+So now if I try again to maybe test number one, you can see we still actually report a semantic error because there's no syntax error.
+
+191
+00:17:06,960 --> 00:17:08,164
+That one's still working.
+
+192
+00:17:09,326 --> 00:17:14,340
+And then if I try test number two over here, that one there you can see it's still working.
+
+193
+00:17:14,574 --> 00:17:16,880
+No syntax error, no semantic error.
+
+194
+00:17:16,960 --> 00:17:20,080
+So now we can do evaluation for every occurrence over here.
+
+195
+00:17:20,270 --> 00:17:24,640
+Okay, so now it's completely working for this particular project for visitor.
+
+196
+00:17:24,910 --> 00:17:26,400
+There's one more thing I want to show you.
+
+197
+00:17:26,670 --> 00:17:32,420
+Given that we are now doing Eclipse on the IDE, you should really make use of debugger when necessary.
+
+198
+00:17:33,102 --> 00:17:38,160
+So there's one more thing I want to show you before I draw a closure for this particular project.
+
+199
+00:17:38,734 --> 00:17:44,960
+So now I want you to go to this particular class, the application class, right?
+
+200
+00:17:45,040 --> 00:17:48,400
+Just one possible place where you can try to put a breakpoint.
+
+201
+00:17:48,814 --> 00:17:56,960
+What you can do now is you can see this is where we actually try to uh actually uh parse the program.
+
+202
+00:17:57,134 --> 00:18:09,600
+Okay, of course, if you want to see if a particular syntax error actually occurred, you can definitely put a breakpoint, maybe in this particular my error listener, put it there and see which syntax error is actually occurring.
+
+203
+00:18:09,680 --> 00:18:12,160
+You can put it there, but let's that's not what I want to show you.
+
+204
+00:18:12,430 --> 00:18:18,320
+What I want to show you is oh, let me just remove that first, otherwise I'll be interrupted later.
+
+205
+00:18:18,574 --> 00:18:26,404
+So now what I want to show you uh in the else part over here, that means my program is simply just has no syntax error.
+
+206
+00:18:26,560 --> 00:18:33,220
+Okay, in that case, I would like to basically see exactly how the parse tree would look like.
+
+207
+00:18:33,614 --> 00:18:36,452
+Okay, I want to show you, I want to show you these two lines.
+
+208
+00:18:36,782 --> 00:18:41,636
+So basically, I'm gonna execute a debugger and then I'm gonna pause and line number 36.
+
+209
+00:18:42,062 --> 00:18:47,748
+And let me let after executing line number 36, I want to see the parse tree structure.
+
+210
+00:18:48,142 --> 00:18:53,280
+And after line number 37, I want to see the model expression object structure.
+
+211
+00:18:53,454 --> 00:18:55,840
+That's something you can see as well, just to confirm.
+
+212
+00:18:56,110 --> 00:19:01,520
+And of course, debugging that's something I will I I assume you actually know from your previous programming courses.
+
+213
+00:19:01,600 --> 00:19:05,028
+I want to show you that's the advantage of using an IDE.
+
+214
+00:19:06,382 --> 00:19:09,600
+Okay, so now I put a pr uh put the breakpoint over here.
+
+215
+00:19:09,806 --> 00:19:17,412
+So now I will simply right-click on the application class and say debug as Java application.
+
+216
+00:19:19,022 --> 00:19:20,880
+Okay, uh, I can choose a file.
+
+217
+00:19:20,960 --> 00:19:24,880
+Let's say I choose file 2, which has no issue whatsoever.
+
+218
+00:19:25,040 --> 00:19:29,348
+And then I'll say remember my decision, switch to the debugger perspective.
+
+219
+00:19:30,222 --> 00:19:32,160
+So now we're in the debugger perspective.
+
+220
+00:19:32,240 --> 00:19:35,920
+If you can confirm that by seeing the icon over here, it shows debug.
+
+221
+00:19:36,078 --> 00:19:37,920
+And normally we're in the Java perspective.
+
+222
+00:19:38,000 --> 00:19:40,400
+Make sure you switch back and forth where you need to.
+
+223
+00:19:40,622 --> 00:19:43,760
+And then the left panel over here is the stack trace over here.
+
+224
+00:19:44,014 --> 00:19:50,080
+You can see the stack trace shows the order in which the methods are being called, could be useful sometimes.
+
+225
+00:19:50,222 --> 00:19:59,108
+Okay, and then just make sure you click back, otherwise, you will lose the step over button over here, and then you can see on the left.
+
+226
+00:19:59,278 --> 00:20:03,108
+So these are the most important two panels that you should really pay attention to.
+
+227
+00:20:03,374 --> 00:20:06,480
+One is called variables, the other one is called expressions.
+
+228
+00:20:06,670 --> 00:20:11,760
+Okay, uh, let me just make sure I'm now in the right way, in the right one.
+
+229
+00:20:11,950 --> 00:20:14,500
+Okay, so now I should be in the expression app and main.
+
+230
+00:20:14,720 --> 00:20:18,596
+Okay, so now over here you can see these are all the variables.
+
+231
+00:20:19,360 --> 00:20:22,960
+Of course, the variables depend on which one you're clicking on the stack trace.
+
+232
+00:20:23,054 --> 00:20:24,800
+Make sure you click on the correct one.
+
+233
+00:20:25,198 --> 00:20:30,720
+So now on the variables, it shows you all the uh all the relevant variables in the context.
+
+234
+00:20:30,894 --> 00:20:33,828
+Under parser, you got this many things over here, right?
+
+235
+00:20:34,254 --> 00:20:42,640
+And also under also, for example, file name, you can see currently you simply show me the path and then about test two, for example, this that's the one I just chose.
+
+236
+00:20:43,086 --> 00:20:47,600
+And for expressions, this uh you can put anything that makes sense at the current context.
+
+237
+00:20:47,680 --> 00:20:50,212
+For example, I can simply say parser over here.
+
+238
+00:20:50,606 --> 00:20:57,188
+I can also say uh since there's no error, but I can just double check.
+
+239
+00:20:58,542 --> 00:21:03,876
+If I simply copy and paste this particular expression over here, simply say false.
+
+240
+00:21:04,080 --> 00:21:08,480
+That makes sense because it's false, that's why I'm entering this else branch.
+
+241
+00:21:08,800 --> 00:21:10,480
+So now I'm going okay.
+
+242
+00:21:10,640 --> 00:21:21,540
+In case you don't see the variables or the expressions panel, you should really go to window, go to show view, and then you can say I want to show variables or I want to show expressions.
+
+243
+00:21:21,870 --> 00:21:23,748
+Okay, so you can always bring them back.
+
+244
+00:21:24,910 --> 00:21:26,240
+Let's see the following.
+
+245
+00:21:26,510 --> 00:21:29,732
+So now I want to uh step over.
+
+246
+00:21:30,030 --> 00:21:34,532
+I want to see what's going to be the consequence of uh executing this.
+
+247
+00:21:35,246 --> 00:21:38,628
+Uh because I want to see what the uh parse tree is.
+
+248
+00:21:39,182 --> 00:21:43,588
+Well, actually the parse tree is already there because now it's uh antler AST, right?
+
+249
+00:21:43,694 --> 00:21:50,116
+You can see at the moment the antler ast is simply just empty.
+
+250
+00:21:50,926 --> 00:21:51,972
+Let's see if that's the case.
+
+251
+00:21:56,366 --> 00:22:09,376
+But if you actually try to see this over here, uh actually, so uh don't be uh don't be uh uh deceived actually by this particular output here, you should really expand the object structure over here.
+
+252
+00:22:09,614 --> 00:22:15,696
+So if you see antler ast over here, that one there is simply just going to show you all the children over here.
+
+253
+00:22:15,950 --> 00:22:24,816
+If you expand the children over here, 0, 1, 2, 3, 4, the all these children should just correspond to the eight uh nodes over here, right?
+
+254
+00:22:25,070 --> 00:22:29,892
+What we said before, you got uh one, two, oh actually not this particular one.
+
+255
+00:22:30,350 --> 00:22:41,508
+Okay, let me uh I don't have that uh parse tree with me, but if you look up in the previous tutorial video where we choose a G run, where we actually show the parse tree for test two, you got exactly eight subtrees.
+
+256
+00:22:41,646 --> 00:22:43,056
+That's exactly what's shown over here.
+
+257
+00:22:43,136 --> 00:22:45,188
+They are consistent with each other.
+
+258
+00:22:45,456 --> 00:22:47,236
+So what's gonna be interesting is this.
+
+259
+00:22:47,534 --> 00:22:53,700
+If I say step over, apparently I'm trying to I created a program visitor.
+
+260
+00:22:54,030 --> 00:23:04,676
+Okay, so now I'm going to use a program visitor to actually generate a pro uh to visit this particular route of the uh AST, which has eight children over here.
+
+261
+00:23:05,902 --> 00:23:12,772
+You can see we got uh actually nine uh nine children, and the the last one I remember is actually EOF.
+
+262
+00:23:12,896 --> 00:23:14,084
+So we're just confirming this.
+
+263
+00:23:14,318 --> 00:23:19,376
+So I want to make sure if I say step over right now, so now the program proc.
+
+264
+00:23:20,046 --> 00:23:27,936
+So now this one contains all the program uh the program uh expression subtree, the expression tree, something like this.
+
+265
+00:23:28,206 --> 00:23:29,636
+Okay, so now let's take a look.
+
+266
+00:23:30,990 --> 00:23:34,416
+So now what I can do is I can go to expressions over here.
+
+267
+00:23:34,670 --> 00:23:42,816
+If I simply type, let's say proc over here, you can see under the proc I got expressions, so now I got different expression here.
+
+268
+00:23:43,022 --> 00:23:48,896
+I got variable decoration, I got variable decoration, I got i, I got j, I got i plus j and etc.
+
+269
+00:23:49,056 --> 00:23:49,216
+Right?
+
+270
+00:23:49,296 --> 00:23:53,296
+If you expand these further, you can see the ID type and value, and etc.
+
+271
+00:23:53,536 --> 00:23:56,656
+So that's exactly uh ID type and value.
+
+272
+00:23:56,736 --> 00:23:57,860
+That's exactly the structure.
+
+273
+00:23:58,222 --> 00:24:15,856
+So having this debugger and breakpoint mechanism in the IDE is very useful for you to debug not just the parsing process and to see if your AS uh if your expression tree is really the one you're expecting, but also later on when you do transformation, you can also try to debug that.
+
+274
+00:24:16,078 --> 00:24:18,496
+Okay, that's something uh that's all I want to show you.
+
+275
+00:24:18,576 --> 00:24:22,980
+So make sure you exploit debugger uh whenever you need to.
+
+276
+00:24:23,662 --> 00:24:27,588
+Okay, let me close this and then switch back to the Java perspective.
+
+277
+00:24:27,776 --> 00:24:32,016
+Okay, so that will be about the end of this particular project over here.
+
+278
+00:24:32,176 --> 00:24:41,060
+What's left right now is to see how we can try another style of the grammar file, which will be let's say the dash no listener.
+
+279
+00:24:41,230 --> 00:24:44,896
+So you might find the visitor approach very uh straightforward to you.
+
+280
+00:24:45,056 --> 00:24:50,416
+Of course, the biggest uh characteristic about it is the grammar file is very clean over here.
+
+281
+00:24:50,576 --> 00:25:04,736
+However, exactly how you are going to build the abstract syntax tree of expression type, it will be distributed to all the visit methods in these two particular classes.
+
+282
+00:25:04,974 --> 00:25:07,216
+In some way, you're separating them into two parts.
+
+283
+00:25:07,502 --> 00:25:11,044
+Whether that's a really good thing or bad thing, I would say it's a personal choice.
+
+284
+00:25:12,206 --> 00:25:25,604
+I personally, when I was learning my compiler, this is not the way I used to actually write my compiler, but I'm gonna show you in the next video very quickly how you can try another different way to actually build your parser.
+
+285
+00:25:26,350 --> 00:25:35,216
+And not surprisingly, the only thing that we have to change will be expression.g4, and then everything else will be more or less the same.
+
+286
+00:25:35,406 --> 00:25:37,252
+Okay, so let's do that in the next video.
+
