@@ -21,6 +21,7 @@
 | [Getting Started with On-Device AI: RAG using ObjectBox Vector Database and LangChain](medias/KM3H9/) | Krish Naik | 2026-11-13 |
 | [I Have Spent 1000+ Hours With Claude Code. This Is What I Learned](medias/JG3EY/) | The Coding Sloth | 2026-11-13 |
 | [Advanced Q&A Chatbot Using Ragstack With vector-enabled Astra DB Serverless database And Huggingface](medias/HC91E/) | Krish Naik | 2026-11-13 |
+| [【ずんだもんAI関連論文解説 #138】Proving and Improving the Platonic Representation Hypothesis with JEPAs](medias/GEPTK/) | ずんだもんのAI論文解説 | 2026-11-13 |
 | [7-End To End Advanced RAG Project using Open Source LLM Models And Groq Inferencing engine](medias/FTYMH/) | Krish Naik | 2026-11-13 |
 | [Hybrid Search RAG With Langchain And Pinecone Vector DB](medias/F1EXN/) | Krish Naik | 2026-11-13 |
 | [[NLP] Right pairs beat 72B LLMs at alignment \| Proving and Improving the Platonic Representation Hyp](medias/E99BF/) | Daily Frontier Papers | 2026-11-13 |
