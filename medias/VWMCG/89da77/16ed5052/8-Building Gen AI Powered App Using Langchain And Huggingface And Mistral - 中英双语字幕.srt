@@ -1,0 +1,2146 @@
+1
+00:00:00,558 --> 00:00:04,132
+大家好，我是 Krish Naik，欢迎来到我的 YouTube 频道。
+Hello, all my name is Krush Nayak and welcome to my YouTube channel.
+
+2
+00:00:04,558 --> 00:00:08,960
+朋友们，我希望你们喜欢整个 Langchain 系列。
+So, guys, I hope you are loving the entire Langchin series.
+
+3
+00:00:09,040 --> 00:00:19,012
+我们已经完成了几乎每一个为了创建端到端项目而需要的 Langchain 模块，
+而且我们在这里也开发了多个项目。
+We have almost completed almost each and every module specifically to Langchen that is actually required to create end-to-end
+projects, and we have also developed multiple projects over here.
+
+4
+00:00:19,520 --> 00:00:22,532
+我们同时使用了付费和开源的 LLM 模型。
+We have used both paid and open source LLM models.
+
+5
+00:00:23,054 --> 00:00:35,920
+现在，其中一个最热门的视频请求是：Krish，我们如何结合 Langchain 和 Hugging Face 库，
+并确保只使用开源 LLM 模型，尝试创建一些出色的端到端项目？
+Now, one of the most requested video was that Krishna how can we work uh considering Langchain along with Hugging Face libraries and
+making sure that you use only open source LLM models and try to create some amazing end-to-end projects.
+
+6
+00:00:36,000 --> 00:00:47,172
+所以，在这个视频中，我将使用 Langchain、Hugging Face 以及托管在 Hugging Face 上的开源
+LLM 模型（比如 Mistral），然后我们将尝试开发一个完整的 QA RAG 应用。
+So, in this video, I'm going to use Langchain, Hugging Face, and open source LLM models like Mistral that is specifically hosted in
+Hugging Face, and then we'll try to develop a QA rag complete rag app.
+
+7
+00:00:47,430 --> 00:00:50,000
+我希望你们会喜欢这个特定的视频。
+And I hope you will be liking this particular video.
+
+8
+00:00:50,286 --> 00:00:56,720
+请确保看到这个视频的最后，因为你们也能从这个特定的视频中获得很多收获。
+Please make sure that you watch this video till the end because there will be a
+lot of learnings that you will be able to find from this particular video too.
+
+9
+00:00:57,006 --> 00:00:59,200
+那让我快速开始分享我的屏幕。
+So let me quickly go ahead and share my screen.
+
+10
+00:00:59,310 --> 00:01:07,250
+所以在这里你们可以看到，我创建了一个名为 Hugging Face 的文件夹，
+里面有一些我可能从网上下载的 PDF 格式的 US Census 数据，
+So here you can actually see I've created a folder called as Hugging Face, and there's some US Census data which I probably downloaded
+from the internet in the form of PDF and I have uploaded in this specific folder.
+
+11
+00:01:07,250 --> 00:01:09,956
+我已经把它们上传到了这个特定文件夹中。
+So here you can actually see I've created a folder called as Hugging Face, and there's some US Census data which I probably downloaded
+from the internet in the form of PDF and I have uploaded in this specific folder.
+
+12
+00:01:10,350 --> 00:01:10,640
+对吧？
+Right?
+
+13
+00:01:11,054 --> 00:01:13,760
+所以我们将继续读取这些数据。
+So we will go ahead and probably read this again.
+
+14
+00:01:14,160 --> 00:01:21,284
+我们将完全使用像 Mistral 这样的开源 LLM 模型，并利
+用 Hugging Face 本身，然后我们将创建整个 QA 应用。
+we are going to use completely open source LLM models like Mistral using Hugging Face itself,
+and then we are going to create the entire QA application.
+
+15
+00:01:21,646 --> 00:01:23,360
+那我们快点开始动手做吧。
+So let's quickly go ahead and do this.
+
+16
+00:01:23,440 --> 00:01:31,680
+首先，如你们所知，我们需要完成所有的数据摄入步
+骤，也就是加载所有的库，还有所有的 PDF 文件。
+And initially, as you know, that initially we need to load all the data
+ingestion step that is loading all the libraries, uh, all the PDFs itself.
+
+17
+00:01:31,760 --> 00:01:38,160
+所以为此，我将从 langchain_community 导入。
+So for that, I will be importing from Langchain underscore community, okay.
+
+18
+00:01:38,414 --> 00:01:41,440
+导入 .document_loaders
+Dot document loaders import
+
+19
+00:01:44,750 --> 00:01:46,628
+PyPDFLoader，好的。
+pie pdf loader, okay.
+
+20
+00:01:47,022 --> 00:01:54,436
+这是我从 langchain_community.document_loaders 中需要的一项内容。
+So this is one of the things that I will be requiring then from Langchain underscore community dot document loaders.
+
+21
+00:01:54,894 --> 00:01:58,240
+我还要确保我也使用一个 PDF 目录。
+I'm also going to make sure that I use a PDF directory also for that.
+
+22
+00:01:58,510 --> 00:02:02,500
+所以在这里我要导入 PyPDFDirectoryLoader，好的。
+So here I'm going to import pie pdf directory loader, okay.
+
+23
+00:02:02,862 --> 00:02:10,560
+然后，在读取之后，我需要进行字符分割，把这些文档分成块。
+And then from since I uh after reading it, I need to do the character splitting so divide that documents into chunks.
+
+24
+00:02:10,720 --> 00:02:13,360
+为此，我将使用递归字符分割器。
+So for that, I'm going to use recursive character splitter.
+
+25
+00:02:13,710 --> 00:02:18,160
+与此同时，正如我们所知，我们这里还要使用某种向量数据库。
+Along with this, again, as we know that we'll also use some kind of vector store over here.
+
+26
+00:02:18,286 --> 00:02:23,520
+所以我要使用名为 FAISS 的向量数据库，而且如你们所知，我们还要使用 Hugging Face。
+So I'm going to use the vector store called as FIS, and as you all know, we are also going to use Hugging Face.
+
+27
+00:02:23,760 --> 00:02:28,720
+关于 Hugging Face，正如我所说，所有的嵌入技术我也会直接从 Hugging Face 获取。
+So for Hugging Face, as I said, all the embedding techniques also I'm going to use from Hugging Face itself.
+
+28
+00:02:28,800 --> 00:02:37,280
+所以在 Langchain 中，你也有这些嵌入技术，比如 Hugging Face 的 BGE 嵌入，
+它是完全开源的，而且效果足够好，对吧？
+So for that, in Langchain, also you have this embedding techniques where you have Hugging Face uh BGE embedding,
+which is completely an open source and which is good enough, right?
+
+29
+00:02:37,440 --> 00:02:39,040
+所以我们也要用它。
+So we are also going to use it.
+
+30
+00:02:40,014 --> 00:02:43,040
+除此之外，我还要导入 numpy 作为 np。
+along with this, I'm also going to import numpy as an NP.
+
+31
+00:02:43,278 --> 00:02:45,520
+如果我特别需要 numpy 的话，我觉得目前不需要。
+If I specifically require numpy, I don't think so.
+
+32
+00:02:45,600 --> 00:02:48,420
+我需要用到它，但我打算就用这个，好吗。
+I will be requiring, but I'm going to just use this, okay.
+
+33
+00:02:48,720 --> 00:02:52,640
+嗯，还有两个我打算从 Langchain 里用的很棒的库。
+Um, two more amazing libraries that I'm going to use from Langchain.
+
+34
+00:02:52,814 --> 00:02:55,652
+因为我还要确保创建一个模板。
+Since I also have to make sure that I create a template.
+
+35
+00:02:55,950 --> 00:03:02,480
+所以我要从 Langchain.prompts 导入 提示词模板。
+So from Langchain dot prompts, I'm going to import prompt template.
+
+36
+00:03:02,560 --> 00:03:06,800
+好，这也是特别需要的，还有最后一个，对吧？
+Okay, so this is also what is specifically required, and one more, right?
+
+37
+00:03:06,960 --> 00:03:17,120
+还有一个，呃，我还要从 Langchain.chains 导入 retrieval QA，对吧？
+One more uh chains I will specifically require again from Langchain dot chains import retrieval QA, right?
+
+38
+00:03:17,262 --> 00:03:20,800
+所以我们要用到 retrieval QA 链。
+So retrieval QA chain we will specifically be requiring.
+
+39
+00:03:20,880 --> 00:03:25,680
+所以这些库我们基本上都导入了，并且我们要把它们用于这个特定的目的。
+So all these libraries we are basically imported and we are going to use this for this particular purpose.
+
+40
+00:03:25,840 --> 00:03:30,564
+现在让我们去读取 PDF 文件。
+Now let's go read the PDFs.
+
+41
+00:03:32,814 --> 00:03:34,660
+从文件夹里，好。
+From the folder, okay.
+
+42
+00:03:35,630 --> 00:03:43,760
+现在这里 loader 等于 PyPDFDirectoryLoader，这里我要给我的 US Census 文件夹，对吧？
+Now here you have loader is equal to py pdf directory loader, and here I'm going to give my census folder, right?
+
+43
+00:03:43,840 --> 00:03:49,040
+所以这里我将继续写 .start_us_census。
+So here I will go ahead and write dot start us underscore census.
+
+44
+00:03:49,166 --> 00:03:59,044
+好，这个 census 文件夹我要专门读取，然后我要
+用这个 loader.load，基本上就是获取我的文档。
+Okay, so this census folder I'm going to specifically read, and then I'm going to
+use this loader dot load and I'm going to I'm going to basically get my documents.
+
+45
+00:03:59,950 --> 00:04:00,160
+好。
+Okay.
+
+46
+00:04:01,006 --> 00:04:05,476
+一旦我拿到了文档，接下来我要做的就是创建我的 text splitter。
+So once I probably get the documents, then what I will do, I will create my text splitter.
+
+47
+00:04:06,446 --> 00:04:09,190
+为此，我要用我的 RecursiveCharacterTextSplitter。
+And for this, I'm going to use my recursive character text splitter.
+
+48
+00:04:09,806 --> 00:04:13,200
+对于这个，块大小，也就是块大小。
+And for this, the chunk size, chunk underscore size.
+
+49
+00:04:13,280 --> 00:04:14,560
+我要设为 1000。
+I will be taking thousand.
+
+50
+00:04:14,960 --> 00:04:15,268
+好。
+Okay.
+
+51
+00:04:15,760 --> 00:04:22,079
+chunk_overlap，也就是块重叠，大概设在 200 左右。
+And chunk chunk underscore overlap will be somewhere around 200.
+
+52
+00:04:22,240 --> 00:04:26,400
+好，这些东西，正如你们所知，我写过很多类似的这类代码。
+Okay, so all these things, as you all know, I've written this kind of code a lot.
+
+53
+00:04:27,214 --> 00:04:37,200
+最后，我的最终文档，好，就是我要用这个 text splitter，然后把所有文档都切分了。
+and then finally, my final documents, okay, will be nothing but I will
+be using this text splitter, and then I will split all the documents.
+
+54
+00:04:37,358 --> 00:04:46,788
+所以我要写 split_all_documents，呃，考虑到我这里所有的文档，让我们来看看最终的文档。
+So I will write split all the documents, uh, with considering all my documents over here,
+and let's go ahead and see my final documents.
+
+55
+00:04:46,960 --> 00:04:49,200
+第一个最终文档，我试着看一下。
+First final document, I'll just try to see.
+
+56
+00:04:49,294 --> 00:04:50,948
+我不需要显示全部内容。
+I don't have to display the entire thing.
+
+57
+00:04:51,374 --> 00:05:01,120
+所以这可能会读取那个特定的 US Census 文件夹里的所有 PDF 文件，
+也就是这里所有的四个 PDF 文件，然后它可能会给我一个结果。
+So this will probably read all the PDF file inside that particular US Census folder, which is present over here,
+all the four PDF files, and then it will probably give me a thing.
+
+58
+00:05:01,294 --> 00:05:03,360
+所以这里你可以看到有一个错误。
+So here you can see one error is there.
+
+59
+00:05:03,440 --> 00:05:05,636
+好，让我继续写 块大小。
+So here let me go ahead and write it chunk size.
+
+60
+00:05:05,934 --> 00:05:12,900
+现在我觉得应该可以正常运行了，所有的 PDF，所有
+的材料都会在这个视频的描述里提供给你们，对吧？
+Now I think it should be working fine, and all the PDF, all the materials will be
+available in the description of this particular video, guys, for you all of you, right?
+
+61
+00:05:13,120 --> 00:05:20,080
+所以这里你可以看到，最终文档的总长度大概在 316 左右。
+So here you can see, and the total number of length of final documents you can probably see is somewhere around 316.
+
+62
+00:05:20,430 --> 00:05:28,080
+所以这里你可以看到页面内容，比如保险、覆盖状态，所有内容都在这里，
+这就是我实际获取到的文档总数。
+So here you can see page content, hence, insurance, cover status, everything is available over here,
+and this is the total number of documents that I'm actually able to get it.
+
+63
+00:05:28,160 --> 00:05:33,040
+好，接下来我特别需要的是嵌入技术。
+Okay, now uh the next thing that I will be specifically requiring is the embedding technique.
+
+64
+00:05:33,120 --> 00:05:34,560
+我要用哪种嵌入技术呢？
+What embedding technique I'm going to use?
+
+65
+00:05:34,720 --> 00:05:38,560
+就像我说的，我将创建 Hugging Face，或者让我直接写出来。
+As I said, I'll be creating hugging, or let me just go ahead and write.
+
+66
+00:05:38,862 --> 00:05:48,990
+你看，你可以用 Ollama 嵌入任何内容，但因为我打算用 Hugging Face 的嵌入，
+所以我将使用所有的 Hugging Face 组件，这些也非常好，完全是开源的，
+See, you can use Olamai embedding anything, but since I am planning to do it with uh embedding using Hugging Face,
+so I will be using all the Hugging Face components, and these all are also very good,
+
+67
+00:05:48,990 --> 00:05:49,890
+你看，你可以用 Ollama 嵌入任何内容，但因为我打算用 Hugging Face 的嵌入，
+所以我将使用所有的 Hugging Face 组件，这些也非常好，完全是开源的，
+completely open source and available for you from Hugging Face.
+
+68
+00:05:49,890 --> 00:05:52,356
+而且你可以从 Hugging Face 获取。
+completely open source and available for you from Hugging Face.
+
+69
+00:05:52,846 --> 00:06:01,764
+所以这里我基本上要写 Hugging Face embeddings，接下来我特别需要的是我的模型下划线名称。
+So here I'm going to basically write Hugging Face embeddings, and the
+next thing that I will specifically require is my model underscore name.
+
+70
+00:06:02,382 --> 00:06:10,596
+这是我要给出的第一个参数，而那个模型下划线名称就是我在这里探索过的一些模型。
+This is the first parameter that I will be giving, and that model number
+underscore name will be nothing but I have explored some of the model over here.
+
+71
+00:06:11,854 --> 00:06:13,040
+就是这个，对吧？
+That is this one, right?
+
+72
+00:06:13,280 --> 00:06:14,960
+这个也可以。
+By this one is also there.
+
+73
+00:06:15,040 --> 00:06:16,900
+好，所以一种嵌入技术就是这个。
+Okay, so one embedding technique is this one.
+
+74
+00:06:17,230 --> 00:06:19,440
+我也可以使用 sentence transformers。
+I can also use uh sentence transformers.
+
+75
+00:06:19,520 --> 00:06:21,120
+好，让我给你们展示一下。
+Okay, so let me just show you.
+
+76
+00:06:21,200 --> 00:06:23,748
+除了用这个，我也可以用这个。
+Instead of using this, I can also use this.
+
+77
+00:06:24,398 --> 00:06:26,084
+所以我在这里写下注释。
+So I'll write down the comment over here.
+
+78
+00:06:27,310 --> 00:06:30,372
+哎呀，稍等一下，我把注释写在这里。
+Oops, just a second, I'll just write down the comment over here.
+
+79
+00:06:33,390 --> 00:06:35,360
+好，这个你也可以专门使用。
+Okay, so this also you can specifically use.
+
+80
+00:06:35,440 --> 00:06:38,852
+如果你愿意的话，我们就用 sentence transformers，好吗。
+Let's go ahead and use sentence transformers if you want, okay.
+
+81
+00:06:39,520 --> 00:06:42,308
+如果你不想用，你也可以用这个。
+And if you don't want, you can also use this.
+
+82
+00:06:42,400 --> 00:06:44,100
+没关系，由你决定，好吗。
+No worries, it is up to you, okay.
+
+83
+00:06:44,782 --> 00:06:47,040
+这两个或者其中任何一个都可以专门使用。
+Both or any of them can be specifically used.
+
+84
+00:06:47,278 --> 00:06:48,080
+由你决定，好吗。
+It is up to you, okay.
+
+85
+00:06:48,160 --> 00:06:52,880
+这些都是目前可用的免费嵌入技术，好吗。
+And these are some of the free available embedding techniques that is basically available, okay.
+
+86
+00:06:53,600 --> 00:06:56,240
+现在我实际上已经创建了这个。
+So now I have actually created this.
+
+87
+00:06:56,320 --> 00:06:58,240
+我接着写下一个。
+I will go ahead and write my next one.
+
+88
+00:06:58,414 --> 00:07:01,840
+在那之前，让我做一件事，好吗。
+So before that, let me do one thing, okay.
+
+89
+00:07:02,000 --> 00:07:10,640
+好，模型名称是驱动，然后我将使用 model kwargs，我知道我甚至不需要使用 GPU，对吧？
+And okay, so the model name is driven, then I will be using model kwargs, and I know I don't have to even use GPU, right?
+
+90
+00:07:10,720 --> 00:07:19,716
+因为借助 CPU，这是可行的，因为我的文档非常少，所以我将使用 device device:cpu。
+Because with the help of GPU, with the help of CPU, this is possible because
+I have very less documents, so I'll be using device device colon CPU.
+
+91
+00:07:20,080 --> 00:07:25,092
+好，这就是我相对于这个模型参数的设备。
+Okay, so this will basically be my device with respect to this model arguments color.
+
+92
+00:07:25,518 --> 00:07:37,380
+好，我接下来要专门使用的参数是 encode_kwargs，这里
+的 encode_kwargs 我将使用一个叫做 normalize 的参数。
+Okay, the next parameter that I'm going to specifically use encode underscore kwargs and encode underscore KWARGS will be Here I'm
+going to use a parameter which is called as normalize.
+
+93
+00:07:37,632 --> 00:07:42,080
+所以你可能在想，Krish，你大概是从哪里考虑这个的。
+So you may be thinking, Krish, from where are you probably consider this.
+
+94
+00:07:42,862 --> 00:07:45,552
+我只是在查看 Hugging Face 官方的文档，对吧？
+I'm just checking the documentation from the hugging phase itself, right?
+
+95
+00:07:45,632 --> 00:07:47,652
+所以如果你去搜索这个，对吧？
+So if you go ahead and search for this, right?
+
+96
+00:07:48,622 --> 00:07:50,852
+你也能看到一些示例，对吧？
+And you will be also able to see some of the examples, right?
+
+97
+00:07:51,374 --> 00:07:52,432
+所以你可以在这里看到这个。
+So here you can see this.
+
+98
+00:07:52,512 --> 00:07:52,832
+好的。
+Okay.
+
+99
+00:07:53,070 --> 00:07:56,832
+所以你只需要点击这里，就能获取到所有信息。
+So here you just click on this and here you will be able to get all the information.
+
+100
+00:07:57,166 --> 00:07:59,232
+这里还会有一些代码文件供你查看。
+There will be some code files also which you'll be able to see.
+
+101
+00:07:59,392 --> 00:08:00,752
+这里也有 Sentence Transformer。
+Sentence transformer is also there.
+
+102
+00:08:00,846 --> 00:08:02,432
+你看，所有东西都在这里，对吧？
+See, everything is over here, right?
+
+103
+00:08:02,542 --> 00:08:03,108
+全部都在。
+All mini.
+
+104
+00:08:03,374 --> 00:08:04,352
+我刚才只说了这一个，对吧？
+This one only I told, right?
+
+105
+00:08:04,462 --> 00:08:07,712
+所以同样地，如果你想的话，你可以去检查其他的。
+So similarly, you can probably go and check for many of if you want.
+
+106
+00:08:07,792 --> 00:08:08,032
+好的。
+Okay.
+
+107
+00:08:08,718 --> 00:08:13,232
+现在你真正需要做的是设置你的 Hugging Face 访问令牌。
+Now the next thing that you really need to do is that you have to set your access token of Hugging Face.
+
+108
+00:08:13,392 --> 00:08:17,392
+除非你有了 Hugging Face 令牌，否则你无法访问所有这些模型。
+Unless and until in order to access all these models, Hugging Face token needs to be there.
+
+109
+00:08:17,518 --> 00:08:19,972
+所以我要去我的 Hugging Face 账号里点击设置。
+So I will go and click on settings in my Hugging Face account.
+
+110
+00:08:20,302 --> 00:08:21,924
+那里会有一个叫访问令牌的东西。
+There will be something called an access token.
+
+111
+00:08:22,112 --> 00:08:22,404
+好的。
+Okay.
+
+112
+00:08:22,702 --> 00:08:25,072
+只要确保你创建了这个新的令牌。
+And just make sure that you create this particular new token.
+
+113
+00:08:25,230 --> 00:08:27,204
+所以一旦你创建了它，你就能看到它。
+So once you probably create it, you will be able to see it.
+
+114
+00:08:27,392 --> 00:08:27,632
+好的。
+Okay.
+
+115
+00:08:28,352 --> 00:08:30,884
+然后你可以复制它并专门使用它。
+And then you can copy it and you can specifically use it.
+
+116
+00:08:31,072 --> 00:08:33,712
+不管怎样，我会向你们展示具体要在哪里使用它。
+But anyhow, I will show you where we will be specifically using.
+
+117
+00:08:33,792 --> 00:08:41,631
+现在如果我继续执行，这里显示无法导入 sentence transformer，
+需要 pip 安装 sentence transformers。
+Now if I go ahead and execute it, so here could not import sentence transformer pip installed sentence transformers.
+
+118
+00:08:41,712 --> 00:08:48,388
+好的，我需要安装 sentence transformers，让我快速去更新一下我的 requirements.txt 文件。
+Okay, I need to install sentence transformers, so let me quickly go ahead and update my requirement or txt file.
+
+119
+00:08:49,166 --> 00:08:55,684
+你看，每当出现错误时，总会有一些情况发生，但没关系，我们不应该害怕错误。
+See, whenever error comes, some type of things is always going to happen, but it's okay, we should not be afraid of errors.
+
+120
+00:08:55,952 --> 00:09:00,912
+你知道，错误可能会帮助我们实现任何想要做的事情。
+You know, errors will probably help us to do anything that we want.
+
+121
+00:09:00,992 --> 00:09:04,780
+好的，pip install -r requirements.txt。
+Okay, pip install minus our requirement dot txt.
+
+122
+00:09:05,582 --> 00:09:14,116
+所以你现在可以看到 sentence transformers 也被安
+装了，最后你会看到，好的，所有东西都在安装中。
+So here you can see now the sentence transformers will also get installed, and
+finally you'll be able to see that okay, everything is getting installed itself.
+
+123
+00:09:14,638 --> 00:09:17,072
+好的，完美，完美，完美，完美。
+Okay, perfect, perfect, perfect, perfect.
+
+124
+00:09:17,232 --> 00:09:22,592
+Sentence transformers 正在安装，现在你们就能看到它了。
+Sentence transformers is coming over here, and now it will be able to you'll be able to see that okay.
+
+125
+00:09:22,860 --> 00:09:26,532
+一旦安装完成，我想你们就可以执行这个了。
+one once it is installed, then I think then you'll be able to execute this.
+
+126
+00:09:26,766 --> 00:09:29,956
+好了，我们就等这个安装过程完成。
+Okay, so we'll wait till this installation basically happens.
+
+127
+00:09:30,350 --> 00:09:36,192
+如果你还没订阅，请务必在评论区留言，这些视频对你们来说怎么样？
+So if you have not subscribed, and please make sure that you write
+something in the comment section, how are all these videos for you all?
+
+128
+00:09:36,398 --> 00:09:37,312
+你们能听懂吗？
+Are you able to understand?
+
+129
+00:09:37,552 --> 00:09:43,152
+我希望很多人能看到我收到的关于转型的反馈。
+I hope many many people are able to see whatever feedback that I'm getting from people with respect to the transition.
+
+130
+00:09:43,502 --> 00:09:51,152
+我觉得这些视频确实对你们的生活产生了一些影响，至少是一些很棒的影响，
+我希望能尽可能多地做到这一点。
+I feel that yes, the videos are doing something in your life, at least,
+some amazing things in your life, and I hope to do as long as I can.
+
+131
+00:09:51,342 --> 00:09:59,472
+好了，再次强调，我的主要目标是教你们，让你们学到那些在生活中始终有用的东西，对吧？
+Okay, but again, my main aim is to teach you in such a way is that you learn, learn, learn,
+learn things in a way that always it matters in your life, right?
+
+132
+00:09:59,552 --> 00:10:01,472
+这就是我真正追求的目标。
+And that is what I'm actually looking at.
+
+133
+00:10:01,552 --> 00:10:03,872
+好了，咱们等一下。
+Okay, so let's wait.
+
+134
+00:10:03,952 --> 00:10:09,552
+呃，这个特定的安装通常需要一点时间。
+Uh, sometime, some time, some time, some amount of time usually takes for this particular installation.
+
+135
+00:10:09,632 --> 00:10:12,740
+但我认为一旦安装完成，我们就可以开始了。
+But I think once this installation takes place, we are good to go.
+
+136
+00:10:12,992 --> 00:10:17,472
+好了，我还会向你们展示如何设置 Hugging Face。
+Okay, and I'll also show you how you can actually set up the hugging face.
+
+137
+00:10:17,806 --> 00:10:20,196
+你们其实已经创建了 Hugging Face 的 token，对吧？
+You have actually created hugging face tokens, right?
+
+138
+00:10:20,672 --> 00:10:24,100
+但是如何把它设置为环境变量呢？
+But how to set it up as an environment variable.
+
+139
+00:10:24,352 --> 00:10:26,832
+它还是显示没有安装。
+Still, it is saying that it is not installed.
+
+140
+00:10:26,926 --> 00:10:28,900
+是的，安装需要一点时间。
+Yes, installation is taking some amount of time.
+
+141
+00:10:29,152 --> 00:10:30,752
+那我就先暂停视频。
+So let me pause the video till then.
+
+142
+00:10:30,832 --> 00:10:33,572
+我想它还需要一点时间，然后我们继续。
+I think it is going to take some time and then we will continue.
+
+143
+00:10:33,966 --> 00:10:35,872
+所以，各位，现在正在安装。
+So, guys, the installation is taking place now.
+
+144
+00:10:35,952 --> 00:10:43,620
+你们可以去执行它，我想现在应该不会报错了，你们的 Hugging Face 嵌入也应该能在这里导入。
+You can go ahead and execute it, and I think it should not give me an
+error now, and your embedding hugging face should be imported over here.
+
+145
+00:10:43,792 --> 00:10:45,232
+好了，完美。
+Okay, so perfect.
+
+146
+00:10:45,312 --> 00:10:47,792
+呃，让我们看看，呃，它还要花一点时间。
+Uh, let's see, uh, it is going to take some amount of time again.
+
+147
+00:10:47,872 --> 00:10:52,132
+它大概至少需要一分钟，因为这个特定的嵌入模型相当大。
+It is going to take somewhere around at least one minute because this particular embedding is quite big.
+
+148
+00:10:52,352 --> 00:10:53,632
+噢，13.1 秒。
+Oh, 13.1 seconds.
+
+149
+00:10:53,792 --> 00:10:56,260
+这太棒了，真的很好。
+This is absolutely amazing, and this is really good.
+
+150
+00:10:56,512 --> 00:11:03,300
+现在，有了这个 Hugging Face 嵌入，我们将尝试使用它来检查其中一个文件。
+Now, after you have this hugging face embeddings, we will try to use
+this hugging face embeddings and try to just check on one of the file.
+
+151
+00:11:03,392 --> 00:11:08,352
+好了，我直接写 embed_，就为了检查它是否工作正常。
+Okay, so I'll just go ahead and write embed underscore just to check whether it is working fine or not.
+
+152
+00:11:08,654 --> 00:11:15,460
+Embed query，这里我基本上要取我的 final_documents[0]。
+Embed query, and here I'm going to basically take my final underscore documents of zero.
+
+153
+00:11:15,632 --> 00:11:18,820
+好了，我直接取第一个，好吗。
+Okay, so I'll just take the first one, okay.
+
+154
+00:11:19,246 --> 00:11:27,392
+第一个，我可能直接用 page_content，因为它就在这里。
+First one, and probably I will just go ahead and use the page underscore content because it will be available over here.
+
+155
+00:11:28,302 --> 00:11:32,192
+现在我要做的，是专门使用这个 Hugging Face 嵌入。
+now what I'm actually going to do if I'm specifically using this hugging face embeddings, okay.
+
+156
+00:11:32,352 --> 00:11:34,592
+我还要导入 numpy。
+I will also go ahead and import numpy.
+
+157
+00:11:34,766 --> 00:11:42,692
+来看看，导入 numpy 为 np，然后让我把它转换成数组 np.array。
+Let's see, import numpy as np, and let me convert this into an array np.array.
+
+158
+00:11:43,072 --> 00:11:45,392
+好的，我想应该是这样。
+Okay, I think so.
+
+159
+00:11:45,712 --> 00:11:47,460
+不应该报错。
+It should not be giving an error.
+
+160
+00:11:48,174 --> 00:11:50,724
+所以我们只是在测试，好的，完美。
+So we are just trying to see, okay, perfect.
+
+161
+00:11:50,832 --> 00:11:57,792
+所以 page_content 的第一个文档里包含的内容，这就是整个词的嵌入展示方式。
+So whatever was available in the first document of page content, this
+is how the embedding is basically shown for the entire words, okay.
+
+162
+00:11:58,030 --> 00:12:01,312
+就是那些特定出现在那个嵌入里的词。
+Whatever the words are specifically present in that particular embedding.
+
+163
+00:12:01,552 --> 00:12:06,148
+如果你去看一下，这个特定数组的形状是什么？
+And if you probably go ahead and see this, what is the shape of this particular array?
+
+164
+00:12:06,446 --> 00:12:09,792
+好的，我也会打印出那个特定的形状。
+Okay, I will also print that specific shape.
+
+165
+00:12:10,094 --> 00:12:12,100
+好的，让我们先打印这个。
+Okay, let's go ahead and print this first.
+
+166
+00:12:14,446 --> 00:12:18,436
+先打印这个，好的，然后我们再打印它。
+Print this first, okay, and then we will print it.
+
+167
+00:12:20,430 --> 00:12:22,308
+我把这个 .shape 贴上去。
+I'll paste this dot shape.
+
+168
+00:12:22,990 --> 00:12:26,756
+好的，我想你应该能看到形状是 384。
+Okay, I think you will be able to see the shape 384.
+
+169
+00:12:27,056 --> 00:12:28,896
+好的，它也打印出来了。
+Okay, and it is also getting printed.
+
+170
+00:12:28,976 --> 00:12:29,572
+所以完美。
+So perfect.
+
+171
+00:12:29,966 --> 00:12:40,736
+现在我们要做的，如果这个嵌入技术运行正常，那我们
+就用这个嵌入技术把词转换成向量，并存入向量数据库。
+Now what we are going to do, uh, if this embedding technique is working fine, then what we'll do,
+we'll convert for uh the words into vectors by using this embedding technique and store it in a vector store.
+
+172
+00:12:40,816 --> 00:12:51,588
+为此，我已经导入了 Files，所以我大概要创建我的向量数据库，写下 Files.from_documents。
+So for that, I already have imported files, so I'm going to probably create my vector
+store and I'm going to write my files dot and then I'm going to say from documents.
+
+173
+00:12:52,336 --> 00:12:53,892
+我导入 Files 了吗？
+did I import files?
+
+174
+00:12:54,734 --> 00:13:02,660
+是的，它是从 documents 导入的，从 documents
+里，我实际要做的是提供我的 final_documents。
+Yeah, it is imported from documents, and from the documents, what I'm
+actually going to do is that I'm going to give my final documents.
+
+175
+00:13:04,686 --> 00:13:05,508
+还有 final_documents。
+And final documents.
+
+176
+00:13:05,550 --> 00:13:09,856
+比如我给它 120 条记录。
+till let's say I give 120 records.
+
+177
+00:13:09,936 --> 00:13:12,416
+好的，它们大概有 310 条记录。
+Okay, they are somewhere on 310 records.
+
+178
+00:13:12,896 --> 00:13:16,516
+我不全部放进去，因为那会花时间的，好的。
+I'm not putting all because it is going to take time, okay.
+
+179
+00:13:16,910 --> 00:13:21,348
+只是为了演示给你们看，稍后一旦你有时间，你可以增加这个数字。
+Just to show it to you, but later on, once once you have time, you can go ahead and increase this number.
+
+180
+00:13:21,646 --> 00:13:24,452
+这里我基本上要使用 Hugging Face 嵌入，好吗？
+And here I'm going to basically use Hugging Face embeddings, okay?
+
+181
+00:13:24,974 --> 00:13:26,916
+这样向量数据库就创建好了。
+So vector store will basically get created.
+
+182
+00:13:27,056 --> 00:13:37,136
+如果我执行这个，同样需要一点时间，至少 30 到 40 秒，因为这里有很多文档，
+而且所有这些都要做嵌入，对吧？
+So if I go ahead and execute this, again, it is going to take some amount of time, at least 30 to 40 seconds,
+because there's so many documents over here, and all this will be embedding, right?
+
+183
+00:13:37,326 --> 00:13:46,976
+它们会被嵌入成词，正如你所理解的，每个文档都会根据我们特定的分块被转换成 384 个向量。
+It'll get embedded into words, and as you can understand, every document will be
+getting converted into 384 based on the chunks that we have specifically 384 vectors.
+
+184
+00:13:47,056 --> 00:13:54,016
+好了，这就是我的向量数据库创建过程，好吗。
+Okay, so this will basically be my this will be my vector store creation, okay.
+
+185
+00:13:54,478 --> 00:13:58,976
+这就是我们在每一步中具体完成的操作，对吧？
+And this is what is the step that we have specifically done in every step, right?
+
+186
+00:13:59,310 --> 00:14:00,292
+向量数据库创建。
+Vector store creation.
+
+187
+00:14:00,496 --> 00:14:00,868
+完美。
+Perfect.
+
+188
+00:14:01,358 --> 00:14:07,776
+那我们等一会儿，我想大概需要30秒，现在已经过了120秒了。
+So let's wait for some time, and I think it is 30 seconds, it has crossed since 120.
+
+189
+00:14:07,936 --> 00:14:13,696
+之前我尝试的时候，大概花了30秒，因为当时只有100个文档，好吗。
+Before when I tried to do it, it took me a lot around 30 seconds because there were only 100 documents, okay.
+
+190
+00:14:13,776 --> 00:14:15,856
+现在是43.4秒，完美。
+So 43.4 seconds perfect.
+
+191
+00:14:16,176 --> 00:14:23,236
+现在我们将尝试使用这个向量数据库，并通过相似度搜索来执行查询。
+Now we will try to use this vector store and perform query using similarity search.
+
+192
+00:14:23,536 --> 00:14:27,716
+好了，相似度搜索基本上就在这里完成。
+Okay, so similarity search will be basically done over here.
+
+193
+00:14:29,614 --> 00:14:31,456
+相似度搜索将完成，好吗。
+Similarity search will be done, okay.
+
+194
+00:14:31,694 --> 00:14:37,616
+一旦我们完成了相似度搜索，我们就能看到或者能在这里得到某种响应。
+And once we specifically do the similarity search, we will be able to see or we'll be able to get some kind of response over here.
+
+195
+00:14:37,696 --> 00:14:39,696
+好了，那怎么做相似度搜索呢？
+Okay, so how to do the similarity search?
+
+196
+00:14:39,790 --> 00:14:41,604
+首先，我将继续写下我的查询。
+First of all, I will go ahead and write my query.
+
+197
+00:14:42,990 --> 00:14:45,284
+针对这个查询，你将能够看到。
+with respect to the query, you'll be able to see.
+
+198
+00:14:45,678 --> 00:14:47,428
+我直接写一个问题。
+I will just write a question.
+
+199
+00:14:47,776 --> 00:14:49,668
+什么是健康保险？
+What is the health insurance?
+
+200
+00:14:50,830 --> 00:14:56,656
+好了，现在看这个问题，我不是故意随便写的。
+Okay, now see this question that you will be saying, I did not just write it by purposely or somewhere.
+
+201
+00:14:57,856 --> 00:15:02,308
+这里，我将对「什么是健康保险？」进行操作。
+here, what I will be doing with what is the health insurance?
+
+202
+00:15:03,296 --> 00:15:05,936
+保险覆盖范围。
+Insurance coverage.
+
+203
+00:15:06,096 --> 00:15:10,628
+好了，我做的就是进入这个文件夹，好吗。
+Okay, I what I did is that I just went to this folder, okay.
+
+204
+00:15:12,622 --> 00:15:17,540
+当我进入这个文件夹时，我直接打开第一个文件，好吗？
+And when I probably go ahead and see this folder, I will just open my first file, okay?
+
+205
+00:15:18,062 --> 00:15:19,844
+这就是我提取这个问题的来源。
+And this is where I shot this question.
+
+206
+00:15:19,936 --> 00:15:21,536
+什么是健康保险覆盖范围？
+What is health insurance coverage?
+
+207
+00:15:21,646 --> 00:15:25,988
+所以我要把这个问题本身拿出来，好吗，然后把它粘贴到这里。
+So I will take up this question itself, okay, and I will paste it over here.
+
+208
+00:15:26,606 --> 00:15:30,468
+好了，一旦我把它粘贴进去，这就是我实际在搜索的查询。
+Okay, now once I paste it, so this is the query that I'm actually searching.
+
+209
+00:15:30,798 --> 00:15:38,176
+我将继续写 relevant_documents，因为我可能需要检索出那里存在的那个结果。
+I will go ahead and write relevant underscore documents since I need to probably retrieve that result that is present over there.
+
+210
+00:15:38,478 --> 00:15:54,052
+所以，我要做的就是使用 vector_store.similarity.similarity_search，
+好吗，针对我具体写下的任何查询。
+So, what I will do, I will use vector store vector store dot similarity
+similarity underscore search, okay, whatever query I have specifically written.
+
+211
+00:15:55,150 --> 00:16:01,616
+好了，无论我写了什么查询，让我们继续打印出所有相关的文档。
+Okay, whatever query I have written, and let's go ahead and print all the relevant documents.
+
+212
+00:16:05,198 --> 00:16:07,748
+让我们继续打印出所有相关的文档。
+Let's go ahead and print all the relevant documents.
+
+213
+00:16:08,558 --> 00:16:11,152
+一旦我把它打印出来，我想我就能做到。
+So once I print it, I think I should be able to.
+
+214
+00:16:11,598 --> 00:16:15,812
+噢，相关的，相关的，相关的，相关的。
+Oh, relevant, relevant, relevant, relevant.
+
+215
+00:16:17,390 --> 00:16:18,692
+这不是同一个东西吗？
+It's not the same thing?
+
+216
+00:16:19,758 --> 00:16:20,032
+好的。
+Okay.
+
+217
+00:16:21,102 --> 00:16:22,272
+所以这里你可以看到第 2 页。
+So here you can see page 2.
+
+218
+00:16:22,352 --> 00:16:23,392
+什么是医疗保险？
+What is health insurance?
+
+219
+00:16:23,472 --> 00:16:25,380
+在这里你就能看到答案。
+And here you will be able to see the answer.
+
+220
+00:16:25,742 --> 00:16:28,512
+这些简要的当前阶段水平估算，所有内容。
+These brief prevents uh stage level, everything.
+
+221
+00:16:29,232 --> 00:16:32,100
+你能完全看到这个，对吧？
+you are able to see this right completely, right?
+
+222
+00:16:32,430 --> 00:16:36,912
+为了获取这个，我该怎么做才能准确获取页面内容。
+And in order to get this, what I will do to exactly get the page content.
+
+223
+00:16:37,006 --> 00:16:39,312
+所以我将编写下划线 page content。
+So I will write underscore page content.
+
+224
+00:16:39,632 --> 00:16:47,236
+所以无论我具体问什么问题，你都能看到这是医疗保险覆盖范围的简要当前阶段水平估算。
+So whatever question I'm specifically asking, you'll be able to see this
+is the brief present state level estimates of health insurance cover.
+
+225
+00:16:47,726 --> 00:16:50,032
+是一样的还是不是？
+Is it same or not?
+
+226
+00:16:50,574 --> 00:16:59,072
+所以这是使用美国社区调查数据得出的医疗保险覆盖范围的简要当前阶段水平估算。
+So this brief present state level estimates of health insurance coverage
+using data from American Community survey American Community Survey.
+
+227
+00:16:59,152 --> 00:17:02,884
+所以这里你可以看到美国普查，所有内容运行得非常完美。
+So here you can see the US censors and all everything is working absolutely fine.
+
+228
+00:17:03,072 --> 00:17:03,332
+好的。
+Okay.
+
+229
+00:17:04,592 --> 00:17:09,872
+有时候你可能还需要，呃，你知道，更多的结果，对吧？
+Sometimes you also may be requiring uh you know more results, right?
+
+230
+00:17:09,952 --> 00:17:12,271
+更多，比如说我现在只得到了一个结果。
+More let's say right now I'm just getting one result.
+
+231
+00:17:12,432 --> 00:17:16,512
+假设我现在想要两个到三个结果，或者两个类似的。
+Let's say I want two to three results now or two to the similar kind of results.
+
+232
+00:17:16,592 --> 00:17:24,112
+现在，我实际能做的就是，嗯，或者呃，根据我提
+出的特定文本或查询，我特别想要最相关的文档。
+Now, what I can actually do is that um or uh according to that particular text or query that I've asked,
+the most relevant document I specifically want.
+
+233
+00:17:24,300 --> 00:17:28,132
+所以我能做的就是，基本上写这个向量数据库，好吗。
+So what I can do, I can basically write this vector store, okay.
+
+234
+00:17:29,072 --> 00:17:35,552
+向量数据库，我将专门把它调用为检索器函数。
+Vector store, and I will specifically call as a retriever function.
+
+235
+00:17:35,886 --> 00:17:41,712
+我希望大家都知道什么是检索器，因为我们已经完全讨论过关于它的不同方面了。
+I hope everybody knows what is as a retriever because we have discussed more different thing about it completely.
+
+236
+00:17:41,952 --> 00:17:50,752
+检索器只是一种连接到向量数据库的接口，这样你就能根据相似度搜索获得更多、更棒的结果。
+As a retriever is just a kind of interface that gets connected to a vector store so that you will be able to get more results,
+more amazing results based on the similarity search.
+
+237
+00:17:50,926 --> 00:18:07,748
+在这里我会说搜索类型为相似度，但我的搜索下划线参数，好吗，
+我的搜索下划线参数将是 k 等于 3，也就是 k 冒号 3。
+And here I will say search type similarity, but my search underscore arguments okay,
+will be nothing but my search underscore arguments will be nothing but k is equal to 3 k colon 3.
+
+238
+00:18:07,952 --> 00:18:12,100
+好的，这就是我可能会得到的向量数据库，好吗。
+Okay, so this is what I will be probably getting the vector store, okay.
+
+239
+00:18:12,592 --> 00:18:16,512
+而且，呃，你可以把这个考虑为我本身的检索器，对吧？
+And uh you can probably consider this as my retriever itself, right?
+
+240
+00:18:16,592 --> 00:18:22,564
+所以我将把它保存为检索器，好吗，然后让我们打印
+So I will save this as retriever, okay, and then let's print
+
+241
+00:18:27,918 --> 00:18:29,232
+检索器，好吗。
+retriever, okay.
+
+242
+00:18:29,710 --> 00:18:37,092
+所以这里你可以看到文件、Hugging Face 嵌入，所有这些内容，以及搜索参数的数量，
+比如我需要的最相关文档是三个。
+So here you can see files, hugging face embeddings, all the things, and the number of search arguments,
+like most relevant documents I require is three.
+
+243
+00:18:37,312 --> 00:18:43,172
+好的，现在我还可以使用这个特定的检索器来调用我特别想要的任何内容。
+Okay, and now I can also use this particular retriever to invoke anything that I specifically want.
+
+244
+00:18:43,632 --> 00:18:47,652
+但在调用之前，请注意我还需要一个 LLM 模型。
+But before I invoke, understand I also require an LLM model.
+
+245
+00:18:48,014 --> 00:18:51,472
+关于这些 LLM 模型，就像我说的，我打算使用 Hugging Face 的 LLM 模型。
+Now for those LLM models, as I said, I'm going to use Hugging Face LLM model.
+
+246
+00:18:51,632 --> 00:18:54,912
+这就是为什么实际上需要创建访问令牌的原因，对吧？
+Now that is the reason the access token that are actually created, right?
+
+247
+00:18:55,118 --> 00:18:57,872
+我打算在我的 Hugging Face 中设置那个访问令牌。
+I'm going to set up that access token with my hugging face.
+
+248
+00:18:58,032 --> 00:19:00,672
+所以我会写 os.environment，好吗。
+So I will write os.environment, Okay.
+
+249
+00:19:01,262 --> 00:19:03,812
+首先让我导入 OS。
+And here first let me go ahead and import OS.
+
+250
+00:19:05,070 --> 00:19:05,956
+导入 OS。
+Import OS.
+
+251
+00:19:06,382 --> 00:19:10,692
+OS.environment，我的 Hugging Face Hub API 令牌。
+OS.environment, my Hugging Face Hub API token.
+
+252
+00:19:10,862 --> 00:19:18,276
+我要把它设置为我的 API 令牌，因为从这里开始，模型将从 Hugging Face Hub 下载并被使用。
+So I'm going to set this up as my API token because from here, Hugging Face Hub only,
+will be downloading the model will be using the model.
+
+253
+00:19:18,542 --> 00:19:21,220
+在这里我们将专门使用我的令牌密钥。
+And here we are going to specifically use my token key.
+
+254
+00:19:21,792 --> 00:19:22,032
+对吧？
+Right?
+
+255
+00:19:22,112 --> 00:19:26,272
+我在这里把令牌硬编码进去了，因为我是直接从那里复制过来的。
+I'm hard coding the token over here because I've copied it from there itself.
+
+256
+00:19:26,574 --> 00:19:29,472
+但不要用这个，因为我打算重新生成那个特定的令牌。
+But don't use this because I'm going to regenerate that particular token.
+
+257
+00:19:29,552 --> 00:19:29,712
+好的。
+Okay.
+
+258
+00:19:29,872 --> 00:19:30,788
+它将没用的。
+It will be of no use.
+
+259
+00:19:30,912 --> 00:19:31,172
+好的。
+Okay.
+
+260
+00:19:31,792 --> 00:19:42,272
+现在，如果你们不知道 Hugging Face Hub 是什么，或者
+Hugging Face 到底是什么，我会在这里为你们写一些描述。
+Now let's go ahead and if you if you don't know about Hugging Face Hub guys, what exactly is a Hugging Face and all,
+I'll be writing some description over here for you all.
+
+261
+00:19:42,446 --> 00:19:42,752
+对。
+Right.
+
+262
+00:19:43,118 --> 00:19:51,930
+Hugging Face 是一个拥有超过 35 万模型、7.5 万数据集和 15 万演示应用的平台，
+所有都在 Spaces 中，全部都是开源的，并且在在线平台上公开可用，
+So Hugging Face is a platform with over 350k models, 75k datasets, and 150k demo apps, all in spaces,
+all open source and publicly available in an online platform where people can easily collaborate and build ML together.
+
+263
+00:19:51,930 --> 00:19:55,236
+人们可以在上面轻松地协作并共同构建机器学习模型。
+So Hugging Face is a platform with over 350k models, 75k datasets, and 150k demo apps, all in spaces,
+all open source and publicly available in an online platform where people can easily collaborate and build ML together.
+
+264
+00:19:55,662 --> 00:20:06,308
+所以我也会使用这个相同的 Hugging Face Hub，然后我要从 Langchain.community 导入。
+So I'm also going to use this same Hugging Face hub, and then I'm going to write from Langchin.community.
+
+265
+00:20:08,782 --> 00:20:19,664
+Langchain_community.llms 导入 huggingfacehub，对吧。
+Lang chain underscore community dot llms import hugging hugging face hub right.
+
+266
+00:20:19,758 --> 00:20:21,828
+所以我要专门使用 Hugging Face Hub。
+So I'm going to specifically use Hugging Face Hub.
+
+267
+00:20:22,222 --> 00:20:25,220
+我将创建 HF，它就是 Hugging Face Hub。
+I will create HF is nothing but Hugging Face Hub.
+
+268
+00:20:26,862 --> 00:20:29,924
+现在我将向你们展示如何调用你们的模型，对吧？
+And now I will show you how you can call your models, right?
+
+269
+00:20:30,158 --> 00:20:34,180
+这里的核心参数就是你必须提供你的 repo ID。
+The main parameter over here is nothing but you have to give your repo underscore ID.
+
+270
+00:20:34,464 --> 00:20:34,704
+好的。
+Okay.
+
+271
+00:20:35,184 --> 00:20:40,164
+现在这里的一个 repo ID，既然你要使用开源模型，那就是 Mistral，对吧？
+Now here one repo ID since you are going to use the open source model is nothing but mistral, right?
+
+272
+00:20:40,686 --> 00:20:42,756
+所以这基本上是给你们提供的框架。
+So this is basically a skeleton for you.
+
+273
+00:20:42,944 --> 00:20:45,504
+你可以继续替换成任何你想要的模型，对吧？
+You can go ahead and replace the model whatever you want, right?
+
+274
+00:20:45,584 --> 00:20:47,812
+所以我们要使用 Mistral 7B。
+So we are going to use Mistral 7B.
+
+275
+00:20:47,984 --> 00:20:48,304
+好的。
+Okay.
+
+276
+00:20:48,622 --> 00:20:51,172
+再次强调，你想用什么模型都可以。
+Again, it is up to you, whatever model you specifically want to use.
+
+277
+00:20:51,310 --> 00:20:52,864
+你只需要提供你的 repo ID。
+Only you have to give your repo ID.
+
+278
+00:20:52,944 --> 00:20:57,284
+除此之外，你确实还需要提供一个参数，就是模型参数。
+Along with this, one more parameter that you really want to give is model arguments.
+
+279
+00:20:57,504 --> 00:20:57,796
+好的。
+Okay.
+
+280
+00:20:58,254 --> 00:21:02,532
+所以在模型参数里，这里我们会专门设置温度参数。
+So in the model arguments, here we will specifically give temperature parameter.
+
+281
+00:21:02,864 --> 00:21:03,184
+好的。
+Okay.
+
+282
+00:21:03,566 --> 00:21:05,988
+所以温度将设置为 0.1。
+So temperature will be nothing but it will be 0.1.
+
+283
+00:21:06,384 --> 00:21:11,044
+接下来你要设置的参数就是最大长度。
+And the next parameter that you are specifically going to give is nothing but max underscore length.
+
+284
+00:21:11,904 --> 00:21:12,224
+好的。
+Okay.
+
+285
+00:21:12,942 --> 00:21:15,396
+这个最大长度将设置为 500。
+And this max underscore length will be nothing but 500.
+
+286
+00:21:15,664 --> 00:21:15,908
+好的。
+Okay.
+
+287
+00:21:16,558 --> 00:21:22,820
+所以这两个就是你必须创建的参数，这样你才能使用这个特定的开源模型。
+So these are the two parameters that you really need to create so that you will be able to use this particular open source model.
+
+288
+00:21:23,246 --> 00:21:27,812
+明白一点，这是直接从 Hugging Face Hub 获取的。
+Understand one thing, this will be directly using from the Hugging Face Hub itself.
+
+289
+00:21:27,984 --> 00:21:29,824
+好的，你不需要在本地下载它。
+Okay, you don't need to download it locally.
+
+290
+00:21:30,030 --> 00:21:36,452
+如果你想在本地下载并查看，我也会提供相关的代码，你可以去尝试一下。
+For downloading, if you want to download it locally and probably want to check it
+out, so I will also give you the code for that, you can which you can try it out.
+
+291
+00:21:36,544 --> 00:21:36,784
+好的。
+Okay.
+
+292
+00:21:37,006 --> 00:21:38,864
+现在让我来写同样的查询。
+Now let me go ahead and write the same query.
+
+293
+00:21:39,086 --> 00:21:50,864
+所以我会说查询等于“什么是健康保险保障”这个同样的查询。
+So I will say query is equal to what is the health same query insurance coverage.
+
+294
+00:21:50,944 --> 00:21:52,964
+好的，这就是我现在有的查询。
+Okay, so this is the query that I have now.
+
+295
+00:21:53,424 --> 00:21:58,372
+为了调用它，我会使用同样的 hf.invoke。
+In order to invoke it, I will use the same h, HF dot invoke.
+
+296
+00:21:58,464 --> 00:22:01,252
+好的，然后我基本上就是输入我的查询。
+Okay, and then I'm going to basically give my query.
+
+297
+00:22:02,094 --> 00:22:07,584
+所以现在你可以看到我得到了响应，这是一个更通用的响应，对吧？
+So here you can see now I will be able to get my response, and this is the more generic response, right?
+
+298
+00:22:07,982 --> 00:22:09,184
+什么是健康保险保障？
+What is the health insurance cover?
+
+299
+00:22:09,264 --> 00:22:09,984
+我刚刚问了这个问题。
+I have just asked.
+
+300
+00:22:10,064 --> 00:22:12,644
+这是 Mistral 所知道的最通用的回答。
+This is the most generic response which Mistral knows.
+
+301
+00:22:13,184 --> 00:22:16,624
+但我主要的目的是创建一个 QA 应用，对吧？
+But my main aim is to probably create a QA app, right?
+
+302
+00:22:16,910 --> 00:22:19,364
+专门用于 RAG 应用的 QA 应用。
+QA app specifically for RAG application.
+
+303
+00:22:19,598 --> 00:22:23,584
+所以目前它还没有与我 PDF 文件中提供的数据进行交互。
+So still it is not community communicating with my data that is available in my PDF.
+
+304
+00:22:23,664 --> 00:22:23,876
+好的。
+Okay.
+
+305
+00:22:23,984 --> 00:22:28,064
+所以现在，它只是给了我一个通用的输出，好吗。
+So right now, this is just given me a general uh general output, okay.
+
+306
+00:22:28,238 --> 00:22:31,492
+现在的通用输出是基于互联网上的知识。
+Now general output what is available with respect to the knowledge of the internet.
+
+307
+00:22:32,078 --> 00:22:34,544
+接下来，我们要具体做些什么。
+Now the next step, what we are specifically going to do.
+
+308
+00:22:34,704 --> 00:22:42,544
+你看，明白的话，如果你想确保我们与 PDF 交互，这些 Hugging Face LLM 模型，
+我们可能需要创建自己的提示词模板。
+See, understand if you want to make sure that we interact with our PDFs, this Hugging Face LLM models,
+we have to probably create our own prompt template.
+
+309
+00:22:42,704 --> 00:22:48,036
+还有一件事我真的很想展示一下，就是如果你想在本地下载，对吧？
+One more thing that I really wanted to show is that if you want to download locally, right?
+
+310
+00:22:48,224 --> 00:22:51,044
+Hugging Face 模型可以通过 Hugging Face Pipeline 在本地运行。
+Hugging face models can be run locally through Hugging Face pipeline.
+
+311
+00:22:51,470 --> 00:22:53,412
+这是新的代码。
+So here is the new code.
+
+312
+00:22:53,774 --> 00:23:03,664
+以前我们用的是 Hugging Face Hub，这里你看到的是 Hugging Face Pipeline，
+生成任务的代码一样，你大概可以执行这个，它基本上就能生成内容了。
+Before we used to use Hugging Face Hub, here you have Hugging Face Pipeline, same code for task generation,
+everything you can probably execute this, and this will basically be able to generate it.
+
+313
+00:23:03,744 --> 00:23:07,556
+好，但我不会用这个，因为我已经试过从这个运行了，对吧？
+Okay, but I'm not going to use this since I have already trying to use from this, right?
+
+314
+00:23:07,918 --> 00:23:10,532
+所以执行起来需要一点时间。
+So it is going to take some amount of time with respect to execution.
+
+315
+00:23:10,624 --> 00:23:11,344
+完美。
+Perfect.
+
+316
+00:23:11,584 --> 00:23:12,996
+现在这个完成了。
+Now this is done.
+
+317
+00:23:13,422 --> 00:23:17,184
+现在，我知道我需要使用这个 LLM 模型来与我的 PDF 交互。
+Now, as I know, I need to use this LLM model to interact with my PDF.
+
+318
+00:23:17,344 --> 00:23:19,908
+所以为了实现这一点，我将尝试创建我的提示词模板。
+So for that, I will try to create my prompt template.
+
+319
+00:23:20,864 --> 00:23:21,184
+好的。
+Okay.
+
+320
+00:23:21,742 --> 00:23:26,704
+现在提示词模板就是，我会
+now the prompt template will be nothing, but I'll I'll be
+
+321
+00:23:34,304 --> 00:23:39,652
+使用以下这段上下文。
+use the following piece of context.
+
+322
+00:23:40,334 --> 00:23:40,740
+好的。
+okay.
+
+323
+00:23:41,646 --> 00:23:46,980
+来回答提出的问题。
+to answer the question, the question asked.
+
+324
+00:23:47,184 --> 00:23:47,504
+好的。
+okay.
+
+325
+00:23:49,230 --> 00:23:53,680
+这是我使用的简单提示词。
+So here is the simple prompt that I have used.
+
+326
+00:23:53,840 --> 00:23:55,556
+使用以下这段上下文。
+Use the following piece of context.
+
+327
+00:23:56,160 --> 00:24:01,700
+呃，使用以下这段上下文来回答提出的问题。
+Uh piece of context to answer the use the following piece of order to answer the question asked.
+
+328
+00:24:05,198 --> 00:24:13,200
+请尝试仅根据上下文提供答案。
+Please try to provide the answers only based on the context.
+
+329
+00:24:13,422 --> 00:24:15,748
+好的，我只是给了一个简单的提示词。
+Okay, so I'm just giving a simple prompt.
+
+330
+00:24:16,046 --> 00:24:16,320
+好的。
+Okay.
+
+331
+00:24:17,006 --> 00:24:17,920
+挺简单的提示词。
+Pretty simple prompt.
+
+332
+00:24:18,080 --> 00:24:18,308
+好的。
+Okay.
+
+333
+00:24:18,606 --> 00:24:20,080
+现在我的上下文就在这里。
+Now my context will be over here.
+
+334
+00:24:20,398 --> 00:24:21,988
+C O N T X T，好的。
+C O N T X T okay.
+
+335
+00:24:22,320 --> 00:24:25,200
+然后我的问题就是放在这里。
+And then my question will be nothing but it will be over here.
+
+336
+00:24:25,280 --> 00:24:28,292
+我想我们在之前的视频里已经做过很多次了。
+And I think we have done this many number of times in my previous video.
+
+337
+00:24:28,560 --> 00:24:28,836
+好的。
+Okay.
+
+338
+00:24:29,440 --> 00:24:35,972
+如果我还想要别的东西，我大概可以写点有帮助的回答。
+And if I want one more thing, I can probably give I will just write helpful answers.
+
+339
+00:24:36,654 --> 00:24:37,988
+好的，我就把它留空。
+Okay, and I'll keep it blank.
+
+340
+00:24:38,160 --> 00:24:44,720
+好的，这就是我要用的提示词模板，为了把它变成这样，我要用我的提示词模板。
+Okay, so this is my prompt template that I'm going to use, and then
+in order to make it as a this, I'm going to use my prompt template.
+
+341
+00:24:44,960 --> 00:24:50,640
+提示词模板，我的模板将被分配到这个相同的提示词上，同样的提示词。
+Prompt template, my template will be assigned to this same prompt, same same prompt.
+
+342
+00:24:51,040 --> 00:24:52,964
+我想这是分配给这个提示词的。
+I think this is assigned to this prompt.
+
+343
+00:24:53,280 --> 00:24:57,732
+好的，所以这基本上就是我的提示词，好的。
+Okay, so this will basically be my prompt, okay.
+
+344
+00:24:58,190 --> 00:25:06,692
+然后我的输入变量将包含两样东西，一个是上下文，好的。
+And then my input variables will be having two things one is context, okay.
+
+345
+00:25:09,294 --> 00:25:12,068
+上下文，另一个是问题。
+Context, and the other one is question.
+
+346
+00:25:12,880 --> 00:25:20,964
+哎呀，同样的，就是第二个问题。
+Oops, same question just a second question.
+
+347
+00:25:22,222 --> 00:25:28,324
+好的，所以上下文和问题，我们把它们设为输入变量，这基本上就成了我的提示词本身。
+Okay, so context and question, we are setting it as an input variable, and this basically becomes my prompt itself.
+
+348
+00:25:28,494 --> 00:25:30,436
+好的，我要执行这个。
+Okay, so I'm going to execute this.
+
+349
+00:25:30,720 --> 00:25:35,360
+好的，现在明白如果我想合并的话，好的。
+Okay, now understand if I want to combine, okay.
+
+350
+00:25:35,440 --> 00:25:39,680
+如果我想合并我的 Langchain，对吧？
+I can if I want to combine my lang chain, right?
+
+351
+00:25:39,854 --> 00:25:44,320
+我的，抱歉，不是 Langchain，是我的模板和 LLM 模型。
+My my sorry, not lang chain, my my template with the LLM models.
+
+352
+00:25:44,400 --> 00:25:50,400
+显然，你真正需要做的是为了获取上下文和问题，去创建检索 QA，对吧？
+Obviously, what you really need to do so that we also get the context and the question, it's create retrieval QA, right?
+
+353
+00:25:50,606 --> 00:25:52,480
+所以创建检索 QA 链，对吧？
+So create retrieval QA chain, right?
+
+354
+00:25:52,560 --> 00:25:59,236
+所以如果你记得我之前的视频，我还可以专门通过使用这个检索 QA 来实现，对吧？
+So if you remember that in my previous video, one more way that I can specifically do is by using this retrieval QA, right?
+
+355
+00:25:59,662 --> 00:26:06,628
+为了使用这个检索 QA，我在这里要做的是，我只需写 链类型，好的。
+And in order to use this retrieval QA, here what I will do, I will just write from chain type, okay.
+
+356
+00:26:07,278 --> 00:26:10,960
+从 链类型 开始，然后我开始输入我需要的参数。
+From chain type, and here I'll start giving my parameters that I require.
+
+357
+00:26:11,120 --> 00:26:12,836
+第一个参数就是 LLM。
+First parameter is nothing but llm.
+
+358
+00:26:13,198 --> 00:26:17,412
+LLM 就是我们创建的 HF，也就是 Hugging Face 库。
+LLM will be nothing but hf, whatever a hugging face library that we have created.
+
+359
+00:26:17,600 --> 00:26:21,604
+我将我的 链类型 设置为 stuff，好的。
+I will create my chain type as stuff, okay.
+
+360
+00:26:22,286 --> 00:26:24,036
+所以 链类型 就是 stuff。
+So chain type will be nothing but stuff.
+
+361
+00:26:26,286 --> 00:26:33,668
+下一个我们要做的特定参数是我的检索器，它将被分配给检索器本身，也就是基本定义好的那个。
+The next parameter that we have specifically going to do is my retriever,
+which will be assigned to my retriever itself, which is basically defined.
+
+362
+00:26:34,000 --> 00:26:41,988
+返回源文档，你可以把它设为 true 或 false，这样就能理解它基本上是从哪里来的。
+The return source document, you can keep it as true or false, so that will be able to understand from where it is basically coming up.
+
+363
+00:26:42,414 --> 00:26:46,628
+所以返回源文档，我们将它设为 true，好的。
+So return source documents, which will be assigned to true, okay.
+
+364
+00:26:47,022 --> 00:26:50,468
+下一个参数就是我的 链类型。
+And the next parameter is nothing but it is my chain type.
+
+365
+00:26:51,182 --> 00:26:54,000
+链类型关键字参数。
+Chain type kwargs.
+
+366
+00:26:54,240 --> 00:27:00,880
+好的，你也可以在 LangChain 的官方文档中查看完整的说明。
+Okay, and you can also check out this entire documentation from the from the lang chain documentation.
+
+367
+00:27:00,960 --> 00:27:04,640
+所以 prompt 就是指这个特定的 prompt，好吗。
+So prompt will be nothing but it will be assigned to this particular prompt, okay.
+
+368
+00:27:04,974 --> 00:27:05,700
+抱歉，是这个 prompt。
+Sorry, this prompt.
+
+369
+00:27:06,798 --> 00:27:09,920
+好了，大部分内容都已经完成了。
+So this is done, like most of the things has been completed over here.
+
+370
+00:27:10,158 --> 00:27:19,530
+但要明白一点，在检索 QA 中，你必须提供 Hugging Face、链类型、检索器、返回源文档，
+这样你才能知道信息是从哪来的，而链类型参数就是针对 prompt 的。
+But understand one thing in retrieval QA, you have to give your hugging face, your chain type stuff, your retriever,
+return source document, so that you need to understand from where it is
+
+371
+00:27:19,530 --> 00:27:23,200
+但要明白一点，在检索 QA 中，你必须提供 Hugging Face、链类型、检索器、返回源文档，
+这样你才能知道信息是从哪来的，而链类型参数就是针对 prompt 的。
+coming, and cha type arguments is nothing but with respect to the prompt.
+
+372
+00:27:23,280 --> 00:27:30,948
+这个 prompt 将返回一些文档，并将其放入上下文中，
+然后问题会传过去，整个检索 QA 链就会开始工作。
+So this prompt will return some of the documents, it will be setting up in the context,
+then the question will go over there and entire this retrieval QA chain will work.
+
+373
+00:27:31,150 --> 00:27:37,600
+好的，所以这里我把它写成 retrieval qa，对吧？
+Okay, so here I'm going to write it as retrieval qa, right?
+
+374
+00:27:37,838 --> 00:27:39,172
+所以它基本上就放在那里。
+So this will basically be there.
+
+375
+00:27:39,566 --> 00:27:41,348
+让我快速去运行一下。
+Let me quickly go ahead and execute it.
+
+376
+00:27:41,902 --> 00:27:42,160
+好的。
+Okay.
+
+377
+00:27:42,766 --> 00:27:46,308
+现在最后一步，你只需要运行它就行了。
+Now it's final that you just need to run it in order to run it.
+
+378
+00:27:46,480 --> 00:27:48,324
+这就是问题，对吧？
+Here is the question, right?
+
+379
+00:27:48,878 --> 00:27:55,920
+现在，我们终于可以使用我们创建的这个检索 QA 了，我们正针对已经写好的查询进行调用。
+So now finally, we can use this retrieval QA that we have actually created,
+and we are invoking with respect to the query that we have already written.
+
+380
+00:27:56,000 --> 00:27:57,200
+医疗保险涵盖了什么？
+What is the health coverage?
+
+381
+00:27:57,454 --> 00:27:59,440
+最后，让我们来看看结果。
+And finally, let's go ahead and check our results.
+
+382
+00:27:59,600 --> 00:28:10,800
+所以这里你可以看到医疗保险涵盖了什么，简要介绍了美国社区调查的州级估算数据，
+美国人口调查局全年都会进行 ACS。
+So here you can see what is health insurance covers, the brief presents, the state level estimates of this American Community Survey,
+the US concept uh US Census Bureau conducts the ACS throughout the year.
+
+383
+00:28:10,958 --> 00:28:15,716
+调查要求受访者报告当时的覆盖情况，所以所有信息都给出了具体的说明。
+The surveys asked responds to report the coverage at a time, so every information is specifically given.
+
+384
+00:28:16,142 --> 00:28:19,460
+现在如果你想的话，还可以继续提问其他问题。
+Now you can go ahead and ask some other questions also if you want.
+
+385
+00:28:20,080 --> 00:28:27,120
+嗯，让我问一下各州无保险率的差异。
+Um, let me go ahead and ask this differences in the uninsured rate by state.
+
+386
+00:28:27,200 --> 00:28:29,360
+好的，那我就问这个问题。
+Okay, so I'll go ahead and ask this.
+
+387
+00:28:29,520 --> 00:28:31,588
+让我把新的查询写出来。
+Let me go ahead and write my new query.
+
+388
+00:28:32,142 --> 00:28:34,320
+所以查询等于
+So query is equal to
+
+389
+00:28:42,766 --> 00:28:45,732
+让我把这个关掉。
+Let me just go ahead and close this in.
+
+390
+00:28:46,976 --> 00:28:47,296
+好的。
+Okay.
+
+391
+00:28:47,982 --> 00:28:49,856
+这就是我的查询。
+So here is my query.
+
+392
+00:28:50,190 --> 00:28:51,776
+那让我去运行一下。
+So let me go ahead and execute it.
+
+393
+00:28:52,142 --> 00:28:55,696
+现在，如果我去看这个，它应该能给我返回结果。
+Now, if I go ahead and see this, it should be able to give me the response.
+
+394
+00:28:55,776 --> 00:28:58,576
+这是 ACS 医疗保险衡量标准的对比。
+So here is a comparison of ACM measure of health insurance.
+
+395
+00:28:58,656 --> 00:29:00,816
+所以这里的一切大概都是匹配的。
+So everything is probably matching over here.
+
+396
+00:29:00,896 --> 00:29:03,492
+所以你确定这些，这些，这些是出来的。
+So you unsure the rates of this, this, this is coming up.
+
+397
+00:29:03,616 --> 00:29:03,936
+好的。
+Okay.
+
+398
+00:29:04,398 --> 00:29:06,948
+所以所有信息都是专门从这里出来的。
+So all the information are specifically coming up from here.
+
+399
+00:29:07,694 --> 00:29:08,496
+这太完美了。
+This is perfect.
+
+400
+00:29:09,198 --> 00:29:13,616
+现在，我也向你们展示了如何使用 Langchain 和 Hugging Face。
+now we have I've also shown you how you can probably work with Langchain and Hugging Face.
+
+401
+00:29:13,856 --> 00:29:18,692
+所以，如果你愿意的话，让我把这个也更新一下，好吗。
+So let me go ahead and update this also if you want, okay.
+
+402
+00:29:20,096 --> 00:29:22,788
+插入单元格，插入单元格。
+insert cell chin cell to insert.
+
+403
+00:29:23,776 --> 00:29:26,244
+好的，太完美了。
+Okay, so perfect.
+
+404
+00:29:26,638 --> 00:29:27,364
+就是这样。
+This is it.
+
+405
+00:29:28,206 --> 00:29:30,148
+我希望你们喜欢这个视频。
+I hope you like this particular video.
+
+406
+00:29:30,736 --> 00:29:39,364
+说到底，我真正想说的一点是，你练习得越多，看到的越多，
+你肯定能在这一领域取得更多的成就。
+at the end of the day, the one thing that I really want to say is that more you practice things, more you see things,
+definitely you'll be able to achieve multiple things over here.
+
+407
+00:29:39,854 --> 00:29:41,936
+所以，是的，我希望你们喜欢这个视频。
+So, yes, I hope you like this particular video.
+
+408
+00:29:42,016 --> 00:29:42,736
+我这边就讲到这里。
+This was it from my side.
+
+409
+00:29:42,816 --> 00:29:43,616
+我们下个视频再见。
+I'll see you all in the next video.
+
+410
+00:29:43,776 --> 00:29:44,256
+祝你有美好的一天。
+Have a great day.
+
+411
+00:29:44,576 --> 00:29:45,160
+谢谢大家。
+Thank you, one doll.
+
+412
+00:29:45,376 --> 00:29:46,308
+保重，拜拜。
+take care, bye bye.
+
