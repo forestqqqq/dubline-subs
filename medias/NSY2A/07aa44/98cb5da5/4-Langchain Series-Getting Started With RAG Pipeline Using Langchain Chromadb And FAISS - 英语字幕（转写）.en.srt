@@ -1,0 +1,1512 @@
+1
+00:00:00,654 --> 00:00:03,396
+Hello guys, we are going to continue the lang chain series.
+
+2
+00:00:03,600 --> 00:00:09,956
+And in this specific videos and in the series of upcoming videos, we are going to discuss about RAG pipeline.
+
+3
+00:00:10,574 --> 00:00:14,400
+Now, RAG the full form is retrieval augmented generation.
+
+4
+00:00:14,560 --> 00:00:20,484
+One of the very important use cases you may probably be solving when you specifically use LLM models.
+
+5
+00:00:21,360 --> 00:00:27,876
+And most of the use cases right now in companies are demanding this kind of skill sets, you know, where you can actually develop RAG.
+
+6
+00:00:28,398 --> 00:00:34,532
+Let's say you have a set of documents and you should be able to query that specific documents and get the result quickly.
+
+7
+00:00:35,040 --> 00:00:47,844
+If you have different kind of files, let it be a README file, a text file, a different data source file, you should be able to read it, convert that into a vectors and able to retrieve any queries specifically from those kind of data sources.
+
+8
+00:00:48,558 --> 00:00:54,052
+So as I said, we will be implementing this completely from scratch from basic to advanced.
+
+9
+00:00:54,478 --> 00:00:59,748
+In this specific videos, we'll understand the entire architecture and then we will do a lot of practical intuitions.
+
+10
+00:01:00,080 --> 00:01:00,400
+Okay.
+
+11
+00:01:00,910 --> 00:01:06,880
+So in any rag pipeline, these are the major components that will probably exist.
+
+12
+00:01:07,342 --> 00:01:11,280
+So the first component is specifically called as load data source.
+
+13
+00:01:11,374 --> 00:01:20,196
+Now, whenever we say load data source, initially we may have see RAG is all about querying from a different different data source altogether, right?
+
+14
+00:01:20,750 --> 00:01:32,960
+So we may be having files that may be having PDF, it can be a MD file, README file, it can be a Excel file, it can be a Txt file, it can be a database file, it can be different different files altogether, right?
+
+15
+00:01:33,358 --> 00:01:39,012
+And in the first so first step that we see over here, it is basically called as load source data.
+
+16
+00:01:39,374 --> 00:01:42,404
+This step is also called as data ingestion.
+
+17
+00:01:42,640 --> 00:01:42,960
+Okay.
+
+18
+00:01:43,470 --> 00:01:44,452
+Data ingestion.
+
+19
+00:01:45,070 --> 00:01:55,120
+Now in Langchain, the most amazing thing is that it definitely have a lot of different kind of data ingestion tools which will be able to load the data in various manner.
+
+20
+00:01:55,360 --> 00:02:02,180
+So in our current video, we are going to implement each and every of this component from data ingestion till the query vector store.
+
+21
+00:02:02,400 --> 00:02:02,720
+Okay.
+
+22
+00:02:03,406 --> 00:02:09,680
+Then after ingesting the data, you can probably do load, you can transform, and you can embed.
+
+23
+00:02:09,774 --> 00:02:13,284
+Okay, we will discuss about this what exactly is load, transform, and embed.
+
+24
+00:02:13,806 --> 00:02:25,316
+Specifically, when we do loading, that is nothing but we are reading from a specific data source, then we perform some type of feature engineering over here if we want, like in transform stage.
+
+25
+00:02:25,840 --> 00:02:30,724
+Here the data, the complete data, will be broken into smaller chunks.
+
+26
+00:02:31,120 --> 00:02:31,440
+Okay.
+
+27
+00:02:32,334 --> 00:02:34,800
+Now, why do we divide this data into smaller chunks?
+
+28
+00:02:34,862 --> 00:02:46,000
+It is very much important to understand because whatever LLM models we specifically use, right, is definitely has some kind of context size, right?
+
+29
+00:02:46,318 --> 00:03:00,560
+So based on this context size, this is always a good good way to basically convert this entire data, which can be of many number of PDFs, it can be many number of pages in this specific PDF.
+
+30
+00:03:00,640 --> 00:03:03,652
+We will try to divide this particular thing into chunks of data.
+
+31
+00:03:04,014 --> 00:03:06,820
+So this is also what we'll going to see in the practical way.
+
+32
+00:03:07,214 --> 00:03:09,600
+Then finally, we go ahead with embeddings.
+
+33
+00:03:09,760 --> 00:03:15,908
+Embeddings basically means how we can convert all these chunks into vectors, okay.
+
+34
+00:03:16,366 --> 00:03:21,796
+How we can actually use vectors in order to probably convert these chunks, right?
+
+35
+00:03:22,000 --> 00:03:28,036
+And finally, all these vectors will be further stored in some kind of vector stored database.
+
+36
+00:03:28,160 --> 00:03:39,200
+Okay, so it can be a database over here, and the main reason of this specific database is that we will be able to query this particular database in an efficient manner, right?
+
+37
+00:03:39,438 --> 00:03:41,760
+With respect to any query that we have, right?
+
+38
+00:03:42,094 --> 00:03:43,920
+So whatever vectors are basically stored.
+
+39
+00:03:44,000 --> 00:03:51,652
+If I have a query, if I hit the query on this particular database, I should be able to get the result based on the context of the query.
+
+40
+00:03:52,078 --> 00:03:55,908
+So this is the entire rag pipeline that we specifically use.
+
+41
+00:03:56,270 --> 00:04:02,000
+In the upcoming series of videos, we are going to use different different vector databases in different different clouds, also.
+
+42
+00:04:02,160 --> 00:04:09,924
+Okay, so right now we will try to implement all these things that you can actually see in front of you, and we will follow this entire architecture.
+
+43
+00:04:10,318 --> 00:04:21,600
+So let me quickly open my VS Code and once I probably start my VS Code, I will be um I will continue with respect to the same uh thing that I've actually used, right?
+
+44
+00:04:21,680 --> 00:04:23,396
+All the projects that I've actually created.
+
+45
+00:04:23,662 --> 00:04:28,800
+As I said, that all the things will be given in the description of this particular video with respect to the GitHub link.
+
+46
+00:04:28,880 --> 00:04:31,920
+Okay, now I've created a folder which is called as rag.
+
+47
+00:04:32,320 --> 00:04:35,360
+Inside this, I will create one IPYNB file.
+
+48
+00:04:35,440 --> 00:04:35,748
+Okay.
+
+49
+00:04:35,950 --> 00:04:40,580
+Initially, we'll go with IPYNB file and then later on we'll try to create an end to end project.
+
+50
+00:04:40,814 --> 00:04:46,460
+Okay, so here I will say simple rag dot IPYNB.
+
+51
+00:04:47,118 --> 00:04:53,380
+Since we are doing it completely from basics, it is always good that we try to do it completely from basic itself, right?
+
+52
+00:04:53,712 --> 00:04:55,792
+So this is the thing.
+
+53
+00:04:55,872 --> 00:05:02,532
+So first of all, I will go ahead and see whether in my terminal whether I have that iPy kernel installed or not.
+
+54
+00:05:02,832 --> 00:05:03,140
+Okay.
+
+55
+00:05:03,662 --> 00:05:08,112
+So I will go ahead and write pip install iPy kernel.
+
+56
+00:05:08,272 --> 00:05:13,508
+iPy kernel is specifically used to install the Jupyter notebook kernels itself, right?
+
+57
+00:05:13,806 --> 00:05:19,952
+So once I probably install this, you will be able to see that this installation will take place, and I think it is already satisfied.
+
+58
+00:05:20,078 --> 00:05:21,072
+So it is good enough.
+
+59
+00:05:21,152 --> 00:05:23,684
+We can probably go ahead and start the coding over here.
+
+60
+00:05:24,078 --> 00:05:29,712
+Then I will go ahead and select my kernel, and it is nothing but 3.110.0.
+
+61
+00:05:29,952 --> 00:05:30,192
+Right?
+
+62
+00:05:30,272 --> 00:05:32,196
+This is what is the environment that I have created.
+
+63
+00:05:32,526 --> 00:05:36,132
+Now if I go ahead and execute something, so it is giving me some kind of error.
+
+64
+00:05:36,432 --> 00:05:37,712
+Okay, so perfect.
+
+65
+00:05:37,872 --> 00:05:42,672
+Now what I'm actually going to do, I can see that there is some kind of message over here.
+
+66
+00:05:42,752 --> 00:05:44,912
+I will just try to disable this.
+
+67
+00:05:44,992 --> 00:05:49,604
+I have already uninstalled this extension so that it will not give us any disturbance.
+
+68
+00:05:50,030 --> 00:06:00,832
+So let me do one thing, let me just open over here for you, and here I will open this particular folder, and then I will go ahead and close this, okay.
+
+69
+00:06:01,134 --> 00:06:02,512
+Close window, okay.
+
+70
+00:06:02,766 --> 00:06:09,060
+And now let me quickly open the VS Code again, and here is my entire project.
+
+71
+00:06:09,550 --> 00:06:12,292
+We will just try to execute it once again, okay?
+
+72
+00:06:13,006 --> 00:06:13,316
+Perfect.
+
+73
+00:06:14,254 --> 00:06:17,092
+So that so that I don't have any disturbance with respect to that.
+
+74
+00:06:17,472 --> 00:06:18,752
+Okay, now perfect.
+
+75
+00:06:18,926 --> 00:06:19,748
+Now this is done.
+
+76
+00:06:20,014 --> 00:06:22,116
+Now let's go ahead and start our coding.
+
+77
+00:06:22,446 --> 00:06:26,436
+Initially, I will try to show you multiple data ingestion steps.
+
+78
+00:06:26,766 --> 00:06:35,552
+Okay, so data ingestion basically means let's say I want to read from a text file, I want to read from a PDF file, I want to read from a web web page.
+
+79
+00:06:35,632 --> 00:06:36,592
+How can I actually do it?
+
+80
+00:06:36,672 --> 00:06:38,788
+Okay, so all those things we'll start to discuss.
+
+81
+00:06:38,926 --> 00:06:46,752
+So, first of all, I will go ahead and import from lang chain underscore community dot document loaders.
+
+82
+00:06:46,832 --> 00:06:56,068
+Now, document loaders has all the techniques specifically if you want to load let's say a PDF, you want to load a Excel file, you want to load a txt file.
+
+83
+00:06:56,430 --> 00:06:58,468
+So over here, all the libraries will be present.
+
+84
+00:06:58,672 --> 00:07:06,432
+So for um lang chain underscore community dot document loaders, until then I will just close this terminal because I will not require over here.
+
+85
+00:07:06,670 --> 00:07:10,660
+Then the first one that I'm actually going to discuss about text loader itself.
+
+86
+00:07:11,054 --> 00:07:16,612
+Now, over here, what I'm actually going to do, I'm going to create a loader is equal to text loader.
+
+87
+00:07:17,710 --> 00:07:22,432
+And after creating this text loader, here I'm going to give a text file, okay?
+
+88
+00:07:22,766 --> 00:07:23,792
+speech.txt.
+
+89
+00:07:24,206 --> 00:07:28,068
+So we'll just go ahead and see whether we have the speech.txt file or not.
+
+90
+00:07:28,302 --> 00:07:33,284
+No, I don't have it, so let me go ahead and create one speech.txt file.
+
+91
+00:07:33,486 --> 00:07:33,792
+Okay.
+
+92
+00:07:34,192 --> 00:07:39,108
+And with respect to this particular file, what I am actually going to do, I'm going to put some content.
+
+93
+00:07:39,566 --> 00:07:41,392
+So I have already have that content.
+
+94
+00:07:41,582 --> 00:07:43,876
+Let me just quickly copy and paste it.
+
+95
+00:07:44,302 --> 00:07:49,152
+This is one of the most famous speech that is available in some history.
+
+96
+00:07:49,232 --> 00:07:50,352
+It has been taken over here.
+
+97
+00:07:50,432 --> 00:07:55,268
+So I just googled it and I bought this particular speech over here and saved it in speech.txt.
+
+98
+00:07:55,792 --> 00:07:56,112
+Okay.
+
+99
+00:07:56,494 --> 00:08:00,548
+Uh then what I will do, I will go over here and read the speech dot txt.
+
+100
+00:08:00,912 --> 00:08:01,188
+Okay.
+
+101
+00:08:01,486 --> 00:08:11,320
+Now, just by using this text loader, what will happen is that you'll be able to read the speech dot txt, Then I will use loader dot load.
+
+102
+00:08:11,886 --> 00:08:18,052
+and here I'm going to specifically convert this entire thing into text documents.
+
+103
+00:08:18,958 --> 00:08:25,476
+Okay, once I write loader dot load, that basically means it is going to just convert this into a text documents.
+
+104
+00:08:26,286 --> 00:08:29,316
+And this finally you'll be able to see my text documents.
+
+105
+00:08:31,086 --> 00:08:32,612
+And I will go ahead and execute it.
+
+106
+00:08:33,102 --> 00:08:39,536
+So here you'll be able to see that once it is reading the specific speech, it has the entire text document.
+
+107
+00:08:39,630 --> 00:08:43,172
+Now it is becoming so easy just to read the txt file.
+
+108
+00:08:43,296 --> 00:08:43,556
+Okay.
+
+109
+00:08:43,982 --> 00:08:53,856
+Now the next thing that I'm going to specifically do is that since I'm also going to use open AI keys or I'm also going to use Olama embeddings or Olama model.
+
+110
+00:08:54,158 --> 00:08:57,732
+So what I can do is that I will just go ahead and import OS.
+
+111
+00:08:58,350 --> 00:09:03,856
+Um the next thing that I will go ahead and do is load underscore dot env.
+
+112
+00:09:04,256 --> 00:09:04,496
+Okay.
+
+113
+00:09:05,166 --> 00:09:06,788
+So load underscore dot env.
+
+114
+00:09:06,896 --> 00:09:16,324
+So for this, I'm also going to import from dot env uh import load underscore dot env.
+
+115
+00:09:16,496 --> 00:09:16,708
+Okay.
+
+116
+00:09:17,166 --> 00:09:24,772
+Now why I'm doing this so that I will be able to call all my environment variables, and in one of the environment variables I also have my open AI API key.
+
+117
+00:09:25,134 --> 00:09:28,772
+So now I will go ahead and write OS dot environment.
+
+118
+00:09:29,486 --> 00:09:39,364
+and here I'm going to use my open underscore a sorry open AI underscore API underscore key.
+
+119
+00:09:41,166 --> 00:09:49,988
+And here I'm just going to use OS dot get env and here again I'm going to use my open API key.
+
+120
+00:09:50,176 --> 00:09:54,596
+So this is basically going to call the open API key from the environment variable.
+
+121
+00:09:54,736 --> 00:09:58,276
+Now a very important step altogether over here, guys.
+
+122
+00:09:58,496 --> 00:10:04,772
+Now is the main term that we will be starting to uh see some more data ingestion techniques.
+
+123
+00:10:05,230 --> 00:10:11,936
+So, one more data ingestion technique is directly reading from the web -based, web-based, uh, loader.
+
+124
+00:10:12,016 --> 00:10:20,896
+You can basically say, okay, and for this, again, I will be importing, understand, any document loader will be available in this specific library itself.
+
+125
+00:10:20,976 --> 00:10:25,924
+And instead of writing text loader, we will be using web -based loader, okay?
+
+126
+00:10:26,446 --> 00:10:35,936
+Now, along with this, I will also import BS4, that is Beautiful Soup, for so for that also, what I will do, I will just import over here in my requirement.txt.
+
+127
+00:10:36,398 --> 00:10:39,652
+BS4, so that whenever I execute this, it should be able to run.
+
+128
+00:10:40,016 --> 00:10:54,416
+Okay, now in order to do something like this, load chunk and index the content of the page, HTML page, right, or any web page.
+
+129
+00:10:54,574 --> 00:11:00,036
+So, here I will create a loader, and this will be equal to web based loader.
+
+130
+00:11:00,526 --> 00:11:03,216
+And here I'm going to give two important parameters.
+
+131
+00:11:03,296 --> 00:11:07,936
+One is the web path, so web underscore paths okay.
+
+132
+00:11:08,096 --> 00:11:17,252
+This is called to And here I will give the URL, so let me just take one URL from the GitHub IO page that is also available in the documentation of Langchin.
+
+133
+00:11:17,742 --> 00:11:19,556
+So, this is what is the page over here.
+
+134
+00:11:20,590 --> 00:11:26,308
+What I will do is that quickly, I will open a browser and show it to you how this page looks like.
+
+135
+00:11:26,496 --> 00:11:32,496
+Okay, so if I execute this over here, you will be able to see that.
+
+136
+00:11:33,038 --> 00:11:33,776
+Just a second.
+
+137
+00:11:33,936 --> 00:11:34,852
+Okay, perfect.
+
+138
+00:11:35,342 --> 00:11:37,216
+So, here you are able to see that.
+
+139
+00:11:37,776 --> 00:11:38,496
+Just a second.
+
+140
+00:11:38,576 --> 00:11:40,176
+This, see, this is this the same page?
+
+141
+00:11:40,256 --> 00:11:45,616
+Yes, it is the same page and I will be opening this, okay?
+
+142
+00:11:45,696 --> 00:11:46,020
+Perfect.
+
+143
+00:11:46,318 --> 00:11:56,228
+So, this is the page that you will be able to see over here, and I want to probably read this entire page and use it as a RAG system itself, right?
+
+144
+00:11:56,622 --> 00:12:02,416
+So, in order to read this entire page, I can just take this URL and use this web loader library.
+
+145
+00:12:02,656 --> 00:12:10,276
+So, here, if you see, I'm using this web -based loader library, and I'm giving the first parameter that is the web path, okay?
+
+146
+00:12:10,670 --> 00:12:15,204
+The second parameter that we can specifically give is our arguments, right?
+
+147
+00:12:15,534 --> 00:12:18,816
+So, here I will write bs dot underscore kwa.
+
+148
+00:12:19,376 --> 00:12:20,576
+Rgs, okay.
+
+149
+00:12:20,656 --> 00:12:21,856
+So, this is the second parameter.
+
+150
+00:12:21,936 --> 00:12:26,244
+I'm just seeing the documentation, and we will give the next argument in the form of dictionaries.
+
+151
+00:12:26,736 --> 00:12:30,500
+The first is parse _underscore _only, okay?
+
+152
+00:12:31,022 --> 00:12:37,476
+And then, here, I'm basically going to use my BS4, that is a Beautiful Soup for soup trainer, okay?
+
+153
+00:12:38,094 --> 00:12:43,524
+Soup Strainer, soup strainer, okay?
+
+154
+00:12:44,590 --> 00:12:45,744
+Yeah, soup strainer.
+
+155
+00:12:46,030 --> 00:12:54,144
+So, this is the first parameter that I will be specifically giving, and understand why this is required because here, this soup strainer.
+
+156
+00:12:54,464 --> 00:13:03,620
+And since we are using Beautiful Soup, uh, over here, we really need to give the classes that it, read it needs to read from that particular page, okay?
+
+157
+00:13:03,984 --> 00:13:06,304
+And here, what all classes are there?
+
+158
+00:13:06,384 --> 00:13:07,940
+Let's go ahead and see this, okay?
+
+159
+00:13:08,270 --> 00:13:12,964
+So, if I probably see over here, and if I do just inspect element, okay?
+
+160
+00:13:13,710 --> 00:13:21,344
+So, here you can see post title is there, then you have something like post content, where all the content is basically available.
+
+161
+00:13:21,518 --> 00:13:24,356
+So, let us take this one as my first one, okay?
+
+162
+00:13:24,814 --> 00:13:32,516
+So, I will just go ahead and execute this, and here you will be able to see that, uh, this will basically be my post title.
+
+163
+00:13:32,944 --> 00:13:45,424
+And here you have the post underscore content and third one that I also want to take is post underscore header because header will also have some information over here, right?
+
+164
+00:13:45,774 --> 00:13:46,384
+So, this is done.
+
+165
+00:13:46,464 --> 00:13:52,996
+You'll be able to see that it looks absolutely fine, and here, with respect to this, we have also created this entire loader.
+
+166
+00:13:54,574 --> 00:13:59,264
+And here, I will use a comma, so that this is basically my argument over here, right?
+
+167
+00:13:59,534 --> 00:14:03,972
+So, once we do this, then let's see whether it will execute or not.
+
+168
+00:14:04,430 --> 00:14:08,144
+Uh, BS4 is not found, as I said that BS4 is not there.
+
+169
+00:14:08,494 --> 00:14:10,464
+So, let me do one thing quickly.
+
+170
+00:14:10,624 --> 00:14:14,532
+Let me open my command prompt and do the pip install requirement.txt.
+
+171
+00:14:15,104 --> 00:14:18,224
+Okay, so here I will go ahead and write pip install.
+
+172
+00:14:18,704 --> 00:14:22,384
+Minus r requirement.txt and execute it.
+
+173
+00:14:22,384 --> 00:14:29,664
+Over here, you will be able to see now, bs4 will also get installed, and once it is getting installed, it is completed, it is good to go.
+
+174
+00:14:29,870 --> 00:14:32,864
+Now, if we go ahead and execute it, I think it should work perfect.
+
+175
+00:14:33,166 --> 00:14:34,116
+Now, loader is there.
+
+176
+00:14:34,478 --> 00:14:46,916
+Now, what we are going to do over here is that again, write loader.load, and finally I will be able to get in the form of text documents, text underscore documents okay, documents.
+
+177
+00:14:47,470 --> 00:14:52,224
+And here is my text document, so perhaps you meant, uh, this one?
+
+178
+00:14:52,384 --> 00:14:57,024
+Let's see, um So guys, there was one one error.
+
+179
+00:14:57,184 --> 00:15:03,300
+We need to give this URL in the form of tuple, so let this get closed and then I will write comma over here.
+
+180
+00:15:03,758 --> 00:15:05,424
+Now I think it should be working.
+
+181
+00:15:05,646 --> 00:15:06,064
+Let's see.
+
+182
+00:15:06,190 --> 00:15:08,260
+Yes, perfectly, it is working right now.
+
+183
+00:15:08,558 --> 00:15:17,892
+And if you go ahead and see your text documents again, you will be able to get all the information from that particular web page in the form of URL, okay, or in the form of documents.
+
+184
+00:15:18,542 --> 00:15:19,344
+So this is perfect.
+
+185
+00:15:19,584 --> 00:15:30,340
+You are able to get every information over here and With respect to this, you will be able to see that, yeah, you have all the information, and you can also see the page content, and everything looks fine.
+
+186
+00:15:30,862 --> 00:15:38,724
+So, these are some of the ways how you can specifically make sure that you probably get all the content from a page itself.
+
+187
+00:15:39,054 --> 00:15:42,064
+One more thing, this is not underscore, this is dash.
+
+188
+00:15:42,224 --> 00:15:44,356
+So now, I think you'll be able to see more content.
+
+189
+00:15:44,464 --> 00:15:46,704
+Okay, so let me just open this.
+
+190
+00:15:46,894 --> 00:15:51,424
+So here, you'll be able to see all the content itself, so This is one more way.
+
+191
+00:15:51,598 --> 00:15:54,064
+One more way is directly to read from the PDF itself.
+
+192
+00:15:54,144 --> 00:15:58,304
+So, what I will do is that I will quickly create a PDF, okay?
+
+193
+00:15:58,638 --> 00:16:02,544
+So, let me do one thing and I will upload a PDF over here, okay?
+
+194
+00:16:02,734 --> 00:16:05,060
+So, here I have created this attention .dot .PDF.
+
+195
+00:16:05,422 --> 00:16:07,172
+This is nothing but Attention Is All You Need.
+
+196
+00:16:07,904 --> 00:16:13,316
+Now, using document loader, you can also directly read completely from the PDF itself, okay?
+
+197
+00:16:13,614 --> 00:16:14,304
+And how to do that?
+
+198
+00:16:14,478 --> 00:16:17,664
+See, still we are in the data ingestion phase, and how do we do this?
+
+199
+00:16:17,934 --> 00:16:18,864
+We'll also see that.
+
+200
+00:16:18,944 --> 00:16:27,332
+So, from the same library that we'll be using again, we have to focus on document loader, and here I will copy and paste it, okay?
+
+201
+00:16:28,718 --> 00:16:34,928
+And this is basically my PDF Reader, one more library dependency will be there, okay.
+
+202
+00:16:35,118 --> 00:16:37,008
+So we will try to install that also.
+
+203
+00:16:37,102 --> 00:16:49,888
+So here I'm going to write pie pdf loader, okay, and again I will be using loader is equal to pie pdf loader, pie pdf loader, and I have to give my pdf name right.
+
+204
+00:16:49,998 --> 00:16:54,372
+So pdf name over here specifically is nothing but attention.pdf.
+
+205
+00:16:54,608 --> 00:16:57,604
+So it is in the same same folder itself.
+
+206
+00:16:57,902 --> 00:17:00,560
+So here I will write attention dot PDF.
+
+207
+00:17:00,848 --> 00:17:03,248
+Okay, now I think I should be getting an error.
+
+208
+00:17:03,328 --> 00:17:05,636
+If I don't get an error, I will definitely install.
+
+209
+00:17:05,838 --> 00:17:07,088
+Yeah, I'll install it now.
+
+210
+00:17:07,182 --> 00:17:08,880
+See pip install pypdf.
+
+211
+00:17:09,422 --> 00:17:14,608
+So here I will make sure that I will write requirement.txt and I will write pie pdf.
+
+212
+00:17:14,768 --> 00:17:28,996
+Okay, so all these things you really need to take care of because there will definitely be dependencies because and understand rag is one very important thing that really needs to get created in the form of application, so that is the reason I'm creating this completely from scratch.
+
+213
+00:17:29,454 --> 00:17:31,488
+So pip install minus r requirement.txt.
+
+214
+00:17:31,728 --> 00:17:34,980
+So this is also done, I think, and pie pdf is also installed.
+
+215
+00:17:35,168 --> 00:17:35,460
+Perfect.
+
+216
+00:17:35,950 --> 00:17:46,660
+Then the next step again, I will go ahead and execute this, and but here also the same step will be required loader.load, and this will basically be my documents, and I will execute this.
+
+217
+00:17:46,958 --> 00:17:49,476
+And once I probably execute this, this is my docs.
+
+218
+00:17:49,808 --> 00:17:50,848
+Okay, perfect.
+
+219
+00:17:50,990 --> 00:17:54,884
+So here you'll be able to see my entire PDF has been read and it is in front of you.
+
+220
+00:17:55,342 --> 00:17:56,048
+Now the next step.
+
+221
+00:17:56,128 --> 00:17:58,848
+Now, see this load data source part is basically done.
+
+222
+00:17:58,928 --> 00:18:00,580
+We know how to load it, okay.
+
+223
+00:18:00,942 --> 00:18:03,172
+Now you will move towards this transform.
+
+224
+00:18:03,488 --> 00:18:05,888
+Okay, then we will go ahead towards embed.
+
+225
+00:18:06,062 --> 00:18:12,324
+Okay, so the first part of load I've actually done with respect to PDF web-based with respect to text file.
+
+226
+00:18:12,686 --> 00:18:27,876
+If you go ahead and check out the Langchin documentation, this there are still more amazing ways to do for Excel file for README file, different directories, even for directors, Let's say that you have a lot of files in the directory itself, many files, and you can also load that.
+
+227
+00:18:28,142 --> 00:18:31,876
+So we'll try to see in upcoming videos more about different different examples.
+
+228
+00:18:32,174 --> 00:18:36,260
+But here, just to give an idea about load data source and load is actually done.
+
+229
+00:18:36,622 --> 00:18:38,928
+Now, let's go ahead and do this transform it.
+
+230
+00:18:39,008 --> 00:18:40,580
+Now, transform is very much important.
+
+231
+00:18:40,942 --> 00:18:43,844
+Now, understand, guys, this is your entire PDF documents, right?
+
+232
+00:18:44,238 --> 00:18:47,236
+Now you need to convert this PDF documents into chunks.
+
+233
+00:18:47,406 --> 00:18:48,528
+Now, how do you do that?
+
+234
+00:18:48,846 --> 00:18:56,868
+And again, they are multiple ways, and this ways entirely falls inside the category of text splitter inside lang chain.
+
+235
+00:18:57,230 --> 00:19:12,208
+So here we are going to write from lang chain from lang chain dot text splitter import recursive recursive character text splitter.
+
+236
+00:19:12,368 --> 00:19:16,288
+We'll try to split it with the with the help of uh text itself.
+
+237
+00:19:16,368 --> 00:19:27,488
+So here I'm going to create my text splitter is equal to recursive character text splitter, and here I'm going to specifically use my chunk underscore size is equal to thousand.
+
+238
+00:19:27,968 --> 00:19:35,652
+Uh I want this specific size to be the chunk, and let's say the overlap chunk chunk overlap.
+
+239
+00:19:36,206 --> 00:19:38,884
+Okay, chunk overlap.
+
+240
+00:19:40,238 --> 00:19:44,528
+So here I will go ahead and write chunk underscore overlap is equal to 200.
+
+241
+00:19:44,608 --> 00:19:45,808
+I'll keep this as 200.
+
+242
+00:19:45,888 --> 00:19:46,116
+Okay.
+
+243
+00:19:46,606 --> 00:19:59,328
+So once I do this, now this text splitter will be responsible text underscore splitter dot split documents will be responsible in splitting all the specific documents that I give over here.
+
+244
+00:19:59,502 --> 00:20:05,444
+Okay, so this docs will be there, and this will be my documents, final documents that I will be able to see.
+
+245
+00:20:05,728 --> 00:20:11,204
+Okay, let's display this documents the top five documents still here, okay.
+
+246
+00:20:11,888 --> 00:20:14,432
+Um And let's see this.
+
+247
+00:20:14,574 --> 00:20:20,292
+So here you will be able to see provided proper attrition is Google by grant permission, best model this, this, this, this.
+
+248
+00:20:20,782 --> 00:20:21,552
+Everything is there.
+
+249
+00:20:21,712 --> 00:20:23,524
+Attention.pdf, right?
+
+250
+00:20:23,886 --> 00:20:25,732
+So all the information is basically there.
+
+251
+00:20:26,912 --> 00:20:33,632
+and with respect to this, you really want to see the more things, more uh different, different all the documents in short.
+
+252
+00:20:33,934 --> 00:20:36,900
+So you can also go ahead and see the entire documents over here.
+
+253
+00:20:37,486 --> 00:20:38,912
+Okay, done.
+
+254
+00:20:39,246 --> 00:20:42,852
+So these are all my documents over here, transformers, everything is available over here.
+
+255
+00:20:43,246 --> 00:20:47,908
+Now see, this is my entire documents, it has been divided into proper smaller chunks.
+
+256
+00:20:48,366 --> 00:20:52,420
+Now we can take this chunks and we can convert that into vectors, okay?
+
+257
+00:20:52,718 --> 00:20:55,232
+And that is what is giving you an idea over here, right?
+
+258
+00:20:55,392 --> 00:20:56,836
+Like how we have transformed.
+
+259
+00:20:57,134 --> 00:21:01,572
+We have basically taken this entire PDF document and we have divided that into chunks.
+
+260
+00:21:02,126 --> 00:21:13,152
+Now it's a time that we understand how to probably convert this into vectors, and for this, we will also be using some different different vector embed uh vector embedding techniques, right?
+
+261
+00:21:13,390 --> 00:21:17,380
+One of the vector embedding techniques that I will be showing you is with respect to open AI.
+
+262
+00:21:17,678 --> 00:21:25,380
+So here now we will go ahead and probably write about vector embeddings and vector store, right?
+
+263
+00:21:26,670 --> 00:21:30,912
+Vector embeddings is a technique wherein we convert a text into vectors, okay.
+
+264
+00:21:31,150 --> 00:21:33,472
+So, how do we do that again with the help of open AI?
+
+265
+00:21:33,552 --> 00:21:44,512
+So here I'm going to write from lang chain underscore community dot embeddings import open AI OpenAI embeddings.
+
+266
+00:21:44,592 --> 00:21:50,404
+You can also use Olama embeddings, it is up to you since if you don't have OpenAI API, you can use Olama embeddings directly.
+
+267
+00:21:50,752 --> 00:21:55,076
+But the performance of OpenAI embeddings is better, far more better than Olama embeddings.
+
+268
+00:21:55,232 --> 00:22:03,588
+Okay, so here what I'm actually going to do next thing is that uh first of all, uh, we need to understand how to probably create vectors.
+
+269
+00:22:03,950 --> 00:22:11,620
+Again, to create vectors, we can use OpenAI embeddings, but after creating the vectors, we also need to store in the vector store.
+
+270
+00:22:11,886 --> 00:22:13,072
+That is what it is, right?
+
+271
+00:22:13,294 --> 00:22:15,268
+This vector store is like kind of a database.
+
+272
+00:22:15,632 --> 00:22:23,460
+Embeddings can be embeddings is a technique where you convert text into vectors, but later those text needs to be stored in some kind of vector store, right?
+
+273
+00:22:23,632 --> 00:22:27,204
+So for this reason, we will be using something called as ChromaDB.
+
+274
+00:22:27,552 --> 00:22:34,672
+So they are come they are couple of uh there are a couple of vector databases that has been provided by Langchain itself.
+
+275
+00:22:34,912 --> 00:22:36,580
+one is Chroma, one is Fias.
+
+276
+00:22:37,072 --> 00:22:40,992
+Um, as we go ahead, you know how to create this kind of vector database in the cloud.
+
+277
+00:22:41,072 --> 00:22:42,052
+Also, I will show it to you.
+
+278
+00:22:42,446 --> 00:22:50,340
+So from Langchain underscore community, I will be using dot vector stores, and here I'm going to import one is nothing but chroma.
+
+279
+00:22:50,672 --> 00:22:58,980
+Uh so with respect to this, we will go ahead and create my db, and here I'm going to write chroma dot from underscore documents.
+
+280
+00:22:59,632 --> 00:23:07,204
+Okay, from documents, and here I'm going to basically give my entire document, okay.
+
+281
+00:23:07,502 --> 00:23:16,752
+Entire documents, and I'll not give the entire documents, let's just give the first 20 documents itself because it will take more time to create the embeddings, right?
+
+282
+00:23:16,832 --> 00:23:20,932
+And here the embeddings that I'm going to specifically use is nothing but open AI embeddings.
+
+283
+00:23:21,326 --> 00:23:27,108
+Once I execute this, I think I'm going to get an error saying that Chroma is not available, I don't know whether I've installed Chroma or not.
+
+284
+00:23:27,342 --> 00:23:29,444
+So here you can see pip install chroma db.
+
+285
+00:23:29,632 --> 00:23:31,232
+I rarely require Chroma DB.
+
+286
+00:23:31,312 --> 00:23:33,472
+So again, I'll go back to my requirement.txt.
+
+287
+00:23:33,872 --> 00:23:40,228
+The reason why I'm showing you all this completely from scratch so that you whatever error you face, you should be able to fix it up.
+
+288
+00:23:40,366 --> 00:23:40,644
+Okay.
+
+289
+00:23:41,102 --> 00:23:45,632
+So I'm going to delete this and let's go ahead and write pip install.
+
+290
+00:23:46,192 --> 00:23:50,884
+one more library that I will be using is nothing but fires CPU.
+
+291
+00:23:50,992 --> 00:23:51,232
+Okay.
+
+292
+00:23:51,886 --> 00:23:56,932
+fire CPU because Fires is also one type of chroma one type of vector database.
+
+293
+00:23:57,262 --> 00:23:59,552
+Okay, so minus r requirement.txt.
+
+294
+00:23:59,918 --> 00:24:02,272
+So let's install both the specific libraries.
+
+295
+00:24:02,478 --> 00:24:03,712
+It'll take some amount of time again.
+
+296
+00:24:03,792 --> 00:24:06,628
+It depends on your internet speed and how fast your system is.
+
+297
+00:24:06,990 --> 00:24:13,392
+But yes, I think 5 CPU and Chroma DB is the kind of vector databases that we will be using.
+
+298
+00:24:13,646 --> 00:24:20,676
+One assignment I'll give you try to also use Lance vector database from again seeing the Langchun documentation, you can actually do it.
+
+299
+00:24:20,832 --> 00:24:21,072
+Okay.
+
+300
+00:24:22,510 --> 00:24:23,488
+Now, this is done.
+
+301
+00:24:23,568 --> 00:24:29,284
+Once this will probably be done, then we can go ahead and check by executing it whether it is working now or not.
+
+302
+00:24:29,582 --> 00:24:32,260
+But at the end of the day, here what we are actually doing.
+
+303
+00:24:32,608 --> 00:24:34,628
+We have imported OpenAI embeddings.
+
+304
+00:24:34,768 --> 00:24:37,248
+The vector database that we are going to use is Chroma.
+
+305
+00:24:37,646 --> 00:24:39,408
+Then chroma.from document.
+
+306
+00:24:39,534 --> 00:24:44,516
+I'm giving the entire document and using this embeddings, it will be storing inside this particular vector store.
+
+307
+00:24:44,878 --> 00:24:50,564
+Now this db we can store it in our local, we can store it in the cloud wherever you specifically want.
+
+308
+00:24:50,768 --> 00:24:51,076
+Okay.
+
+309
+00:24:51,662 --> 00:24:53,568
+So, guys, the installation has been completed.
+
+310
+00:24:53,648 --> 00:24:56,196
+Now let's go ahead and execute this chroma part.
+
+311
+00:24:56,750 --> 00:25:02,468
+Now, here you'll be able to see that entire embedding will basically happen, and again, we are going to use the OpenAI embedding for this.
+
+312
+00:25:03,086 --> 00:25:06,208
+And now this db is nothing but our vector database.
+
+313
+00:25:06,318 --> 00:25:17,444
+Okay, so if I probably consider vector database, and now all I have to do is that I can query anything with respect to this particular vector database to retrieve any kind of result that I really want.
+
+314
+00:25:17,998 --> 00:25:19,568
+So I will create a query first of all.
+
+315
+00:25:19,648 --> 00:25:21,408
+So here let me go ahead and write my query.
+
+316
+00:25:21,550 --> 00:25:31,940
+So query is like I will go ahead and write who are the authors, who are the authors of attention is all you need.
+
+317
+00:25:32,608 --> 00:25:33,764
+Research paper.
+
+318
+00:25:34,094 --> 00:25:37,540
+Okay, so this is my query that I'm going to specifically ask.
+
+319
+00:25:38,094 --> 00:25:42,528
+Let's see whether it will be able to understand this or and it will be able to give us the result.
+
+320
+00:25:42,894 --> 00:25:47,728
+So here I will go ahead and write DB dot similarity search.
+
+321
+00:25:47,808 --> 00:25:49,156
+Now there are multiple options.
+
+322
+00:25:49,518 --> 00:25:51,568
+Similarity search, similarity search by vector.
+
+323
+00:25:51,648 --> 00:25:57,168
+If you want, you can also convert your data into vectors by using again the open AI embeddings and you can query it from here.
+
+324
+00:25:57,422 --> 00:26:02,048
+But we are just going to use the similarity search since we are just going to use the query over here, right?
+
+325
+00:26:02,528 --> 00:26:07,808
+So if I write db.similarity search of query, so this will basically be my result.
+
+326
+00:26:08,302 --> 00:26:08,528
+Okay.
+
+327
+00:26:09,006 --> 00:26:11,248
+Now let's go ahead and see my result.
+
+328
+00:26:11,886 --> 00:26:13,540
+Okay, and let's execute this.
+
+329
+00:26:13,966 --> 00:26:19,808
+So here you'll be able to see that I'm able to see multiple information, like four documents has been over here.
+
+330
+00:26:19,950 --> 00:26:23,396
+So let's take the first document and let's see how the result is.
+
+331
+00:26:23,758 --> 00:26:29,668
+So here I'm going to basically take zero, and inside that the field name is nothing but page content.
+
+332
+00:26:29,998 --> 00:26:32,228
+So I'm going to basically write my page content.
+
+333
+00:26:32,654 --> 00:26:35,808
+Now here you'll be able to see prop provided proper attribution is provided.
+
+334
+00:26:35,968 --> 00:26:44,928
+Google here by grant permission, and here you'll be able to see Google Brain, all the email IDs, all the researchers' names are actually available.
+
+335
+00:26:45,088 --> 00:26:54,436
+So that basically means it is able to research uh it is able to retrieve the results of the all the scientists who are involved, all the researchers who are involved in creating this particular paper.
+
+336
+00:26:55,328 --> 00:26:56,928
+I can also do one more thing.
+
+337
+00:26:57,008 --> 00:27:02,308
+I can go ahead and write what is attention is all you need.
+
+338
+00:27:02,528 --> 00:27:06,532
+Okay, attention is all you need.
+
+339
+00:27:07,470 --> 00:27:10,368
+Okay, so let's see what kind of results I will be able to get.
+
+340
+00:27:10,448 --> 00:27:17,988
+And understand this is entirely a rag pipeline, which is being able to come from the entire documentation, and here you'll be able to see that result is also coming.
+
+341
+00:27:18,688 --> 00:27:23,140
+let me do write something which is available in the research paper.
+
+342
+00:27:23,502 --> 00:27:27,972
+So let me open my research paper over here and let me ask some question directly.
+
+343
+00:27:28,398 --> 00:27:30,448
+Okay, from here you will be able to see.
+
+344
+00:27:30,830 --> 00:27:34,372
+See when I'm searching, attention is all you need, it is coming from here itself, right?
+
+345
+00:27:34,848 --> 00:27:37,572
+So let me use something over here.
+
+346
+00:27:41,408 --> 00:27:42,848
+let me just write over here.
+
+347
+00:27:43,088 --> 00:27:46,528
+Encoder is uh what is an attention function?
+
+348
+00:27:46,848 --> 00:27:48,688
+Let me just go and search this, okay?
+
+349
+00:27:48,768 --> 00:27:49,088
+Let's see.
+
+350
+00:27:49,408 --> 00:27:52,228
+Attention is something, something, some text is there over here.
+
+351
+00:27:52,942 --> 00:27:54,608
+So if I go ahead and execute it.
+
+352
+00:27:56,078 --> 00:28:03,204
+And here you'll be instead of performing a single attention function with the model dimension, values, keys, and all the information is basically coming up, right?
+
+353
+00:28:03,566 --> 00:28:05,024
+And here is a very good result.
+
+354
+00:28:05,104 --> 00:28:07,104
+And this is directly coming from the vector database.
+
+355
+00:28:07,184 --> 00:28:09,220
+That is the most amazing thing over here, right now.
+
+356
+00:28:09,904 --> 00:28:15,424
+You may be also thinking, Krish, can we also use the files database, the fire defected database that we have used, right?
+
+357
+00:28:15,504 --> 00:28:29,024
+So let me just show you with respect to that also files, and here I'm going to use the fire vector database, and this will also give you an idea how you can actually store that embeddings into files database itself, and we'll also do that.
+
+358
+00:28:29,104 --> 00:28:39,140
+So here I'm going to write from Langchain lang chain underscore community dot vector stores.
+
+359
+00:28:39,662 --> 00:28:51,744
+I'm going to import my FAISS files, and then I'm going to also use Tb is equal to FAISS dot from documents, the same thing, right?
+
+360
+00:28:51,886 --> 00:28:58,180
+So from underscore documents, and here I'm going to use my documents, okay.
+
+361
+00:28:58,574 --> 00:29:12,384
+And let's say I go ahead and do the embedding for the first 20 documents, and then here also I'm going to use my open AI embeddings, and I think this is also my another db, so I will write it at db1, which is my files database.
+
+362
+00:29:12,974 --> 00:29:14,624
+Okay, uh from documents, okay.
+
+363
+00:29:14,704 --> 00:29:15,236
+No worries.
+
+364
+00:29:15,744 --> 00:29:19,424
+so here the spelling mistake was there, and I think this will also work now.
+
+365
+00:29:19,504 --> 00:29:32,452
+DB1 is also ready, and what I can do, I can use the same thing and paste it over here, okay, and just write db1.similarity search, and here you can see instead of performing a single attention, everything is probably coming up.
+
+366
+00:29:32,814 --> 00:29:40,228
+So I've just shown you the example of both FIS and Chroma database, Chroma vector database.
+
+367
+00:29:40,704 --> 00:29:45,700
+As I said, one assignment will be given to you as regarding Lance vector database.
+
+368
+00:29:46,062 --> 00:29:49,860
+You can go and search it for that in the in the in the Langchin documentation.
+
+369
+00:29:50,286 --> 00:30:01,024
+But here, if I probably see with respect to this, we have completed this load transform embed, then we have created this vector store, and then we have queried that particular vector store and retrieved the most similar results, right?
+
+370
+00:30:01,294 --> 00:30:04,224
+So, this is just the beginning of creating a rag pipeline.
+
+371
+00:30:04,304 --> 00:30:13,184
+Now, after this, in the next video, we are also going to discuss about retrievers, chains, how we can convert this, how based on context, we can retrieve different different data.
+
+372
+00:30:13,454 --> 00:30:15,504
+All those things we'll be specifically discussing about.
+
+373
+00:30:15,790 --> 00:30:17,024
+So, I hope you like this particular video.
+
+374
+00:30:17,166 --> 00:30:17,904
+This was it from my side.
+
+375
+00:30:17,984 --> 00:30:18,704
+I'll see you all in the next video.
+
+376
+00:30:18,864 --> 00:30:19,344
+Have a great day.
+
+377
+00:30:19,424 --> 00:30:19,744
+Thank you one.
+
+378
+00:30:20,046 --> 00:30:20,260
+Take care, bye bye.
+
