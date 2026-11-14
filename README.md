@@ -15,6 +15,7 @@
 | [4-Langchain Series-Getting Started With RAG Pipeline Using Langchain Chromadb And FAISS](medias/NSY2A/) | Krish Naik | 2026-11-13 |
 | [EECS4302 ANTLR4 Parser Generator Tutorial: Part 4](medias/N9VVN/) | Jackie Wang | 2026-11-13 |
 | [[Agent] Three steps to a strong agent? \| Axion 1.0: Open Agent Foundation Models, Simplified](medias/MG3PK/) | Daily Frontier Papers | 2026-11-13 |
+| [Getting Started with On-Device AI: RAG using ObjectBox Vector Database and LangChain](medias/KM3H9/) | Krish Naik | 2026-11-13 |
 | [I Have Spent 1000+ Hours With Claude Code. This Is What I Learned](medias/JG3EY/) | The Coding Sloth | 2026-11-13 |
 | [Advanced Q&A Chatbot Using Ragstack With vector-enabled Astra DB Serverless database And Huggingface](medias/HC91E/) | Krish Naik | 2026-11-13 |
 | [7-End To End Advanced RAG Project using Open Source LLM Models And Groq Inferencing engine](medias/FTYMH/) | Krish Naik | 2026-11-13 |
