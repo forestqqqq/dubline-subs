@@ -1,0 +1,589 @@
+1
+00:00:00,622 --> 00:00:03,600
+大家好，我是 Krish Naik，欢迎来到我的 YouTube 频道。
+Hello, all my name is Krishnaik and welcome to my YouTube channel.
+
+2
+00:00:03,680 --> 00:00:08,640
+各位，我希望大家都已经看到了 OpenAI 关于 GPT-4o 模型发布的公告。
+So, guys, I hope everybody has seen the announcement from OpenAI regarding GPT-4.0 model.
+
+3
+00:00:09,454 --> 00:00:12,960
+而且在之前的视频里，我已经向大家展示过它的功能了。
+And already in my previous video, I've shown you the capabilities of this.
+
+4
+00:00:13,120 --> 00:00:18,400
+在今天的这个视频中，我们将使用更新后的 GPT-4o
+In this specific video, we are going to develop an end-to-end RAG application using the updated GPT-4.
+
+5
+00:00:19,840 --> 00:00:20,836
+来自 OpenAI 的模型，来开发一个端到端的 RAG 应用程序。
+From OpenAI.
+
+6
+00:00:21,120 --> 00:00:23,360
+除此之外，还有一个新增的功能。
+Along with this, one more added feature will be there.
+
+7
+00:00:23,440 --> 00:00:35,120
+我要向大家展示一个新的向量数据库，叫做 ObjectBox，这个向量数据库可以在离线模式下高效
+运行，并以非常高效的方式存储数据。
+I'm going to show you a new vector database which is called as Object Box, and this vector database will efficiently work in the
+offline mode, store the data in a very efficient way.
+
+8
+00:00:35,200 --> 00:00:38,320
+所以，我还会向大家展示你们实际上该如何使用这个 Object
+So, I will also be showing you how you can actually use this object.
+
+9
+00:00:39,022 --> 00:01:00,164
+Box.env，从 load_dotenv 加载。
+box.env from load underscore, dot ENV.
+
+10
+00:01:00,640 --> 00:01:06,948
+这基本上是用来调用我在 ENV 文件中创建的所有环境变量。
+This is basically to call all my environment variables that I have actually created in my ENV file.
+
+11
+00:01:07,310 --> 00:01:11,360
+所以针对这个特定的 Env 文件，我会调用我的 OpenAI API 密钥。
+So with respect to this particular Env file, I will be calling my OpenAI API key.
+
+12
+00:01:11,440 --> 00:01:17,316
+我希望大家可能都熟悉这个，我也已经操作过很多次了，而且我也解释过这些内容。
+I hope everybody may be familiar with this, and I've executed any number of times all these things, and I've explained you that too.
+
+13
+00:01:18,480 --> 00:01:22,788
+接下来我们要做的，就是使用这个网站。
+Next thing what we are going to do is that this is the website that we are going to use.
+
+14
+00:01:22,990 --> 00:01:29,360
+让我打开这个特定的网站，我可能会从这个网站加载内容。
+So let me just open this particular website, and I'm going to probably load the content from this particular website.
+
+15
+00:01:29,520 --> 00:01:35,364
+创建索引，从中创建向量，将其存储在名为 ObjectBox 的向量数据库中。
+create index, create vectors out of it, store it in the vector DB, that is called as object box.
+
+16
+00:01:35,822 --> 00:01:44,452
+然后从那里我们将提出任何问题，并尝试使用 GPT-4o
+模型来总结数据或针对这个特定页面提出任何查询。
+and from there we are going to ask any question and try to use GPT-4.0
+model to summarize the data or to ask any queries from this particular page.
+
+17
+00:01:44,560 --> 00:01:44,800
+对吧？
+Right?
+
+18
+00:01:44,880 --> 00:01:47,040
+所以，这些就是我们具体要做的所有事情。
+So, all those things we are specifically going to do.
+
+19
+00:01:47,120 --> 00:01:51,120
+呃，那我们一步步来，首先，我们需要加载这个特定的页面。
+Uh so let's go ahead step by step and first of all, we need to load this particular page.
+
+20
+00:01:51,200 --> 00:01:56,400
+为此，我们将使用文档加载器，也就是 WebBaseLoader。
+So for that, we will be using document loaders, uh, nothing but web-based loader.
+
+21
+00:01:56,480 --> 00:02:01,732
+我已经从 langchain_community.document_loaders 导入了 WebBaseLoader。
+I have already imported from Langchain underscore community dot document loader, import web-based loader.
+
+22
+00:02:02,062 --> 00:02:09,840
+执行完这个之后，呃，你们会看到我将使用这个 WebBaseLoader，你只需要提供那个页面的 URL。
+So after executing this, uh you'll be able to see that I will be using this web-based loader,
+and you just need to give the URL of that particular page.
+
+23
+00:02:10,252 --> 00:02:18,436
+该页面上所有可用的内容都将被加载，通过使用
+loader.load，我将能够获取文档，这就是我的最终文档。
+all the content that is available in that particular page will be loaded, and by using loader dot load,
+I will be able to get the documents, and this will basically be my final document.
+
+24
+00:02:18,640 --> 00:02:20,324
+所以这些就是这里的全部文档。
+So these are all the documents over here.
+
+25
+00:02:20,846 --> 00:02:28,388
+现在，一旦我拿到了所有文档，接下来我要做的就是把这些文档切分成块。
+Now, once I probably get all the documents, the next thing that I am going to do is that divide this particular documents into chunks.
+
+26
+00:02:29,134 --> 00:02:37,764
+所以为此，再次将其转换为块，并使用 OpenAI embedding，我将把它们转换为向量，
+最后存储在名为 ObjectBox 的向量数据库中。
+So for that, again convert that into chunks and using OpenAI embedding, I'm going to
+convert that into vector and finally store it in a vector database called as object box.
+
+27
+00:02:38,510 --> 00:02:42,212
+对于 ObjectBox，我们将使用 langchain_objectbox。
+So for object box, we will be using Langchain underscore object box.
+
+28
+00:02:42,734 --> 00:02:45,892
+所以这是你们确实需要满足的首要要求。
+so this is the first requirement that you really need to fulfill.
+
+29
+00:02:46,286 --> 00:02:51,684
+我们将继续更新我们的 requirement.txt 文件，然后直接 pip install requirement.txt。
+So we will go ahead and update in our requirement.txt file and just go ahead and pip install the requirement.txt.
+
+30
+00:02:52,000 --> 00:02:55,716
+通过这样做，你们就能安装好这个特定的库了。
+By that you will be able to get this particular library installed.
+
+31
+00:02:55,920 --> 00:02:59,940
+借助 LangChain，我们还可以使用 ObjectBox 向量数据库。
+And with the help of Langchain, we will also be able to use the object box vector db.
+
+32
+00:03:00,430 --> 00:03:07,108
+所以从 langchain_objectbox.vector_stores 导入 ObjectBox，
+同时我还会使用 OpenAI embeddings。
+So from Langchain underscore object box dot vector stores, import object
+box, and then along with that, I will also be using OpenAI embeddings.
+
+33
+00:03:07,598 --> 00:03:10,468
+OpenAI embeddings 基本就是把所有文本转换成向量。
+OpenAI embeddings is basically to convert all the text into vectors.
+
+34
+00:03:10,958 --> 00:03:18,320
+下一步，我基本上要导入 RecursiveCharacterTextSplitter，
+然后把我手头的所有这些数据切分成块，对吧？
+So the next step, I'm going to basically import recursive character text splitter
+and I'm going to split all this particular data that I have into chunks, right?
+
+35
+00:03:18,670 --> 00:03:25,732
+这就是我实际做的操作：从 langchain_text_splitter 导
+入 RecursiveCharacterTextSplitter，然后我来初始化它。
+So that is what I've actually done from lang chain underscore text underscore splitter,
+import recursive character text splitter, and then I'm going to initialize this.
+
+36
+00:03:25,920 --> 00:03:36,770
+呃，重叠块和文本块的默认值大概在 1200 左右，你可以去文档里具体查看，
+然后我将使用 text_splitter.split_documents 处理这些数据，最后，这就是我的数据，对吧？
+Uh default values of uh overlap chunks and text chunks will be somewhere around thousand and two hundred that you can specifically
+check from the documentation, and then I'm going to use text underscore splitter dot
+
+37
+00:03:36,770 --> 00:03:41,360
+呃，重叠块和文本块的默认值大概在 1200 左右，你可以去文档里具体查看，
+然后我将使用 text_splitter.split_documents 处理这些数据，最后，这就是我的数据，对吧？
+split documents with respect to this particular data, and finally, this is my data, right?
+
+38
+00:03:41,486 --> 00:03:46,512
+那让我来创建一下，这就是我最终切分好的文档块，对吧？
+So let me just go ahead and create Uh this is my final documents in chunks, right?
+
+39
+00:03:46,592 --> 00:03:48,592
+所以现在我一共得到了四个文档。
+So overall I get four documents now.
+
+40
+00:03:48,672 --> 00:03:55,472
+我接下来要做的是把所有这些文档转换成向量，并存入向量数据库中。
+What I will be taking doing is that I will be converting all these particular documents into vectors and storing it in the vector db.
+
+41
+00:03:55,552 --> 00:03:56,192
+怎么做呢？
+How to do that?
+
+42
+00:03:56,526 --> 00:04:03,232
+从 langchain_openai 导入 OpenAIEmbeddings，然后我将调用 ObjectBox.from_documents。
+So from Langchain uh underscore open AI import openai embeddings, then I'm going to call object box dot from documents.
+
+43
+00:04:03,312 --> 00:04:12,196
+我会把所有文档传进去，用 OpenAI embeddings 把文本转换成向量，
+这里我们还要提供另一个嵌入维度，也就是 768。
+I'll give all my documents, I'll use openai embeddings for converting the text into vectors,
+and here we will be giving another embedding dimension that is 768.
+
+44
+00:04:12,526 --> 00:04:15,588
+一旦我完成这一步，它基本上就变成了我的向量。
+So once I do this, so this basically becomes my vector.
+
+45
+00:04:15,982 --> 00:04:26,724
+还有一件事，一旦我在这里写完，你就能看到我的 ObjectBox
+向量数据库已经创建好了，这就是我的 data.mdb 文件。
+And one more thing you can probably see once I write this right here, you'll be able to see that my object box vector database is
+basically created, and this is the file that I have data.mdb.
+
+46
+00:04:27,086 --> 00:04:30,752
+Log.mdb 会锁定这个数据库，直到我明确使用它为止。
+Log.mdb will be locking this particular database till I specifically use it.
+
+47
+00:04:30,862 --> 00:04:36,804
+一旦我重启内核，这个数据库就会解锁，然后你就可以对这个文件做任何操作了。
+Once I restart the kernel, then this particular database will be unlocked, and you can probably do anything for this particular file.
+
+48
+00:04:37,006 --> 00:04:39,140
+好了，现在你的向量已经准备好了。
+Okay, so now your vector is ready.
+
+49
+00:04:39,312 --> 00:04:41,952
+呃，这就是你的整个向量数据库。
+Uh, this is basically your vector database altogether.
+
+50
+00:04:42,032 --> 00:04:48,772
+现在你可以把它转换成检索器，然后把它转换成 RAG 流水线。
+Now you can convert this into a retriever and you can probably convert that into a rack pipeline.
+
+51
+00:04:49,134 --> 00:04:53,872
+为了创建 RAG 流水线，我将从 langchain_openai 导入 ChatOpenAI。
+So for creating a rack pipeline, I will be using from Langchin underscore openai import chat openai.
+
+52
+00:04:54,222 --> 00:04:56,388
+这是为了作为对话进行交互。
+This is for your interaction as a chat.
+
+53
+00:04:56,912 --> 00:05:00,032
+然后我还会导入 StringOutputParser 中的 OutputParser。
+then I'll also be importing output parser from string output parser.
+
+54
+00:05:00,192 --> 00:05:03,140
+它负责显示来自 LLM 模型的结果。
+This is responsible by displaying the output from the LLM model.
+
+55
+00:05:03,566 --> 00:05:09,572
+这基本上是用来创建你自己的提示词模板的，最后，我还要使用 RetrievalQA。
+This is basically used for creating your own prompt template, and finally, I'm also going to use retrieval QA.
+
+56
+00:05:09,806 --> 00:05:12,004
+那实际上会给你提供完整的数据。
+That is actually going to give you the entire data.
+
+57
+00:05:12,512 --> 00:05:15,204
+它能帮助我们创建检索链本身，对吧？
+it will help us to create the retrieval chain itself, right?
+
+58
+00:05:15,598 --> 00:05:20,260
+除此之外，我还要使用 Hub，这样我就能直接下载我的 RAG 提示词了。
+Along with that, I'm also going to use Hub where I can directly download my rack prompt.
+
+59
+00:05:20,512 --> 00:05:23,872
+好了，这些就是我导入的所有内容。
+Okay, so here are all the things I have imported it.
+
+60
+00:05:24,014 --> 00:05:25,312
+那我们开始初始化吧。
+So let's go ahead and initialize it.
+
+61
+00:05:25,392 --> 00:05:29,232
+现在我要初始化 ChatOpenAI，并将模型名称设为 GPT-4o。
+Now I'm going to initialize chat openai and I'm giving the model name as GPT4.
+
+62
+00:05:30,032 --> 00:05:30,272
+没错。
+Right.
+
+63
+00:05:30,352 --> 00:05:36,196
+所以这里是我专门调用 GPT-4o 模型的地方，对吧？
+So this is where I am specifically calling my GPT-4.0 model, right?
+
+64
+00:05:37,006 --> 00:05:41,232
+然后我将从 hub 中拉取检索提示词。
+Then I'm just going to pull from the hub what will be the rack prompt.
+
+65
+00:05:41,312 --> 00:05:46,432
+如果你真的想看提示词，也可以把它显示在这里，它已经在 hub 里可用了。
+So if you really want to see the prompt, you can also display it over here, and already it is available in the hub.
+
+66
+00:05:46,542 --> 00:05:48,752
+这就是我没从头开始创建它的原因。
+So that is the reason I did not create it from scratch.
+
+67
+00:05:48,832 --> 00:05:52,932
+如果你想从头创建，可以使用 chat prompt 模板并尝试转换它。
+If you want to create it from scratch, use the chat prompt template and try to convert it.
+
+68
+00:05:53,072 --> 00:05:53,312
+好的。
+Okay.
+
+69
+00:05:53,742 --> 00:05:55,632
+呃，基本上你可以这样做。
+Uh, so the same thing you can basically do it.
+
+70
+00:05:55,758 --> 00:05:57,072
+这是我的 chat prompt 模板。
+So this is my chat prompt template.
+
+71
+00:05:57,152 --> 00:06:04,912
+输入变量是 context 和 question，元数据在这里，检
+索提示词模板在这里，输入变量，所有东西都在这里。
+The input variables is context question, metadata is over here, rack
+prompt template is over here, the input variables, everything is over here.
+
+72
+00:06:05,262 --> 00:06:09,092
+你可以看到，如果你不知道答案，请使用以下检索到的上下文。
+You can probably see if you don't know the answer, use the following piece of retrieve context.
+
+73
+00:06:09,232 --> 00:06:12,112
+所以这基本上将用于问答任务。
+So this will basically be used for question answering task.
+
+74
+00:06:12,192 --> 00:06:13,924
+你是一个负责问答任务的助手。
+You are an assistant for question answering tasks.
+
+75
+00:06:14,352 --> 00:06:18,912
+使用以下检索到的上下文来回答问题，这些都在里面，对吧？
+Use the following piece of retrieved context to answer the questions and all are there, right?
+
+76
+00:06:19,374 --> 00:06:21,284
+最后，我确实能看到我的提示词了。
+So finally, I'm actually able to see my prompt.
+
+77
+00:06:21,710 --> 00:06:25,312
+现在我要使用这个检索 QA，并从 chain type 创建链。
+Now I'm going to use this retrieval QA and I'm going to create the chain from chain type.
+
+78
+00:06:25,392 --> 00:06:26,500
+我要使用 LLM。
+I'm going to use LLM.
+
+79
+00:06:26,734 --> 00:06:36,356
+检索器将是，我将把这个向量数据库转换为检索器，因为
+这个检索器将是提供来自这个特定向量数据库数据的接口。
+Retriever will be that I will be converting this vector database as retriever because this retriever will be the interface to provide
+the data from this particular vector database that is vector db.
+
+80
+00:06:37,006 --> 00:06:41,604
+然后在 chain type 参数中，我将专门提供保存在这个特定变量中的提示词。
+Then the chain type argument I'm going to specifically give the prompt which is saved in this particular variable.
+
+81
+00:06:41,902 --> 00:06:43,300
+这样就成了我的 QA 链。
+So this becomes my QA chain.
+
+82
+00:06:43,392 --> 00:06:47,492
+现在我可以拿出一个问题，解释什么是 LangSmith。
+Now I can probably take a question, explain what is Langsmith.
+
+83
+00:06:47,792 --> 00:06:53,540
+所以我会拿这个 QA 链，把它放入我的输入变量 query 中，这将作为问题输入。
+So I will take this QA chain, I'll put it inside my input variable that is query, and this will be given as a question.
+
+84
+00:06:54,030 --> 00:06:59,300
+一旦我显示结果，你就能看到我的结果大概是这样的。
+So once I probably display the result, you will be able to see that my result will be something like this.
+
+85
+00:07:00,432 --> 00:07:02,112
+解释什么是 LangSmith。
+explain what is Langsmith.
+
+86
+00:07:02,352 --> 00:07:04,112
+所以我可以在这里看到结果。
+So I will be able to see the result over here.
+
+87
+00:07:04,192 --> 00:07:07,460
+这是从存储在那里的整个文档中提取出来的。
+This is taken from the entire document itself that is stored over there.
+
+88
+00:07:07,950 --> 00:07:12,036
+LangSmith 是一个用于 LLM 开发、监控和测试的向量平台。
+Langsmith is a vector platform designed for the development, monitoring, and testing of LLM.
+
+89
+00:07:12,462 --> 00:07:17,252
+它支持应用程序生命周期的各个阶段，包括原型、测试和生产。
+It supports various stages of the application lifecycle, including prototype, beta testing, and production.
+
+90
+00:07:17,582 --> 00:07:20,964
+该平台提供追踪、评估、反馈和收集工具。
+The platform offers tools for tracing, evaluation, feedback, and collection.
+
+91
+00:07:21,152 --> 00:07:21,392
+对吧？
+Right?
+
+92
+00:07:21,614 --> 00:07:25,124
+所以如果你只是想要答案，大概可以在这里显示出来。
+So this is if you just want the answer, you can probably display it over here.
+
+93
+00:07:25,710 --> 00:07:36,460
+最后，如果你想用更漂亮的方式来展示，你可以导入 pprint，
+然后在这里你可以看到 pprint.pretty_printer_indent
+Finally, if you want to probably display it in a prettier way, then you can import ppprint,
+and then here you can probably see ppprint.pretty uh pretty printer indent is equal to four,
+
+94
+00:07:36,460 --> 00:07:37,110
+等于 4，或者我给它设为 5，这样显示效果会更好点。
+Finally, if you want to probably display it in a prettier way, then you can import ppprint,
+and then here you can probably see ppprint.pretty uh pretty printer indent is equal to four,
+
+95
+00:07:37,110 --> 00:07:41,312
+等于 4，或者我给它设为 5，这样显示效果会更好点。
+or I will give indent is equal to five to display it much more better.
+
+96
+00:07:41,678 --> 00:07:47,232
+最后，你可以看到 LangSmith 是一个专为 LLM 模型开发、监控和测试而设计的平台。
+And finally, you can see platform langsmoth is a platform designed for development, monitoring, and testing of LLM models.
+
+97
+00:07:47,472 --> 00:07:49,924
+现在你可以继续提任何你想问的问题。
+Now you can probably go ahead and ask any question that you want.
+
+98
+00:07:50,286 --> 00:07:54,020
+让我再在这里问一个问题。
+Let me just go ahead and ask one more question over here.
+
+99
+00:07:56,046 --> 00:08:00,996
+来看看我们从网站上看到的那些问题。
+Let's see any kind of questions uh that we specifically see from the website.
+
+100
+00:08:01,792 --> 00:08:07,040
+嗯，获取反馈，生产环境。
+Um capturing feedback, production.
+
+101
+00:08:09,806 --> 00:08:13,348
+所以我可以直接问一下关于监控 A/B 测试的问题。
+So I can just go ahead and ask about monitoring A to B testing.
+
+102
+00:08:14,478 --> 00:08:14,810
+好的，
+Okay,
+
+103
+00:08:20,302 --> 00:08:24,624
+在 LangSmith 中，我大概可以执行它，这样我就能拿到这个问题的结果。
+In Langsmith, and I can probably execute it, and this I will be able to get the question.
+
+104
+00:08:25,038 --> 00:08:32,452
+LangSmith 提供监控图表来跟踪关键指标，允许用户深入查看特定数据点来进行调试等等。
+Langsmith provides the monitoring charts to track key metrics over time,
+allowing users to drill down into specific data points for debugging and all.
+
+105
+00:08:33,230 --> 00:08:42,052
+而且 GPT-4o 已经提供了很多功能，但我真的很想向你们
+展示一个可以专门利用所有这些功能的 RAG 应用程序。
+And there are a lot of features that already uh this uh GPT-4.0 provides, but I really
+wanted to show you a rag application where you can specifically use all these things.
+
+106
+00:08:42,573 --> 00:08:49,504
+除此之外，你还可以处理图像、处理文本、处理多模态内容，
+而且已经有很多端到端的项目被创建出来了。
+Along with this, you can also work with images, you can work with text, you can work in multiple factors things,
+and a lot of end to end projects have already created.
+
+107
+00:08:49,838 --> 00:08:51,024
+所以，是的，这就是我这部分的全部内容。
+So, yes, this was it from my side.
+
+108
+00:08:51,104 --> 00:08:52,224
+希望你们喜欢这个视频。
+I hope you like this particular video.
+
+109
+00:08:52,334 --> 00:08:53,344
+我们下个视频再见。
+I will see you all in the next video.
+
+110
+00:08:53,424 --> 00:08:53,904
+祝大家有美好的一天。
+Have a great day.
+
+111
+00:08:53,998 --> 00:08:55,264
+谢谢大家，保重，拜拜。
+Thank you, and all take care, bye bye.
+
