@@ -1,0 +1,364 @@
+1
+00:00:01,518 --> 00:00:14,820
+Hi everyone, I'm Sajit Mohammed from Eindhoven University of Technology and I welcome you all to my presentation on adaptive predictive control for pipeline multiprocessor image-based control systems considering workload variations.
+
+2
+00:00:15,120 --> 00:00:19,652
+This is a joint work between TU Eindhoven, IMT Luca, and CODIS.
+
+3
+00:00:20,750 --> 00:00:24,644
+Firstly, I will talk about a vision-based lateral control example.
+
+4
+00:00:25,262 --> 00:00:31,684
+So the idea here is for the control system to steer the car autonomously to stay within a lane.
+
+5
+00:00:32,334 --> 00:00:36,480
+So the camera here acts as a sensor to measure some of the system states.
+
+6
+00:00:36,718 --> 00:00:41,188
+The steering angle is the control input and the output is the lateral deviation.
+
+7
+00:00:42,350 --> 00:00:51,492
+So the tasks that are executed on this embedded platform are the sensing and processing task S, the control computation task C, and the actuation task A.
+
+8
+00:00:53,646 --> 00:00:56,240
+First, let's talk about workload variations.
+
+9
+00:00:56,782 --> 00:01:03,972
+So what I mean by that is you in these two images, the image workload is different.
+
+10
+00:01:04,462 --> 00:01:10,660
+So for the vision-based lateral control system, we need to extract the lanes from the image.
+
+11
+00:01:11,182 --> 00:01:15,812
+And we extract lanes basically using an edge detection algorithm like a sober filter.
+
+12
+00:01:16,398 --> 00:01:23,908
+And while we do that, you notice that the number of edges you would obtain in this image is much less compared to this image.
+
+13
+00:01:24,654 --> 00:01:31,520
+What this means is that the execution time of S depends on these image workload variations.
+
+14
+00:01:31,680 --> 00:01:36,164
+So for this image, the time is much shorter compared to this image.
+
+15
+00:01:37,614 --> 00:01:48,772
+The next thing we notice is that this time is relatively long and is also highly variable.
+
+16
+00:01:49,760 --> 00:02:03,364
+So this variable workload variations can be characterized as a probability distribution where the average case most probably tends towards the best case.
+
+17
+00:02:05,870 --> 00:02:12,068
+The other aspect is that you also do not know the exact sequence of occurrence of these image workload a priori.
+
+18
+00:02:15,662 --> 00:02:21,860
+So for a typical control design, what we normally do is we design for the worst case workload.
+
+19
+00:02:22,960 --> 00:02:40,068
+However, you notice that this work worst case rarely occurs, and because of that, you end up in a lot of unnecessary idle times in your processor utilization and also some dropped frames because you do not have enough resource to process these frames.
+
+20
+00:02:42,158 --> 00:02:50,240
+So the main research question we try to address is how to cope with this long variable sensing delay to improve system performance.
+
+21
+00:02:51,054 --> 00:02:59,556
+One way to do it is by considering multi-processors and by using a pipelined implementation where you reduce the sampling period.
+
+22
+00:03:00,910 --> 00:03:03,360
+So a pipeline implementation works like this.
+
+23
+00:03:03,440 --> 00:03:06,960
+So consider that the camera frame arrives at time instant K.
+
+24
+00:03:07,374 --> 00:03:19,396
+So you do the sensor sensing and processing task, you get an output uh I mean you get the output measurements and also the state measurements after the task S.
+
+25
+00:03:19,600 --> 00:03:25,764
+You then do a control computation and an actuation task, and this then forms one pipe.
+
+26
+00:03:26,158 --> 00:03:28,740
+So the SCA combination is a one pipe.
+
+27
+00:03:29,838 --> 00:03:38,436
+So the next frame arrives at K plus one and then you execute the second pipe and you execute the third pipe and then you continue executing the pipes.
+
+28
+00:03:40,014 --> 00:03:45,760
+So here the sampling period is equal to the frame arrival period fH.
+
+29
+00:03:46,400 --> 00:03:50,916
+So and the tau here represents a sensing to actuator delay tau.
+
+30
+00:03:53,198 --> 00:03:59,280
+And we say that you have a maximal pipeline implementation when your sampling period h is equal to fh.
+
+31
+00:03:59,520 --> 00:04:04,068
+That is, all the frames are processed without dropping any frames.
+
+32
+00:04:06,574 --> 00:04:12,100
+However, there are a lot of practical challenges in a multiprocessor IBC system implementations.
+
+33
+00:04:13,198 --> 00:04:22,864
+So another challenge is the platform constraint, where, for example, you do not know the number of available processing cores.
+
+34
+00:04:23,024 --> 00:04:25,344
+So you're basically limited by it.
+
+35
+00:04:25,504 --> 00:04:30,692
+If you have less cores, or if you have, for instance, only one core, you cannot actually pipeline.
+
+36
+00:04:32,174 --> 00:04:37,264
+So the next aspect to consider or the challenge to consider is the system non-linearities.
+
+37
+00:04:37,486 --> 00:04:42,980
+For example, the velocity of the car could be varying, which might result in a nonlinear system.
+
+38
+00:04:43,630 --> 00:04:47,664
+Another challenge is that there could be constraints on system variables.
+
+39
+00:04:47,744 --> 00:04:52,484
+For example, the maximum steering angle is constrained to plus or minus 25 degrees.
+
+40
+00:04:53,358 --> 00:04:55,940
+You could also have interframe dependencies.
+
+41
+00:04:56,398 --> 00:05:04,388
+So interframe dependencies actually capture the data or algorithmic dependencies between two consecutive frame processing.
+
+42
+00:05:04,846 --> 00:05:23,812
+For example, if you have, let's say, a uh an interframe dependence time FD, which is greater than FH, what this FD tells is that after FD, there is some data that becomes available, which is needed before you can start processing the next frame.
+
+43
+00:05:24,462 --> 00:05:27,744
+And because of this, you might have a longer edge.
+
+44
+00:05:27,904 --> 00:05:35,300
+So for instance, you could have actually had h equal to fh, but because of FD, you need to have H is equal to 2FH here.
+
+45
+00:05:37,710 --> 00:05:46,436
+So what we notice is that these practical challenges are not fully addressed for pipelining in state-of-the-art multiprocessor IBC system implementations.
+
+46
+00:05:47,854 --> 00:06:06,624
+So in this work as contribution, we propose an adaptive predictive control formulation based on linear parameter varying input-output models, considering these practical challenges, and we answer the question how to optimize quality of control for a practical real-life IBC system.
+
+47
+00:06:07,726 --> 00:06:14,404
+We also gives a brief tutorial overview of how to handle delay while using input-output models for MPC.
+
+48
+00:06:15,278 --> 00:06:23,460
+So the first question that pops up is: Is it really feasible to use MPC in resource-constrained systems like the automotive case?
+
+49
+00:06:25,518 --> 00:06:31,076
+The answer is yes, and it's mainly due to recent advances in numerical optimization for MPC.
+
+50
+00:06:31,406 --> 00:06:40,580
+So MPC has already been implemented in engine control and powertrain coordination systems in the automotive domain, and they are already in mass production.
+
+51
+00:06:41,806 --> 00:06:44,964
+The next question is what about adaptive MPC?
+
+52
+00:06:46,384 --> 00:06:55,620
+So a recent work has shown that the model and MPC tuning parameters can be adapted at runtime without reconstructing the optimization problem.
+
+53
+00:06:56,366 --> 00:07:00,644
+Also, the computational complexity is same as the non-adaptive case.
+
+54
+00:07:01,104 --> 00:07:08,164
+It is also shown that an adaptive MPC is fast enough for resource-constrained embedded applications.
+
+55
+00:07:10,638 --> 00:07:26,596
+So in our formulation, we first consider interframe dependencies and the platform constraints, for example, the available number of processing cores to compute H, which is the minimum sampling period you could have for your system.
+
+56
+00:07:29,166 --> 00:07:41,924
+So using the computed edge and the delays, also using the input output system model, we obtain an adaptive predictive control system.
+
+57
+00:07:45,710 --> 00:07:59,268
+So regarding the optimization problem formulation, so our cost function has two terms, which is one penalizes the output tracking error, the other term penalizes the deviation of inputs from steady state targets.
+
+58
+00:07:59,918 --> 00:08:03,648
+So we formulate the QP problem as shown here.
+
+59
+00:08:03,968 --> 00:08:06,660
+You could refer to the paper for more details.
+
+60
+00:08:06,848 --> 00:08:17,220
+So the main point to note here is that we actually keep track of a stack of known past sequence of outputs and inputs, and you can adapt the problem at every time step.
+
+61
+00:08:20,014 --> 00:08:23,088
+So a bit more detail.
+
+62
+00:08:23,408 --> 00:08:36,448
+So this is the input-output model we consider, and this can be derived from state space equations and uh and a representation of this model in an ARA ARX form is shown here.
+
+63
+00:08:36,608 --> 00:08:45,008
+So, how we incorporate delays by uh setting the coefficient bj to be zero for the delay terms.
+
+64
+00:08:45,088 --> 00:08:53,956
+So, for example, if the delay is represented as n d h plus 2 dash, then we set uh for j equal to 1 to nd bj to be zero.
+
+65
+00:08:54,606 --> 00:09:02,596
+So by doing this, the size of the MPC problem does not change, and also the tuning parameters and model parameters can all be changed at runtime.
+
+66
+00:09:04,110 --> 00:09:10,692
+So another important aspect of predictive control strategy is that we need to adapt to workload variations.
+
+67
+00:09:11,342 --> 00:09:26,564
+So consider these two pipes, so these two have the same delay, so that's the case one, and then let's say that the next three pipes have uh uh workload variations in decreasing, so basically that results in decreasing delay.
+
+68
+00:09:28,302 --> 00:09:42,628
+So, what this means is that at some point you receive all this latest information at the same point, and then you can use, I mean you basically do a control computation and actuation using all this information.
+
+69
+00:09:44,590 --> 00:09:53,380
+There could be other points, uh other control compute tasks where you do not have any new information available, and so on.
+
+70
+00:09:54,030 --> 00:09:58,052
+So we represent it as case one, case two, and case three.
+
+71
+00:09:59,246 --> 00:10:03,844
+So the case one here is that the sensing delay is same as the previous step.
+
+72
+00:10:04,174 --> 00:10:09,316
+So you keep the ND constant and the stack is updated as normal.
+
+73
+00:10:09,966 --> 00:10:16,528
+So we have a case two where the sensing delay is increased by one step, then that means you do not have any new measurements available.
+
+74
+00:10:16,608 --> 00:10:24,292
+So you increase the ND by one and you update only the inputs and you do not update the past outputs.
+
+75
+00:10:24,942 --> 00:10:32,420
+And the case three is that the sensing delay is reduced by one or more steps, that means all your latest and past measurements are available.
+
+76
+00:10:32,528 --> 00:10:39,300
+So you reduce ND accordingly, and then the stack is updated iteratively with the available measurements.
+
+77
+00:10:40,848 --> 00:10:49,328
+So for the simulation results for an efficient MPC implementation, we need to actually transform the QP problem to a box-constrained least squared problem.
+
+78
+00:10:49,408 --> 00:10:51,556
+So the details we can find in the paper.
+
+79
+00:10:52,686 --> 00:10:57,008
+And to evaluate our controller, we use these settings.
+
+80
+00:10:57,168 --> 00:11:10,852
+Basically, these represent the challenges, and we show that the MPC with variable delay, that is, which considers the workload variations, performs much better than the MPC with the worst case delay.
+
+81
+00:11:12,366 --> 00:11:21,808
+We also compare our approach with state of the art MPC, I mean state-of-the-art multiprocessor IBC implementations.
+
+82
+00:11:22,734 --> 00:11:28,288
+So it is true that MPC is actually relatively compute intensive.
+
+83
+00:11:28,528 --> 00:11:44,324
+So if you compare to LQR-based control approaches, we see that the worst-case control computation time is 15 times greater for the MPC, but it still only 6 milliseconds for our case, assuming a 50 megahertz processor.
+
+84
+00:11:45,088 --> 00:11:49,888
+So the sense here uh the sensing delay is actually much much higher than this.
+
+85
+00:11:49,968 --> 00:11:56,004
+So it's still I mean, so we could still use MPC for our application.
+
+86
+00:11:57,710 --> 00:12:09,316
+Our approach has a lot of advantages compared to state-of-the-art approaches because we consider interframe dependencies, we could model and consider system non-linearities, and we also strictly impose constraints on the system variables.
+
+87
+00:12:12,366 --> 00:12:19,088
+So, in conclusion, we make a step towards real-life adoption of IBC system.
+
+88
+00:12:19,982 --> 00:12:32,964
+We reduce the gap between current state of the art multiprocessor IBC approaches and practical control requirements, and as future work, we plan to do a real life implementation starting with an Emacs SIL or HIL framework.
+
+89
+00:12:35,342 --> 00:12:36,999
+Thanks a lot for your patient listening.
+
+90
+00:12:36,999 --> 00:12:39,876
+and If you have any questions, I will be happy to answer them.
+
+91
+00:12:40,288 --> 00:12:40,804
+Thank you.
+

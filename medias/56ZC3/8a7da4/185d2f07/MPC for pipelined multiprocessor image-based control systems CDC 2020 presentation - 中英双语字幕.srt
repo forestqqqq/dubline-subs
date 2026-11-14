@@ -1,0 +1,520 @@
+1
+00:00:01,518 --> 00:00:14,820
+大家好，我是来自 TU Eindhoven 的萨吉德·穆罕默德，欢迎来到我的演讲，
+主题是考虑工作负载变化的流水线多处理器基于图像控制系统的自适应预测控制。
+Hi everyone, I'm Sajit Mohammed from Eindhoven University of Technology and I welcome you all to my presentation on adaptive
+predictive control for pipeline multiprocessor image-based control systems considering workload variations.
+
+2
+00:00:15,120 --> 00:00:19,652
+这是 TU Eindhoven、IMT Luca 和 CODIS 的合作研究。
+This is a joint work between TU Eindhoven, IMT Luca, and CODIS.
+
+3
+00:00:20,750 --> 00:00:24,644
+首先，我将介绍一个基于视觉的横向控制示例。
+Firstly, I will talk about a vision-based lateral control example.
+
+4
+00:00:25,262 --> 00:00:31,684
+这里的思路是让控制系统自主驾驶汽车，使其保持在车道内。
+So the idea here is for the control system to steer the car autonomously to stay within a lane.
+
+5
+00:00:32,334 --> 00:00:36,480
+这里的摄像头充当传感器，用来测量系统的某些状态。
+So the camera here acts as a sensor to measure some of the system states.
+
+6
+00:00:36,718 --> 00:00:41,188
+转向角是控制输入，输出是横向偏差。
+The steering angle is the control input and the output is the lateral deviation.
+
+7
+00:00:42,350 --> 00:00:51,492
+因此，在这个嵌入式平台上执行的任务包括感知和处理任务 S、控制计算任务 C 以及执行任务 A。
+So the tasks that are executed on this embedded platform are the sensing and
+processing task S, the control computation task C, and the actuation task A.
+
+8
+00:00:53,646 --> 00:00:56,240
+首先，我们来谈谈工作负载的变化。
+First, let's talk about workload variations.
+
+9
+00:00:56,782 --> 00:01:03,972
+我的意思是，在这两张图像中，图像工作负载是不同的。
+So what I mean by that is you in these two images, the image workload is different.
+
+10
+00:01:04,462 --> 00:01:10,660
+对于基于视觉的横向控制系统，我们需要从图像中提取车道。
+So for the vision-based lateral control system, we need to extract the lanes from the image.
+
+11
+00:01:11,182 --> 00:01:15,812
+我们基本上是使用像 Sobel 滤波器这样的边缘检测算法来提取车道。
+And we extract lanes basically using an edge detection algorithm like a sober filter.
+
+12
+00:01:16,398 --> 00:01:23,908
+在执行这个操作时，你会注意到这张图像中获得的边缘数量比这张图像少得多。
+And while we do that, you notice that the number of edges you would obtain in this image is much less compared to this image.
+
+13
+00:01:24,654 --> 00:01:31,520
+这意味着任务 S 的执行时间取决于这些图像工作负载的变化。
+What this means is that the execution time of S depends on these image workload variations.
+
+14
+00:01:31,680 --> 00:01:36,164
+所以，这张图像的耗时比这张图像短得多。
+So for this image, the time is much shorter compared to this image.
+
+15
+00:01:37,614 --> 00:01:48,772
+接下来我们注意到，这个耗时相对较长，而且变动很大。
+The next thing we notice is that this time is relatively long and is also highly variable.
+
+16
+00:01:49,760 --> 00:02:03,364
+因此，这种可变的工作负载变化可以表征为一个概率分布，其中平均情况最可能趋向于最佳情况。
+So this variable workload variations can be characterized as a probability
+distribution where the average case most probably tends towards the best case.
+
+17
+00:02:05,870 --> 00:02:12,068
+另一个方面是，你事先也不知道这些图像工作负载出现的准确顺序。
+The other aspect is that you also do not know the exact sequence of occurrence of these image workload a priori.
+
+18
+00:02:15,662 --> 00:02:21,860
+对于典型的控制设计，我们通常的做法是针对最坏情况的工作负载进行设计。
+So for a typical control design, what we normally do is we design for the worst case workload.
+
+19
+00:02:22,960 --> 00:02:34,220
+然而，你会注意到这种情况很少发生，正因如此，你的处理器利用率中会出现很多不必要的空闲
+时间，而且还会出现一些丢帧，因为你没有足够的资源来处理这些帧。
+However, you notice that this work worst case rarely occurs, and because of that,
+you end up in a lot of unnecessary idle times in your processor utilization and also
+
+20
+00:02:34,220 --> 00:02:40,068
+然而，你会注意到这种情况很少发生，正因如此，你的处理器利用率中会出现很多不必要的空闲
+时间，而且还会出现一些丢帧，因为你没有足够的资源来处理这些帧。
+some dropped frames because you do not have enough resource to process these frames.
+
+21
+00:02:42,158 --> 00:02:50,240
+所以我们试图解决的主要研究问题是，如何应对这种长且可变的感知延迟，以提高系统性能。
+So the main research question we try to address is how to cope with this long variable sensing delay to improve system performance.
+
+22
+00:02:51,054 --> 00:02:59,556
+一种方法是考虑多处理器，并使用流水线实现来缩短采样周期。
+One way to do it is by considering multi-processors and by using a pipelined implementation where you reduce the sampling period.
+
+23
+00:03:00,910 --> 00:03:03,360
+流水线实现的工作原理如下。
+So a pipeline implementation works like this.
+
+24
+00:03:03,440 --> 00:03:06,960
+假设摄像机帧在时刻 K 到达。
+So consider that the camera frame arrives at time instant K.
+
+25
+00:03:07,374 --> 00:03:19,396
+然后你执行传感器感知和处理任务，得到输出，我是说得到输出测量值，
+以及在任务 S 之后的状态测量值。
+So you do the sensor sensing and processing task, you get an output uh I mean
+you get the output measurements and also the state measurements after the task S.
+
+26
+00:03:19,600 --> 00:03:25,764
+接着你执行控制计算和执行任务，这就形成了一个流水段。
+You then do a control computation and an actuation task, and this then forms one pipe.
+
+27
+00:03:26,158 --> 00:03:28,740
+所以 SCA 的组合就是一个流水段。
+So the SCA combination is a one pipe.
+
+28
+00:03:29,838 --> 00:03:38,436
+下一帧在 K 加 1 到达，然后你执行第二个流水段，
+执行第三个流水段，然后继续执行后续的流水段。
+So the next frame arrives at K plus one and then you execute the second pipe
+and you execute the third pipe and then you continue executing the pipes.
+
+29
+00:03:40,014 --> 00:03:45,760
+这里的采样周期等于帧到达周期 fH。
+So here the sampling period is equal to the frame arrival period fH.
+
+30
+00:03:46,400 --> 00:03:50,916
+这里的 tau 代表从感知到执行器的延迟 tau。
+So and the tau here represents a sensing to actuator delay tau.
+
+31
+00:03:53,198 --> 00:03:59,280
+当你的采样周期 h 等于 fh 时，我们就说你拥有最大化的流水线实现。
+And we say that you have a maximal pipeline implementation when your sampling period h is equal to fh.
+
+32
+00:03:59,520 --> 00:04:04,068
+也就是说，所有帧都会被处理，不会丢弃任何一帧。
+That is, all the frames are processed without dropping any frames.
+
+33
+00:04:06,574 --> 00:04:12,100
+然而，在多处理器 IBC 系统实现中，存在许多实际挑战。
+However, there are a lot of practical challenges in a multiprocessor IBC system implementations.
+
+34
+00:04:13,198 --> 00:04:22,864
+另一个挑战是平台约束，例如，你可能不知道可用的处理核心数量。
+So another challenge is the platform constraint, where, for example, you do not know the number of available processing cores.
+
+35
+00:04:23,024 --> 00:04:25,344
+所以你基本上受此限制。
+So you're basically limited by it.
+
+36
+00:04:25,504 --> 00:04:30,692
+如果你核心较少，或者例如只有一个核心，你就实际上无法实现流水线处理。
+If you have less cores, or if you have, for instance, only one core, you cannot actually pipeline.
+
+37
+00:04:32,174 --> 00:04:37,264
+接下来要考虑的方面或挑战是系统的非线性。
+So the next aspect to consider or the challenge to consider is the system non-linearities.
+
+38
+00:04:37,486 --> 00:04:42,980
+例如，汽车的速度可能会变化，这可能导致非线性系统。
+For example, the velocity of the car could be varying, which might result in a nonlinear system.
+
+39
+00:04:43,630 --> 00:04:47,664
+另一个挑战是系统变量可能存在约束。
+Another challenge is that there could be constraints on system variables.
+
+40
+00:04:47,744 --> 00:04:52,484
+例如，最大转向角被限制在正负 25 度以内。
+For example, the maximum steering angle is constrained to plus or minus 25 degrees.
+
+41
+00:04:53,358 --> 00:04:55,940
+你还可能面临帧间依赖关系。
+You could also have interframe dependencies.
+
+42
+00:04:56,398 --> 00:05:04,388
+帧间依赖关系实际上捕捉了两个连续帧处理之间的数据或算法依赖关系。
+So interframe dependencies actually capture the data or algorithmic dependencies between two consecutive frame processing.
+
+43
+00:05:04,846 --> 00:05:17,860
+例如，如果你有一个帧间依赖时间 FD，且它大于 FH，那么 FD 告诉我们，在 FD 之后，
+某些数据才会可用，而这些数据在你开始处理下一帧之前是必需的。
+For example, if you have, let's say, a uh an interframe dependence time FD, which is greater than FH,
+what this FD tells is that after FD, there is some data that becomes
+
+44
+00:05:17,860 --> 00:05:23,812
+例如，如果你有一个帧间依赖时间 FD，且它大于 FH，那么 FD 告诉我们，在 FD 之后，
+某些数据才会可用，而这些数据在你开始处理下一帧之前是必需的。
+available, which is needed before you can start processing the next frame.
+
+45
+00:05:24,462 --> 00:05:27,744
+正因为如此，你可能会面临更长的延迟。
+And because of this, you might have a longer edge.
+
+46
+00:05:27,904 --> 00:05:35,300
+例如，实际上你的 h 可以等于 fh，但因为 FD 的存在，这里你需要让 h 等于 2fh。
+So for instance, you could have actually had h equal to fh, but because of FD, you need to have H is equal to 2FH here.
+
+47
+00:05:37,710 --> 00:05:46,436
+我们注意到，在目前最先进的多处理器 IBC 系统实现中，这些实际挑战并未得到充分解决。
+So what we notice is that these practical challenges are not fully addressed
+for pipelining in state-of-the-art multiprocessor IBC system implementations.
+
+48
+00:05:47,854 --> 00:06:01,870
+因此，作为本工作的贡献，我们提出了一种基于线性参数变化输入输出模型的自适应预测控制方
+案，考虑了这些实际挑战，并回答了如何优化实际现实 IBC 系统控制质量的问题。
+So in this work as contribution, we propose an adaptive predictive control formulation based on linear parameter varying input-output
+models, considering these practical challenges, and we answer the question
+
+49
+00:06:01,870 --> 00:06:06,624
+因此，作为本工作的贡献，我们提出了一种基于线性参数变化输入输出模型的自适应预测控制方
+案，考虑了这些实际挑战，并回答了如何优化实际现实 IBC 系统控制质量的问题。
+how to optimize quality of control for a practical real-life IBC system.
+
+50
+00:06:07,726 --> 00:06:14,404
+我们还简要概述了在使用输入输出模型进行 MPC 时如何处理延迟。
+We also gives a brief tutorial overview of how to handle delay while using input-output models for MPC.
+
+51
+00:06:15,278 --> 00:06:23,460
+那么冒出的第一个问题是：在汽车案例这种资源受限的系统中，使用 MPC 真的可行吗？
+So the first question that pops up is: Is it really feasible to use MPC in resource-constrained systems like the automotive case?
+
+52
+00:06:25,518 --> 00:06:31,076
+答案是肯定的，这主要是由于 MPC 数值优化的近期进展。
+The answer is yes, and it's mainly due to recent advances in numerical optimization for MPC.
+
+53
+00:06:31,406 --> 00:06:40,580
+MPC 已经在汽车领域的发动机控制和动力总成协调系统中实现了，并且已经投入量产。
+So MPC has already been implemented in engine control and powertrain coordination
+systems in the automotive domain, and they are already in mass production.
+
+54
+00:06:41,806 --> 00:06:44,964
+下一个问题是关于自适应 MPC 的情况如何？
+The next question is what about adaptive MPC?
+
+55
+00:06:46,384 --> 00:06:55,620
+最近的一项工作表明，模型和 MPC 调节参数可以在运行时进行自适应，而无需重新构建优化问题。
+So a recent work has shown that the model and MPC tuning parameters can
+be adapted at runtime without reconstructing the optimization problem.
+
+56
+00:06:56,366 --> 00:07:00,644
+此外，其计算复杂度与非自适应情况相同。
+Also, the computational complexity is same as the non-adaptive case.
+
+57
+00:07:01,104 --> 00:07:08,164
+研究还表明，自适应 MPC 对于资源受限的嵌入式应用来说足够快。
+It is also shown that an adaptive MPC is fast enough for resource-constrained embedded applications.
+
+58
+00:07:10,638 --> 00:07:26,596
+在我们的方案中，我们首先考虑帧间依赖关系和平台约束，例如可用的处理核心数量，
+以此来计算 h，即你的系统可以拥有的最小采样周期。
+So in our formulation, we first consider interframe dependencies and the platform constraints, for example,
+the available number of processing cores to compute H, which is the minimum sampling period you could have for your system.
+
+59
+00:07:29,166 --> 00:07:41,924
+通过使用计算出的延迟和系统模型，我们获得了一个自适应预测控制系统。
+So using the computed edge and the delays, also using the input output system model, we obtain an adaptive predictive control system.
+
+60
+00:07:45,710 --> 00:07:59,268
+关于优化问题的制定，我们的代价函数包含两项，一
+项惩罚输出跟踪误差，另一项惩罚输入偏离稳态目标。
+So regarding the optimization problem formulation, so our cost function has two terms,
+which is one penalizes the output tracking error, the other term penalizes the deviation of inputs from steady state targets.
+
+61
+00:07:59,918 --> 00:08:03,648
+我们在这里展示了 QP 问题的制定方式。
+So we formulate the QP problem as shown here.
+
+62
+00:08:03,968 --> 00:08:06,660
+更多细节可以参考论文。
+You could refer to the paper for more details.
+
+63
+00:08:06,848 --> 00:08:17,220
+这里需要注意的主要点是，我们实际上跟踪了一组已知的过去输出和输入序列，
+并且你可以在每一步都对问题进行自适应。
+So the main point to note here is that we actually keep track of a stack of known past sequence of outputs and inputs,
+and you can adapt the problem at every time step.
+
+64
+00:08:20,014 --> 00:08:23,088
+接下来说一点细节。
+So a bit more detail.
+
+65
+00:08:23,408 --> 00:08:36,448
+这是我们考虑的输入输出模型，它可以从状态空间方程推导出来，
+这里展示了该模型在 ARA ARX 形式下的表示。
+So this is the input-output model we consider, and this can be derived from state space
+equations and uh and a representation of this model in an ARA ARX form is shown here.
+
+66
+00:08:36,607 --> 00:08:45,008
+关于我们如何处理延迟，是通过将延迟项的系数 bj 设为零来实现的。
+So, how we incorporate delays by uh setting the coefficient bj to be zero for the delay terms.
+
+67
+00:08:45,088 --> 00:08:53,956
+例如，如果延迟表示为 n d h plus 2 dash，那么我们就把 j 等于 1 到 nd 的 bj 都设为零。
+So, for example, if the delay is represented as n d h plus 2 dash, then we set uh for j equal to 1 to nd bj to be zero.
+
+68
+00:08:54,606 --> 00:09:02,596
+这样做，MPC 问题的大小就不会改变，而且调节参数和模型参数都可以在运行时更改。
+So by doing this, the size of the MPC problem does not change, and also
+the tuning parameters and model parameters can all be changed at runtime.
+
+69
+00:09:04,110 --> 00:09:10,692
+预测控制策略的另一个重要方面是，我们需要适应工作负载的变化。
+So another important aspect of predictive control strategy is that we need to adapt to workload variations.
+
+70
+00:09:11,342 --> 00:09:23,270
+考虑这两个流水线，这两个具有相同的延迟，这就是情况一；
+然后假设接下来的三个流水线的工作负载呈递减变化，基本上这意味着延迟也在递减。
+So consider these two pipes, so these two have the same delay, so that's the case one,
+and then let's say that the next three pipes have uh uh workload variations in decreasing,
+
+71
+00:09:23,270 --> 00:09:26,564
+考虑这两个流水线，这两个具有相同的延迟，这就是情况一；
+然后假设接下来的三个流水线的工作负载呈递减变化，基本上这意味着延迟也在递减。
+so basically that results in decreasing delay.
+
+72
+00:09:28,302 --> 00:09:42,628
+这意味着，在某些时刻，你会同时收到所有最新的信
+息，然后你可以利用这些信息来进行控制计算和执行。
+So, what this means is that at some point you receive all this latest information at the same point, and then you can use,
+I mean you basically do a control computation and actuation using all this information.
+
+73
+00:09:44,590 --> 00:09:53,380
+也可能存在其他控制计算任务，在那些时刻你拿不到任何新信息，等等。
+There could be other points, uh other control compute tasks where you do not have any new information available, and so on.
+
+74
+00:09:54,030 --> 00:09:58,052
+所以我们将其表示为情况一、情况二和情况三。
+So we represent it as case one, case two, and case three.
+
+75
+00:09:59,246 --> 00:10:03,844
+情况一是指感知延迟与上一步相同。
+So the case one here is that the sensing delay is same as the previous step.
+
+76
+00:10:04,174 --> 00:10:09,316
+在这种情况下，ND 保持不变，堆栈按正常方式更新。
+So you keep the ND constant and the stack is updated as normal.
+
+77
+00:10:09,966 --> 00:10:16,528
+情况二中，感知延迟增加了一步，这意味着你拿不到任何新的测量值。
+So we have a case two where the sensing delay is increased by one
+step, then that means you do not have any new measurements available.
+
+78
+00:10:16,608 --> 00:10:24,292
+这时你将 ND 增加 1，并且只更新输入，不更新过去的输出。
+So you increase the ND by one and you update only the inputs and you do not update the past outputs.
+
+79
+00:10:24,942 --> 00:10:32,420
+情况三是感知延迟减少了一步或更多步，这意味着你所有的最新和过去的测量值都是可用的。
+And the case three is that the sensing delay is reduced by one or more
+steps, that means all your latest and past measurements are available.
+
+80
+00:10:32,528 --> 00:10:39,300
+这时你相应地减少 ND，然后堆栈根据可用的测量值进行迭代更新。
+So you reduce ND accordingly, and then the stack is updated iteratively with the available measurements.
+
+81
+00:10:40,848 --> 00:10:49,328
+为了实现高效的 MPC，我们需要将 QP 问题转换为带框约束的最小二乘问题。
+So for the simulation results for an efficient MPC implementation, we need to
+actually transform the QP problem to a box-constrained least squared problem.
+
+82
+00:10:49,408 --> 00:10:51,556
+具体的细节可以在论文中找到。
+So the details we can find in the paper.
+
+83
+00:10:52,686 --> 00:10:57,008
+为了评估我们的控制器，我们使用了这些设置。
+And to evaluate our controller, we use these settings.
+
+84
+00:10:57,168 --> 00:11:10,852
+基本上，这些代表了挑战，我们展示了考虑工作负载变化
+的变延迟 MPC 表现比考虑最坏情况延迟的 MPC 好得多。
+Basically, these represent the challenges, and we show that the MPC with variable delay, that is,
+which considers the workload variations, performs much better than the MPC with the worst case delay.
+
+85
+00:11:12,366 --> 00:11:21,808
+我们还将我们的方法与最先进的 MPC，也就是最先进的多处理器 IBC 实现进行了对比。
+We also compare our approach with state of the art MPC, I mean state-of-the-art multiprocessor IBC implementations.
+
+86
+00:11:22,734 --> 00:11:28,288
+确实，MPC 的计算量相对较大。
+So it is true that MPC is actually relatively compute intensive.
+
+87
+00:11:28,528 --> 00:11:44,324
+与基于 LQR 的控制方法相比，我们看到 MPC 的最坏情况控制计算时间大 15 倍，
+但在我们的案例中，假设处理器为 50 MHz，它仍然仅为 6 毫秒。
+So if you compare to LQR-based control approaches, we see that the worst-case control computation time is 15 times greater for the
+MPC, but it still only 6 milliseconds for our case, assuming a 50 megahertz processor.
+
+88
+00:11:45,088 --> 00:11:49,888
+这里的感知延迟实际上要比这个高得多。
+So the sense here uh the sensing delay is actually much much higher than this.
+
+89
+00:11:49,968 --> 00:11:56,004
+所以我们仍然可以在我们的应用中使用 MPC。
+So it's still I mean, so we could still use MPC for our application.
+
+90
+00:11:57,710 --> 00:12:09,316
+与最先进的方法相比，我们的方法有很多优势，因为我们考虑了帧间依赖关系，
+我们可以对系统非线性进行建模和考虑，并且我们还严格限制了系统变量。
+Our approach has a lot of advantages compared to state-of-the-art approaches because we consider interframe dependencies,
+we could model and consider system non-linearities, and we also strictly impose constraints on the system variables.
+
+91
+00:12:12,366 --> 00:12:19,088
+总之，我们朝着 IBC 系统在现实生活中的应用迈出了一步。
+So, in conclusion, we make a step towards real-life adoption of IBC system.
+
+92
+00:12:19,982 --> 00:12:32,964
+我们缩小了当前最先进的多处理器 IBC 方法与实际控制需求之间的差距，作为未来的工作，
+我们计划从 Emacs SIL 或 HIL 框架开始进行实际应用。
+We reduce the gap between current state of the art multiprocessor IBC approaches and practical control requirements,
+and as future work, we plan to do a real life implementation starting with an Emacs SIL or HIL framework.
+
+93
+00:12:35,342 --> 00:12:36,999
+非常感谢大家的耐心聆听。
+Thanks a lot for your patient listening.
+
+94
+00:12:36,999 --> 00:12:39,876
+如果您有任何问题，我很乐意回答。
+and If you have any questions, I will be happy to answer them.
+
+95
+00:12:40,288 --> 00:12:40,804
+谢谢。
+Thank you.
+
