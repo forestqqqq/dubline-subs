@@ -1,0 +1,1559 @@
+1
+00:00:00,526 --> 00:00:03,280
+大家好，我是 Krishnaik，欢迎来到我的 YouTube 频道。
+Hello, all my name is Krishnaik and welcome to my YouTube channel.
+
+2
+00:00:03,440 --> 00:00:12,164
+各位，我们要继续 Langchain 系列课程，现在我们将利用
+Langchain 中提供的检索器和链的概念，来开发高级 RAG 流水线。
+So, guys, we are going to continue the Langchain series, and now we will be developing
+advanced rag pipeline using retriever and chain concepts that are available in Langchain.
+
+3
+00:00:12,640 --> 00:00:18,788
+在继续之前，我真的很想聊聊最近发生的一个搞笑事件，就在今天。
+Now, before I go ahead, I really want to talk about a funny incident that really happened recently, just today itself.
+
+4
+00:00:19,278 --> 00:00:23,840
+我每天早上通常都会去打一会儿羽毛球。
+So, what I did what I do is that every day morning I usually go and play some badminton.
+
+5
+00:00:23,920 --> 00:00:29,380
+你知道，我通常打一个小时到一个半小时，而且很多朋友和邻居也会一起来打。
+You know, I play for one hour, one and a half hour, and usually a lot of my friends and neighbors usually come and play.
+
+6
+00:00:29,614 --> 00:00:31,520
+你知道，今天打完球之后发生了什么。
+You know, so today what happened after playing.
+
+7
+00:00:31,600 --> 00:00:32,880
+我今天就是这个造型出现的。
+I went today in this look.
+
+8
+00:00:32,960 --> 00:00:38,720
+好，我打了三四局，然后有个邻居说：嘿，Krish，你是 Krish 对吧？
+Okay, I played around three to four games, and then one of my neighbors said, Hey Krish, you're Krish, right?
+
+9
+00:00:38,960 --> 00:00:40,612
+你现在被认出来了。
+You just got identified right now.
+
+10
+00:00:40,960 --> 00:00:44,720
+我就是通过看你的鞋子认出你的，但你的造型完全变了。
+Just by seeing your shoes, I identified you, but your look has completely changed.
+
+11
+00:00:44,814 --> 00:00:47,748
+如果这是真的，请在视频评论区告诉我。
+So let me know if this is true in the comment section of this particular video.
+
+12
+00:00:48,270 --> 00:00:57,760
+但我挺喜欢这个造型的，你知道，它非常省事，你不需要打理胡子、胡须或者头发，对吧？
+But I am liking this look, uh, you know, it's like so much of less maintenance,
+you don't have to maintain your beard, your mustache, or your hair, also, right?
+
+13
+00:00:57,998 --> 00:00:59,040
+看起来超级酷。
+It looks super cool.
+
+14
+00:00:59,280 --> 00:01:03,360
+现在让我们继续推进这个特定的项目。
+Now let's go ahead and work towards this specific project.
+
+15
+00:01:03,520 --> 00:01:09,540
+在之前的教程中，我们实际上创建了一个简单的 RAG 流水线。
+In our previous tutorial, what we had actually done is that we had created this simple rack pipeline.
+
+16
+00:01:09,680 --> 00:01:21,860
+好，我们有了数据源，比如我们拿到了 PDF，拿到了网站，
+然后使用 Langchain 中提供的各种数据摄取技术来加载这些特定数据集。
+Okay, we had a data data source, like we took PDF, we took website, then we load that particular data set using different different
+data ingestion techniques uh that were available in Langchain.
+
+17
+00:01:22,160 --> 00:01:35,590
+然后我们进行了转换，将较大的 PDF 拆分成块，然后将所有这些块转换为向量并存入向量数据库，
+接着通过查询，我们就能检索到向量数据库中存储的一些数据。
+Then we did transformation wherein we broke down our bigger PDFs into chunks, and then we converted all these particular chunks into
+vectors and stored it in a vector store, and then with the help of query, we are
+
+18
+00:01:35,590 --> 00:01:40,740
+然后我们进行了转换，将较大的 PDF 拆分成块，然后将所有这些块转换为向量并存入向量数据库，
+接着通过查询，我们就能检索到向量数据库中存储的一些数据。
+able to probably retrieve some of the data that is available in the vector store.
+
+19
+00:01:41,454 --> 00:01:42,560
+现在，这是第一步。
+Now, this is one step.
+
+20
+00:01:42,830 --> 00:01:45,440
+接下来是这个查询向量之后的步骤。
+Now, the further step after this particular query vector.
+
+21
+00:01:45,520 --> 00:01:51,204
+现在要明白，在检索完整结果方面，查询向量并不是那么高效。
+Now understand query vector are not that efficient, you know, when in terms of retrieving the entire results.
+
+22
+00:01:52,078 --> 00:01:55,440
+在这里，我们还会专门使用 LLM 模型。
+Here we will also specifically use LLM models.
+
+23
+00:01:55,600 --> 00:02:09,440
+好，所以现在我们要尝试的是，使用一些提示词，我们会使用这些特定的提示词，
+并利用链和检索器的概念来获取这些特定数据。
+Okay, so now what we will try to do is that using some prompts, okay, and we will take this specific prompts,
+we will take this particular data using the concept of chain and retriever.
+
+24
+00:02:09,710 --> 00:02:17,988
+好，你要明白这个主题非常重要，因为这就是你高级 RAG 流水线实现的起点。
+Okay, and understand this topic is very important because this is where your advanced rack pipeline implementation will start.
+
+25
+00:02:18,254 --> 00:02:29,760
+我们将使用链和检索器，在这些链和检索器中，我们专门使用 LLM 模型，可以是开源的，
+也可以是付费的，任何你想要的模型都可以。
+Using chain and retriever, we will also use, and in this chain and retriever, what we do is that we specifically use LLM models,
+it can be open source, it can be paid, whatever model you want.
+
+26
+00:02:29,840 --> 00:02:38,080
+所以我们将专门使用这个 LLM 模型，并根据这个提示词，尝试获取我们具体想要寻找的回答。
+So we will specifically use this LLM model, and based on this prompt,
+we will try to get the response on what we are specifically looking.
+
+27
+00:02:38,480 --> 00:02:38,720
+对吧？
+Right?
+
+28
+00:02:38,800 --> 00:02:43,524
+一旦我们实现了这个特定部分，就会加入很多自定义内容。
+So there will be a lot of customization that will be added once we implement this specific part.
+
+29
+00:02:43,760 --> 00:02:49,280
+在第一部分中我们讨论了这些，而这是我们要讨论的第二部分，好吗？
+In the first part, we discussed about this, and this is the second part that we are going to discuss, okay?
+
+30
+00:02:49,440 --> 00:02:55,840
+我们如何使用链，如何使用检索器，什么是链，以及你如何将其集成到这个特定的 LLM 模型中。
+How we can use chain, how we can use a retriever, what exactly is chain, how you can integrate in this particular LLM model.
+
+31
+00:02:55,920 --> 00:03:00,228
+还有一个叫做 stuff document chain 的概念，它到底是什么。
+There is a concept of something called a stuff document chain, what exactly it is.
+
+32
+00:03:00,590 --> 00:03:06,052
+所以我们将讨论所有相关内容，而且这里我们还要进行实际操作演示。
+So we will discuss everything all about it, and here we are also going to do a practical implementation.
+
+33
+00:03:06,446 --> 00:03:10,948
+所以请确保看完这个视频直到最后，我们将学到很多东西。
+So please make sure that you watch this video till the end and we are going to learn a lot of things.
+
+34
+00:03:11,246 --> 00:03:17,840
+好了，第一步我们已经做过了，在之前的教程中我们也已经实现了。
+Okay, so here the first step what we had done on already uh we have implemented this in our previous tutorial also.
+
+35
+00:03:18,446 --> 00:03:27,680
+所以在这里你可以看到我正尝试读取文件夹中的 attention.pdf，
+然后我们只需写 loader.load 就能获取到文档，好吗？
+So here you'll be able to see that I am trying to read uh attention.pdf which is present in a folder,
+and then we just write loader.load and we get the documents, okay.
+
+36
+00:03:27,982 --> 00:03:31,652
+这些就是这个特定 PDF 中包含的所有文档。
+So these are all the documents that will be available in this specific PDF.
+
+37
+00:03:31,760 --> 00:03:32,000
+好的。
+Okay.
+
+38
+00:03:32,400 --> 00:03:42,160
+接下来我们具体要做的是，从 Langchain.text_splitter 中使用递归字符文本分割器，
+我们将整个文档转换成块，对吧？
+Then what we are specifically doing next step is that from Langchain.txt splitter we will be using recursive character text splitter
+wherein we convert the entire document into chunks, right?
+
+39
+00:03:42,350 --> 00:03:48,836
+然后我们大概会使用这个文本分割器，块大小设为 1000，重叠部分为 20。
+And then we are probably using this text splitter, and we are using a chunk size of 1000 overlap of 20.
+
+40
+00:03:49,230 --> 00:03:52,240
+这些内容在我的之前视频里都已经实现了，对吧？
+So this everything is implemented in my previous videos, right?
+
+41
+00:03:52,320 --> 00:03:55,600
+所以我们要把整个文档拆分开，并保存到这个特定的文档中。
+So we are going to split this entire document and save it in this particular document.
+
+42
+00:03:56,014 --> 00:03:58,400
+在之前的教程中，我们已经实现了所有这些内容。
+In the previous tutorial, we have implemented all these things.
+
+43
+00:03:58,480 --> 00:04:06,000
+现在，我们要做的下一步是，把这些文档全部拿过来，然后把它们转换成向量数据库，对吧？
+Now, here what we are going to take do now, we'll take all these documents and then we will convert it into a vector store, right?
+
+44
+00:04:06,318 --> 00:04:09,188
+所以，为了实现向量数据库，我们正在使用这个 files，好吗？
+So, vector store for that we are using this files, okay?
+
+45
+00:04:09,614 --> 00:04:13,520
+所以在这里我们可以使用 OLAMA 嵌入或者 OpenAI 嵌入，对吧？
+So here we are going we can use OLAMA embedding or open AI embedding, right?
+
+46
+00:04:13,742 --> 00:04:19,012
+正如我所说的，OpenAI 嵌入非常先进，它的表现会比 OLAMA 嵌入更好。
+As I said, you open AI embedding is very much advanced and it will perform better than OLAMA embedding.
+
+47
+00:04:19,360 --> 00:04:23,044
+如果你没有 OpenAI 的 API 密钥，就用 OLAMA 嵌入。
+If you don't have OpenAI API key, use OLAMA embedding.
+
+48
+00:04:23,280 --> 00:04:26,800
+在这里你可以直接把 OpenAI 嵌入换成 OLAMA 嵌入，对吧？
+Instead of OpenAI embedding over here, you can just write OLAMA embedding, right?
+
+49
+00:04:26,880 --> 00:04:32,960
+所以从这里我将使用 FAISS，它也是一种向量数据库，是由 Meta 开发的。
+So from here I'm be using fires which is again a kind of vector store, and it has been developed by Meta.
+
+50
+00:04:33,326 --> 00:04:36,000
+所以是 fires.from_documents，文档数量为 20。
+So fires dot from documents, document of 20.
+
+51
+00:04:36,142 --> 00:04:39,780
+所以我只是取前 20 个文档，然后写上 OpenAI 嵌入。
+So I'm just taking the first 20 documents and I'm just writing open AI embeddings.
+
+52
+00:04:39,920 --> 00:04:43,620
+让我们把它改成 30，这样它就会包含一定数量的数据。
+Let's make it to 30 so that it will have some amount of data.
+
+53
+00:04:44,014 --> 00:04:50,436
+现在我们专门使用的是 OpenAI 嵌入，而你看到的这个 db 就是我的向量数据库。
+Right now we are specifically using open AI embedding, and this dB that you specifically see is a my vector store.
+
+54
+00:04:50,670 --> 00:04:50,880
+好的。
+Okay.
+
+55
+00:04:51,438 --> 00:04:54,320
+所以在这里你可以看到向量数据库 FAISS 的类型。
+So here you can see vector store fires fires of type.
+
+56
+00:04:54,400 --> 00:04:54,720
+好的。
+Okay.
+
+57
+00:04:55,502 --> 00:04:55,940
+完美。
+Perfect.
+
+58
+00:04:56,320 --> 00:05:07,808
+现在，我提出的任何问题，注意力函数都可以被描述为一个映射查询，
+然后我们可以拿这个向量数据库，对这个查询执行相似度搜索，我们就能在这里得到结果了。
+Now Any question that I ask, attention function can be described as a mapping query,
+and then we can take this vector store and just write dot similarity search on this query, and we will get the result over here.
+
+59
+00:05:08,046 --> 00:05:11,428
+好的，这些内容我们其实在之前的视频里都已经做过了。
+Okay, so this all things we have actually done in our previous video.
+
+60
+00:05:11,822 --> 00:05:21,088
+现在最重要的事情是，我如何将提示词与链和检索器结合起来，然后根据提示词获取响应。
+Now is the most important thing how I can combine prompt along with
+chains and retriever and then probably get a response based on the prompt.
+
+61
+00:05:21,168 --> 00:05:21,412
+好的。
+Okay.
+
+62
+00:05:21,968 --> 00:05:28,688
+因为很多人只用开源模型，呃，他们只能访问开源的 LLM 模型。
+So since many people have the use of only open source, uh they have the access of open source model LLM model.
+
+63
+00:05:29,038 --> 00:05:33,248
+所以我打算从 langchain.community.llms 导入 olama。
+So I'm going to use Olama from Langchin.community.llms import olama.
+
+64
+00:05:33,568 --> 00:05:35,168
+然后我在这里使用 Olama。
+Then I'm going to use Olama over here.
+
+65
+00:05:35,328 --> 00:05:36,484
+模型将是 Llama 2。
+Model will be Lama 2.
+
+66
+00:05:36,974 --> 00:05:41,488
+如果你没有 Llama 2，下载完 Olama 后只需打开命令行。
+If you don't have Lama 2, just to go to command prompt after downloading Olama.
+
+67
+00:05:41,648 --> 00:05:43,408
+我希望大家都知道怎么下载它。
+I hope everybody knows how to download it.
+
+68
+00:05:43,488 --> 00:05:47,844
+如果你在看我的系列视频，你只需要在这里输入 olama run llama 2。
+If you're seeing my series of videos, here you can just write Olama run lama 2.
+
+69
+00:05:48,128 --> 00:05:48,368
+对吧？
+Right?
+
+70
+00:05:48,686 --> 00:05:51,968
+所以一旦你这样写，模型就会被下载下来。
+So once you write like this, then the model will get downloaded.
+
+71
+00:05:52,048 --> 00:05:52,288
+对吧？
+Right?
+
+72
+00:05:52,368 --> 00:05:54,768
+如果已经下载好了，它会显示类似这样的内容。
+If it is already downloaded, it will be coming something like this.
+
+73
+00:05:54,928 --> 00:05:55,168
+好的。
+Okay.
+
+74
+00:05:55,726 --> 00:05:57,728
+这是你真正需要做的第一步。
+So this is the first step that you really need to do.
+
+75
+00:05:57,808 --> 00:06:02,528
+然后我写了从 langchain.community.llms 导入 olama load olama。
+Then I have written from langshen.community.lm's olama load olama.
+
+76
+00:06:02,768 --> 00:06:06,048
+所以无论我们具体使用哪个 olama 模型，这里就是 llama 2。
+So whatever olama model we are specifically using, that is llama 2.
+
+77
+00:06:06,158 --> 00:06:07,492
+这就是我的开源模型。
+So this is my open source model.
+
+78
+00:06:07,854 --> 00:06:10,820
+所以如果你看到 llama llm，它其实就是 olama。
+So if you see llama llm, it is nothing but olama.
+
+79
+00:06:11,488 --> 00:06:15,108
+现在是时候开始设计我们的提示词模板了。
+Now is the time we will start designing our prompt template.
+
+80
+00:06:15,374 --> 00:06:22,208
+为了设计聊天提示词模板，我将使用 chat langchain_core.prompts 导入 ChatPromptTemplate。
+Now in order to design the chat prompt template, I will be using chat langchen underscore code.prompts import chat prompt template.
+
+81
+00:06:22,288 --> 00:06:22,500
+好的。
+Okay.
+
+82
+00:06:22,958 --> 00:06:26,052
+然后从 ChatPromptTemplate 模板中，我这样写。
+And then from chat prompt template from template, I'm just writing like this.
+
+83
+00:06:26,414 --> 00:06:32,128
+我写的是：仅根据提供的上下文回答以下问题。
+So I'm saying answer the following question based only on the provided context.
+
+84
+00:06:32,208 --> 00:06:38,276
+现在看，我们正试图开发一个基于上下文的 QA 聊天机器人，它应该给我提供回答。
+Now see, we are trying to develop a QA, QA chat bot based on the context, it should provide me the response.
+
+85
+00:06:38,862 --> 00:06:48,208
+之前我们使用向量数据库时，如果你看这里的代码，我们是查询向量数据库，对吧？
+Previously, what we are doing using vector store, we used to, if you see the code over here, we used to query the vector score, right?
+
+86
+00:06:48,368 --> 00:06:51,300
+通过使用相似度搜索算法来查询向量数据库。
+Vector store by using similarity search algorithm.
+
+87
+00:06:51,408 --> 00:06:59,248
+但在这里，我们正在做的是定义我们自己的提示词，并告诉它：嘿，
+请根据提供的上下文回答以下问题，对吧？
+But here, what we are doing, here we are defining our own prompt and we are saying, hey,
+answer the following question based on the provided context, right?
+
+88
+00:06:59,598 --> 00:07:01,328
+我接着简单地写下去。
+I will and simply I'm writing away.
+
+89
+00:07:01,408 --> 00:07:04,548
+如果你觉得这个回答有帮助，我给你一千美元。
+I'll tip you thousand dollar if you find the answer helpful.
+
+90
+00:07:05,198 --> 00:07:14,528
+好的，如果用户觉得回答有帮助，好吧，至少看到钱，AI 可能会表现得更好，
+然后我们提供上下文，接着输入问题。
+Okay, if the user find the answer helpful, okay, just at least by seeing money the AI may perform well,
+and then we are giving our context and then question will be input.
+
+91
+00:07:14,608 --> 00:07:14,848
+好的。
+Okay.
+
+92
+00:07:15,630 --> 00:07:17,888
+为什么我要用这种特定的写法？
+How why I am writing in this specific way?
+
+93
+00:07:18,048 --> 00:07:19,780
+因为这个链和检索器，对吧？
+Because this chain and retriever, right?
+
+94
+00:07:20,014 --> 00:07:24,448
+你会发现这个上下文会被自动填充，这个输入也会被自动填充。
+You'll be understanding this context will be autofilled and this input will also get auto filled.
+
+95
+00:07:24,558 --> 00:07:25,808
+好，它是怎么被自动填充的呢？
+Okay, how it will get auto filled?
+
+96
+00:07:25,888 --> 00:07:26,372
+我这就告诉你们。
+I'll let you know.
+
+97
+00:07:26,862 --> 00:07:28,900
+现在我要做的就是执行这个。
+So now what I will do, I will execute this.
+
+98
+00:07:29,008 --> 00:07:31,716
+现在我将继续实现关于链的部分。
+Now I will go ahead and implement about chain.
+
+99
+00:07:33,134 --> 00:07:41,188
+最好还是去浏览器里查一下我解释的每一个主题，这总是个好主意。
+it is always a good idea, okay, to probably go to your browser and check about each and every topic that I'm explaining.
+
+100
+00:07:41,710 --> 00:07:43,008
+那么，链指的是什么？
+So, what does chain refer to?
+
+101
+00:07:43,168 --> 00:07:49,348
+链是指一系列调用，无论是对 LLM、工具还是数据预处理步骤的调用。
+Chain referred to a sequence of calls, whether to an LLM or tool or data pre-processing step.
+
+102
+00:07:49,966 --> 00:07:52,612
+目前主要支持的方法是 LCEL。
+The primary supported way to do this is LCL.
+
+103
+00:07:52,848 --> 00:07:53,088
+好的。
+Okay.
+
+104
+00:07:53,646 --> 00:07:58,372
+现在，如果你谈到这里的链，关于链有很多不同的函数。
+Now, if you talk about chain over here, there are multiple functions with respect to chain.
+
+105
+00:07:59,502 --> 00:08:02,820
+我要用到的函数之一是 create_stuff_documents_chain。
+One of the functions that I am going to use is create stuff document chain.
+
+106
+00:08:03,214 --> 00:08:12,676
+那么，这个函数具体是做什么的呢？这个链会接收一个文档列
+表，并将它们格式化到提示词中，然后把那个提示词传给 LLM。
+Now, what this exactly does, this chain takes a list of documents and
+formats them into all into a prompt, then passes that prompt to an LLM.
+
+107
+00:08:14,286 --> 00:08:14,756
+看这个。
+See this.
+
+108
+00:08:14,990 --> 00:08:19,168
+这个链接收一个文档列表，并根据提示词对它们进行格式化。
+This chain takes a list of documents and formats them based on the prompt.
+
+109
+00:08:19,408 --> 00:08:20,848
+把它们格式化到提示词里。
+Formats them into a prompt.
+
+110
+00:08:21,006 --> 00:08:22,848
+抱歉，不是根据提示词，是格式化到提示词里。
+Sorry, not based on the prompt, into the prompt.
+
+111
+00:08:22,928 --> 00:08:34,128
+这基本上意味着，如果我打开浏览器，在这里的上下文里，我肯定需要我的文档本身，对吧？
+That basically means over here, if I go ahead and open my browser,
+here in the context, I definitely require my documents itself, right?
+
+112
+00:08:34,288 --> 00:08:38,368
+基于那个上下文，并且基于这个输入，我才能给出答案，对吧？
+Based on that context, and based on this input, I will be able to give the answer, right?
+
+113
+00:08:38,606 --> 00:08:40,928
+所以是基于这个上下文和输入，对吧？
+So based on this context and based on the input, right?
+
+114
+00:08:41,134 --> 00:08:45,968
+上下文基本上是指向量库中所有可用的文档，对吧？
+Context basically means all the documents that are there available in the vector store, right?
+
+115
+00:08:46,222 --> 00:08:49,088
+输入就是我提出的问题，对吧？
+Inputs are what question I am asking, right?
+
+116
+00:08:49,454 --> 00:08:54,128
+那么，通过这个 create_stuff_documents_chain，基本上发生了什么？
+So with the help of this create stuff document chain, what is basically happening?
+
+117
+00:08:54,288 --> 00:09:00,004
+这个链接收一个文档列表，并将它们全部格式化到提示词中，然后把那个提示词传给 LLM。
+This chain takes a list of document and formats them all into a prompt, then passes that prompt to an LLM.
+
+118
+00:09:00,334 --> 00:09:05,796
+它会传递所有文档，所以你要确保它们符合你所使用的 LLM 的上下文窗口。
+It passes all the documents so that you should make sure that it fits within the context window the LLM you are using.
+
+119
+00:09:06,222 --> 00:09:15,492
+所以，它具体在做什么呢？它会从向量库中获取所有文档，把它们放入那个特定的提示词模板中，
+然后发送给 LLM，最后我们就能得到响应。
+So, what it is exactly doing, it will take up all the documents from the vector store,
+it'll put that put inside that particular prompt template, and then it will send the to the LLM, and then we finally get the response.
+
+120
+00:09:15,728 --> 00:09:17,728
+好的，这就是我们要用的。
+Okay, and that is what we will be using.
+
+121
+00:09:17,838 --> 00:09:24,288
+同样地，这里还有不同的东西，比如有 create_stuff_documents_chain，
+还有 create_sql_query_chain。
+Similarly, there are different uh things also over here, like create stuff document chain is there, create SQL query chain.
+
+122
+00:09:24,368 --> 00:09:30,948
+如果你在处理针对自然语言的 SQL 数据库，这是我未来也会做的一个非常重要的项目。
+If you are working with respect to SQL database for natural language, and
+this is one of the very important project that I'll also do in the future.
+
+123
+00:09:31,342 --> 00:09:39,808
+我会尝试用不同的方式，利用各种功能来让你理解我们该如何使用这些功能，对吧？
+One or the other way I'll try to use one or the other functionalities to just
+make you understand how we can use all these functionalities itself, right?
+
+124
+00:09:39,918 --> 00:09:44,132
+但最好还是有一个具体的应用场景，好吗。
+But it is always good that we have a specific use case, okay.
+
+125
+00:09:44,494 --> 00:09:48,768
+现在，如果我打开这个，好，让我们开始创建我的链。
+Now, if I open this, okay, let's go ahead and create my chain.
+
+126
+00:09:48,848 --> 00:09:50,448
+我该怎么在这里创建我的链呢？
+How do I create my chain over here?
+
+127
+00:09:50,528 --> 00:09:51,888
+同样，这非常简单。
+Again, it is very simple.
+
+128
+00:09:52,238 --> 00:09:54,368
+所以我将从 langchain 开始写。
+So I will write from lang chain.
+
+129
+00:09:55,822 --> 00:09:57,152
+langchain_community
+Lang chain underscore community.
+
+130
+00:09:57,262 --> 00:09:59,186
+所以它就在 community 里面。
+So it is present inside community itself.
+
+131
+00:09:59,534 --> 00:10:00,804
+或者不是 community，抱歉，是 chains。
+or not community, sorry, chains.
+
+132
+00:10:01,198 --> 00:10:02,532
+langchain_chains
+Lang chain underscore chains.
+
+133
+00:10:03,072 --> 00:10:06,404
+点 combine_documents
+Dot combine documents.
+
+134
+00:10:08,112 --> 00:10:11,652
+导入 create_stuff_documents_chain
+Import create stuff document chain.
+
+135
+00:10:12,078 --> 00:10:13,284
+现在我怎么知道这个呢？
+Now how do I know this?
+
+136
+00:10:13,806 --> 00:10:15,152
+好，我不是自己创造的。
+Okay, I did not create this.
+
+137
+00:10:15,232 --> 00:10:16,832
+我已经看过文档了。
+I have already seen the documentation.
+
+138
+00:10:16,942 --> 00:10:18,276
+好，这就是我之所以这样写的理由。
+Okay, that is the reason I'm writing.
+
+139
+00:10:18,752 --> 00:10:21,924
+然后我将继续创建我的文档链。
+Then I will go ahead and create my document chain.
+
+140
+00:10:22,318 --> 00:10:27,140
+现在在这个文档链里，正如我所说，我将使用 create_stuff_documents_chain。
+Now inside this document chain, as I said, I will be using create stuff document chain.
+
+141
+00:10:27,392 --> 00:10:29,156
+好，这个我们已经看过。
+Okay, that we have already seen.
+
+142
+00:10:29,486 --> 00:10:32,292
+现在在这个链里，基本上需要两样东西。
+Now inside this chain, two things are basically required.
+
+143
+00:10:32,992 --> 00:10:37,892
+一个是 LLM 模型，第二个是我创建的提示词。
+One is the LLM model, and the second one is the prompt that I have created.
+
+144
+00:10:38,512 --> 00:10:43,392
+因为就在这个提示词里，会加入文档列表，对吧？
+Because inside this prompt itself, the list of documents will be added, right?
+
+145
+00:10:43,472 --> 00:10:45,604
+无论哪些文档，基本上都是从这里来的，对吧？
+Whatever documents is basically coming from here, right?
+
+146
+00:10:46,112 --> 00:10:47,108
+从我的向量数据库里。
+From my vector store.
+
+147
+00:10:47,392 --> 00:10:48,672
+它们将被添加到这里。
+That will be added over here.
+
+148
+00:10:48,846 --> 00:10:49,152
+好。
+Okay.
+
+149
+00:10:49,806 --> 00:10:53,252
+好，一旦我创建了这个，它基本上就成了我的文档链。
+So once I create this, so this basically becomes my document chain.
+
+150
+00:10:53,472 --> 00:10:53,732
+好。
+Okay.
+
+151
+00:10:54,062 --> 00:10:54,916
+非常简单。
+Very much simple.
+
+152
+00:10:55,552 --> 00:11:02,564
+现在，接下来我们还要学习一个非常重要的东西，叫做检索器（retrievers）。
+Now, after this, we also have to learn about one very important thing which is called as retrievers.
+
+153
+00:11:03,470 --> 00:11:10,404
+好，那我现在开始写一个叫作检索器，也就是 retriever langchain 的内容。
+Okay, so I will go ahead and write something called as retrievers, retriever lang chain.
+
+154
+00:11:10,912 --> 00:11:11,232
+好的。
+Okay.
+
+155
+00:11:11,758 --> 00:11:14,020
+那究竟什么是 retriever langchain 呢？
+Now what exactly retriever lang chain is?
+
+156
+00:11:14,478 --> 00:11:18,404
+它是一个根据非结构化查询来记录文档的接口。
+It is an interface that records document given an unstructured query.
+
+157
+00:11:18,672 --> 00:11:21,188
+它比向量数据库更通用。
+It is more general than a vector store.
+
+158
+00:11:21,518 --> 00:11:21,952
+对吧？
+Right?
+
+159
+00:11:22,318 --> 00:11:26,832
+检索器不需要具备存储文档的能力，它只需要负责返回或检索它们。
+A retriever does not need to be able to store the documents only to return or retrieve them.
+
+160
+00:11:27,214 --> 00:11:30,592
+向量数据库可以作为检索器的核心基础。
+Vector store can be based as the backbone of the retriever.
+
+161
+00:11:30,830 --> 00:11:36,272
+现在看，有一个向量数据库里存有一些信息，也就是存了一些向量，对吧？
+Now see, there is a vector store which is having some information, some vector stored in it, right?
+
+162
+00:11:36,750 --> 00:11:39,140
+如果我想从中提取任何数据。
+If I want to take out any data from there.
+
+163
+00:11:39,278 --> 00:11:42,340
+对，我实际上可以进行我们已经见过的相似度搜索。
+right, I can actually do a similarity search which we have already seen.
+
+164
+00:11:42,592 --> 00:11:42,912
+好的。
+Okay.
+
+165
+00:11:43,662 --> 00:11:55,690
+但是 LangChain 做的事情是，因为我们通常是以某种方式进行大量编程，对吧，
+比如使用类和接口，所以它创建了一个独立的接口，叫做检索器，
+But LangChen, what it did is that since we usually do a lot of programming in a way, right, wherein classes are used,
+interfaces are used, so it created a separate interface which is called as retriever,
+
+166
+00:11:55,690 --> 00:11:56,310
+但是 LangChain 做的事情是，因为我们通常是以某种方式进行大量编程，对吧，
+比如使用类和接口，所以它创建了一个独立的接口，叫做检索器，
+and that interface has a back-end source to that particular vector store to retrieve any information.
+
+167
+00:11:56,310 --> 00:12:01,892
+而那个接口连接到特定的向量数据库后端，用来检索任何信息。
+and that interface has a back-end source to that particular vector store to retrieve any information.
+
+168
+00:12:02,382 --> 00:12:02,672
+对吧？
+Right?
+
+169
+00:12:03,086 --> 00:12:09,956
+每当给出一个查询时，整个向量数据库的信息都会通过这个检索器传递出来。
+Whenever a query is given, right, that entire vector store will be passing the information through this retriever.
+
+170
+00:12:10,112 --> 00:12:10,372
+好的。
+Okay.
+
+171
+00:12:10,702 --> 00:12:15,872
+所以我们要做的就是，我在这里快速打开这个。
+So what we will do is that here I will quickly open this.
+
+172
+00:12:16,046 --> 00:12:24,352
+我也写了一些描述，这样当你之后去查看这些全部材料时，会对你有所帮助。
+I have also written some amount of description so that it will be helpful
+for you whenever you probably go ahead and check it this entire materials.
+
+173
+00:12:24,432 --> 00:12:24,644
+好的。
+Okay.
+
+174
+00:12:25,006 --> 00:12:33,152
+现在我要做的就是，直接写 db.as_retriever()。
+So now what I will do, I will just go ahead and write db dot db dot as retriever.
+
+175
+00:12:33,710 --> 00:12:38,820
+现在我这样做，db.as_retriever()，这基本上就成了我的检索器。
+Now once I do like this, db dot as retriever, this basically has become my retriever.
+
+176
+00:12:39,534 --> 00:12:39,952
+对吧？
+Right?
+
+177
+00:12:40,398 --> 00:12:42,992
+所以我们已经做了，db 是我们的向量数据库。
+So what we have done, db is our vector store.
+
+178
+00:12:43,072 --> 00:12:43,972
+它已经在那里了。
+Already it is there.
+
+179
+00:12:44,462 --> 00:12:48,388
+我们现在已经把它连接到了一个接口，也就是这个特定的变量。
+We have connected to an interface which is basically this particular variable now.
+
+180
+00:12:48,592 --> 00:12:48,912
+好的。
+Okay.
+
+181
+00:12:49,230 --> 00:12:54,112
+所以如果你继续往下看，它可能会显示出，什么是检索器？
+So if you go ahead and it's probably display this, what is retriever?
+
+182
+00:12:54,192 --> 00:12:56,388
+它其实就是一个向量数据库检索器。
+It is nothing but it is a vector store retriever.
+
+183
+00:12:56,992 --> 00:13:03,236
+在内部，你也能看到它实现了什么，比如文件、OpenAI 嵌入等所有信息都在那里。
+Internally, you'll be also able to see that what all it is implemented,
+files and open AI embeddings and all all the information are there.
+
+184
+00:13:03,790 --> 00:13:06,352
+现在检索器搞定了，链也搞定了。
+Now retriever is done, chain is also done.
+
+185
+00:13:06,432 --> 00:13:20,484
+好，现在我要做的就是，尝试把这个检索器和文档链结合
+起来，看看把两者结合后，我们是不是就能得到响应了？
+Okay, now is the time that what I will do, I will try to use this retriever and document chain both together to probably see when we
+combine both of them, then only we'll be able to get the response, right?
+
+186
+00:13:20,992 --> 00:13:26,884
+所以针对这一点，现在让我们继续创建我的检索链。
+So with respect to this, now let's go ahead and create my retriever chain.
+
+187
+00:13:27,278 --> 00:13:27,552
+好的。
+Okay.
+
+188
+00:13:28,110 --> 00:13:29,312
+那下一步是什么？
+So the next step is what?
+
+189
+00:13:29,486 --> 00:13:36,032
+因为我需要把两者结合起来，一个是检索器，一个是文档链，对吧？
+Since I need to combine both of them, one is retriever and one is the document chain, right?
+
+190
+00:13:36,142 --> 00:13:39,204
+这个文档链负责把信息放入上下文。
+This document chain is responsible for putting the information in the context.
+
+191
+00:13:39,758 --> 00:13:42,592
+当我们把两者结合时，它就变成了检索链。
+When we combine both of them, then it becomes a retriever chain.
+
+192
+00:13:42,702 --> 00:13:43,780
+那么，定义是什么呢？
+Now, what is the definition?
+
+193
+00:13:44,142 --> 00:13:50,596
+这个链接收用户查询作为输入，然后将其传递给检索器来获取相关的文档。
+This chain takes an input as a user inquiry, which is then passed to the retriever to fetch the relevant documents.
+
+194
+00:13:50,990 --> 00:13:54,084
+所以它会经过检索器，检索器连接到向量数据库。
+So it passes through the retriever, it is connected to the vector store.
+
+195
+00:13:54,318 --> 00:13:58,020
+然后这些文档会被传递给 LLM 来生成响应。
+Then those documents are then passed to an LLM to generate the response.
+
+196
+00:13:58,318 --> 00:14:02,592
+而我们基本上获取到的这个 LLM，它基本上是从哪来的？
+And this LLM that we are basically getting, it we it is basically coming from what?
+
+197
+00:14:02,798 --> 00:14:03,620
+就是这个文档链。
+This document chain.
+
+198
+00:14:04,206 --> 00:14:05,312
+理解这个流程。
+Understand the flow.
+
+199
+00:14:05,486 --> 00:14:11,140
+好，让我再把这个流程说一遍，这样对你们来说就非常容易理解了。
+Okay, so let me just go ahead and mention this flow again so that it becomes very much easy for you.
+
+200
+00:14:11,712 --> 00:14:16,068
+所以每当用户，这就是我的用户，好吗。
+So whenever the users, this is my user, okay.
+
+201
+00:14:16,654 --> 00:14:19,748
+每当用户提出任何查询时。
+Whenever the user asks for any inquiry.
+
+202
+00:14:20,814 --> 00:14:22,436
+好，任何查询。
+Okay, any inquiry.
+
+203
+00:14:22,894 --> 00:14:26,148
+所以，首先，它会去哪里？它会去这个检索器。
+So, first, what it is going, it is going to this retriever.
+
+204
+00:14:26,830 --> 00:14:27,940
+好，这非常重要。
+Okay, very much important.
+
+205
+00:14:28,096 --> 00:14:28,416
+好的。
+Okay.
+
+206
+00:14:28,750 --> 00:14:30,276
+这就是我的检索器。
+So this is my retriever.
+
+207
+00:14:30,926 --> 00:14:33,572
+这个检索器是连接到什么的接口？
+This retriever is an interface to what?
+
+208
+00:14:33,934 --> 00:14:36,644
+向量数据库，里面包含了所有信息。
+Vector store, which has all the information.
+
+209
+00:14:37,136 --> 00:14:37,456
+对吧？
+Right?
+
+210
+00:14:37,902 --> 00:14:42,308
+所以一旦我们基本上拿到了检索器，下一步会发生什么，它会去哪？
+So once we basically get the retriever, then the next step, what it happens, it goes to what?
+
+211
+00:14:43,182 --> 00:14:47,876
+它会带着一些提示词去我的 LLM 模型，对吧？
+It goes to my LLM model with some prompt, right?
+
+212
+00:14:48,366 --> 00:14:50,212
+这里会涉及到一些提示词。
+There will be some prompt involved to this.
+
+213
+00:14:50,478 --> 00:14:52,228
+那这基本上是怎么发生的呢？
+And how this is basically happening?
+
+214
+00:14:53,166 --> 00:14:55,620
+借助 stuff document chain。
+With the help of stuff document chain.
+
+215
+00:14:57,358 --> 00:15:03,616
+所以这个 stuff document chain 已经把这两样东
+西结合在一起了，也就是 LLM 和 prompt，对吧？
+So this stuff document chain has already both these things combined, LLM and prompt, right?
+
+216
+00:15:03,918 --> 00:15:06,052
+然后最后我们就得到了响应。
+And then finally we get our response.
+
+217
+00:15:08,174 --> 00:15:10,016
+我希望你们能理解这一点，对吧？
+I hope you are able to understand this, right?
+
+218
+00:15:10,254 --> 00:15:12,612
+这就是我们基本上在这里实现的逻辑。
+And this is what we have basically implemented over here.
+
+219
+00:15:13,006 --> 00:15:15,524
+现在，基本上该如何创建一个检索链呢？
+Now, how to basically create a retrieval chain?
+
+220
+00:15:15,856 --> 00:15:21,764
+所以，首先对于这一切，我还是会使用一个关于链的库。
+So, first for for all of this, again, I will be using a library with respect to chains.
+
+221
+00:15:21,856 --> 00:15:34,276
+好的，从 langchain.chains 导入 create_retrieval_chain。
+Okay, so from lang chain, lang chain dot chains import create retrieval chain.
+
+222
+00:15:34,926 --> 00:15:40,644
+对，有很多东西，比如 create_qa_with_source_chain，retrieval_chain，这个链，那个链。
+Right, and there are a lot of things key create QA with source chain, retrieval chain, this chain, that chain.
+
+223
+00:15:41,038 --> 00:15:42,596
+我会试着把所有这些东西都解释给你们听。
+I will try to explain you all of things.
+
+224
+00:15:42,736 --> 00:15:43,936
+别担心，好吗。
+Don't worry, okay.
+
+225
+00:15:44,366 --> 00:15:49,764
+我会抓住正确的用例，并向你们展示所有这些内容。
+I will catch the right kind of use case and I will be showcasing you all these things.
+
+226
+00:15:50,030 --> 00:15:51,296
+不用担心那个，好吗。
+Don't worry about that, okay.
+
+227
+00:15:51,536 --> 00:15:59,076
+接下来我要做的，是拿这个整个 create_retrieval_chain，然后创建我的检索链。
+Then what I will do, I will I will take this entire create retrieval chain and then I will create my retrieval chain.
+
+228
+00:15:59,630 --> 00:16:14,788
+所以这里我会写 retrieval_chain 等于 create_retrieval_chain，
+这里我要用的第一个参数是 retriever，然后第二个参数就是 document chain。
+So here I will write retrieval chain is equal to create retrieval chain, and here I'm going to use first parameter that I'm going to
+use is retriever, then the second parameter is nothing but document chain.
+
+229
+00:16:15,406 --> 00:16:20,068
+所以一旦我有了这个链，现在我就能调用任何查询了。
+So once I have this chain, right now I will be able to invoke any queries.
+
+230
+00:16:20,654 --> 00:16:25,604
+所以我接下来要写 retrieval_chain.invoke。
+So I will go ahead and write retrieval chain dot invoke.
+
+231
+00:16:25,856 --> 00:16:26,176
+好的。
+Okay.
+
+232
+00:16:26,798 --> 00:16:29,348
+那现在我需要给出的参数是什么？
+And now what are the parameters that I have to give?
+
+233
+00:16:29,646 --> 00:16:29,936
+什么都没有。
+Nothing.
+
+234
+00:16:30,158 --> 00:16:31,396
+我只需要给我的输入。
+I have to give my input.
+
+235
+00:16:31,886 --> 00:16:34,244
+所以输入会在这里给出。
+So the input will be given over here.
+
+236
+00:16:34,798 --> 00:16:42,176
+冒号，然后就是我可以给出的任何输入，比如从 PDF 里，我在这里放了一些输入。
+Colon and whatever input that I can give, let's say from the PDF, I have put some input over here.
+
+237
+00:16:42,446 --> 00:16:43,780
+让我复制粘贴一下。
+Let me just copy and paste it.
+
+238
+00:16:44,110 --> 00:16:44,336
+好的。
+Okay.
+
+239
+00:16:44,622 --> 00:16:48,196
+这就是 PDF 文件 attention.pdf 中包含的文本之一。
+So this is one of the text that is available in the PDF that is attention.pdf.
+
+240
+00:16:48,718 --> 00:16:53,764
+现在如果我调用它，你们就能看到我能够得到完整的响应。
+And now if I invoke this, you'll be able to see that I will be able to get the entire response.
+
+241
+00:16:54,254 --> 00:16:54,496
+好的。
+Okay.
+
+242
+00:16:55,118 --> 00:16:56,656
+所以是 retrieval_chain.invoke。
+So retrieval.chain.invoke.
+
+243
+00:16:56,736 --> 00:16:59,556
+而且我们再次使用的是开源 LLM 模型，也就是 Llama 2。
+And again, we are using open source LLM model that is Lama 2.
+
+244
+00:16:59,936 --> 00:17:00,256
+好的。
+Okay.
+
+245
+00:17:01,006 --> 00:17:02,564
+是的，我用的是 OpenAI 的 embedding。
+Yeah, I've used OpenAI embedding.
+
+246
+00:17:02,830 --> 00:17:04,415
+所以这里你可以看到这是我的输入。
+So here you can see this is my input.
+
+247
+00:17:04,526 --> 00:17:06,175
+这就是上下文，对吧？
+This was the context, right?
+
+248
+00:17:06,510 --> 00:17:09,476
+所有的上下文信息都在这里，最后我得到了答案。
+All the context information is there, and finally I get the answer.
+
+249
+00:17:10,094 --> 00:17:13,124
+这个答案，我打算把它保存在这里。
+And this answer, I will just try to save it over here.
+
+250
+00:17:13,614 --> 00:17:15,492
+就像 response 这样。
+Something like response.
+
+251
+00:17:18,896 --> 00:17:19,684
+Response。
+Response.
+
+252
+00:17:20,492 --> 00:17:20,736
+好的。
+Okay.
+
+253
+00:17:21,165 --> 00:17:24,036
+然后我将执行 response。
+And then I will execute response.
+
+254
+00:17:26,096 --> 00:17:28,132
+答案的 response。
+Response of answer.
+
+255
+00:17:28,590 --> 00:17:32,016
+所以这最终成了我的输出，大概就在这里。
+So this finally becomes my output that is probably coming over here.
+
+256
+00:17:32,096 --> 00:17:32,336
+好的。
+Okay.
+
+257
+00:17:32,430 --> 00:17:36,736
+所以如果我执行它，问题的答案就是正确的。
+So this, if I execute it, the answer to the question is right.
+
+258
+00:17:37,136 --> 00:17:38,852
+而且你可以看到所有的信息。
+And all the information you can see.
+
+259
+00:17:39,566 --> 00:17:42,244
+问题的答案，它检索到了所有的细节。
+The answer to the question, and it is retrieving all the details.
+
+260
+00:17:42,736 --> 00:17:43,012
+对吧？
+Right?
+
+261
+00:17:43,470 --> 00:17:52,576
+所以在这里你可以看到，在 LLM 的帮助下，我们多么
+完美地构建了整个系统，并且使用了这个链式检索器。
+So here you'll be able to see that how beautifully, with the help of LLM,
+we have constructed this entire thing and we have used this chains retriever.
+
+262
+00:17:52,814 --> 00:17:56,708
+这是开发高级 RAG 流水线的第一步。
+And this is the first step towards developing your advanced rack pipeline.
+
+263
+00:17:56,976 --> 00:17:57,252
+对吧？
+Right?
+
+264
+00:17:57,614 --> 00:18:01,924
+所以，无论你问什么问题，让我打开这个，大概再给你展示一些例子。
+So, whatever question you ask, let me just open this and probably show you some more examples.
+
+265
+00:18:02,416 --> 00:18:02,736
+好的。
+Okay.
+
+266
+00:18:04,334 --> 00:18:07,300
+那么，我要做的就是打开我的下载页面。
+So, what I will do, I will just open my download page.
+
+267
+00:18:09,614 --> 00:18:11,236
+来看看我的下载页面。
+Let's see, my download page.
+
+268
+00:18:11,758 --> 00:18:13,136
+我随便问一个陈述句。
+I'll ask for any statement.
+
+269
+00:18:13,216 --> 00:18:14,308
+好的，稍等一下。
+Okay, just a second.
+
+270
+00:18:15,856 --> 00:18:16,816
+注意。
+attention.
+
+271
+00:18:18,542 --> 00:18:19,908
+好的，这就是我的东西。
+Okay, so this is my thing.
+
+272
+00:18:21,456 --> 00:18:24,100
+让我继续随便搜点什么。
+let me just go ahead and search for anything.
+
+273
+00:18:25,262 --> 00:18:28,100
+解码器就是这个和这个，好的。
+The decoder is the this and this, okay.
+
+274
+00:18:28,590 --> 00:18:30,500
+所以我会从这里到这里进行搜索。
+So I'll be searching from here to here.
+
+275
+00:18:30,926 --> 00:18:31,216
+好的。
+Okay.
+
+276
+00:18:31,982 --> 00:18:38,052
+现在让我修改一下输入，然后搜索一下。
+Now let me go ahead and change my input and search for it.
+
+277
+00:18:38,926 --> 00:18:43,056
+好了，chain.invoke 已经执行完了，这里我拿到了响应。
+So chain dot invoke, I've done, and here I've got the response.
+
+278
+00:18:43,278 --> 00:18:46,692
+现在让我看看，我觉得这个问题答案应该是 6。
+Now let me just go and I think the answer to this question is six.
+
+279
+00:18:48,750 --> 00:18:51,136
+解码器也是由一堆 n6 组成的。
+the decoder is also composed of stack of n6.
+
+280
+00:18:51,376 --> 00:18:52,804
+噢，它基本上就是拿到了这个。
+Oh, it has basically taken this.
+
+281
+00:18:52,942 --> 00:18:53,412
+没关系。
+No worries.
+
+282
+00:18:53,710 --> 00:18:55,076
+好的，我们再试几个。
+Okay, let's take some more thing.
+
+283
+00:18:58,158 --> 00:19:00,836
+我要写“缩放点积注意力”。
+I'll write scaled dot product attention.
+
+284
+00:19:02,670 --> 00:19:03,620
+再来几个例子。
+Some more examples.
+
+285
+00:19:12,576 --> 00:19:12,896
+好的。
+Okay.
+
+286
+00:19:14,190 --> 00:19:14,916
+稍等一下。
+Just a second.
+
+287
+00:19:15,662 --> 00:19:16,804
+现在我觉得它不应该是这样的。
+Now I think it should not be.
+
+288
+00:19:20,782 --> 00:19:24,336
+好的，它正在提取那个问题，并试图从中生成一些答案。
+Okay, it is taking that question and it is trying to form some answers out of it.
+
+289
+00:19:24,576 --> 00:19:24,896
+好的。
+Okay.
+
+290
+00:19:25,902 --> 00:19:26,692
+明白了，明白了。
+Got it, got it.
+
+291
+00:19:27,136 --> 00:19:27,936
+这不是错误。
+It is not a mistake.
+
+292
+00:19:28,016 --> 00:19:29,456
+我刚才以为那是出错了。
+I thought it was a mistake out there.
+
+293
+00:19:29,966 --> 00:19:31,776
+Scale.pro 是这类东西，这个，这个，这个。
+Scale.pro is a type of this, this, this.
+
+294
+00:19:31,856 --> 00:19:33,380
+你看，我在这里拿到了所有的答案。
+See, I'm getting all the answers over here.
+
+295
+00:19:34,030 --> 00:19:36,420
+所以现在它变成了一个完美的问答系统。
+So now it has become a perfect QA.
+
+296
+00:19:36,976 --> 00:19:42,148
+嗯，这是结合了 RAG 流水线，以及 Langchain 的检索器和链的问答。
+Um QA with Rack Pipeline along with this retriever and chain with Langchain.
+
+297
+00:19:42,510 --> 00:19:43,856
+所以希望你们喜欢这个视频。
+So I hope you like this particular video.
+
+298
+00:19:43,936 --> 00:19:44,656
+这就是我这部分的全部内容了。
+This was it from my side.
+
+299
+00:19:44,736 --> 00:19:45,616
+我们下个视频再见。
+I'll see you all in the next video.
+
+300
+00:19:45,696 --> 00:19:46,096
+祝大家有美好的一天。
+Have a great day.
+
+301
+00:19:46,336 --> 00:19:46,896
+谢谢大家。
+Thank you one doll.
+
+302
+00:19:46,976 --> 00:19:47,268
+保重。
+Take care.
+
+303
+00:19:47,376 --> 00:19:47,588
+拜拜。
+Bye bye.
+

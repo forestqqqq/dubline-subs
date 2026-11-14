@@ -1,0 +1,1200 @@
+1
+00:00:00,526 --> 00:00:03,280
+Hello, all my name is Krishnaik and welcome to my YouTube channel.
+
+2
+00:00:03,440 --> 00:00:12,164
+So, guys, we are going to continue the Langchain series, and now we will be developing advanced rag pipeline using retriever and chain concepts that are available in Langchain.
+
+3
+00:00:12,640 --> 00:00:18,788
+Now, before I go ahead, I really want to talk about a funny incident that really happened recently, just today itself.
+
+4
+00:00:19,278 --> 00:00:23,840
+So, what I did what I do is that every day morning I usually go and play some badminton.
+
+5
+00:00:23,920 --> 00:00:29,380
+You know, I play for one hour, one and a half hour, and usually a lot of my friends and neighbors usually come and play.
+
+6
+00:00:29,614 --> 00:00:31,520
+You know, so today what happened after playing.
+
+7
+00:00:31,600 --> 00:00:32,880
+I went today in this look.
+
+8
+00:00:32,960 --> 00:00:38,720
+Okay, I played around three to four games, and then one of my neighbors said, Hey Krish, you're Krish, right?
+
+9
+00:00:38,960 --> 00:00:40,612
+You just got identified right now.
+
+10
+00:00:40,960 --> 00:00:44,720
+Just by seeing your shoes, I identified you, but your look has completely changed.
+
+11
+00:00:44,814 --> 00:00:47,748
+So let me know if this is true in the comment section of this particular video.
+
+12
+00:00:48,270 --> 00:00:57,760
+But I am liking this look, uh, you know, it's like so much of less maintenance, you don't have to maintain your beard, your mustache, or your hair, also, right?
+
+13
+00:00:57,998 --> 00:00:59,040
+It looks super cool.
+
+14
+00:00:59,280 --> 00:01:03,360
+Now let's go ahead and work towards this specific project.
+
+15
+00:01:03,520 --> 00:01:09,540
+In our previous tutorial, what we had actually done is that we had created this simple rack pipeline.
+
+16
+00:01:09,680 --> 00:01:21,860
+Okay, we had a data data source, like we took PDF, we took website, then we load that particular data set using different different data ingestion techniques uh that were available in Langchain.
+
+17
+00:01:22,160 --> 00:01:40,740
+Then we did transformation wherein we broke down our bigger PDFs into chunks, and then we converted all these particular chunks into vectors and stored it in a vector store, and then with the help of query, we are able to probably retrieve some of the data that is available in the vector store.
+
+18
+00:01:41,454 --> 00:01:42,560
+Now, this is one step.
+
+19
+00:01:42,830 --> 00:01:45,440
+Now, the further step after this particular query vector.
+
+20
+00:01:45,520 --> 00:01:51,204
+Now understand query vector are not that efficient, you know, when in terms of retrieving the entire results.
+
+21
+00:01:52,078 --> 00:01:55,440
+Here we will also specifically use LLM models.
+
+22
+00:01:55,600 --> 00:02:09,440
+Okay, so now what we will try to do is that using some prompts, okay, and we will take this specific prompts, we will take this particular data using the concept of chain and retriever.
+
+23
+00:02:09,710 --> 00:02:17,988
+Okay, and understand this topic is very important because this is where your advanced rack pipeline implementation will start.
+
+24
+00:02:18,254 --> 00:02:29,760
+Using chain and retriever, we will also use, and in this chain and retriever, what we do is that we specifically use LLM models, it can be open source, it can be paid, whatever model you want.
+
+25
+00:02:29,840 --> 00:02:38,080
+So we will specifically use this LLM model, and based on this prompt, we will try to get the response on what we are specifically looking.
+
+26
+00:02:38,480 --> 00:02:38,720
+Right?
+
+27
+00:02:38,800 --> 00:02:43,524
+So there will be a lot of customization that will be added once we implement this specific part.
+
+28
+00:02:43,760 --> 00:02:49,280
+In the first part, we discussed about this, and this is the second part that we are going to discuss, okay?
+
+29
+00:02:49,440 --> 00:02:55,840
+How we can use chain, how we can use a retriever, what exactly is chain, how you can integrate in this particular LLM model.
+
+30
+00:02:55,920 --> 00:03:00,228
+There is a concept of something called a stuff document chain, what exactly it is.
+
+31
+00:03:00,590 --> 00:03:06,052
+So we will discuss everything all about it, and here we are also going to do a practical implementation.
+
+32
+00:03:06,446 --> 00:03:10,948
+So please make sure that you watch this video till the end and we are going to learn a lot of things.
+
+33
+00:03:11,246 --> 00:03:17,840
+Okay, so here the first step what we had done on already uh we have implemented this in our previous tutorial also.
+
+34
+00:03:18,446 --> 00:03:27,680
+So here you'll be able to see that I am trying to read uh attention.pdf which is present in a folder, and then we just write loader.load and we get the documents, okay.
+
+35
+00:03:27,982 --> 00:03:31,652
+So these are all the documents that will be available in this specific PDF.
+
+36
+00:03:31,760 --> 00:03:32,000
+Okay.
+
+37
+00:03:32,400 --> 00:03:42,160
+Then what we are specifically doing next step is that from Langchain.txt splitter we will be using recursive character text splitter wherein we convert the entire document into chunks, right?
+
+38
+00:03:42,350 --> 00:03:48,836
+And then we are probably using this text splitter, and we are using a chunk size of 1000 overlap of 20.
+
+39
+00:03:49,230 --> 00:03:52,240
+So this everything is implemented in my previous videos, right?
+
+40
+00:03:52,320 --> 00:03:55,600
+So we are going to split this entire document and save it in this particular document.
+
+41
+00:03:56,014 --> 00:03:58,400
+In the previous tutorial, we have implemented all these things.
+
+42
+00:03:58,480 --> 00:04:06,000
+Now, here what we are going to take do now, we'll take all these documents and then we will convert it into a vector store, right?
+
+43
+00:04:06,318 --> 00:04:09,188
+So, vector store for that we are using this files, okay?
+
+44
+00:04:09,614 --> 00:04:13,520
+So here we are going we can use OLAMA embedding or open AI embedding, right?
+
+45
+00:04:13,742 --> 00:04:19,012
+As I said, you open AI embedding is very much advanced and it will perform better than OLAMA embedding.
+
+46
+00:04:19,360 --> 00:04:23,044
+If you don't have OpenAI API key, use OLAMA embedding.
+
+47
+00:04:23,280 --> 00:04:26,800
+Instead of OpenAI embedding over here, you can just write OLAMA embedding, right?
+
+48
+00:04:26,880 --> 00:04:32,960
+So from here I'm be using fires which is again a kind of vector store, and it has been developed by Meta.
+
+49
+00:04:33,326 --> 00:04:36,000
+So fires dot from documents, document of 20.
+
+50
+00:04:36,142 --> 00:04:39,780
+So I'm just taking the first 20 documents and I'm just writing open AI embeddings.
+
+51
+00:04:39,920 --> 00:04:43,620
+Let's make it to 30 so that it will have some amount of data.
+
+52
+00:04:44,014 --> 00:04:50,436
+Right now we are specifically using open AI embedding, and this dB that you specifically see is a my vector store.
+
+53
+00:04:50,670 --> 00:04:50,880
+Okay.
+
+54
+00:04:51,438 --> 00:04:54,320
+So here you can see vector store fires fires of type.
+
+55
+00:04:54,400 --> 00:04:54,720
+Okay.
+
+56
+00:04:55,502 --> 00:04:55,940
+Perfect.
+
+57
+00:04:56,320 --> 00:05:07,808
+Now Any question that I ask, attention function can be described as a mapping query, and then we can take this vector store and just write dot similarity search on this query, and we will get the result over here.
+
+58
+00:05:08,046 --> 00:05:11,428
+Okay, so this all things we have actually done in our previous video.
+
+59
+00:05:11,822 --> 00:05:21,088
+Now is the most important thing how I can combine prompt along with chains and retriever and then probably get a response based on the prompt.
+
+60
+00:05:21,168 --> 00:05:21,412
+Okay.
+
+61
+00:05:21,968 --> 00:05:28,688
+So since many people have the use of only open source, uh they have the access of open source model LLM model.
+
+62
+00:05:29,038 --> 00:05:33,248
+So I'm going to use Olama from Langchin.community.llms import olama.
+
+63
+00:05:33,568 --> 00:05:35,168
+Then I'm going to use Olama over here.
+
+64
+00:05:35,328 --> 00:05:36,484
+Model will be Lama 2.
+
+65
+00:05:36,974 --> 00:05:41,488
+If you don't have Lama 2, just to go to command prompt after downloading Olama.
+
+66
+00:05:41,648 --> 00:05:43,408
+I hope everybody knows how to download it.
+
+67
+00:05:43,488 --> 00:05:47,844
+If you're seeing my series of videos, here you can just write Olama run lama 2.
+
+68
+00:05:48,128 --> 00:05:48,368
+Right?
+
+69
+00:05:48,686 --> 00:05:51,968
+So once you write like this, then the model will get downloaded.
+
+70
+00:05:52,048 --> 00:05:52,288
+Right?
+
+71
+00:05:52,368 --> 00:05:54,768
+If it is already downloaded, it will be coming something like this.
+
+72
+00:05:54,928 --> 00:05:55,168
+Okay.
+
+73
+00:05:55,726 --> 00:05:57,728
+So this is the first step that you really need to do.
+
+74
+00:05:57,808 --> 00:06:02,528
+Then I have written from langshen.community.lm's olama load olama.
+
+75
+00:06:02,768 --> 00:06:06,048
+So whatever olama model we are specifically using, that is llama 2.
+
+76
+00:06:06,158 --> 00:06:07,492
+So this is my open source model.
+
+77
+00:06:07,854 --> 00:06:10,820
+So if you see llama llm, it is nothing but olama.
+
+78
+00:06:11,488 --> 00:06:15,108
+Now is the time we will start designing our prompt template.
+
+79
+00:06:15,374 --> 00:06:22,208
+Now in order to design the chat prompt template, I will be using chat langchen underscore code.prompts import chat prompt template.
+
+80
+00:06:22,288 --> 00:06:22,500
+Okay.
+
+81
+00:06:22,958 --> 00:06:26,052
+And then from chat prompt template from template, I'm just writing like this.
+
+82
+00:06:26,414 --> 00:06:32,128
+So I'm saying answer the following question based only on the provided context.
+
+83
+00:06:32,208 --> 00:06:38,276
+Now see, we are trying to develop a QA, QA chat bot based on the context, it should provide me the response.
+
+84
+00:06:38,862 --> 00:06:48,208
+Previously, what we are doing using vector store, we used to, if you see the code over here, we used to query the vector score, right?
+
+85
+00:06:48,368 --> 00:06:51,300
+Vector store by using similarity search algorithm.
+
+86
+00:06:51,408 --> 00:06:59,248
+But here, what we are doing, here we are defining our own prompt and we are saying, hey, answer the following question based on the provided context, right?
+
+87
+00:06:59,598 --> 00:07:01,328
+I will and simply I'm writing away.
+
+88
+00:07:01,408 --> 00:07:04,548
+I'll tip you thousand dollar if you find the answer helpful.
+
+89
+00:07:05,198 --> 00:07:14,528
+Okay, if the user find the answer helpful, okay, just at least by seeing money the AI may perform well, and then we are giving our context and then question will be input.
+
+90
+00:07:14,608 --> 00:07:14,848
+Okay.
+
+91
+00:07:15,630 --> 00:07:17,888
+How why I am writing in this specific way?
+
+92
+00:07:18,048 --> 00:07:19,780
+Because this chain and retriever, right?
+
+93
+00:07:20,014 --> 00:07:24,448
+You'll be understanding this context will be autofilled and this input will also get auto filled.
+
+94
+00:07:24,558 --> 00:07:25,808
+Okay, how it will get auto filled?
+
+95
+00:07:25,888 --> 00:07:26,372
+I'll let you know.
+
+96
+00:07:26,862 --> 00:07:28,900
+So now what I will do, I will execute this.
+
+97
+00:07:29,008 --> 00:07:31,716
+Now I will go ahead and implement about chain.
+
+98
+00:07:33,134 --> 00:07:41,188
+it is always a good idea, okay, to probably go to your browser and check about each and every topic that I'm explaining.
+
+99
+00:07:41,710 --> 00:07:43,008
+So, what does chain refer to?
+
+100
+00:07:43,168 --> 00:07:49,348
+Chain referred to a sequence of calls, whether to an LLM or tool or data pre-processing step.
+
+101
+00:07:49,966 --> 00:07:52,612
+The primary supported way to do this is LCL.
+
+102
+00:07:52,848 --> 00:07:53,088
+Okay.
+
+103
+00:07:53,646 --> 00:07:58,372
+Now, if you talk about chain over here, there are multiple functions with respect to chain.
+
+104
+00:07:59,502 --> 00:08:02,820
+One of the functions that I am going to use is create stuff document chain.
+
+105
+00:08:03,214 --> 00:08:12,676
+Now, what this exactly does, this chain takes a list of documents and formats them into all into a prompt, then passes that prompt to an LLM.
+
+106
+00:08:14,286 --> 00:08:14,756
+See this.
+
+107
+00:08:14,990 --> 00:08:19,168
+This chain takes a list of documents and formats them based on the prompt.
+
+108
+00:08:19,408 --> 00:08:20,848
+Formats them into a prompt.
+
+109
+00:08:21,006 --> 00:08:22,848
+Sorry, not based on the prompt, into the prompt.
+
+110
+00:08:22,928 --> 00:08:34,128
+That basically means over here, if I go ahead and open my browser, here in the context, I definitely require my documents itself, right?
+
+111
+00:08:34,288 --> 00:08:38,368
+Based on that context, and based on this input, I will be able to give the answer, right?
+
+112
+00:08:38,606 --> 00:08:40,928
+So based on this context and based on the input, right?
+
+113
+00:08:41,134 --> 00:08:45,968
+Context basically means all the documents that are there available in the vector store, right?
+
+114
+00:08:46,222 --> 00:08:49,088
+Inputs are what question I am asking, right?
+
+115
+00:08:49,454 --> 00:08:54,128
+So with the help of this create stuff document chain, what is basically happening?
+
+116
+00:08:54,288 --> 00:09:00,004
+This chain takes a list of document and formats them all into a prompt, then passes that prompt to an LLM.
+
+117
+00:09:00,334 --> 00:09:05,796
+It passes all the documents so that you should make sure that it fits within the context window the LLM you are using.
+
+118
+00:09:06,222 --> 00:09:15,492
+So, what it is exactly doing, it will take up all the documents from the vector store, it'll put that put inside that particular prompt template, and then it will send the to the LLM, and then we finally get the response.
+
+119
+00:09:15,728 --> 00:09:17,728
+Okay, and that is what we will be using.
+
+120
+00:09:17,838 --> 00:09:24,288
+Similarly, there are different uh things also over here, like create stuff document chain is there, create SQL query chain.
+
+121
+00:09:24,368 --> 00:09:30,948
+If you are working with respect to SQL database for natural language, and this is one of the very important project that I'll also do in the future.
+
+122
+00:09:31,342 --> 00:09:39,808
+One or the other way I'll try to use one or the other functionalities to just make you understand how we can use all these functionalities itself, right?
+
+123
+00:09:39,918 --> 00:09:44,132
+But it is always good that we have a specific use case, okay.
+
+124
+00:09:44,494 --> 00:09:48,768
+Now, if I open this, okay, let's go ahead and create my chain.
+
+125
+00:09:48,848 --> 00:09:50,448
+How do I create my chain over here?
+
+126
+00:09:50,528 --> 00:09:51,888
+Again, it is very simple.
+
+127
+00:09:52,238 --> 00:09:54,368
+So I will write from lang chain.
+
+128
+00:09:55,822 --> 00:09:57,152
+Lang chain underscore community.
+
+129
+00:09:57,262 --> 00:09:59,186
+So it is present inside community itself.
+
+130
+00:09:59,534 --> 00:10:00,804
+or not community, sorry, chains.
+
+131
+00:10:01,198 --> 00:10:02,532
+Lang chain underscore chains.
+
+132
+00:10:03,072 --> 00:10:06,404
+Dot combine documents.
+
+133
+00:10:08,112 --> 00:10:11,652
+Import create stuff document chain.
+
+134
+00:10:12,078 --> 00:10:13,284
+Now how do I know this?
+
+135
+00:10:13,806 --> 00:10:15,152
+Okay, I did not create this.
+
+136
+00:10:15,232 --> 00:10:16,832
+I have already seen the documentation.
+
+137
+00:10:16,942 --> 00:10:18,276
+Okay, that is the reason I'm writing.
+
+138
+00:10:18,752 --> 00:10:21,924
+Then I will go ahead and create my document chain.
+
+139
+00:10:22,318 --> 00:10:27,140
+Now inside this document chain, as I said, I will be using create stuff document chain.
+
+140
+00:10:27,392 --> 00:10:29,156
+Okay, that we have already seen.
+
+141
+00:10:29,486 --> 00:10:32,292
+Now inside this chain, two things are basically required.
+
+142
+00:10:32,992 --> 00:10:37,892
+One is the LLM model, and the second one is the prompt that I have created.
+
+143
+00:10:38,512 --> 00:10:43,392
+Because inside this prompt itself, the list of documents will be added, right?
+
+144
+00:10:43,472 --> 00:10:45,604
+Whatever documents is basically coming from here, right?
+
+145
+00:10:46,112 --> 00:10:47,108
+From my vector store.
+
+146
+00:10:47,392 --> 00:10:48,672
+That will be added over here.
+
+147
+00:10:48,846 --> 00:10:49,152
+Okay.
+
+148
+00:10:49,806 --> 00:10:53,252
+So once I create this, so this basically becomes my document chain.
+
+149
+00:10:53,472 --> 00:10:53,732
+Okay.
+
+150
+00:10:54,062 --> 00:10:54,916
+Very much simple.
+
+151
+00:10:55,552 --> 00:11:02,564
+Now, after this, we also have to learn about one very important thing which is called as retrievers.
+
+152
+00:11:03,470 --> 00:11:10,404
+Okay, so I will go ahead and write something called as retrievers, retriever lang chain.
+
+153
+00:11:10,912 --> 00:11:11,232
+Okay.
+
+154
+00:11:11,758 --> 00:11:14,020
+Now what exactly retriever lang chain is?
+
+155
+00:11:14,478 --> 00:11:18,404
+It is an interface that records document given an unstructured query.
+
+156
+00:11:18,672 --> 00:11:21,188
+It is more general than a vector store.
+
+157
+00:11:21,518 --> 00:11:21,952
+Right?
+
+158
+00:11:22,318 --> 00:11:26,832
+A retriever does not need to be able to store the documents only to return or retrieve them.
+
+159
+00:11:27,214 --> 00:11:30,592
+Vector store can be based as the backbone of the retriever.
+
+160
+00:11:30,830 --> 00:11:36,272
+Now see, there is a vector store which is having some information, some vector stored in it, right?
+
+161
+00:11:36,750 --> 00:11:39,140
+If I want to take out any data from there.
+
+162
+00:11:39,278 --> 00:11:42,340
+right, I can actually do a similarity search which we have already seen.
+
+163
+00:11:42,592 --> 00:11:42,912
+Okay.
+
+164
+00:11:43,662 --> 00:12:01,892
+But LangChen, what it did is that since we usually do a lot of programming in a way, right, wherein classes are used, interfaces are used, so it created a separate interface which is called as retriever, and that interface has a back-end source to that particular vector store to retrieve any information.
+
+165
+00:12:02,382 --> 00:12:02,672
+Right?
+
+166
+00:12:03,086 --> 00:12:09,956
+Whenever a query is given, right, that entire vector store will be passing the information through this retriever.
+
+167
+00:12:10,112 --> 00:12:10,372
+Okay.
+
+168
+00:12:10,702 --> 00:12:15,872
+So what we will do is that here I will quickly open this.
+
+169
+00:12:16,046 --> 00:12:24,352
+I have also written some amount of description so that it will be helpful for you whenever you probably go ahead and check it this entire materials.
+
+170
+00:12:24,432 --> 00:12:24,644
+Okay.
+
+171
+00:12:25,006 --> 00:12:33,152
+So now what I will do, I will just go ahead and write db dot db dot as retriever.
+
+172
+00:12:33,710 --> 00:12:38,820
+Now once I do like this, db dot as retriever, this basically has become my retriever.
+
+173
+00:12:39,534 --> 00:12:39,952
+Right?
+
+174
+00:12:40,398 --> 00:12:42,992
+So what we have done, db is our vector store.
+
+175
+00:12:43,072 --> 00:12:43,972
+Already it is there.
+
+176
+00:12:44,462 --> 00:12:48,388
+We have connected to an interface which is basically this particular variable now.
+
+177
+00:12:48,592 --> 00:12:48,912
+Okay.
+
+178
+00:12:49,230 --> 00:12:54,112
+So if you go ahead and it's probably display this, what is retriever?
+
+179
+00:12:54,192 --> 00:12:56,388
+It is nothing but it is a vector store retriever.
+
+180
+00:12:56,992 --> 00:13:03,236
+Internally, you'll be also able to see that what all it is implemented, files and open AI embeddings and all all the information are there.
+
+181
+00:13:03,790 --> 00:13:06,352
+Now retriever is done, chain is also done.
+
+182
+00:13:06,432 --> 00:13:20,484
+Okay, now is the time that what I will do, I will try to use this retriever and document chain both together to probably see when we combine both of them, then only we'll be able to get the response, right?
+
+183
+00:13:20,992 --> 00:13:26,884
+So with respect to this, now let's go ahead and create my retriever chain.
+
+184
+00:13:27,278 --> 00:13:27,552
+Okay.
+
+185
+00:13:28,110 --> 00:13:29,312
+So the next step is what?
+
+186
+00:13:29,486 --> 00:13:36,032
+Since I need to combine both of them, one is retriever and one is the document chain, right?
+
+187
+00:13:36,142 --> 00:13:39,204
+This document chain is responsible for putting the information in the context.
+
+188
+00:13:39,758 --> 00:13:42,592
+When we combine both of them, then it becomes a retriever chain.
+
+189
+00:13:42,702 --> 00:13:43,780
+Now, what is the definition?
+
+190
+00:13:44,142 --> 00:13:50,596
+This chain takes an input as a user inquiry, which is then passed to the retriever to fetch the relevant documents.
+
+191
+00:13:50,990 --> 00:13:54,084
+So it passes through the retriever, it is connected to the vector store.
+
+192
+00:13:54,318 --> 00:13:58,020
+Then those documents are then passed to an LLM to generate the response.
+
+193
+00:13:58,318 --> 00:14:02,592
+And this LLM that we are basically getting, it we it is basically coming from what?
+
+194
+00:14:02,798 --> 00:14:03,620
+This document chain.
+
+195
+00:14:04,206 --> 00:14:05,312
+Understand the flow.
+
+196
+00:14:05,486 --> 00:14:11,140
+Okay, so let me just go ahead and mention this flow again so that it becomes very much easy for you.
+
+197
+00:14:11,712 --> 00:14:16,068
+So whenever the users, this is my user, okay.
+
+198
+00:14:16,654 --> 00:14:19,748
+Whenever the user asks for any inquiry.
+
+199
+00:14:20,814 --> 00:14:22,436
+Okay, any inquiry.
+
+200
+00:14:22,894 --> 00:14:26,148
+So, first, what it is going, it is going to this retriever.
+
+201
+00:14:26,830 --> 00:14:27,940
+Okay, very much important.
+
+202
+00:14:28,096 --> 00:14:28,416
+Okay.
+
+203
+00:14:28,750 --> 00:14:30,276
+So this is my retriever.
+
+204
+00:14:30,926 --> 00:14:33,572
+This retriever is an interface to what?
+
+205
+00:14:33,934 --> 00:14:36,644
+Vector store, which has all the information.
+
+206
+00:14:37,136 --> 00:14:37,456
+Right?
+
+207
+00:14:37,902 --> 00:14:42,308
+So once we basically get the retriever, then the next step, what it happens, it goes to what?
+
+208
+00:14:43,182 --> 00:14:47,876
+It goes to my LLM model with some prompt, right?
+
+209
+00:14:48,366 --> 00:14:50,212
+There will be some prompt involved to this.
+
+210
+00:14:50,478 --> 00:14:52,228
+And how this is basically happening?
+
+211
+00:14:53,166 --> 00:14:55,620
+With the help of stuff document chain.
+
+212
+00:14:57,358 --> 00:15:03,616
+So this stuff document chain has already both these things combined, LLM and prompt, right?
+
+213
+00:15:03,918 --> 00:15:06,052
+And then finally we get our response.
+
+214
+00:15:08,174 --> 00:15:10,016
+I hope you are able to understand this, right?
+
+215
+00:15:10,254 --> 00:15:12,612
+And this is what we have basically implemented over here.
+
+216
+00:15:13,006 --> 00:15:15,524
+Now, how to basically create a retrieval chain?
+
+217
+00:15:15,856 --> 00:15:21,764
+So, first for for all of this, again, I will be using a library with respect to chains.
+
+218
+00:15:21,856 --> 00:15:34,276
+Okay, so from lang chain, lang chain dot chains import create retrieval chain.
+
+219
+00:15:34,926 --> 00:15:40,644
+Right, and there are a lot of things key create QA with source chain, retrieval chain, this chain, that chain.
+
+220
+00:15:41,038 --> 00:15:42,596
+I will try to explain you all of things.
+
+221
+00:15:42,736 --> 00:15:43,936
+Don't worry, okay.
+
+222
+00:15:44,366 --> 00:15:49,764
+I will catch the right kind of use case and I will be showcasing you all these things.
+
+223
+00:15:50,030 --> 00:15:51,296
+Don't worry about that, okay.
+
+224
+00:15:51,536 --> 00:15:59,076
+Then what I will do, I will I will take this entire create retrieval chain and then I will create my retrieval chain.
+
+225
+00:15:59,630 --> 00:16:14,788
+So here I will write retrieval chain is equal to create retrieval chain, and here I'm going to use first parameter that I'm going to use is retriever, then the second parameter is nothing but document chain.
+
+226
+00:16:15,406 --> 00:16:20,068
+So once I have this chain, right now I will be able to invoke any queries.
+
+227
+00:16:20,654 --> 00:16:25,604
+So I will go ahead and write retrieval chain dot invoke.
+
+228
+00:16:25,856 --> 00:16:26,176
+Okay.
+
+229
+00:16:26,798 --> 00:16:29,348
+And now what are the parameters that I have to give?
+
+230
+00:16:29,646 --> 00:16:29,936
+Nothing.
+
+231
+00:16:30,158 --> 00:16:31,396
+I have to give my input.
+
+232
+00:16:31,886 --> 00:16:34,244
+So the input will be given over here.
+
+233
+00:16:34,798 --> 00:16:42,176
+Colon and whatever input that I can give, let's say from the PDF, I have put some input over here.
+
+234
+00:16:42,446 --> 00:16:43,780
+Let me just copy and paste it.
+
+235
+00:16:44,110 --> 00:16:44,336
+Okay.
+
+236
+00:16:44,622 --> 00:16:48,196
+So this is one of the text that is available in the PDF that is attention.pdf.
+
+237
+00:16:48,718 --> 00:16:53,764
+And now if I invoke this, you'll be able to see that I will be able to get the entire response.
+
+238
+00:16:54,254 --> 00:16:54,496
+Okay.
+
+239
+00:16:55,118 --> 00:16:56,656
+So retrieval.chain.invoke.
+
+240
+00:16:56,736 --> 00:16:59,556
+And again, we are using open source LLM model that is Lama 2.
+
+241
+00:16:59,936 --> 00:17:00,256
+Okay.
+
+242
+00:17:01,006 --> 00:17:02,564
+Yeah, I've used OpenAI embedding.
+
+243
+00:17:02,830 --> 00:17:04,416
+So here you can see this is my input.
+
+244
+00:17:04,526 --> 00:17:06,176
+This was the context, right?
+
+245
+00:17:06,510 --> 00:17:09,476
+All the context information is there, and finally I get the answer.
+
+246
+00:17:10,094 --> 00:17:13,124
+And this answer, I will just try to save it over here.
+
+247
+00:17:13,614 --> 00:17:15,492
+Something like response.
+
+248
+00:17:18,896 --> 00:17:19,684
+Response.
+
+249
+00:17:20,494 --> 00:17:20,736
+Okay.
+
+250
+00:17:21,166 --> 00:17:24,036
+And then I will execute response.
+
+251
+00:17:26,096 --> 00:17:28,132
+Response of answer.
+
+252
+00:17:28,590 --> 00:17:32,016
+So this finally becomes my output that is probably coming over here.
+
+253
+00:17:32,096 --> 00:17:32,336
+Okay.
+
+254
+00:17:32,430 --> 00:17:36,736
+So this, if I execute it, the answer to the question is right.
+
+255
+00:17:37,136 --> 00:17:38,852
+And all the information you can see.
+
+256
+00:17:39,566 --> 00:17:42,244
+The answer to the question, and it is retrieving all the details.
+
+257
+00:17:42,736 --> 00:17:43,012
+Right?
+
+258
+00:17:43,470 --> 00:17:52,576
+So here you'll be able to see that how beautifully, with the help of LLM, we have constructed this entire thing and we have used this chains retriever.
+
+259
+00:17:52,814 --> 00:17:56,708
+And this is the first step towards developing your advanced rack pipeline.
+
+260
+00:17:56,976 --> 00:17:57,252
+Right?
+
+261
+00:17:57,614 --> 00:18:01,924
+So, whatever question you ask, let me just open this and probably show you some more examples.
+
+262
+00:18:02,416 --> 00:18:02,736
+Okay.
+
+263
+00:18:04,334 --> 00:18:07,300
+So, what I will do, I will just open my download page.
+
+264
+00:18:09,614 --> 00:18:11,236
+Let's see, my download page.
+
+265
+00:18:11,758 --> 00:18:13,136
+I'll ask for any statement.
+
+266
+00:18:13,216 --> 00:18:14,308
+Okay, just a second.
+
+267
+00:18:15,856 --> 00:18:16,816
+attention.
+
+268
+00:18:18,542 --> 00:18:19,908
+Okay, so this is my thing.
+
+269
+00:18:21,456 --> 00:18:24,100
+let me just go ahead and search for anything.
+
+270
+00:18:25,262 --> 00:18:28,100
+The decoder is the this and this, okay.
+
+271
+00:18:28,590 --> 00:18:30,500
+So I'll be searching from here to here.
+
+272
+00:18:30,926 --> 00:18:31,216
+Okay.
+
+273
+00:18:31,982 --> 00:18:38,052
+Now let me go ahead and change my input and search for it.
+
+274
+00:18:38,926 --> 00:18:43,056
+So chain dot invoke, I've done, and here I've got the response.
+
+275
+00:18:43,278 --> 00:18:46,692
+Now let me just go and I think the answer to this question is six.
+
+276
+00:18:48,750 --> 00:18:51,136
+the decoder is also composed of stack of n6.
+
+277
+00:18:51,376 --> 00:18:52,804
+Oh, it has basically taken this.
+
+278
+00:18:52,942 --> 00:18:53,412
+No worries.
+
+279
+00:18:53,710 --> 00:18:55,076
+Okay, let's take some more thing.
+
+280
+00:18:58,158 --> 00:19:00,836
+I'll write scaled dot product attention.
+
+281
+00:19:02,670 --> 00:19:03,620
+Some more examples.
+
+282
+00:19:12,576 --> 00:19:12,896
+Okay.
+
+283
+00:19:14,190 --> 00:19:14,916
+Just a second.
+
+284
+00:19:15,662 --> 00:19:16,804
+Now I think it should not be.
+
+285
+00:19:20,782 --> 00:19:24,336
+Okay, it is taking that question and it is trying to form some answers out of it.
+
+286
+00:19:24,576 --> 00:19:24,896
+Okay.
+
+287
+00:19:25,902 --> 00:19:26,692
+Got it, got it.
+
+288
+00:19:27,136 --> 00:19:27,936
+It is not a mistake.
+
+289
+00:19:28,016 --> 00:19:29,456
+I thought it was a mistake out there.
+
+290
+00:19:29,966 --> 00:19:31,776
+Scale.pro is a type of this, this, this.
+
+291
+00:19:31,856 --> 00:19:33,380
+See, I'm getting all the answers over here.
+
+292
+00:19:34,030 --> 00:19:36,420
+So now it has become a perfect QA.
+
+293
+00:19:36,976 --> 00:19:42,148
+Um QA with Rack Pipeline along with this retriever and chain with Langchain.
+
+294
+00:19:42,510 --> 00:19:43,856
+So I hope you like this particular video.
+
+295
+00:19:43,936 --> 00:19:44,656
+This was it from my side.
+
+296
+00:19:44,736 --> 00:19:45,616
+I'll see you all in the next video.
+
+297
+00:19:45,696 --> 00:19:46,096
+Have a great day.
+
+298
+00:19:46,336 --> 00:19:46,896
+Thank you one doll.
+
+299
+00:19:46,976 --> 00:19:47,268
+Take care.
+
+300
+00:19:47,376 --> 00:19:47,588
+Bye bye.
+
