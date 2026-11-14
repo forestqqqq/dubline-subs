@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [The New Era of AI: Extraordinary Breakthroughs by OpenAI, Google & Anthropic!](medias/V8Z3Y/) | Tech Unpacked | 2026-11-14 |
 | [Talk Binghan He on Barrier-Pairs RRT - CDC 2020](medias/T9ZE0/) | UT Human Centered Robotics Lab | 2026-11-14 |
 | [Building RAG With OpenAI GPT-4o(omni) Model Using Objectbox Vector Database](medias/S008J/) | Krish Naik | 2026-11-14 |
 | [Hugging Face x LangChain:A new partner package in LangChain](medias/QZQ1J/) | Krish Naik | 2026-11-14 |
