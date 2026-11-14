@@ -1,0 +1,1737 @@
+1
+00:00:00,622 --> 00:00:03,760
+大家好，我是 Krish Naik，欢迎来到我的 YouTube 频道。
+Hello, all my name is Krush Nayak and welcome to my YouTube channel.
+
+2
+00:00:03,840 --> 00:00:16,932
+各位，我们要继续 Langchain 系列。在这次视频中，我们将使
+用完全开源的 Llama 3 模型，开发一个超赞的文档问答应用。
+So, guys, we are going to continue our Langchain series, and in this video, we are going to use Lama 3 model,
+which is a complete open source model, and develop an amazing document QA application.
+
+3
+00:00:17,262 --> 00:00:25,604
+相信我，各位，我通过使用 Llama 3 模型得到的这种文档问答结果，我觉得非常惊人。
+And trust me, guys, the kind of results that I've specifically got from
+this document QA by using this Lama 3 model, I think it is amazing.
+
+4
+00:00:26,062 --> 00:00:29,988
+你能得到的输出效果非常出色，而且速度极快。
+The output that you'll be able to get superbly fabulous, fast.
+
+5
+00:00:30,734 --> 00:00:36,560
+我之所以说快，是因为我还要使用 Groq，对吧？
+The reason why I'm saying fast because I am also going to use nothing but grok, right?
+
+6
+00:00:36,640 --> 00:00:42,788
+我已经给你们简单介绍过 Groq 了，但无论如何，在这次视频中，我也会展示给你们看。
+So I've already given you the brief information about Grok, but anyhow, in this video, also I'll be showing you.
+
+7
+00:00:43,182 --> 00:00:50,000
+在 Groq 中，你可以找到很多开源模型，比如 gamma 7B、Llama 2 70B、Ollama、Llama 3 70B。
+In Grok, you'll be able to find many many open source models like gamma 7B, Lama 270 billion, Lama, Lama 370 billion.
+
+8
+00:00:50,080 --> 00:00:56,080
+看，Ollama 2 再次出现，它已经被淘汰了，因为 Llama 3 已经出来了，
+包括 Llama 3 8B 参数模型和 mistral。
+See Lama 2 again, it is decommissioned because Lama 3 is already come over here, Lama 38 billion parameters and mistral.
+
+9
+00:00:56,560 --> 00:01:03,780
+所以这里我将尝试用 Llama 3 来展示它的性能，以及你能获得多么准确的结果。
+So here I will try to show you with Lama 3 and just try to show you how
+the performance is and how accurately you'll be able to get the results.
+
+10
+00:01:04,366 --> 00:01:07,680
+只是为了让你们更清楚地了解结果到底是什么样的。
+Just to give you a clear idea, like how the results are.
+
+11
+00:01:07,760 --> 00:01:10,240
+看，这只是一个来自 PDF 的演示。
+See, this is just a demo from a PDF.
+
+12
+00:01:10,320 --> 00:01:20,240
+我问了 2022 年各州的私人健康保险覆盖情况，你可以看到在我运行代码后，结果显示得有多快。
+I asked what was the private health insurance coverage by state in 2022, and here you could see how quickly, like how quickly,
+after I probably execute the code, you'll be able to see it.
+
+13
+00:01:20,398 --> 00:01:23,204
+但与此同时，你可以看到你获得的是准确的结果。
+But over here, you'll be able to see you are getting the accurate results.
+
+14
+00:01:23,502 --> 00:01:29,380
+除此之外，基于文档相似度搜索，你具体获得了哪些结果，这些也都会显示出来。
+Along with that, based on the document similarity search, what all
+results you're specifically getting, that all will be also displayed.
+
+15
+00:01:29,838 --> 00:01:32,484
+所以我们要在这一步开发这个应用。
+So we are going to develop this application over here.
+
+16
+00:01:33,120 --> 00:01:42,724
+再次强调，我们的主要目标是让你能够理解所有这些内容，
+我们将按照步骤逐步讲解如何实现这个特定项目。
+again, our main aim is to learn in such a way that you'll be able to understand all these things,
+and we will go ahead with respect to step by step how to implement this particular project.
+
+17
+00:01:43,054 --> 00:01:45,604
+再次说一下，这里我们将使用 Llama 3。
+Again, over here, we are going to use this Lama 3.
+
+18
+00:01:45,966 --> 00:01:50,560
+在接下来的视频中，我还会向你们展示如何实际对 Llama 3 进行微调。
+In the upcoming videos, I'm also going to show you how you can actually perform fine-tuning with Lama 3.
+
+19
+00:01:50,640 --> 00:01:53,200
+那么，让我继续开始我们的代码。
+So let me go ahead and proceed with our code.
+
+20
+00:01:53,422 --> 00:01:58,240
+同样，我将从基础知识开始，像往常一样编写代码，只是为了向你们展示问题陈述是什么。
+Again, from basics, I will be writing as usual, just to show you what is the problem statement.
+
+21
+00:01:58,400 --> 00:02:01,120
+所以这里我有一个文件夹，叫做 US Census。
+So here I have a folder which is called as US Census.
+
+22
+00:02:01,200 --> 00:02:05,028
+同样，这个项目是 Langchain 系列项目的延续。
+Again, this project is a continuation of the Langchin series project itself.
+
+23
+00:02:05,294 --> 00:02:08,419
+所有的代码材料都将提供在本视频的描述中。
+So all the code materials will be given in the description of this particular video.
+
+24
+00:02:08,782 --> 00:02:10,960
+所以这里大约有四个 PDF 文件。
+So here you have around four PDFs files.
+
+25
+00:02:11,038 --> 00:02:20,760
+我们将读取这些特定的 PDF，对所有内容进行嵌入，然后通过创建提示词模板并使用 Llama 3
+LLM 模型，我们大概可以从这里查询任何内容并获取输出。
+We are going to read this specific PDF, we are going to perform embedding everything as such,
+and then with the help of Lama 3 by creating a prompt template and probably using the Lama 3 LLM model,
+
+26
+00:02:20,760 --> 00:02:24,228
+我们将读取这些特定的 PDF，对所有内容进行嵌入，然后通过创建提示词模板并使用 Llama 3
+LLM 模型，我们大概可以从这里查询任何内容并获取输出。
+we are going to probably query anything from here and get the output.
+
+27
+00:02:24,400 --> 00:02:29,120
+好了，这是我的文件夹，我将在里面编写我的代码 app.py。
+Okay, so this is my folder, and in my I'll be writing my code app.py.
+
+28
+00:02:29,280 --> 00:02:32,080
+首先，像往常一样，我们开始导入。
+So first of all, as usual, we will go ahead and import.
+
+29
+00:02:32,240 --> 00:02:34,640
+所以导入 streamlit 作为 st。
+So import streamlet as HT.
+
+30
+00:02:35,280 --> 00:02:40,400
+显然，我们将借助 streamlit 来开发这个端到端应用。
+Uh obviously, we are going to develop this end-to-end application with the help of streamlet.
+
+31
+00:02:40,800 --> 00:02:43,280
+除此之外，还要导入 OS。
+And apart from this, import OS.
+
+32
+00:02:43,470 --> 00:02:45,600
+好了，在继续之前，请点赞这个视频。
+Okay, before I go ahead, please make the video.
+
+33
+00:02:45,680 --> 00:02:47,520
+我的目标是获得一千个点赞。
+I'll keep a target of thousand likes.
+
+34
+00:02:47,760 --> 00:02:48,800
+点赞一下，好吗。
+Do it, you know.
+
+35
+00:02:51,120 --> 00:02:54,000
+好了，我知道你们不是所有的视频都点赞。
+Okay, so I know you are not doing all of the videos.
+
+36
+00:02:54,080 --> 00:03:00,132
+你们也看到了，我开发的几乎每一个生成式 AI 视频都有 1 到 1.5 万的播放量。
+You're seeing I'm getting almost 10 to 15k views in almost every video that I develop in generative AI.
+
+37
+00:03:00,320 --> 00:03:02,720
+但你们就是不点赞，也不评论。
+But you are not liking it, you're not commenting it.
+
+38
+00:03:02,800 --> 00:03:03,920
+我不知道为什么。
+I don't know why.
+
+39
+00:03:04,160 --> 00:03:05,440
+呃，没办法。
+Uh can't help.
+
+40
+00:03:05,600 --> 00:03:12,400
+好了，但是我也确实累了，一直要求你们点赞、分享给朋友。
+Okay, but yes, I I I'm also tired asking you all to please go ahead and like, share with all your friends and all.
+
+41
+00:03:12,526 --> 00:03:13,920
+但这取决于你们，好吗？
+But it is up to you, okay?
+
+42
+00:03:14,158 --> 00:03:25,796
+现在让我继续写 Langchain，Langchain，别担心，你们想怎么做就怎么做，
+但我会继续以同样的速度上传所有视频，好吗？
+So now let me go ahead and write from Langchain, Langchain, but don't worry, you do whatever you want,
+but I am going to continuously upload all the videos, okay, with the same speed, right?
+
+43
+00:03:26,830 --> 00:03:29,200
+所以导入 ChatGroq。
+So import chat grok.
+
+44
+00:03:29,280 --> 00:03:31,440
+所以我将专门使用 ChatGroq。
+So I'm going to specifically use chat grok.
+
+45
+00:03:31,520 --> 00:03:32,676
+如果你还不了解 ChatGroq。
+If you don't know about chat grok.
+
+46
+00:03:33,038 --> 00:03:36,400
+Groq 本身就提供了所有这些开源 API。
+so grok specifically provides you all this open source APIs itself.
+
+47
+00:03:36,480 --> 00:03:38,724
+我会向你们展示如何创建 API 密钥。
+I will be showing you how you can create your API key.
+
+48
+00:03:38,990 --> 00:03:44,836
+我们将把那个特定的 API 密钥创建在环境变量中，在那里使用那个密钥，同时也在这里读取它。
+We will go ahead and create that particular API key in our environment variable, use that key over there and read it over here, also.
+
+49
+00:03:45,040 --> 00:03:48,548
+好了，这是我们要使用的另一个库。
+Okay, so this is uh the another library that we are going to use.
+
+50
+00:03:48,878 --> 00:03:51,120
+呃，我们要使用一种嵌入技术。
+Uh, we are going to use one embedding technique.
+
+51
+00:03:51,200 --> 00:03:55,620
+呃，你也可以使用 Ollama 嵌入，但我这里更倾向于使用 OpenAI 嵌入。
+Uh, you can also use Olama embedding, but here I'm preferring to go ahead with OpenAI embeddings.
+
+52
+00:03:56,046 --> 00:03:57,520
+原因非常简单。
+The reason is very simple.
+
+53
+00:03:58,350 --> 00:04:04,804
+因为 OpenAI 嵌入非常出色，无论你开发什么样的应用，都能获得快速且良好的结果。
+Because OpenAI embeddings is amazing, you get a quick good results with respect to any kind of application that you develop.
+
+54
+00:04:05,232 --> 00:04:10,468
+是的，Hugging Face 等地方也有一些开源模型，你也可以用它们来做嵌入。
+Yes, there are also some open source uh models like in Hugging Face and all, which you can also perform the embeddings.
+
+55
+00:04:10,592 --> 00:04:13,796
+但同样，在我的 Langchain 播放列表中，我几乎已经展示了所有内容。
+But again, my Langchan playlist I have almost shown each and everything.
+
+56
+00:04:14,192 --> 00:04:22,330
+现在我要加载的下一个库就是 Langchain 的递归字符文本分割器。
+Now the next library that I'm going to probably upload or load it over here
+is nothing but Langchen.txt splitter recursive character text splitter.
+
+57
+00:04:22,832 --> 00:04:28,032
+如果我有文档，我可能想把这些文档转换成更小的分块。
+So if I have the documents, I want to probably convert that documents into smaller chunks.
+
+58
+00:04:28,112 --> 00:04:31,172
+我可以使用这个递归字符文本分割器。
+I can use this recursive text character text splitter.
+
+59
+00:04:31,502 --> 00:04:34,192
+除此之外，我还要导入另外两个库。
+Along with this, two more libraries that I'm going to import.
+
+60
+00:04:34,432 --> 00:04:36,912
+一个是创建文档链。
+One is nothing but create stuff document chain.
+
+61
+00:04:36,992 --> 00:04:38,820
+我已经解释过这是用来做什么的了。
+I've already explained what this is for.
+
+62
+00:04:39,118 --> 00:04:42,468
+好的，我还要用 chat 提示词模板。
+Okay, and then I'm also going to use chat prompt template.
+
+63
+00:04:42,672 --> 00:04:42,884
+好的。
+Okay.
+
+64
+00:04:43,392 --> 00:04:45,712
+嗯，还有几个库。
+Um, one more couple of more libraries.
+
+65
+00:04:45,792 --> 00:04:48,260
+首先，我们把所有的库都导入到这里。
+So initially, we'll import all the libraries over here.
+
+66
+00:04:48,526 --> 00:04:53,152
+一个是 create 检索链，这样你就能创建整个检索链了。
+One is the create retrieval chain so that it'll be you'll be able to create the entire retrieval chain itself.
+
+67
+00:04:53,262 --> 00:04:56,912
+这个文档链和检索链会协同工作的，对吧？
+This document chain and retrieval chain will work together, right?
+
+68
+00:04:57,072 --> 00:05:00,832
+除此之外，我还会用 fires 嵌入 来做向量数据库。
+Along with this, I'm going to use fires embedding for the vector store.
+
+69
+00:05:01,152 --> 00:05:03,232
+这就是我具体要用的。
+that is what I'm going to specifically use.
+
+70
+00:05:03,406 --> 00:05:15,588
+嗯，还有一个库，我们要从 langchain_community.document_loaders 导入。
+Um, one more library that we will go ahead and write from lang chain underscore community underscore community dot document loaders.
+
+71
+00:05:16,270 --> 00:05:19,556
+我要导入 PyPDF。
+I'm going to import pie pdf.
+
+72
+00:05:22,432 --> 00:05:24,512
+我要导入 document loaders。
+I'm going to import document loaders.
+
+73
+00:05:24,592 --> 00:05:26,884
+我要导入 PyPDFDirectoryLoader。
+I'm going to import pie pdf directory.
+
+74
+00:05:27,246 --> 00:05:30,532
+这基本上能帮我从文件夹里读取所有的文档。
+So this will basically help me to read all the documents from the folder itself.
+
+75
+00:05:31,152 --> 00:05:37,552
+现在让我们继续，加载所有我需要的库和环境变量。
+now let's proceed and let's probably load all the requirement a lot, all the env keys that I specifically require.
+
+76
+00:05:37,712 --> 00:05:41,472
+我需要两个环境变量，一个是 Groq 的，一个是 OpenAI 的。
+Two env keys I require one is for the grok and one is for the openai.
+
+77
+00:05:41,712 --> 00:05:48,112
+来看看怎么做。各位，现在让我们从环境变量中导入所有必要的密钥。
+So let's see how to do So, guys, now let's go ahead and import uh all the necessary keys from our environment variables.
+
+78
+00:05:48,192 --> 00:05:58,820
+为此，我还要导入一个库，就是 from dot_env import load_dotenv。
+So for this, also I'm going to import one library which is called as from dot env from dot env import load underscore dot env.
+
+79
+00:05:58,992 --> 00:06:04,036
+好的，我们之所以用这个，基本上是为了加载所有的环境变量。
+Okay, uh the reason we are using this is to basically load all the environment variables.
+
+80
+00:06:04,782 --> 00:06:20,580
+所以这里我们有了这个，除此之外，我实际要做的是加载 Groq 的 API 密钥，
+我还需要 OpenAI 的 API 密钥。
+So here we have this, and along with this, what I'm actually going to do, I'm going to basically create my load the grok api key and
+API key of Grok, and I would also require and open AI API key.
+
+81
+00:06:20,752 --> 00:06:21,060
+好的。
+Okay.
+
+82
+00:06:21,422 --> 00:06:27,632
+我已经给你们演示过如何创建这些 API 密钥了，但如果你查看我的环境变量，
+所有这些 API 密钥都是可见的。
+Already I've shown you how to create those API key, but if you probably go
+ahead and see my environment variable, all these API keys will be visible.
+
+83
+00:06:27,712 --> 00:06:30,032
+我已经为了方便你们把这些都做好了。
+So I've already done that for your sake.
+
+84
+00:06:30,112 --> 00:06:33,872
+我只是给你们演示一下如何创建 Groq API 密钥。
+I will just show you how to probably uh create a grok API key.
+
+85
+00:06:33,966 --> 00:06:42,244
+只需前往 httpsgrok.com，点击底部的 Groq cloud，你就能看到这个控制台。
+So just go to httpsgrok.com and if you go ahead and click on grok cloud in the bottom, so here you will be able to see this console.
+
+86
+00:06:42,830 --> 00:06:47,872
+从这里，你只需点击 API 界面，然后点击创建 API 密钥。
+From here, you just go ahead and click on API screen and just click on the create API key.
+
+87
+00:06:47,952 --> 00:06:52,420
+一旦你拿到这个特定的 API 密钥，你可以给它起个名字，然后复制这个 API 密钥。
+So once you get this particular API key, you can give a name and copy this particular API key itself.
+
+88
+00:06:52,814 --> 00:06:56,112
+好的，这就是我将要使用的 API 密钥。
+Okay, and this is the API key that I will also be using.
+
+89
+00:06:56,192 --> 00:06:58,512
+好的，我已经做好了，请大家按照自己的步骤操作。
+Okay, I've already done that, so please do it from your step.
+
+90
+00:06:58,672 --> 00:07:01,472
+否则，请看我之前的教程。
+Otherwise, just see my previous tutorials.
+
+91
+00:07:01,632 --> 00:07:03,472
+在那里，我也已经演示过该如何操作了。
+There, also, I have actually shown you how to do it.
+
+92
+00:07:03,552 --> 00:07:08,032
+好了，嗯，按惯例，我们需要导入两个 API 密钥。
+Okay, then uh as usual, uh, there are two API keys that we need to import.
+
+93
+00:07:08,334 --> 00:07:10,212
+所以我打算专门用这个。
+So I'm going to specifically use this.
+
+94
+00:07:10,512 --> 00:07:13,792
+一个是 OS.environment 的 open API 密钥。
+One is the OS.environment open API key.
+
+95
+00:07:13,872 --> 00:07:15,588
+我要写 os.getenv。
+I'm going to say os.get env.
+
+96
+00:07:15,952 --> 00:07:20,912
+嗯，除此之外，我还要用 os.environment 的 Groq API 密钥，对吧？
+Along uh, along with that, I'm also going to use os.environment of grok api key, right?
+
+97
+00:07:21,230 --> 00:07:24,832
+所以，嗯，这里也会用到 Groq API 密钥。
+So uh grok API key will also be used over here with respect to that.
+
+98
+00:07:25,006 --> 00:07:35,748
+好的，这里会做一些改动，所以我直接写 getenv，这基本上会设置到我这里的这个位置，好吗。
+Okay, here are some couple of changes will be happening, so I will just go
+ahead and write get env and this will basically be set to my over here, okay.
+
+99
+00:07:36,398 --> 00:07:43,792
+除此之外，我实际上可以这样做，嗯，一旦我设置了这个 Groq API 密钥，
+我每次初始化 Grok 时都会使用同一个 API 密钥。
+Along with this, what I can actually do, uh once I've set this groc
+API key, I will be using the same API key whenever I initialize Grok.
+
+100
+00:07:44,112 --> 00:07:49,232
+好的，嗯，那我们继续进行下一步吧。
+Okay, uh, so let's go ahead and let's uh probably go ahead with the next step.
+
+101
+00:07:49,358 --> 00:07:51,940
+所以这里我们已经加载好所有内容了。
+So over here we have already load loaded each and everything.
+
+102
+00:07:52,672 --> 00:07:59,812
+嗯，所以这里我要写 st.title，因为我们要把它作为 streamlit 使用。
+Um so uh here I will go ahead and write ht.title since we are going to use this as streamlet.
+
+103
+00:08:01,966 --> 00:08:05,092
+标题，这里我基本上要写 ChatGroq。
+Title, and here I'm going to basically write Chat Grok.
+
+104
+00:08:05,344 --> 00:08:12,384
+Llama3 演示，ChatGroq 配合 Llama3 演示，但是 Llama3 非常强大，伙计们。
+Demo Chat Grok with Llama, Llama three demo, but Llama three is very powerful, guys.
+
+105
+00:08:12,464 --> 00:08:21,424
+好的，Llama3 演示，除此之外，我实际上要做的是创建我的 LLM 模型，
+也就是使用 ChatGroq 模板或 ChatGroq 库。
+Okay, Llama three demo along with this, what I'm actually going to do, I'm going to create my LLM model,
+which will be nothing by by using Chat Grok template or Chat grot library.
+
+106
+00:08:21,646 --> 00:08:31,620
+我大概得在这里用 Grok API 密钥，所以我写 Groq_api_key，好吗，
+这基本上会初始化为我的 Grok API 密钥。
+I have to probably use the Grok API key over here, so I will write grok underscore api underscore key Okay,
+and this will basically be initialized to my Grok API key.
+
+107
+00:08:31,904 --> 00:08:32,196
+好的。
+Okay.
+
+108
+00:08:32,621 --> 00:08:45,444
+嗯，我确实需要给出的第二个参数是我的 model_name，正如我们已经看到的，
+模型名称将是 llama3，你们可以再去网站上查看一下，8b 8192。
+Uh, the second parameter I really need to give is my model underscore name, and as we have already seen, the model number,
+a model name will be llama3, and you can all again go to the website and check it out, 8b 8192.
+
+109
+00:08:45,584 --> 00:08:49,104
+好的，这就是我们要专门使用的模型编号。
+Okay, so here is the model number that we are going to specifically use.
+
+110
+00:08:49,184 --> 00:08:50,916
+这基本上就是我的 LLM 模型。
+This will basically be my LLM model.
+
+111
+00:08:51,278 --> 00:08:55,184
+接下来，同样为了上下文，我们确实需要创建一个聊天提示词模板。
+The next thing, again, for the context, we really need to create a chat prompt template.
+
+112
+00:08:55,264 --> 00:08:57,796
+所以我们再次继续初始化我们的提示词。
+So again, we will go ahead and initialize our prompt.
+
+113
+00:08:58,158 --> 00:08:58,944
+这就是我们的提示词。
+So this is our prompt.
+
+114
+00:08:59,104 --> 00:09:02,180
+提示词，嗯，ChatPromptTemplate.from_template。
+Prompt, uh, chat prompt template dot prompt from templates.
+
+115
+00:09:02,446 --> 00:09:04,544
+仅根据提供的上下文回答问题。
+Answer the question based on the provided context only.
+
+116
+00:09:04,624 --> 00:09:08,544
+请根据问题上下文提供最准确的回答。
+Please provide the most accurate response based on the question context.
+
+117
+00:09:08,910 --> 00:09:18,144
+所以，这里基本上就是上下文，以及针对这个特定输入的提问，
+无论我具体给出的输入是什么，这就是我整个提示词模板。
+So, this will basically be the context over here and question with respect to this particular input,
+whatever input I specifically give, and this will basically be my entire prompt template.
+
+118
+00:09:18,224 --> 00:09:25,184
+好的，现在让我们快速创建我的字段，这样我就可以提任何问题了。
+Okay, now let's quickly go ahead and create my fields so that I can actually ask any question.
+
+119
+00:09:25,550 --> 00:09:30,788
+所以，这里我要写：提示词_one 等于 st.text_input。
+So, here I'm going to write: Prompt one is equal to st dot text underscore input.
+
+120
+00:09:31,184 --> 00:09:37,924
+好的，这里我写：输入，输入你的问题。
+Okay, and here I'm saying: Input, enter your question.
+
+121
+00:09:39,342 --> 00:09:43,652
+从文档，从文档中，好的，完成了。
+From the doc, from documents, okay, done.
+
+122
+00:09:44,206 --> 00:09:51,460
+所以这里，我把我的问题，不管是什么问题，基本上都会放进这个特定的提示词里。
+So here, I'm going to just put my questions, whatever questions that I
+have, I will basically be put it in, putting in this particular prompt.
+
+123
+00:09:51,824 --> 00:09:54,144
+我还要创建一个按钮，好吗？
+I will also go ahead and create one button, okay?
+
+124
+00:09:54,224 --> 00:09:57,184
+所以我写 if st.button，好吗？
+So I will write if st dot button okay?
+
+125
+00:09:57,518 --> 00:10:02,064
+这个按钮将负责读取这个特定文件夹里的所有 PDF 文件。
+And this button will be responsible in reading all the PDFs file from this particular folder.
+
+126
+00:10:02,224 --> 00:10:03,264
+看到这个文件夹了吗？
+See this folder, right?
+
+127
+00:10:03,344 --> 00:10:05,024
+US Census，就是这个文件夹。
+Us census, this folder.
+
+128
+00:10:05,184 --> 00:10:07,184
+它会读取它，它可能会做……
+It will read it, it will probably do the.
+
+129
+00:10:07,662 --> 00:10:11,504
+它会获取整个 PDF 文档，然后把它转换成分块。
+It will take the entire PDF documents, then it will convert that into check chunks.
+
+130
+00:10:11,584 --> 00:10:14,116
+它会把这些转换成向量数据库，也就是向量数据库。
+It will convert that into vector store, it in a vector DB.
+
+131
+00:10:14,384 --> 00:10:17,572
+所有这些特定任务，我将使用这个特定的按钮来完成。
+All that particular task, I will use this specific button to do so.
+
+132
+00:10:17,664 --> 00:10:21,984
+这里，我基本上要写 documents 嵌入，好吗？
+Here, I'm going to basically write documents embedding, okay?
+
+133
+00:10:22,064 --> 00:10:24,624
+所以，这基本上就是我按钮的名字，好吗？
+So, this will basically be the name of my button, okay?
+
+134
+00:10:24,718 --> 00:10:26,500
+就是我要专门使用的那个按钮。
+The button that I'm going to specifically use.
+
+135
+00:10:26,766 --> 00:10:29,104
+然后这里，我要创建我的检索。
+And here, I'm going to create my retrieval.
+
+136
+00:10:29,806 --> 00:10:32,676
+让我先调用一个函数。
+Let me go ahead and just call one function.
+
+137
+00:10:32,814 --> 00:10:36,324
+比如说，我基本上要写 向量 嵌入，好吗？
+Let's say, I'm going to basically say vector embeddings, okay?
+
+138
+00:10:37,550 --> 00:10:40,384
+所以，这基本上就是我实际要调用的函数。
+So, this will basically be my function that I'm actually going to call.
+
+139
+00:10:40,750 --> 00:10:41,984
+不过，这个函数还没创建。
+Still, this function is not created.
+
+140
+00:10:42,064 --> 00:10:46,304
+我要去创建它，然后我们会一步步完成所有特定的处理过程。
+I will go ahead and create it, and we'll do all the step by step whatever process we specifically do.
+
+141
+00:10:46,670 --> 00:10:53,636
+首先，我们读取文档，然后进入下一步，通过递归字
+符把这些文档转换成分块，还有很多其他操作，对吧？
+First of all, we'll read the documents, then we'll go to the next step and all
+convert that documents into chunks by recursive character and many more things, right?
+
+142
+00:10:53,998 --> 00:10:56,950
+最后，这部分完成了，我要写 ht.write。
+And then finally, this is done, I will go ahead and write ht dot write.
+
+143
+00:10:57,184 --> 00:10:59,424
+让我就在这里写一下。
+And let me just go ahead and write over here.
+
+144
+00:11:04,366 --> 00:11:05,540
+向量数据库 DB 已就绪。
+Vector store DB is ready.
+
+145
+00:11:05,744 --> 00:11:06,704
+好，搞定。
+Okay, so done.
+
+146
+00:11:06,784 --> 00:11:08,064
+这一部分已经完成了。
+This is done with respect to this.
+
+147
+00:11:08,144 --> 00:11:11,664
+现在，让我来创建我的函数定义。
+Now, let me go ahead and create my function definition.
+
+148
+00:11:12,464 --> 00:11:14,084
+Vector 嵌入,
+Vector embeddings,
+
+149
+00:11:17,198 --> 00:11:20,304
+向量 嵌入，现在这里写 向量 嵌入。
+vector embedding, now vector embedding over here.
+
+150
+00:11:20,704 --> 00:11:25,092
+我们要在这里一步步做的，就是现在真正需要执行的所有操作。
+What we are going to do over here step by step, all the performing things we really need to do now.
+
+151
+00:11:25,504 --> 00:11:29,988
+看，在 向量 嵌入 中，首先我要做的，就是去创建我的嵌入。
+See, in vector embedding, first of all, what I will do, I will go ahead and create my embeddings.
+
+152
+00:11:30,864 --> 00:11:33,504
+好，那我现在开始写 嵌入。
+So, let me go ahead and write embedding.
+
+153
+00:11:34,222 --> 00:11:35,812
+Embeddings，好的。
+Embeddings, okay.
+
+154
+00:11:36,206 --> 00:11:38,916
+这部分将初始化为我的 OpenAI 嵌入。
+And this will be initialized to my OpenAI embeddings.
+
+155
+00:11:39,104 --> 00:11:43,812
+现在，大家要明白，所有这些 嵌入 稍后还会被用于其他地方，对吧？
+Now, understand, all these embeddings will be further used in other places, right?
+
+156
+00:11:44,494 --> 00:11:49,184
+它们会被用于其他地方，所以最好把这些东西都存到一些会话里。
+It will be used in other places, so it is better that we store all these things in some sessions.
+
+157
+00:11:49,264 --> 00:11:57,104
+好的，所以这里我要写 st.session，好的，st.session_state，好的。
+Okay, so here I'm going to write st dot session okay st dot session underscore state okay.
+
+158
+00:11:57,326 --> 00:11:58,704
+点 嵌入，好的。
+dot embeddings, okay.
+
+159
+00:11:58,958 --> 00:12:01,988
+这基本上将初始化为我的 OpenAI 嵌入，好的。
+And this will basically be initialized to my open ai embeddings, okay.
+
+160
+00:12:02,382 --> 00:12:10,704
+之后，我还要写 st.session_state，好的，Session_state。
+After that, again, I will go ahead and write st dot session underscore state okay Session underscore state.
+
+161
+00:12:11,214 --> 00:12:17,584
+点，好的，又写错拼写了，因为这个，我的效率变低了，对吧？
+dot Okay, so again, the spelling mistake is wrong and because of that, my productivity is reducing, right?
+
+162
+00:12:17,678 --> 00:12:18,704
+所以，点 loader。
+So, dot loader.
+
+163
+00:12:18,926 --> 00:12:32,516
+我要在这里用 loader，至于这个特定的 loader，我将使用 PyPDFDirectoryLoader，
+并提供我的文件夹，也就是 us_census 文件夹，就是所有 PDF 文件所在的那个文件夹。
+I'm going to use loader over here, and with respect to this particular loader, I'm going to use PyPDF directory loader and give my
+folder, the folder that is nothing but us underscore census, the same folder that where all the pdfs are probably present.
+
+164
+00:12:32,704 --> 00:12:34,212
+好的，搞定。
+Okay, so this is done.
+
+165
+00:12:34,384 --> 00:12:41,024
+呃，我们已经设置好了 loader，接下来我们要从这个特定的 loader 中加载所有文档。
+Uh, we have also set up our loader itself and then What we are going to
+do from this particular loader, we are going to load all the documents.
+
+166
+00:12:41,102 --> 00:12:50,864
+所以我要再写一遍 session，呃，抱歉，st.session，让我从这里复制一下。
+So again, I'm going to write session, uh, sorry, st dot session Let me just copy it from here.
+
+167
+00:12:52,878 --> 00:13:00,228
+好的，st.session_state.documents，就是我要获取的所有文档。
+Okay, st dot session underscore state dot documents, whatever documents I'm going to specifically get.
+
+168
+00:13:00,656 --> 00:13:08,164
+这些基本上将存在于 st.session_state.loader.load 里面。
+This will basically be present inside st.session state dot loader dot load.
+
+169
+00:13:08,416 --> 00:13:17,732
+好的，我们将从这个特定的 loader 中加载，我还要把所有这些东西存到 session 里，
+这样无论我哪里需要，我只需要调用那个特定的 session 即可。
+Okay, so we are going to load from this particular loader itself, and again I'm going to save all this thing in session so that
+wherever I require anything, I will just call that particular sessions.
+
+170
+00:13:18,382 --> 00:13:24,096
+现在你知道，在加载所有文档后，我们将尝试使用递归字符文本分割器来对它们进行分割，对吧？
+Now you know after loading all the documents, we will try to split that with the help of recursive character text splitter, right?
+
+171
+00:13:24,176 --> 00:13:28,496
+然后，我们得到的任何分块也需要存到 session 里。
+And then again, whatever chunks that we get, we also need to save it in a session.
+
+172
+00:13:28,622 --> 00:13:33,776
+所以这里我写的，看，st.session_state.text_splitter。
+So here what I'm writing, see st dot session state dot text splitter.
+
+173
+00:13:33,936 --> 00:13:36,736
+然后这里就是我的递归字符分割器，对吧？
+Then here will be my recursive character splitter, right?
+
+174
+00:13:36,896 --> 00:13:39,296
+这个 text splitter 之后的所有内容都会在那。
+Everything after this text splitter will be there.
+
+175
+00:13:39,376 --> 00:13:45,296
+在 text splitter 之后，我们可以专门使用整个 text splitter 本身，对吧？
+After text splitter, we can specifically go ahead and use our uh uh the entire text splitter itself, right?
+
+176
+00:13:45,376 --> 00:13:46,468
+我们在这里初始化它。
+Here we are initializing it.
+
+177
+00:13:46,576 --> 00:13:51,856
+这是一个递归字符文本分割器，块大小为 1000，块重叠为 200。
+It is a recursive character textplitter, and the chunk size will be thousand, chunk overlap will be 200.
+
+178
+00:13:51,936 --> 00:14:00,976
+好的，接下来我将使用相同的 text splitter，让我把这两行代码复制过来。
+Okay, so next one will be that I will use the same text splitter and let me go ahead and copy this two line of code.
+
+179
+00:14:01,056 --> 00:14:05,860
+所以这里我正在做的操作是，我使用 text_splitter.split_documents，
+并且我将使用这些特定的 documents。
+So here what I'm doing, I'm using text splitter dot split documents, and I'm going to use this particular documents.
+
+180
+00:14:06,190 --> 00:14:08,580
+我专门要使用前 50 个文档。
+The first 50 documents I'm specifically going to use.
+
+181
+00:14:08,878 --> 00:14:19,696
+让我改成 20 个，这样我的处理过程就能快点完成，然后在这之后，
+我们要做的就是利用这些来把所有最终文档转换成向量，好的？
+Let me make it to 20 so that my process will complete quickly, and then after this,
+what we are going to do over here is that we are going to convert all these final documents into vectors by using this fires, okay?
+
+182
+00:14:19,790 --> 00:14:23,616
+一步步来，就像我们在之前所有项目中遵循的流程一样，对吧？
+Step by step, whatever process we have followed in all our previous projects, right?
+
+183
+00:14:23,982 --> 00:14:27,940
+这是我的数据摄入步骤，好吗。
+So this is my data ingestion step, okay.
+
+184
+00:14:28,302 --> 00:14:30,148
+只是为了让你们有个大概的了解。
+Just to show it to give you an idea.
+
+185
+00:14:30,416 --> 00:14:34,336
+这基本上是我的文档加载，好吗。
+This is basically my document loading, okay.
+
+186
+00:14:34,656 --> 00:14:45,988
+文档加载，这一步你们可能看到的是我的分块创建，好吗，这是必须的，
+因为我们需要把文档转换成分块。
+Document loading this step that you probably see over here is my chunk chunk creation, okay,
+which is required because we need to convert the documents into chunk.
+
+187
+00:14:46,446 --> 00:14:55,536
+这里基本上是在进行所有的拆分，最后，这里是我的
+向量数据库，它是使用 OpenAI 嵌入创建的，对吧？
+Here, the entire splitting is basically happening, and finally, here is my
+vector store that is getting created by using open AI embeddings, right?
+
+188
+00:14:55,790 --> 00:15:00,644
+OpenAI，所以我专门写下所有的注释，这样你们可以在任何时候查阅。
+Open AI So all the comments I'm specifically writing so that you can refer it at any point of time.
+
+189
+00:15:01,102 --> 00:15:06,116
+现在，一旦这些完成了，这些就是你们真正需要做的所有步骤。
+Now, once this is done, once this is done, this is all the steps that you really need to do.
+
+190
+00:15:06,478 --> 00:15:12,016
+我接下来要做的是，在会话状态中继续操作，因为归根结底我需要这些向量，对吧？
+What I will do is that in this session state, we will go ahead and because at the end of the day I require this vectors, right?
+
+191
+00:15:12,334 --> 00:15:23,684
+所以我在这里要做的是，我会写：如果向量不在 st.session_state 中。
+So what I will do over here, I will write if vector, if vector not in st dot session underscore state.
+
+192
+00:15:24,336 --> 00:15:30,256
+好，如果它不在里面，那么我可能得重新运行所有这些内容。
+Okay, if it is not present in this, then I will have to probably run all these things again.
+
+193
+00:15:30,336 --> 00:15:36,016
+所以我只需按 Tab 键，把它们放进这个特定的 if 块里。
+So I will just press tab and put inside this particular if if if block.
+
+194
+00:15:36,176 --> 00:15:38,816
+好，这就是我完整的向量嵌入。
+Okay, so this is my entire vector embedding.
+
+195
+00:15:38,926 --> 00:15:45,696
+所以一旦我点击这个按钮，向量嵌入就会发生，这里
+的所有内容都会运行，并保存到我们的会话状态中。
+So as soon as I probably click this button, so this vector embedding will
+happen and everything over here will happen and save it in our session state.
+
+196
+00:15:45,806 --> 00:15:47,876
+最后，我们就能获取到向量了。
+So finally we'll be able to get the vectors.
+
+197
+00:15:48,590 --> 00:15:55,376
+现在，为了读取那些特定的向量并进行问答，我实际能做的是，我将继续创建我的提示词。
+Now, in order to read that particular vectors and perform QA, what I
+can actually do over here is that I will go ahead and create my prompt.
+
+198
+00:15:55,598 --> 00:16:00,096
+好，提示词就在这里，我将继续写 提示词_one。
+Okay, the prompt is over here, so I will go ahead and write if prompt one.
+
+199
+00:16:00,654 --> 00:16:01,924
+好，提示词_one。
+Okay, prompt one.
+
+200
+00:16:02,446 --> 00:16:05,316
+伙计们，这是一个我构思出来的非常扎实的项目。
+This is a really solid project that I have thought of, guys.
+
+201
+00:16:05,856 --> 00:16:08,496
+所以如果你喜欢的话，请点个赞。
+So please go ahead and like it if you like it.
+
+202
+00:16:08,576 --> 00:16:10,096
+好，导入 time。
+Okay, so import time.
+
+203
+00:16:10,176 --> 00:16:14,180
+我还要导入 time，我们还要读取时间，看看它运行得有多快。
+I'm also going to import time and we'll also read the timings right how fast it is.
+
+204
+00:16:14,638 --> 00:16:18,896
+所以我会写 start_time.process_time。
+So I'll write start dot time dot process underscore time.
+
+205
+00:16:19,118 --> 00:16:21,056
+所以它将从这个时间开始。
+So it is going to start with this time.
+
+206
+00:16:21,358 --> 00:16:24,196
+现在你知道你拥有这些特定的向量了，对吧？
+Now you know that you have this particular vectors, right?
+
+207
+00:16:24,782 --> 00:16:28,736
+现在我们可以获取这些特定的向量，并创建一个文档链，对吧？
+Now we can take this particular vectors and we can create a document chain, right?
+
+208
+00:16:28,816 --> 00:16:36,736
+现在我要写的是，我要写我的文档链，文档链，这基本上会创建我的 stuff 文档链。
+Now, what I'm going to write, I'm going to write my document chain, document chain,
+and this will basically create my stuff document chain.
+
+209
+00:16:36,816 --> 00:16:40,740
+在 stuff 文档链中，我需要 llm 和提示词。
+And in the stop document chain, what I'll I require llm and prompt.
+
+210
+00:16:41,056 --> 00:16:44,976
+明白为什么要需要这些吗？因为是基于上下文，对吧？
+Understand why you require this because based on the context, right?
+
+211
+00:16:45,056 --> 00:16:51,780
+这个 stuff 文档链将负责返回上下文，而且我们将继续把所有内容结合起来，对吧？
+And this stuff document chain will be responsible in returning the context,
+and we are going to combine each and everything as we go ahead, right?
+
+212
+00:16:52,110 --> 00:16:53,668
+接下来是我们的检索器。
+Then we have our retriever.
+
+213
+00:16:54,030 --> 00:17:01,216
+检索器是建立在向量数据库之上的一个接口，对吧？
+Now the retriever is something which is an interface on top of uh you can on the top of a vector database, right?
+
+214
+00:17:01,296 --> 00:17:07,748
+所以这里，我的向量数据库就在 st.session_state.vectors 里，好吗。
+So here you know my vector database is available in st dot session state dot vectors, okay.
+
+215
+00:17:08,415 --> 00:17:15,454
+就是 .vectors，这里我打算写成 _检索器。
+Dot vectors, and here I'm going to write as underscore retriever.
+
+216
+00:17:16,174 --> 00:17:25,056
+好，这个 _检索器 变量基本上就是这个特定向量数据库的接口，对吧？
+Okay, so this as underscore retriever will basically this this this variable
+will be an interface to this particular uh vector database itself, right?
+
+217
+00:17:25,422 --> 00:17:31,716
+最后，我还需要创建检索链，因为归根结底，我们需要以链的形式来运行所有这些内容。
+Finally, I also have to create my retrieval chain because at the end of the day we need to run all these things in a chain format.
+
+218
+00:17:32,174 --> 00:17:39,136
+所以最后，我们使用这个 create_retrieval_chain，
+我也在 Langchain 播放列表中解释过它的重要性了。
+So finally, we are using this create retrieval chain, and I've also
+explained you what is the importance of this in the Langchain playlist.
+
+219
+00:17:39,216 --> 00:17:44,548
+在这个里面，我需要提供我的检索器，第二个必须提供的参数是我的文档链。
+And inside this, I need to give my retriever, and the second parameter that I really need to give is my document chain.
+
+220
+00:17:44,896 --> 00:17:45,156
+好。
+Okay.
+
+221
+00:17:46,062 --> 00:17:46,500
+搞定。
+Done.
+
+222
+00:17:46,832 --> 00:17:47,472
+完美。
+Perfect.
+
+223
+00:17:49,232 --> 00:17:55,844
+现在，为了针对我提出的任何问题进行调用，我需要调用这个检索链。
+Now, in order to call with respect to any question that I ask, I need to invoke this retrieval chain.
+
+224
+00:17:56,302 --> 00:17:59,364
+所以我写 retrieval_chain.调用。
+So I'll write retrieval chain dot invoke.
+
+225
+00:17:59,792 --> 00:18:00,112
+好。
+Okay.
+
+226
+00:18:00,622 --> 00:18:01,124
+调用。
+Invoke.
+
+227
+00:18:01,712 --> 00:18:08,752
+这里还有一点，我大概看到，这些步骤不需要一遍又一遍地重复，对吧？
+So here one more thing that I probably see, you know, the steps will again need not be repeated again and again, right?
+
+228
+00:18:08,846 --> 00:18:18,832
+所以我可以把它完全放在导入之后，这样就不用每次都重复了。
+So what I can do, I can put this completely outside of this itself after
+import time so that it does not have to repeat each and every time.
+
+229
+00:18:18,990 --> 00:18:21,156
+所以我写 shift tab，shift tab，搞定。
+So I will write shift tab, shift tab, done.
+
+230
+00:18:21,392 --> 00:18:21,712
+对。
+Right.
+
+231
+00:18:22,030 --> 00:18:24,868
+所以是 retrieval_chain.调用，现在我要调用它了。
+So retrieval chain dot invoke, Now I'm going to invoke it.
+
+232
+00:18:25,006 --> 00:18:25,312
+好。
+Okay.
+
+233
+00:18:25,678 --> 00:18:28,112
+我要根据我的提示词来调用。
+What I'm going to invoke based on my prompt.
+
+234
+00:18:28,272 --> 00:18:34,512
+我的提示词，具体到我给出的内容，就是输入，这将被初始化为我的 提示词_1。
+My prompt, specifically what I'm giving over there, it is nothing but input, and this will be initialized to my prompt one.
+
+235
+00:18:34,752 --> 00:18:37,380
+基本上就是从这个特定的文本框里出来的东西。
+Whatever thing are basically coming from this particular text box.
+
+236
+00:18:38,062 --> 00:18:38,352
+好。
+Okay.
+
+237
+00:18:38,958 --> 00:18:39,312
+完美。
+Perfect.
+
+238
+00:18:39,392 --> 00:18:46,788
+呃，这里，呃，然后我们可以把我们具体获取到的响应写下来。
+Uh here uh uh then what we can basically do is that we can write our response that we are specifically getting.
+
+239
+00:18:47,182 --> 00:18:50,948
+好，这基本上会被保存在某个响应变量里。
+Okay, and this will basically be saved in some response variable.
+
+240
+00:18:51,392 --> 00:18:51,712
+好。
+Okay.
+
+241
+00:18:53,198 --> 00:18:58,432
+我可以粘贴这个特定的响应，首先，我要关闭这里的计时器。
+And I can paste this particular response, and first of all, I will close the timer over here.
+
+242
+00:18:58,734 --> 00:19:03,872
+所以 timer.process 减去 start，然后我们要把提示词的完整答案写出来，对吧？
+So timer dot process minus start, and then we are going to write the entire answer of the prompt, right?
+
+243
+00:19:03,952 --> 00:19:06,116
+就是我从文档里获取到的任何答案。
+Whatever answer I'm going to get from the document.
+
+244
+00:19:06,432 --> 00:19:06,660
+好的。
+Okay.
+
+245
+00:19:07,246 --> 00:19:09,284
+所以这是用于向量嵌入的，这是用于这个的。
+So this is for the vector embedding, this is for this.
+
+246
+00:19:09,646 --> 00:19:19,364
+但我特别要求的还有一些元数据信息，比如其他页面的
+内容或其他相关的上下文内容，需要在那里显示出来。
+But one more thing I specifically require is some metadata information, other page
+content or other context-related content that needs to be displayed over there.
+
+247
+00:19:19,758 --> 00:19:28,032
+所以针对这一点，呃，我实际上要在这个特定的提示词里做点什么，请看一下这段代码，
+因为这段代码之前也用过，对吧？
+So for this, uh, what I am actually going to do uh inside this particular prompt
+and please try to see this code because this code was earlier also used, right?
+
+248
+00:19:28,334 --> 00:19:34,244
+所以我说的是，请针对响应中的每个上下文，尝试显示所有的页面内容。
+So I am saying that please go ahead with respect to every context in the response and try to display all the page content.
+
+249
+00:19:34,542 --> 00:19:42,912
+你会明白这其中的重要性，因为它会向你展示我们的数据是从文档的哪个位置检索出来的，对吧？
+You'll understand the importance of this because it will be showing you from
+where our data where our data from the documents is getting retrieved, right?
+
+250
+00:19:42,992 --> 00:19:44,356
+那个引用也会给出来。
+That reference will also be given.
+
+251
+00:19:44,512 --> 00:19:44,772
+好的。
+Okay.
+
+252
+00:19:45,326 --> 00:19:45,872
+现在完美了。
+Now perfect.
+
+253
+00:19:45,952 --> 00:19:48,832
+我想我在这里已经把所有东西都实现了。
+I think everything I have implemented it over here.
+
+254
+00:19:48,992 --> 00:19:50,672
+看看我是怎么划分的。
+Understand how I have divided.
+
+255
+00:19:50,752 --> 00:19:52,484
+首先，我导入了所有的内容。
+First of all, I imported each and everything.
+
+256
+00:19:52,910 --> 00:19:55,716
+我加载了两个环境变量。
+I've loaded both the environment variables.
+
+257
+00:19:56,110 --> 00:20:00,112
+除此之外，我还使用了 Llama 3 模型，定义了提示词的温度。
+Along with that, I have used Lama 3 model, prompt temperature is defined.
+
+258
+00:20:00,430 --> 00:20:05,952
+向量嵌入是用来创建你针对每个特定任务的所有会话状态的。
+Vector embedding is something to create all your session states with respect to every task that you specifically do.
+
+259
+00:20:06,112 --> 00:20:13,232
+读取 PDF，加载它，呃，把它分成分块，你知道的，拆分那些文档并把它们转换成向量数据库。
+Read the PDF, load it, uh divide that into chunks, you know, split that documents and convert that into vector store.
+
+260
+00:20:13,552 --> 00:20:23,204
+然后我用了一个独立的按钮来创建向量数据库，基本
+上还用了一个独立的按钮来执行文档中要求的问答。
+And then I have used a separate button for creating the vector store and separate
+button basically to do the QA that is basically required from the documents.
+
+261
+00:20:23,758 --> 00:20:26,272
+现在，快点，我们保存一下然后运行它。
+Now, quickly, let's save this and let's run this.
+
+262
+00:20:26,352 --> 00:20:27,972
+我希望一切都能正常运行。
+I hope everything should run fine.
+
+263
+00:20:28,494 --> 00:20:31,140
+如果运行不起来，肯定会报错的。
+If it is not running, some error will definitely come.
+
+264
+00:20:31,232 --> 00:20:35,312
+这是我一直以来的感觉，说到底，出点错误也没关系，对吧？
+That is what I feel all the time, and it is good to have an error at the end of the day, right?
+
+265
+00:20:35,392 --> 00:20:43,472
+所以我写 cd groq，好，然后我在这里写 streamlit run app.py。
+So I will write cdgrok okay, and here I'm going to write streamlet run app.py.
+
+266
+00:20:43,822 --> 00:20:44,964
+我觉得它应该能跑通。
+I think it should run.
+
+267
+00:20:46,222 --> 00:20:46,592
+完美。
+Perfect.
+
+268
+00:20:46,752 --> 00:20:51,140
+现在我实际要做的第一件事是，嗯，好的，st。
+Now the first thing what I'm actually going to do over here is that um okay, st.
+
+269
+00:20:55,310 --> 00:20:57,472
+看看错误在哪。
+Let's see where is that error.
+
+270
+00:20:59,960 --> 00:21:00,360
+哎呀。
+Oops.
+
+271
+00:21:02,062 --> 00:21:04,100
+来看看那个特定的错误。
+Let's see that particular error.
+
+272
+00:21:06,446 --> 00:21:07,872
+这里有个关键错误。
+Some key error is there.
+
+273
+00:21:08,272 --> 00:21:14,404
+所以如果向量，如果向量应该是向量，好。
+So if if vector vectors, if vectors should be vectors, okay.
+
+274
+00:21:15,022 --> 00:21:16,512
+而且这里我们也使用了向量。
+And here also we have used vectors.
+
+275
+00:21:16,592 --> 00:21:17,188
+好的，完美。
+Okay, perfect.
+
+276
+00:21:17,392 --> 00:21:18,352
+现在我觉得它应该能运行了。
+Now I think it should run.
+
+277
+00:21:18,832 --> 00:21:19,632
+重新运行。
+Always rerun.
+
+278
+00:21:21,934 --> 00:21:23,556
+好的，还是没起作用。
+Okay, still it is not working.
+
+279
+00:21:24,238 --> 00:21:27,108
+好的，好的，还是显示错误。
+Okay, okay, still it is showing errors.
+
+280
+00:21:27,950 --> 00:21:31,664
+呃，向量作为检索器，st.session 没有属性。
+Uh vectors as retriever, st.session has no attributes.
+
+281
+00:21:31,824 --> 00:21:33,252
+你是不是忘了初始化？
+Did you forget to initialize?
+
+282
+00:21:33,984 --> 00:21:35,876
+好的，让我看看。
+Okay, let me see.
+
+283
+00:21:36,526 --> 00:21:42,340
+别担心，如果有错误，我们会尝试修复它，而不是去修改每一行特定的代码。
+Don't worry if error is there, we will try to fix that error and not going to edit this particular code each and everything as such.
+
+284
+00:21:42,864 --> 00:21:50,884
+好的，所以最好把它移到这个特定的提示词里，但在那之前，它只是在要求引用。
+Okay, so this it is better that we move it inside this particular prompt, but before that, only it is asking for the reference.
+
+285
+00:21:51,024 --> 00:21:52,868
+那让我们在里面运行这个。
+So let's run this inside this.
+
+286
+00:21:53,518 --> 00:21:55,744
+好的，这就是解决错误的方法。
+Okay, this is how you solve an error.
+
+287
+00:21:55,950 --> 00:21:57,188
+我现在也把这个展示给你们看。
+I'm also showing you that now.
+
+288
+00:21:57,824 --> 00:21:58,544
+让我们点一下这个。
+Let's click on this.
+
+289
+00:21:58,864 --> 00:22:09,092
+一旦我点击这个文档嵌入，任务就是它可能会读取所有的文档，将其分成分块，转换成向量，
+然后你的向量数据库就准备好了。
+Once I click on this document embedding, the task will be that it will probably read from the entire documents all the documents,
+it will divide into chunks, it will convert into a vectors, and your vector store DB will be ready.
+
+290
+00:22:09,344 --> 00:22:15,424
+所以一旦我点击这个，你就能看到一条消息，提示你的向量数据库已就绪。
+So once I click this, you'll be able to see one message in some type that your vector db is ready.
+
+291
+00:22:15,598 --> 00:22:16,804
+好的，让我们看看。
+Okay, let's see.
+
+292
+00:22:17,710 --> 00:22:22,660
+好的，关于代码，我现在就继续展示给你们看。
+Okay, and with respect to the code, also I will just go ahead and show it to you right now.
+
+293
+00:22:23,182 --> 00:22:24,996
+有没有报错？
+Any error is there or not?
+
+294
+00:22:25,646 --> 00:22:28,516
+好的，这就是我们之前得到的错误。
+Okay, so this was the previous error that we got.
+
+295
+00:22:29,390 --> 00:22:31,780
+好的，你的向量数据库已就绪。
+Okay, your vector db store db is ready.
+
+296
+00:22:32,238 --> 00:22:33,796
+现在我打开一个 PDF。
+Now I will open one PDF.
+
+297
+00:22:33,904 --> 00:22:38,980
+好的，这个 PDF 呃，这是那里存在的 PDF 之一。
+Okay, and this PDF uh this is one of the PDF that is present over there.
+
+298
+00:22:39,184 --> 00:22:39,504
+好的。
+Okay.
+
+299
+00:22:40,174 --> 00:22:45,476
+呃，让我们问这个问题：在这个文档里，各州的公共医疗保险覆盖情况是什么？
+Uh let's ask this question what is the public health insurance coverage by state in this one?
+
+300
+00:22:45,584 --> 00:22:52,388
+好的，那我就问：各州的公共医疗保险覆盖情况是什么？
+Okay, so I will say, what is the public health insurance cover by state?
+
+301
+00:22:52,654 --> 00:22:54,372
+我这就去执行这个。
+I will go ahead and execute this.
+
+302
+00:22:54,926 --> 00:22:57,956
+所以这里可以看到，在2028年，13个州都有增长。
+So here you can see in 2028 13 state shot the increases.
+
+303
+00:22:58,464 --> 00:22:59,524
+太棒了，对吧？
+So amazing, right?
+
+304
+00:22:59,790 --> 00:23:02,144
+如果我给你们看看代码的话，对吧？
+And if I probably show you the code, right?
+
+305
+00:23:02,304 --> 00:23:06,624
+如果我给你们看代码，响应时间只有0.125。
+If I show you the code, response time is just 0.125.
+
+306
+00:23:06,704 --> 00:23:09,700
+想象一下这个LPU推理引擎有多快。
+Just imagine how fast this LPU influencing engine is.
+
+307
+00:23:10,222 --> 00:23:13,604
+而且借助那个特定的API，你能多快得到结果，对吧？
+And with the help of that particular API, how quickly are you able to get the results, right?
+
+308
+00:23:14,670 --> 00:23:19,904
+现在，这个答案对不对，37.2%，大概应该在那个位置。
+Now, here, whether this answer is correct or not, 37.2 percent, somewhere it should be there.
+
+309
+00:23:20,110 --> 00:23:25,668
+你看，你可以看到这里，嗯，37，34，34%就在那儿。
+See, you can see over here um 37, 34, 34 percent is there.
+
+310
+00:23:26,030 --> 00:23:33,664
+但如果你想看它获取信息的参考来源，好吗，因为从
+所有这些数据来看，它是在做总结，在给你提供结果。
+But if you want to see the references from where it has taken, okay, because
+understand from all this data, it is summarizing, it is giving you the results.
+
+311
+00:23:34,414 --> 00:23:38,944
+你看，这里公共覆盖范围从21到22的变化是37.2%。
+See, over here changes in public coverage from 21 to 22, 37.2 percent.
+
+312
+00:23:39,054 --> 00:23:40,804
+好，那我们来查一下这个，好吗？
+Okay, so let's search for this, okay?
+
+313
+00:23:41,774 --> 00:23:42,916
+这个应该就在某处。
+Somewhere this should be given.
+
+314
+00:23:45,358 --> 00:23:47,620
+你看，这里就是公共覆盖范围。
+See, so here it is public coverage.
+
+315
+00:23:47,824 --> 00:23:50,464
+这个嗯，是从37到百分比，对吧？
+This one uh from 37 to percent, right?
+
+316
+00:23:50,544 --> 00:23:51,428
+所有这些内容都在这里。
+All these things are there.
+
+317
+00:23:51,886 --> 00:23:53,264
+咱们来问这个，好吗。
+Let's let's ask this, okay.
+
+318
+00:23:53,344 --> 00:23:56,452
+咱们再看看更多问题，无论你问什么。
+Let's let's see some more questions for anything that you ask.
+
+319
+00:23:56,704 --> 00:23:58,384
+什么是健康保险覆盖范围？
+What is health insurance coverage?
+
+320
+00:23:58,464 --> 00:24:06,852
+好，我直接再问一遍这个问题并按回车，因为我之前已经创建了整个向量数据库，对吧？
+Okay, I will just go ahead and ask this question again and press enter because one time I've created my entire vector store DB, right?
+
+321
+00:24:07,278 --> 00:24:15,904
+这里你可以看到，根据提供的上下文，健康保险覆盖范围是指使用美国社区调查得出的州级健康
+保险估算值，这就是同样的相似度搜索。
+And here you can see according to the provided context, health insurance coverage refers to the state level estimates of health
+insurance using American Community Survey, and this is the same similarity search.
+
+322
+00:24:16,110 --> 00:24:18,064
+这里你可以看到这个简短的当前州限制。
+Here you can see this brief present state limit.
+
+323
+00:24:18,510 --> 00:24:21,604
+所以，从相似度搜索中提取了所有这些信息。
+So, from the similarity search, all this information has been picked up.
+
+324
+00:24:21,824 --> 00:24:23,396
+是不是很神奇，对吧？
+Isn't it amazing, right?
+
+325
+00:24:23,982 --> 00:24:25,424
+所以希望你们喜欢这个视频。
+So I hope you like this particular video.
+
+326
+00:24:25,584 --> 00:24:27,744
+这就是我的整个端到端项目。
+This was my entire end to end project.
+
+327
+00:24:27,824 --> 00:24:30,944
+呃，是的，继续加油，继续学习。
+Uh, and yes, keep on rocking, keep on learning.
+
+328
+00:24:31,024 --> 00:24:32,224
+呃，我这边就讲到这里。
+Uh, this was it from my side.
+
+329
+00:24:32,384 --> 00:24:33,924
+希望你们喜欢这个视频。
+I hope you like this particular video.
+
+330
+00:24:34,414 --> 00:24:39,104
+呃，如果你喜欢的话，请务必订阅，点击通知铃图标，我们下个视频见。
+Uh, if you like it, please make sure that you subscribe, press the bell notification icon, and I'll see you in the next video.
+
+331
+00:24:39,184 --> 00:24:39,744
+祝你有美好的一天。
+Have a great day.
+
+332
+00:24:39,904 --> 00:24:40,544
+谢谢大家。
+Thank you, one to all.
+
+333
+00:24:40,750 --> 00:24:41,024
+保重。
+Take care.
+
+334
+00:24:41,262 --> 00:24:41,584
+拜拜。
+Bye bye.
+

@@ -8,6 +8,7 @@
 | [Building Vagrant plugins](medias/W4PTD/) | HashiCorp, an IBM Company | 2026-11-13 |
 | [8-Building Gen AI Powered App Using Langchain And Huggingface And Mistral](medias/VWMCG/) | Krish Naik | 2026-11-13 |
 | [3-Langchain Series-Production Grade Deployment LLM As API With Langchain And FastAPI](medias/VAFV1/) | Krish Naik | 2026-11-13 |
+| [9-End To End Powerful Document Q&A Chatbot using Llama3,Langchain and Groq API](medias/SY998/) | Krish Naik | 2026-11-13 |
 | [How AI agents learn to use a computer: inside CUA-Master's data](medias/S2YDJ/) | DATUREX GmbH | 2026-11-13 |
 | [EECS4302 ANTLR4 Parser Generator Tutorial: Part 6](medias/S19D5/) | Jackie Wang | 2026-11-13 |
 | [Claude Opus 5.5 is INCREDIBLE at building video games](medias/PHDNP/) | Alex Finn | 2026-11-13 |
