@@ -23,6 +23,7 @@
 | [Advanced Q&A Chatbot Using Ragstack With vector-enabled Astra DB Serverless database And Huggingface](medias/HC91E/) | Krish Naik | 2026-11-13 |
 | [7-End To End Advanced RAG Project using Open Source LLM Models And Groq Inferencing engine](medias/FTYMH/) | Krish Naik | 2026-11-13 |
 | [Hybrid Search RAG With Langchain And Pinecone Vector DB](medias/F1EXN/) | Krish Naik | 2026-11-13 |
+| [[NLP] Right pairs beat 72B LLMs at alignment \| Proving and Improving the Platonic Representation Hyp](medias/E99BF/) | Daily Frontier Papers | 2026-11-13 |
 | [Does Scaling Toward AGI Depend on What System 1 Lets System 2 Execute?](medias/E8PF4/) | Knut Jägersberg | 2026-11-13 |
 | [Make Your AI Agents Predictable With Graph Engineering - Zachary Blumenfeld, Neo4j](medias/E8NBR/) | AI Engineer | 2026-11-13 |
 | [EECS4302 ANTLR4 Parser Generator Tutorial: Part 7](medias/D04FD/) | Jackie Wang | 2026-11-13 |

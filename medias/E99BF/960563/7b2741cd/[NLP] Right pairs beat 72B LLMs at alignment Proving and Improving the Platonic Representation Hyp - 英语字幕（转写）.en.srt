@@ -1,0 +1,516 @@
+1
+00:00:00,000 --> 00:00:01,760
+This is Daily Frontier Papers.
+
+2
+00:00:01,840 --> 00:00:09,600
+Today's paper comes from Brown University, New York University, and AMI Labs by Randall Balastrero and Jan Lacoon.
+
+3
+00:00:09,840 --> 00:00:14,640
+The title Proving and Improving the Platonic Representation Hypothesis with JPAs.
+
+4
+00:00:14,880 --> 00:00:16,080
+It takes on an old question.
+
+5
+00:00:16,270 --> 00:00:22,480
+If you train one model only on images and another only on text, do they end up with the same picture of the world?
+
+6
+00:00:22,640 --> 00:00:25,892
+The answer here is yes, if you choose the right positive pairs.
+
+7
+00:00:26,446 --> 00:00:30,160
+And that scaling up next token prediction is a very inefficient way to get there.
+
+8
+00:00:30,320 --> 00:00:36,560
+Some background, an influential earlier paper observed that vision models and language models grow more similar as they scale.
+
+9
+00:00:36,720 --> 00:00:40,560
+It proposed the Platonic Representation Hypothesis, or PRH.
+
+10
+00:00:41,038 --> 00:00:45,840
+Models of different modalities converge toward one shared statistical model of reality.
+
+11
+00:00:46,000 --> 00:00:48,320
+The trouble is that it has stayed an observation.
+
+12
+00:00:48,526 --> 00:00:55,760
+For the self-supervised objectives people actually use, JEPAs in particular, there's no proof and no prediction of when it holds.
+
+13
+00:00:55,886 --> 00:00:58,960
+So the main lever has been to make models and data bigger.
+
+14
+00:00:59,150 --> 00:00:59,920
+There were hints.
+
+15
+00:01:00,142 --> 00:01:04,640
+Word embeddings trained separately on different languages turned out to differ by just a rotation.
+
+16
+00:01:04,720 --> 00:01:14,320
+On the theory side, the original PRH argument rests on an idealized contrastive learner, and the closest proof the authors know of covers deep linear networks.
+
+17
+00:01:14,480 --> 00:01:18,560
+Plenty of work also aligns two existing embedding spaces after the fact.
+
+18
+00:01:18,734 --> 00:01:20,720
+This paper asks a different question.
+
+19
+00:01:21,134 --> 00:01:24,560
+Which training objective makes encoders alignable in the first place?
+
+20
+00:01:24,720 --> 00:01:31,280
+First, what a JEPA is a joint embedding predictive architecture, a family of self-supervised methods.
+
+21
+00:01:31,440 --> 00:01:34,660
+You give the model two inputs it should treat as the same thing.
+
+22
+00:01:35,118 --> 00:01:41,840
+A positive pair, pull their embeddings together, and add an anti-collapse term so everything doesn't land on one point.
+
+23
+00:01:42,030 --> 00:01:46,320
+The key insight is that the PRH is really a statement about positive pairs.
+
+24
+00:01:46,510 --> 00:01:52,036
+If the positives are two observations of one scene, say two captions of the same photo.
+
+25
+00:01:52,526 --> 00:01:56,400
+The authors call them good views, and the representation belongs to the world.
+
+26
+00:01:56,590 --> 00:02:02,916
+If there are two corruptions of one observation, like one sentence with different words masked, those are bad views.
+
+27
+00:02:03,278 --> 00:02:05,360
+And the representation belongs to the modality.
+
+28
+00:02:05,454 --> 00:02:06,800
+That's the left half of figure one.
+
+29
+00:02:07,040 --> 00:02:13,360
+With good views, an image jepa and a text jepa land on the same embedding up to one rotation.
+
+30
+00:02:13,520 --> 00:02:14,788
+Below are the bad views.
+
+31
+00:02:15,182 --> 00:02:18,720
+A masked word or a prefix and its next token.
+
+32
+00:02:18,894 --> 00:02:22,320
+The first result is what the authors call the platonic representation theorem.
+
+33
+00:02:22,480 --> 00:02:27,920
+Take a finite world with each modality rendering its states one to one.
+
+34
+00:02:28,080 --> 00:02:39,280
+If every modality shares the same distribution of positive pairs and the optimum is unique up to rotation, then every modality learns the same embedding of the world up to one rotation each.
+
+35
+00:02:39,534 --> 00:02:42,720
+The proof is short, a one-to-one rendering just changes coordinates.
+
+36
+00:02:42,862 --> 00:02:46,880
+So each modality's training problem is the same problem written in a different coordinate system.
+
+37
+00:02:47,040 --> 00:02:54,160
+They also show that JPAs with the whitening style constraint have optima unique up to rotation as long as there's a gap between eigenvalues.
+
+38
+00:02:54,320 --> 00:02:57,840
+In practice, modalities won't share exactly the same positives.
+
+39
+00:02:58,000 --> 00:03:00,960
+The second theorem bounds the misalignment by two things.
+
+40
+00:03:01,262 --> 00:03:07,440
+How different the graphs drawn by the two sets of positives are, and how well separated the top of the spectrum is.
+
+41
+00:03:07,600 --> 00:03:14,880
+On 300 randomly generated small worlds, the error always stayed below the bound, at 18% of it at most.
+
+42
+00:03:15,086 --> 00:03:17,440
+The third result explains why bad views hurt.
+
+43
+00:03:17,600 --> 00:03:25,680
+Every observation carries a nuisance of its own modality, like which words a caption happened to use, or the angle a photo was taken from.
+
+44
+00:03:25,920 --> 00:03:28,260
+Bad view positives share that nuisance.
+
+45
+00:03:28,558 --> 00:03:35,520
+And when they keep more of it than of the scene, the encoder spends dimensions on it, and no rotation can line those up with the other modality.
+
+46
+00:03:35,680 --> 00:03:38,640
+Then comes the step that matters most for NLP.
+
+47
+00:03:38,800 --> 00:03:42,160
+The authors show that next token prediction has the form of a Jepa.
+
+48
+00:03:42,400 --> 00:03:48,400
+The context is one side, the next token is the other, and the softmax normalizer plays the anti-collapse role.
+
+49
+00:03:48,480 --> 00:03:56,000
+Its positives are a prefix and its continuation inside one document, which share that document's wording and style.
+
+50
+00:03:56,240 --> 00:04:00,360
+So in the author's framing, it's a bad view Jepa.
+
+51
+00:04:00,480 --> 00:04:04,880
+They stress that this step is heuristic, a prediction to test rather than a corollary.
+
+52
+00:04:04,960 --> 00:04:05,600
+Look at this figure.
+
+53
+00:04:05,774 --> 00:04:10,080
+Good views connect every description of a scene and never another scene.
+
+54
+00:04:10,254 --> 00:04:15,920
+Next token prediction makes narrow links within a scene and spills across scenes through frequent tokens.
+
+55
+00:04:16,080 --> 00:04:20,080
+The authors read this as the reason language models align with vision mostly through scale.
+
+56
+00:04:20,270 --> 00:04:22,000
+The setup is deliberately uniform.
+
+57
+00:04:22,160 --> 00:04:26,276
+Image and text encoders are trained separately with the same Legepa objective.
+
+58
+00:04:26,894 --> 00:04:30,448
+On Flickr 30K, five captions per image.
+
+59
+00:04:30,638 --> 00:04:37,488
+The text side is a 33 million parameter BERT trained from scratch, and no encoder ever sees the other modality.
+
+60
+00:04:37,568 --> 00:04:40,768
+There are three text variants that differ only in their positives.
+
+61
+00:04:40,928 --> 00:04:42,768
+Bad views take spans of one caption.
+
+62
+00:04:42,862 --> 00:04:45,328
+Good views take different captions of the same image.
+
+63
+00:04:45,518 --> 00:04:50,048
+And the same BERT, make causal, trained with next token prediction.
+
+64
+00:04:50,190 --> 00:04:54,084
+The headline metric fit a single rotation between the two spaces.
+
+65
+00:04:54,542 --> 00:04:57,408
+Then check how often an image retrieves its own caption first.
+
+66
+00:04:57,646 --> 00:04:58,848
+Table 1 has the results.
+
+67
+00:04:59,054 --> 00:05:04,208
+Good views retrieve the right caption first, 4.4% of the time, 44 times chance.
+
+68
+00:05:04,430 --> 00:05:08,288
+Bad views get 2.7, next token prediction 2.1.
+
+69
+00:05:08,462 --> 00:05:11,328
+The paper says that ranking holds in every seed.
+
+70
+00:05:11,502 --> 00:05:12,208
+A key control.
+
+71
+00:05:12,750 --> 00:05:16,608
+Train next token prediction on two captions of the same image joined together.
+
+72
+00:05:16,768 --> 00:05:20,048
+It barely moves from 2.1 to 2.3.
+
+73
+00:05:20,208 --> 00:05:25,888
+The authors conclude that the gain comes from the objective itself, not from knowing which captions go together.
+
+74
+00:05:26,062 --> 00:05:26,688
+Then scale.
+
+75
+00:05:26,768 --> 00:05:36,768
+The text eye moves to web data, recap data comp. Each web image has its original alt text and two captions written by an image captioner, and those three texts are each other's good views.
+
+76
+00:05:36,974 --> 00:05:39,008
+First finding, sample efficiency.
+
+77
+00:05:39,214 --> 00:05:54,688
+With the same 109 million parameter encoder and the same corpus, good views reach 0.109 on the PRH paper's WIT benchmark after 21.6 million samples, while next token prediction needs 900 million samples to reach 0 .111 42 times more.
+
+78
+00:05:54,926 --> 00:05:55,684
+One caveat.
+
+79
+00:05:56,270 --> 00:06:00,608
+Next token prediction was only scored at that 900 million checkpoint.
+
+80
+00:06:00,768 --> 00:06:03,408
+Second, finding the eye-catching one.
+
+81
+00:06:03,568 --> 00:06:10,208
+Trained on 900 million samples, the Goodview JEPA scores 0.184 against Dinov2 on WIT.
+
+82
+00:06:10,368 --> 00:06:23,008
+That's above every language model the authors evaluated, including Quen2572B at 0.154 and Llama 370B at 0.151.
+
+83
+00:06:23,246 --> 00:06:26,448
+Next token prediction on the same text gets 0.111.
+
+84
+00:06:26,638 --> 00:06:32,448
+Swap in clips image encoder and it still leads 0 .230 against 0.210.
+
+85
+00:06:32,654 --> 00:06:42,048
+In the author's words, this model read 116 billion text tokens and beat models 660 times larger, trained on over 100 times more.
+
+86
+00:06:42,128 --> 00:06:49,008
+They flag caveats, a fourth seed, with a different regularization weight, reached only 0.121.
+
+87
+00:06:49,518 --> 00:06:54,128
+All four seeds average 0.168, still above every language model.
+
+88
+00:06:54,254 --> 00:06:58,208
+And the captioner that wrote most of these texts sees images through clips vision encoder.
+
+89
+00:06:58,288 --> 00:07:00,800
+Third finding, alignment has a scaling law.
+
+90
+00:07:00,920 --> 00:07:07,420
+Mixing good and bad views at different rates, they fit a formula, then predicted 85 new runs before training them.
+
+91
+00:07:07,560 --> 00:07:22,368
+The prediction error was 0.0093, while rerunning one experiment with another seed differs by 0.0096, But extrapolated to 320 million samples, it overestimates the runs with good views.
+
+92
+00:07:22,478 --> 00:07:25,728
+The authors call it an empirical summary of one recipe.
+
+93
+00:07:25,902 --> 00:07:27,328
+Two applications close the paper.
+
+94
+00:07:27,568 --> 00:07:28,848
+First, a captioner.
+
+95
+00:07:29,008 --> 00:07:30,688
+The decoder is trained on text alone.
+
+96
+00:07:30,848 --> 00:07:37,860
+To caption an image, embed it with frozen dinof 2 and Dinoff 3, apply one rotation, and decode.
+
+97
+00:07:38,158 --> 00:07:41,408
+Only the rotation is fitted on image dot caption pairs.
+
+98
+00:07:41,582 --> 00:07:44,608
+On Coco, it reaches a cider of 0.838.
+
+99
+00:07:44,750 --> 00:07:50,208
+The clip-based captioners, the paper list report between 0.345 and 0.918.
+
+100
+00:07:50,368 --> 00:07:52,964
+Second, alignment with no pairs at all.
+
+101
+00:07:53,358 --> 00:07:56,288
+Finding the rotation from the geometry of the two spaces alone.
+
+102
+00:07:56,462 --> 00:08:08,048
+On ZeroShot Image Net, 100 top 5 accuracy, the Goodview JPA gets 64.4% versus 47.6 for QN3, 8B rerun under identical conditions.
+
+103
+00:08:08,366 --> 00:08:16,528
+Clip's text encoder still scores higher at 68.7, while next token prediction on the same texts fails in half its runs.
+
+104
+00:08:16,688 --> 00:08:21,248
+Putting it together, the original PRH was an observation plus an idealized argument.
+
+105
+00:08:21,422 --> 00:08:24,484
+This paper gives a provable sufficient condition for JPAs.
+
+106
+00:08:24,910 --> 00:08:29,488
+Match the positives and the representations agree, up to one rotation.
+
+107
+00:08:29,614 --> 00:08:37,248
+With the same texts and the same encoder, good views beat next token prediction in all but a few of the comparisons the paper ran.
+
+108
+00:08:37,408 --> 00:08:48,848
+My read is that the most interesting move here is folding next token prediction into the JEPA framework, which turns language models aligned with vision through scale into a statement about weak positive pairs.
+
+109
+00:08:48,942 --> 00:08:53,008
+My read is also that this doesn't say next token prediction should be replaced.
+
+110
+00:08:53,102 --> 00:08:56,048
+The paper measures one thing alignment with vision models.
+
+111
+00:08:56,208 --> 00:08:57,488
+It doesn't compare generation.
+
+112
+00:08:58,446 --> 00:09:00,064
+And it doesn't compare reasoning.
+
+113
+00:09:00,174 --> 00:09:01,984
+The authors list several limitations.
+
+114
+00:09:02,158 --> 00:09:04,260
+First, the theorems are idealized.
+
+115
+00:09:04,622 --> 00:09:12,384
+They assume one-to-one renderings, while real modalities are lossy, and no experiment meets the conditions of Theorem 1 exactly.
+
+116
+00:09:12,544 --> 00:09:17,584
+Second, and the main caveat in their own words where do good views come from?
+
+117
+00:09:17,744 --> 00:09:25,344
+On web data, two of each image's three texts come from an image captioner, carrying information distilled from image.text training.
+
+118
+00:09:25,424 --> 00:09:36,304
+Without any captioner, using the alt text and a text-only paraphrase, WIT drops to 0.060 against 0.107 with the recaptions.
+
+119
+00:09:36,430 --> 00:09:40,944
+So the large-scale comparisons with language models and clip rely on those generated text.
+
+120
+00:09:41,184 --> 00:09:45,104
+The comparisons between view types on identical text don't.
+
+121
+00:09:45,294 --> 00:09:51,104
+Third, hyperparameters were tuned only for the good view JPA, not for the bad view and next token baselines.
+
+122
+00:09:51,214 --> 00:09:57,412
+The authors hope positive views and not scale alone become the lever for building platonic representations.
+
+123
+00:09:58,030 --> 00:10:01,584
+Extended to modalities like audio, video, and actions.
+
+124
+00:10:01,744 --> 00:10:07,104
+My read is that the value here is turning a much quoted hypothesis into something you can design for.
+
+125
+00:10:07,264 --> 00:10:09,664
+If you want alignment, choose the right positives.
+
+126
+00:10:09,806 --> 00:10:15,744
+My read is also that the most striking numbers depend on a captioner trained on image text data to produce the good views.
+
+127
+00:10:15,982 --> 00:10:20,544
+For modalities with no paired data to lean on, where good views come from will decide how far this goes.
+
+128
+00:10:20,718 --> 00:10:22,384
+That's today's Daily Frontier Papers.
+
+129
+00:10:22,464 --> 00:10:23,984
+The paper is linked in the description.
+
