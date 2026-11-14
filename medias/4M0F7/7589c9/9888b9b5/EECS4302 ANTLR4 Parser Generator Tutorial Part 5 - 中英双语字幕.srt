@@ -1,0 +1,3056 @@
+1
+00:00:03,918 --> 00:00:09,060
+那我们快速回顾一下到目前为止在教程视频中取得的成果。
+So let's review very quickly what we have achieved so far in the tutorial videos.
+
+2
+00:00:09,920 --> 00:00:18,880
+我们有一个叫 ANTLR4 的包，我们在那里开发这个特定的语法文件，
+特别是我们想从那里生成访问者模式的方法。
+We have one package called Antler and where we actually develop this particular grammar file,
+and specifically we want to generate visitor methods from there.
+
+3
+00:00:18,960 --> 00:00:20,800
+这就是为什么我们在这里放上标签。
+That's why we put labels over here.
+
+4
+00:00:21,134 --> 00:00:24,292
+然后我们在这边又得到了另一个叫 expression 的包。
+And then we got another package over here called expression.
+
+5
+00:00:24,686 --> 00:00:28,800
+那么，创建这里这一组类包的理由是什么呢？
+So this is to say what's the rationale of creating this package of classes over here?
+
+6
+00:00:29,006 --> 00:00:42,564
+理由是，如果你看这里的解析树，这里的每个节点都是某种类型，比如 program context、
+decoration context、expression context 或者 addition context。
+The rationale is if you look at the parse tree over here, each of the nodes here are of type, for example, program context,
+decoration context, or expression context, or addition context.
+
+7
+00:00:43,278 --> 00:00:53,280
+所以这些类实际上来自 ANTLR 运行时库，使用它们没问题，
+我只是说，当你遇到 bug 时，实际上很难真正控制它们。
+So these classes are actually from the Antular runtime library, nothing wrong of using them,
+I'm just saying it's actually harder to really control them when you actually run into bugs.
+
+8
+00:00:53,486 --> 00:00:56,548
+在这种情况下，调试它们会变得困难得多。
+In that case, it will be much more difficult to actually debug them.
+
+9
+00:00:56,846 --> 00:01:11,108
+然而，如果你能创建自己的类继承体系，就像我们之前展示的图表，就像这里的设计，
+我们基本上得到了组合设计模式和客户端-供应关系，这些是你从之前的软件设计课程中学到的。
+However, if you can just create your own hierarchy of classes, like the diagram we showed you previously, like the design over here,
+we got basically a composite design pattern and client-supply relationship that you learned from the previous software design course.
+
+10
+00:01:11,310 --> 00:01:14,756
+所以从软件工程的角度来看，这是更好的设计。
+So this is much better design in terms of software engineering.
+
+11
+00:01:15,470 --> 00:01:17,200
+所以这就是我们希望你们掌握的内容。
+So that's something we would like you to have.
+
+12
+00:01:17,550 --> 00:01:24,800
+所以思路是，我们基本上定义了两个访问者类：antlr to expression 和 expression parser。
+So the idea would be we define basically two visitor classes, antler to expression and enter2 program.
+
+13
+00:01:25,390 --> 00:01:32,720
+这两个类的目标是架起一座桥梁，将 AntLR 解析树转换为模型表达式类。
+So the goal for these two classes is to bridge between antler parse trees into model expression classes.
+
+14
+00:01:32,942 --> 00:01:36,132
+除了这两个类之外，其他的都是模型类。
+So everything except for these two classes, they are the model classes.
+
+15
+00:01:36,320 --> 00:01:52,240
+当然，对于你们可能更复杂的特定项目，对于我们用于这个系列教程的例子，
+你们的模型包可能不止一个，而且继承体系也可能要复杂得多。
+Of course, for your particular project, which might be much more sophisticated, for the example we are using for this tutorial series,
+your uh model package may be more than one, and also the uh inheritance hierarchy might be much more sophisticated.
+
+16
+00:01:52,334 --> 00:01:53,988
+但我只是想给你们一些思路。
+But I'm just wanting to give you some idea.
+
+17
+00:01:54,254 --> 00:02:01,040
+你真的想把解析树和模型表达式模型类体系分开，对吧？
+You really want to separate between parse trees and model expression model class hierarchy, right?
+
+18
+00:02:01,198 --> 00:02:05,280
+这是你真正想要搞清楚的思路。
+That's something you want to really uh get yourself through this idea.
+
+19
+00:02:05,518 --> 00:02:16,772
+所以思路是，访问者会将这里的解析树转换为由你的模型类实例化的结构。
+So the idea will be the visitor will convert a tree, uh the parse tree over here,
+into a structure like this for the objects uh for uh instantiated by your model classes.
+
+20
+00:02:17,582 --> 00:02:18,320
+好了，我们回到这里。
+Okay, let's go back here.
+
+21
+00:02:18,510 --> 00:02:21,840
+那么，这个特定项目还剩下什么？
+So, what's left uh for this particular project over here?
+
+22
+00:02:22,000 --> 00:02:26,480
+我们基本上完成了大部分工作，但现在是关键时刻。
+We are basically getting most of the stuff done, but now it's really the critical moment.
+
+23
+00:02:26,734 --> 00:02:39,600
+到目前为止，我们还没有看到任何测试用例在我们的编译器上运行，
+所以你还没完全看到编译器到底是什么，还要记得我在第一个教程视频中提到的这个流程图。
+So far, we haven't seen any uh test cases being executed on our compiler, so you don't exactly see what a compiler is,
+and also remember this particular flow diagram I talked about in the very first tutorial video.
+
+24
+00:02:39,950 --> 00:02:46,884
+你可以看到我们基本上已经完成了什么，我们已经检查了这里所有的 Java 类，对吧？
+You can see basically what we have done, we have gone over all the classes over here for the Java, right?
+
+25
+00:02:47,502 --> 00:02:58,510
+还有一个，这个，我们还想在特定的框里讨论一个类，就是如何创建一个控制台应用程序，例如，
+来真正运行所有内容，这样当用户输入文件时，他们就可以实际运行所有内容。
+And there's only one, this, it is still one more class that we want to talk about in this particular box,
+which is how we can create a console application, for example, to really run everything
+
+26
+00:02:58,510 --> 00:03:03,040
+还有一个，这个，我们还想在特定的框里讨论一个类，就是如何创建一个控制台应用程序，例如，
+来真正运行所有内容，这样当用户输入文件时，他们就可以实际运行所有内容。
+together so that when the user pass an input file, they can actually run every.
+
+27
+00:03:03,280 --> 00:03:09,760
+它们可以由这里的每一个类运行，然后为你的编译器产生一些有趣的输出。
+they can be run against by every every class over here and then produce some interesting output for your compiler.
+
+28
+00:03:09,870 --> 00:03:11,200
+那是我们还没看到的内容。
+That's something we haven't seen yet.
+
+29
+00:03:11,470 --> 00:03:14,560
+还有第二点，我们想要做一些适当的错误处理。
+And also, number two, we want to do some proper error handling.
+
+30
+00:03:14,734 --> 00:03:21,188
+我会在下一个视频中做那个，但对于当前的视频，让我们写一些主程序，好吗，这并不难。
+I'll do that in the next video, but for this current video, let's do some main program, okay, which is not difficult.
+
+31
+00:03:21,360 --> 00:03:31,120
+好了，最困难的部分当然是看看你如何从解析树构建出你的模型表达式对象。
+Okay, the most difficult part, of course, is to see how you can build from parse
+3 in uh from parse 3 to build it out uh into your model uh expression object.
+
+32
+00:03:31,200 --> 00:03:32,240
+那是最棘手的部分。
+That's the most tricky part.
+
+33
+00:03:32,400 --> 00:03:35,364
+如果你搞定了，那最难的部分就算完成了。
+If you get it through, now you have done the most difficult part.
+
+34
+00:03:36,430 --> 00:03:40,064
+好了，现在让我们回到这里的 Eclipse 项目中。
+Okay, so now let's go to our Eclipse project here.
+
+35
+00:03:40,144 --> 00:03:43,184
+我想创建一个新的包。
+I would like to create a new uh a new package.
+
+36
+00:03:43,438 --> 00:03:49,424
+好，在 source 上点击右键，选择 new package，然后命名为 app。
+Okay, so right click on the source and say new package and then let's say app.
+
+37
+00:03:49,678 --> 00:03:52,624
+好，你也可以叫它 main，我们叫它 root，随你便。
+Okay, you can also call it main, we'll call the root, it's up to you.
+
+38
+00:03:52,718 --> 00:03:54,596
+我先叫它 app，代表 application。
+I'll say app for now, application.
+
+39
+00:03:56,302 --> 00:04:01,316
+好，在这个新包下面，我要创建一个带有主方法的类。
+Okay, under this new package here, I'm gonna create one class with a main method.
+
+40
+00:04:01,550 --> 00:04:07,204
+所以我点 new 然后选 class，我把它命名为 expression app，举个例子。
+So I'm gonna say new and then class, and let me call that expression app, for example.
+
+41
+00:04:08,174 --> 00:04:18,052
+你可以把它想象成你的编译器，这个 编译器 app 实际上是将所有内容结合在一起：
+结合访问者模式、结合解析器，把所有东西都结合起来。
+You can think about this is your compiler, and this compiler app is actually going to combine everything together:
+combining the visitor, combining the parser, combining everything.
+
+42
+00:04:18,286 --> 00:04:24,292
+好，然后我应该在那里写一个主方法，好，那个当然是静态的。
+Okay, and then I should have a main method over there, okay, and that one of course is static.
+
+43
+00:04:25,390 --> 00:04:28,704
+还有一个我想先做的辅助方法。
+And there is one helper method I want to do first.
+
+44
+00:04:29,006 --> 00:04:34,144
+这个辅助方法对于你为编译器做的每一个应用来说，都会非常相似。
+So this helper method will be very similar for every application you're going to do for the compiler.
+
+45
+00:04:34,318 --> 00:04:36,036
+所以我想先提一下这一点。
+So I want to mention that uh first of all.
+
+46
+00:04:36,304 --> 00:04:41,024
+好，现在这个特定的方法，让我把它设为私有的。
+Okay, so now this particular one, uh let me make a private.
+
+47
+00:04:41,198 --> 00:04:46,704
+我把它设为 private 静态，因为我打算在主方法里调用它，所以它也应该是静态的。
+I'll say private uh static because I'm going to call that in the main method, so that should be static as well.
+
+48
+00:04:46,990 --> 00:04:50,544
+现在让我根据我所说的语法来写。
+Let's say it now depends on the grammar I'm talking about.
+
+49
+00:04:50,704 --> 00:04:57,584
+你可以看到这个特定的方法，因为我谈论的是名为 expression 的语法，
+所以解析器将是 expression parser 类型。
+You can see for this particular one, since I'm talking about a grammar called expression,
+so the parser will be of type expression parser.
+
+50
+00:04:57,934 --> 00:05:06,340
+所以现在在这种情况下，我应该相应地更改这里的返回类型，
+但代码结构对于几乎所有的应用来说都是非常相似的。
+So now in this case, I should change the return type over here accordingly, but the code
+structure will be similar for uh almost identical for every application it might do.
+
+51
+00:05:07,054 --> 00:05:09,184
+所以我要写 expression parser。
+So I want to say expression parser.
+
+52
+00:05:09,504 --> 00:05:15,396
+好，现在我要从 ANTLR4 包里导入它，对吧？
+Okay, so now I want to import it from the antler package, right?
+
+53
+00:05:15,504 --> 00:05:22,464
+因为 expression parser 是在 ANTLR4 包里生成的，所以只是一个 解析器 对象。
+That so uh expression parser is generated in the antler package, so just a parser objects.
+
+54
+00:05:22,638 --> 00:05:31,810
+好，到目前为止我们还没给你们展示 expression parser 的代码，但在访问者模式的情况下，
+唯一值得你关注的生成的代码就是两个访问者类：基础访问者和 expression 访问者。
+Okay, so far we haven't really shown you the code for expression parser, but the generated code,
+the only two that's worth your attention for the visitor case would be just
+
+55
+00:05:31,810 --> 00:05:35,824
+好，到目前为止我们还没给你们展示 expression parser 的代码，但在访问者模式的情况下，
+唯一值得你关注的生成的代码就是两个访问者类：基础访问者和 expression 访问者。
+the two visitor classes the base visitor and also the expression visitor.
+
+56
+00:05:36,078 --> 00:05:36,704
+只有这两个。
+Only these two.
+
+57
+00:05:36,942 --> 00:05:39,204
+但对于 expression parser，只要知道有这样一个类就行了。
+But for expression parser, just know this such a class.
+
+58
+00:05:39,406 --> 00:05:41,664
+好，然后你想要获取一个解析器。
+Okay, and then what you want to get a parser.
+
+59
+00:05:41,806 --> 00:05:50,384
+这个解析器更像是一个主控制程序，让你去调用各种解析过程。
+So this parser is more like more like a main control program for you to uh actually call all the various uh parsing procedures.
+
+60
+00:05:50,670 --> 00:05:57,284
+好，如果你感兴趣可以看一下，但我认为只要你知道访问者方法是如何工作的，就没问题了。
+Okay, you can take a look if you're interested, but I think as long as you know how the visitor methods work, you're fine.
+
+61
+00:05:59,086 --> 00:06:02,436
+好，在这里获取 解析器，然后我要传递一个文件名。
+Okay, get parser over here, and then I want to pass a file name.
+
+62
+00:06:03,534 --> 00:06:04,740
+好，就在这里。
+Okay, over here.
+
+63
+00:06:05,518 --> 00:06:10,756
+好了，现在我要再说 uh 表达式解析器。
+Okay, so now I'm gonna say uh expression parser again.
+
+64
+00:06:11,104 --> 00:06:14,724
+解析器的类型取决于语法。
+What type of the parser should be depends on the grammar.
+
+65
+00:06:15,150 --> 00:06:17,350
+好的，在这种情况下，它是 EXPR。
+Okay, in that case, in this case, it's EXPR.
+
+66
+00:06:17,584 --> 00:06:19,904
+所以那应该是 expror。
+so that should be expror.
+
+67
+00:06:20,398 --> 00:06:27,236
+好的，解析器最初只是不，然后我会在中间做点事情，最后返回解析器。
+Okay, parser initially just no, and then I'm gonna do something in the middle and then return the parser at the end.
+
+68
+00:06:27,566 --> 00:06:29,424
+好的，现在我要在中间做点事情。
+Okay, so now in the middle I'm gonna do something.
+
+69
+00:06:29,614 --> 00:06:35,104
+基本上，我想通过使用不同的字符串来初始化这个特定的解析器对象。
+Basically, I want to initialize this particular parser objects by using a different string.
+
+70
+00:06:35,438 --> 00:06:36,484
+好的，我把它写下来。
+Okay, I'll just write it down.
+
+71
+00:06:37,582 --> 00:06:44,544
+所以我会先使用 ANTLR4 运行时库中的一个类，它叫 CharStream。
+So I will first use a class from antler version 4 runtime library, so it's called char string.
+
+72
+00:06:44,814 --> 00:06:48,224
+好的，单数，然后它应该来自 ANTLR4。
+Okay, singular, and then it should be from antler version 4.
+
+73
+00:06:48,304 --> 00:06:53,024
+选对那个，是 CharStream 单数，然后是 ANTLR4 运行时库。
+Choose the right thing, it's a char string singular, and then antler v4 runtime.
+
+74
+00:06:53,198 --> 00:06:58,372
+好的，从那里，然后我会说输入将来自另一个类中的某些输入字符串。
+Okay, from there, and then I would say input it's going to be from some input string from another class.
+
+75
+00:06:59,726 --> 00:07:03,184
+它们会说 CharStream。
+They're gonna say char string.
+
+76
+00:07:03,264 --> 00:07:08,064
+好的，现在是复数，所以是 CharStreams，然后是 ANTLR4 运行时库。
+Okay, it's now plural, so char strings, and then antler version 4 runtime.
+
+77
+00:07:08,144 --> 00:07:14,884
+好的，选那个，然后你说从文件名，然后我把 uh 文件名放在那里。
+Okay, choose that, and then you say from file name, and then I put uh put a file name over there.
+
+78
+00:07:16,430 --> 00:07:21,104
+好的，现在它报错了，因为未处理的异常类型 IOException。
+Okay, so now it complains because unhandled exception type IO exception.
+
+79
+00:07:21,230 --> 00:07:23,076
+好的，我们只需要做一个 try-catch。
+Okay, we're just gonna do a try and catch.
+
+80
+00:07:23,342 --> 00:07:25,504
+所以我可以简单地用 try-catch 包裹起来。
+So I can simply surround with try and catch.
+
+81
+00:07:25,584 --> 00:07:27,300
+好的，它帮我完成了代码。
+Okay, it complete the codes for me.
+
+82
+00:07:27,694 --> 00:07:31,904
+好的，现在我有了输入字符串，现在我要创建 Lexer。
+Okay, so now I got the input string, so now I'm gonna create Lexer.
+
+83
+00:07:32,046 --> 00:07:38,544
+你可以把 Lexer 理解为负责识别词法单元，然后我将使用 Lexer 来创建解析器。
+You can think about Lexer, it's gonna handle recognizing the tokens, and I'm gonna create parser by using the Lexer.
+
+84
+00:07:38,638 --> 00:07:41,380
+好的，这就是逻辑流程。
+Okay, so these are the kind of like a logical flow.
+
+85
+00:07:42,030 --> 00:07:45,664
+好的，表达式词法分析器，因为我现在说的是语法，它叫 expr。
+Okay, expression lexer, because now I'm talking about the grammar, is called expr.
+
+86
+00:07:45,904 --> 00:07:47,620
+所以它应该是 expr lexer。
+So it should be expr lexer.
+
+87
+00:07:47,790 --> 00:07:49,824
+好的，它是来自 ANTLR 包的，好吗？
+Okay, it's from the antler package, okay?
+
+88
+00:07:50,094 --> 00:07:55,024
+你可以看到一个是 expr 解析器，另一个是 expr lexer，对吧？
+You can see one is the expr parser, the other one is explr lexer, right?
+
+89
+00:07:55,104 --> 00:07:56,132
+这些都是生成的。
+These are all generated.
+
+90
+00:07:56,654 --> 00:08:03,812
+每当你更改语法规范时，确保重新生成所有内容，这两个类都会全部更新，对吧？
+Every time you change your grammar specification, make sure you regenerate all the stuff,
+and these two these classes will all be updated, right?
+
+91
+00:08:04,064 --> 00:08:11,332
+这就是为什么我们把它放在一个独立的包里，而且这个
+包始终不应该 uh 不应该受到任何重新生成的任何影响。
+That's why we put it in a separate package, and always this package
+here will should be uh which should not be affected by any regeneration.
+
+92
+00:08:12,398 --> 00:08:18,084
+好的，这里的 Lexer，我们把 Lexer 称为 new expression 词法分析器。
+Okay, Lexer over here, let's call the Lexer is new expression lexer.
+
+93
+00:08:21,198 --> 00:08:22,704
+然后我们要传递输入字符串。
+And then we're gonna pass on input string.
+
+94
+00:08:22,864 --> 00:08:25,184
+好的，这就是我刚刚创建的输入内容，对吧？
+Okay, so that's exactly the input I just created, right?
+
+95
+00:08:25,326 --> 00:08:31,264
+创建一个输入字符串，在输入字符串上创建一个词法分析器，现在我们还需要获取词法单元。
+Create an input string, create a lexer on the input string, and now we also need to uh get a tokens.
+
+96
+00:08:31,470 --> 00:08:36,707
+所以词法分析器将识别所有有效的词法单元。
+So what the lexer the lexer is gonna uh Recognize all the tokens that's valid.
+
+97
+00:08:37,422 --> 00:08:42,751
+所以我可以说 common another class 词法单元 string。
+So I can say common another class token string.
+
+98
+00:08:42,990 --> 00:08:45,712
+好的，确保你在这里选择版本 4。
+Okay, make sure you choose version 4 over here.
+
+99
+00:08:45,792 --> 00:08:46,788
+好的，选那个。
+Okay, choose that.
+
+100
+00:08:47,342 --> 00:08:54,436
+然后你将获得词法单元，是 new common 词法单元 string。
+And then you're going to get tokens is new common token string.
+
+101
+00:08:54,926 --> 00:08:56,752
+然后我要获取解析器。
+And then I'm going to get the lecture.
+
+102
+00:08:56,974 --> 00:08:57,232
+好的。
+Okay.
+
+103
+00:08:57,550 --> 00:09:00,992
+现在一旦你获得了词法单元，你就可以初始化解析器了。
+So now once you get the token, so now you can actually initialize a parser.
+
+104
+00:09:01,166 --> 00:09:04,512
+所以现在我可以写解析器，它最终将返回它。
+So now I can say parser, which is which is eventually going to return it.
+
+105
+00:09:04,814 --> 00:09:07,492
+应该是 new expression parser。
+Would be new expression parser.
+
+106
+00:09:09,070 --> 00:09:11,300
+好的，然后我要把词法单元放在这里。
+Okay, and then I'm going to put tokens over here.
+
+107
+00:09:11,694 --> 00:09:15,140
+好的，这就是构建解析器的过程，然后我直接返回解析器。
+Okay, that's about building the parser, and then I will just return the parser.
+
+108
+00:09:16,272 --> 00:09:18,832
+就本视频而言，到此就结束了。
+As far as the current video is concerned, that'll be it.
+
+109
+00:09:18,992 --> 00:09:26,032
+稍后，我们可能需要稍微扩展一下这段代码来改进错误处理，但现在先不用担心这个。
+Later on, we may have to extend this block of code a little bit just
+to improve the error handling, but let's not worry about it for now.
+
+110
+00:09:26,190 --> 00:09:32,516
+好的，现在让我先把点东西搞定，这样我们就可以对编译器进行快速测试，
+让你看到所有内容是如何协同工作的。
+Okay, for now, let me just finish something so I can we can do some quick
+testing on the compiler so you can see how everything works together.
+
+111
+00:09:33,710 --> 00:09:40,228
+这个特定的辅助私有方法在不同应用之间是完全相同的。
+So this particular helper private method will be just identical between application to application.
+
+112
+00:09:40,432 --> 00:09:46,404
+你唯一需要更改的只是根据你的语法名称来更改生成类的前缀。
+The only thing you have to change will be just the prefix for the generated class depending on the name of your grammar.
+
+113
+00:09:46,592 --> 00:09:46,912
+好的。
+Okay.
+
+114
+00:09:47,822 --> 00:09:54,340
+让我写点笔记给你们，好吗，这样你们就不会忘记了。
+Let me just go to uh let me just write down notes for you, okay, so that you wouldn't forget.
+
+115
+00:09:55,054 --> 00:10:07,396
+这里的解析器和词法分析器的类型是针对语法名称 expr.g4 的，对吧？
+Here the types of parser and elixir are specific to the grammar name expr.g4, right?
+
+116
+00:10:07,886 --> 00:10:11,684
+因为一个叫 expr 解析器，另一个叫 expr lexer。
+Because one is called expr parser, the other one is called expr lexer.
+
+117
+00:10:12,334 --> 00:10:14,244
+好的，所以记住那里的注释。
+Okay, so just remember the comments there.
+
+118
+00:10:15,072 --> 00:10:17,732
+好的，现在让我们快速编写主方法。
+Okay, so now let's program the main method quickly.
+
+119
+00:10:18,158 --> 00:10:26,820
+所以到最后，我想向你们展示如何既在控制台上作
+为控制台应用程序运行，也可以在命令行上运行。
+So if at the end of the day, I would like to show you how you can run the program
+both on the console as a console application and also on the command line.
+
+120
+00:10:26,992 --> 00:10:29,700
+所以我们最好设置一下命令行参数。
+So we better set up the command line arguments.
+
+121
+00:10:29,902 --> 00:10:39,780
+对于那些还没机会看到这个特定的 args 数组可能是什么用途的人，今天你们就会在视频中看到。
+So for those of you who never got a chance to see what might be the usage for this
+particular string arcs array over here, so today you will see, okay, in this video.
+
+122
+00:10:40,334 --> 00:10:48,192
+所以现在我要说，如果你把命令行看作是一个参数数组的话。
+So now I would say if the argument basically you can think about a command line is going to be an array of arguments.
+
+123
+00:10:48,430 --> 00:10:58,820
+例如，当你运行 ANTLR4 参数，也就是 ANTLR4 程序，当你输入 -访问者模式 或 -no listener
+时，那其实就是其中一个参数，所以它就是一个数组。
+For example, when you run the ant layer4 argument uh ent layer4 program, when you say dash visitor or dash no listener,
+so that's actually one of the arguments, so it's just an array.
+
+124
+00:10:59,150 --> 00:11:03,844
+所以假设我们的编译器只接收一个参数，也就是文件名。
+So let's say we only for our compiler we only take one single argument for the file name.
+
+125
+00:11:04,302 --> 00:11:10,352
+如果 args.length 这个数组不等于 1，那我们就向用户报告一些错误。
+If arc.length, which is an array, if not equal to one, then we're gonna report some error to the user.
+
+126
+00:11:10,894 --> 00:11:16,292
+所以我们可以说 System.out.println System.err.println，没关系。
+So we can say system.l dot working system system.error.printline, doesn't matter.
+
+127
+00:11:17,550 --> 00:11:21,952
+然后我会说用法：文件名，大概就是这样。
+And then I'm gonna say usage file name, something like that.
+
+128
+00:11:22,318 --> 00:11:25,348
+好的，所以为了使用我们的编译器，你确实应该传入一个文件名。
+Okay, so you should really pass a file name in order to use our compiler.
+
+129
+00:11:26,126 --> 00:11:35,392
+否则，在这种情况下，如果这里只有一个参数，那意味着它应该是文件名。
+Otherwise, in this case, if there's only one single argument over here,
+so that means that should be presumably that should be the file name.
+
+130
+00:11:35,790 --> 00:11:40,752
+所以我做的就是，我会说字符串文件名应该是 args 在位置 0，对吧？
+So what I will do is I'll say string file name should be arcs at position zero, right?
+
+131
+00:11:40,832 --> 00:11:50,912
+这里只是个数组，然后我现在可以通过调用这个特定的辅助方法来获取解析器，对吧？
+Just an array over here, and then now I can retrieve the parser by calling this particular helper method, right?
+
+132
+00:11:51,022 --> 00:11:54,432
+所以基本上我会获取解析器，然后尝试解析程序。
+So basically I'll retrieve the parser and then I try to parse the program.
+
+133
+00:11:55,312 --> 00:12:03,792
+表达式解析器，然后我会说解析器是这里的 getParser，然后是文件名。
+Expression parser and then and then I'll say parser is get parser over here and then the file name.
+
+134
+00:12:04,686 --> 00:12:05,860
+好的，到目前为止都没问题。
+Okay, so far so good.
+
+135
+00:12:07,438 --> 00:12:10,960
+然后我们现在基本上要开始解析了。
+And then we're now going to basically start parsing.
+
+136
+00:12:11,118 --> 00:12:13,040
+解析的方法就像这样。
+And the way to parse is like this.
+
+137
+00:12:13,294 --> 00:12:16,240
+噢，也许有些内容值得谈谈。
+Oh, maybe there's something uh it's worth talking about.
+
+138
+00:12:16,400 --> 00:12:16,676
+好的。
+Okay.
+
+139
+00:12:17,006 --> 00:12:20,160
+你可以看到，我刚才说我不应该去看生成的代码。
+You can see uh I said I shouldn't really look at the generated code.
+
+140
+00:12:20,240 --> 00:12:21,200
+让我收回刚才的话。
+Let me take it back.
+
+141
+00:12:21,360 --> 00:12:24,132
+好的，你应该去看解析器的生成代码。
+Okay, you should look at the generated code for the parser.
+
+142
+00:12:24,240 --> 00:12:25,360
+好的，就这部分。
+Okay, for this part.
+
+143
+00:12:25,710 --> 00:12:28,160
+你可以看到这里我们有多少个变量？
+You can see over here how many variables do we have?
+
+144
+00:12:28,398 --> 00:12:32,800
+我们这里有 program，这里有 decoration，这里还有 expression。
+We got program here, we got decoration here, we got expression over here.
+
+145
+00:12:32,974 --> 00:12:47,840
+正如我们在讲座中提到的，实现解析器的标准方法是为每个变量、
+每个非终结符都有一个对应的方法，并且这些方法互相调用，所以它们是相互递归的。
+As we said in the lecture, the standard way of implementing a parser is by for every variable, for every non-terminal,
+we have a corresponding method, and these methods call each other, so they are mutually recursive.
+
+146
+00:12:47,950 --> 00:12:51,120
+你可以查看你的讲座笔记来确认这个特定的备注。
+You can review your lecture notes to see this particular remark.
+
+147
+00:12:51,342 --> 00:13:01,360
+好的，这意味着在生成的 expression parser Java 类中，应该有三个名为 program、
+decoration 和 expression 的方法。
+Okay, so now that means in your in the expression parser Java classes that's
+generated, there should be three methods called program, decoration, and expression.
+
+148
+00:13:01,440 --> 00:13:02,564
+我快速给你们看一下。
+I'll show it to you quickly.
+
+149
+00:13:03,726 --> 00:13:11,364
+现在如果你去这里的 expression parser，如果我查看大
+纲视图，这里有很多很多东西，但看看那些 public 的。
+So now if you go to expression parser over here, so if I look at the outline
+view, there are many many things over here, but look at the public ones.
+
+150
+00:13:11,694 --> 00:13:14,800
+你可以看到这里有一个叫 prog 的。
+You can see there is one called proc over here.
+
+151
+00:13:15,040 --> 00:13:20,160
+基本上，这是起点，因为在语法文件里，好的。
+Basically, this is the starting point because over here in the grammar file, okay.
+
+152
+00:13:20,558 --> 00:13:23,680
+在语法文件中，你可以看到 prog 是子变量。
+In the grammar file, you can see the proc is the sub variable.
+
+153
+00:13:23,760 --> 00:13:25,120
+那是第一个产生式规则。
+That's the very first production rule.
+
+154
+00:13:25,200 --> 00:13:26,884
+所以按照惯例，它是一个子变量。
+So by convention, it's a sub variable.
+
+155
+00:13:27,118 --> 00:13:34,800
+那么对应的，也就是这里的，呃，对应的这个方法，就是编译的起点。
+So the corresponding method, which is over here, uh the corresponding
+method, which is over here, is the starting point for compilation.
+
+156
+00:13:35,054 --> 00:13:41,220
+所以一旦你调用这个特定的方法，它就会开始解析你传递给它的任何输入文件。
+So as soon as you invoke this particular method, it's gonna start parsing whatever input file you pass to it.
+
+157
+00:13:41,360 --> 00:13:47,840
+另外你还有 decoration，它不是起点，但最终会被捕获，因为它们是相互递归的。
+And also you got decoration, which is not the starting point, but it will eventually be caught because they're mutually recursive.
+
+158
+00:13:48,238 --> 00:13:50,560
+另外你还有一个是 expression，对吧？
+And also you got another one which is expression, right?
+
+159
+00:13:50,702 --> 00:13:51,360
+所以你可以看到重点。
+So you can see the point.
+
+160
+00:13:51,440 --> 00:13:53,280
+其他的你都不用担心，对吧？
+All other methods you don't have to worry, right?
+
+161
+00:13:53,440 --> 00:13:55,140
+除非你真的需要追踪代码。
+Unless you really have to trace the code.
+
+162
+00:13:55,854 --> 00:13:57,060
+好了，让我把它关了。
+Okay, let me close it.
+
+163
+00:13:57,838 --> 00:14:06,244
+现在为了解析程序，我会这样做，我先写点注释给你们看。
+So now in order to parse the program, so what I would do is I'll just say uh tell, I mean write some comments for you.
+
+164
+00:14:06,880 --> 00:14:12,036
+告诉 ANTLR 去构建解析树。
+Tell antler to build a parse tree.
+
+165
+00:14:14,190 --> 00:14:14,880
+大概是这样的。
+Something like this.
+
+166
+00:14:15,214 --> 00:14:23,652
+好了，基本上，一旦你提到 prog，它就会尝试从
+prog 开始构建解析树，而 prog 是一个起始符号。
+Okay, so basically, as soon as you say proc, it's going to try it will
+attempt to build a parse tree starting from proc, which is a stop variable.
+
+167
+00:14:24,174 --> 00:14:35,120
+好了，为了构建解析树，你也会从起始符号 prog 开始解析。
+Okay, to build a parse tree, and also you'll parse from the start symbol, which is proc.
+
+168
+00:14:36,302 --> 00:14:39,908
+现在你要说 解析器.prog。
+And now you're gonna say parser.proc.
+
+169
+00:14:40,240 --> 00:14:43,652
+那一行基本上会返回一个解析树。
+And that one there is going to return basically a parse tree.
+
+170
+00:14:43,840 --> 00:14:47,140
+而程序上下文仅仅就是一种解析树。
+And program context is simply just one kind of the parse tree.
+
+171
+00:14:47,360 --> 00:14:55,620
+记得我们说过，这个特定节点的类型应该是程序上下文，而程序上下文只是解析树的一个子类型。
+Remember we said the type of this particular node here should be a program context,
+and program context is just a subtype of parse tree.
+
+172
+00:14:55,918 --> 00:15:02,212
+所以我们可以这样做，我们可以说这里的 prog，我们真的应该获取它的返回值。
+So what we can do is we can say the proc over here, so we should really capture its return value.
+
+173
+00:15:02,926 --> 00:15:16,000
+我们的做法是声明解析树，然后确保从 ANTLR4 运行时导入它，好吗，解析树，
+然后让我把它叫做 ANTLR 抽象语法树。
+And the way we do it is by saying parse tree, and then make sure in uh import
+it from antler v4 runtime, okay, parse tree, and then let me call it antler ast.
+
+174
+00:15:16,910 --> 00:15:26,000
+所以我想非常明确地说明，无论你如何思考，这里的粉红色对象结构也可以看作是一种树结构。
+So I want to be very specific about whether there's a tree from you can think about
+in some way our object structure over here in the pink is also like a tree structure.
+
+175
+00:15:26,254 --> 00:15:35,840
+所以我想非常清晰地说明，它是来自 ANTLR 端的那棵树（绿色的），
+还是来自我们特定表达式包的对象树结构。
+So I want to be very speci uh very clear about either it's a tree from the entler side, the green one,
+or it's a object tree structure from our particular expression package.
+
+176
+00:15:35,920 --> 00:15:37,060
+你要非常明确。
+You want to be very clear.
+
+177
+00:15:37,326 --> 00:15:46,084
+粉红色的那个更容易处理，一旦你拿到了粉红色的那个，你就可以随意地从那里进行很多转换。
+The pink one is much easier to work with, and once you get uh get to the pink one,
+you can feel free to uh you can feel free to do lots of transformation from there.
+
+178
+00:15:46,320 --> 00:15:51,748
+但在上面进行进一步转换非常繁琐，容易出错，而且很难处理。
+But working on this for further transformation is very tedious and error-prone and hard to work with.
+
+179
+00:15:53,006 --> 00:15:58,320
+好了，现在我要做的是，基本上一旦我得到了解析树，我该做什么？
+Okay, so now what I will do is I will go for basically once I got a parse tree, what should I do?
+
+180
+00:15:58,400 --> 00:16:02,480
+嗯，根据我们学到的，我们应该从上到下调用访问者。
+Well, based on what we learned, we should call the visitors from top down.
+
+181
+00:16:02,702 --> 00:16:05,840
+我们真的应该开始访问这个特定的 抽象语法树 节点，对吧？
+We should really start visiting this particular AST node, right?
+
+182
+00:16:05,920 --> 00:16:06,340
+根节点。
+The root.
+
+183
+00:16:06,606 --> 00:16:10,052
+好了，接下来我们要创建一些访问者。
+Okay, so what we'll do is we're gonna create some visitor for us.
+
+184
+00:16:11,760 --> 00:16:27,680
+创建一个访问者，用来把解析树转换成表达式对象。
+Creates a visitor for converting the parse tree into expression objects.
+
+185
+00:16:27,950 --> 00:16:31,680
+好了，我刚才也提到了程序，因为程序是顶层，对吧？
+Okay, I was also say program because program is a top level, right?
+
+186
+00:16:31,950 --> 00:16:37,520
+那么现在我们该……该实例化哪一个访问者类呢？
+So now how do we uh which visitor should we uh which which visitor class should we instantiate?
+
+187
+00:16:37,774 --> 00:16:42,212
+嗯，顶层是程序，所以我们应该做 ANTLR 到 program。
+Well the top level is gonna be uh program, so we should really do antler to program.
+
+188
+00:16:42,478 --> 00:16:50,960
+好了，我要做的就是在这里写 ANTLR 到 program，抱歉，写到 program。
+Okay, so what I would do is I'm gonna say antler to program over here, sorry, to program over here.
+
+189
+00:16:52,366 --> 00:16:54,592
+好了，现在那是来自另一个包，对吧？
+Okay, so now that's from another package, right?
+
+190
+00:16:54,862 --> 00:17:01,412
+所以现在我可以写 prog program 访问者模式 是 new ANTLR 到 program。
+So now I can say prog program visitor is new entler to program.
+
+191
+00:17:02,094 --> 00:17:18,884
+好了，在这里初始化这个访问者，然后我想说，一旦我完成，一旦我……一旦我完成，
+我期望 visit 方法实际上能返回一个 program，返回 program 对象。
+Okay, initialize this visitor over here, and then I would say so now once I finish, once I uh once I finish,
+uh that I will expect the visit method to actually return a program to return the program objects.
+
+192
+00:17:19,086 --> 00:17:20,192
+让我再提醒你们一下。
+So let me remind you again.
+
+193
+00:17:20,430 --> 00:17:22,596
+你们可以看到这里的 ANTLR 到 program。
+You can see antler to program over here.
+
+194
+00:17:22,832 --> 00:17:28,672
+基本上，因为我们为这个特定的泛型参数实例化了 t 到 program。
+Basically, since we instantiate this particular generic parameter for t into program.
+
+195
+00:17:28,912 --> 00:17:35,872
+这意味着这个特定类中的所有 visit 方法，ANTLR 到 program，都将返回一个 program。
+So that means all the visit methods in this particular class, antler to program is gonna return a program.
+
+196
+00:17:36,046 --> 00:17:39,716
+好了，这是我们在之前的教程视频中已经讲过的内容。
+Okay, that's something we covered in the previous tutorial video already.
+
+197
+00:17:40,366 --> 00:17:44,352
+所以我要说 program，然后我会说 prog。
+So I would say program and then I'll say proc.
+
+198
+00:17:44,782 --> 00:17:46,020
+好了，导入了吗？
+Okay, is it imported?
+
+199
+00:17:46,862 --> 00:17:49,604
+好了，program 基本来自 expression。
+Okay, program from basically expression.
+
+200
+00:17:49,998 --> 00:17:53,348
+好了，prog 就是 program 访问者模式
+Okay, proc would be program visitor
+
+201
+00:17:56,494 --> 00:17:58,628
+访问者模式 visit。
+visitor visit.
+
+202
+00:17:59,310 --> 00:18:00,592
+在这种情况下，我会说 enter。
+In that case, I would say enter.
+
+203
+00:18:03,918 --> 00:18:08,832
+对，所以希望这能再次确认我们在之前教程中说过的内容。
+Right, so hopefully this uh confirms again what we said in the previous tutorial.
+
+204
+00:18:08,992 --> 00:18:21,476
+我们创建访问者类的原因，主要目的，其实唯一的目的就是把解析树转换成我们的模型对象。
+The reason that we created the visitor classes, the main purpose, the sole
+purpose really is to convert from the parse tree into our model uh objects.
+
+205
+00:18:22,638 --> 00:18:30,352
+好了，现在我们有了这个特定的 program，那么在
+这种情况下，我们可以试着评估一些东西，对吧？
+Okay, so now after we have got this particular program, so in that case, well, we can just try to evaluate something, right?
+
+206
+00:18:30,446 --> 00:18:44,592
+所以现在我建议在开始编写代码之前，我建议在
+expression 包中再添加一个类，让内容变得更有趣一点。
+So now I would suggest we try to uh before I before I start coding this, I would suggest I add another I add one more class to the
+expression package to make things more interesting for you.
+
+207
+00:18:44,846 --> 00:18:46,660
+好了，然后我会回到这里。
+Okay, so now and then I'll come back here.
+
+208
+00:18:47,406 --> 00:18:54,980
+所以我建议我回到包资源管理器，然后我要引入一个新类。
+So what I would suggest is I'll go back to package explorer and then I'm going to introduce a new class.
+
+209
+00:18:55,342 --> 00:18:57,956
+我们把它叫做 expression processor。
+Let's call that expression processor.
+
+210
+00:18:59,214 --> 00:19:07,632
+好了，让我把笔记拿出来，然后我们开始编写那个类，编写那个特定的类。
+Okay, so now let me just uh get my notes to it, and then we'll start programming that course,
+programming that particular uh class over there.
+
+211
+00:19:07,712 --> 00:19:10,352
+它不是很长，好吗，但看看它会很有意思。
+It's not very long, okay, but it'll be interesting to see.
+
+212
+00:19:10,638 --> 00:19:16,836
+基本上，那个类的想法是，如果表达式类型正确，我们将评估这些表达式。
+Basically, the idea about that class will be we're going to evaluate our expressions if they are type correct.
+
+213
+00:19:17,870 --> 00:19:27,620
+再次强调，设计这个类最好的方法是使用访问者模
+式，但我现在只是想快速写点代码给你们演示一下。
+And again, the best way to for designing this class is to have a visit visitor pattern to do it,
+but I'm just trying to code something quickly just to show you.
+
+214
+00:19:28,174 --> 00:19:32,516
+所以我把它命名为 expression processor（表达式处理器）。
+So I would say expression processor.
+
+215
+00:19:34,958 --> 00:19:38,116
+好，这是一个普通的类，它就在 expression 类里，对吧？
+Okay, it's a normal class, and then it's simply in the expression class, right?
+
+216
+00:19:38,382 --> 00:19:40,192
+那现在我们来看看该怎么做。
+So now let's see how we can do it.
+
+217
+00:19:40,622 --> 00:19:45,156
+现在我们来看看，这里会有两个属性，也就是表达式列表。
+So now let's see, there will be two attributes over here the list of expression.
+
+218
+00:19:45,646 --> 00:19:48,300
+因为我们要进行求值，所以我们可以求值一个表达式列表。
+Because we want to evaluate, we can evaluate a list of expression.
+
+219
+00:19:48,912 --> 00:19:58,272
+所以从 utility expression 导入 list，我把它叫 list，另外我们还要有一个 map。
+So in import the list from the utility expression over here, I would say list, and also let's also have a map.
+
+220
+00:19:58,542 --> 00:20:00,112
+好，我要把它设为 public。
+Okay, so I'm gonna say public.
+
+221
+00:20:00,334 --> 00:20:06,752
+所以使用 hash map，呃，使用 map 是编译器课程中非常标准的资料结构。
+So use of hash map, uh use of map is very uh a very standard data structure in compiler course.
+
+222
+00:20:06,862 --> 00:20:09,956
+所以我想给你们展示一下这里的其中一个用例。
+So I want to show you just uh uh one use case over here.
+
+223
+00:20:11,054 --> 00:20:11,876
+就是 map。
+So map.
+
+224
+00:20:14,830 --> 00:20:18,628
+我要把它设为 string 和 integer。
+So I would say string and also integer.
+
+225
+00:20:19,406 --> 00:20:22,512
+我等一下就讲讲这个具体是用来存什么的。
+I'll talk about what exactly this is supposed to store in just a moment.
+
+226
+00:20:22,672 --> 00:20:23,364
+我把它叫 values（值）。
+I'll say values.
+
+227
+00:20:23,662 --> 00:20:25,668
+这就是所谓的符号表。
+So this is so-called symbol table.
+
+228
+00:20:25,902 --> 00:20:27,236
+好，这是一个非常标准的名称。
+Okay, it's a very standard name.
+
+229
+00:20:28,494 --> 00:20:37,380
+符号表是用来存储变量值的。
+Symbol table for storing the storing values of variables.
+
+230
+00:20:38,094 --> 00:20:45,316
+例如，如果你还记得之前的测试用例，就算这个不是类型正确，我先举个例子。
+For example, you can if you can recall the previous test case over here,
+let's say, even though this is not type correct, I'll just make one example.
+
+231
+00:20:45,742 --> 00:20:50,052
+所以你可以看到，一旦我们处理这一行，我们就知道……
+So you can see as soon as we process this particular line over here, we know that.
+
+232
+00:20:50,896 --> 00:20:54,256
+这个特定的变量的值应该是 5。
+I this particular variable should be of value 5.
+
+233
+00:20:54,446 --> 00:20:59,856
+所以 i5 应该被存储到这个特定的 values 哈希表中。
+So that's why i5 should be stored into this particular value's uh hash table.
+
+234
+00:21:00,046 --> 00:21:03,856
+所以我们要确保，稍后当我们在这里提到 i 时……
+So we want to make sure later on when we actually mention about i over here.
+
+235
+00:21:04,046 --> 00:21:05,456
+i 的值应该是多少？
+So what should be the value of i?
+
+236
+00:21:05,616 --> 00:21:09,136
+我们必须去查那个特定的哈希表，并知道它应该是 5，对吧？
+We had to look up that particular hash table and know that it should be 5, right?
+
+237
+00:21:09,216 --> 00:21:12,452
+当然，不用担心这个特定的类型错误，反正它会被报告出来的。
+Of course, let's not worry about this particular type error, it will be reported anyway.
+
+238
+00:21:13,390 --> 00:21:19,428
+现在让我们回到 Eclipse，看看我们该如何编写这个方法的体。
+So now let's go back to eclipse and let's see how we can program the body of the method.
+
+239
+00:21:19,616 --> 00:21:21,856
+当然，match 应该包含在内。
+Of course, match should be included.
+
+240
+00:21:22,016 --> 00:21:23,716
+好，现在我们选一下。
+Okay, so now let's just choose it.
+
+241
+00:21:23,936 --> 00:21:28,336
+好，我得把 string 拼写正确。
+Okay, and then I should really spell string correctly.
+
+242
+00:21:28,782 --> 00:21:45,316
+好，首先我们先写一个构造函数来初始化这两个属性，然后我写 expression processor，
+接着我会把 list of expression 放入处理范围。
+Okay, so now let's first of all let's have a constructor to initialize both attributes, and then I'll say expression processor,
+and then I'll have list of expression to be handled.
+
+243
+00:21:47,502 --> 00:22:00,708
+好的，在这种情况下，这里的 expression 没问题，我把这个列表简单地赋值给 list，
+同时初始化一个空 map 并赋值给 new hash map。
+Okay, in that case, expression over here, that's good, and I'll say this the list is
+simply assigned to list and also initialize the empty map is assigned to new hash map.
+
+244
+00:22:03,982 --> 00:22:08,016
+好的，现在编译器可以推断这些类型，所以我不需要把它们写出来。
+Okay, so now the compiler can infer these types, so I don't need to put it.
+
+245
+00:22:08,174 --> 00:22:10,404
+好的，这就是构造函数，非常简单。
+Okay, so that's a constructor, very easy.
+
+246
+00:22:11,022 --> 00:22:19,936
+所以我想做的是，真正为我们的表达式列表进行一些求值。
+So what I want to do is to really get some evaluation for our expression list.
+
+247
+00:22:20,336 --> 00:22:27,480
+那我们首先在这里定义一个公共方法，它将返回一个字符串列表。
+So let's say first of all we have a public method over here, it's going to return a list of string.
+
+248
+00:22:28,622 --> 00:22:38,740
+最终，当我们想要报告求值结果时，每一个求值结果，比如，针对这个特定情况，针对这一行，
+我会说 i 加 j 乘以 3 等于某个结果。
+Eventually, when we want to report the evaluation result, each evaluation result, for example,
+I might say let's say for this particular case, for this particular
+
+249
+00:22:38,740 --> 00:22:42,736
+最终，当我们想要报告求值结果时，每一个求值结果，比如，针对这个特定情况，针对这一行，
+我会说 i 加 j 乘以 3 等于某个结果。
+line, I would say i plus j multiplied by 3 is whatever result it is.
+
+250
+00:22:42,816 --> 00:22:43,696
+比如，23。
+For example, 23.
+
+251
+00:22:43,776 --> 00:22:44,576
+我随便编的。
+I'm making that up.
+
+252
+00:22:44,878 --> 00:22:46,372
+也许数学逻辑实际上没跑通。
+Maybe math doesn't actually work.
+
+253
+00:22:46,496 --> 00:22:58,656
+我只是说结果应该以字符串形式呈现，呃，应该以源代码中的实际表达式开头，呃，
+以源代码输入开头，然后说“是”，接着就是我们求出的任何结果。
+I'm just saying the result should be presented as a string, uh should be beginning with the actual expression in the source language,
+uh in the source input and say is and then whatever result that we evaluate.
+
+254
+00:22:58,926 --> 00:23:00,100
+让我们看看怎么做这个。
+let's see how we can do this.
+
+255
+00:23:01,486 --> 00:23:03,940
+获取求值结果。
+Get evaluation result.
+
+256
+00:23:06,446 --> 00:23:08,292
+好的，让我在这里调用一下那个方法。
+Okay, let me just call that method here.
+
+257
+00:23:09,134 --> 00:23:11,428
+当然，这个方法将由主程序调用。
+Of course, this method will be called by the main program.
+
+258
+00:23:11,982 --> 00:23:15,332
+这就是为什么我们想稍微中断一下，先定义这个类。
+That's why we want to get interrupted a little bit to define this class first.
+
+259
+00:23:16,654 --> 00:23:20,576
+然后我会说一个字符串列表。
+and then I'll say a list of string.
+
+260
+00:23:22,638 --> 00:23:29,296
+然后我会说 evaluation 最初只是一个新的 ArrayList。
+and then I would say evaluation will be just a new array list to begin with.
+
+261
+00:23:29,376 --> 00:23:32,656
+还有，我这里不需要这个类型。
+and again, I don't need this type over here.
+
+262
+00:23:32,942 --> 00:23:35,716
+最后我只需返回 evaluations。
+and then eventually I'll just return evaluations.
+
+263
+00:23:35,936 --> 00:23:36,256
+好的。
+okay.
+
+264
+00:23:36,496 --> 00:23:37,124
+就像这样。
+like that.
+
+265
+00:23:37,678 --> 00:23:39,876
+现在让我们思考一下该如何实现。
+So now let's think about how we can do this.
+
+266
+00:23:40,142 --> 00:23:47,364
+首先，我们要逐个遍历求值列表，对吧，从左到右。
+You we first of all we're going to go over the list of evaluations one by one, right from left to right.
+
+267
+00:23:47,982 --> 00:23:53,092
+然后我简单地说，你可以使用 for-each 循环，其中的每一个都将是一个表达式。
+And then I'll simply say for you can use it for each loop, each one of them it will be an expression.
+
+268
+00:23:53,646 --> 00:23:56,816
+表达式 e 是列表的一个成员，对吧？
+Expression e a member of the list, right?
+
+269
+00:23:56,896 --> 00:24:10,788
+你可以看到列表就在这里，这个列表是表达式列表，所
+以每一个都应该是表达式，然后我将对它们进行区分。
+You can see the list is simply over here, the list is a list of expressions, so each one of them should be an expression,
+and then I'm going to actually distinguish between them.
+
+270
+00:24:11,214 --> 00:24:21,060
+现在我们想说，根据我们正在查看的是哪一个，如果表达式，例如，
+是 variable declaration 的实例。
+So now we want to say, depending on which one we're looking at, if the expression, for example, is an instance of variable decoration.
+
+271
+00:24:21,376 --> 00:24:24,176
+在这种情况下，我们实际上不需要进行任何求值。
+In that case, we don't really do any evaluation.
+
+272
+00:24:24,336 --> 00:24:29,616
+例如，在这种情况下，如果是这个特定的，我们实际上应该把值添加到哈希表中。
+For example, in this case, if for this particular one, we should really add the value into the hash table.
+
+273
+00:24:29,696 --> 00:24:32,868
+我们应该说 i5 应该被添加到表中。
+We should say i5 should be added into the table.
+
+274
+00:24:33,294 --> 00:24:40,656
+同样地，对于这一行，我们其实不需要去求值，而是要说 j7 应该被添加到哈希表中，对吧？
+Similarly, for this particular line, we should not really try to evaluate,
+but instead we're gonna say j7 should be added to the hash table, right?
+
+275
+00:24:40,750 --> 00:24:45,476
+我们要往里面添加两个键值对，然后当我们到达像这样的行时，我们才需要求值。
+We're gonna add two pairs into it, and then when we reach lines like this, we should evaluate.
+
+276
+00:24:45,710 --> 00:24:52,816
+好，所以现在我们应该说，如果表达式 e 是变量
+Okay, so now we should say if expression e instance of variable.
+
+277
+00:24:53,870 --> 00:24:58,768
+declaration 实例，那么我们该做的是进行一次强制类型转换。
+Decoration and in that case, what we should do is we should do a cast.
+
+278
+00:24:58,862 --> 00:25:02,528
+这就是为什么这种设计不太好，因为它实际上避免了强制类型转换。
+So that's why this is not a very good design to really avoid casting.
+
+279
+00:25:02,608 --> 00:25:05,732
+为了更好的设计，你最好使用访问者模式。
+You better use the visitor pattern for better design.
+
+280
+00:25:06,254 --> 00:25:08,484
+所以现在我要说 variable declaration。
+So now I'm gonna say variable decoration.
+
+281
+00:25:08,782 --> 00:25:18,528
+好，假设 decoration 是 variable declaration，
+然后这里的 e，接着我可以写 values.put，对吧？
+Okay, let's say decoration is variable decoration and then e over here, and then I can say values that put, right?
+
+282
+00:25:18,958 --> 00:25:20,676
+噢抱歉，不是 compute，是 put
+Oh sorry, not compute, put
+
+283
+00:25:24,448 --> 00:25:33,168
+好，然后我在这里写 put，接着我写 decoration.id，decoration.value，对吧？
+okay, and then I'll say put over here, and then I'll say decoration.id, decoration.value, right?
+
+284
+00:25:33,248 --> 00:25:37,124
+你也可以往上看 variable declaration 类是怎么定义的。
+You can also look up to see how the variable decoration class was defined.
+
+285
+00:25:37,248 --> 00:25:43,524
+我们在之前的教程视频里做了这个，一旦我把它添加到哈希表中，我稍后就可以查到它。
+We did that in the previous tutorial video, and once I added it into the hash table, I can look it up later.
+
+286
+00:25:44,270 --> 00:25:49,808
+否则，如果它不是 variable declaration，那就意味着我们确实应该尝试去求值。
+Otherwise, if it's it is not a variable decoration, that means we should really try to evaluate.
+
+287
+00:25:50,254 --> 00:25:51,460
+所以现在是 else 部分，好。
+So now the else part, okay.
+
+288
+00:25:51,728 --> 00:25:52,868
+我给你们加个注释。
+I'll put a comment for you.
+
+289
+00:25:53,230 --> 00:25:59,328
+这意味着 e 可能是不同的情况。
+So that means e would be instance of different possibility.
+
+290
+00:25:59,488 --> 00:26:08,288
+它可能是数字，可能是变量，可能是加法，也可能是减法。
+It could be number, it could be variable, it could be addition, it could also be subtraction.
+
+291
+00:26:08,700 --> 00:26:08,784
+对吧？
+right?
+
+292
+00:26:08,878 --> 00:26:11,172
+所以所有这些都可以被求值。
+so all these can be evaluated.
+
+293
+00:26:12,654 --> 00:26:20,420
+所以现在我简单地说，这里的字符串 input 将是 e.toString 的第一部分。
+So now I would simply say over here string input will be uh e.2 string, the first part.
+
+294
+00:26:20,558 --> 00:26:26,528
+这就是为什么我实际上说，我应该尝试为某些表达式类实现 toString 方法。
+So that's why I actually said I should really try to implement the toString method for certain uh expression classes.
+
+295
+00:26:26,608 --> 00:26:27,808
+现在你们就能看到原因了。
+Now you will see why.
+
+296
+00:26:28,302 --> 00:26:29,328
+然后那将是第一部分。
+And then that'll be the first part.
+
+297
+00:26:29,408 --> 00:26:30,564
+那第二部分呢？
+And what about second part?
+
+298
+00:26:30,830 --> 00:26:33,888
+我们想要求值，比如数字很简单。
+We want to evaluate, for example, numbers easy.
+
+299
+00:26:33,968 --> 00:26:35,168
+我们怎么求值变量呢？
+How do we evaluate variable?
+
+300
+00:26:35,248 --> 00:26:39,728
+我们应该查找哈希表，而对于加法和减法，那将是递归完成的，对吧？
+We should look up the hash table, and for addition and subtraction, that'll be done recursively, right?
+
+301
+00:26:40,046 --> 00:26:42,564
+在这种情况下，我们需要一个递归的辅助方法。
+In that case, we need a recursive helper method.
+
+302
+00:26:42,768 --> 00:26:48,068
+所以我说整数结果是 get evaluation。
+So I say integer result is get evaluation.
+
+303
+00:26:48,608 --> 00:26:49,968
+让我们把它写短一点。
+let's say make it shorter.
+
+304
+00:26:50,208 --> 00:26:52,288
+在这种情况下，求值结果是 e。
+Eval result in this case e.
+
+305
+00:26:52,398 --> 00:27:06,848
+我马上就定义它，然后我会写 evaluations.at，接着我会
+写 input，也就是源表达式，比如字符串 i 加 j 乘以三。
+I'm gonna define that in just a moment, and then after that, I'm gonna say evaluations.at, and then I would say input,
+which is the source expression, will be, for example, the string i plus j multiplied by three.
+
+306
+00:27:06,958 --> 00:27:12,868
+那是源表达式，呃输出，呃抱歉，源表达式，呃显示在控制台上。
+That's a source expression uh output, uh sorry, source expression uh display on the console.
+
+307
+00:27:14,222 --> 00:27:18,608
+然后我会写 is，接着我会写结果，也就是整数。
+And then I'll say is, and then I would say the result, which is integer.
+
+308
+00:27:18,798 --> 00:27:20,768
+所以这就是求值结果，对吧？
+So that'd be the evaluation result, right?
+
+309
+00:27:20,848 --> 00:27:21,488
+这就是思路。
+That's the idea.
+
+310
+00:27:21,648 --> 00:27:26,660
+现在我要创建一个特定的私有方法，它是递归的。
+So now I'm gonna create this particular private uh method That's recursive.
+
+311
+00:27:26,894 --> 00:27:28,768
+好，那个也很容易实现。
+Okay, that one is also easy to do.
+
+312
+00:27:28,928 --> 00:27:33,892
+你只需要思考哪些是基础情况，哪些是递归情况。
+You just have to think about what are the base cases and what the recursive cases are.
+
+313
+00:27:34,414 --> 00:27:36,768
+所以我会写 private int。
+So I would say private int.
+
+314
+00:27:37,838 --> 00:27:42,688
+好，也许我可以把它往上挪一点，这样方便你们看。
+Okay, maybe I can make it a little bit up over here so that easier for you to see.
+
+315
+00:27:43,790 --> 00:27:50,208
+好，所以这里是 private integer，然后是 get eval result，这里是 expression，对吧？
+Okay, so private integer and get eval result over here expression, right?
+
+316
+00:27:50,542 --> 00:27:52,288
+而且 expression 可能有不同的实例。
+And the expression might be of different instances.
+
+317
+00:27:52,448 --> 00:27:56,048
+同样，你将要使用一长串的 instance of 检查。
+Again, you're going to use a long list of instance of check.
+
+318
+00:27:56,128 --> 00:28:00,928
+同样，对于这个特定的实现，访问者模式会是更好的选择。
+Again, the visitor pattern would be a much better choice for this particular implementation.
+
+319
+00:28:01,614 --> 00:28:06,608
+Integer result 将被设为零，只是为了初始化，最终返回结果。
+Integer result will be zero just to assign uh initialize it, eventually return the result.
+
+320
+00:28:06,768 --> 00:28:08,740
+我们预期它在某个时刻会被重新赋值。
+We expect that to be reassigned at some point.
+
+321
+00:28:09,678 --> 00:28:13,060
+你可以写 e instance of number。
+You can say e instance of number.
+
+322
+00:28:13,294 --> 00:28:14,608
+我们如何求值一个数字？
+How do we evaluate a number?
+
+323
+00:28:14,830 --> 00:28:18,208
+嗯，只要返回数字的任何值就行了，对吧？
+Well, just return whatever the value of the number is, right?
+
+324
+00:28:18,382 --> 00:28:27,408
+你可以写 number none，先进行转换，然后 e result 就只是 none.none。
+You can say number none will be do the casting first and then e result will just be none dot none.
+
+325
+00:28:27,918 --> 00:28:29,408
+好，none.value 就是属性。
+Okay, none in just the attribute.
+
+326
+00:28:29,488 --> 00:28:33,668
+抱歉，我把它叫成了和属性一样的名字，但希望你们能明白我这里的意图。
+Sorry, just caught called it the same name as the attribute, but hopefully you can see what I'm doing here.
+
+327
+00:28:35,054 --> 00:28:48,228
+否则如果 e instance of variable，在这种情况下，我会说 variable var 是变量 e。
+Else if e instance of variable over here, and now in this case I'll say variable var is variable e.
+
+328
+00:28:48,448 --> 00:28:51,248
+好，然后我可以写 result 被赋值为。
+Okay, and then I can say result is assigned to.
+
+329
+00:28:51,374 --> 00:28:52,448
+那现在我该做什么呢？
+So now what should I do?
+
+330
+00:28:52,622 --> 00:28:55,248
+我应该从哈希表中获取对应的数值。
+I should really get the corresponding value from the hash table.
+
+331
+00:28:55,328 --> 00:28:58,768
+这就是为什么拥有这个符号表非常基础的原因。
+That's why having this symbol table is very fundamental.
+
+332
+00:28:59,022 --> 00:29:01,248
+我会说理解这一点也非常重要。
+I would say this is also very important to understand.
+
+333
+00:29:01,328 --> 00:29:06,276
+在你的项目或者之后的作业中，你可能在很多不同情况下都需要用到它。
+You might need that a lot in different cases in your project or later assignments.
+
+334
+00:29:07,150 --> 00:29:10,464
+所以现在这里，你会看到 values.get。
+So now over here you say values.get.
+
+335
+00:29:11,246 --> 00:29:12,944
+在这种情况下，是 bar 点 id，对吧？
+In that case, bar dot id, right?
+
+336
+00:29:13,024 --> 00:29:14,144
+就是变量的名字。
+Just the name of the variable.
+
+337
+00:29:14,478 --> 00:29:15,504
+想要获取它。
+Wanna get it.
+
+338
+00:29:16,110 --> 00:29:17,636
+好的，显然这是一个笔误。
+Okay, apparently it is typo.
+
+339
+00:29:19,790 --> 00:29:25,188
+好的，在变量之后，我们还可以考虑加法、减法，还有乘法。
+Okay, after variable, we can also think about addition and also subs uh also multiplication.
+
+340
+00:29:25,614 --> 00:29:26,724
+我们先做加法。
+Let's do addition first.
+
+341
+00:29:28,144 --> 00:29:31,620
+E 是加法的实例。
+E instance of addition.
+
+342
+00:29:32,526 --> 00:29:39,236
+在这种情况下，嗯，我们应该递归地计算左侧，递归地计算右侧，然后把它们加在一起。
+In that case, well, we should really recursively evaluate left hand side, recursively evaluate right hand side, add it up together.
+
+343
+00:29:40,206 --> 00:29:45,024
+首先，你会说 addition，add 就是 addition，然后是 e。
+First of all, you would say addition, add would be addition and then e.
+
+344
+00:29:45,550 --> 00:29:48,944
+然后你会说 integer，左侧应该递归计算。
+And then you would say integer the left should be recursively calculated.
+
+345
+00:29:49,024 --> 00:29:51,556
+所以我再次调用同一个方法，然后是 add。
+So I'm calling the same method again, and then add.
+
+346
+00:29:52,270 --> 00:29:53,200
+点 left。
+dot left.
+
+347
+00:29:54,382 --> 00:29:55,824
+右侧也类似。
+And something similar for the right.
+
+348
+00:29:55,904 --> 00:29:57,476
+我直接复制粘贴一下。
+I'm just going to copy and paste.
+
+349
+00:29:59,310 --> 00:30:04,932
+好的，左边和右边，然后结果就是简单的左加右。
+Okay, left and right, and then with the result is simply left plus right.
+
+350
+00:30:05,646 --> 00:30:06,980
+好的，我们快完成了。
+Okay, we're almost done.
+
+351
+00:30:07,310 --> 00:30:10,224
+现在我们有了乘法的最后一个情况。
+So now we have a final case for multiplication.
+
+352
+00:30:10,304 --> 00:30:13,412
+所以现在的 else 情况，我在这里放个注释。
+So now the else case over here, I'll put a note over here.
+
+353
+00:30:13,710 --> 00:30:18,148
+这意味着 e 是 uh 乘法的实例。
+So that means e instance of uh multiplication.
+
+354
+00:30:20,814 --> 00:30:22,944
+好的，如果允许的话，这会非常相似。
+Okay, it would be something very similar if you allow me.
+
+355
+00:30:23,024 --> 00:30:24,804
+我要复制粘贴一下。
+I'm gonna copy and paste.
+
+356
+00:30:25,424 --> 00:30:33,824
+好的，我要说 multiplication 将被强制类型转换成 multiplication。
+Okay, I'm gonna say multiplication is gonna be cast by cast into multiplication.
+
+357
+00:30:34,190 --> 00:30:40,064
+然后是左边和右边，现在与其做加法，我要在这里做乘法。
+And then left and right, and now rather than doing plus, I'm gonna do multiple uh multiply over here.
+
+358
+00:30:40,224 --> 00:30:42,224
+好的，希望这些对你们来说都好理解。
+Okay, hopefully everything makes sense to you.
+
+359
+00:30:42,464 --> 00:30:46,864
+好的，现在我们完成了这个简单的表达式处理器。
+Okay, so now we are done with this particular simple expression processor.
+
+360
+00:30:47,054 --> 00:30:51,184
+现在我们可以把这个用到编译器的主要程序中了。
+So now we can have some usage of that for our main program of the compiler.
+
+361
+00:30:51,534 --> 00:30:54,064
+现在让我回到这里的 expression app。
+Let me now go back to expression app over here.
+
+362
+00:30:54,318 --> 00:31:03,236
+好的，现在让我们看看具体如何在 app 中调用这个特定的 processor 类。
+Okay, and now let's see exactly how we can call this particular app
+class, uh, how we can call this particular processor class in the app.
+
+363
+00:31:03,534 --> 00:31:08,224
+好的，这就是我们刚才停留的地方，也就是我们简单地创建程序的地方。
+Okay, so now this is where we were, so where we simply just create the program.
+
+364
+00:31:08,590 --> 00:31:13,124
+所以我们现在要做的是遍历程序，但别忘了这里有一件事。
+So what we want to do now is to go over the program and don't forget one thing here.
+
+365
+00:31:13,646 --> 00:31:22,430
+呃，如果你回到这里的 program 层，记住我们有语义错误，这意味着如果变量之前没声明，
+而你试图第二次或第三次声明它，那应该是个错误。
+Uh if you just go back to the end layer to program over here, remember we got semantic errors,
+which means if the variables was not was already previously declared, you're
+
+366
+00:31:22,430 --> 00:31:26,180
+呃，如果你回到这里的 program 层，记住我们有语义错误，这意味着如果变量之前没声明，
+而你试图第二次或第三次声明它，那应该是个错误。
+trying to declare that second time, third time, that should be an error.
+
+367
+00:31:26,464 --> 00:31:31,588
+或者如果你真的尝试去……反正我已经在另一个类里记录过了。
+Or if you actually try to uh I had it documented in another class anyway.
+
+368
+00:31:31,790 --> 00:31:38,704
+第二个错误是如果你在表达式中引用了一个没声明过的变量，那就是第二个错误。
+And the second error would be if you try to refer to a variable in the
+expression that doesn't ex uh that was not declared, that's the second error.
+
+369
+00:31:38,864 --> 00:31:39,812
+我们要避免这些错误。
+We want to avoid those.
+
+370
+00:31:39,950 --> 00:31:41,412
+我们有针对这些情况的测试用例。
+We have test cases for that.
+
+371
+00:31:42,030 --> 00:31:45,572
+所以现在我想说，如果有这类错误，我要把它们打印出来。
+So now I want to say if there's such errors, I'm gonna print them out.
+
+372
+00:31:45,824 --> 00:31:49,184
+否则，我要继续去求值表达式，对吧？
+Otherwise, I'm going to go ahead and evaluate the expression, right?
+
+373
+00:31:49,264 --> 00:31:54,704
+如果你的程序有这种类型错误，继续去求值表达式就没意义了。
+It wouldn't make sense for you to go ahead and evaluate expression if your program has type errors like this.
+
+374
+00:31:55,246 --> 00:32:03,104
+所以我可以说，如果 program 访问者模式.语义错误.is empty，对吧？
+So I would say if program visitor dot semantic errors dot is empty, right?
+
+375
+00:32:03,184 --> 00:32:04,224
+它就是一个简单的列表。
+It's simply just a list.
+
+376
+00:32:04,398 --> 00:32:06,864
+如果它是空的，那就意味着没有错误。
+If it is empty, that means there's no error.
+
+377
+00:32:07,664 --> 00:32:10,704
+否则，等等，那意味着有错误。
+Otherwise, wait, that means there are errors.
+
+378
+00:32:10,958 --> 00:32:12,064
+在这种情况下，我应该把它们打印出来。
+In that case, I should print them out.
+
+379
+00:32:12,144 --> 00:32:12,964
+我该怎么把它们打印出来呢？
+How do I print them out?
+
+380
+00:32:13,550 --> 00:32:21,024
+每一个都是一个简单的字符串，错误，所以你可以去 program 访问者模式.语义错误，对吧？
+Each one of them simply just a string, error, so you can go to program visitor dot semantic errors, right?
+
+381
+00:32:21,198 --> 00:32:24,708
+所以现在你可以看到语义错误，记住，它就是一个字符串列表。
+So now you can see cementing errors, remember, it's simply just a list of string.
+
+382
+00:32:25,518 --> 00:32:26,980
+每一个都是一个简单的字符串。
+Each one of them is simply a string.
+
+383
+00:32:28,398 --> 00:32:33,904
+所以现在我只需说 system.out.print line。
+So now I would simply say system.l dot print line.
+
+384
+00:32:33,984 --> 00:32:36,452
+当然，如果你愿意，你也可以打印到标准错误输出。
+Of course, you can also print to the standard error if you wish.
+
+385
+00:32:39,406 --> 00:32:42,304
+好，那是错误的情况，但如果没有错误呢？
+Okay, so that's in the case of error, but now what if there's no error?
+
+386
+00:32:42,384 --> 00:32:44,836
+在这种情况下，我们要打印出求值结果。
+In that case, we want to print out the evaluation result.
+
+387
+00:32:46,624 --> 00:32:57,092
+我们刚刚定义的表达式处理器，假设是 ep new expression processor，
+那我们现在该传递哪个表达式列表呢？
+Expression uh processor that we just defined, let's say ep new expression processor, and now what list of expression should we pass?
+
+388
+00:32:57,264 --> 00:33:03,104
+记住，我们只是在从抽象……的根部访问后得到了这个特定的……
+Remember, we simply just got this uh particular after visiting from the root of the abstract uh.
+
+389
+00:33:03,662 --> 00:33:12,260
+在从解析树的根部访问后，现在我们得到的是 program 类型中的表达式包模型对象。
+After visiting from the root of the parse tree, now we're getting back a expression package model objects of type program.
+
+390
+00:33:13,102 --> 00:33:16,688
+所以在这种情况下，我们只需在这里说 prog。
+So now in this case, we can simply say proc over here.
+
+391
+00:33:16,974 --> 00:33:19,648
+如果你……让我再跟你核对一下。
+And if you uh let me just double check with you.
+
+392
+00:33:19,728 --> 00:33:24,500
+所以现在如果你去看我们之前做的 program 类，它确实有一个表达式列表。
+So now if you go to the program class that we did previously, it does have a list of expression.
+
+393
+00:33:24,608 --> 00:33:26,608
+你可以看到很多东西是相互关联在一起的。
+You can see many things interconnected together.
+
+394
+00:33:26,688 --> 00:33:36,310
+这就是为什么在整个教程结束后，一旦你自己把所有源代码都敲出来，
+希望你可以通过重新做一部分练习来强化你的理解，试着去理解所有东西是如何协同工作的。
+So that's why after the entire tutorial, once you type out all the source code yourself,
+hopefully that can you really want to re-emphasize your understanding by maybe uh
+
+395
+00:33:36,310 --> 00:33:41,124
+这就是为什么在整个教程结束后，一旦你自己把所有源代码都敲出来，
+希望你可以通过重新做一部分练习来强化你的理解，试着去理解所有东西是如何协同工作的。
+doing part of the exercise again and try to understand how everything work together.
+
+396
+00:33:42,158 --> 00:33:43,328
+这非常关键。
+It's really crucial.
+
+397
+00:33:43,854 --> 00:33:46,756
+好，现在我要输入 program.expression。
+Okay, so now I'm gonna say program dot expression.
+
+398
+00:33:47,854 --> 00:33:51,140
+好，当然我要拼写正确。expressions，好。
+Okay, of course I gotta spell it properly.expressions okay.
+
+399
+00:33:52,110 --> 00:33:56,048
+好，现在我要过一遍那边的所有表达式。
+Okay, so now I'm gonna go over all the expressions over there.
+
+400
+00:33:56,302 --> 00:34:05,968
+好，我可以写字符串求值，然后它将是 ep.getEvaluationResult 的一个成员，对吧？
+Okay, I can say string evaluation, and then it's gonna be a member of ep.getEvaluationResult, right?
+
+401
+00:34:06,190 --> 00:34:18,848
+所以基本上，正如我们刚刚定义的，getEvaluationResult 将会遍历所有被设置给它的表达式，
+然后尝试去求值，如果它们可以被求值的话，当然了，对吧？
+So basically, get evaluate get evaluation result as we just defined is going to go over all the expression that's being set to it,
+and then try to evaluate them if uh the uh if that can be evaluated, of course, right?
+
+402
+00:34:18,928 --> 00:34:25,732
+比如变量引用、加法、减法，呃，抱歉，加法、乘法等等。
+Like a variable that uh variable reference, addition, subtraction, uh sorry, addition, multiplication, and etc.
+
+403
+00:34:26,542 --> 00:34:32,356
+现在我要输入 System.out.println，然后输入 evaluation。
+And now I'm gonna say system.l dot print line, and then I'll say evaluation.
+
+404
+00:34:35,150 --> 00:34:38,447
+好，这就是我们基本上现在能做的。
+Okay, so now this is basically what we have it uh we can do.
+
+405
+00:34:38,638 --> 00:34:44,128
+好，我们现在完成了这里的第一个版本的主程序。
+So now we are done with the first version with the main program over here.
+
+406
+00:34:44,366 --> 00:34:50,755
+我们要和之前所有的测试用例一起测试，也就是测试 0、测试 1 和测试 2，对吧？
+We're gonna test it together with all the test cases we had previously test 0, test one, and test 2, right?
+
+407
+00:34:51,150 --> 00:34:55,139
+测试 0 实际上基本上有一些明显的语法错误。
+Test 0 actually got basically some synced uh grammatical error.
+
+408
+00:34:55,598 --> 00:34:59,748
+好，这意味着我们甚至不需要去检查语义错误。
+Okay, so that means we should not even bother to check for semantic errors.
+
+409
+00:35:00,430 --> 00:35:05,728
+测试 1 没有任何语法错误，但是它包含语义错误。
+Test number one does not have any grammatical error, however, it does contain semantic error.
+
+410
+00:35:06,030 --> 00:35:16,128
+测试 2，如果你回顾一下，它既没有明显的语法错误，也没有语义错误。
+Test number two, if you review it, that one neither has synced uh
+grammatical error nor does it have it uh had the uh uh semantic error.
+
+411
+00:35:16,208 --> 00:35:18,928
+所以所有的求值结果都可以输出。
+So all the evaluation can be output.
+
+412
+00:35:19,566 --> 00:35:20,580
+那我们现在该怎么做呢？
+So now how do we do it?
+
+413
+00:35:20,768 --> 00:35:30,128
+好，首先让我们尝试在 Eclipse 里操作，然后我将向你们展示如何将当前项目导出为可执行 JAR
+文件，为了完整性，我还会演示如何在命令行中运行。
+Okay, let's try to do it from the eclipse first of all, and then I'll show you how you can export the current project and uh as an
+executable jar, and it will do it from the command line for completeness.
+
+414
+00:35:30,350 --> 00:35:31,684
+好，你们应该两种都要知道。
+Okay, you should know both.
+
+415
+00:35:32,814 --> 00:35:35,140
+现在首先让我们把这些东西设置好。
+Let's now first of all set up the things.
+
+416
+00:35:36,206 --> 00:35:42,048
+好，现在你先去运行，然后在这里选择运行配置。
+Okay, so now you will first go to run and then you will say run configurations over here.
+
+417
+00:35:42,318 --> 00:35:48,740
+我们要为这个特定的项目进行配置，好，然后去 Java 应用并双击。
+We're gonna configure for this particular project, okay, and then go to Java application and double click.
+
+418
+00:35:49,008 --> 00:35:52,368
+好，现在有一个新配置，给它起个名字。
+Okay, so now there's a new configuration will give it a name.
+
+419
+00:35:52,622 --> 00:36:02,148
+好，我们把它命名为 ANTLR example，好。
+So let's say over here it's gonna be uh entler example, okay.
+
+420
+00:36:02,928 --> 00:36:03,968
+我们把它叫 访问者模式。
+Let's say visitor.
+
+421
+00:36:04,142 --> 00:36:13,408
+好，我们正在做 访问者模式，然后对于程序参数，你可以把它看作是命令行参数，
+因为我们只允许一个命令行参数，对吧？
+Okay, we're doing the visitor, and then now for the program arguments, you can think about
+this as a command line arguments since we only allow one command line argument, right?
+
+422
+00:36:13,488 --> 00:36:25,636
+如果你记得的话，好，我现在没法展示，但这个将是第一
+个，点击变量，去文件提示符，然后点确定，然后应用。
+If you remember, okay, I just couldn't show right now, but this will be the first one,
+and click on variables, go to uh file prompt, and then say okay, and then apply.
+
+423
+00:36:26,670 --> 00:36:29,888
+好，现在让我们试试测试 2。
+Okay, so now let's try maybe test number two.
+
+424
+00:36:30,190 --> 00:36:32,932
+那个应该是能输出正确结果的，对吧？
+That's the one that should really output the correct result, right?
+
+425
+00:36:33,422 --> 00:36:37,828
+好，现在我只要点一下，希望我这里不会有任何错误。
+So now if I just say uh okay, hopefully I don't have any error over here.
+
+426
+00:36:38,190 --> 00:36:39,844
+好了，主类怎么样？
+Okay, how about the main class?
+
+427
+00:36:41,422 --> 00:36:45,072
+对于主类，基本上就是 expression app。
+For the main class, that would be basically expression app.
+
+428
+00:36:46,832 --> 00:36:47,152
+好吗？
+Okay?
+
+429
+00:36:47,152 --> 00:36:51,908
+好的，在这个特定项目下，我们有这个特定的主方法来运行。
+okay That's basically under this particular project, we got this particular main method to run.
+
+430
+00:36:52,112 --> 00:36:52,352
+好吗？
+Okay?
+
+431
+00:36:52,672 --> 00:36:54,628
+输入 app，然后输入 run。
+Apply, and then you say run.
+
+432
+00:36:55,374 --> 00:37:00,708
+当你输入 run 时，它会提示你输入文件名。
+When you say run, it's gonna prompt you for actually for the file name.
+
+433
+00:37:01,422 --> 00:37:10,912
+然后我想去桌面，去 workspace，去 访问者模式，去 source，去 tests，去 test two。
+And then I want to go to maybe desktop, go to workspace, and go to visitor, go to source, go to tests, go to test two.
+
+434
+00:37:11,438 --> 00:37:16,272
+然后如果我在这里输入 open，它现在就会给我生成正确的输出。
+And then if I say open over here, and now it's going to generate the correct output for me.
+
+435
+00:37:16,432 --> 00:37:21,028
+所以现在这是我们第一次真正看到我们的编译器是如何工作的。
+So now this is the first time we actually saw, we actually see how our compiler will work.
+
+436
+00:37:21,232 --> 00:37:25,508
+特别是让我们再检查一下这里的这些家伙。
+And especially let's just double check these uh these guys over here.
+
+437
+00:37:25,742 --> 00:37:26,852
+那就会说得通了。
+That will actually make sense.
+
+438
+00:37:27,118 --> 00:37:34,512
+因为现在记得我们之前说过，关于优先级，根据我
+们在讲座中学到的，我们的语法看起来是歧义的。
+Because now remember we said before precedence uh our grammar looks to be ambiguous from what we learned from the lecture.
+
+439
+00:37:34,592 --> 00:37:44,612
+然而，因为 ANTLR4，我再提醒你们一下，对于这里的 ANTLR4，
+因为我们将这个特定的产生式放在前面，所以它会被视为更高优先级。
+However, because antler, if I remind you again, for antler over here, because we put this particular production first,
+so that would be considered as higher precedence.
+
+440
+00:37:44,846 --> 00:37:46,112
+所以让我们看看是不是真的如此。
+So let's see if that's really the case.
+
+441
+00:37:46,414 --> 00:37:48,836
+所以我们的语法不是歧义的，否定。
+So our grammar is not ambiguous, negative.
+
+442
+00:37:49,646 --> 00:37:52,912
+所以现在假设 i 加 j，5 加 7，是 12。
+So now let's say i plus j 5 plus 7, 12.
+
+443
+00:37:53,392 --> 00:37:57,232
+我乘以 j，第二次求值，是 35。
+I multiply by j, the second evaluation, 35.
+
+444
+00:37:57,392 --> 00:37:59,748
+所以现在这个会先完成。
+So now this will be done first.
+
+445
+00:38:00,014 --> 00:38:02,832
+所以 5 加 7 乘以 3，是 26。
+So 5 plus 7 times 3, 26.
+
+446
+00:38:03,072 --> 00:38:03,652
+说得通吗？
+Makes sense?
+
+447
+00:38:04,302 --> 00:38:08,992
+I 乘以 j，35 加 3 将会是 38。
+I times j uh 35 plus 3 will be 38.
+
+448
+00:38:09,072 --> 00:38:10,148
+所以一切都是正确的。
+So everything's correct.
+
+449
+00:38:10,542 --> 00:38:12,752
+好了，现在我想做点不同的。
+Okay, so now I want to do something different.
+
+450
+00:38:12,942 --> 00:38:15,072
+好的，让我也试试测试一。
+Okay, let me also try test number one.
+
+451
+00:38:15,502 --> 00:38:21,312
+所以测试一实际上会给你一些关于语义错误的报告，对吧？
+So test number one is actually going to give you some report from the semantic error, right?
+
+452
+00:38:21,392 --> 00:38:23,524
+因为你可以看到这里的测试一。
+Because you can see test number one here.
+
+453
+00:38:24,174 --> 00:38:27,588
+你可以看到，抱歉，希望这稍微清楚一点。
+You can see sorry, hopefully that's a little bit okay.
+
+454
+00:38:28,352 --> 00:38:29,792
+总之，你可以看到它。
+Anyway, so you can see it.
+
+455
+00:38:29,966 --> 00:38:31,552
+我直接读给你听。
+I'll just read it to you.
+
+456
+00:38:31,854 --> 00:38:38,512
+你可以看到问题在第二行，我们可以看到我们正试图第二次声明 i。
+You can see the problem is in line number two over here, you can see we are trying to declare i the second time.
+
+457
+00:38:38,926 --> 00:38:45,712
+另外在第四行，我们基本上是想引用之前没定义过的 k。
+Also in line number four, we are basically trying to refer to k that was not previously defined.
+
+458
+00:38:46,032 --> 00:38:47,632
+也就是之前没声明过的。
+that was not previously declared.
+
+459
+00:38:47,822 --> 00:38:52,868
+好了，这就是两个语义错误，但每一行在语法上都是正确的。
+Okay, so these are the two semantic errors, but every uh every line is grammatically correct.
+
+460
+00:38:53,312 --> 00:38:57,632
+它们……它们始终是根据我们定义的语法生成的。
+They uh they can always be produced based on the grammar that we define.
+
+461
+00:38:58,094 --> 00:38:59,332
+那我们再试一次。
+So let's try again.
+
+462
+00:39:00,174 --> 00:39:09,700
+运行一下，现在如果我尝试运行测试一并输入 open，效果就很不错了，
+因为它现在告诉我们这些是错误信息，对吧？
+Run and now if I try test one and say open, that's pretty good because now it tells us these are the error messages, right?
+
+463
+00:39:10,192 --> 00:39:14,112
+显然，我这里其实有个拼写错误。
+Apparently, I actually got some typo over here.
+
+464
+00:39:14,286 --> 00:39:17,540
+为什么我……其实不是拼写错误，我真的应该加个空格。
+Why don't I uh actually it's not a typo, I should really get a space.
+
+465
+00:39:17,632 --> 00:39:19,108
+让我把它改了，好吗？
+Let me fix that, shall we?
+
+466
+00:39:19,790 --> 00:39:26,244
+所以让我们回到这里的 antler2 expression，然后是我们要设置的错误之一。
+So let's go to our antler2 expression over here, and then one of the errors we set.
+
+467
+00:39:28,366 --> 00:39:33,188
+变量……已经好了，所以现在我们应该在这里加个空格，对吧？
+Variable uh already okay, so now we should put a space over here, shouldn't we?
+
+468
+00:39:33,486 --> 00:39:34,500
+好了，把它放那儿。
+Okay, let's put it there.
+
+469
+00:39:34,832 --> 00:39:40,196
+然后现在问你们一个问题，我们必须重新生成所有的语法文件吗？
+And then so now question for you do we have to regenerate all the grammar files?
+
+470
+00:39:40,494 --> 00:39:45,220
+当然不需要，因为现在我们只更改了这个特定 expression 包里的类。
+Of course we don't have to because now we only change classes in this particular expression package.
+
+471
+00:39:45,486 --> 00:39:50,672
+另一方面，如果你必须修改这里的语法文件，那么你就得重新生成所有内容。
+On the other hand, if you had to change the grammar file over here, then you have to regenerate everything.
+
+472
+00:39:51,022 --> 00:39:52,292
+好了，给你们做一个快速检查。
+Okay, use a quick check for you.
+
+473
+00:39:53,422 --> 00:39:57,952
+回到这里，然后如果我再试着运行一次，测试一。
+Go back here, and then if I try to run again, test one.
+
+474
+00:39:58,574 --> 00:40:00,272
+现在你可以看到这好多了，对吧？
+So now you can see that's much better, right?
+
+475
+00:40:00,432 --> 00:40:02,992
+错误：变量 i 已声明，在第 2 行。
+Error variable i already declared to two.
+
+476
+00:40:03,246 --> 00:40:03,940
+这说得通吗？
+Does it make sense?
+
+477
+00:40:04,142 --> 00:40:09,632
+现在你可以看到这里的第二行，一，二，第二行，一，好的。
+So now you can see line number two over here, one, two, line number two, one, okay.
+
+478
+00:40:09,712 --> 00:40:14,948
+这是位置一，位置二是在说这个特定的 i 已声明，对吧？
+This is position one, position two is talking about this particular i already declared, right?
+
+479
+00:40:15,214 --> 00:40:16,004
+在第 2 行。
+In to two.
+
+480
+00:40:16,750 --> 00:40:24,260
+然后还在第四行第六列，第四行，一，二，三，四，五，六。
+And then also in line number four and column six, line number four, one, two, three, four, five, six.
+
+481
+00:40:24,494 --> 00:40:27,712
+在 K，K 之前没被声明过，对吧？
+In K, K was not declared previously, right?
+
+482
+00:40:27,886 --> 00:40:31,632
+还有第五行第四列。
+And also line number five and column four.
+
+483
+00:40:31,886 --> 00:40:33,348
+一，二，三，四。
+One, two, three, four.
+
+484
+00:40:33,582 --> 00:40:37,072
+这个特定的 I 已经被声明过了，对吧？
+And this particular I it was declared already, right?
+
+485
+00:40:37,166 --> 00:40:40,708
+它之前已经声明过了，所以你真的不应该尝试再次声明 i。
+It was previously declared already, so you shouldn't really try to declare i again.
+
+486
+00:40:40,846 --> 00:40:43,460
+所以这真的是很好的报错信息，对吧？
+So that's really good uh reporting, right?
+
+487
+00:40:43,552 --> 00:40:47,940
+所以这些是语义错误，不是语法错误，这点要搞清楚。
+So these are semantic errors, they are not syntax errors, just be clear.
+
+488
+00:40:48,590 --> 00:40:51,204
+好，那测试编号 0 怎么样？
+Okay, what about test number zero?
+
+489
+00:40:51,630 --> 00:40:54,272
+让我们看看测试编号 0 是否符合逻辑。
+Let's see if test number zero will make sense to you.
+
+490
+00:40:54,574 --> 00:41:01,472
+如果我点击那个，你可以看到显然除了第 3 行，其他都没问题，就像我们之前说的，对吧？
+If I click on that, you can see apparently everything was fine except for line number three, as we said previously, right?
+
+491
+00:41:01,774 --> 00:41:08,192
+对于这里的第 3 行，你可以看到在这个特定的标识符之后，我只得到了一个等号。
+For line number three here, you can see over here after this particular identifier, I only got an equal sign.
+
+492
+00:41:08,432 --> 00:41:16,112
+而且根据语法，这不应该被允许，因为根据语法，在特定的 ID 之后，
+你应该有一个冒号来声明类型，对吧？
+And this should not be allowed by the grammar because according to the grammar, after a particular ID,
+you should have colon to declare the type, right?
+
+493
+00:41:16,270 --> 00:41:18,112
+所以这在语法上是不正确的。
+So that's not grammatically correct.
+
+494
+00:41:18,606 --> 00:41:20,260
+让我们看看我们的程序会怎么说。
+Let's see what our program would say.
+
+495
+00:41:21,806 --> 00:41:23,748
+我们真正期望看到的是这个。
+What we really expect to see is this.
+
+496
+00:41:24,622 --> 00:41:31,108
+因为语法错误或语法错误比语义错误严重得多。
+Because syntax error or grammatical error is much more severe than semantic errors.
+
+497
+00:41:31,310 --> 00:41:36,240
+如果你遇到任何语法错误，你应该立即停止解析。
+If you got any grammatical errors, you should really stop parsing right away.
+
+498
+00:41:36,398 --> 00:41:39,600
+所以你不应该继续去报告其他的语义错误。
+So you should not proceed to actually report other semantic error.
+
+499
+00:41:39,760 --> 00:41:41,040
+让我们看看是不是这样。
+Let's see if that's the case.
+
+500
+00:41:41,486 --> 00:41:55,680
+现在如果我再次尝试运行并运行这里的测试 0，你可以看到这里的错误信息，红色的那个，
+实际上是在说这里的第 3 行，第 2 列，1 2。
+So now if I try to run again and say test zero over here, you can see somehow the error messages here, the red one,
+is actually saying uh line number three over here and column number two, one two.
+
+501
+00:41:56,174 --> 00:42:03,280
+所以它在谈论这里的 J 等于，它在说你没有任何备选方案，没有对应的产生式。
+So it's talking about J equals over here, it's saying somehow you don't have any alternative, there's no production for that.
+
+502
+00:42:03,502 --> 00:42:10,400
+那个是合理的，因为你可以看到根据语法，你根本无法产生。
+That one makes sense because over here you can see according to the grammar, you just cannot produce.
+
+503
+00:42:10,510 --> 00:42:13,170
+你只能说 ID 冒号，不能说 ID 等于。
+You can only say ID colon, you cannot say ID equals.
+
+504
+00:42:14,606 --> 00:42:16,480
+然而，看看这是什么。
+However, see what this is.
+
+505
+00:42:16,846 --> 00:42:22,320
+所以这意味着即使在这个特定的语法错误之后，对吧？
+So that means even though after this particular syntax error, right?
+
+506
+00:42:22,574 --> 00:42:27,440
+语法错误，我们仍然报告这一行，说是第 2 行。
+Grammatical error, we still report this particular line to say line number two.
+
+507
+00:42:27,694 --> 00:42:34,240
+哦，顺便说一下，不仅你得到了语法错误，你还得到了语义错误，这其实不是真的。
+Oh, by the way, not only that you actually got a grammatical error, also you got a semantic error, that's actually not true.
+
+508
+00:42:34,478 --> 00:42:35,780
+那其实是不合适的。
+That's actually not appropriate.
+
+509
+00:42:36,078 --> 00:42:38,564
+你不应该，永远不应该尝试把两者混在一起。
+You should not you should never try to mix the two together.
+
+510
+00:42:38,880 --> 00:42:43,588
+如果有任何语法错误，只报告它们，让用户立即修复。
+If there's any grammatical error, only report them and let the user fix it right away.
+
+511
+00:42:43,982 --> 00:42:51,040
+语义错误是简单地阻止你进行进一步的语义分析，但它们不应该混在一起。
+Semantic errors are something that is simply stop you from any further semantic analysis, but they should not be mixed together.
+
+512
+00:42:51,214 --> 00:42:54,948
+所以把这两条信息混在一起不是很好。
+So mixing these two messages together is not so good.
+
+513
+00:42:55,200 --> 00:43:09,280
+好，所以我们真正想要的是稍微更高级一点的东西，让我告诉你们大致上我们应该怎么做，
+然后我会完成可执行文件的任务，然后我们就完成了这个教程视频。
+Okay, so what we really want to have is something that's a slightly more sophisticated to say let me tell you exactly roughly how we
+should do, and then I'll do the executable job, and then we are done for this tutorial video.
+
+514
+00:43:09,646 --> 00:43:13,252
+让我回到这里的 uh 主程序。
+Let me go back to our uh main program over here.
+
+515
+00:43:13,678 --> 00:43:20,800
+你可以看到这里我们只说如果程序访问者没有语义错误，对吧？
+You can see over here we only say if the program visitor has no semantic errors, right?
+
+516
+00:43:21,070 --> 00:43:22,628
+在这种情况下，我们将尝试进行求值。
+In that case, we'll try to evaluate.
+
+517
+00:43:22,960 --> 00:43:29,120
+但现在，我们并没有任何检查来判断，当解析器实际上尝试这样做时。
+But now, we didn't have any check to say, when the parser was actually trying to this.
+
+518
+00:43:29,230 --> 00:43:35,600
+呃，让我看看，具体到这一行，当解析器尝试解析起始符号时。
+uh, let me, this line specifically, when the parser was trying to parse for the start symbol.
+
+519
+00:43:35,822 --> 00:43:44,996
+如果有任何无效的、无法解析的输入部分，我们应该立即停止解析并报告错误。
+if there was any invalid, uh, part of the input that cannot be parsed,
+then we should really stop parsing right away and report the error.
+
+520
+00:43:45,230 --> 00:43:45,508
+对吧？
+right?
+
+521
+00:43:45,678 --> 00:43:46,980
+这是我们之前没提到的。
+That's something we didn't say.
+
+522
+00:43:47,214 --> 00:43:51,172
+所以看起来我们的错误检查机制还不够完善。
+So it seems like our error checking mechanism is not good enough.
+
+523
+00:43:51,360 --> 00:43:52,480
+我们想要改进这一点。
+We want to improve this.
+
+524
+00:43:52,782 --> 00:43:55,588
+好，那将是下一个视频的重点。
+Okay, that's that'll be the focus for the next video.
+
+525
+00:43:55,760 --> 00:43:59,300
+但在结束当前视频之前，我想再给你们展示一件事。
+But before I end the current video, I would like to show you one more thing.
+
+526
+00:43:59,520 --> 00:44:06,500
+好，你们已经知道如何在 Eclipse 的控制台中运行输入程序的编译器了。
+Okay, so you already know how to run the compiler from the input program from the console in the Eclipse.
+
+527
+00:44:06,670 --> 00:44:07,520
+我想再给你们展示一个方法。
+I want to show you one more.
+
+528
+00:44:07,726 --> 00:44:15,120
+好，你们也可以在你们的 personal lab 机器或者任何支持命令行的机器上尝试这个。
+Okay, you can also try this on your prison lab machine or any uh other machine you like which supports command line.
+
+529
+00:44:15,470 --> 00:44:20,260
+现在我要做的操作是，右键点击项目，然后选择导出。
+So now what I will do is I'm gonna right-click on the projects and then I would say export.
+
+530
+00:44:21,390 --> 00:44:23,972
+好，然后我要选择搜索 JAR。
+Okay, and then I'm gonna say search for jar.
+
+531
+00:44:24,750 --> 00:44:25,440
+可运行的 JAR。
+Runable jar.
+
+532
+00:44:25,600 --> 00:44:26,628
+基本上，这就是我想要的。
+Basically, that's what I want.
+
+533
+00:44:26,720 --> 00:44:30,640
+好，我建议在做这个之前。
+Okay, I would say it would be advisable before you do that.
+
+534
+00:44:30,830 --> 00:44:33,760
+好，你要快速清理一下你的项目。
+Okay, you want to clean your projects quickly.
+
+535
+00:44:33,998 --> 00:44:37,892
+点击项目，呃，点击项目，然后去项目菜单里选择清理。
+Click on the project and uh click on the project and go to projects and say clean.
+
+536
+00:44:39,854 --> 00:44:44,080
+否则，有时导出可运行的 JAR 可能会失败。
+Otherwise, sometimes uh exporting to the job, runnable job might fail.
+
+537
+00:44:44,240 --> 00:44:55,844
+有时会。好，我要右键点击并选择导出，然后在这里
+选择搜索 JAR，选择可运行的 JAR，然后点击下一步。
+Sometimes okay, so I'll right-click and say export, and then I'll go
+to search for jar over here and go for runnable jar and then next.
+
+538
+00:44:56,750 --> 00:45:00,324
+好，首先，对于启动配置，我直接选择正确的项目。
+Okay, first of all, for launch configuration, I'll simply choose the right project.
+
+539
+00:45:00,480 --> 00:45:02,480
+好，这就是运行配置。
+Okay, that's uh the run configuration.
+
+540
+00:45:02,800 --> 00:45:07,360
+你们还记得我们设置的命令行文件提示吗，好吗？
+You remember the uh command line uh file uh file prompt that we set up, okay?
+
+541
+00:45:07,440 --> 00:45:12,880
+我就把它放在这里，然后对于导出目标，这里我们选同一个项目。
+I'll just uh put it here, and then for the export destination, over here let's say putting the same project.
+
+542
+00:45:12,960 --> 00:45:21,440
+好，我要去桌面，工作空间，然后去 source 文件夹下面。
+Okay, I'll go to desktop, workspace, and then visitor go under how about source.
+
+543
+00:45:21,838 --> 00:45:24,068
+好，我就把它放在这里，好吗。
+Okay, I'll put it just right here, okay.
+
+544
+00:45:24,334 --> 00:45:30,720
+然后我就点保存，然后点击完成。
+And then I would just say save and then finish.
+
+545
+00:45:33,198 --> 00:45:35,556
+好，没问题，你就点确定。
+Okay, that's fine, you would just say okay.
+
+546
+00:45:37,902 --> 00:45:41,328
+好了，这个特定的任务实际上是保存在这里的。
+Okay, this particular job is actually uh stored over here.
+
+547
+00:45:41,582 --> 00:45:43,492
+噢，可能我忘了给它命名，对吧？
+Oh, maybe I forgot to give it a name, right?
+
+548
+00:45:43,790 --> 00:45:45,968
+那我现在可以直接在这里重命名它吗？
+So now can I just rename it over here?
+
+549
+00:45:46,208 --> 00:45:48,676
+让我快速重命名这个可执行任务。
+Let me rename the executable job very quickly.
+
+550
+00:45:49,088 --> 00:45:55,408
+让我把它改成，呃，假设叫 expression 访问者模式。
+Let me say uh let's say expression visitor.
+
+551
+00:45:55,662 --> 00:45:56,848
+好了，重命名完成。
+Okay, just rename it.
+
+552
+00:45:57,294 --> 00:45:58,980
+现在我想从命令行运行它。
+So now I want to run it from the command line.
+
+553
+00:45:59,248 --> 00:46:01,088
+好的，看看我现在在哪。
+Okay, let's see where I am.
+
+554
+00:46:01,454 --> 00:46:05,648
+我现在是在那个特定的 访问者模式 项目里，点点。
+So now in I'm in that particular uh visitor projects, dot dot.
+
+555
+00:46:06,286 --> 00:46:08,688
+我现在这里有那个特定的 JAR 文件。
+So now I do have that particular jar over here.
+
+556
+00:46:08,846 --> 00:46:09,956
+那我现在该怎么运行它呢？
+So now how can I run it?
+
+557
+00:46:10,254 --> 00:46:20,388
+好的，Java -jar expression 访问者模式 jar，然后，呃，如果我直接运行那个。
+Okay, Java minus jaw, expression visitor jar, and then uh now if I simply run that.
+
+558
+00:46:21,134 --> 00:46:25,728
+好的，这就是为什么它在提示我，呃，用法，文件名，就在这里。
+Okay, so that's why it's telling me uh usage uh file name over here.
+
+559
+00:46:25,808 --> 00:46:29,568
+当然，如果我只是在那个地方加个换行符，就可以改进一下。
+Of course, it could be improved if I just uh put a new line uh there.
+
+560
+00:46:29,870 --> 00:46:31,488
+我可以，呃，你们稍后可以加个换行符。
+I can uh you can put a new line later.
+
+561
+00:46:31,568 --> 00:46:35,876
+我现在就加上，稍后当我们重新构建 JAR 时，你们肯定可以这样做。
+I'll put it now, and later on when we rebuild a jar later, you can definitely do it.
+
+562
+00:46:36,014 --> 00:46:42,820
+好的，如果你只是通过加上文件名 
+ 来改进它，好的，那确实会有帮助。
+Okay, if you simply improve it by saying file name uh slash n, Okay, that will actually help.
+
+563
+00:46:43,054 --> 00:46:45,168
+好的，但目前这样，我们可以先这样用。
+Okay, but that's for now, we can live with that.
+
+564
+00:46:45,518 --> 00:46:47,488
+然后，现在看起来它在正常工作。
+And then so now it seems to be working.
+
+565
+00:46:47,568 --> 00:46:59,888
+现在我该做的就是，呃，调用同样的东西，然后我只需
+要输入 tests，比如 test，比如 O3，呃，test 2.txt。
+So now what I should do is I should really say uh invoke the same thing, and
+then I should just say tests, let's say test, let's say O3, uh test 2 dot txt.
+
+566
+00:47:00,494 --> 00:47:03,728
+如果我这样做，它就告诉我这些是控制台输出，对吧？
+If I do that, that tells me these are the console output, right?
+
+567
+00:47:03,808 --> 00:47:07,408
+你可以看到就像这里的可执行程序一样，就是可执行任务。
+You can see just like an executable program over here, just executable job.
+
+568
+00:47:07,568 --> 00:47:19,390
+如果你愿意，你也可以运行 Linux，呃，可能像一个可执行的 Shell脚本，
+然后你可以把这个特定的命令行，呃，这个特定的命令放入 Shell脚本中，
+And if you like, you can also run the Linux uh maybe like an executable shell script,
+and then you can actually put this particular command line, uh this particular uh command into the shell script so you can abstract it
+
+569
+00:47:19,390 --> 00:47:20,190
+这样你就可以通过编译器来抽象它，而编译器并不期望这个特定的参数，对吧？
+And if you like, you can also run the Linux uh maybe like an executable shell script,
+and then you can actually put this particular command line, uh this particular uh command into the shell script so you can abstract it
+
+570
+00:47:20,190 --> 00:47:25,808
+这样你就可以通过编译器来抽象它，而编译器并不期望这个特定的参数，对吧？
+using just maybe compiler, and the compiler is not expecting this particular argument, right?
+
+571
+00:47:26,062 --> 00:47:30,116
+你们在之前的 C 语言和 Unix 课程中学过这个。
+You learned this in your previous uh C and Unix course.
+
+572
+00:47:30,208 --> 00:47:31,568
+我就把这个留给你们去处理了。
+I'm gonna leave that to you.
+
+573
+00:47:31,950 --> 00:47:33,248
+好的，让我再试一个。
+Okay, let me try one more.
+
+574
+00:47:33,454 --> 00:47:35,888
+我可以在这里输入 test one，对吧？
+I can say test one over here, right?
+
+575
+00:47:36,142 --> 00:47:38,608
+这就是它在这里报告错误的时候，对吧？
+So that's when it's reporting error over here, right?
+
+576
+00:47:38,688 --> 00:47:40,848
+它对我们的编译器来说运行得非常好。
+It's very working pretty well for our compiler.
+
+577
+00:47:40,928 --> 00:47:49,328
+所以希望现在你们真的能体会到 ANTLR4 能为你们做什么，还有，
+你们真的非常非常需要理解这里的流程图，对吧？
+So hopefully now you can really appreciate what Antler can do for you, and again,
+you really really want to understand the flow chart over here, right?
+
+578
+00:47:49,582 --> 00:48:00,128
+现在的情况是，我们基本上是输入文件，然后运行 JAR 包，最后在终端上生成一些内容。
+What's happening right now is we are basically saying input file and then
+running the jar and then producing something to the command to the terminal.
+
+579
+00:48:00,430 --> 00:48:02,244
+好，这就是我们目前做的操作。
+Okay, that's basically what we're doing.
+
+580
+00:48:03,278 --> 00:48:14,208
+好了，这就是完整的全貌了。让我回到 Eclipse 里，做一个非常快速的总结。
+Okay, okay, so now that would be uh the complete picture for uh let me just go back into Eclipse,
+make a very quick conclude uh concluding remark.
+
+581
+00:48:14,478 --> 00:48:19,044
+所以对于这个特定的项目，ANTLR4 Example Visitor，我们已经完成了。
+So now for this particular project, Antler Example Visitor, we have done that already.
+
+582
+00:48:19,310 --> 00:48:24,964
+好，但现在我还需要做最后一件事来让它完善。
+Okay, but now there's only one more thing I need to do to make it to make it complete.
+
+583
+00:48:25,248 --> 00:48:28,608
+我们必须改进这里的这个特定错误。
+We have to improve this particular error over here.
+
+584
+00:48:28,688 --> 00:48:34,048
+再次强调，你不应该同时打印语法错误和语义错误。
+Again, you should not try to print grammatical error and also semantic error at the same time.
+
+585
+00:48:34,382 --> 00:48:38,276
+只有在没有语法错误的情况下，才应该报告语义错误。
+Semantic error should only be reported when there's no syntax error.
+
+586
+00:48:38,990 --> 00:48:40,768
+好，那我们现在该如何改进呢？
+Okay, so now how can we improve it?
+
+587
+00:48:40,942 --> 00:48:45,348
+在下一个视频中，我们将看看如何进行更合适的错误检查。
+In the next video, we're gonna see how to do some more appropriate error checking.
+
