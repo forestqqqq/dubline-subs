@@ -1,0 +1,348 @@
+1
+00:00:00,960 --> 00:00:12,320
+Hi, I'm Eduardo Sebastián and together with Eduardo Montijano and Carlos Awes, we have made the work titled All in One: Certifiable Optimal Distributed Kalman Filter Under unknown correlations.
+
+2
+00:00:14,286 --> 00:00:28,452
+So the problem of stage estimation is of paramount importance in several applications such that in this Narara Eco Village Smart Grid, in coordination in terms of drones, in active target tracking, or in the coming of the Internet of Things.
+
+3
+00:00:28,880 --> 00:00:32,036
+In all these cases, Kalman filter plays a central role.
+
+4
+00:00:32,320 --> 00:00:39,812
+And among other reasons, this is due to the fact that the Kalman filter is the optimal estimator in the mean square error sense.
+
+5
+00:00:40,750 --> 00:00:58,000
+This property is very well demonstrated in the centralized standard Kalman filter case, which is not possible to be applied in this kind of applications because it's not possible to have a central node collecting and processing the information from all the nodes of these big networks.
+
+6
+00:00:58,160 --> 00:01:05,348
+So the alternative is to try to find a distributed solution which preserves the stability and optimality properties of the original filter.
+
+7
+00:01:06,480 --> 00:01:20,228
+However, Orfati, some years ago, demonstrated that for the distributed common filter to be optimal, we need each node of the network to keep track of the whole network, which is not scalable nor implementable.
+
+8
+00:01:21,040 --> 00:01:33,572
+So the alternative is to try to find from the beginning a solution which accounts for that impossibility of keeping track of the whole network, which is technically called optimal estimation under uncorrelations.
+
+9
+00:01:33,806 --> 00:01:36,708
+This yielded to what is called diffusion common filters.
+
+10
+00:01:38,318 --> 00:01:40,960
+In this kind of filters, two are the main approaches.
+
+11
+00:01:41,262 --> 00:01:45,156
+The first one is to be aware from the beginning that we are going to be suboptimal.
+
+12
+00:01:45,550 --> 00:01:48,836
+The other is to try to resolve an NP hard optimization problem.
+
+13
+00:01:49,360 --> 00:01:56,420
+None of them tackle our objective of finding an optimality in the distributed common filter setting.
+
+14
+00:01:56,654 --> 00:01:58,308
+So something else is needed.
+
+15
+00:01:59,374 --> 00:02:03,396
+To do so, we propose certification and it works as follows.
+
+16
+00:02:04,014 --> 00:02:09,700
+Our idea is to try to find a compromise between the benefits of both worlds.
+
+17
+00:02:10,894 --> 00:02:18,404
+On one hand, we find a solution of a convex, relaxed solution of the original one, which is easy to implement and find.
+
+18
+00:02:18,734 --> 00:02:33,348
+And then we develop a procedure to check if the solution of that suboptimal optimization, which is generally not optimal, is indeed equivalent to the original MPHL optimization problem solution we are trying to find.
+
+19
+00:02:33,870 --> 00:02:39,396
+If this process is positive, then we are going to be able to say that we are being optimal indeed.
+
+20
+00:02:39,790 --> 00:02:41,252
+And that's certification.
+
+21
+00:02:41,486 --> 00:02:42,596
+And that's what we do.
+
+22
+00:02:43,662 --> 00:03:01,124
+Our proposal with this work is code EKGF, the first distributed common filter with certifiability warranties, which means that under these warranties, we find an optimal filter estimator in the mean square error sense under a known correlations.
+
+23
+00:03:01,646 --> 00:03:06,020
+Moreover, this optimality can be checked locally and online by each node.
+
+24
+00:03:07,040 --> 00:03:26,692
+And it is a globally asymptotically stable estimator, while preserving some other very interesting properties from other distributed common filters from the state of the art, like fully distribution, small communication burden, working with heterogeneous sensors, and an amazing property that no tuning is required.
+
+25
+00:03:27,120 --> 00:03:36,644
+So the problem in particular we are trying to solve is to find, estimate the state of a linear discrete system affected by zero mean Gaussian noise.
+
+26
+00:03:36,960 --> 00:03:44,004
+To do so, we have a network of nodes where each node is equipped with a linear sensor affected by zero mean Gaussian noise as well.
+
+27
+00:03:45,184 --> 00:03:48,704
+Each node keeps track of two important quantities.
+
+28
+00:03:48,974 --> 00:03:52,036
+The first one are the predicted and updated estimation.
+
+29
+00:03:52,206 --> 00:04:02,144
+And associated with it, we have a matrix, an error covariance matrix, which is not possible to know in advance because we don't know the real state of the system.
+
+30
+00:04:02,224 --> 00:04:06,628
+So we have their corresponding predicted and updated version of that matrix.
+
+31
+00:04:07,630 --> 00:04:12,864
+So our proposal, code the KJF algorithm, is composed by five different steps.
+
+32
+00:04:13,024 --> 00:04:15,300
+Four of them are very well studied.
+
+33
+00:04:15,424 --> 00:04:17,636
+So I'm not going to go into details about them.
+
+34
+00:04:17,824 --> 00:04:23,268
+The important one, the one we are interested in, is the middle step, the fusion of estimates.
+
+35
+00:04:23,790 --> 00:04:30,212
+It is the tricky part because the fusion of estimates is affected by the correlation among estimations.
+
+36
+00:04:31,424 --> 00:04:39,332
+And this is very important because this is the step which allows us to claim optimality and certifiability in our solution.
+
+37
+00:04:40,046 --> 00:04:46,148
+Since it is the core of our proposal, is the thing I'm going to explain now in the talk.
+
+38
+00:04:47,184 --> 00:04:58,756
+So imagine we have a node where at some instant we have to fusion two estimates, S1 and S2, which are the inverse of their covariance matrices, and represented by these blue ellipsoids.
+
+39
+00:04:59,150 --> 00:05:02,116
+The region in red is the intersection of these ellipsoids.
+
+40
+00:05:02,224 --> 00:05:14,628
+And the important thing about this polytope is that irrespective of the correlation among estimates, the result, this green ellipsoid, for example, is going to be inside this polytope.
+
+41
+00:05:15,310 --> 00:05:22,084
+But since we don't know that correlation, the best we can do is to try to find the smallest ellipsoid which surrounds that polytope.
+
+42
+00:05:22,702 --> 00:05:32,420
+We are being consistent because independently on the correlation among estimates, the green ellipsoid is going to be inside our purple desired ellipsoid.
+
+43
+00:05:33,358 --> 00:05:38,144
+And we are being optimal because we are finding the smallest one surrounding completely the polytope.
+
+44
+00:05:38,414 --> 00:05:44,516
+This is the outer Launer John ellipsoid, and that's what we are doing in our fusion of estimates in code the KF algorithm.
+
+45
+00:05:45,344 --> 00:05:55,940
+The mathematical translation of this objective is this optimization problem, which as you can see is not up, is non-convex due to this NP hard constraint, the rank one constraint.
+
+46
+00:05:56,224 --> 00:05:58,980
+If we drop it out, we find a convex relaxation.
+
+47
+00:05:59,424 --> 00:06:09,956
+However, none of these optimization problems gives us a the result gives us a direct result that can be used in our code-KF algorithm.
+
+48
+00:06:10,144 --> 00:06:15,780
+We need an optimal estimation and an optimal error covariance as a result to do our estimation.
+
+49
+00:06:16,624 --> 00:06:29,540
+So the alternative we have used is a different converse relaxation, which has this form, which is the only one which gives us an optimal estimation and associated error covariance matrix as a result.
+
+50
+00:06:30,464 --> 00:06:34,784
+So now, up to now, we have three different optimization problems.
+
+51
+00:06:34,944 --> 00:06:38,304
+The first one used directly in the Code KF algorithm.
+
+52
+00:06:38,464 --> 00:06:41,828
+The two others are going to be used to certify optimality.
+
+53
+00:06:42,158 --> 00:06:53,508
+So our purpose now is to describe how we do this and what is the relationships among these three optimization problems to find certifiability and optimality.
+
+54
+00:06:54,478 --> 00:06:58,384
+This is done and demonstrated in proposition one about certifiability.
+
+55
+00:06:58,464 --> 00:07:02,724
+And two are the main relationships to do this certification process.
+
+56
+00:07:03,310 --> 00:07:11,264
+The first one is that we have found that the solution of the co-DKF optimization problem and that of the relaxed problem are equivalent.
+
+57
+00:07:11,344 --> 00:07:13,252
+So in some sense, we can exchange them.
+
+58
+00:07:14,734 --> 00:07:19,876
+The other interesting thing is that we have found that the solution of this relaxed convex problem.
+
+59
+00:07:20,526 --> 00:07:25,296
+Is equivalent to the solution of the original non-convex problem if two conditions hold.
+
+60
+00:07:25,536 --> 00:07:34,628
+The first one is that the solution of this optimization problem has rank one, as in the constraint of the original non-convex problem, DCI equal to one.
+
+61
+00:07:35,456 --> 00:07:46,596
+But among all the possible solutions of this optimization problem with rank one, the one we are interested in, the one which is equivalent, is the one that accomplishes the following.
+
+62
+00:07:47,150 --> 00:07:54,976
+The trace we are maximizing here must be equal to the inverse of the small staging value of this error covariance matrix.
+
+63
+00:07:55,278 --> 00:08:04,516
+And this condition is needed because the original non-convex problem is bounded by this inverse of the minimum A value of the error covariance matrix of this problem.
+
+64
+00:08:05,038 --> 00:08:10,656
+So when the two conditions hold, then we have reconstructed the original non-convex problem.
+
+65
+00:08:10,736 --> 00:08:18,016
+So we can use this problem, the first one of Code DKIF, to find the optimal estimates and associated error covariance.
+
+66
+00:08:18,096 --> 00:08:26,692
+And then solve the relaxed convex problem, checking the conditions to see if we are truly in the original non-convex problem solution.
+
+67
+00:08:27,696 --> 00:08:38,576
+So after resolving these nice properties about certifiability, we have the tools to demonstrate two other very important properties.
+
+68
+00:08:38,736 --> 00:08:45,536
+The first one is that Codic IF is a globally and synthetically stable algorithm irrespective of the result of the optimization.
+
+69
+00:08:45,616 --> 00:09:03,684
+And besides, if the certification is positive, then we can say that our estimator is optimal in the mean square error sense without surrendering other important properties such as this fully distribution, we need small messages, and notice that we don't need any tanning at all.
+
+70
+00:09:04,238 --> 00:09:19,716
+To verify all these properties, we have conducted several experiments over this system with its parameters, comparing the performance of our code EKF against three state-of-the-art distributed Kalman filters and the centralized Kalman filter as a baseline.
+
+71
+00:09:20,718 --> 00:09:23,588
+Two particular experiments have been conducted.
+
+72
+00:09:23,856 --> 00:09:28,576
+The first one picks randomly if a sensor is of low quality or high quality.
+
+73
+00:09:28,656 --> 00:09:35,844
+And the second one picks a random sensor and decides that it is the only sensor of high quality of the whole network.
+
+74
+00:09:36,016 --> 00:09:52,100
+The purpose of this, the motivation under this experiment is to verify that CodEKF has a very good performance even in highly noisy sparser scenarios, where the noise of the sensors is a deal.
+
+75
+00:09:53,696 --> 00:10:09,508
+And as you can see, in both experiment one and experiment two, code EKF is the best distributed Kamman filter in performance with an order of magnitude of difference with respect to the other three state-of-the-art distributed Kaman filters, this red trace.
+
+76
+00:10:09,934 --> 00:10:16,736
+Okay, and as you can see, it is also pretty close to the centralized Kalman filter in both transient and steady state.
+
+77
+00:10:17,134 --> 00:10:24,612
+But we have also need to verify if even if we are fast and accurate, if we are indeed being optimal.
+
+78
+00:10:24,896 --> 00:10:29,892
+So we have checked the conditions about certifiability in both experiments.
+
+79
+00:10:30,382 --> 00:10:38,496
+In a 96% of the cases and a 93% of the cases, the rank one condition holds in both experiment one and experiment two.
+
+80
+00:10:38,736 --> 00:10:52,836
+And as you can see, with this row almost always equal to one in both experiment one and experiment two, almost always we are near one, which means that we are almost always being optimal.
+
+81
+00:10:53,216 --> 00:10:58,336
+So our relaxation, our certification, can be safe to be tight.
+
+82
+00:10:59,214 --> 00:11:06,788
+So to conclude with, we can see that Code DKF is the first certifiable optimal distributed common filter under our correlations.
+
+83
+00:11:07,216 --> 00:11:13,796
+It is robust over heterogeneous sensor networks, needs minimal communication burden, and we don't need any tanning.
+
+84
+00:11:14,096 --> 00:11:23,492
+Moreover, it's a global asymptotically stable estimator, and it is optimal under positive certification, which is almost always accomplished.
+
+85
+00:11:24,416 --> 00:11:33,056
+And finally, we have exhibit superior performance with respect to other state of the art distributed common filters, especially in sparse, highly noisy scenarios.
+
+86
+00:11:34,094 --> 00:11:37,956
+Finally, ending up, I would like to acknowledge the support of our founders.
+
+87
+00:11:39,118 --> 00:11:42,180
+Thank you very much, and I'm open for any questions you may have.
+
