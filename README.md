@@ -35,6 +35,7 @@
 | [EECS4302 ANTLR4 Parser Generator Tutorial: Part 5](medias/4M0F7/) | Jackie Wang | 2026-11-13 |
 | [5-Langchain Series-Advanced RAG Q&A Chatbot With Chain And Retrievers Using Langchain](medias/3YHWC/) | Krish Naik | 2026-11-13 |
 | [2-Langchain Series-Building Chatbot Using Paid And Open Source LLM's using Langchain And Ollama](medias/241H6/) | Krish Naik | 2026-11-13 |
+| [Guardrails with LangChain: A Complete Crash Course for Building Safe AI Agents](medias/1MY3D/) | Krish Naik | 2026-11-13 |
 | [AI Agents for Data Engineering Workflows: Best Practices & Challenges](medias/ZGST2/) | Upriver | 2026-11-12 |
 | [Co-Design Bench: Multimodal Coding Agents (Deep Dive)](medias/Z1EN8/) | Latent AI | 2026-11-12 |
 | [How Do We Know AI Is Getting Better?](medias/VVWC2/) | fal | 2026-11-12 |
