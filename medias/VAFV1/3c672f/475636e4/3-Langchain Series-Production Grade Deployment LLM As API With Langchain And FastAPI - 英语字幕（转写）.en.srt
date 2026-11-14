@@ -1,0 +1,1728 @@
+1
+00:00:00,814 --> 00:00:01,348
+Hello guys.
+
+2
+00:00:01,742 --> 00:00:03,876
+So we are going to continue the Langchain series.
+
+3
+00:00:04,080 --> 00:00:12,356
+Already in our previous video, we have already seen how to create chatbots with the help of both OpenAI API and open source LLM models like Lama 2.
+
+4
+00:00:12,750 --> 00:00:19,076
+We have also seen what is the use of OLAMA, how you can run all these open source models locally in your system.
+
+5
+00:00:19,600 --> 00:00:24,580
+And along with this, we also created multiple end-to-end projects using both of them.
+
+6
+00:00:25,198 --> 00:00:32,868
+Now what we are going to do in this specific video, one more step which is very much important for our production gate deployment that is creating APIs.
+
+7
+00:00:33,262 --> 00:00:43,524
+You know, for all this kind of LLM models, we will be able to create APIs, and through this, you will also be able to do the deployment in a very efficient manner.
+
+8
+00:00:44,238 --> 00:00:50,916
+Now, how we are going to create this specific APIs, there is a very important component which is called as Langserve in Langchain.
+
+9
+00:00:51,150 --> 00:00:52,160
+We're going to use that.
+
+10
+00:00:52,366 --> 00:00:54,596
+Along with this, we are going to use Fast API.
+
+11
+00:00:56,142 --> 00:01:01,600
+And not only that, we'll also create a Sag Swagger UI which is already provided by Langchain.
+
+12
+00:01:02,478 --> 00:01:05,188
+The Langserve library that we are specifically going to use.
+
+13
+00:01:05,774 --> 00:01:15,524
+Now it is important, guys, you know this specific step because tomorrow, if you are also developing any application, you obviously want to do the deployment for that particular application.
+
+14
+00:01:15,886 --> 00:01:21,220
+So creating the entire API for this application will be the first task that will be required.
+
+15
+00:01:21,840 --> 00:01:24,000
+So uh yes, let's continue.
+
+16
+00:01:24,080 --> 00:01:26,564
+Let's go ahead and uh discuss this entire thing.
+
+17
+00:01:26,862 --> 00:01:34,372
+First of all, how we are going to go ahead, first of all, I'm going to show you the theoretical intuition, how we are going to develop it, and then we will start the coding part.
+
+18
+00:01:35,120 --> 00:01:37,764
+So let me quickly go ahead and share my screen.
+
+19
+00:01:38,222 --> 00:01:43,680
+What we are actually going to do over here, over here, I've seen you have seen that I've written APIs for deployment.
+
+20
+00:01:43,760 --> 00:01:44,036
+Okay.
+
+21
+00:01:44,462 --> 00:01:48,880
+So if I consider this diagram, this is the most simplistic diagram that I could draw.
+
+22
+00:01:49,040 --> 00:01:49,360
+Okay.
+
+23
+00:01:49,760 --> 00:01:50,880
+Now let's consider.
+
+24
+00:01:51,120 --> 00:01:57,190
+See, um, the at the end of the day, in companies, right, uh, there will be different uh applications.
+
+25
+00:01:57,358 --> 00:02:00,964
+this applications are obviously created by software engineers, right?
+
+26
+00:02:01,294 --> 00:02:04,580
+It can be a mobile app, it can be a desktop app, web app, and all.
+
+27
+00:02:05,326 --> 00:02:18,640
+Now, for this particular app, if I want to integrate uh any foundation model or any fine-tuned foundation model like LLMs and all, um, so what I really need to do is that I need to integrate this with the form of APIs.
+
+28
+00:02:18,830 --> 00:02:21,280
+At the end of the day, see what we are going to do over here.
+
+29
+00:02:21,360 --> 00:02:24,000
+This side is my LLM models itself, right?
+
+30
+00:02:24,302 --> 00:02:27,360
+It can be a fine-tuned LLM models, it can be a foundation model.
+
+31
+00:02:27,440 --> 00:02:31,236
+I want to use those functionality along with my web app or a mobile app.
+
+32
+00:02:31,726 --> 00:02:35,300
+So, what we are doing is over here is that we will create this specific APIs.
+
+33
+00:02:35,694 --> 00:02:39,044
+Now, this APIs will be having routes, okay.
+
+34
+00:02:39,470 --> 00:02:50,980
+Routes, and this routes will be responsible whether we have to probably interact with OpenAI or whether we have to interact with other LLM model like Cloud 3, Cloudy 3, or Llama 2 open source model.
+
+35
+00:02:51,374 --> 00:03:00,772
+So, any number of LLM models, whether it is open source or whether it is paid API models specifically for LLM, we can definitely use it.
+
+36
+00:03:01,120 --> 00:03:03,920
+Now, this is what we are going to do in this video.
+
+37
+00:03:04,398 --> 00:03:13,956
+We will create this separately, we will create this separately, and at the end of the day, I'll also give you an option through routes how you can integrate with multiple LLM models.
+
+38
+00:03:14,480 --> 00:03:14,800
+Right?
+
+39
+00:03:14,880 --> 00:03:20,548
+So I hope you have got an idea with respect to this and any number of LLM models that may probably come, you can probably integrate it.
+
+40
+00:03:20,880 --> 00:03:25,604
+At the end of the day, whichever model is suitable for you, you can use for different functionality.
+
+41
+00:03:26,080 --> 00:03:32,644
+And the reason why I'm making this video, understand one thing, guys, because in LLMs also you have different performance metrics.
+
+42
+00:03:33,326 --> 00:03:39,440
+Some model is very good at some performance metrics over there, like MMLU, other other metrics are definitely there.
+
+43
+00:03:39,534 --> 00:03:42,148
+So, this is an option where we can use multiple LLM models.
+
+44
+00:03:42,830 --> 00:03:47,236
+Now, what we are going to do quickly, I will go ahead and open my code document.
+
+45
+00:03:47,726 --> 00:03:52,688
+So, in in my previous video, already you have seen I had actually developed till here, right?
+
+46
+00:03:52,848 --> 00:03:57,860
+I have basically, if you see over here, we have created this first folder that is chatbot.
+
+47
+00:03:58,254 --> 00:04:05,808
+And inside this chatbot, we had created app.py, then local llama.py, and right, we with this did this entire thing.
+
+48
+00:04:05,888 --> 00:04:11,076
+And as I said, every tutorial I'll keep on creating folders and developing our own project over here.
+
+49
+00:04:11,630 --> 00:04:16,036
+Now let's go ahead and create my second folder, and this time this will be APIs.
+
+50
+00:04:16,288 --> 00:04:19,968
+Okay, so I'll just go ahead and write something like API.
+
+51
+00:04:20,142 --> 00:04:20,420
+Okay.
+
+52
+00:04:20,878 --> 00:04:27,728
+Now with respect to this API, as I said, whatever we do with this local llama or app.py, right?
+
+53
+00:04:27,808 --> 00:04:29,888
+Over here I've used OpenAI API key.
+
+54
+00:04:29,968 --> 00:04:31,728
+Here I've used open source models.
+
+55
+00:04:31,854 --> 00:04:35,008
+So we'll try to integrate both of them in the form of routes.
+
+56
+00:04:35,118 --> 00:04:37,156
+Okay, so that we'll be able to create an API.
+
+57
+00:04:37,742 --> 00:04:40,448
+So let me quickly go ahead and write over here app.py.
+
+58
+00:04:40,942 --> 00:04:44,928
+So one will be my app.py which will be responsible in creating all the APIs.
+
+59
+00:04:45,088 --> 00:04:48,288
+The second one will specifically be my client.py.
+
+60
+00:04:48,750 --> 00:04:57,648
+Now client.py in this specific diagram is just imagine like this one web app or mobile app because we are going to integrate this APIs with this mobile app or web app.
+
+61
+00:04:57,728 --> 00:04:58,020
+Okay.
+
+62
+00:04:58,638 --> 00:04:59,808
+So quickly let's do this.
+
+63
+00:05:00,048 --> 00:05:03,684
+First of all, I will go ahead and start writing the code in app.py.
+
+64
+00:05:04,590 --> 00:05:09,568
+Before I go ahead, we have to make sure that we need to update all the requirement.txt.
+
+65
+00:05:09,888 --> 00:05:14,148
+Almost all the libraries have installed it, but I'm going to install more three libraries.
+
+66
+00:05:14,670 --> 00:05:17,220
+One is LangSurf, Fast API, and UVCon.
+
+67
+00:05:17,408 --> 00:05:21,668
+Okay, since I'm going to create my entire swagger documentation of API using Fast API.
+
+68
+00:05:21,808 --> 00:05:22,116
+Right.
+
+69
+00:05:22,222 --> 00:05:24,368
+So all these three libraries I'll be using it.
+
+70
+00:05:24,528 --> 00:05:30,768
+So first of all, I will go ahead and install all these libraries that will do once we run the code.
+
+71
+00:05:30,848 --> 00:05:33,444
+Right now, let's go ahead and write my app.py code.
+
+72
+00:05:33,728 --> 00:05:33,988
+Okay.
+
+73
+00:05:34,848 --> 00:05:39,844
+Now as usual, first of all, uh let me just open my terminal.
+
+74
+00:05:40,208 --> 00:05:40,528
+Okay.
+
+75
+00:05:41,998 --> 00:05:44,420
+And let me do one thing with respect to the terminal.
+
+76
+00:05:44,878 --> 00:05:53,240
+I will go ahead and write pip install pip install minus our requirement dot txt.
+
+77
+00:05:55,598 --> 00:05:59,808
+Okay, first of all, I need to just write cd dot dot.
+
+78
+00:06:00,366 --> 00:06:06,564
+Okay, then I'll clear the screen and then go ahead and write pip install minus r requirement.txt.
+
+79
+00:06:07,278 --> 00:06:11,168
+Now here you'll be able to see that my entire installation will start taking place.
+
+80
+00:06:11,408 --> 00:06:14,848
+And here uh the other three packages that I have actually written, right?
+
+81
+00:06:15,008 --> 00:06:17,540
+Langserve and all that will get particular installed.
+
+82
+00:06:17,728 --> 00:06:17,988
+Okay.
+
+83
+00:06:18,670 --> 00:06:21,328
+Now uh till then installation is basically going on.
+
+84
+00:06:21,486 --> 00:06:22,688
+Let me go ahead and write my code.
+
+85
+00:06:22,798 --> 00:06:31,008
+So I will write from fast api import fast api.
+
+86
+00:06:31,248 --> 00:06:37,008
+Okay, so this is the first uh first library that I'm going to import.
+
+87
+00:06:37,248 --> 00:06:42,852
+Along with this, I have to also make sure that I create or I import my chat prompt template.
+
+88
+00:06:43,168 --> 00:06:54,660
+So from lang chain since we are going to create an entire API, is in this okay dot prompt import chat prompt template, right?
+
+89
+00:06:59,694 --> 00:07:00,484
+So this is done.
+
+90
+00:07:01,248 --> 00:07:12,688
+Then from lang chain dot chat underscore models import chat openai.
+
+91
+00:07:13,008 --> 00:07:18,608
+So this is the next one, since I need to make sure that I need to create a chat chat application.
+
+92
+00:07:18,734 --> 00:07:20,928
+so that is the reason why I'm using this chat models.
+
+93
+00:07:21,008 --> 00:07:21,408
+okay?
+
+94
+00:07:21,806 --> 00:07:24,928
+Uh, this is the next library that I'll be going ahead and importing.
+
+95
+00:07:25,008 --> 00:07:30,148
+Along with this, I will also use Langserf which will be responsible in creating my entire APIs.
+
+96
+00:07:30,448 --> 00:07:30,688
+Right?
+
+97
+00:07:31,118 --> 00:07:33,796
+So, from Langserv, import add routes.
+
+98
+00:07:34,288 --> 00:07:34,608
+Okay?
+
+99
+00:07:34,798 --> 00:07:39,008
+So, through this, I will be able to add all the routes over there, right?
+
+100
+00:07:39,088 --> 00:07:43,968
+Whatever routes, suppose one route will be that I need to interact with my opening.
+
+101
+00:07:44,208 --> 00:07:50,084
+API one one route will be to interact with the llama to and all, so based on that, I will go ahead and import this.
+
+102
+00:07:50,606 --> 00:07:55,648
+Next thing is import uvicon, okay?
+
+103
+00:07:56,142 --> 00:07:58,180
+Uvicon will be required over here.
+
+104
+00:08:03,470 --> 00:08:06,276
+Okay, next is import OS.
+
+105
+00:08:07,118 --> 00:08:12,816
+See, I can probably enable my GitHub Copilot and I can probably write the code, but I don't think so.
+
+106
+00:08:12,896 --> 00:08:14,256
+That will be a better way.
+
+107
+00:08:14,606 --> 00:08:22,976
+Uh, I usually use this AI tool which is called as black box, uh, so that it will help me to write my code faster and uh you know it also explains about the code.
+
+108
+00:08:23,150 --> 00:08:25,056
+So I'll probably create another video about it.
+
+109
+00:08:25,136 --> 00:08:27,556
+Okay, so how to basically use this.
+
+110
+00:08:27,776 --> 00:08:31,236
+Then one more thing that I really want to import over here is my ollama.
+
+111
+00:08:31,598 --> 00:08:39,652
+So from Langchin community dot lms dot llms import Oh, llama.
+
+112
+00:08:39,936 --> 00:08:41,828
+Okay, so this is done.
+
+113
+00:08:42,256 --> 00:08:45,936
+All the libraries that is specifically required by my code.
+
+114
+00:08:46,016 --> 00:08:51,716
+Uh I have actually written that okay, and these are all the things that I will require to create my open API.
+
+115
+00:08:52,238 --> 00:08:52,816
+Now, this is done.
+
+116
+00:08:52,896 --> 00:09:00,900
+Now, what I'm actually going to do over here is that I'm just going to write os.environ and first of all I will initialize my open AI API key.
+
+117
+00:09:01,390 --> 00:09:04,228
+So I will write open AI underscore API underscore key.
+
+118
+00:09:04,656 --> 00:09:04,964
+Okay.
+
+119
+00:09:05,934 --> 00:09:20,004
+And this specifically I will load it from OS.ket env and then I will go ahead and write open AI underscore API underscore key.
+
+120
+00:09:20,256 --> 00:09:20,576
+Okay.
+
+121
+00:09:21,326 --> 00:09:23,268
+So this is the first thing that we really need to do.
+
+122
+00:09:23,726 --> 00:09:29,732
+Before I do this, I will just go back to my app.py and I will just initialize this.
+
+123
+00:09:31,246 --> 00:09:33,252
+Okay, load underscore dot ENV.
+
+124
+00:09:33,696 --> 00:09:37,412
+Let me quickly copy this entire thing and paste it over here.
+
+125
+00:09:39,886 --> 00:09:47,456
+And I will initialize this load underscore dot env.
+
+126
+00:09:47,776 --> 00:09:48,004
+Okay.
+
+127
+00:09:49,934 --> 00:09:53,936
+So this will actually help me to initialize all my environment variable.
+
+128
+00:09:54,096 --> 00:09:54,468
+Perfect.
+
+129
+00:09:55,376 --> 00:09:57,616
+I've also loaded my openEI API key.
+
+130
+00:09:57,696 --> 00:09:59,376
+Now let's start this fast API.
+
+131
+00:09:59,456 --> 00:10:03,652
+Now, in order to create the fast API, uh, I have to create an app here.
+
+132
+00:10:03,776 --> 00:10:10,852
+I've given title Langchin server version 1.0, and the third information I basically want is a description.
+
+133
+00:10:11,502 --> 00:10:16,132
+Now after this, I can use this app and I can keep on adding my routes.
+
+134
+00:10:16,336 --> 00:10:16,656
+Okay.
+
+135
+00:10:17,166 --> 00:10:24,336
+So what I will do, uh add underscore routes, and this routes is basically to add all the routes over there, right?
+
+136
+00:10:24,416 --> 00:10:32,356
+For so the first time when we are adding this particular routes, you have to make sure that I give all the information like whether I'm going up with my app.
+
+137
+00:10:32,816 --> 00:10:42,096
+Let's say I go with this chat openai API, chat openai, open AI, okay.
+
+138
+00:10:42,510 --> 00:10:45,776
+And the third information that I will probably give is my path.
+
+139
+00:10:45,856 --> 00:10:50,096
+So this is my one of my one of my uh route.
+
+140
+00:10:50,256 --> 00:10:55,172
+You can just consider this open AI route, and this is my model that I will specifically be using.
+
+141
+00:10:55,726 --> 00:10:58,656
+So this is just one way how you can actually add route.
+
+142
+00:10:58,816 --> 00:11:08,740
+Okay, but let me just add some more things because see at the end of the day when we created our first application, we used to combine prompt LLM and output parser in this specific way.
+
+143
+00:11:09,134 --> 00:11:18,948
+So, what we'll do over here is that when we are creating routes, we also need to make sure that we add all the routes in such a way that I also integrate my prompt template with it, okay.
+
+144
+00:11:19,216 --> 00:11:31,856
+So here I'm going to say model is equal to chat openai, chat openai, and I'm going to initialize this particular model, and then let me go ahead and create my other model also.
+
+145
+00:11:32,046 --> 00:11:34,596
+See OLAMA, I will just use my llama too.
+
+146
+00:11:34,816 --> 00:11:39,940
+Okay, so this model also I need to basically create it or call it, okay, because I'm I want to use multiple models.
+
+147
+00:11:40,366 --> 00:11:53,056
+So here I'm going to write LLM and here OLAMA, and this will basically be my model is equal to Llama two.
+
+148
+00:11:53,518 --> 00:11:55,524
+Okay, so I'm going to use the Lama 2 model.
+
+149
+00:11:55,950 --> 00:11:57,536
+So this is my one model over here.
+
+150
+00:11:57,616 --> 00:11:59,108
+This is my another model over here.
+
+151
+00:11:59,296 --> 00:11:59,616
+Okay.
+
+152
+00:11:59,950 --> 00:12:03,136
+Now let me go quickly go ahead and create my prompt one.
+
+153
+00:12:03,278 --> 00:12:06,116
+So my prompt one will be my chat prompt template.
+
+154
+00:12:06,926 --> 00:12:12,484
+Chat prompt template.from underscore template.
+
+155
+00:12:12,976 --> 00:12:13,296
+Okay.
+
+156
+00:12:13,486 --> 00:12:16,976
+And here I'm going to basically give one chat prompt.
+
+157
+00:12:17,136 --> 00:12:17,376
+Okay.
+
+158
+00:12:17,456 --> 00:12:20,096
+Let's say one of my interaction.
+
+159
+00:12:20,302 --> 00:12:22,692
+One I want to use open AI API.
+
+160
+00:12:23,136 --> 00:12:24,976
+Uh for open AI API.
+
+161
+00:12:25,056 --> 00:12:26,468
+Let's say I want to create an essay.
+
+162
+00:12:26,862 --> 00:12:28,772
+So I'll say write me an essay.
+
+163
+00:12:29,856 --> 00:12:31,300
+Write me an essay.
+
+164
+00:12:32,176 --> 00:12:33,936
+About a specific topic.
+
+165
+00:12:34,096 --> 00:12:35,696
+That topic I will be giving it.
+
+166
+00:12:35,776 --> 00:12:36,016
+Okay.
+
+167
+00:12:36,496 --> 00:12:37,892
+About some topic.
+
+168
+00:12:38,256 --> 00:12:38,576
+Okay.
+
+169
+00:12:39,022 --> 00:12:39,696
+Some topic.
+
+170
+00:12:39,856 --> 00:12:40,132
+Okay.
+
+171
+00:12:41,934 --> 00:12:45,988
+Around with 200 words or with 100 words.
+
+172
+00:12:46,416 --> 00:12:46,736
+Okay.
+
+173
+00:12:47,278 --> 00:12:49,456
+So this is my first prompt template.
+
+174
+00:12:49,536 --> 00:12:49,828
+Okay.
+
+175
+00:12:50,094 --> 00:12:52,576
+I'm saying this will be my prompt template.
+
+176
+00:12:52,656 --> 00:12:55,556
+Write me an essay about whatever topic I give with 100 words.
+
+177
+00:12:55,776 --> 00:12:56,096
+Okay.
+
+178
+00:12:56,256 --> 00:12:56,932
+Something like this.
+
+179
+00:12:57,518 --> 00:12:59,056
+So this let's go ahead and write this.
+
+180
+00:12:59,136 --> 00:13:00,644
+This is my first prompt template.
+
+181
+00:13:01,070 --> 00:13:03,556
+Then I will create my second prompt template.
+
+182
+00:13:03,822 --> 00:13:04,816
+Okay, this is important.
+
+183
+00:13:04,990 --> 00:13:06,256
+Just Just hear me out.
+
+184
+00:13:06,336 --> 00:13:06,564
+Okay.
+
+185
+00:13:06,926 --> 00:13:11,216
+And this prompt template will be responsible in interacting with my open source model.
+
+186
+00:13:11,310 --> 00:13:13,296
+So let me say, write me a poem.
+
+187
+00:13:13,376 --> 00:13:16,612
+I'll say write me a poem about this specific topic with 100 words.
+
+188
+00:13:17,326 --> 00:13:23,204
+So in short, this first prompt template will be interacting with this model that is chat open API.
+
+189
+00:13:23,534 --> 00:13:25,616
+Prompt 2 will be interacting with LLM model.
+
+190
+00:13:25,856 --> 00:13:28,816
+Okay, whatever LLM model I've written over here, that is llama 2.
+
+191
+00:13:28,974 --> 00:13:31,110
+Now let me go ahead and add this route.
+
+192
+00:13:31,310 --> 00:13:32,996
+So here I'll say add routes.
+
+193
+00:13:33,456 --> 00:13:33,776
+Okay.
+
+194
+00:13:34,254 --> 00:13:36,548
+And again, as usual, I will write app.
+
+195
+00:13:37,390 --> 00:13:41,616
+Now here you see I will be combining prompt or model.
+
+196
+00:13:41,936 --> 00:13:42,096
+Right?
+
+197
+00:13:42,256 --> 00:13:43,780
+Model will be chat open API.
+
+198
+00:13:44,046 --> 00:13:48,260
+And you know this prompt one is specifically for my chat open API.
+
+199
+00:13:48,496 --> 00:13:48,708
+Right.
+
+200
+00:13:49,262 --> 00:13:51,696
+Then I will also give the route path.
+
+201
+00:13:51,856 --> 00:13:53,796
+So my path will be something like this.
+
+202
+00:13:54,510 --> 00:13:54,736
+Okay.
+
+203
+00:13:55,342 --> 00:13:57,056
+And this will be my API, right?
+
+204
+00:13:57,136 --> 00:13:59,710
+So here say let's say I'll write slash essay.
+
+205
+00:14:00,238 --> 00:14:05,156
+That basically means this path is responsible in interacting with the OpenAI API.
+
+206
+00:14:05,616 --> 00:14:08,576
+And this is denoted by slash essay.
+
+207
+00:14:08,736 --> 00:14:12,740
+So that API URL that you will be getting will be ending with slash SA.
+
+208
+00:14:12,976 --> 00:14:13,252
+Okay.
+
+209
+00:14:13,550 --> 00:14:17,136
+The other route, and I can keep on adding any number of routes as you want.
+
+210
+00:14:17,294 --> 00:14:19,684
+So another route will be like with prompt 2.
+
+211
+00:14:20,142 --> 00:14:20,416
+Okay.
+
+212
+00:14:20,750 --> 00:14:22,980
+And here I'm going to basically use my LLM.
+
+213
+00:14:23,406 --> 00:14:26,308
+And let me just go ahead and write this as slash poem.
+
+214
+00:14:26,816 --> 00:14:27,056
+Okay.
+
+215
+00:14:27,374 --> 00:14:28,036
+Slash poem.
+
+216
+00:14:28,622 --> 00:14:29,696
+So this is my another route.
+
+217
+00:14:29,776 --> 00:14:30,660
+This is my another route.
+
+218
+00:14:30,816 --> 00:14:31,044
+Okay.
+
+219
+00:14:31,296 --> 00:14:34,336
+And finally, I've created two APIs in short.
+
+220
+00:14:34,416 --> 00:14:42,148
+And now here I will write if underscore underscore name underscore underscore is double equal to underscore underscore main underscore underscore.
+
+221
+00:14:42,576 --> 00:14:45,636
+Right now what we are going to do over here.
+
+222
+00:14:46,478 --> 00:14:47,776
+This is the starting of the application.
+
+223
+00:14:47,856 --> 00:14:57,316
+I will say uvicon.run and here I'm going to use my app, comma host will specifically be my local host.
+
+224
+00:14:57,536 --> 00:14:59,776
+See here I'm giving you the local host.
+
+225
+00:14:59,936 --> 00:15:04,416
+Uh this application you can run it in any server that you want, right?
+
+226
+00:15:04,496 --> 00:15:09,700
+So that is the saying that is the reason why I'm saying this is the first step towards building that production grade application.
+
+227
+00:15:10,016 --> 00:15:10,336
+Okay.
+
+228
+00:15:10,542 --> 00:15:12,164
+And the port number will be 8000.
+
+229
+00:15:12,718 --> 00:15:13,216
+Perfect.
+
+230
+00:15:13,550 --> 00:15:14,256
+So this is done.
+
+231
+00:15:14,336 --> 00:15:16,336
+I think it looks really really amazing.
+
+232
+00:15:16,416 --> 00:15:18,404
+I we have written the complete code over here.
+
+233
+00:15:18,976 --> 00:15:22,870
+And this is my entire app dot py with all the API.
+
+234
+00:15:22,976 --> 00:15:27,776
+So that basically means if I see the diagram over here, this API spot I have actually created.
+
+235
+00:15:28,016 --> 00:15:31,776
+Routes along with prompt template I have created and I have used two APIs.
+
+236
+00:15:31,856 --> 00:15:34,030
+One is OpenAI and one is llama to.
+
+237
+00:15:34,256 --> 00:15:35,716
+Two routes have specifically used.
+
+238
+00:15:36,238 --> 00:15:39,216
+Now my time is to basically create this web app and mobile app.
+
+239
+00:15:39,296 --> 00:15:42,016
+Okay and I get here I will just try to create a simple web app.
+
+240
+00:15:42,446 --> 00:15:46,628
+The reason I why I'm creating this simple web app because it will be able to interact with this.
+
+241
+00:15:46,736 --> 00:15:46,976
+Okay.
+
+242
+00:15:47,630 --> 00:15:52,612
+Now what I will do let's go ahead and run this and see whether everything is running fine or not.
+
+243
+00:15:52,896 --> 00:15:53,136
+Okay.
+
+244
+00:15:53,742 --> 00:16:00,096
+So here what I will do I will go to my C D which folder this is this is basically my API folder.
+
+245
+00:16:00,176 --> 00:16:00,496
+Okay.
+
+246
+00:16:00,846 --> 00:16:07,664
+So C D API Oops, port let's just write it.
+
+247
+00:16:09,294 --> 00:16:11,664
+Port okay, done C D.
+
+248
+00:16:12,654 --> 00:16:16,132
+I'll save this C D API.
+
+249
+00:16:16,750 --> 00:16:19,972
+Okay, and then here I'm going to write python app.py.
+
+250
+00:16:20,224 --> 00:16:20,516
+Okay.
+
+251
+00:16:20,910 --> 00:16:29,796
+Now once I execute this from lang chem uh lang chain.prompts, uh just let me see the documentation whether it is correct or not, it should be prompts.
+
+252
+00:16:30,064 --> 00:16:34,820
+Okay, so a small issue over here, it should be prompts.
+
+253
+00:16:35,630 --> 00:16:37,348
+Now let me just go ahead and execute it.
+
+254
+00:16:37,838 --> 00:16:39,664
+Now I think it should work fine.
+
+255
+00:16:42,304 --> 00:16:49,184
+so here you can see import error uh SSE starlet.
+
+256
+00:16:49,424 --> 00:16:52,580
+Okay, so this is one of the dependency that is probably coming up.
+
+257
+00:16:53,264 --> 00:16:56,548
+I will quickly go ahead and update my requirement.txt.
+
+258
+00:16:57,264 --> 00:17:03,396
+Okay, and let me do one thing, just let me write pip install this particular application.
+
+259
+00:17:03,584 --> 00:17:09,924
+Okay, so I will go right pip install control v.
+
+260
+00:17:10,144 --> 00:17:16,464
+Oops, pip install ssc starlet.
+
+261
+00:17:16,624 --> 00:17:20,356
+Okay, so once this installation will probably happen, I think now we'll not get an error.
+
+262
+00:17:20,910 --> 00:17:24,224
+Now, if I write python app.py, it should run, I guess.
+
+263
+00:17:25,358 --> 00:17:27,044
+So it is now running, okay.
+
+264
+00:17:27,470 --> 00:17:30,270
+Uh so let's go ahead and open this localhost.
+
+265
+00:17:31,024 --> 00:17:39,904
+now here you can see I'm getting details not found, but if you really want to see that entire APIs that is basically created, you can just write slash /docs.
+
+266
+00:17:40,814 --> 00:17:43,172
+Now, here you can see your entire language and server.
+
+267
+00:17:43,264 --> 00:17:46,667
+See, I've created open AI input schema, everything is given.
+
+268
+00:17:46,667 --> 00:17:50,500
+essay, essay is also there, poem is also there, and all, right?
+
+269
+00:17:51,118 --> 00:17:52,864
+So all the APIs is almost created.
+
+270
+00:17:53,134 --> 00:17:57,664
+See, here you can see what is the input, what is the output, output schema, what is it is basically required.
+
+271
+00:17:57,744 --> 00:18:02,384
+Everything is probably given over here, and this is basically called as a swagger UI documentation.
+
+272
+00:18:02,542 --> 00:18:05,184
+Okay, the entire swagger UI documentation is done.
+
+273
+00:18:05,344 --> 00:18:06,464
+Now, perfect.
+
+274
+00:18:07,726 --> 00:18:09,732
+Your APIs part is basically created.
+
+275
+00:18:10,062 --> 00:18:12,144
+Now, how do we interact with this APIs?
+
+276
+00:18:12,304 --> 00:18:13,540
+That is the most important part.
+
+277
+00:18:13,838 --> 00:18:22,276
+So, for that, what we are going to basically do, I'm going to uh let let you let let let let this terminal be hidden over here.
+
+278
+00:18:22,574 --> 00:18:24,836
+I'm going to create my client.py.
+
+279
+00:18:25,024 --> 00:18:34,884
+Okay, now with respect to the client.py, what we are going to do, and let me do one thing till then I will go ahead and disable this extension, okay?
+
+280
+00:18:35,758 --> 00:18:38,884
+Because I don't want this extension to disturb things.
+
+281
+00:18:40,302 --> 00:18:43,364
+Okay, disable perfect.
+
+282
+00:18:47,886 --> 00:18:50,624
+I will show you this extension, it is a very powerful extension.
+
+283
+00:18:50,734 --> 00:18:54,944
+Okay, now this client py is my app, it can be my app.
+
+284
+00:18:55,150 --> 00:18:58,244
+Okay, so first of all, what I'll do, I will go ahead and import requests.
+
+285
+00:18:59,054 --> 00:19:10,224
+Okay, after importing request, I'm going to write import streamlet as streamlet as st okay.
+
+286
+00:19:10,574 --> 00:19:14,224
+So two libraries I'm going to import request and streamlet.
+
+287
+00:19:14,624 --> 00:19:19,184
+Understand I'm creating a web app, I can create a front end that will interact with the API.
+
+288
+00:19:19,264 --> 00:19:23,812
+Okay, so here first of all, I will write two definition or two important functions.
+
+289
+00:19:24,224 --> 00:19:38,724
+One is uh get underscore open AI underscore response, and here I'm going to basically go ahead and write my input underscore text.
+
+290
+00:19:39,598 --> 00:19:39,824
+Okay.
+
+291
+00:19:41,134 --> 00:19:47,152
+Here I will call, I will probably call use this request object and create my response.
+
+292
+00:19:47,312 --> 00:19:51,172
+Now, in order to create the response, in order to call the API, how do I do it?
+
+293
+00:19:51,566 --> 00:19:52,991
+So here I'm going to write request.
+
+294
+00:19:52,991 --> 00:19:57,472
+dot post And how to basically call it.
+
+295
+00:19:57,582 --> 00:19:59,712
+So first of all, I need to give the URL.
+
+296
+00:20:00,046 --> 00:20:03,152
+Understand we are already running this URL, right?
+
+297
+00:20:03,470 --> 00:20:04,432
+This entire local host.
+
+298
+00:20:04,512 --> 00:20:07,472
+If you probably see over here, everything is running over here, right?
+
+299
+00:20:07,982 --> 00:20:15,620
+If you if you see this, okay, if you probably see this and try to try to see this entire URL, okay.
+
+300
+00:20:16,238 --> 00:20:24,772
+You can directly see that in order to call these APIs, I will be using a URL that is already provided by this particular swagger UI.
+
+301
+00:20:24,912 --> 00:20:28,992
+That is nothing but let's say I want to call the SA URL.
+
+302
+00:20:29,152 --> 00:20:29,472
+Okay.
+
+303
+00:20:29,838 --> 00:20:37,392
+Now in order to call the SA URL, which is using the OpenAI API, here you can see HTTP localhost 8000 SA slash invoke.
+
+304
+00:20:37,472 --> 00:20:41,988
+So this is my entire API URL, which will be responsible in calling this.
+
+305
+00:20:42,272 --> 00:20:45,072
+And here we also know that we need to give one input.
+
+306
+00:20:45,230 --> 00:20:52,516
+So what I will do, I will go ahead and write over here as JSON is equal to, and in the form of JSON, I will give one of my input.
+
+307
+00:20:52,814 --> 00:20:54,752
+So input colon.
+
+308
+00:20:55,312 --> 00:20:55,632
+Okay.
+
+309
+00:20:56,174 --> 00:20:58,832
+And here I will write topic.
+
+310
+00:20:59,022 --> 00:20:59,712
+Why topic?
+
+311
+00:20:59,792 --> 00:21:01,872
+Because see, here what we are given over here.
+
+312
+00:21:01,952 --> 00:21:03,716
+If you see over here, topic is there, right?
+
+313
+00:21:04,142 --> 00:21:12,900
+Now this topic will be nothing but whatever input text I am giving to this particular function, that same input text will be visible over here.
+
+314
+00:21:13,518 --> 00:21:13,792
+Okay.
+
+315
+00:21:15,150 --> 00:21:17,252
+So this is what we have actually done over here, right?
+
+316
+00:21:17,518 --> 00:21:20,292
+So input topic colon input underscore text.
+
+317
+00:21:20,432 --> 00:21:27,472
+So this is what is the input I will give, and it will hit this particular URL along with this particular input post.
+
+318
+00:21:27,712 --> 00:21:30,672
+Okay, and then finally I get my response.
+
+319
+00:21:30,766 --> 00:21:31,552
+Now what I will do?
+
+320
+00:21:31,632 --> 00:21:46,752
+I will go ahead and take this response, convert into a JSON, and it has a key dictionary value pairs, which where my output content will be present inside this variable called as output, and one more thing that I require is basically content.
+
+321
+00:21:46,862 --> 00:21:50,660
+Okay, so inside this key my entire response will be available.
+
+322
+00:21:51,278 --> 00:21:57,572
+The next thing that I am actually going to do is similar with the help of OLAMA response, and here we are going to use Lama2.
+
+323
+00:21:58,158 --> 00:22:01,712
+So get Olama response input text again request.post.
+
+324
+00:22:01,792 --> 00:22:07,312
+Now instead of using this slash essay slash invoke, we are going to use slash poem slash invoke.
+
+325
+00:22:07,438 --> 00:22:08,912
+Why slash poem slash invoke?
+
+326
+00:22:09,166 --> 00:22:12,484
+Because slash poem will be responsible in interacting with llama2.
+
+327
+00:22:12,752 --> 00:22:12,992
+Okay.
+
+328
+00:22:13,454 --> 00:22:14,992
+And then I get my JSON again.
+
+329
+00:22:15,072 --> 00:22:16,592
+I uh I get my response.
+
+330
+00:22:16,846 --> 00:22:19,152
+Here I'm writing response.json of output.
+
+331
+00:22:19,278 --> 00:22:23,652
+Okay, so these are my two functions that I've actually created to get the response.
+
+332
+00:22:24,302 --> 00:22:25,632
+Now what let me do one thing.
+
+333
+00:22:25,712 --> 00:22:28,192
+Now let me go ahead and create my streamlit framework.
+
+334
+00:22:28,352 --> 00:22:29,124
+Very simple now.
+
+335
+00:22:29,678 --> 00:22:31,232
+Now from here everything will be simple.
+
+336
+00:22:31,312 --> 00:22:32,930
+Okay, so st dot title.
+
+337
+00:22:32,992 --> 00:22:33,892
+this this is there.
+
+338
+00:22:34,254 --> 00:22:35,748
+I've created two text box.
+
+339
+00:22:35,952 --> 00:22:39,076
+One is input text and one is input text one.
+
+340
+00:22:39,630 --> 00:22:42,512
+First text box I'm saying write an essay on whatever topic.
+
+341
+00:22:42,766 --> 00:22:45,924
+The second text box I'm writing write a poem of any other topic.
+
+342
+00:22:46,032 --> 00:22:46,352
+Okay.
+
+343
+00:22:46,862 --> 00:22:51,588
+So first one will be interacting with the open AI application, the second one will be interacting with Lama 2.
+
+344
+00:22:51,792 --> 00:22:52,032
+Okay.
+
+345
+00:22:52,430 --> 00:22:58,192
+And finally, I'm going to call this particular two function that I have created.
+
+346
+00:22:58,478 --> 00:23:04,740
+If input.txt, if I write any text in the first time, then it should basically interact with the OpenAI response.
+
+347
+00:23:04,974 --> 00:23:07,392
+Whatever response I'm getting, it will display it over here.
+
+348
+00:23:07,662 --> 00:23:14,628
+If input text one, I'll just call the OLAMA response, which is interacting with the Lama 2 on this particular URL.
+
+349
+00:23:14,832 --> 00:23:15,076
+Okay.
+
+350
+00:23:15,406 --> 00:23:17,892
+And then I will get the over here the output.
+
+351
+00:23:18,286 --> 00:23:23,460
+So this is my entire application which is interacting with the API which is already running over here.
+
+352
+00:23:23,712 --> 00:23:30,180
+Right now, with respect to this client dot py what I am actually going to do, I'm going to create another command prompt and let me run this.
+
+353
+00:23:30,672 --> 00:23:30,992
+Okay.
+
+354
+00:23:31,726 --> 00:23:36,868
+So here I will say uh conda deactivate.
+
+355
+00:23:37,742 --> 00:23:41,700
+And I will say conda activate VNV.
+
+356
+00:23:42,926 --> 00:23:43,152
+Okay.
+
+357
+00:23:43,758 --> 00:23:45,312
+And let me just go ahead and run this now.
+
+358
+00:23:45,392 --> 00:23:48,512
+See python client.py.
+
+359
+00:23:48,832 --> 00:23:49,152
+Okay.
+
+360
+00:23:50,446 --> 00:23:52,292
+Okay, sorry, it should be streamlit.
+
+361
+00:23:53,230 --> 00:23:55,472
+Streamlit run.
+
+362
+00:23:57,070 --> 00:23:58,724
+Client.py okay.
+
+363
+00:23:59,008 --> 00:24:00,368
+So this is my client side.
+
+364
+00:24:00,448 --> 00:24:01,728
+Okay, file does not exist.
+
+365
+00:24:01,808 --> 00:24:02,048
+Okay.
+
+366
+00:24:02,368 --> 00:24:06,564
+Oh, I will say C D and I will go to my folder that is API.
+
+367
+00:24:06,894 --> 00:24:09,648
+Now let me go ahead and write streamlet run client.py.
+
+368
+00:24:09,728 --> 00:24:10,148
+Now see this.
+
+369
+00:24:11,086 --> 00:24:12,580
+This is my swaggered UI.
+
+370
+00:24:12,750 --> 00:24:19,968
+The API is running over here, and this is my front end application, which is basically in now it will interact with this API.
+
+371
+00:24:20,288 --> 00:24:20,528
+Okay.
+
+372
+00:24:20,814 --> 00:24:27,300
+Now if I write the first one, the first the first anything in the first text box, this is going to interact with the opening API.
+
+373
+00:24:27,566 --> 00:24:30,308
+So I'll say write an essay on machine learning.
+
+374
+00:24:31,822 --> 00:24:32,048
+Okay.
+
+375
+00:24:33,006 --> 00:24:36,928
+So here you can see name get open AI response is not defined.
+
+376
+00:24:37,008 --> 00:24:38,128
+Why this is the error?
+
+377
+00:24:38,606 --> 00:24:38,884
+Let's see.
+
+378
+00:24:40,686 --> 00:24:42,148
+Open AI response.
+
+379
+00:24:43,950 --> 00:24:45,248
+Oops, just a second.
+
+380
+00:24:45,328 --> 00:24:47,876
+This function name is does not match.
+
+381
+00:24:50,094 --> 00:24:53,348
+And this also oh lama response does not match or what?
+
+382
+00:24:53,870 --> 00:24:55,268
+Okay, now I think it should work.
+
+383
+00:24:55,790 --> 00:24:56,740
+Let's reload it.
+
+384
+00:24:57,088 --> 00:24:57,408
+Okay.
+
+385
+00:24:59,534 --> 00:25:03,568
+Now you can see automatically machine learning is a powerful technology that enables computer.
+
+386
+00:25:03,648 --> 00:25:04,388
+This, this, this.
+
+387
+00:25:04,654 --> 00:25:07,588
+So the first text box is interacting with the open AIPI.
+
+388
+00:25:07,982 --> 00:25:10,208
+Write a poem poem on machine learning.
+
+389
+00:25:10,288 --> 00:25:12,932
+Let's say if I give the same thing, if I execute it.
+
+390
+00:25:13,294 --> 00:25:15,088
+Now this is going to interact with the Lama 2.
+
+391
+00:25:15,278 --> 00:25:19,076
+So machine learning is a field of order that allows computers to make decision or still running.
+
+392
+00:25:19,168 --> 00:25:19,648
+Sorry.
+
+393
+00:25:19,918 --> 00:25:22,404
+Uh, this was the first response that I got from them.
+
+394
+00:25:23,088 --> 00:25:26,288
+Uh okay, it's running, I guess.
+
+395
+00:25:26,448 --> 00:25:27,268
+Let me reload it.
+
+396
+00:25:28,688 --> 00:25:31,556
+Write a poem on machine learning.
+
+397
+00:25:31,728 --> 00:25:32,048
+Okay.
+
+398
+00:25:33,134 --> 00:25:35,808
+And I can also write my own custom prompt if I want.
+
+399
+00:25:35,968 --> 00:25:40,228
+Everybody, I was thinking that we could make a bit of interesting by adding some extra challenges.
+
+400
+00:25:40,814 --> 00:25:41,328
+So and so.
+
+401
+00:25:41,408 --> 00:25:41,968
+So what do you say?
+
+402
+00:25:42,688 --> 00:25:43,819
+Oh, something, something is given.
+
+403
+00:25:43,819 --> 00:25:44,110
+away.
+
+404
+00:25:44,768 --> 00:25:50,020
+and if I probably see over here with respect to the prompt, input text one, this is also going over here.
+
+405
+00:25:50,608 --> 00:25:52,368
+this is my input text, okay.
+
+406
+00:25:52,528 --> 00:25:52,928
+Perfect.
+
+407
+00:25:53,230 --> 00:25:55,248
+So everything works fine, and here you'll be able to see.
+
+408
+00:25:55,328 --> 00:26:04,528
+Write a poem about uh this particular topic with um for a five years child.
+
+409
+00:26:04,608 --> 00:26:05,648
+Okay, so now let's see.
+
+410
+00:26:05,728 --> 00:26:09,568
+I'll just try to change the prompt and see whether it is working fine or not.
+
+411
+00:26:09,966 --> 00:26:11,488
+So this has got reloaded it.
+
+412
+00:26:11,568 --> 00:26:13,892
+Uh let's see whether this is reloaded or not.
+
+413
+00:26:14,638 --> 00:26:20,164
+Now, if I go ahead and reload this, write a poem on unicorn.
+
+414
+00:26:21,294 --> 00:26:23,364
+Okay, I'm just writing something.
+
+415
+00:26:24,494 --> 00:26:24,928
+Unicorn.
+
+416
+00:26:25,008 --> 00:26:26,564
+I think it should be able to give the poem.
+
+417
+00:26:27,982 --> 00:26:29,488
+Shimmering coat in various colors.
+
+418
+00:26:29,582 --> 00:26:31,940
+Yeah, 100 words that describe a unicorn.
+
+419
+00:26:32,558 --> 00:26:35,168
+Okay, something, something is information is basically lumbering.
+
+420
+00:26:35,248 --> 00:26:37,444
+And this is basically interacting with the entire llama too.
+
+421
+00:26:38,254 --> 00:26:40,688
+So I hope you've understood this.
+
+422
+00:26:40,848 --> 00:26:41,668
+Just imagine, guys.
+
+423
+00:26:42,768 --> 00:26:46,608
+This is already running in the server, and this you have the front end.
+
+424
+00:26:46,688 --> 00:26:54,532
+Now, whether it will be a mobile app, front end app, or edge device, anything, you will be able to interact with this entire API, and that is the most amazing thing over here.
+
+425
+00:26:54,894 --> 00:27:01,284
+And this is what you go basically to the first phase of the deployment where mainly you create the APIs.
+
+426
+00:27:01,488 --> 00:27:07,328
+Now it's all about using whichever cloud server and doing the deployment So I hope you like this particular video.
+
+427
+00:27:07,408 --> 00:27:08,208
+This was it for my side.
+
+428
+00:27:08,288 --> 00:27:09,088
+I'll see you on the next video.
+
+429
+00:27:09,248 --> 00:27:09,728
+Have a great day.
+
+430
+00:27:09,808 --> 00:27:10,288
+Thank you and all.
+
+431
+00:27:10,368 --> 00:27:10,688
+Take care.
+
+432
+00:27:10,768 --> 00:27:11,012
+Bye bye.
+

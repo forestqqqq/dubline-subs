@@ -1,0 +1,2212 @@
+1
+00:00:00,814 --> 00:00:01,348
+大家好。
+Hello guys.
+
+2
+00:00:01,742 --> 00:00:03,876
+我们要继续 Langchain 系列课程。
+So we are going to continue the Langchain series.
+
+3
+00:00:04,080 --> 00:00:12,356
+在之前的视频中，我们已经看了如何利用 OpenAI API
+和 Llama 2 等开源 LLM 模型来创建聊天机器人。
+Already in our previous video, we have already seen how to create chatbots
+with the help of both OpenAI API and open source LLM models like Lama 2.
+
+4
+00:00:12,750 --> 00:00:19,076
+我们也了解了 OLAMA 的用途，以及如何在本地系统中运行所有这些开源模型。
+We have also seen what is the use of OLAMA, how you can run all these open source models locally in your system.
+
+5
+00:00:19,600 --> 00:00:24,580
+与此同时，我们还利用这两者完成了多个端到端的项目。
+And along with this, we also created multiple end-to-end projects using both of them.
+
+6
+00:00:25,198 --> 00:00:32,868
+现在我们要做的这一步对于我们的生产级部署非常重要，那就是创建 API。
+Now what we are going to do in this specific video, one more step which is
+very much important for our production gate deployment that is creating APIs.
+
+7
+00:00:33,262 --> 00:00:43,524
+你知道，对于所有这些 LLM 模型，我们都可以创建 API，通过这种方式，
+你也能以非常高效的方式进行部署。
+You know, for all this kind of LLM models, we will be able to create APIs, and through this,
+you will also be able to do the deployment in a very efficient manner.
+
+8
+00:00:44,238 --> 00:00:50,916
+现在，我们要如何创建这些特定的 API 呢？Langchain 中有一个非常重要的组件叫做 LangServe。
+Now, how we are going to create this specific APIs, there is a very important component which is called as Langserve in Langchain.
+
+9
+00:00:51,150 --> 00:00:52,160
+我们要用到它。
+We're going to use that.
+
+10
+00:00:52,366 --> 00:00:54,596
+与此同时，我们还要用到 FastAPI。
+Along with this, we are going to use Fast API.
+
+11
+00:00:56,142 --> 00:01:01,600
+不仅如此，我们还会创建 Swagger UI，这是 Langchain 已经提供的。
+And not only that, we'll also create a Sag Swagger UI which is already provided by Langchain.
+
+12
+00:01:02,478 --> 00:01:05,188
+我们要专门使用的就是 LangServe 库。
+The Langserve library that we are specifically going to use.
+
+13
+00:01:05,774 --> 00:01:15,524
+伙计们，这一步很重要，因为如果你明天也要开发任何应用程序，
+你显然是想为那个特定的应用程序进行部署的。
+Now it is important, guys, you know this specific step because tomorrow, if you are also developing any application,
+you obviously want to do the deployment for that particular application.
+
+14
+00:01:15,886 --> 00:01:21,220
+所以，为这个应用程序创建完整的 API 将是首要任务。
+So creating the entire API for this application will be the first task that will be required.
+
+15
+00:01:21,840 --> 00:01:24,000
+那么，呃，是的，让我们继续。
+So uh yes, let's continue.
+
+16
+00:01:24,080 --> 00:01:26,564
+让我们继续讨论一下整个内容。
+Let's go ahead and uh discuss this entire thing.
+
+17
+00:01:26,862 --> 00:01:34,372
+首先，我们要怎么开始呢？首先，我将向你们展示
+开发过程的理论思路，然后我们再开始代码部分。
+First of all, how we are going to go ahead, first of all, I'm going to show you the theoretical intuition,
+how we are going to develop it, and then we will start the coding part.
+
+18
+00:01:35,120 --> 00:01:37,764
+让我快速分享一下我的屏幕。
+So let me quickly go ahead and share my screen.
+
+19
+00:01:38,222 --> 00:01:43,680
+我们实际上要做的是，在这里，你们已经看到我写了用于部署的 API。
+What we are actually going to do over here, over here, I've seen you have seen that I've written APIs for deployment.
+
+20
+00:01:43,760 --> 00:01:44,036
+好的。
+Okay.
+
+21
+00:01:44,462 --> 00:01:48,880
+如果我考虑这个图表，这是我能画出的最简单的图表了。
+So if I consider this diagram, this is the most simplistic diagram that I could draw.
+
+22
+00:01:49,040 --> 00:01:49,360
+好的。
+Okay.
+
+23
+00:01:49,760 --> 00:01:50,880
+现在让我们考虑一下。
+Now let's consider.
+
+24
+00:01:51,120 --> 00:01:57,190
+你看，嗯，说到底，在公司里，对吧，呃，会有不同的应用程序。
+See, um, the at the end of the day, in companies, right, uh, there will be different uh applications.
+
+25
+00:01:57,358 --> 00:02:00,964
+这些应用程序显然是由软件工程师创建的，对吧？
+this applications are obviously created by software engineers, right?
+
+26
+00:02:01,294 --> 00:02:04,580
+它可以是移动端应用，也可以是桌面端应用、Web 应用等等。
+It can be a mobile app, it can be a desktop app, web app, and all.
+
+27
+00:02:05,326 --> 00:02:18,640
+现在，对于这个特定的应用，如果我想集成任何基础模型或任何微调后的基础模型，
+比如 LLM 之类的，嗯，所以我真正需要做的是，我需要以 API 的形式将它们集成进来。
+Now, for this particular app, if I want to integrate uh any foundation model or any fine-tuned foundation model like LLMs and all, um,
+so what I really need to do is that I need to integrate this with the form of APIs.
+
+28
+00:02:18,830 --> 00:02:21,280
+说到底，看我们在这里要做什么。
+At the end of the day, see what we are going to do over here.
+
+29
+00:02:21,360 --> 00:02:24,000
+这一侧是我的 LLM 模型本身，对吧？
+This side is my LLM models itself, right?
+
+30
+00:02:24,302 --> 00:02:27,360
+它可以是微调后的 LLM 模型，也可以是基础模型。
+It can be a fine-tuned LLM models, it can be a foundation model.
+
+31
+00:02:27,440 --> 00:02:31,236
+我想把这些功能和我的 Web 应用或移动应用结合起来。
+I want to use those functionality along with my web app or a mobile app.
+
+32
+00:02:31,726 --> 00:02:35,300
+所以，我们现在要做的是创建这些特定的 API。
+So, what we are doing is over here is that we will create this specific APIs.
+
+33
+00:02:35,694 --> 00:02:39,044
+现在，这些 API 将包含不同的路由，好吗。
+Now, this APIs will be having routes, okay.
+
+34
+00:02:39,470 --> 00:02:50,980
+路由，这些路由将负责决定我们是与 OpenAI 交互，还是与其他 LLM 模型，
+比如 Claude 3 或 Llama 2 开源模型进行交互。
+Routes, and this routes will be responsible whether we have to probably interact with OpenAI or whether we have to interact with other
+LLM model like Cloud 3, Cloudy 3, or Llama 2 open source model.
+
+35
+00:02:51,374 --> 00:03:00,772
+所以，无论有多少个 LLM 模型，无论是开源模型还是
+专门为 LLM 设计的付费 API 模型，我们都可以使用。
+So, any number of LLM models, whether it is open source or whether
+it is paid API models specifically for LLM, we can definitely use it.
+
+36
+00:03:01,120 --> 00:03:03,920
+这就是我们要在本视频中要做的事情。
+Now, this is what we are going to do in this video.
+
+37
+00:03:04,398 --> 00:03:13,956
+我们将把它们分开创建，最后我会通过路由给你们提供一个选项，
+展示如何与多个 LLM 模型进行集成。
+We will create this separately, we will create this separately, and at the end of the day,
+I'll also give you an option through routes how you can integrate with multiple LLM models.
+
+38
+00:03:14,480 --> 00:03:14,800
+对吧？
+Right?
+
+39
+00:03:14,880 --> 00:03:20,548
+所以希望你们对这个有了初步了解，以后无论出现
+多少个 LLM 模型，你们大概都能把它们集成进来。
+So I hope you have got an idea with respect to this and any number
+of LLM models that may probably come, you can probably integrate it.
+
+40
+00:03:20,880 --> 00:03:25,604
+最终，你可以根据不同的功能，选择最适合你的模型来使用。
+At the end of the day, whichever model is suitable for you, you can use for different functionality.
+
+41
+00:03:26,080 --> 00:03:32,644
+我制作这个视频的原因，大家要明白一点，因为在 LLM 中，不同的模型有不同的性能指标。
+And the reason why I'm making this video, understand one thing, guys, because in LLMs also you have different performance metrics.
+
+42
+00:03:33,326 --> 00:03:39,440
+有些模型在某些性能指标上表现非常好，比如 MMLU，当然还有其他的指标。
+Some model is very good at some performance metrics over there, like MMLU, other other metrics are definitely there.
+
+43
+00:03:39,534 --> 00:03:42,148
+所以，这是一个我们可以使用多个 LLM 模型的选择。
+So, this is an option where we can use multiple LLM models.
+
+44
+00:03:42,830 --> 00:03:47,236
+现在，我们快速开始，我先打开我的代码文档。
+Now, what we are going to do quickly, I will go ahead and open my code document.
+
+45
+00:03:47,726 --> 00:03:52,688
+在之前的视频中，你们已经看到我开发到了这一步，对吧？
+So, in in my previous video, already you have seen I had actually developed till here, right?
+
+46
+00:03:52,848 --> 00:03:57,860
+基本上，如果你们看这里，我们创建了第一个文件夹，叫 chatbot。
+I have basically, if you see over here, we have created this first folder that is chatbot.
+
+47
+00:03:58,254 --> 00:04:05,808
+在这个 chatbot 文件夹里，我们创建了 app.py 和 local_llama.py，对，
+我们就是用这些完成了整个项目。
+And inside this chatbot, we had created app.py, then local llama.py, and right, we with this did this entire thing.
+
+48
+00:04:05,888 --> 00:04:11,076
+就像我说的，在每个教程中，我都会不断创建文件夹，并在这里开发我们的项目。
+And as I said, every tutorial I'll keep on creating folders and developing our own project over here.
+
+49
+00:04:11,630 --> 00:04:16,036
+现在让我们创建第二个文件夹，这次这个文件夹叫 APIs。
+Now let's go ahead and create my second folder, and this time this will be APIs.
+
+50
+00:04:16,288 --> 00:04:19,968
+好，那我就直接写个 API 文件夹。
+Okay, so I'll just go ahead and write something like API.
+
+51
+00:04:20,142 --> 00:04:20,420
+好的。
+Okay.
+
+52
+00:04:20,878 --> 00:04:27,728
+现在关于这个 API，就像我说的，无论我们是用 local_llama 还是 app.py，对吧？
+Now with respect to this API, as I said, whatever we do with this local llama or app.py, right?
+
+53
+00:04:27,808 --> 00:04:29,888
+在这里我使用了 OpenAI API 密钥。
+Over here I've used OpenAI API key.
+
+54
+00:04:29,968 --> 00:04:31,728
+这里我使用了开源模型。
+Here I've used open source models.
+
+55
+00:04:31,854 --> 00:04:35,008
+所以我们将尝试通过路由的形式把这两者结合起来。
+So we'll try to integrate both of them in the form of routes.
+
+56
+00:04:35,118 --> 00:04:37,156
+好，这样我们就能创建一个 API 了。
+Okay, so that we'll be able to create an API.
+
+57
+00:04:37,742 --> 00:04:40,448
+让我快速开始写这里的 app.py。
+So let me quickly go ahead and write over here app.py.
+
+58
+00:04:40,942 --> 00:04:44,928
+其中一个是我的 app.py，它将负责创建所有的 API。
+So one will be my app.py which will be responsible in creating all the APIs.
+
+59
+00:04:45,088 --> 00:04:48,288
+第二个将专门是我的 client.py。
+The second one will specifically be my client.py.
+
+60
+00:04:48,750 --> 00:04:57,648
+现在，在这个特定的架构中，client.py 就想象成这个 Web 应用或移动应用，
+因为我们要把这些 API 与这个移动应用或 Web 应用集成起来。
+Now client.py in this specific diagram is just imagine like this one web app or mobile
+app because we are going to integrate this APIs with this mobile app or web app.
+
+61
+00:04:57,728 --> 00:04:58,020
+好的。
+Okay.
+
+62
+00:04:58,638 --> 00:04:59,808
+那我们快点开始吧。
+So quickly let's do this.
+
+63
+00:05:00,048 --> 00:05:03,684
+首先，我开始在 app.py 里写代码。
+First of all, I will go ahead and start writing the code in app.py.
+
+64
+00:05:04,590 --> 00:05:09,568
+在开始之前，我们要确保更新所有的 requirement.txt。
+Before I go ahead, we have to make sure that we need to update all the requirement.txt.
+
+65
+00:05:09,888 --> 00:05:14,148
+几乎所有的库都已经安装了，但我还要再安装三个库。
+Almost all the libraries have installed it, but I'm going to install more three libraries.
+
+66
+00:05:14,670 --> 00:05:17,220
+一个是 LangServe，FastAPI，还有 UVCon。
+One is LangSurf, Fast API, and UVCon.
+
+67
+00:05:17,408 --> 00:05:21,668
+好的，因为我要用 FastAPI 来创建整个 API 的 Swagger 文档。
+Okay, since I'm going to create my entire swagger documentation of API using Fast API.
+
+68
+00:05:21,808 --> 00:05:22,116
+对。
+Right.
+
+69
+00:05:22,222 --> 00:05:24,368
+所以这三个库我都会用到。
+So all these three libraries I'll be using it.
+
+70
+00:05:24,528 --> 00:05:30,768
+首先，我先安装这些库，然后再运行代码。
+So first of all, I will go ahead and install all these libraries that will do once we run the code.
+
+71
+00:05:30,848 --> 00:05:33,444
+现在，让我们开始写 app.py 的代码。
+Right now, let's go ahead and write my app.py code.
+
+72
+00:05:33,728 --> 00:05:33,988
+好的。
+Okay.
+
+73
+00:05:34,848 --> 00:05:39,844
+现在按惯例，首先，呃，让我打开终端。
+Now as usual, first of all, uh let me just open my terminal.
+
+74
+00:05:40,208 --> 00:05:40,528
+好的。
+Okay.
+
+75
+00:05:41,998 --> 00:05:44,420
+让我对终端做点操作。
+And let me do one thing with respect to the terminal.
+
+76
+00:05:44,878 --> 00:05:53,240
+我要输入 pip install -r requirement.txt。
+I will go ahead and write pip install pip install minus our requirement dot txt.
+
+77
+00:05:55,598 --> 00:05:59,808
+好的，首先我需要输入 cd ..
+Okay, first of all, I need to just write cd dot dot.
+
+78
+00:06:00,366 --> 00:06:06,564
+好的，然后我清屏，接着输入 pip install -r requirement.txt。
+Okay, then I'll clear the screen and then go ahead and write pip install minus r requirement.txt.
+
+79
+00:06:07,278 --> 00:06:11,168
+现在你可以看到整个安装过程开始了。
+Now here you'll be able to see that my entire installation will start taking place.
+
+80
+00:06:11,408 --> 00:06:14,848
+这里，呃，就是我刚才写的那另外三个包，对吧？
+And here uh the other three packages that I have actually written, right?
+
+81
+00:06:15,008 --> 00:06:17,540
+LangServe 这些都会被安装好。
+Langserve and all that will get particular installed.
+
+82
+00:06:17,728 --> 00:06:17,988
+好的。
+Okay.
+
+83
+00:06:18,670 --> 00:06:21,328
+现在，呃，安装基本上正在进行中。
+Now uh till then installation is basically going on.
+
+84
+00:06:21,486 --> 00:06:22,688
+让我开始写代码。
+Let me go ahead and write my code.
+
+85
+00:06:22,798 --> 00:06:31,008
+我要写 from fastapi import FastAPI。
+So I will write from fast api import fast api.
+
+86
+00:06:31,248 --> 00:06:37,008
+好的，这是我要导入的第一个库。
+Okay, so this is the first uh first library that I'm going to import.
+
+87
+00:06:37,248 --> 00:06:42,852
+除此之外，我还要确保创建或者导入我的 ChatPromptTemplate。
+Along with this, I have to also make sure that I create or I import my chat prompt template.
+
+88
+00:06:43,168 --> 00:06:54,660
+所以从 langchain 开始，因为我们要创建一个完整的 API，所以是 from langchain_community.
+提示词 import ChatPromptTemplate，对吧？
+So from lang chain since we are going to create an entire API, is in this okay dot prompt import chat prompt template, right?
+
+89
+00:06:59,694 --> 00:07:00,484
+好了，搞定。
+So this is done.
+
+90
+00:07:01,248 --> 00:07:12,688
+然后从 langchain_community.chat_models 导入 ChatOpenAI。
+Then from lang chain dot chat underscore models import chat openai.
+
+91
+00:07:13,008 --> 00:07:18,608
+接下来是这个，因为我需要确保创建一个聊天应用。
+So this is the next one, since I need to make sure that I need to create a chat chat application.
+
+92
+00:07:18,734 --> 00:07:20,928
+这就是我使用 chat_models 的原因。
+so that is the reason why I'm using this chat models.
+
+93
+00:07:21,008 --> 00:07:21,408
+好吗？
+okay?
+
+94
+00:07:21,806 --> 00:07:24,928
+呃，这是我接下来要导入的库。
+Uh, this is the next library that I'll be going ahead and importing.
+
+95
+00:07:25,008 --> 00:07:30,148
+与此同时，我还会使用 LangServe，它将负责创建我的整个 API。
+Along with this, I will also use Langserf which will be responsible in creating my entire APIs.
+
+96
+00:07:30,448 --> 00:07:30,688
+对吧？
+Right?
+
+97
+00:07:31,118 --> 00:07:33,796
+所以，从 LangServe 导入 add_路由。
+So, from Langserv, import add routes.
+
+98
+00:07:34,288 --> 00:07:34,608
+好吗？
+Okay?
+
+99
+00:07:34,798 --> 00:07:39,008
+所以，通过这个，我就能把所有的路由都加到那里，对吧？
+So, through this, I will be able to add all the routes over there, right?
+
+100
+00:07:39,088 --> 00:07:43,968
+无论什么路由，假设其中一个路由是用来与我的 OpenAI 交互的。
+Whatever routes, suppose one route will be that I need to interact with my opening.
+
+101
+00:07:44,208 --> 00:07:50,084
+另一个路由是用来与 Llama 2 交互的，所以基于此，我将继续导入这个。
+API one one route will be to interact with the llama to and all, so based on that, I will go ahead and import this.
+
+102
+00:07:50,606 --> 00:07:55,648
+下一步是导入 uvicorn，好吗？
+Next thing is import uvicon, okay?
+
+103
+00:07:56,142 --> 00:07:58,180
+这里需要用到 uvicorn。
+Uvicon will be required over here.
+
+104
+00:08:03,470 --> 00:08:06,276
+好的，接下来是导入 os。
+Okay, next is import OS.
+
+105
+00:08:07,118 --> 00:08:12,816
+你看，我大概可以开启我的 GitHub Copilot 来写代码，但我不太确定。
+See, I can probably enable my GitHub Copilot and I can probably write the code, but I don't think so.
+
+106
+00:08:12,896 --> 00:08:14,256
+那不是更好的办法。
+That will be a better way.
+
+107
+00:08:14,606 --> 00:08:22,976
+呃，我通常使用一个叫 Blackbox 的 AI 工具，它能
+帮我更快地写代码，而且你知道，它还会解释代码。
+Uh, I usually use this AI tool which is called as black box, uh, so that it will
+help me to write my code faster and uh you know it also explains about the code.
+
+108
+00:08:23,150 --> 00:08:25,056
+所以我可能会再做一个关于它的视频。
+So I'll probably create another video about it.
+
+109
+00:08:25,136 --> 00:08:27,556
+好的，所以基本上怎么使用它。
+Okay, so how to basically use this.
+
+110
+00:08:27,776 --> 00:08:31,236
+然后还有一件事，我真的很想在这里导入我的 ollama。
+Then one more thing that I really want to import over here is my ollama.
+
+111
+00:08:31,598 --> 00:08:39,652
+所以从 Langchain_community.llms 导入 Ollama。
+So from Langchin community dot lms dot llms import Oh, llama.
+
+112
+00:08:39,936 --> 00:08:41,828
+好的，这就搞定了。
+Okay, so this is done.
+
+113
+00:08:42,256 --> 00:08:45,936
+这些都是我的代码特别需要的库。
+All the libraries that is specifically required by my code.
+
+114
+00:08:46,016 --> 00:08:51,716
+呃，我实际上已经写好了，这些都是我创建 OpenAI API 所需要的所有东西。
+Uh I have actually written that okay, and these are all the things that I will require to create my open API.
+
+115
+00:08:52,238 --> 00:08:52,816
+现在，这就完成了。
+Now, this is done.
+
+116
+00:08:52,896 --> 00:09:00,900
+现在，我实际要做的是写 os.environ，首先我要初始化我的 OpenAI API 密钥。
+Now, what I'm actually going to do over here is that I'm just going to
+write os.environ and first of all I will initialize my open AI API key.
+
+117
+00:09:01,390 --> 00:09:04,228
+所以我会写 OPENAI_API_KEY。
+So I will write open AI underscore API underscore key.
+
+118
+00:09:04,656 --> 00:09:04,964
+好的。
+Okay.
+
+119
+00:09:05,934 --> 00:09:20,004
+特别是，我会从 os.getenv 加载它，然后我会继续写 OPENAI_API_KEY。
+And this specifically I will load it from OS.ket env and then I will go ahead and write open AI underscore API underscore key.
+
+120
+00:09:20,256 --> 00:09:20,576
+好的。
+Okay.
+
+121
+00:09:21,326 --> 00:09:23,268
+这是我们真正需要做的第一件事。
+So this is the first thing that we really need to do.
+
+122
+00:09:23,726 --> 00:09:29,732
+在做这件事之前，我先回到 app.py 初始化一下。
+Before I do this, I will just go back to my app.py and I will just initialize this.
+
+123
+00:09:31,246 --> 00:09:33,252
+好的，加载 load_dot_env。
+Okay, load underscore dot ENV.
+
+124
+00:09:33,696 --> 00:09:37,412
+让我快速把整段内容复制到这里。
+Let me quickly copy this entire thing and paste it over here.
+
+125
+00:09:39,886 --> 00:09:47,456
+然后我初始化这个 load_dot_env。
+And I will initialize this load underscore dot env.
+
+126
+00:09:47,776 --> 00:09:48,004
+好的。
+Okay.
+
+127
+00:09:49,934 --> 00:09:53,936
+这样实际上能帮我初始化所有的环境变量。
+So this will actually help me to initialize all my environment variable.
+
+128
+00:09:54,096 --> 00:09:54,468
+完美。
+Perfect.
+
+129
+00:09:55,376 --> 00:09:57,616
+我也加载了我的 OpenAI API 密钥。
+I've also loaded my openEI API key.
+
+130
+00:09:57,696 --> 00:09:59,376
+现在让我们启动这个 FastAPI。
+Now let's start this fast API.
+
+131
+00:09:59,456 --> 00:10:03,652
+现在，为了创建 FastAPI，呃，我得在这里创建一个 app。
+Now, in order to create the fast API, uh, I have to create an app here.
+
+132
+00:10:03,776 --> 00:10:10,852
+我给它起名叫 Langchain server version 1.0，第三个信息我基本上想要一个描述。
+I've given title Langchin server version 1.0, and the third information I basically want is a description.
+
+133
+00:10:11,502 --> 00:10:16,132
+现在之后，我就可以使用这个 app，并且继续添加我的路由。
+Now after this, I can use this app and I can keep on adding my routes.
+
+134
+00:10:16,336 --> 00:10:16,656
+好的。
+Okay.
+
+135
+00:10:17,166 --> 00:10:24,336
+所以我要做的是，呃，添加 路由，这个 路由 基本上就是把所有的路由都加到那里，对吧？
+So what I will do, uh add underscore routes, and this routes is basically to add all the routes over there, right?
+
+136
+00:10:24,416 --> 00:10:32,356
+所以当我们第一次添加这些特定路由时，你得确保
+我提供了所有信息，比如我用我的 app 做了什么。
+For so the first time when we are adding this particular routes, you have to
+make sure that I give all the information like whether I'm going up with my app.
+
+137
+00:10:32,816 --> 00:10:42,096
+假设我用这个 chat openai API，chat openai，OpenAI，好的。
+Let's say I go with this chat openai API, chat openai, open AI, okay.
+
+138
+00:10:42,510 --> 00:10:45,776
+然后我可能要给出的第三个信息就是我的路径。
+And the third information that I will probably give is my path.
+
+139
+00:10:45,856 --> 00:10:50,096
+所以这是我的其中一个路由。
+So this is my one of my one of my uh route.
+
+140
+00:10:50,256 --> 00:10:55,172
+你可以把这看作是 OpenAI 路由，这是我将专门使用的模型。
+You can just consider this open AI route, and this is my model that I will specifically be using.
+
+141
+00:10:55,726 --> 00:10:58,656
+所以这就是添加路由的一种方式。
+So this is just one way how you can actually add route.
+
+142
+00:10:58,816 --> 00:11:08,740
+好的，但让我再加点东西，因为你看，到头来当我们创建第一个应用程序时，
+我们是按这种特定方式结合提示词、LLM 和输出解析器的。
+Okay, but let me just add some more things because see at the end of the day when we created our first application,
+we used to combine prompt LLM and output parser in this specific way.
+
+143
+00:11:09,134 --> 00:11:18,948
+所以，我们在这里要做的是，在创建路由时，我们也要确保以这种方式添加所有路由，
+这样我还能把我的提示词模板也整合进去，好吗。
+So, what we'll do over here is that when we are creating routes, we also need to make sure that we add all the routes in such a way
+that I also integrate my prompt template with it, okay.
+
+144
+00:11:19,216 --> 00:11:31,856
+所以这里我要说 model 等于 chat openai，chat openai，我要初始化这个特定模型，
+然后让我继续创建我的另一个模型。
+So here I'm going to say model is equal to chat openai, chat openai, and I'm going to initialize this particular model,
+and then let me go ahead and create my other model also.
+
+145
+00:11:32,046 --> 00:11:34,596
+看 OLAMA，我直接用我的 Llama 2。
+See OLAMA, I will just use my llama too.
+
+146
+00:11:34,816 --> 00:11:39,940
+好的，所以这个模型我也基本上需要创建或调用它，好吗，因为我想使用多个模型。
+Okay, so this model also I need to basically create it or call it, okay, because I'm I want to use multiple models.
+
+147
+00:11:40,366 --> 00:11:53,056
+所以这里我要写 LLM，这里写 OLAMA，这基本上就是我的 model 等于 Llama 2。
+So here I'm going to write LLM and here OLAMA, and this will basically be my model is equal to Llama two.
+
+148
+00:11:53,518 --> 00:11:55,524
+好的，我要使用 Llama 2 模型。
+Okay, so I'm going to use the Lama 2 model.
+
+149
+00:11:55,950 --> 00:11:57,536
+所以这是我这里的其中一个模型。
+So this is my one model over here.
+
+150
+00:11:57,616 --> 00:11:59,108
+这是我这里的另一个模型。
+This is my another model over here.
+
+151
+00:11:59,296 --> 00:11:59,616
+好的。
+Okay.
+
+152
+00:11:59,950 --> 00:12:03,136
+现在让我快速去创建我的第一个提示词。
+Now let me go quickly go ahead and create my prompt one.
+
+153
+00:12:03,278 --> 00:12:06,116
+所以我的第一个提示词将是我的聊天提示词模板。
+So my prompt one will be my chat prompt template.
+
+154
+00:12:06,926 --> 00:12:12,484
+聊天提示词模板。从 underscore 模板。
+Chat prompt template.from underscore template.
+
+155
+00:12:12,976 --> 00:12:13,296
+好的。
+Okay.
+
+156
+00:12:13,486 --> 00:12:16,976
+在这里我基本上要给出一个聊天提示词。
+And here I'm going to basically give one chat prompt.
+
+157
+00:12:17,136 --> 00:12:17,376
+好的。
+Okay.
+
+158
+00:12:17,456 --> 00:12:20,096
+假设这是我的其中一个交互。
+Let's say one of my interaction.
+
+159
+00:12:20,302 --> 00:12:22,692
+其中一个我想使用 OpenAI API。
+One I want to use open AI API.
+
+160
+00:12:23,136 --> 00:12:24,976
+呃，为了 OpenAI API。
+Uh for open AI API.
+
+161
+00:12:25,056 --> 00:12:26,468
+假设我想写一篇作文。
+Let's say I want to create an essay.
+
+162
+00:12:26,862 --> 00:12:28,772
+所以我会说，给我写一篇作文。
+So I'll say write me an essay.
+
+163
+00:12:29,856 --> 00:12:31,300
+给我写一篇作文。
+Write me an essay.
+
+164
+00:12:32,176 --> 00:12:33,936
+关于一个特定的主题。
+About a specific topic.
+
+165
+00:12:34,096 --> 00:12:35,696
+那个主题我会提供给它。
+That topic I will be giving it.
+
+166
+00:12:35,776 --> 00:12:36,016
+好的。
+Okay.
+
+167
+00:12:36,496 --> 00:12:37,892
+关于某个主题。
+About some topic.
+
+168
+00:12:38,256 --> 00:12:38,576
+好的。
+Okay.
+
+169
+00:12:39,022 --> 00:12:39,696
+某个主题。
+Some topic.
+
+170
+00:12:39,856 --> 00:12:40,132
+好的。
+Okay.
+
+171
+00:12:41,934 --> 00:12:45,988
+大约 200 个词或者 100 个词。
+Around with 200 words or with 100 words.
+
+172
+00:12:46,416 --> 00:12:46,736
+好的。
+Okay.
+
+173
+00:12:47,278 --> 00:12:49,456
+所以这是我的第一个提示词模板。
+So this is my first prompt template.
+
+174
+00:12:49,536 --> 00:12:49,828
+好的。
+Okay.
+
+175
+00:12:50,094 --> 00:12:52,576
+我是在说，这就是我的提示词模板。
+I'm saying this will be my prompt template.
+
+176
+00:12:52,656 --> 00:12:55,556
+给我写一篇关于我提供的任何主题的作文，字数在 100 字左右。
+Write me an essay about whatever topic I give with 100 words.
+
+177
+00:12:55,776 --> 00:12:56,096
+好的。
+Okay.
+
+178
+00:12:56,256 --> 00:12:56,932
+大概就是这样。
+Something like this.
+
+179
+00:12:57,518 --> 00:12:59,056
+所以这个，让我们把它写下来。
+So this let's go ahead and write this.
+
+180
+00:12:59,136 --> 00:13:00,644
+这就是我的第一个提示词模板。
+This is my first prompt template.
+
+181
+00:13:01,070 --> 00:13:03,556
+然后我来创建第二个提示词模板。
+Then I will create my second prompt template.
+
+182
+00:13:03,822 --> 00:13:04,816
+好，这很重要。
+Okay, this is important.
+
+183
+00:13:04,990 --> 00:13:06,256
+听我说。
+Just Just hear me out.
+
+184
+00:13:06,336 --> 00:13:06,564
+好的。
+Okay.
+
+185
+00:13:06,926 --> 00:13:11,216
+这个提示词模板将负责与我的开源模型进行交互。
+And this prompt template will be responsible in interacting with my open source model.
+
+186
+00:13:11,310 --> 00:13:13,296
+所以让我写：给我写一首诗。
+So let me say, write me a poem.
+
+187
+00:13:13,376 --> 00:13:16,612
+我会说：请围绕这个特定主题写一首 100 字左右的诗。
+I'll say write me a poem about this specific topic with 100 words.
+
+188
+00:13:17,326 --> 00:13:23,204
+简而言之，第一个提示词模板将与这个 OpenAI API 模型进行交互。
+So in short, this first prompt template will be interacting with this model that is chat open API.
+
+189
+00:13:23,534 --> 00:13:25,616
+提示词 2 将与 LLM 模型进行交互。
+Prompt 2 will be interacting with LLM model.
+
+190
+00:13:25,856 --> 00:13:28,816
+好的，无论我在这里写了什么 LLM 模型，那就是 Llama 2。
+Okay, whatever LLM model I've written over here, that is llama 2.
+
+191
+00:13:28,974 --> 00:13:31,110
+现在让我把这个路由加进去。
+Now let me go ahead and add this route.
+
+192
+00:13:31,310 --> 00:13:32,996
+所以这里我会说：添加路由。
+So here I'll say add routes.
+
+193
+00:13:33,456 --> 00:13:33,776
+好的。
+Okay.
+
+194
+00:13:34,254 --> 00:13:36,548
+同样，按惯例，我会写 app。
+And again, as usual, I will write app.
+
+195
+00:13:37,390 --> 00:13:41,616
+现在你看，我将把提示词或模型结合起来。
+Now here you see I will be combining prompt or model.
+
+196
+00:13:41,936 --> 00:13:42,096
+对吧？
+Right?
+
+197
+00:13:42,256 --> 00:13:43,780
+模型将是 OpenAI API。
+Model will be chat open API.
+
+198
+00:13:44,046 --> 00:13:48,260
+而且你知道，这个提示词 1 是专门为我的 OpenAI API 设计的。
+And you know this prompt one is specifically for my chat open API.
+
+199
+00:13:48,496 --> 00:13:48,708
+对。
+Right.
+
+200
+00:13:49,262 --> 00:13:51,696
+然后我还会给出路由路径。
+Then I will also give the route path.
+
+201
+00:13:51,856 --> 00:13:53,796
+所以我的路径大概是这样的。
+So my path will be something like this.
+
+202
+00:13:54,510 --> 00:13:54,736
+好的。
+Okay.
+
+203
+00:13:55,342 --> 00:13:57,056
+这就是我的 API，对吧？
+And this will be my API, right?
+
+204
+00:13:57,136 --> 00:13:59,710
+所以这里假设我写成 /essay。
+So here say let's say I'll write slash essay.
+
+205
+00:14:00,238 --> 00:14:05,156
+这基本上意味着这个路径负责与 OpenAI API 进行交互。
+That basically means this path is responsible in interacting with the OpenAI API.
+
+206
+00:14:05,616 --> 00:14:08,576
+这由 /essay 来表示。
+And this is denoted by slash essay.
+
+207
+00:14:08,736 --> 00:14:12,740
+所以你会得到的 API URL 将以 /essay 结尾。
+So that API URL that you will be getting will be ending with slash SA.
+
+208
+00:14:12,976 --> 00:14:13,252
+好的。
+Okay.
+
+209
+00:14:13,550 --> 00:14:17,136
+另一个路由，我可以根据你的需要继续添加任意数量的路由。
+The other route, and I can keep on adding any number of routes as you want.
+
+210
+00:14:17,294 --> 00:14:19,684
+所以另一个路由将是与提示词 2 相关的。
+So another route will be like with prompt 2.
+
+211
+00:14:20,142 --> 00:14:20,416
+好的。
+Okay.
+
+212
+00:14:20,750 --> 00:14:22,980
+这里我基本上要用我的 LLM。
+And here I'm going to basically use my LLM.
+
+213
+00:14:23,406 --> 00:14:26,308
+让我把这个写成 slash poem。
+And let me just go ahead and write this as slash poem.
+
+214
+00:14:26,816 --> 00:14:27,056
+好的。
+Okay.
+
+215
+00:14:27,374 --> 00:14:28,036
+slash poem。
+Slash poem.
+
+216
+00:14:28,622 --> 00:14:29,696
+所以这是我的另一个路由。
+So this is my another route.
+
+217
+00:14:29,776 --> 00:14:30,660
+这是我的另一个路由。
+This is my another route.
+
+218
+00:14:30,816 --> 00:14:31,044
+好的。
+Okay.
+
+219
+00:14:31,296 --> 00:14:34,336
+最后，我简短地创建了两个 API。
+And finally, I've created two APIs in short.
+
+220
+00:14:34,416 --> 00:14:42,148
+现在我要在这里写 if __name__ == "__main__"。
+And now here I will write if underscore underscore name underscore underscore
+is double equal to underscore underscore main underscore underscore.
+
+221
+00:14:42,576 --> 00:14:45,636
+现在我们要在这里做什么。
+Right now what we are going to do over here.
+
+222
+00:14:46,478 --> 00:14:47,776
+这是应用程序的启动部分。
+This is the starting of the application.
+
+223
+00:14:47,856 --> 00:14:57,316
+我会写 uvicorn.run，这里我要用我的 app，host 特别是我的 localhost。
+I will say uvicon.run and here I'm going to use my app, comma host will specifically be my local host.
+
+224
+00:14:57,536 --> 00:14:59,776
+看，我这里给出的就是 localhost。
+See here I'm giving you the local host.
+
+225
+00:14:59,936 --> 00:15:04,416
+呃，这个应用程序你可以运行在任何你想要的服务器上，对吧？
+Uh this application you can run it in any server that you want, right?
+
+226
+00:15:04,496 --> 00:15:09,700
+这就是原因，这就是为什么我说这是构建生产级应用程序的第一步。
+So that is the saying that is the reason why I'm saying this is the first step towards building that production grade application.
+
+227
+00:15:10,016 --> 00:15:10,336
+好的。
+Okay.
+
+228
+00:15:10,542 --> 00:15:12,164
+端口号将是 8000。
+And the port number will be 8000.
+
+229
+00:15:12,718 --> 00:15:13,216
+完美。
+Perfect.
+
+230
+00:15:13,550 --> 00:15:14,256
+所以这就完成了。
+So this is done.
+
+231
+00:15:14,336 --> 00:15:16,336
+我觉得这看起来真的很棒。
+I think it looks really really amazing.
+
+232
+00:15:16,416 --> 00:15:18,404
+我们已经在这里写好了完整的代码。
+I we have written the complete code over here.
+
+233
+00:15:18,976 --> 00:15:22,870
+这就是我的整个 app.py 文件，包含了所有的 API。
+And this is my entire app dot py with all the API.
+
+234
+00:15:22,976 --> 00:15:27,776
+所以基本上这意味着，如果我看到这里的图表，这个 API 节点是我实际创建的。
+So that basically means if I see the diagram over here, this API spot I have actually created.
+
+235
+00:15:28,016 --> 00:15:31,776
+我创建了带有提示词模板的路由，并且使用了两个 API。
+Routes along with prompt template I have created and I have used two APIs.
+
+236
+00:15:31,856 --> 00:15:34,030
+一个是 OpenAI，一个是 Llama 2。
+One is OpenAI and one is llama to.
+
+237
+00:15:34,256 --> 00:15:35,716
+专门使用了两个路由。
+Two routes have specifically used.
+
+238
+00:15:36,238 --> 00:15:39,216
+现在我的任务基本上是创建这个 Web 应用和移动应用。
+Now my time is to basically create this web app and mobile app.
+
+239
+00:15:39,296 --> 00:15:42,016
+好的，到这里我将尝试创建一个简单的 Web 应用。
+Okay and I get here I will just try to create a simple web app.
+
+240
+00:15:42,446 --> 00:15:46,628
+我之所以创建这个简单的 Web 应用，是因为它将能够与这个进行交互。
+The reason I why I'm creating this simple web app because it will be able to interact with this.
+
+241
+00:15:46,736 --> 00:15:46,976
+好的。
+Okay.
+
+242
+00:15:47,630 --> 00:15:52,612
+现在我要做的就是运行一下，看看一切是否正常运行。
+Now what I will do let's go ahead and run this and see whether everything is running fine or not.
+
+243
+00:15:52,896 --> 00:15:53,136
+好的。
+Okay.
+
+244
+00:15:53,742 --> 00:16:00,096
+所以我现在要做的是，进入我的 CD 文件夹，这是我的 API 文件夹。
+So here what I will do I will go to my C D which folder this is this is basically my API folder.
+
+245
+00:16:00,176 --> 00:16:00,496
+好的。
+Okay.
+
+246
+00:16:00,846 --> 00:16:07,664
+所以 CD API，哎呀，端口，我把它写下来。
+So C D API Oops, port let's just write it.
+
+247
+00:16:09,294 --> 00:16:11,664
+端口，好的，CD 完成。
+Port okay, done C D.
+
+248
+00:16:12,654 --> 00:16:16,132
+我把这个 CD API 保存下来。
+I'll save this C D API.
+
+249
+00:16:16,750 --> 00:16:19,972
+好的，然后我要写 python app.py。
+Okay, and then here I'm going to write python app.py.
+
+250
+00:16:20,224 --> 00:16:20,516
+好的。
+Okay.
+
+251
+00:16:20,910 --> 00:16:29,796
+现在我从 Langchain 的 uh lang chain.prompts，让我看一下文档对不对，应该是 prompts。
+Now once I execute this from lang chem uh lang chain.prompts, uh just let
+me see the documentation whether it is correct or not, it should be prompts.
+
+252
+00:16:30,064 --> 00:16:34,820
+好的，这里有个小问题，应该是 prompts。
+Okay, so a small issue over here, it should be prompts.
+
+253
+00:16:35,630 --> 00:16:37,348
+现在让我运行一下。
+Now let me just go ahead and execute it.
+
+254
+00:16:37,838 --> 00:16:39,664
+现在我觉得应该可以正常运行了。
+Now I think it should work fine.
+
+255
+00:16:42,304 --> 00:16:49,184
+所以这里你可以看到导入错误，uh SSE starlet。
+so here you can see import error uh SSE starlet.
+
+256
+00:16:49,424 --> 00:16:52,580
+好的，这是可能出现的其中一个依赖项。
+Okay, so this is one of the dependency that is probably coming up.
+
+257
+00:16:53,264 --> 00:16:56,548
+我快速去更新一下我的 requirement.txt。
+I will quickly go ahead and update my requirement.txt.
+
+258
+00:16:57,264 --> 00:17:03,396
+好的，让我做一件事，让我写下 pip install 这个特定的应用。
+Okay, and let me do one thing, just let me write pip install this particular application.
+
+259
+00:17:03,584 --> 00:17:09,924
+好的，我要去写 pip install control v。
+Okay, so I will go right pip install control v.
+
+260
+00:17:10,144 --> 00:17:16,464
+哎呀，pip install ssc starlet。
+Oops, pip install ssc starlet.
+
+261
+00:17:16,624 --> 00:17:20,356
+好的，一旦这个安装完成，我想现在就不会报错了。
+Okay, so once this installation will probably happen, I think now we'll not get an error.
+
+262
+00:17:20,910 --> 00:17:24,223
+现在，如果我写 python app.py，它应该能运行，我想。
+Now, if I write python app.py, it should run, I guess.
+
+263
+00:17:25,358 --> 00:17:27,044
+现在它正在运行，好的。
+So it is now running, okay.
+
+264
+00:17:27,470 --> 00:17:30,270
+呃，那我们打开这个 localhost。
+Uh so let's go ahead and open this localhost.
+
+265
+00:17:31,024 --> 00:17:39,904
+现在这里你可以看到我显示找不到详情，但如果你真
+的想看到创建的所有 API，你可以直接输入 /docs。
+now here you can see I'm getting details not found, but if you really want to
+see that entire APIs that is basically created, you can just write slash /docs.
+
+266
+00:17:40,814 --> 00:17:43,172
+现在，这里你可以看到你整个的 LangServe。
+Now, here you can see your entire language and server.
+
+267
+00:17:43,264 --> 00:17:46,667
+看，我创建了 OpenAI 输入架构，所有内容都给出来了。
+See, I've created open AI input schema, everything is given.
+
+268
+00:17:46,667 --> 00:17:50,500
+essay，essay 也在，poem 也在，全部都在，对吧？
+essay, essay is also there, poem is also there, and all, right?
+
+269
+00:17:51,118 --> 00:17:52,864
+所以所有的 API 几乎都创建好了。
+So all the APIs is almost created.
+
+270
+00:17:53,134 --> 00:17:57,664
+看，这里你可以看到输入是什么，输出是什么，输出架构，基本要求的都是什么。
+See, here you can see what is the input, what is the output, output schema, what is it is basically required.
+
+271
+00:17:57,744 --> 00:18:02,384
+这里大概都给出来了，这基本上就是所谓的 Swagger UI 文档。
+Everything is probably given over here, and this is basically called as a swagger UI documentation.
+
+272
+00:18:02,542 --> 00:18:05,184
+好了，整个 Swagger UI 文档都搞定了。
+Okay, the entire swagger UI documentation is done.
+
+273
+00:18:05,344 --> 00:18:06,464
+现在，完美。
+Now, perfect.
+
+274
+00:18:07,726 --> 00:18:09,732
+你的 API 部分基本上已经创建好了。
+Your APIs part is basically created.
+
+275
+00:18:10,062 --> 00:18:12,144
+现在，我们该如何与这些 API 进行交互呢？
+Now, how do we interact with this APIs?
+
+276
+00:18:12,304 --> 00:18:13,540
+这是最重要的一部分。
+That is the most important part.
+
+277
+00:18:13,838 --> 00:18:22,276
+所以，为了实现这一点，我打算……呃，让我把这个终端隐藏到这边。
+So, for that, what we are going to basically do, I'm going to uh let let you let let let let this terminal be hidden over here.
+
+278
+00:18:22,574 --> 00:18:24,836
+我要创建我的 client.py。
+I'm going to create my client.py.
+
+279
+00:18:25,024 --> 00:18:34,884
+好了，关于 client.py，我们要做的操作是……让我先做一件事，我先把这个扩展禁用掉，好吗？
+Okay, now with respect to the client.py, what we are going to do, and let
+me do one thing till then I will go ahead and disable this extension, okay?
+
+280
+00:18:35,758 --> 00:18:38,884
+因为我不希望这个扩展干扰到任何事情。
+Because I don't want this extension to disturb things.
+
+281
+00:18:40,302 --> 00:18:43,364
+好了，禁用，完美。
+Okay, disable perfect.
+
+282
+00:18:47,886 --> 00:18:50,624
+我给你们看看这个扩展，它是一个非常强大的扩展。
+I will show you this extension, it is a very powerful extension.
+
+283
+00:18:50,734 --> 00:18:54,944
+好了，现在这个 client.py 就是我的应用，它可以作为我的应用。
+Okay, now this client py is my app, it can be my app.
+
+284
+00:18:55,150 --> 00:18:58,244
+好了，首先我要做的就是导入 requests。
+Okay, so first of all, what I'll do, I will go ahead and import requests.
+
+285
+00:18:59,054 --> 00:19:10,224
+好了，导入 request 之后，我要写 import streamlit as st，好吗？
+Okay, after importing request, I'm going to write import streamlet as streamlet as st okay.
+
+286
+00:19:10,574 --> 00:19:14,224
+所以我要导入两个库：request 和 streamlit。
+So two libraries I'm going to import request and streamlet.
+
+287
+00:19:14,624 --> 00:19:19,184
+明白了吗，我正在创建一个 Web 应用，我可以创建一个前端来与 API 进行交互。
+Understand I'm creating a web app, I can create a front end that will interact with the API.
+
+288
+00:19:19,264 --> 00:19:23,812
+好了，首先我要写两个定义，或者说两个重要的函数。
+Okay, so here first of all, I will write two definition or two important functions.
+
+289
+00:19:24,224 --> 00:19:38,724
+一个是……get_openai_response，在这里我基本上要写我的 input_text。
+One is uh get underscore open AI underscore response, and here I'm going to basically go ahead and write my input underscore text.
+
+290
+00:19:39,598 --> 00:19:39,824
+好了。
+Okay.
+
+291
+00:19:41,134 --> 00:19:47,152
+在这里我会调用，我可能会用这个 request 对象来创建我的响应。
+Here I will call, I will probably call use this request object and create my response.
+
+292
+00:19:47,312 --> 00:19:51,172
+现在，为了创建响应，为了调用 API，我该怎么做呢？
+Now, in order to create the response, in order to call the API, how do I do it?
+
+293
+00:19:51,566 --> 00:19:52,991
+所以这里我要写 request。
+So here I'm going to write request.
+
+294
+00:19:52,991 --> 00:19:57,472
+点 post，然后基本上怎么调用它呢？
+dot post And how to basically call it.
+
+295
+00:19:57,582 --> 00:19:59,712
+首先，我需要提供 URL。
+So first of all, I need to give the URL.
+
+296
+00:20:00,046 --> 00:20:03,152
+明白了吗，我们已经在运行这个 URL 了，对吧？
+Understand we are already running this URL, right?
+
+297
+00:20:03,470 --> 00:20:04,432
+整个 localhost。
+This entire local host.
+
+298
+00:20:04,512 --> 00:20:07,472
+如果你在这里看到，所有东西都在这里运行，对吧？
+If you probably see over here, everything is running over here, right?
+
+299
+00:20:07,982 --> 00:20:15,620
+如果你看到这个，好，如果你看到这个并尝试查看整个 URL，好。
+If you if you see this, okay, if you probably see this and try to try to see this entire URL, okay.
+
+300
+00:20:16,238 --> 00:20:24,772
+你可以直接看到，为了调用这些 API，我将使用这个特定的 Swagger UI 已经提供的 URL。
+You can directly see that in order to call these APIs, I will be using a URL that is already provided by this particular swagger UI.
+
+301
+00:20:24,912 --> 00:20:28,992
+这就是，比如说我想调用 SA URL。
+That is nothing but let's say I want to call the SA URL.
+
+302
+00:20:29,152 --> 00:20:29,472
+好的。
+Okay.
+
+303
+00:20:29,838 --> 00:20:37,392
+现在为了调用这个使用 OpenAI API 的 SA URL，你可以看到 HTTP localhost 8000 SA/invoke。
+Now in order to call the SA URL, which is using the OpenAI API, here you can see HTTP localhost 8000 SA slash invoke.
+
+304
+00:20:37,472 --> 00:20:41,988
+这就是我的完整 API URL，它将负责调用这个接口。
+So this is my entire API URL, which will be responsible in calling this.
+
+305
+00:20:42,272 --> 00:20:45,072
+而且我们知道这里还需要提供一个输入。
+And here we also know that we need to give one input.
+
+306
+00:20:45,230 --> 00:20:52,516
+所以我打算在这里写 JSON 等于，并以 JSON 格式提供我的其中一个输入。
+So what I will do, I will go ahead and write over here as JSON is equal to, and in the form of JSON, I will give one of my input.
+
+307
+00:20:52,814 --> 00:20:54,752
+所以输入冒号。
+So input colon.
+
+308
+00:20:55,312 --> 00:20:55,632
+好的。
+Okay.
+
+309
+00:20:56,174 --> 00:20:58,832
+在这里我将写 topic。
+And here I will write topic.
+
+310
+00:20:59,022 --> 00:20:59,712
+为什么要用 topic？
+Why topic?
+
+311
+00:20:59,792 --> 00:21:01,872
+因为你看，这里给出的内容。
+Because see, here what we are given over here.
+
+312
+00:21:01,952 --> 00:21:03,716
+如果你看这里，有 topic 对吧？
+If you see over here, topic is there, right?
+
+313
+00:21:04,142 --> 00:21:12,900
+这个 topic 就是我给这个特定函数的任何输入文本，同样的输入文本就会显示在这里。
+Now this topic will be nothing but whatever input text I am giving to this particular function,
+that same input text will be visible over here.
+
+314
+00:21:13,518 --> 00:21:13,792
+好的。
+Okay.
+
+315
+00:21:15,150 --> 00:21:17,252
+这就是我们实际在这里做的，对吧？
+So this is what we have actually done over here, right?
+
+316
+00:21:17,518 --> 00:21:20,292
+所以输入 topic 冒号输入下划线 text。
+So input topic colon input underscore text.
+
+317
+00:21:20,432 --> 00:21:27,472
+这就是我将提供的输入，它将连同这个特定的输入一起请求这个特定的 URL。
+So this is what is the input I will give, and it will hit this particular URL along with this particular input post.
+
+318
+00:21:27,712 --> 00:21:30,672
+好的，最后我得到了我的响应。
+Okay, and then finally I get my response.
+
+319
+00:21:30,766 --> 00:21:31,552
+现在我要做什么？
+Now what I will do?
+
+320
+00:21:31,632 --> 00:21:43,250
+我将获取这个响应，将其转换为 JSON，它包含键值对，我的输出内容将存在于名为 output 的变
+量中，我还需要的内容基本上是 content。
+I will go ahead and take this response, convert into a JSON, and it has a key dictionary value pairs,
+which where my output content will be present inside this variable called as output,
+
+321
+00:21:43,250 --> 00:21:46,752
+我将获取这个响应，将其转换为 JSON，它包含键值对，我的输出内容将存在于名为 output 的变
+量中，我还需要的内容基本上是 content。
+and one more thing that I require is basically content.
+
+322
+00:21:46,862 --> 00:21:50,660
+好的，所以我的整个响应都可以在这个键里找到。
+Okay, so inside this key my entire response will be available.
+
+323
+00:21:51,278 --> 00:21:57,572
+接下来我要做的操作类似，是借助 OLAMA 的响应，这里我们将使用 Llama2。
+The next thing that I am actually going to do is similar with the help of OLAMA response, and here we are going to use Lama2.
+
+324
+00:21:58,158 --> 00:22:01,712
+所以获取 Olama 响应输入文本再次请求 post。
+So get Olama response input text again request.post.
+
+325
+00:22:01,792 --> 00:22:07,312
+现在我们不再使用 /essay/invoke，而是要使用 /poem/invoke。
+Now instead of using this slash essay slash invoke, we are going to use slash poem slash invoke.
+
+326
+00:22:07,438 --> 00:22:08,912
+为什么要用 /poem/invoke？
+Why slash poem slash invoke?
+
+327
+00:22:09,166 --> 00:22:12,484
+因为 /poem 将负责与 llama2 进行交互。
+Because slash poem will be responsible in interacting with llama2.
+
+328
+00:22:12,752 --> 00:22:12,992
+好的。
+Okay.
+
+329
+00:22:13,454 --> 00:22:14,992
+然后我再次得到我的 JSON。
+And then I get my JSON again.
+
+330
+00:22:15,072 --> 00:22:16,592
+我，我得到了我的响应。
+I uh I get my response.
+
+331
+00:22:16,846 --> 00:22:19,152
+这里我正在写 response.json 的 output。
+Here I'm writing response.json of output.
+
+332
+00:22:19,278 --> 00:22:23,652
+好了，这就是我为了获取响应而创建的两个函数。
+Okay, so these are my two functions that I've actually created to get the response.
+
+333
+00:22:24,302 --> 00:22:25,632
+现在，让我做一件事。
+Now what let me do one thing.
+
+334
+00:22:25,712 --> 00:22:28,192
+现在让我开始创建我的 Streamlit 框架。
+Now let me go ahead and create my streamlit framework.
+
+335
+00:22:28,352 --> 00:22:29,124
+现在非常简单。
+Very simple now.
+
+336
+00:22:29,678 --> 00:22:31,232
+从现在开始，一切都会很简单。
+Now from here everything will be simple.
+
+337
+00:22:31,312 --> 00:22:32,930
+好了，st.title。
+Okay, so st dot title.
+
+338
+00:22:32,992 --> 00:22:33,892
+这个，这个就在那儿。
+this this is there.
+
+339
+00:22:34,254 --> 00:22:35,748
+我创建了两个文本框。
+I've created two text box.
+
+340
+00:22:35,952 --> 00:22:39,076
+一个是 input_text，另一个是 input_text_one。
+One is input text and one is input text one.
+
+341
+00:22:39,630 --> 00:22:42,512
+第一个文本框，我写的是“就任何主题写一篇作文”。
+First text box I'm saying write an essay on whatever topic.
+
+342
+00:22:42,766 --> 00:22:45,924
+第二个文本框，我写的是“就任何其他主题写一首诗”。
+The second text box I'm writing write a poem of any other topic.
+
+343
+00:22:46,032 --> 00:22:46,352
+好的。
+Okay.
+
+344
+00:22:46,862 --> 00:22:51,588
+所以第一个将与 OpenAI 应用交互，第二个将与 Llama 2 交互。
+So first one will be interacting with the open AI application, the second one will be interacting with Lama 2.
+
+345
+00:22:51,792 --> 00:22:52,032
+好的。
+Okay.
+
+346
+00:22:52,430 --> 00:22:58,192
+最后，我要调用我创建的这两个特定函数。
+And finally, I'm going to call this particular two function that I have created.
+
+347
+00:22:58,478 --> 00:23:04,740
+如果输入是 input_text，如果我在第一个框里写任何文字，它就应该与 OpenAI 的响应进行交互。
+If input.txt, if I write any text in the first time, then it should basically interact with the OpenAI response.
+
+348
+00:23:04,974 --> 00:23:07,392
+无论我得到什么响应，它都会显示在这里。
+Whatever response I'm getting, it will display it over here.
+
+349
+00:23:07,662 --> 00:23:14,628
+如果输入是 input_text_one，我将调用 OLAMA 响应，
+也就是与这个特定 URL 上的 Llama 2 进行交互。
+If input text one, I'll just call the OLAMA response, which is interacting with the Lama 2 on this particular URL.
+
+350
+00:23:14,832 --> 00:23:15,076
+好的。
+Okay.
+
+351
+00:23:15,406 --> 00:23:17,892
+然后我就会在这里得到输出。
+And then I will get the over here the output.
+
+352
+00:23:18,286 --> 00:23:23,460
+这就是我的整个应用程序，它正在与这里已经运行的 API 进行交互。
+So this is my entire application which is interacting with the API which is already running over here.
+
+353
+00:23:23,712 --> 00:23:30,180
+现在，关于这个 client.py，我实际要做的是创建另一个命令提示符，让我运行这个。
+Right now, with respect to this client dot py what I am actually going
+to do, I'm going to create another command prompt and let me run this.
+
+354
+00:23:30,672 --> 00:23:30,992
+好的。
+Okay.
+
+355
+00:23:31,726 --> 00:23:36,868
+所以这里我会说，呃，conda deactivate。
+So here I will say uh conda deactivate.
+
+356
+00:23:37,742 --> 00:23:41,700
+然后我会说 conda activate VNV。
+And I will say conda activate VNV.
+
+357
+00:23:42,926 --> 00:23:43,152
+好的。
+Okay.
+
+358
+00:23:43,758 --> 00:23:45,312
+现在让我直接运行这个。
+And let me just go ahead and run this now.
+
+359
+00:23:45,392 --> 00:23:48,512
+看，python client.py。
+See python client.py.
+
+360
+00:23:48,832 --> 00:23:49,152
+好的。
+Okay.
+
+361
+00:23:50,446 --> 00:23:52,292
+好的，抱歉，应该是 streamlit。
+Okay, sorry, it should be streamlit.
+
+362
+00:23:53,230 --> 00:23:55,472
+Streamlit 运行中。
+Streamlit run.
+
+363
+00:23:57,070 --> 00:23:58,724
+client.py 没问题。
+Client.py okay.
+
+364
+00:23:59,008 --> 00:24:00,368
+这就是我的客户端。
+So this is my client side.
+
+365
+00:24:00,448 --> 00:24:01,728
+好的，文件不存在。
+Okay, file does not exist.
+
+366
+00:24:01,808 --> 00:24:02,048
+好的。
+Okay.
+
+367
+00:24:02,368 --> 00:24:06,564
+噢，我要输入 CD，然后进入我的 API 文件夹。
+Oh, I will say C D and I will go to my folder that is API.
+
+368
+00:24:06,894 --> 00:24:09,648
+现在让我输入 streamlit run client.py。
+Now let me go ahead and write streamlet run client.py.
+
+369
+00:24:09,728 --> 00:24:10,148
+现在看这个。
+Now see this.
+
+370
+00:24:11,086 --> 00:24:12,580
+这是我的 Swagger UI。
+This is my swaggered UI.
+
+371
+00:24:12,750 --> 00:24:19,968
+API 在这里运行，这是我的前端应用，它现在基本上会与这个 API 进行交互。
+The API is running over here, and this is my front end application, which is basically in now it will interact with this API.
+
+372
+00:24:20,288 --> 00:24:20,528
+好的。
+Okay.
+
+373
+00:24:20,814 --> 00:24:27,300
+现在如果我在第一个文本框里输入任何内容，它就会与 OpenAI API 进行交互。
+Now if I write the first one, the first the first anything in the first text box, this is going to interact with the opening API.
+
+374
+00:24:27,566 --> 00:24:30,308
+所以我要输入：写一篇关于机器学习的文章。
+So I'll say write an essay on machine learning.
+
+375
+00:24:31,822 --> 00:24:32,048
+好的。
+Okay.
+
+376
+00:24:33,006 --> 00:24:36,928
+所以在这里你可以看到，get_openai_response 未定义。
+So here you can see name get open AI response is not defined.
+
+377
+00:24:37,008 --> 00:24:38,128
+为什么会报错？
+Why this is the error?
+
+378
+00:24:38,606 --> 00:24:38,884
+让我看看。
+Let's see.
+
+379
+00:24:40,686 --> 00:24:42,148
+OpenAI 响应。
+Open AI response.
+
+380
+00:24:43,950 --> 00:24:45,248
+哎呀，稍等一下。
+Oops, just a second.
+
+381
+00:24:45,328 --> 00:24:47,876
+这个函数名不匹配。
+This function name is does not match.
+
+382
+00:24:50,094 --> 00:24:53,348
+还有这个，噢，llama 响应也不匹配吗？
+And this also oh lama response does not match or what?
+
+383
+00:24:53,870 --> 00:24:55,268
+好的，现在我觉得应该可以运行了。
+Okay, now I think it should work.
+
+384
+00:24:55,790 --> 00:24:56,740
+让我们重新加载一下。
+Let's reload it.
+
+385
+00:24:57,088 --> 00:24:57,408
+好的。
+Okay.
+
+386
+00:24:59,534 --> 00:25:03,568
+现在你可以看到，自动生成了：机器学习是一项强大的技术，能够让计算机……
+Now you can see automatically machine learning is a powerful technology that enables computer.
+
+387
+00:25:03,648 --> 00:25:04,388
+这个，这个，这个。
+This, this, this.
+
+388
+00:25:04,654 --> 00:25:07,588
+所以第一个文本框是与 OpenAI API 交互的。
+So the first text box is interacting with the open AIPI.
+
+389
+00:25:07,982 --> 00:25:10,208
+写一首关于机器学习的诗。
+Write a poem poem on machine learning.
+
+390
+00:25:10,288 --> 00:25:12,932
+假设如果我输入同样的内容并执行它。
+Let's say if I give the same thing, if I execute it.
+
+391
+00:25:13,294 --> 00:25:15,088
+现在它将与 Llama 2 进行交互。
+Now this is going to interact with the Lama 2.
+
+392
+00:25:15,278 --> 00:25:19,076
+所以机器学习是一个领域，它能让计算机做出决策或继续运行。
+So machine learning is a field of order that allows computers to make decision or still running.
+
+393
+00:25:19,168 --> 00:25:19,648
+抱歉。
+Sorry.
+
+394
+00:25:19,918 --> 00:25:22,404
+呃，这是我从他们那里得到的第一个响应。
+Uh, this was the first response that I got from them.
+
+395
+00:25:23,088 --> 00:25:26,288
+呃，好的，我想它正在运行。
+Uh okay, it's running, I guess.
+
+396
+00:25:26,448 --> 00:25:27,268
+让我刷新一下。
+Let me reload it.
+
+397
+00:25:28,688 --> 00:25:31,556
+写一首关于机器学习的诗。
+Write a poem on machine learning.
+
+398
+00:25:31,728 --> 00:25:32,048
+好的。
+Okay.
+
+399
+00:25:33,134 --> 00:25:35,808
+如果我想的话，我还可以写自己的自定义提示词。
+And I can also write my own custom prompt if I want.
+
+400
+00:25:35,968 --> 00:25:40,228
+各位，我在想我们可以通过增加一些额外的挑战来增加点趣味性。
+Everybody, I was thinking that we could make a bit of interesting by adding some extra challenges.
+
+401
+00:25:40,814 --> 00:25:41,328
+所以，就这样。
+So and so.
+
+402
+00:25:41,408 --> 00:25:41,968
+那你们怎么说？
+So what do you say?
+
+403
+00:25:42,688 --> 00:25:43,819
+哦，给了一些内容。
+Oh, something, something is given.
+
+404
+00:25:43,819 --> 00:25:44,110
+拿走。
+away.
+
+405
+00:25:44,768 --> 00:25:50,020
+如果我大概看到这里关于提示词的输入文本 1，它也会传到这里。
+and if I probably see over here with respect to the prompt, input text one, this is also going over here.
+
+406
+00:25:50,608 --> 00:25:52,368
+这就是我的输入文本，好的。
+this is my input text, okay.
+
+407
+00:25:52,528 --> 00:25:52,928
+完美。
+Perfect.
+
+408
+00:25:53,230 --> 00:25:55,248
+所以一切运行正常，在这里你就能看到。
+So everything works fine, and here you'll be able to see.
+
+409
+00:25:55,328 --> 00:26:04,528
+写一首关于这个特定主题的诗，是给一个五岁孩子的。
+Write a poem about uh this particular topic with um for a five years child.
+
+410
+00:26:04,608 --> 00:26:05,648
+好的，现在让我们看看。
+Okay, so now let's see.
+
+411
+00:26:05,728 --> 00:26:09,568
+我试着更改一下提示词，看看是否运行正常。
+I'll just try to change the prompt and see whether it is working fine or not.
+
+412
+00:26:09,966 --> 00:26:11,488
+所以这个已经重新加载了。
+So this has got reloaded it.
+
+413
+00:26:11,568 --> 00:26:13,892
+呃，让我们看看它是否重新加载了。
+Uh let's see whether this is reloaded or not.
+
+414
+00:26:14,638 --> 00:26:20,164
+现在，如果我继续重新加载这个，写一首关于独角兽的诗。
+Now, if I go ahead and reload this, write a poem on unicorn.
+
+415
+00:26:21,294 --> 00:26:23,364
+好的，我只是在写点东西。
+Okay, I'm just writing something.
+
+416
+00:26:24,494 --> 00:26:24,928
+独角兽。
+Unicorn.
+
+417
+00:26:25,008 --> 00:26:26,564
+我觉得它应该能给出一首诗。
+I think it should be able to give the poem.
+
+418
+00:26:27,982 --> 00:26:29,488
+闪烁的皮毛，各种颜色。
+Shimmering coat in various colors.
+
+419
+00:26:29,582 --> 00:26:31,940
+是的，用 100 个词来描述一只独角兽。
+Yeah, 100 words that describe a unicorn.
+
+420
+00:26:32,558 --> 00:26:35,168
+好的，一些信息基本上正在加载中。
+Okay, something, something is information is basically lumbering.
+
+421
+00:26:35,248 --> 00:26:37,444
+而这基本上就是在与整个 Llama 2 进行交互。
+And this is basically interacting with the entire llama too.
+
+422
+00:26:38,254 --> 00:26:40,688
+所以，我希望你们已经理解了这一点。
+So I hope you've understood this.
+
+423
+00:26:40,848 --> 00:26:41,668
+大家想象一下。
+Just imagine, guys.
+
+424
+00:26:42,768 --> 00:26:46,608
+这已经在服务器上运行了，而你拥有前端。
+This is already running in the server, and this you have the front end.
+
+425
+00:26:46,688 --> 00:26:54,532
+现在，无论它是移动应用、前端应用还是边缘设备，任何设备，
+你都能与整个 API 进行交互，这就是这里最神奇的地方。
+Now, whether it will be a mobile app, front end app, or edge device, anything, you will be able to interact with this entire API,
+and that is the most amazing thing over here.
+
+426
+00:26:54,894 --> 00:27:01,284
+这就是你进入部署的第一阶段，主要是创建 API。
+And this is what you go basically to the first phase of the deployment where mainly you create the APIs.
+
+427
+00:27:01,488 --> 00:27:07,328
+现在就是选择任何云服务器并进行部署。希望你们喜欢这个视频。
+Now it's all about using whichever cloud server and doing the deployment So I hope you like this particular video.
+
+428
+00:27:07,408 --> 00:27:08,208
+我这边就讲到这里。
+This was it for my side.
+
+429
+00:27:08,288 --> 00:27:09,088
+我们下个视频见。
+I'll see you on the next video.
+
+430
+00:27:09,248 --> 00:27:09,728
+祝你有美好的一天。
+Have a great day.
+
+431
+00:27:09,808 --> 00:27:10,288
+谢谢大家。
+Thank you and all.
+
+432
+00:27:10,368 --> 00:27:10,688
+保重。
+Take care.
+
+433
+00:27:10,768 --> 00:27:11,012
+拜拜。
+Bye bye.
+
