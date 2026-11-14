@@ -5,6 +5,7 @@
 | 视频 | 原作者 | 更新 |
 |---|---|---|
 | [EECS4302 ANTLR4 Parser Generator Tutorial: Part 1](medias/9EKJ8/) | Jackie Wang | 2026-11-14 |
+| [Fresh And Updated Langchain Series- Understanding Langchain Ecosystem](medias/97F8N/) | Krish Naik | 2026-11-14 |
 | [Full Walkthrough: Workflow for AI Coding — Matt Pocock](medias/XQ6FX/) | AI Engineer | 2026-11-13 |
 | [Building Trustworthy AI: Reliable Evaluation for LLMs and AI Agents](medias/WNR1J/) | Springer Nature | 2026-11-13 |
 | [Building Vagrant plugins](medias/W4PTD/) | HashiCorp, an IBM Company | 2026-11-13 |
