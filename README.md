@@ -24,6 +24,7 @@
 | [7-End To End Advanced RAG Project using Open Source LLM Models And Groq Inferencing engine](medias/FTYMH/) | Krish Naik | 2026-11-13 |
 | [Hybrid Search RAG With Langchain And Pinecone Vector DB](medias/F1EXN/) | Krish Naik | 2026-11-13 |
 | [Does Scaling Toward AGI Depend on What System 1 Lets System 2 Execute?](medias/E8PF4/) | Knut Jägersberg | 2026-11-13 |
+| [Make Your AI Agents Predictable With Graph Engineering - Zachary Blumenfeld, Neo4j](medias/E8NBR/) | AI Engineer | 2026-11-13 |
 | [EECS4302 ANTLR4 Parser Generator Tutorial: Part 7](medias/D04FD/) | Jackie Wang | 2026-11-13 |
 | [EECS4302 ANTLR4 Parser Generator Tutorial: Part 3](medias/CPW0N/) | Jackie Wang | 2026-11-13 |
 | [The biggest AI breakthrough in medicine & drug discovery](medias/94R50/) | AI Search | 2026-11-13 |
