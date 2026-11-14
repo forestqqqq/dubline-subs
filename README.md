@@ -5,6 +5,7 @@
 | 视频 | 原作者 | 更新 |
 |---|---|---|
 | [Full Walkthrough: Workflow for AI Coding — Matt Pocock](medias/XQ6FX/) | AI Engineer | 2026-11-13 |
+| [Building Trustworthy AI: Reliable Evaluation for LLMs and AI Agents](medias/WNR1J/) | Springer Nature | 2026-11-13 |
 | [Building Vagrant plugins](medias/W4PTD/) | HashiCorp, an IBM Company | 2026-11-13 |
 | [8-Building Gen AI Powered App Using Langchain And Huggingface And Mistral](medias/VWMCG/) | Krish Naik | 2026-11-13 |
 | [3-Langchain Series-Production Grade Deployment LLM As API With Langchain And FastAPI](medias/VAFV1/) | Krish Naik | 2026-11-13 |
