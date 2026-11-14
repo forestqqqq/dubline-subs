@@ -1,0 +1,466 @@
+1
+00:00:00,846 --> 00:00:06,920
+如何用 Python 创建自定义的 Ansible lookup 插件来读取文件。
+How to create a custom Ansible lookup plugin in Python for reading a file.
+
+2
+00:00:07,726 --> 00:00:13,380
+Ansible lookup 插件用于在执行 playbook 过程中动态获取数据。
+Ansible lookup plugins are used to retrieve data dynamically during playbook execution.
+
+3
+00:00:14,478 --> 00:00:24,780
+它们允许你从数据库、API 或外部文件等各种来源获取信息，
+并在你的 Ansible 任务中使用这些数据。
+They allow you to fetch information from various sources such as databases, API or external files,
+and use that data in your Ansible task.
+
+4
+00:00:24,780 --> 00:00:35,800
+如你所见，在 Ansible 文档网站上，有大量的代码
+和指导说明如何编写成功的 Ansible Python 插件。
+As you can see, in the Ansible documentation website there is plenty
+of code and guidance how to write a successful Ansible Python plugin.
+
+5
+00:00:36,750 --> 00:00:46,160
+但现在我们要看一个简单的演示，只需 40 行代码，
+我们就能访问文件系统中的文件并读取其内容。
+But now we are going to see a small demo and in just 40 lines of code we
+will be able to access a file in the file system and read the content.
+
+6
+00:00:46,734 --> 00:00:47,140
+准备好了吗？
+Are you ready?
+
+7
+00:00:47,502 --> 00:00:48,100
+让我们开始吧！
+Let's have fun!
+
+8
+00:00:49,550 --> 00:00:54,940
+我们的冒险从编辑器里的一个简单的空文件开始。
+Our adventure began with a simple, empty file inside our editor.
+
+9
+00:00:55,470 --> 00:00:59,120
+我们要编写一些 Python 代码。
+We're expecting to write some Python code.
+
+10
+00:00:59,400 --> 00:01:03,100
+首先，让我们从一些头部信息开始。
+So, first of all, let's begin with some headers.
+
+11
+00:01:03,420 --> 00:01:06,720
+例如，这些是与 Python 3 相关的头部。
+For example, these are related to Python 3 headers.
+
+12
+00:01:06,980 --> 00:01:17,300
+现在，整个 Ansible 项目都在向最新的 Python 版本迁移，
+所以你可能已经熟悉了未来的趋势和这类结构。
+Now, all the Ansible project is moving to the latest version of Python,
+so you probably are already familiar about the future and all this kind of construct.
+
+13
+00:01:17,326 --> 00:01:22,420
+好的，非常重要的一点是写下文档。
+OK, one very important thing is to write it down the documentation.
+
+14
+00:01:23,310 --> 00:01:29,920
+这不仅是为了记录文件，实际上还有一些代码片段会被检查。
+This is not only for documenting the file, but actually there are some pieces of code that are checked.
+
+15
+00:01:30,702 --> 00:01:34,640
+所以这非常简单，我只是遵循基础知识。
+So this is super simple and I'm just keeping to the basics.
+
+16
+00:01:34,920 --> 00:01:47,700
+只需添加 lookup 插件的名称、作者、版本（也应与 Ansible collection 匹配，
+如果你是这样分发的）、简短描述和详细描述。
+Just add the name of the lookup plugin, the author, the version that should match also so the Ansible collection,
+if you are distributing this way, and a short description and a full description.
+
+17
+00:01:48,398 --> 00:02:05,700
+你还可以把文件中所有必要的参数都加上，Ansible 实际上会读取这些文档，
+它就像是 Ansible 核心与你的 Lookup 插件之间的 API。
+You can add also all the parameters that are necessary to the file, and Ansible is actually going to read this
+documentation that works like an API between the Ansible core and your Lookup plugin.
+
+18
+00:02:06,126 --> 00:02:10,620
+好的，把所有可能对最终用户有用的注释都写下来。
+Ok, so write down all the notes that might be relevant to the final user.
+
+19
+00:02:10,620 --> 00:02:23,160
+例如，你可以把内容当作 yaml 使用，并注意这
+个 lookup 不支持通配符，所以请使用文件读取。
+For example, that you can use the content as a yaml and be mindful
+that this lookup does not support globing, so use file read instead.
+
+20
+00:02:23,160 --> 00:02:24,600
+好的，酷。
+Ok, cool.
+
+21
+00:02:24,600 --> 00:02:32,080
+看起来这个 lookup 插件能够获取文件的内容，但它是如何实现的呢？
+So it look like that this lookup plugin is able to retrieve the content of a file, but how is going to happen?
+
+22
+00:02:32,080 --> 00:02:36,760
+好的，首先，我们需要使用一些库函数。
+Ok, first of all, we need to use some library function.
+
+23
+00:02:36,760 --> 00:02:51,760
+最常见的包括错误类，比如 AnsibleError、ParseError，
+当然还有一些 LookupBase 和 display。
+Just so let the most common are the errors, AnsibleError, ParseError, of course,
+and also some LookupBase and the display.
+
+24
+00:02:52,654 --> 00:02:54,692
+好的，让我从 display 开始。
+Ok, so let me start with the display.
+
+25
+00:02:54,940 --> 00:03:02,620
+让我们初始化类，现在开始派生我们的 Lookup 插件。
+Let's initialize the class and also now let's start deriving our Lookup plugin.
+
+26
+00:03:03,470 --> 00:03:08,860
+LookupModule 是 LookupBase 的一个实现。
+So the LookupModule is an implementation of the LookupBase.
+
+27
+00:03:09,678 --> 00:03:18,000
+最重要的一点是我们定义了 run 函数，也就是它内部的 run 方法。
+The most important part is that we define the run function, the run method inside of it.
+
+28
+00:03:18,638 --> 00:03:26,340
+现在我们要指定所有应与变量匹配的选项，以及用户指定的参数。
+Now we are going to specify all the options that should match the variable and the arguments specified by the user.
+
+29
+00:03:26,606 --> 00:03:33,740
+让我们创建一个用于返回值的空列表，现在我们要逐行读取文件。
+Let's create an empty list for the return value and now we are going to read line by line the file.
+
+30
+00:03:33,740 --> 00:03:46,580
+好的，我们要指定一个 debug，我们还可以指定一些 debug 文本，例如文件、
+lookup 术语，让我们指定一下术语。
+Ok, we are going to specify a debug, we can specify also some debug
+text, for example file, lookup terms, and let's specify the term.
+
+31
+00:03:47,598 --> 00:03:58,320
+正如你看到的，这是非常简单的 Python 代码，最重
+要的一点是 Ansible 内部已经内置了一些库工具。
+This is very simple Python code as you can see, and the most important
+part is that we have some library tools already embedded inside Ansible.
+
+32
+00:03:58,320 --> 00:04:08,980
+例如，findFileInSearchPath 是由 Ansible 库定义的函数，
+我们可以把它用于我们的日常插件中。
+For example, findFileInSearchPath that is a function that was
+defined by Ansible library and we can use for our everyday plugin.
+
+33
+00:04:09,614 --> 00:04:20,420
+好了，让我定义一些显示信息，这些信息只
+有在我们指定第三级详细程度时才会显示。
+Ok, so let me also define some display that will be available only when we specify third version of verbosity.
+
+34
+00:04:20,420 --> 00:04:23,800
+所以，使用百分比文件进行文件查找。
+So, file lookup using percentages file.
+
+35
+00:04:24,120 --> 00:04:31,524
+如你所见，最重要的一部分是放入 try-catch 块中。
+As you can see, the most important part will be into a try-catch block.
+
+36
+00:04:33,166 --> 00:04:41,520
+让我用 get_file 上下文来读取文件内容，并指定查找的文件名。
+So, let me read the content of a file using the get file context and specify the lookup file name.
+
+37
+00:04:43,406 --> 00:04:54,680
+一旦读取到内容，我们就把它添加到返回列表中，
+因为 lookup 插件期望的返回值是一个列表。
+Once we read the content, we append to the return list,
+because the return value expected by a lookup plugin is a list.
+
+38
+00:04:54,940 --> 00:05:01,420
+如果有什么不对，我们就抛出一个 Ansible 解析错误。
+And if something is not correct, let's raise an ansible parse error.
+
+39
+00:05:02,640 --> 00:05:09,520
+让我们捕获这个异常，如果出现 Ansible 解析错误，
+我们就抛出一个 Ansible 错误。
+Let's catch this exception, and if there is an ansible parse error, we raise an ansible error.
+
+40
+00:05:09,520 --> 00:05:16,640
+0，找不到文件，让我们用文件的名字来替换它。
+0, could not locate a file, and let's substitute with the name of the file.
+
+41
+00:05:17,220 --> 00:05:17,540
+酷！
+Cool!
+
+42
+00:05:18,126 --> 00:05:27,160
+看起来只需几行代码，我们就能够访问文件、读取内容并返回内容。
+It looks like that in just a few lines of code we were able to access a file,
+read the content and return the content.
+
+43
+00:05:27,560 --> 00:05:28,040
+耶！
+Yay!
+
+44
+00:05:28,260 --> 00:05:30,860
+我们创建了第一个 lookup 插件。
+We create our first lookup plugin.
+
+45
+00:05:32,110 --> 00:05:32,900
+很简单！
+It's easy!
+
+46
+00:05:36,078 --> 00:05:37,650
+现在你可以随心所欲了。
+Now the sky is the limit.
+
+47
+00:05:37,790 --> 00:05:40,130
+我们可以添加更多的模式匹配。
+We can add more pattern matching.
+
+48
+00:05:40,130 --> 00:05:44,570
+我们可以进行更多的计算，可以做很多事情，但这是基础。
+We can do more computations, we can do a lot of things, but this is the basic.
+
+49
+00:05:45,998 --> 00:05:46,530
+我明白你的意思。
+I hear you.
+
+50
+00:05:46,798 --> 00:05:49,250
+现在，我们想使用这个 Lookup 插件。
+Now, we would like to use this Lookup plugin.
+
+51
+00:05:49,490 --> 00:05:50,270
+该怎么做呢？
+How to do it?
+
+52
+00:05:50,606 --> 00:06:07,650
+嗯，最简单的方法就是创建一个 Ansible playbook，
+比如我们把它命名为 exec_local_plugin，它将在我所有库存的主机上执行。
+Well, the most simple way is just simple create an enensible playbook that, for example,
+let's name it exec local plugin, and that is going to be executed on host all of my inventory.
+
+53
+00:06:07,650 --> 00:06:19,010
+在任务列表里，只有一个任务，名字叫 read_file_from_plugin，对，就是它。
+On the task list, only one task, name, read file from plugin, yes.
+
+54
+00:06:19,662 --> 00:06:23,550
+好了，如何在屏幕上用 Ansible 显示任何内容？
+Ok, how to display anything on the screen with Ansible?
+
+55
+00:06:23,790 --> 00:06:26,810
+是的，使用 ansible.builtin.debug。
+Yes, using ansible.builtin.debug.
+
+56
+00:06:27,050 --> 00:06:32,470
+在消息里，我们可以指定对我们 lookup 插件的访问。
+And on the message, we can specify the access to our lookup plugin.
+
+57
+00:06:32,470 --> 00:06:41,970
+所以，让我使用 lookup 语句并指定插件的名称，在我的例子中，
+就是 Python 文件的名称，也就是 file_read。
+So, let me use the statement lookup and specify the name of the
+plugin, in my case, the name of the Python file, so file read.
+
+58
+00:06:43,118 --> 00:06:43,510
+是不是很酷？
+Isn't cool?
+
+59
+00:06:44,142 --> 00:06:44,530
+完美。
+Perfect.
+
+60
+00:06:44,670 --> 00:06:49,430
+我们还需要告诉插件文件名，在我的例子中是 example.txt。
+We need also to say to the plugin the name of the file, in my case example.txt.
+
+61
+00:06:49,570 --> 00:06:56,390
+在这个时间点，我们可以指定任何内容，无论是相对路径还是绝对路径。
+We can specify anything, any path, relative or absolute at this point in time.
+
+62
+00:06:56,570 --> 00:06:57,050
+是的。
+Yes.
+
+63
+00:06:57,370 --> 00:06:57,950
+完美。
+Perfect.
+
+64
+00:06:58,190 --> 00:06:58,770
+搞定。
+Done.
+
+65
+00:06:59,758 --> 00:07:00,970
+那么，准备好了吗？
+So, get ready.
+
+66
+00:07:02,446 --> 00:07:09,830
+现在我们有一个用于读取文件的 Ansible lookup 插件，
+还有一个用来调用它的 Ansible playbook。
+Now we have a successful Ansible lookup plugin for reading the file and one Ansible playbook to use it.
+
+67
+00:07:09,970 --> 00:07:13,170
+我们可以切换到终端来运行代码。
+We can move to our terminal to run the code.
+
+68
+00:07:15,060 --> 00:07:16,350
+欢迎来到我的终端。
+Welcome to my terminal.
+
+69
+00:07:16,878 --> 00:07:23,510
+当前目录已经包含了 playbook、lookup 插件以及一些额外文件。
+The current directory already contains the playbook and the lookup plugin and some additional files.
+
+70
+00:07:24,142 --> 00:07:26,210
+让我用目录树展示给你们看。
+So let me show you in a directory tree.
+
+71
+00:07:26,210 --> 00:07:32,650
+如你所见，有两个新文件，inventory 和 example，让我展示一下。
+As you can see, there are two new files, inventory and example, but let me show you.
+
+72
+00:07:32,790 --> 00:07:42,590
+inventory 只是一个简单的文件，用于将执行目标指向 localhost；
+example 是一个简单的文本文件，里面有一些示例文字，
+The inventory is just a simple file that targets the execution against localhost,
+and example is a simple text file with some sample text, literally sample text inside of it.
+
+73
+00:07:42,590 --> 00:07:45,530
+字面意思就是里面写着 sample text。
+The inventory is just a simple file that targets the execution against localhost,
+and example is a simple text file with some sample text, literally sample text inside of it.
+
+74
+00:07:46,318 --> 00:07:55,900
+酷，我已经把插件文件保存在 lookup 插件目录里了，
+现在我准备好用 ansible-playbook 来执行，并
+Cool, I already saved my plugin file inside the lookup plugin directory,
+and I'm ready to execute with ansible-playbook specifying the inventory file and my ansible playbook.
+
+75
+00:07:55,900 --> 00:08:00,370
+指定 inventory 文件和我的 Ansible playbook。
+Cool, I already saved my plugin file inside the lookup plugin directory,
+and I'm ready to execute with ansible-playbook specifying the inventory file and my ansible playbook.
+
+76
+00:08:01,102 --> 00:08:13,530
+执行速度非常快，正如你在屏幕上看到的，sample text 正是我们在 Ansible
+playbook 中获取到的字符串，它对应的是 example.txt 文件。
+The execution is super fast and, as you can see on the screen, the sample text is exactly the string that we get
+inside our ansible playbook that matches the example txt file.
+
+77
+00:08:13,530 --> 00:08:14,570
+酷。
+Cool.
+
+78
+00:08:15,650 --> 00:08:28,350
+还有一点我想展示给你们看，每当 Ansible 执行一个文件时，
+实际上它会编译 Python 代码，以便下次执行时更快。
+Another thing that I would like to show you is that every time Ansible executes a file,
+actually it compiles the Python code to get in the next execution faster.
+
+79
+00:08:29,038 --> 00:08:41,250
+所以如果你现在查看目录树，你会发现还会存在另一
+个后缀为 pyc 的文件，那就是该文件的编译版本。
+So if you access now the directory tree, you find out that will exist
+another file with extension pyc that is the compiled version of the file.
+
+80
+00:08:41,710 --> 00:08:45,250
+这样下次你执行文件时速度就会更快。
+so the next time you execute your file will be even faster.
+
+81
+00:08:46,318 --> 00:08:55,590
+现在我们创建了第一个用于读取文件的 lookup 插件，
+把它整合到 Ansible playbook 中，你的潜力将无限扩展。
+Now we created our first lookup plugin for reading a file, we
+incorporate it in an Ansible playbook and the sky is the limit.
+
+82
+00:08:56,174 --> 00:09:00,750
+我非常期待听到你们使用 Ansible 取得成功的案例。
+I'm so excited to hear about your success story with Ansible.
+
+83
+00:09:00,990 --> 00:09:01,550
+耶！
+Yay!
+
+84
+00:09:01,870 --> 00:09:03,850
+祝你们有个愉快的自动化之旅！
+Have a great automation day!
+
