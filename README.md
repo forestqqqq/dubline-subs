@@ -7,6 +7,7 @@
 | [33,000 Feet Above The Moon, Apollo 11’s Computer Started Failing](medias/N9P7P/) | Parts That Changed History | 2026-11-15 |
 | [Selfie's Saving Lives? AI's Medical Breakthroughs \| Backscroll](medias/7AP8S/) | NewsNation | 2026-11-15 |
 | [The Future of AI Infrastructure](medias/3YZGK/) | Google Cloud Tech | 2026-11-15 |
+| [Proving and Improving the Platonic Representation Hypothesis with JEPAs](medias/1HTM6/) | CosmoX | 2026-11-15 |
 | [The New Era of AI: Extraordinary Breakthroughs by OpenAI, Google & Anthropic!](medias/V8Z3Y/) | Tech Unpacked | 2026-11-14 |
 | [Talk Binghan He on Barrier-Pairs RRT - CDC 2020](medias/T9ZE0/) | UT Human Centered Robotics Lab | 2026-11-14 |
 | [Building RAG With OpenAI GPT-4o(omni) Model Using Objectbox Vector Database](medias/S008J/) | Krish Naik | 2026-11-14 |
