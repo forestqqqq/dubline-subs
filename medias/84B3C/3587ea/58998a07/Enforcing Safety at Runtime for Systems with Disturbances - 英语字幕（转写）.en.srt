@@ -1,0 +1,376 @@
+1
+00:00:01,038 --> 00:00:09,028
+Hello, my name is Matthew Abate, and today I'm going to be speaking to you about some of the work that we've been doing in the Georgia Tech FACTS Lab and the Georgia Tech Decision and Controls Lab.
+
+2
+00:00:09,518 --> 00:00:16,324
+The title of my presentation today is Enforcing Safety at Runtime for Systems with Disturbances, and this work was advised by Dr. Sam Coogan.
+
+3
+00:00:17,806 --> 00:00:28,292
+This work is motivated by control system safety, and the safety problem for control systems is often posed as an invariance constraint, requiring that the system remain in some safe set of operating conditions for all time.
+
+4
+00:00:29,774 --> 00:00:35,812
+Certain controllers can be verified safe a priori, that is, verify that they render a safe subset of states for an invariant.
+
+5
+00:00:36,320 --> 00:00:43,236
+However, when this is not the case, it can be desirable to enforce safety online through the use of a runtime assurance mechanism.
+
+6
+00:00:43,760 --> 00:00:55,680
+A runtime assurance mechanism, which is sometimes also called an active set invariance filter, will filter a desired control signal online in order to balance performance goals with safety goals, such as invariance constraints.
+
+7
+00:00:55,790 --> 00:01:03,440
+And in the figure on the bottom of the screen, we see an example where a nominal control policy will push the system outside of a safe set of operating conditions.
+
+8
+00:01:03,600 --> 00:01:12,452
+However, using a runtime assurance mechanism, we can ensure the forward invariance of the green region while also ensuring that our system trajectory resembles that of the nominal trajectory.
+
+9
+00:01:12,942 --> 00:01:19,972
+So numerous methods exist for enforcing safety at runtime, and in particular, control barrier function-based techniques are well suited for this task.
+
+10
+00:01:20,590 --> 00:01:29,828
+Certain control barrier function-based runtime assurance mechanisms even allow a system to leave its given safe set when safety can be verified by other means against alternate constraints.
+
+11
+00:01:30,480 --> 00:01:40,836
+However, these methods do not yet account for systems with disturbances, and in our work we aim to build in this functionality and create runtime assurance mechanisms for systems with disturbances.
+
+12
+00:01:42,670 --> 00:01:50,468
+So the main two contributions of our work are that we present a problem formulation for control barrier function-based runtime assurance for control systems with disturbances.
+
+13
+00:01:50,880 --> 00:01:58,820
+A controller which solves this problem statement must in some way compute reachable sets or assess the non-determinism in the system model by other means.
+
+14
+00:01:59,040 --> 00:02:08,964
+And to that end, we also present one solution to the problem statement where the non-determinism in the system model is mitigated using mixed monotonicity-based look ahead methods.
+
+15
+00:02:11,278 --> 00:02:18,160
+I'll begin by addressing our first contribution, and we'll present a problem formulation for runtime assurance for control systems with disturbances.
+
+16
+00:02:18,240 --> 00:02:29,120
+In this setting, we're considering systems of the form given in equation one, where x is the state, u is the control input, and w is a disturbance input, which enters the system dynamics in an affine manner.
+
+17
+00:02:29,280 --> 00:02:34,020
+And additionally, we're going to pair the system with an unsafe set of states, which are to be avoided for all time.
+
+18
+00:02:35,278 --> 00:02:44,036
+Additionally, we'll assume the existence of a backup control policy for our system, and this backup control policy is two parts a backup controller, UB, and a safe set, SB.
+
+19
+00:02:44,494 --> 00:02:51,652
+The idea is that the backup controller renders the safe set forward invariant by means of a barrier which is known for the system.
+
+20
+00:02:52,240 --> 00:02:56,004
+And the safe set SB does not intersect the unsafe set.
+
+21
+00:02:56,240 --> 00:03:02,116
+Thus, when beginning in the safe set and applying the backup controller for all time, safety is guaranteed for the system.
+
+22
+00:03:02,542 --> 00:03:11,268
+However, we make no assumptions on the performance guarantees of the backup controller, and it may be such that the backup controller is not preferable to use an application.
+
+23
+00:03:11,440 --> 00:03:14,948
+And this is really the main motivation for the runtime assurance problem.
+
+24
+00:03:15,360 --> 00:03:35,012
+So this problem reads as follows: we're going to assume a system given by equation three, and we're going to pair it with an unsafe set of states, and we'll assume a safe, verified backup control policy for the system, and also a desired controller which satisfies some performance objective, but perhaps may cause the system to enter the obstacle region when employed.
+
+25
+00:03:35,406 --> 00:03:47,236
+So the objective of the runtime assurance problem is to design a controller, UASIF, such that for any state beginning inside the safe set of the backup controller, the assured control input UASIF guarantees safety for all time.
+
+26
+00:03:47,600 --> 00:03:52,644
+But also UASIF evaluates the desired control input whenever it is safe to do so.
+
+27
+00:03:53,326 --> 00:03:56,720
+Okay, so this is our first contribution and also our problem statement.
+
+28
+00:03:56,880 --> 00:04:07,748
+And in the remainder of this presentation, we'll discuss one potential solution to this problem statement where the non-determinism in the system model is assessed through the use of mixed monotonicity-based look ahead methods.
+
+29
+00:04:08,782 --> 00:04:14,692
+Alright, so I'll just begin this segment by introducing some preliminaries on mixed monotone systems for those who are unfamiliar.
+
+30
+00:04:14,990 --> 00:04:22,436
+So we'll just consider in this uh for the moment a non-deterministic system with no control input, so x dot is equal to f of x and w.
+
+31
+00:04:22,960 --> 00:04:32,100
+And this system is said to be mixed monotone when there exists a related decomposition function d, which separates the initial system dynamics into increasing and decreasing components.
+
+32
+00:04:32,750 --> 00:04:36,160
+Okay, and uh this this property has been shown to be quite general.
+
+33
+00:04:36,320 --> 00:04:41,796
+There exist special cases and algorithms for constructing decomposition functions given a particular system.
+
+34
+00:04:43,534 --> 00:04:53,444
+This decomposition function then facilitates the construction of a deterministic auxiliary embedding system relative to the initial system, and this embedding system is monotone with respect to a particular order.
+
+35
+00:04:53,920 --> 00:04:59,332
+So this embedding system is given by equation four, and it's important to note here that the system is deterministic.
+
+36
+00:04:59,630 --> 00:05:04,548
+It has no disturbances, and also it's related to the initial dynamics through the decomposition function.
+
+37
+00:05:04,814 --> 00:05:10,080
+So one can study the vector field of the embedding system in order to understand properties of the initial system.
+
+38
+00:05:10,160 --> 00:05:21,520
+And in particular, I've included a proposition at the bottom of the slide where we show how robust reachable sets for the initial system are efficiently computed via the simulation of only a single trajectory of the embedding system.
+
+39
+00:05:21,600 --> 00:05:24,228
+So recall the fact that the embedding system has no disturbances.
+
+40
+00:05:24,720 --> 00:05:35,140
+If we just compute one simulation of the system from a particular initial state, then that tells us about the full reachable set of the initial system under all possible disturbance policies.
+
+41
+00:05:35,854 --> 00:05:44,804
+Okay, so what we're gonna do next is we're gonna take the theory and tools for mixed monotone systems and we're going to build them into an active set invariance filter that solves the problem statement.
+
+42
+00:05:46,510 --> 00:05:58,628
+the fundamental idea of what we're going to do or how erasive is going to function is it's going to predict reachable sets for the system 6 using the embedding system, which recall has no disturbances.
+
+43
+00:05:59,040 --> 00:06:09,360
+and then it's going to make decisions based on a barrier-based optimization problem as to what control input is necessary in order to keep the system safe at runtime.
+
+44
+00:06:10,094 --> 00:06:18,788
+Okay, so the the main assumption on our problem setting now is that the closed loop system dynamics under the backup control policy are mixed monotone with respect to a known decomposition function.
+
+45
+00:06:19,280 --> 00:06:25,828
+recall the fact that this is not a particularly restrictive assumption, as large classes of systems have been shown to be mixed monotone.
+
+46
+00:06:26,990 --> 00:06:31,812
+Okay, and our second assumption involves the safe set of the backup controller, SB.
+
+47
+00:06:32,400 --> 00:06:51,760
+Um so uh what we allow for here is backup controllers that are say poorly developed, in the sense that perhaps your controller renders your safe set SB forward invariant, but also it's possible that your backup controller might render a much larger set than SB forward invariant.
+
+48
+00:06:51,840 --> 00:07:07,876
+And what we do here is, we allow simply for the time t basin of attraction of the safe set, which is the set of states in the state space, which are guaranteed to converge to the safe set when the backup control input is applied.
+
+49
+00:07:08,480 --> 00:07:14,980
+We're going to assume that this basin of attraction does not intersect the safe set for some known backup time.
+
+50
+00:07:15,520 --> 00:07:30,244
+And the reason why this is important is because the fact that SB is robustly forward invariant under the backup control policy implies that this time T basin of attraction is also robustly forward invariant as well, regardless of your choice of the backup time.
+
+51
+00:07:31,040 --> 00:07:37,444
+and what we're going to do in the following is we're going to allow the system to move within the time t basin of attraction of the system.
+
+52
+00:07:37,680 --> 00:07:40,240
+This might force your system outside of the safe set.
+
+53
+00:07:40,480 --> 00:07:47,396
+However, um the assumption that the basin of attraction does not intersect the unsafe set, we now have safety guarantees going forward.
+
+54
+00:07:48,334 --> 00:07:59,684
+Okay, so due to time constraints on the presentation, I don't have time to really get into the full nuance and gravity of our results, but I'm presenting here an algorithm for runtime assurance for non-deterministic systems.
+
+55
+00:08:01,040 --> 00:08:12,228
+so what's going on here is that at every time step, this algorithm will predict a reachable set using the mixed monotonicity tools in the embedding system by simulating a trajectory forward.
+
+56
+00:08:13,040 --> 00:08:20,720
+and then we're going to ensure that a barrier condition is satisfied at the corners of the rectangular reachable set approximation derived.
+
+57
+00:08:20,800 --> 00:08:33,200
+And what this is gonna do is ensure the fact that wherever the system is along its trajectory, there's always a safe path for the system to return to the safe set while avoiding the unsafe set along the way.
+
+58
+00:08:33,360 --> 00:08:45,440
+And thus, when applied control inputs are chosen at each time step using this formulation, we can guarantee the safety of the system and also guarantee that the applied input evaluates the desired input whenever possible.
+
+59
+00:08:45,600 --> 00:08:50,308
+So this controller defined algorithmically solves the problem statement of our work.
+
+60
+00:08:51,086 --> 00:08:55,428
+Okay, so I'm next going to present a numerical example to demonstrate the findings of our work.
+
+61
+00:08:55,856 --> 00:09:11,620
+In this example, we're considering a vehicle platoon of three vehicles, and the velocity dynamics of each vehicle is given by nine, where xi denotes the velocity of the i th vehicle, AI denotes the acceleration of the vehicle, which is our control input, and where beta denotes a friction coefficient.
+
+62
+00:09:12,256 --> 00:09:20,548
+So control decisions for this vehicle network are made after referencing the available displacements of the vehicles in the network.
+
+63
+00:09:21,262 --> 00:09:26,416
+And on this slide, I'm giving a little bit more intuition as to what's going on in the problem statement.
+
+64
+00:09:26,496 --> 00:09:29,536
+So there are three carts, and connectivity is given this way.
+
+65
+00:09:29,646 --> 00:09:34,816
+You can also think of the fact that connectivity is given by the incidence matrix given in equation 11.
+
+66
+00:09:35,136 --> 00:09:52,324
+So here there are going to be two available displacement measures, Z1 and Z2, and there'll be two control inputs which apply equal and opposite forces to the carts, and each control input is determined solely by referencing the displacement of the carts which the control input affects.
+
+67
+00:09:53,486 --> 00:10:02,404
+So now combining the dynamics of X, the velocity with the dynamics of Z, the displacement, we arrive at equation 12, which is the full closed loop dynamics of our system.
+
+68
+00:10:02,816 --> 00:10:09,156
+So here W is a disturbance input, U has two components, it's our control input, and XZ comprise our state.
+
+69
+00:10:10,446 --> 00:10:13,936
+So along with the system, we're going to assume a safety constraint.
+
+70
+00:10:14,176 --> 00:10:19,696
+So we're going to take an unsafe set, which it looks like the complement of a hyper rectangle in R5.
+
+71
+00:10:20,256 --> 00:10:27,296
+So equivalently, the goal of the system is to remain within this hyper rectangle centered at the origin when possible.
+
+72
+00:10:27,456 --> 00:10:29,828
+And we're also going to assume a backup control policy.
+
+73
+00:10:30,256 --> 00:10:34,340
+So this backup control policy is going to take the form given by equation 14.
+
+74
+00:10:34,736 --> 00:10:40,996
+And you can think of this backup control policy as though it's two nonlinear springs which act toward the carts in the system.
+
+75
+00:10:41,296 --> 00:10:54,116
+So it's defined based off the arctangent function, and here there are two parameters, kappa and sigma, which roughly speaking describe the maximum force that's applicable before the springs saturate, and also the distance at which the springs saturate.
+
+76
+00:10:55,374 --> 00:10:58,816
+Next, we're going to construct our active set invariance filters.
+
+77
+00:10:58,896 --> 00:11:00,976
+So there are two steps in this construction process.
+
+78
+00:11:01,136 --> 00:11:13,220
+The first is to form a decomposition function for the system, which we do on the slide using an algorithm for readily generating decomposition functions based on the sign structure of the closed loop dynamics Jacobian matrix.
+
+79
+00:11:14,254 --> 00:11:17,376
+And then also we're going to construct a backup region for our system.
+
+80
+00:11:17,936 --> 00:11:27,524
+In this work, we use a linearization-based approach to compute a hyper-ellipsoidal set of states, which are forward and variant under the closed loop dynamics of the backup controller.
+
+81
+00:11:28,660 --> 00:11:37,380
+All right and then at this point, what we're going to do is construct the active set invariance filter, which was provided as an algorithm on the previous slides, and apply it to the system.
+
+82
+00:11:39,216 --> 00:11:43,056
+So here you can see three sort of versions of what this looks like.
+
+83
+00:11:43,216 --> 00:11:47,936
+The first is on the top, it's in cart space, you can see how the carts move with respect to one another.
+
+84
+00:11:48,176 --> 00:11:57,296
+In the middle of the slide, we have a projection of the true system trajectory, which is an R5, onto R2, where we can see the displacements of the carts of the vehicles.
+
+85
+00:11:57,456 --> 00:12:00,896
+And here, the magenta trajectory is the nominal trajectory.
+
+86
+00:12:00,976 --> 00:12:03,748
+This is what will happen if you just apply the desired controller.
+
+87
+00:12:04,096 --> 00:12:06,176
+You'll begin to move away from the safe set.
+
+88
+00:12:06,496 --> 00:12:23,108
+But the actual true trajectory of the system is the blue trajectory, where you can see that the uh at edge at each time step, the system is producing a reachable set using the mixed monotonicity approach, and then ensuring that this reachable set is contained inside the safe set for all time.
+
+89
+00:12:25,900 --> 00:12:27,204
+All right so I'll quickly wrap up.
+
+90
+00:12:27,936 --> 00:12:30,096
+so this work has two main contributions.
+
+91
+00:12:30,416 --> 00:12:36,260
+we present a problem formulation for control barrier function based runtime assurance for control systems with disturbances.
+
+92
+00:12:36,622 --> 00:12:44,484
+And we also present a specific solution to this problem statement whereby the non determinism in the system model is assessed using mixed monotonicity based look ahead methods.
+
+93
+00:12:45,616 --> 00:12:46,496
+Thank you for watching.
+
+94
+00:12:46,656 --> 00:12:50,148
+My name is Matthew Abate and I've included my contact at the bottom of this slide.
+
