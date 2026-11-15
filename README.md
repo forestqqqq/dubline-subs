@@ -5,6 +5,7 @@
 | 视频 | 原作者 | 更新 |
 |---|---|---|
 | [33,000 Feet Above The Moon, Apollo 11’s Computer Started Failing](medias/N9P7P/) | Parts That Changed History | 2026-11-15 |
+| [The Platonic Theorem: How AI Converges on Reality](medias/A51TM/) | Latent AI | 2026-11-15 |
 | [Selfie's Saving Lives? AI's Medical Breakthroughs \| Backscroll](medias/7AP8S/) | NewsNation | 2026-11-15 |
 | [CUA-Master: Computer Agent Extension and Recursive Enhancement Framework](medias/7ABB6/) | Research Paper Review | 2026-11-15 |
 | [The Platonic Theorem with JEPAs (Audio Deep Dive)](medias/5X4S1/) | Latent AI | 2026-11-15 |
