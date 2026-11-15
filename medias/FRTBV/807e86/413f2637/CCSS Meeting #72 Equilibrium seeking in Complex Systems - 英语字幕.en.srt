@@ -1,0 +1,1256 @@
+1
+00:00:00,080 --> 00:00:08,804
+We're really happy to have today Dr. Sergio Grammatico in the series on control of complex systems.
+
+2
+00:00:09,440 --> 00:00:17,760
+We had a few talks, you know, lots of indeed more engineering-based, also, and that's where the control is also very appropriate.
+
+3
+00:00:17,920 --> 00:00:33,320
+So he is an associate professor at the Delft Center for Systems and Control, and did a PhD degree in automatic control in the University of Pisa quite a while back, and now is for a long time already developed.
+
+4
+00:00:33,920 --> 00:00:35,716
+So we're really interested.
+
+5
+00:00:36,000 --> 00:00:36,240
+Okay.
+
+6
+00:00:37,390 --> 00:00:47,428
+Okay, thank you for the introduction and welcome everyone to this talk where we will speak about equilibrium seeking in complex systems.
+
+7
+00:00:49,380 --> 00:00:49,460
+And
+
+8
+00:00:52,480 --> 00:00:57,828
+the pointer just decided not to work, so I'm gonna restart the screen sharing procedure.
+
+9
+00:01:04,078 --> 00:01:05,924
+and now it will magically work.
+
+10
+00:01:07,214 --> 00:01:10,400
+So this is the outline of my presentation today.
+
+11
+00:01:10,480 --> 00:01:17,796
+So, we'll start introducing equilibrium problems, and we'll take the perspective of game theory for that.
+
+12
+00:01:18,062 --> 00:01:33,892
+And then, I will dive into key problems that are the feed-forward problem and the feedback problem, and will be more clear in a minute, and I will close with some recommendations for future work.
+
+13
+00:01:36,560 --> 00:01:36,880
+Okay.
+
+14
+00:01:37,360 --> 00:01:50,240
+so in this presentation, as I said, I'm gonna take the perspective of game theory to study complex systems and equilibrium-seeking problems in complex systems.
+
+15
+00:01:50,480 --> 00:02:05,760
+and that's a very useful mathematical framework because it allows us to characterize complex systems, complex infrastructures where we have multiple decision makers.
+
+16
+00:02:05,840 --> 00:02:08,560
+so multiple agents that take decisions.
+
+17
+00:02:09,280 --> 00:02:17,188
+those might be selfish, so self-interested, or even non-cooperative, and they have to share resources.
+
+18
+00:02:18,350 --> 00:02:40,324
+So, from a mathematical perspective, this has been studied in the context of optimization theory, variational inequality problems, but in engineering, it has a lot of applications in electrical grids, uh heating grids, nowadays as well, in wireless networks.
+
+19
+00:02:41,680 --> 00:02:49,828
+and there are also applications of game theory in reinforcement learning, artificial intelligence, and multi-agent uh reinforcement learning.
+
+20
+00:02:53,582 --> 00:03:01,956
+Unsurprisingly, the theory has been studied a lot also in control systems, which is my scientific community.
+
+21
+00:03:02,318 --> 00:03:17,092
+and here we see three representative special issues of the control systems magazine, where people have studied how multiple agents can cooperate with each other to accomplish a common control task.
+
+22
+00:03:19,374 --> 00:03:35,172
+people have been studying how to play games over networks, so how to affect the communication between users such that a certain goal is achieved despite the presence of non cooperative decision makers.
+
+23
+00:03:35,758 --> 00:03:46,980
+And finally, people have studied games to somehow model as well as influence the behavior of users with machine interfaces.
+
+24
+00:03:50,126 --> 00:03:58,084
+Okay, so let me give you a few examples in different application domains just to get a feeling of what is a game.
+
+25
+00:03:58,926 --> 00:04:06,532
+Perhaps the most popular example in the energy community is the so-called demand side management problem.
+
+26
+00:04:07,040 --> 00:04:14,148
+so imagine you have a small grid and many users or presumers that have to schedule their energy demand.
+
+27
+00:04:14,734 --> 00:04:24,452
+Those are called also presumers because with solar panels there and also home batteries, they're able to inject electricity back into the grid.
+
+28
+00:04:24,880 --> 00:04:38,560
+Okay, and the typical goal of the grid operator is to flatten the overall demand, so avoid that there are valleys during the night and huge peaks during the day because this is not beneficial for the power generation.
+
+29
+00:04:38,894 --> 00:04:40,996
+Okay, so it would be nice if this demand is slow.
+
+30
+00:04:41,934 --> 00:04:57,636
+So, from the perspective of the individual user, we can think that they want to minimize discomfort for shifting their loads, for example, for doing the dishwasher or the washing machine in the very middle of the night.
+
+31
+00:04:58,400 --> 00:05:09,092
+And um those presumers might be also charged with some tariffs for choosing a peak or for choosing a demand during peak hours.
+
+32
+00:05:09,680 --> 00:05:12,868
+Those are called uh peak uh tariffs.
+
+33
+00:05:13,870 --> 00:05:24,388
+And of course, every user has constraints, meaning that you can set up your operational limits for charging your electric vehicle, for doing your appliances, and so on.
+
+34
+00:05:25,486 --> 00:05:34,000
+So, people have been studying this problem in the smart grid community, in the signal processing community, as well as in the control community.
+
+35
+00:05:34,240 --> 00:05:47,364
+and essentially we get a game because the individual decision problem of prosumer I is coupled together with the decision variables of the other users.
+
+36
+00:05:47,760 --> 00:06:00,548
+Okay, um, this is because the emergence of this peak in demand depends not only on when we decide to consume electricity, but also when all the others are consuming electricity.
+
+37
+00:06:01,934 --> 00:06:09,924
+So here we see a coupling in the cost function, but we might also coupling in the constraints because of the physics of the power print.
+
+38
+00:06:11,920 --> 00:06:24,240
+Um, another typical example in the OR community, so operations users from unity, is the solution of day-ahead uh market problems, for example, electricity market problem.
+
+39
+00:06:24,750 --> 00:06:38,692
+Okay, so you have a number of parties coming together before the actual operation of the power grid, for example, electricity generators and the transmission system operator that's tenant here in the Netherlands.
+
+40
+00:06:39,310 --> 00:07:00,804
+And so, on the one hand, we have the individual companies operating, controlling those generators to maximize the amount of energy sold, reducing energy cost, as well as reducing the fees they have to pay to the transmission system operator, subject to engineering limits.
+
+41
+00:07:02,062 --> 00:07:20,400
+On the other hand, of the spectrum, we have the transmission system operator, say tenants that want to maximize some revenue function, by giving fees or targets to the individual generator, subject to some operation constraints of the grid.
+
+42
+00:07:20,560 --> 00:07:22,880
+okay, typically, transmission capacity.
+
+43
+00:07:23,040 --> 00:07:31,876
+You do not want too much power to flow in the very same line at the very same time slot because that might overheat the cables.
+
+44
+00:07:34,094 --> 00:07:45,060
+and again we see the way those optimization problems are coupled together through the objective functions, and this generates again.
+
+45
+00:07:47,534 --> 00:07:51,072
+There are also games going on in traffic.
+
+46
+00:07:51,392 --> 00:08:03,876
+You can imagine that traffic drivers are very much selfish individuals, and when they do not nicely cooperate, we see traffic jams regularly every day.
+
+47
+00:08:04,832 --> 00:08:08,132
+Also in robotics, this phenomenon is analyzed.
+
+48
+00:08:08,672 --> 00:08:28,192
+Here I try to summarize the so-called unsignalized intersection control problem, where we have a number of vehicles here that want to cross this intersection and they want to plan a motion which is safe, so collision-free and efficient.
+
+49
+00:08:28,352 --> 00:08:32,644
+Okay, they do not want to get stuck too much in the very middle of the intersection.
+
+50
+00:08:34,192 --> 00:08:37,251
+and ideally, we would like to do that without traffic lights.
+
+51
+00:08:37,486 --> 00:08:45,444
+Okay, this will enhance the efficiency of the intersection because we would avoid blocking half of the traffic flow for half of the time.
+
+52
+00:08:46,510 --> 00:08:54,832
+So for each vehicle I, ideally, we would like to minimize the time to go through this intersection plus some discomfort function.
+
+53
+00:08:55,054 --> 00:09:06,948
+This discomfort function may represent we do not want sudden abrupt accelerations in all directions in order to keep a certain speed.
+
+54
+00:09:07,630 --> 00:09:11,552
+And as constraints, we have to obey to the vehicle dynamics, okay.
+
+55
+00:09:11,712 --> 00:09:19,620
+So if we have a fiat 500, we cannot pretend it goes like a Ferrari, and also we want to keep those vehicles safe.
+
+56
+00:09:20,046 --> 00:09:39,364
+Okay, so the safety set of each vehicle depends on the motion of the other vehicles, okay, because the collision is indeed a non-convex function that involves both positions, and this creates a coupling between the decisions of different vehicles interacting in the intersection.
+
+57
+00:09:40,192 --> 00:09:52,996
+And recently, people from our community have been modeling this traffic problem as a game, and they have derived control strategies to solve to solve the problem.
+
+58
+00:09:55,438 --> 00:10:04,432
+Okay, so limited to this presentation when we speak about complex systems, what do we mean exactly for complex?
+
+59
+00:10:04,752 --> 00:10:07,364
+what are the complexity features we we mean?
+
+60
+00:10:07,552 --> 00:10:18,436
+So, first of all, we mean that there are many subsystems involved, and those are autonomous, meaning that they have their decision authority, they have their preferences, their constraints.
+
+61
+00:10:18,912 --> 00:10:29,952
+those decision makers might be self-interested, meaning that there is one objective function for each of those agents rather than one common goal.
+
+62
+00:10:30,734 --> 00:10:41,552
+And we might have many of those, tens of vehicles in the intersection, thousands of hundreds of thousands of presumers in the local grid, etc.
+
+63
+00:10:42,254 --> 00:10:43,952
+Um, locality of information.
+
+64
+00:10:44,032 --> 00:10:54,112
+So, ideally, we would like to solve this huge game that comes out of our formulation by keeping the private information private.
+
+65
+00:10:54,192 --> 00:11:11,204
+Okay, we do not want users to reveal their daily habits on energy consumption to their neighbors, and in the applications we are interested in, we see that without proper coordination or control, we might have really bad effects.
+
+66
+00:11:12,078 --> 00:11:19,652
+So, for example, in power grids, we might have power outages, and traffic we might have congestions.
+
+67
+00:11:22,894 --> 00:11:36,036
+Okay, so in this context, today I'm going to talk about this uh loop, this control loop, where on the one hand we have the so-called feed-forward problem.
+
+68
+00:11:37,008 --> 00:11:41,604
+So the the part of the scheme which is here above.
+
+69
+00:11:42,128 --> 00:11:42,448
+Okay.
+
+70
+00:11:42,608 --> 00:11:44,368
+so here's our system.
+
+71
+00:11:45,262 --> 00:11:54,308
+and we would like to find the references, those agents or those vehicles have to follow in the ideal case.
+
+72
+00:11:55,022 --> 00:12:02,048
+and then we will also have this feedback loop where we measure what is really happening in reality.
+
+73
+00:12:02,128 --> 00:12:04,048
+and we take countermeasures.
+
+74
+00:12:04,208 --> 00:12:20,068
+So, we have a control load that tries to adapt or react to changes, sudden changes in the environment, in order to track the desired ideal motion without collisions and uh in a and therefore in a safe manner.
+
+75
+00:12:21,678 --> 00:12:24,768
+so let's get started with the first part of the problem.
+
+76
+00:12:24,848 --> 00:12:29,252
+So, how to assign references to those agents taking decisions.
+
+77
+00:12:30,478 --> 00:12:36,324
+So, we're going to be concerned with only the top part of the loop.
+
+78
+00:12:38,318 --> 00:12:44,388
+Now, in our intersection problem, the feed-forward question will look as follows.
+
+79
+00:12:44,718 --> 00:12:55,940
+So, for example, we want to plan the motion of the red vehicle and the blue one that have to cross the intersection, and because the ret intersects, there is potential for a collision.
+
+80
+00:12:57,102 --> 00:13:08,932
+so the forward equilibrium problem is what are the best longitudinal velocities that those vehicles should have in order to drive through the intersection without collision?
+
+81
+00:13:09,294 --> 00:13:18,288
+Okay, and this question here is posed at the very very beginning of the motion, okay, in a sort of idealized way.
+
+82
+00:13:18,734 --> 00:13:23,940
+Okay, so before going through the intersection, what is our goal in terms of reference speed?
+
+83
+00:13:25,774 --> 00:13:36,932
+Okay, so let me formulate this problem with a little bit of mathematical details, but I will be quite brief and general in my statements.
+
+84
+00:13:37,838 --> 00:13:42,628
+So, in general, we have a number of those agents, capital N.
+
+85
+00:13:42,958 --> 00:13:50,848
+Each one has a decision variable XI, so i is the index of the agent, and the problem to be solved is this PI.
+
+86
+00:13:51,086 --> 00:13:59,684
+So pi is the problem to minimize a certain cost function ji, subject to constraints, local and coupling constraints.
+
+87
+00:13:59,918 --> 00:14:08,388
+So imagine the local constraints are the limit you have on the acceleration of your vehicle, and the coupling constraints are the safety constraints between two vehicles.
+
+88
+00:14:09,678 --> 00:14:24,048
+And a typical notion of solution for those optimization problems to be solved simultaneously is the generalized Nash equilibrium solution, which is a set of decisions.
+
+89
+00:14:24,208 --> 00:14:34,564
+x1 star, x2 star, x n star, such that each one is optimal for its own problem, given the decisions of the others.
+
+90
+00:14:35,406 --> 00:14:40,356
+And here we put the objective generalized because of the presence of the coupling cost.
+
+91
+00:14:44,398 --> 00:14:56,836
+we mentioned about privacy of information, so people in the signal processing as well as in the control community have studied ways to solve generalized Nash equilibrium problems in a distributed manner.
+
+92
+00:14:56,974 --> 00:15:07,716
+So by keeping the local information private, and the way of doing that, and one way of doing that is by introducing Lagrangian functions, so one for each agent.
+
+93
+00:15:08,078 --> 00:15:20,768
+So each function has the local objective function, the local constraints, and this term that wants to somehow penalize with a dual variable the coupling function g.
+
+94
+00:15:21,328 --> 00:15:35,728
+And we know, thanks to the Karushkun-Taker theorem, that under enough regularity and convexity assumptions, we have a solution of the problem pi if and only if we're able to solve this system.
+
+95
+00:15:36,878 --> 00:15:47,044
+This system here involves the presence of a dual variable lambda i, and essentially represents the fact that we need to find a stationary point of the Lagrangian.
+
+96
+00:15:47,648 --> 00:15:57,348
+We need to find a point which is feasible for the constraints that we have formulated, and we have to find dual variables that are orthogonal to the functions.
+
+97
+00:15:58,990 --> 00:16:07,584
+Okay, so under complexity and monotonicity assumption of the pseudogradients, that system of equation can be solved.
+
+98
+00:16:07,694 --> 00:16:11,904
+So people have found several methods to solve the problems.
+
+99
+00:16:12,144 --> 00:16:21,636
+I'm not diving into the details of the actual algorithms, but I would like to highlight the way of thinking for an algorithmic solution.
+
+100
+00:16:22,446 --> 00:16:27,584
+So what happens in the more general case is that we start off with our optimization problems.
+
+101
+00:16:27,984 --> 00:16:37,344
+so we take the application, we formulate the optimization problems, we translate those into the KKT conditions that we saw in the previous slide.
+
+102
+00:16:37,646 --> 00:16:45,220
+So mathematically, we would like to find a zero of this KKT operator, a solution of the system we saw before.
+
+103
+00:16:45,744 --> 00:16:50,704
+And there are several ways of finding such solution via iterative methods.
+
+104
+00:16:50,864 --> 00:17:07,492
+So we start from an initial guess, then we iterate a certain operation on this initial guess, we get a new guess, and so on and so forth, until hopefully, thanks to some system theory proof, we're able to show convergence to an equilibrium.
+
+105
+00:17:11,021 --> 00:17:19,023
+So mathematicians and economists have studied, first of all, the problem of existence and uniqueness of equilibria already from the 50s.
+
+106
+00:17:19,503 --> 00:17:30,144
+And in the last 15 or 20 years, people have also studied different ways so different algorithms in order to compute those equilibriums.
+
+107
+00:17:30,224 --> 00:17:32,580
+So here I recorded just a few references.
+
+108
+00:17:33,984 --> 00:17:43,428
+And today I would like to focus on only two key challenging problems associated to game to generalized Nash equilibrium problems.
+
+109
+00:17:44,110 --> 00:17:47,424
+And the first one is what happens when we have multiple solutions.
+
+110
+00:17:47,822 --> 00:17:51,364
+It's a typical outcome that your game has multiple solutions.
+
+111
+00:17:53,742 --> 00:18:02,304
+This might happen even if your problem data are convex and your pseudo gradients are monotone and your sets are compact.
+
+112
+00:18:02,624 --> 00:18:05,316
+Even in the simplest case, we might have multiple solutions.
+
+113
+00:18:06,944 --> 00:18:14,144
+Most of those are inefficient from a system-level perspective, especially in traffic.
+
+114
+00:18:14,304 --> 00:18:23,940
+It is well known that selfish routing might lead to system inefficiencies, and people have also characterized theoretically how bad is such inefficiency.
+
+115
+00:18:24,622 --> 00:18:28,356
+So the question is how to reach an efficient equilibrium when we have multiple routes.
+
+116
+00:18:29,742 --> 00:18:39,984
+So in fact, we can formulate that as another optimization problem that essentially says: among all solutions of the KKT system.
+
+117
+00:18:40,526 --> 00:18:50,464
+so among all pairs, x and lambda that solve the KKT conditions, I would like to find the pair that minimizes a certain objective function.
+
+118
+00:18:50,544 --> 00:18:52,356
+which, for example, is a convex one.
+
+119
+00:18:54,784 --> 00:19:08,304
+and what we can assume to be available is an operator T that generates an algorithm that is capable to reach to one of those equilibrium.
+
+120
+00:19:08,430 --> 00:19:20,864
+Okay, so imagine we can solve the generalized Nash Equilibrium problem, and there is a vast literature for that, but we don't want any of those equilibria, we want a specific one, we want the one that minimizes pi.
+
+121
+00:19:21,390 --> 00:19:25,028
+Okay, how can we adapt the algorithm towards that goal?
+
+122
+00:19:26,414 --> 00:19:40,544
+Okay, so people in operations research have studied a slightly different problem that recently we have adapted to generalized Nash equilibrium problems, and the answer is given in this equation up here.
+
+123
+00:19:40,784 --> 00:20:04,740
+Essentially, we have proposed a variance of this hybrid, steepest descent method, which seems complicated, but in fact, does right here, does a convex combination between iterating the operator t, that we know will get us to one of those equilibrium, and iterating this operator here, that has the gradients of the function that we want to minimize.
+
+124
+00:20:05,614 --> 00:20:12,068
+So this here is nothing but the gradient descent operator.
+
+125
+00:20:12,398 --> 00:20:31,424
+Okay, so in a way we can show that by doing this convex combination between an algorithm that gives us any random equilibrium and a sort of gradient descent of the objective function, we can reach a solution of the formulated problem P.
+
+126
+00:20:33,504 --> 00:20:39,424
+The key trick is to choose the step size as vanishing, non summable and square sum.
+
+127
+00:20:44,736 --> 00:20:56,996
+the second complex feature or challenging feature on generalized Nash equilibrium problems I would like to talk about is the presence of random variables.
+
+128
+00:20:57,774 --> 00:21:05,296
+And this is very relevant because our models or our perception of reality might not be exact.
+
+129
+00:21:05,454 --> 00:21:15,716
+Okay, so there might be some parameters that we do not know exactly, and those are modeled as random variables.
+
+130
+00:21:16,096 --> 00:21:27,364
+Okay, so now imagine that in our game equilibrium problem, our objective functions, ji, are replaced by a stochastic version of those.
+
+131
+00:21:27,598 --> 00:21:36,336
+They're replaced by, for example, the expected value of ji, where the expected value is taken with respect to some random variable xi.
+
+132
+00:21:38,176 --> 00:21:47,908
+And the typical assumption, at least in my community, is that of this random variable there, we have some data samples available.
+
+133
+00:21:48,142 --> 00:21:58,532
+Okay, so imagine the control of a microgrid in the electrical network where we have users with with solar panels.
+
+134
+00:21:59,598 --> 00:22:15,332
+Okay, so the solar generation is somewhat random in the sense that in the day-ahead market we cannot predict exactly how much power would be generated by our village of presumers with solar panels.
+
+135
+00:22:16,366 --> 00:22:23,910
+We might have an estimate based on the production from the day before, from historical data, based on some forecasts.
+
+136
+00:22:24,256 --> 00:22:36,484
+and those estimates are somehow data points, data samples that we might exploit in order to approximate the expected power production of this micrograde that we want to optimize.
+
+137
+00:22:38,382 --> 00:22:48,228
+So many samples are available, that's a typical mathematical assumption, and this assumption is associated with the so-called stochastic approximation method.
+
+138
+00:22:48,736 --> 00:23:05,536
+Essentially, instead of using the pseudo gradients of the game, so the operator that puts together the local gradients, we have an approximated version of that, which is the empirical sum of the sampled pseudo gradients.
+
+139
+00:23:05,616 --> 00:23:14,788
+So, in other words, we use the data in order to create approximations of those gradients, and we use those approximations as they were the true gradients.
+
+140
+00:23:15,776 --> 00:23:24,132
+That's the idea of stochastic approximation that people have been exploiting in the last uh two decades or decade and a half.
+
+141
+00:23:25,296 --> 00:23:34,084
+And the key to guarantee convergence is to slow down the update of the decision variable because of the presence of such randomness.
+
+142
+00:23:34,510 --> 00:23:47,044
+So instead of directly updating the decision variables X with a projected gradient, we have to slow them down with our first order filter, for example.
+
+143
+00:23:47,662 --> 00:23:56,256
+Okay, so without entering in algorithmic details, what's the practical drawback of all those methods?
+
+144
+00:23:56,496 --> 00:24:09,828
+Well, every time they need to update those decisions, they need a huge number of data samples in order to have better and better approximations of the gradients and eventually guarantee convergence to an equilibrium point.
+
+145
+00:24:10,510 --> 00:24:17,124
+So this is called increasing batch size assumptions, and might be rather impractical in many cases.
+
+146
+00:24:18,638 --> 00:24:22,212
+So let's see a numerical example on how that works.
+
+147
+00:24:22,638 --> 00:24:34,724
+So here we have a problem with the population of electric vehicles to be charged, each one over a finite period of time and time slots.
+
+148
+00:24:35,150 --> 00:24:41,504
+Each one has some constraints on the state of charge and a desired final state of charge.
+
+149
+00:24:41,584 --> 00:24:58,244
+Okay, so imagine you plug in your electric vehicle and you tell the software I would like my state of charge to be 90% by 8 a.m. tomorrow morning and it never has to go below 20% and never has to go above 90% because the battery will be damaged.
+
+150
+00:24:59,118 --> 00:25:07,716
+And imagine that the cost you pay for this charging process is proportional to a battery degradation cost.
+
+151
+00:25:07,824 --> 00:25:14,564
+So you want to avoid that you charge too fast for too many time periods.
+
+152
+00:25:15,214 --> 00:25:26,724
+And also the provider might give you a price tariff which is proportional to the peak on the same on the grids where many other vehicles are plugged in.
+
+153
+00:25:29,006 --> 00:25:38,212
+And okay, those prices might be uncertain, your battery degradation cost might be uncertain because we do not know precisely the chemistry of our battery and so on.
+
+154
+00:25:38,704 --> 00:25:43,556
+So we have some stochasticity in the formula in the resulting game.
+
+155
+00:25:44,464 --> 00:26:03,024
+And we have adopted a projected gradient algorithm to solve the charging problem, and what we see here is that well, on the y-axis we have the distance of the current decision x from the equilibrium one, x star, the one we want to reach.
+
+156
+00:26:03,246 --> 00:26:04,740
+We have a log log scale.
+
+157
+00:26:05,134 --> 00:26:11,424
+On the x-axis, we have the iteration number of our algorithm, and we have different curves.
+
+158
+00:26:11,918 --> 00:26:16,944
+Each color represents a different choice of the communication network.
+
+159
+00:26:17,184 --> 00:26:31,908
+essentially, how information is gathered, and the clouds mean that we do several experiments over several values of the parameters, over several initial conditions, over several price tariffs, and so on.
+
+160
+00:26:32,974 --> 00:26:33,984
+So, what do we observe?
+
+161
+00:26:34,144 --> 00:26:49,028
+First of all, we need a huge number of iterations to converge, and that's expected because of the stochasticity and approximations we have, and also by gathering information in different ways, we can speed up the algorithm by a factor two, but not too much.
+
+162
+00:26:50,350 --> 00:26:59,332
+so in simple words, the method works, but it is quite slow and not sure whether it's truly applicable.
+
+163
+00:27:00,302 --> 00:27:13,412
+So, this is why recently people have studied alternative formulations, where the idea is that you use only a limited number of data samples once and for all.
+
+164
+00:27:13,664 --> 00:27:29,316
+in order to construct an approximation, a priori, approximation of your stochastic objective function, and you formulate a Nash equilibrium problem in a robust sense.
+
+165
+00:27:29,646 --> 00:27:47,684
+Okay, so you use a few samples to construct possible probability distributions that are compatible with the data you're served, okay, and then what you minimize here for each agent is the worst case among those potential probability distributions.
+
+166
+00:27:48,494 --> 00:27:54,304
+So this concept is very popular in optimization, it's called distribution robust optimization.
+
+167
+00:27:54,510 --> 00:28:04,292
+And in the last years, people have studied the counterparts applied to game equilibrium problems, where this is dependence on the decisions of the other agents.
+
+168
+00:28:05,520 --> 00:28:09,028
+Sorry, is there any red lines on how to choose this set?
+
+169
+00:28:10,990 --> 00:28:15,108
+This one, the sets of the potential probability distributions.
+
+170
+00:28:15,790 --> 00:28:21,600
+People have used the Basestein balls with different norms, norm one, norm two.
+
+171
+00:28:21,840 --> 00:28:23,920
+So this is up to design.
+
+172
+00:28:24,174 --> 00:28:41,700
+But the idea is that you take p hat, which is the probability distribution associated with the data that you have available, the forecast or the historic data, and around this probability distribution, empirical probability distribution, you construct a ball of potential probability distributions.
+
+173
+00:28:42,094 --> 00:28:52,772
+And this ball here has radius epsilon, uh calculated with one norm or two norm, there are many ways of formulating such a set of distributions.
+
+174
+00:28:53,198 --> 00:28:55,428
+And this set here is called ambiguity set.
+
+175
+00:28:58,010 --> 00:29:16,960
+Alright, so what you want to prove in those types of formulations is that as you take more and more samples, your distribution robust problem coincides with the original stochastic one, meaning that it's a good approximation of the original problem.
+
+176
+00:29:18,062 --> 00:29:24,800
+And also you would like a distribution robust formulation that leads to something that you can numerically solve.
+
+177
+00:29:25,120 --> 00:29:35,588
+something which is finite dimensional rather than infinite dimensional, and we have tried to do that for a certain class of games in this manuscript.
+
+178
+00:29:37,774 --> 00:29:53,280
+Okay, so here I have another numerical example: a Nesh Cournot markets, where we have N firms selling products over different markets, subject to constraints, both local and global, and each company's profit maximizing.
+
+179
+00:29:54,606 --> 00:30:00,388
+Again, we have uncertainty in the price of the products they are going to sell on the different markets.
+
+180
+00:30:01,520 --> 00:30:18,640
+And compared to the previous simulations, here we observe that we only need, say, 30 or 50 samples in order to have relatively good approximation of the stochastic generalized Nash equilibrium set.
+
+181
+00:30:19,200 --> 00:30:27,760
+And at some point, when you use more and more samples, uh well your equilibrium costs do not fluctuate anymore.
+
+182
+00:30:28,320 --> 00:30:40,164
+meaning that you get a minimum amount of samples, which is critical to construct a good approximation, and if you have more, you add very, very little information to the approximated problem.
+
+183
+00:30:42,990 --> 00:31:03,716
+Okay, so um, so far I try to summarize some questions, typical questions arising in the feedforward problem, so that of solving the generalized Nash equilibrium problem under the existence of multiple solutions, as well as under the presence of stochasticity.
+
+184
+00:31:04,846 --> 00:31:17,840
+other interesting problems related to the feedforward one nowadays is when there is little information available to the agents in order to update their variables.
+
+185
+00:31:18,240 --> 00:31:25,284
+those are called games with partial information, but we will not cover them today.
+
+186
+00:31:26,126 --> 00:31:35,364
+What I would like to show now is instead the feedback parts of the loop we saw before.
+
+187
+00:31:36,430 --> 00:31:37,920
+So this part here, okay.
+
+188
+00:31:38,080 --> 00:31:57,476
+So now we have some reference values or signals that we want the agents to follow, but when systems dynamically change over time, uh well the measured state might be different from what we have taught.
+
+189
+00:31:57,710 --> 00:32:05,092
+Okay, so we need a correction mechanism in order to steer the system back to a desirable behavior.
+
+190
+00:32:05,230 --> 00:32:12,228
+Okay, so the here have an example of the feedback equilibrium question in the intersection case.
+
+191
+00:32:12,814 --> 00:32:16,320
+Okay, so now we are again the red and the blue vehicle.
+
+192
+00:32:16,480 --> 00:32:23,920
+We have already started this maneuver to cross the intersection, so we are more or less here and here.
+
+193
+00:32:25,326 --> 00:32:46,468
+And the question is, how to best react to the dynamics of the other vehicles in order to follow as close as possible, the reference motion that we have computed before, while still avoiding collisions and still letting the vehicle finish the manoeuvre.
+
+194
+00:32:47,680 --> 00:32:58,080
+so this question here is very relevant because in reality things might have changed compared to our model of reality at the very beginning of the motion.
+
+195
+00:32:59,520 --> 00:33:06,240
+On the other hand, this question would be irrelevant if our model at the very beginning of the trajectory was perfect.
+
+196
+00:33:06,320 --> 00:33:20,000
+if we knew exactly how all the other vehicles move around, we knew exactly all parameters related to friction and acceleration on the road, and so on and so forth.
+
+197
+00:33:23,278 --> 00:33:29,412
+Okay, so let's see how we can formulate that by using systems and control theory.
+
+198
+00:33:30,222 --> 00:33:32,320
+How we can formulate this problem.
+
+199
+00:33:33,360 --> 00:33:53,028
+first, I would like to mention that in the open loop case, differential games and difference games have been long studied, while in recent years there is interest in feedback control in dynamic games, especially in the case with linear system dynamics and quadratic objective functions.
+
+200
+00:33:54,400 --> 00:34:05,988
+Um so there is work in characterizing Nash equilibrium trajectories in both open loop and closed loop through feedback mechanisms.
+
+201
+00:34:08,621 --> 00:34:11,492
+Okay, so that's our mathematical setup.
+
+202
+00:34:12,320 --> 00:34:13,380
+linear systems.
+
+203
+00:34:14,880 --> 00:34:20,880
+now u of i is the control input that we can manipulate.
+
+204
+00:34:21,134 --> 00:34:31,300
+So imagine in our vehicles the x variable is the position and the velocity, and the u variable is the acceleration that we can impose on the vehicle.
+
+205
+00:34:32,206 --> 00:34:35,364
+We have constraints, state constraints, and input constraints.
+
+206
+00:34:35,757 --> 00:34:49,380
+For example, we want the position of the vehicle to stay within boundaries, we know the speed cannot exceed some other boundaries, and also we have limitations on the acceleration we can impose on the vehicle at a certain time.
+
+207
+00:34:50,880 --> 00:34:55,588
+We use the classic infinite horizon cost function.
+
+208
+00:34:56,080 --> 00:35:05,760
+that essentially means that we would like to minimize errors in the state variable and errors in the input.
+
+209
+00:35:05,760 --> 00:35:07,120
+variable, again, errors.
+
+210
+00:35:07,280 --> 00:35:13,092
+because we are thinking about deviations from the reference that we have computed before.
+
+211
+00:35:13,486 --> 00:35:24,004
+Okay, so if the reference told us we have to cross this intersection at 30 kilometers an hour, then x here would represent the deviation from this desired 30 kilometers an hour.
+
+212
+00:35:26,720 --> 00:35:34,244
+where Q and R are positive semi-definite and positive definite matrices respectively.
+
+213
+00:35:37,070 --> 00:35:49,680
+Okay, so it's interesting to notice that in the case without constraints, which is the simplest possible in this setting, it is known how to find the optimal control input.
+
+214
+00:35:49,760 --> 00:35:54,052
+So optimal because it minimizes the pathetic cost, given the system dynamics.
+
+215
+00:35:55,246 --> 00:36:08,036
+Okay, and this control law is linear in the state, it's a classic in linear system theory, and by solving Recut equations, we can really calculate those control gains.
+
+216
+00:36:09,120 --> 00:36:16,640
+in this case, because we have a game, we have to solve so called asymmetric uh Ricard equations, but this can be done.
+
+217
+00:36:16,800 --> 00:36:27,588
+And there are um there are there are papers in the literature showing us how to reach such a feedback control synthesis, including our recent manuscript.
+
+218
+00:36:31,456 --> 00:36:31,776
+Okay.
+
+219
+00:36:32,416 --> 00:36:57,924
+so the interesting observation that we proposed in this paper is that if you look at this unconstrained case, then we can relate the solution of the optimal control problem of the game with the solution of the linear quadratic regulator problem, which is again a classic in systems and control theory for single agent.
+
+220
+00:36:58,576 --> 00:37:11,296
+And this relation is that the former is the LQR solution, linear quadratic regulator solution of a single agent problem on an augmented space.
+
+221
+00:37:11,726 --> 00:37:24,676
+Okay, so the key here to find the solution is to augment the state space here and solve a classic problem in such augmented state space.
+
+222
+00:37:26,446 --> 00:37:40,336
+So we need a terminal cost which has an argument of double the size, and we can then use it as terminal cost in a finite horizon optimal control problem.
+
+223
+00:37:40,416 --> 00:37:52,708
+So, in other words, in order to solve the infinite horizon problem, which would be impossible in the presence of constraints because we would need an infinite amount of state constraints and input constraints.
+
+224
+00:37:53,454 --> 00:37:57,136
+In place of that, we can solve something in finite horizon.
+
+225
+00:37:57,536 --> 00:38:03,076
+so we are our vehicle, we only look ahead a few steps in the future, not an infinite steps in the future.
+
+226
+00:38:03,776 --> 00:38:12,256
+And we need to have an objective function that resembles the infinite horizon one up to a certain prediction horizon capital T.
+
+227
+00:38:12,782 --> 00:38:21,476
+And then we need an additional term that penalizes this function of the state at the very end of the horizon.
+
+228
+00:38:27,180 --> 00:38:30,276
+Okay, so computation is very attractive.
+
+229
+00:38:30,638 --> 00:38:46,816
+We don't need to solve over an infinite number of decision variables, but we can do it over a finite number of decision variables with a finite dimensional problem to be solved at every time Okay, so our results are then the following.
+
+230
+00:38:47,056 --> 00:39:02,816
+When indeed you use such finite horizon optimal control formulation, then the solution you get out of that is a feedback synthesis of the infinite horizon Nashapol uh problem.
+
+231
+00:39:03,376 --> 00:39:09,700
+And when you plug in this control input in the system dynamics, you have asymptotically stable dynamics.
+
+232
+00:39:09,902 --> 00:39:17,028
+Okay, so everything is nice and stable, you don't have oscillations or variables that blow up to uh infinity.
+
+233
+00:39:19,136 --> 00:39:36,976
+Um okay, so this slide here is more of computational interest, essentially says the problem we propose to solve at every time step cannot be associated with a Nash equilibrium problem, but it is a variational inequality problem.
+
+234
+00:39:37,136 --> 00:39:41,956
+So something we can definitely solve numerically.
+
+235
+00:39:44,496 --> 00:39:57,604
+Okay, I have two application examples of such dynamic uh gains uh as well as an animation to illustrate what these vehicles are doing over the intersection.
+
+236
+00:39:58,254 --> 00:40:03,536
+So the first example is a little bit more, is a little simpler than the intersection.
+
+237
+00:40:03,616 --> 00:40:06,256
+It's the vehicle platooning control problem.
+
+238
+00:40:06,336 --> 00:40:17,956
+So imagine you have n vehicles, they have to drive one after the other on a single lane, and they have to keep the same speed and a certain safety distance from each other.
+
+239
+00:40:18,542 --> 00:40:31,204
+Okay, so truck companies are interested in that because when their track trucks drive one after the other at a certain distance, they can save fuel for the overall convoy.
+
+240
+00:40:32,846 --> 00:40:46,628
+so one vehicle imposes the speed to be fought that everybody should follow, and the others want to match this speed and reach a certain safety distance.
+
+241
+00:40:47,136 --> 00:40:52,452
+so the X variables are the relative distance and the relative speed among the vehicles.
+
+242
+00:40:52,656 --> 00:41:04,452
+Here we use a double integrator linear dynamics, safety distance constraints as well as constraints on the speed and the acceleration, and we have quadratic objective functions of the kind we solve.
+
+243
+00:41:06,030 --> 00:41:16,176
+Okay, so when we solve the dynamic game via the finite horizon formulation we saw before, we obtain nicely stable trajectories.
+
+244
+00:41:16,256 --> 00:41:33,216
+So we see on the bottom plot that the speed of each vehicle reaches the desired one, 30 kilometers meters per second, and the relative positions of the vehicles indeed converge to the desired values.
+
+245
+00:41:33,296 --> 00:41:39,268
+Okay, so you see those vehicles starting from a random initial condition and then reaching this nice platooning behavior.
+
+246
+00:41:40,816 --> 00:41:49,696
+The second example is now that of the intersection that we saw at the beginning and across the presentation.
+
+247
+00:41:49,934 --> 00:41:54,496
+We have n vehicles aiming to cross the intersection without traffic lights.
+
+248
+00:41:55,056 --> 00:42:03,236
+We have traffic authority here in the Netherlands with the R debate, coordinating or supervising the order of the crossing.
+
+249
+00:42:03,758 --> 00:42:19,972
+The paths are predefined, meaning that we do not want the vehicles to do strange turns over the intersection, but just follow the lanes, double integrator dynamics, safety distance and constraints as we saw before, and quadratic objective functions.
+
+250
+00:42:20,398 --> 00:42:22,404
+And what happens is the following.
+
+251
+00:42:23,918 --> 00:42:30,736
+So we have different vehicles approaching from different directions, getting to their destinations.
+
+252
+00:42:32,494 --> 00:42:37,956
+the line in front of them is an indication of their current longitudinal speed.
+
+253
+00:42:38,478 --> 00:42:49,188
+So you might see that some of them have a large longitudinal speed at the beginning because they envision they're going to cross the intersection before others, so they have to speed up to get that gap.
+
+254
+00:42:49,838 --> 00:42:56,004
+And they typically slow down at the moment where they're in the very, very middle of the intersection.
+
+255
+00:42:56,686 --> 00:43:13,636
+In this simulation, we give reference velocities beforehand, but you can imagine that we can solve the feed-forward problem a priori in order to decide what's the best set of velocities in order for those vehicles to go through the intersection.
+
+256
+00:43:20,942 --> 00:43:38,884
+Um, another comment is that there are some pairs of vehicles who do not interact because their path will never cross, and those do not participate in their associated game, while some others have paths that intersect, and therefore there might be potential for collision.
+
+257
+00:43:39,856 --> 00:43:49,056
+Final remark is that we submitted this animation to a conference, and the deadline was this morning 9 a.m.
+
+258
+00:43:49,776 --> 00:44:03,056
+So this morning, we updated the animation to make the geometry of the middle of the intersection a little bit larger in order to avoid those visual moments where some pace of vehicles seem to intersect.
+
+259
+00:44:03,150 --> 00:44:08,576
+but I have another animation where this does not happen, didn't have time trying to update.
+
+260
+00:44:09,296 --> 00:44:13,456
+Is there a constraint that right has the right of way as it has in the Netherlands?
+
+261
+00:44:14,176 --> 00:44:14,336
+I
+
+262
+00:44:14,336 --> 00:44:20,016
+don't really see that back because I think many of the parts do not happen in practice, people just stop if something comes.
+
+263
+00:44:20,416 --> 00:44:22,496
+No, so this limitation is not there.
+
+264
+00:44:22,736 --> 00:44:30,736
+So the idea is that those vehicles are autonomous vehicles, they're just trying to maximize the efficiency of the intersection, which makes that rule unnecessary.
+
+265
+00:44:31,566 --> 00:44:35,376
+but here we impose a certain order for the crossing.
+
+266
+00:44:35,616 --> 00:44:50,084
+Okay, so there I imagine again responsible from our debate, saying that in those traffic conditions, then I would rather let vehicles approaching from this direction to pass before those others because I want to increase flow in this direction.
+
+267
+00:44:50,478 --> 00:45:00,036
+Okay, uh, because the problem itself to find the best crossing order becomes mixed integer and uh way harder to solve.
+
+268
+00:45:02,350 --> 00:45:06,720
+Okay, so I would like to conclude, hopefully on time.
+
+269
+00:45:07,760 --> 00:45:12,100
+So the first two bullet points are the main take-home messages.
+
+270
+00:45:13,742 --> 00:45:29,028
+When you have a game equilibrium problem under convexity and regularity and monotonicity conditions, this can be formulated as the problem to find a zero of monotone operators, which is a mathematically well established problem.
+
+271
+00:45:30,160 --> 00:45:37,508
+Then you would need fixed point theory and system theory to analyze convergence of algorithms to those equilibrium.
+
+272
+00:45:38,560 --> 00:45:41,540
+As outlook, I gave these three bullet points.
+
+273
+00:45:42,222 --> 00:45:59,364
+We have studied stochastic equilibrium problems, but I still believe that robustness to uncertainty, both in the feedforward case and in the feedback case, is still not fully studied and should be explored further.
+
+274
+00:46:01,486 --> 00:46:04,164
+Little theory is available in the non-convex case.
+
+275
+00:46:04,400 --> 00:46:08,324
+We have some works, but with limited mathematical assumptions.
+
+276
+00:46:09,006 --> 00:46:29,440
+And currently, what I've presented and what is done is equilibrium-seeking models and algorithms where the agents know the model of their problem, while in reality, they might only have some data that are awfully representative enough of those models.
+
+277
+00:46:29,806 --> 00:46:36,320
+So data-driven game equilibrium seeking theory still get to beat the okay.
+
+278
+00:46:36,400 --> 00:46:45,040
+So I would like to thank my students and collaborators over the years, the funding agencies, and thank you for your attention.
+
+279
+00:46:45,280 --> 00:46:45,840
+Thank you.
+
+280
+00:46:49,038 --> 00:46:49,660
+Very nice.
+
+281
+00:46:49,660 --> 00:46:50,760
+talking with you.
+
+282
+00:46:51,660 --> 00:46:52,920
+Nice to see these topics.
+
+283
+00:46:53,454 --> 00:46:54,468
+Any questions?
+
+284
+00:46:56,640 --> 00:47:07,360
+Yeah, you just mentioned that it's unnecessary to have the right way as a constraint in the system because they're optimizing for optimal paths, whatever.
+
+285
+00:47:07,566 --> 00:47:18,560
+But I can imagine in the online version, especially when there's uncertainty, you might not reach the most efficient equilibrium online.
+
+286
+00:47:19,600 --> 00:47:25,600
+So, would it then be a possible benefit to constrain the system of the arm trauma?
+
+287
+00:47:26,640 --> 00:47:32,612
+It could be a good solution to some highly uncertain situations.
+
+288
+00:47:32,942 --> 00:47:42,560
+So, first of all, those paths are based on reference speeds that are predefined by us by hand, they're not optimal in any any way.
+
+289
+00:47:42,720 --> 00:47:48,260
+There could be that the light blue vehicle here should slow down in order to be more efficient.
+
+290
+00:47:49,070 --> 00:48:05,348
+When it comes to the online problem, so the online problem is to try to track this reference speed that you were given at the very beginning, subject to possible um uh unpredicted dynamics or uncertainty happening in real time.
+
+291
+00:48:08,686 --> 00:48:24,228
+a conservative solution would be to add more constraints in the kind of motions or priorities that vehicles have with respect to each other, but it's still to be studied or understood whether those limitations can lead to deadlocks.
+
+292
+00:48:25,600 --> 00:48:34,212
+So, since I have to let the other vehicle pass, I cannot move, and therefore I'm blocking a third vehicle waiting for me to pass.
+
+293
+00:48:41,646 --> 00:48:42,660
+Any other questions?
+
+294
+00:48:44,526 --> 00:48:53,540
+I mean, we think about, of course, in complex systems, also in complex adaptive systems, which basically we want to do intervention, right, to steer them into a certain direction.
+
+295
+00:48:53,824 --> 00:49:02,384
+Now, of course, that that seems much more complicated in the sense that you'd have that your behavior of your agents will change, right, with the state vector, etc.
+
+296
+00:49:03,344 --> 00:49:12,544
+And also there might be all kind of emerging phenomena like collapses and well, all kind of uh say unexpected phenomena because of the mutual interaction, right?
+
+297
+00:49:12,814 --> 00:49:17,828
+How far is this type of approach suitable to deal with that?
+
+298
+00:49:18,544 --> 00:49:26,372
+I mean the first one would be for instance, can you find a control to avoid power collapse, for instance, in electricity systems?
+
+299
+00:49:28,190 --> 00:49:37,508
+So, I believe the state of art is not that far from studying the effect of intercept of interventions.
+
+300
+00:49:37,744 --> 00:49:43,844
+and in one of the examples, indeed, I have a variable that represented
+
+301
+00:49:48,384 --> 00:49:48,704
+that.
+
+302
+00:49:48,944 --> 00:49:56,070
+So you can imagine that what this lambda variable is doing, so tenant has those targets.
+
+303
+00:49:57,264 --> 00:50:07,264
+what this lambda variable is doing to the individual generators is to try to change their behavior, the way they would um propose injecting power into the grid.
+
+304
+00:50:08,064 --> 00:50:24,624
+And another way of looking at those interventions is by associating them as an additional decision variable that some authority might have to influence or to change the set of equilibria.
+
+305
+00:50:24,910 --> 00:50:37,424
+Okay, so you intervene to change the equilibrium set of the underlying subsystems, and this variable here is at your disposal, but you pay a cost for imposing those interventions.
+
+306
+00:50:38,766 --> 00:50:46,084
+So people have studied those intervention problems as B level optimization problems or B level gaining problems.
+
+307
+00:50:46,464 --> 00:50:48,484
+Okay, and what application area?
+
+308
+00:50:48,944 --> 00:50:51,264
+Uh power systems are example.
+
+309
+00:50:53,264 --> 00:50:53,824
+yes.
+
+310
+00:50:54,544 --> 00:50:56,064
+Okay, great.
+
+311
+00:50:56,384 --> 00:50:57,824
+Any other questions?
+
+312
+00:50:59,758 --> 00:51:00,384
+anybody?
+
+313
+00:51:00,624 --> 00:51:03,424
+Okay, well, then uh let's thank you very much again.
+
+314
+00:51:03,694 --> 00:51:03,904
+Thank you.
+

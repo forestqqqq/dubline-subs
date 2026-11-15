@@ -10,6 +10,7 @@
 | [Hugging Face x LangChain:A new partner package in LangChain](medias/QZQ1J/) | Krish Naik | 2026-11-14 |
 | [Democratizing Robot-Use Agents: A Unified Harness with Open Models (Nov 2026)](medias/QB9JR/) | AI Paper Slop | 2026-11-14 |
 | [Sam Altman Just CONFIRMED AI Is Building Itself — And Everyone Is TURNING On Him!](medias/J11KZ/) | Evolving AI | 2026-11-14 |
+| [CCSS Meeting #72: Equilibrium seeking in Complex Systems](medias/FRTBV/) | Centre for Complex Systems Studies Utrecht | 2026-11-14 |
 | [Talk - All-in-one: Certifiable Optimal Distributed Kalman Filter under Unknown Correlations](medias/FFN98/) | Eduardo Sebastián Rodríguez | 2026-11-14 |
 | [EECS4302 ANTLR4 Parser Generator Tutorial: Part 1](medias/9EKJ8/) | Jackie Wang | 2026-11-14 |
 | [Fresh And Updated Langchain Series- Understanding Langchain Ecosystem](medias/97F8N/) | Krish Naik | 2026-11-14 |
