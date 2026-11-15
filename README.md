@@ -16,6 +16,7 @@
 | [Fresh And Updated Langchain Series- Understanding Langchain Ecosystem](medias/97F8N/) | Krish Naik | 2026-11-14 |
 | [Enforcing Safety at Runtime for Systems with Disturbances](medias/84B3C/) | FACTS Lab at Georgia Tech | 2026-11-14 |
 | [MPC for pipelined multiprocessor image-based control systems \| CDC 2020 presentation](medias/56ZC3/) | Sajid Mohamed | 2026-11-14 |
+| [Surveying Patterns in AI Assisted Educational Media](medias/4X0W3/) | Center for Innovation in Teaching & Learning | 2026-11-14 |
 | [1- Lets Learn About Langchain-What We Will Learn And Demo Projects](medias/38FAT/) | Krish Naik | 2026-11-14 |
 | [Full Walkthrough: Workflow for AI Coding — Matt Pocock](medias/XQ6FX/) | AI Engineer | 2026-11-13 |
 | [Building Trustworthy AI: Reliable Evaluation for LLMs and AI Agents](medias/WNR1J/) | Springer Nature | 2026-11-13 |
