@@ -13,6 +13,7 @@
 | [CCSS Meeting #72: Equilibrium seeking in Complex Systems](medias/FRTBV/) | Centre for Complex Systems Studies Utrecht | 2026-11-14 |
 | [Talk - All-in-one: Certifiable Optimal Distributed Kalman Filter under Unknown Correlations](medias/FFN98/) | Eduardo Sebastián Rodríguez | 2026-11-14 |
 | [EECS4302 ANTLR4 Parser Generator Tutorial: Part 1](medias/9EKJ8/) | Jackie Wang | 2026-11-14 |
+| [CDC special (Conference of Decision and Control 2025)](medias/97RTG/) | Lucy Hodgins | 2026-11-14 |
 | [Fresh And Updated Langchain Series- Understanding Langchain Ecosystem](medias/97F8N/) | Krish Naik | 2026-11-14 |
 | [Enforcing Safety at Runtime for Systems with Disturbances](medias/84B3C/) | FACTS Lab at Georgia Tech | 2026-11-14 |
 | [MPC for pipelined multiprocessor image-based control systems \| CDC 2020 presentation](medias/56ZC3/) | Sajid Mohamed | 2026-11-14 |
