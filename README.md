@@ -6,6 +6,7 @@
 |---|---|---|
 | [33,000 Feet Above The Moon, Apollo 11’s Computer Started Failing](medias/N9P7P/) | Parts That Changed History | 2026-11-15 |
 | [Selfie's Saving Lives? AI's Medical Breakthroughs \| Backscroll](medias/7AP8S/) | NewsNation | 2026-11-15 |
+| [CoworkOS:Scaling Agent Coworkers for Real-world Automation (Nov 2026)](medias/4RS2Z/) | AI Paper Slop | 2026-11-15 |
 | [The Future of AI Infrastructure](medias/3YZGK/) | Google Cloud Tech | 2026-11-15 |
 | [AI-DLC: The AI-Driven Development Lifecycle \| AWS Humans In The Loop Podcast](medias/3PTTH/) | Amazon Web Services | 2026-11-15 |
 | [The Platonic Representation Hypothesis: Do LLMs Have Common Sense? (JEPA Explained)](medias/1TN0J/) | Vizuara | 2026-11-15 |
