@@ -5,6 +5,7 @@
 | 视频 | 原作者 | 更新 |
 |---|---|---|
 | [33,000 Feet Above The Moon, Apollo 11’s Computer Started Failing](medias/N9P7P/) | Parts That Changed History | 2026-11-15 |
+| [The Platonic Representation Hypothesis Proved with JEPAs](medias/GSCTD/) | Arivu | 2026-11-15 |
 | [How will AI transform the way we make discoveries in the future? \| Nobel Prize Dialogue Seoul 2026](medias/FW4NM/) | Nobel Prize | 2026-11-15 |
 | [I Read the Research on AI Hacking. Here's What Actually Works.](medias/E0ASW/) | House of El: AI | 2026-11-15 |
 | [The Recurrent Self-Improvement Framework of the Multimodal Agent](medias/BR46F/) | Research Paper Review | 2026-11-15 |

@@ -1,0 +1,440 @@
+1
+00:00:00,046 --> 00:00:05,796
+Train a vision model on images and a language model on text, and something strange happens inside them.
+
+2
+00:00:06,254 --> 00:00:08,228
+Their internal vectors look nothing alike.
+
+3
+00:00:08,526 --> 00:00:11,940
+Different dimensions, different scales, different directions entirely.
+
+4
+00:00:12,366 --> 00:00:13,476
+But ask a different question.
+
+5
+00:00:13,966 --> 00:00:17,028
+Not where is each point, but which points sit near which other points.
+
+6
+00:00:18,254 --> 00:00:23,172
+Suddenly the two models agree, and the bigger and better these models get, the more they agree.
+
+7
+00:00:23,566 --> 00:00:27,332
+That's the observation a new paper from Jan LeCun's group turns into a theorem.
+
+8
+00:00:27,790 --> 00:00:30,980
+To see why, start with a picture that's about 2,000 years old.
+
+9
+00:00:31,566 --> 00:00:35,812
+Plato imagined prisoners in a cave who could only see shadows cast on a wall.
+
+10
+00:00:36,142 --> 00:00:37,444
+Here's the machine learning version.
+
+11
+00:00:37,774 --> 00:00:40,080
+There's some hidden state of the world, call it Z.
+
+12
+00:00:40,654 --> 00:00:43,396
+Every piece of data you ever collect is a shadow of it.
+
+13
+00:00:43,726 --> 00:00:46,724
+A camera applies one function to Z and gives you pixels.
+
+14
+00:00:47,054 --> 00:00:49,828
+A microphone applies another and gives you a waveform.
+
+15
+00:00:50,958 --> 00:00:53,060
+A person applies a third and gives you a sentence.
+
+16
+00:00:53,646 --> 00:00:55,620
+Each one adds a little noise on top.
+
+17
+00:00:56,078 --> 00:00:57,348
+That's all this equation says.
+
+18
+00:00:57,742 --> 00:01:01,380
+Your observation is some function of the hidden reality, plus junk.
+
+19
+00:01:01,966 --> 00:01:03,268
+And notice what it implies.
+
+20
+00:01:03,790 --> 00:01:06,276
+Every single shadow throws information away.
+
+21
+00:01:06,766 --> 00:01:09,988
+From one shadow alone, many different objects could have cast it.
+
+22
+00:01:10,350 --> 00:01:12,676
+But here's the move that makes the whole thing work.
+
+23
+00:01:13,262 --> 00:01:15,780
+Each modality throws away different information.
+
+24
+00:01:16,238 --> 00:01:20,004
+Start with every possible world that could have produced the image you saw.
+
+25
+00:01:20,366 --> 00:01:22,116
+That's an enormous cloud of candidates.
+
+26
+00:01:22,606 --> 00:01:25,636
+Now demand that the same world also explain the caption.
+
+27
+00:01:26,030 --> 00:01:27,396
+Most of the candidates die.
+
+28
+00:01:27,854 --> 00:01:29,732
+Demand it also explain the audio.
+
+29
+00:01:30,094 --> 00:01:31,748
+Most of what's left dies too.
+
+30
+00:01:32,142 --> 00:01:38,756
+The constraints intersect, and the set of worlds consistent with all of your senses at once shrinks toward a single answer.
+
+31
+00:01:40,014 --> 00:01:44,260
+That shrinking is the entire engine behind the platonic representation hypothesis.
+
+32
+00:01:44,654 --> 00:01:49,572
+Now, a careful caveat, and it's the one that makes the claim provable instead of just poetic.
+
+33
+00:01:50,094 --> 00:01:51,760
+You can never recover Z exactly.
+
+34
+00:01:52,014 --> 00:01:57,924
+If I rotate my entire representation or scale it or relabel the axes, nothing observable changes.
+
+35
+00:01:58,414 --> 00:01:59,812
+The model is just as good.
+
+36
+00:02:00,238 --> 00:02:04,612
+So recovering reality can only ever mean recovering it up to a reversible relabeling.
+
+37
+00:02:04,942 --> 00:02:06,640
+The shape of the space is the real thing.
+
+38
+00:02:06,830 --> 00:02:08,932
+The coordinates are arbitrary bookkeeping.
+
+39
+00:02:09,326 --> 00:02:16,004
+What's forbidden is a squash that merges two distinct things into one point because that destroys information and can't be undone.
+
+40
+00:02:16,622 --> 00:02:18,372
+This is what the equation on screen means.
+
+41
+00:02:19,022 --> 00:02:23,716
+The learned features are the hidden state, viewed through some invertible change of coordinates.
+
+42
+00:02:24,238 --> 00:02:27,684
+So how do you actually train a model to climb toward that hidden state?
+
+43
+00:02:28,206 --> 00:02:30,372
+The natural idea is prediction.
+
+44
+00:02:30,830 --> 00:02:33,220
+Show the model the present, ask it for the future.
+
+45
+00:02:33,646 --> 00:02:35,684
+Here's a ball rolling toward a fork in the track.
+
+46
+00:02:36,238 --> 00:02:39,012
+The genuinely uncertain part is which branch it takes.
+
+47
+00:02:39,534 --> 00:02:45,956
+If you train the model to predict the next frame of raw pixels with a squared error loss, there's a mathematical fact waiting for you.
+
+48
+00:02:46,702 --> 00:02:50,180
+The loss is minimized by the average over all possible futures.
+
+49
+00:02:50,510 --> 00:02:52,868
+Not one future, the mean of all of them.
+
+50
+00:02:53,230 --> 00:02:58,084
+So the optimal model paints a ghost of the ball on every branch at once, and you get a smear.
+
+51
+00:02:58,446 --> 00:03:08,612
+Worse, the model has to spend its capacity modeling leaf textures and sensor noise and the exact value of every pixel, detail that is unpredictable in principle and useless in practice.
+
+52
+00:03:09,102 --> 00:03:10,052
+Now change one thing.
+
+53
+00:03:10,414 --> 00:03:12,324
+Don't predict the future observation.
+
+54
+00:03:12,750 --> 00:03:14,436
+Predict the future representation.
+
+55
+00:03:14,894 --> 00:03:17,860
+Push all ten possible futures through the encoder first.
+
+56
+00:03:18,350 --> 00:03:23,908
+The encoder is allowed to discard which branch the ball took, because that's exactly the part it cannot know.
+
+57
+00:03:24,270 --> 00:03:29,412
+And once it does, all ten futures land on essentially the same point in representation space.
+
+58
+00:03:29,902 --> 00:03:31,588
+There's nothing left to average over.
+
+59
+00:03:31,982 --> 00:03:33,444
+So the predictor can be sharp.
+
+60
+00:03:34,286 --> 00:03:40,740
+Same loss function, same squared distance, but measured after the unpredictable detail has already been thrown away.
+
+61
+00:03:41,102 --> 00:03:44,800
+Except there's an obvious cheat, and the optimizer will find it immediately.
+
+62
+00:03:45,134 --> 00:03:49,956
+If the encoder maps every input to the same constant vector, prediction becomes perfect.
+
+63
+00:03:50,862 --> 00:03:51,744
+Zero loss.
+
+64
+00:03:52,110 --> 00:03:55,236
+And the representation carries no information whatsoever.
+
+65
+00:03:55,630 --> 00:03:56,420
+This is collapse.
+
+66
+00:03:57,006 --> 00:04:02,052
+And on the loss surface, it looks like a funnel with everything sliding into a single point at the bottom.
+
+67
+00:04:02,478 --> 00:04:05,124
+So you add a second term that pushes in the opposite direction.
+
+68
+00:04:05,614 --> 00:04:07,264
+Keep the representation spread out.
+
+69
+00:04:07,502 --> 00:04:08,704
+Keep its entropy high.
+
+70
+00:04:08,864 --> 00:04:09,764
+Keep it informative.
+
+71
+00:04:10,350 --> 00:04:12,772
+Think of it as inflating a balloon inside the funnel.
+
+72
+00:04:13,134 --> 00:04:13,956
+Two forces.
+
+73
+00:04:14,446 --> 00:04:15,844
+Make the features predictable.
+
+74
+00:04:16,270 --> 00:04:17,540
+Don't let them go empty.
+
+75
+00:04:17,902 --> 00:04:22,916
+That's the entire objective on screen, and the paper's claim is that these two terms alone are enough.
+
+76
+00:04:23,406 --> 00:04:26,692
+Here's the argument, and it's beautifully simple once you see the shape of it.
+
+77
+00:04:27,182 --> 00:04:29,444
+Consider the space of all possible encoders.
+
+78
+00:04:29,742 --> 00:04:36,452
+The predictability term cuts away every encoder that keeps noise, because noise by definition can't be predicted from the past.
+
+79
+00:04:37,134 --> 00:04:38,404
+Keeping it only costs you.
+
+80
+00:04:38,798 --> 00:04:40,804
+The entropy term cuts from the other side.
+
+81
+00:04:41,166 --> 00:04:48,544
+It kills every encoder that throws away structure which could have been predicted, because discarding real information needlessly shrinks the spread.
+
+82
+00:04:48,910 --> 00:04:53,892
+Squeeze from both sides, and what survives is exactly the predictable part of the world and nothing else.
+
+83
+00:04:54,446 --> 00:04:56,868
+That predictable part is the hidden state Z.
+
+84
+00:04:57,230 --> 00:05:08,004
+Not Z in any particular coordinate system, the surviving solutions form a family of rotations and rescalings of one shared shape, which is precisely the identifiability we agreed to settle for.
+
+85
+00:05:08,430 --> 00:05:10,948
+Now we can ask the question everyone actually cares about.
+
+86
+00:05:11,342 --> 00:05:15,652
+If all data are shadows of the same reality, does it matter which shadow you train on?
+
+87
+00:05:16,046 --> 00:05:18,628
+It matters enormously, and the reason is bandwidth.
+
+88
+00:05:19,150 --> 00:05:22,372
+Text is a beautiful signal about the world, but it is a narrow one.
+
+89
+00:05:22,830 --> 00:05:27,076
+Every sentence has already been compressed by a human who decided what was worth saying.
+
+90
+00:05:27,502 --> 00:05:32,196
+A video stream or a sensor feed is a far wider channel into the same reservoir.
+
+91
+00:05:32,654 --> 00:05:36,708
+Orders of magnitude, more constraints per second on what the world could be.
+
+92
+00:05:37,134 --> 00:05:42,308
+Feed the narrow pipe into the identifiability argument and you get a hidden state recovered with holes in it.
+
+93
+00:05:42,670 --> 00:05:45,764
+Whole regions of reality that language simply never pinned down.
+
+94
+00:05:46,318 --> 00:05:48,464
+Feed the wide pipe and the reconstruction fills in.
+
+95
+00:05:48,718 --> 00:05:51,300
+And now the part that turns a hypothesis into a tool.
+
+96
+00:05:51,662 --> 00:05:58,340
+If convergence toward one shared representation is a theorem rather than an accident, you don't have to wait for scale to deliver it.
+
+97
+00:05:58,542 --> 00:05:59,812
+You can push on it directly.
+
+98
+00:06:00,174 --> 00:06:02,660
+Watch what happens as capacity and data grow.
+
+99
+00:06:03,278 --> 00:06:09,892
+The vision constellation and the audio constellation and the text constellation all drift toward the same shape on their own.
+
+100
+00:06:10,350 --> 00:06:17,380
+Now add an explicit force, a term that pulls matching points across modalities together, like springs between the clouds.
+
+101
+00:06:17,934 --> 00:06:21,892
+They snap into alignment far faster than scale alone would manage.
+
+102
+00:06:22,638 --> 00:06:29,188
+Cross-modal alignment stops being a happy side effect and becomes a deliberate lever on how quickly you approach the ideal.
+
+103
+00:06:29,614 --> 00:06:31,876
+This also gives you something you can actually test.
+
+104
+00:06:32,430 --> 00:06:39,588
+If two encoders really converge to the same shape, a probe trained on one modality's features should work on another's without retraining.
+
+105
+00:06:40,078 --> 00:06:43,264
+Train the slicing plane using only vision features.
+
+106
+00:06:43,598 --> 00:06:45,024
+Hand it audio features.
+
+107
+00:06:45,294 --> 00:06:49,732
+It still separates them correctly because it's cutting through the same underlying geometry.
+
+108
+00:06:50,094 --> 00:06:56,772
+It also explains why structure nobody ever labeled, like depth, shows up cleanly inside self supervised visual features.
+
+109
+00:06:57,454 --> 00:07:04,516
+Depth was in the hidden state all along, and the objective had no reason to discard it, which leaves you with a single dial to turn.
+
+110
+00:07:05,710 --> 00:07:10,944
+The width of the channel you let your model look through determines how much of the reality it can ever pin down.
+
