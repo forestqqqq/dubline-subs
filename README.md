@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [Paper: Route Anything: A Study of Model and Policy Routing for General-Purpose AI Systems](medias/PMBW6/) | Next in AI: Astha La Vista | 2026-11-16 |
 | [33,000 Feet Above The Moon, Apollo 11’s Computer Started Failing](medias/N9P7P/) | Parts That Changed History | 2026-11-15 |
 | [How AI Is Transforming Biology: 7 Real Breakthroughs](medias/MZN86/) | Christian Olivieri | 2026-11-15 |
 | [[Zundamon's AI Paper Explained #138] Proving and Improving the Platonic Representation Hypothesis...](medias/KWH3N/) | Zundamon's AI Paper Explained | 2026-11-15 |
