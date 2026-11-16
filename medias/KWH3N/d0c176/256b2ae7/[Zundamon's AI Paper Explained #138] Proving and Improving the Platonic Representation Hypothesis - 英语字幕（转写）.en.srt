@@ -1,0 +1,288 @@
+1
+00:00:02,094 --> 00:00:07,120
+Today we are explaining proving and improving the platonic representation hypothesis with JEPS.
+
+2
+00:00:07,438 --> 00:00:10,820
+Trained separately can learn the same underlying representation of the world.
+
+3
+00:00:11,374 --> 00:00:15,684
+What does it mean for two models to share a representation if one sees pictures and the other reads captions?
+
+4
+00:00:16,206 --> 00:00:18,500
+Imagine several descriptions of the same scene.
+
+5
+00:00:18,830 --> 00:00:24,964
+A useful representation should preserve what those descriptions share about the scene, even when the wording or camera view differs.
+
+6
+00:00:25,262 --> 00:00:31,460
+The paper calls the idea that different models may converge on such a shared structure the platonic representation hypothesis.
+
+7
+00:00:32,110 --> 00:00:37,440
+The earlier hypothesis was mostly an observation, larger vision and language models often looked more alike.
+
+8
+00:00:37,710 --> 00:00:41,700
+Existing theory covered idealized contrastive learning or special linear settings.
+
+9
+00:00:42,094 --> 00:00:48,676
+But it did not give a practical condition for when common self-supervised objectives, especially JPS, should align.
+
+10
+00:00:49,262 --> 00:00:54,244
+So the missing piece was a training rule that predicts when alignment should happen, not just a trend seen after scaling?
+
+11
+00:00:54,670 --> 00:00:54,960
+Yes.
+
+12
+00:00:55,342 --> 00:01:00,400
+Their answer centers on the positive pairs, the examples and objective asks an encoder to treat as related.
+
+13
+00:01:00,718 --> 00:01:08,000
+If the modalities connect the same underlying world states, the paper proves that their ideal JEA representations match up to a rotation.
+
+14
+00:01:08,270 --> 00:01:09,412
+Under its assumptions.
+
+15
+00:01:10,062 --> 00:01:12,676
+What would count as a shared positive pair for images and text?
+
+16
+00:01:13,134 --> 00:01:16,516
+For an image encoder, two photos of the same scene can be positives.
+
+17
+00:01:16,878 --> 00:01:20,560
+For a text encoder, two captions describing that scene can be positives.
+
+18
+00:01:20,878 --> 00:01:25,092
+Each encoder is trained separately, but both objectives connect the same world states.
+
+19
+00:01:25,600 --> 00:01:30,980
+The map between their coordinate systems may rotate the embedding, while preserving its underlying geometry.
+
+20
+00:01:31,598 --> 00:01:34,628
+This diagram contrasts those good views with bad views.
+
+21
+00:01:34,926 --> 00:01:41,680
+Two masked versions of one sentence share its wording and style, but need not capture the same seam-level content as another description.
+
+22
+00:01:41,998 --> 00:01:45,796
+Likewise, two crops of one photo can retain camera-specific details.
+
+23
+00:01:46,094 --> 00:01:49,920
+Those positives can spend embedding dimensions on modality-specific nuisance.
+
+24
+00:01:50,574 --> 00:01:54,532
+Why does spending dimensions on wording or camera details make the two spaces harder to match?
+
+25
+00:01:54,958 --> 00:02:01,440
+A single rotation can only reorient the whole embedding space, it cannot remove directions that encode different nuisances in each modality.
+
+26
+00:02:01,838 --> 00:02:06,000
+Their theory bounds the remaining mismatch when the modality's positive pair relations differ.
+
+27
+00:02:06,240 --> 00:02:09,892
+The practical lesson is that the pair construction shapes what the encoder learns.
+
+28
+00:02:10,574 --> 00:02:17,360
+Next up tone prediction fits the bad view pattern in a particular way, its training pair is a pre-six and its continuation within one document.
+
+29
+00:02:17,710 --> 00:02:23,236
+Shared wording may connect the two, but a single next token is a weak bridge between descriptions of the same scene.
+
+30
+00:02:23,502 --> 00:02:27,140
+It can also connect unrelated passages through common words or writing style.
+
+31
+00:02:27,694 --> 00:02:32,932
+Then the paper predicts that a text model trained onto captions of one image should align better than one train to continue a caption.
+
+32
+00:02:33,454 --> 00:02:34,080
+That is the kitas.
+
+33
+00:02:34,702 --> 00:02:37,280
+The author's trained image and text encoders separately.
+
+34
+00:02:37,582 --> 00:02:40,080
+Then compared three text objectives on match data.
+
+35
+00:02:40,334 --> 00:02:42,560
+Two views from different captions of the same image.
+
+36
+00:02:42,926 --> 00:02:46,276
+Two mass spans from one caption and next step down prediction.
+
+37
+00:02:46,606 --> 00:02:51,268
+They evaluated how well each text embedding aligned with an independently trained image encoder.
+
+38
+00:02:51,918 --> 00:02:55,040
+The curves show the good view text JEPA pulling clearly ahead.
+
+39
+00:02:55,374 --> 00:02:59,120
+The mass span JEPA and next step model remain much closer to each other.
+
+40
+00:02:59,470 --> 00:03:04,644
+Since the data and encoder setup are matched, this supports the claim that the positive views themselves matter.
+
+41
+00:03:05,134 --> 00:03:08,900
+What part of the Goodview setup mattered most, beyond simply choosing different captions?
+
+42
+00:03:09,422 --> 00:03:17,040
+The paper found that trimming each caption to a span mattered most, whole captions include extra wording that may not be shared between descriptions of the same image.
+
+43
+00:03:17,390 --> 00:03:23,908
+Trimming keeps more of the shared scene content used in whole captions reduced retrieval alignment from 246 to 185.
+
+44
+00:03:24,238 --> 00:03:29,220
+Other tested settings shifted the meanwhile, though training stability also depended on gradient clipping.
+
+45
+00:03:29,870 --> 00:03:36,160
+The authors also checked whether the same principle helps on the image side using video clips, where several frames show one clip.
+
+46
+00:03:36,430 --> 00:03:43,044
+Good views on both image and text raised mutual neighbor alignment to 67, compared with 39 when both sides used bad views.
+
+47
+00:03:43,374 --> 00:03:46,308
+The ordering also held when only one side used good views.
+
+48
+00:03:46,926 --> 00:03:48,480
+Now to the scale comparison.
+
+49
+00:03:48,782 --> 00:03:58,320
+With the same 109 million parameter text encoder and the same web image dexcorpus, Goodview JEPA reached 109 alignment after 21.6 million samples.
+
+50
+00:03:58,734 --> 00:04:02,660
+Next stepone training reached 111 after 900 million samples.
+
+51
+00:04:03,022 --> 00:04:06,628
+That is about 40 times fewer training samples for comparable alignment.
+
+52
+00:04:07,310 --> 00:04:10,212
+Does the advantage remain when the models are compared at larger scale?
+
+53
+00:04:10,670 --> 00:04:22,400
+On the paper's benchmark, a 109 million parameter Goodview JEPA trained on texts from 940 million web images reached 180 from mutual 10 nearest neighbor alignment with DI Hano V2.
+
+54
+00:04:22,734 --> 00:04:29,600
+He went to.570 to be reached 154, and the next diptone model trained on the same corpus reached 111.
+
+55
+00:04:29,934 --> 00:04:35,280
+The Goodview model was also ahead of the tested language models with CLIP image features and on COCO.
+
+56
+00:04:35,982 --> 00:04:38,960
+The scaling law experiment adds a useful qualification.
+
+57
+00:04:39,214 --> 00:04:48,160
+Alignment increased with both sample count and the fraction of Goodviews, and the fitted law predicted 85 held out runs about as accurately as we running a run with another seed.
+
+58
+00:04:48,398 --> 00:04:52,548
+But the fit failed when training repeated the same day, a far beyond its fitted range.
+
+59
+00:04:52,846 --> 00:04:56,324
+So it is an empirical guide for that recipe, not a universal law.
+
+60
+00:04:56,942 --> 00:04:59,600
+The paper also demonstrates what alignment can enable.
+
+61
+00:04:59,918 --> 00:05:04,260
+A single orthogonal map can connect separately trained image and text encoders for captioning.
+
+62
+00:05:04,590 --> 00:05:10,880
+With frozen image encoders in a text-only trained decoder, their COCO captioner reached C idea 838.
+
+63
+00:05:11,120 --> 00:05:18,436
+A second experiment estimated alignment from unbiogeometry and reported 64.4% top 5 accuracy on image net 100.
+
+64
+00:05:18,702 --> 00:05:21,828
+Above the pair-free language model results they compared against.
+
+65
+00:05:22,478 --> 00:05:25,252
+What should viewers keep in mind about the strength of these conclusions?
+
+66
+00:05:25,710 --> 00:05:30,500
+The theorem is for an idealized J EPA setup with assumptions such as a spectral gap.
+
+67
+00:05:30,766 --> 00:05:33,764
+It is not a guarantee for every architecture or training run.
+
+68
+00:05:34,062 --> 00:05:38,400
+The experiments cover selected encoders, data sets, and alignment metrics.
+
+69
+00:05:38,702 --> 00:05:46,596
+The results show that carefully chosen positive views can make alignment much more sample efficient in these settings, while broader generality still needs testing.
+
+70
+00:05:47,214 --> 00:05:52,772
+The main takeaway is that model scale alone does not determine whether vision and language representations meet.
+
+71
+00:05:53,006 --> 00:06:04,516
+Training pairs that connect different observations of the same world state give separately trained JEP as a principal truth to alignment, and in these experiments they reach that alignment with far fewer samples than next step on prediction.
+
+72
+00:06:05,134 --> 00:06:06,916
+That wraps up this paperwork saw.
+
