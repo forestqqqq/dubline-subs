@@ -5,6 +5,7 @@
 | 视频 | 原作者 | 更新 |
 |---|---|---|
 | [This AI Taught Itself to Use a Calculator \| Toolformer Explained](medias/KMKCW/) | Paper Explained | 2026-11-17 |
+| [Vibe coding an app like a senior engineer \| GPT Astra + Opus 5.5 🔴 LIVE](medias/KM463/) | Asklog | 2026-11-17 |
 | [Creating Logic using Waves: Photonic Gates](medias/KFV64/) | Huygens Optics | 2026-11-17 |
 | [Proving and Improving the Platonic Representation Hypothesis with JEPAs](medias/SZV7D/) | CosmoX | 2026-11-16 |
 | [Paper: Route Anything: A Study of Model and Policy Routing for General-Purpose AI Systems](medias/PMBW6/) | Next in AI: Astha La Vista | 2026-11-16 |
