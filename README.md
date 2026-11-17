@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [Creating Logic using Waves: Photonic Gates](medias/KFV64/) | Huygens Optics | 2026-11-17 |
 | [Proving and Improving the Platonic Representation Hypothesis with JEPAs](medias/SZV7D/) | CosmoX | 2026-11-16 |
 | [Paper: Route Anything: A Study of Model and Policy Routing for General-Purpose AI Systems](medias/PMBW6/) | Next in AI: Astha La Vista | 2026-11-16 |
 | [The ONLY Grok Bot Tutorial You'll Ever Need (ALL 38 Features Explained Simply)](medias/FQWYN/) | Jay E \| RoboNuggets | 2026-11-16 |
