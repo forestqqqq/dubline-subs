@@ -1,0 +1,815 @@
+1
+00:00:00,014 --> 00:00:03,600
+关于大语言模型，有一个奇怪的事实。
+Here's a strange fact about large language models.
+
+2
+00:00:03,950 --> 00:00:13,840
+它们仅凭几个例子就能写文章和代码，但在处理一
+些基础问题时却很吃力，比如用 400 除以 1400。
+They can write essays and code from just a few examples, yet they struggle with basic things, like dividing 400 by 1400.
+
+3
+00:00:14,190 --> 00:00:22,308
+一个口袋计算器，也就是个微小的程序，永远不会算错，那为什么不让语言模型直接去问它呢？
+A pocket calculator, a tiny program, never gets that wrong, so why not let the language model simply ask one?
+
+4
+00:00:23,182 --> 00:00:29,796
+这就是 Meta AI 研究团队 2023 年发表的论文 Toolformer 的核心思路。
+That's the idea behind Toolformer, a 2023 paper from Meta AI Research.
+
+5
+00:00:30,190 --> 00:00:36,420
+它的标题提出了一个大胆的论点：语言模型可以学会自主使用工具。
+Its title makes a bold claim: Language Models Can Teach Themselves to Use Tools.
+
+6
+00:00:37,294 --> 00:00:46,212
+我们将看看模型是如何编写自己的训练数据，如何
+判断哪些工具调用值得保留，以及最终的效果如何。
+We'll see how the model writes its own training data, how it judges which tool calls are worth keeping, and how well the result works.
+
+7
+00:00:47,310 --> 00:00:54,480
+论文开头列出了一些语言模型表现不佳的情况，这些问题仅仅靠扩大模型规模只能部分解决。
+The paper begins with a list of things language models are bad at, problems that more scale only partly fixes.
+
+8
+00:00:54,862 --> 00:00:58,788
+它们不知道最近发生的事件，而且往往会编造事实。
+They don't know about recent events, and they tend to make facts up.
+
+9
+00:00:59,214 --> 00:01:04,720
+它们在处理冷门语言、精确数学以及时间流逝方面也表现挣扎。
+They struggle with rare languages, with precise math, and with the passage of time.
+
+10
+00:01:05,069 --> 00:01:08,160
+这些问题在模型之外都有简单的解决方案。
+Each of these has a simple fix outside the model.
+
+11
+00:01:08,462 --> 00:01:10,640
+搜索引擎掌握着事实。
+A search engine knows the facts.
+
+12
+00:01:10,990 --> 00:01:18,692
+翻译软件处理冷门语言，计算器处理算术，日历知道今天的日期。
+A translator handles rare languages, a calculator does arithmetic, and a calendar knows today's date.
+
+13
+00:01:19,566 --> 00:01:33,520
+早期的系统确实教会了模型使用工具，但它们要么需要大量的标注，要么只能在单一任务中运行，
+即提示词必须明确说明要用哪个工具以及怎么用。
+Earlier systems did teach models to use tools, but they either needed large amounts of human annotation,
+or they worked only within one task, where the prompt shows exactly which tool to use and how.
+
+14
+00:01:34,638 --> 00:01:36,560
+Toolformer 设定了两个目标。
+Toolformer sets two goals.
+
+15
+00:01:36,846 --> 00:01:42,372
+首先，以自我监督的方式学习工具使用，而不需要大量的标注工作。
+First, learn tool use in a self-supervised way without a big annotation effort.
+
+16
+00:01:42,766 --> 00:01:49,920
+其次，保持作为通用语言模型，即模型要自行决定何时、如何以及使用哪个工具。
+Second, stay a general language model, one that decides for itself when and how to use which tool.
+
+17
+00:01:50,254 --> 00:01:57,348
+而且人类认为有用的内容可能与模型认为有用的内容不同，所以让模型来做裁判。
+And what humans find useful may differ from what a model finds useful, so let the model be the judge.
+
+18
+00:01:58,446 --> 00:02:01,600
+首先，语言模型到底怎么才能使用工具呢？
+First, how can a language model use a tool at all?
+
+19
+00:02:01,902 --> 00:02:07,556
+它能做的只有生成文本，所以工具调用也必须写成文本。
+All it can do is produce text, so a tool call has to be written as text too.
+
+20
+00:02:08,877 --> 00:02:13,028
+一次调用包含两个部分：工具的名称和它的输入。
+A call has two parts, the tool's name and its input.
+
+21
+00:02:13,358 --> 00:02:20,240
+写出来的话，就是把带括号的输入放在特殊起始和结束标记之间的名称。
+Written out, that's the name with the input in parentheses wrapped between special start and end markers.
+
+22
+00:02:20,526 --> 00:02:26,880
+一旦工具给出答案，它的结果 R 就会放在箭头后面，就在结束标记之前。
+Once the tool answers, its result R goes in after an arrow just before the end marker.
+
+23
+00:02:27,214 --> 00:02:34,480
+在实际操作中，标记只是方括号，箭头是连字符加大于号。
+In practice, the markers are just square brackets, and the arrow is a dash followed by a greater than sign.
+
+24
+00:02:34,862 --> 00:02:38,052
+模型的词汇表里没有增加任何新内容。
+Nothing new is added to the model's vocabulary.
+
+25
+00:02:38,990 --> 00:02:41,412
+这是论文中的一个例子。
+Here's one of the paper's own examples.
+
+26
+00:02:41,806 --> 00:02:53,120
+在句子中间，模型调用计算器计算 400 除以 1400，得到 0.29，然后写下 29%。
+Partway through a sentence, the model calls the calculator with 400 divided by 1400, gets back 0.29, and then writes 29%.
+
+27
+00:02:54,638 --> 00:03:05,680
+论文给模型提供了五个工具：问答系统、Wikipedia 搜索引擎、计算器、日历和机器翻译系统。
+The paper gives the model five tools: a question-answering system, a Wikipedia
+search engine, a calculator, a calendar, and a machine translation system.
+
+28
+00:03:06,190 --> 00:03:09,444
+所有的输入和输出都是纯文本。
+Every input and every output is plain text.
+
+29
+00:03:10,510 --> 00:03:17,444
+现在来看核心技巧：从一大堆没有任何工具调用的普通文本开始。
+Now for the central trick start with a big pile of ordinary text, with no tool calls in it at all.
+
+30
+00:03:17,902 --> 00:03:23,280
+目标是将其转化为同样的文本，只是其中穿插了一些有用的工具调用。
+The goal is to turn it into the same text, with useful tool calls sprinkled in.
+
+31
+00:03:23,566 --> 00:03:31,364
+这分为三个步骤：采样候选调用，执行它们，然后过滤掉那些没用的调用。
+This happens in three steps sample candidate calls, execute them, then filter out the ones that don't help.
+
+32
+00:03:32,654 --> 00:03:34,400
+来看论文里的这个句子。
+Take this sentence from the paper.
+
+33
+00:03:34,702 --> 00:03:37,668
+匹兹堡也被称为钢铁城市。
+Pittsburgh is also known as the Steel City.
+
+34
+00:03:37,998 --> 00:03:41,760
+在过程中，模型会提出它可以提出的问题。
+Partway through, the model proposes questions it could ask.
+
+35
+00:03:42,094 --> 00:03:46,788
+匹兹堡还有什么别称，或者匹兹堡在哪个国家？
+What other name is Pittsburgh known by, or which country is Pittsburgh in?
+
+36
+00:03:47,054 --> 00:03:51,120
+执行这些问题后，得到了“钢铁城市”和“美国”。
+Executing them gives Steel City and United States.
+
+37
+00:03:51,470 --> 00:03:55,920
+第一个答案让剩下的句子变得非常容易预测。
+The first answer makes the rest of the sentence much easier to predict.
+
+38
+00:03:56,238 --> 00:04:00,320
+第二个完全没帮助，所以只有第一个被保留下来。
+The second doesn't help at all, so only the first survives.
+
+39
+00:04:00,718 --> 00:04:07,200
+保留下来的调用被写入文本中，然后模型就在这类文本上进行微调。
+The surviving call is written into the text, and the model is then fine-tuned on text like this.
+
+40
+00:04:07,534 --> 00:04:09,252
+让我们来看看每一个步骤。
+Let's go through each step.
+
+41
+00:04:10,350 --> 00:04:14,020
+第一步利用模型自身的上下文学习能力。
+Step 1 uses the model's own in-context learning.
+
+42
+00:04:14,382 --> 00:04:24,000
+对于每个工具，作者都会写一个提示词，即简短的指
+令，再加上几个在合理位置插入了调用的文本示例。
+For each tool, the authors write a prompt, a short instruction, plus a few examples of text with calls inserted in sensible places.
+
+43
+00:04:24,398 --> 00:04:27,280
+最后是新的文本片段 X。
+At the end goes the new piece of text, X.
+
+44
+00:04:27,790 --> 00:04:31,940
+模型的工作是复制 X，并加入它自己的调用。
+The model's job is to copy X, adding calls of its own.
+
+45
+00:04:32,814 --> 00:04:42,160
+现在在 X 的每个位置 i，我们可以问模型：在单词 i 之前，
+就在这里开始一个 API 调用的可能性有多大？
+Now at every position I in X, we can ask the model, how likely is it that you'd start an API call right here, just before word i?
+
+46
+00:04:42,702 --> 00:04:46,960
+这就是 PI，即该位置出现 API 标记的概率。
+That's PI, the probability of the a PI token at that spot.
+
+47
+00:04:47,246 --> 00:04:51,680
+概率超过阈值 tau s 的位置就成为候选位置。
+Positions where it beats a threshold, tau s, become candidates.
+
+48
+00:04:52,078 --> 00:04:59,460
+默认情况下，tau s 是 5%，且最多保留前 K 个位置，K 等于 5。
+By default, tau s is 5%, and at most the top K positions are kept, with K equal to 5.
+
+49
+00:05:00,526 --> 00:05:11,040
+在每个保留的位置，模型接着写出最多 M 个完整的调用，默认也是 5，
+并在产生结束标记时停止每个调用。
+At each kept position, the model then writes out up to M complete calls, also 5 by default,
+stopping each one when it produces the end marker.
+
+50
+00:05:11,310 --> 00:05:13,280
+到目前为止还没有进行任何检查。
+Nothing has been checked yet.
+
+51
+00:05:13,614 --> 00:05:17,700
+这些仅仅是模型对工具可能起作用位置的猜测。
+These are only the model's guesses about where a tool might help.
+
+52
+00:05:18,766 --> 00:05:20,708
+第二步很简单。
+Step 2 is the simple one.
+
+53
+00:05:20,960 --> 00:05:25,680
+运行每一个调用，并将每个结果作为一段文本收集起来。
+Run every call and collect each result as a single piece of text.
+
+54
+00:05:26,094 --> 00:05:33,680
+问答工具是 Atlas，这是一个在自然问题上进行微调的检索增强语言模型。
+The question-answering tool is Atlas, a retrieval-augmented language model fine-tuned on natural questions.
+
+55
+00:05:34,062 --> 00:05:40,388
+Wikipedia 搜索是一个经典的 BM25 检索器，它返回简短的片段。
+Wikipedia search is a classic BM25 retriever that returns short snippets.
+
+56
+00:05:40,750 --> 00:05:49,200
+计算器是一个小的 Python 脚本，它知道四则基本运算，并保留两位小数。
+The calculator is a small Python script that knows the four basic operations and rounds to two decimal places.
+
+57
+00:05:49,550 --> 00:05:51,840
+日历工具不需要任何输入。
+The calendar takes no input at all.
+
+58
+00:05:52,142 --> 00:05:54,320
+它只是返回今天的日期。
+It just returns today's date.
+
+59
+00:05:54,702 --> 00:06:05,348
+翻译器是 NLLB，这是一个拥有 6 亿参数、涵盖 200 种语言的模型，它总是翻译成英文。
+And the translator is NLLB, a 600 million parameter model covering 200 languages, which always translates into English.
+
+60
+00:06:06,414 --> 00:06:08,800
+第三步是这篇论文的核心。
+Step 3 is the heart of the paper.
+
+61
+00:06:09,134 --> 00:06:14,560
+在没有任何人工干预的情况下，你如何判断一个工具调用是否有用？
+Without any human in the loop, how do you decide whether a tool call was useful?
+
+62
+00:06:14,862 --> 00:06:17,040
+答案非常简单。
+The answer is beautifully simple.
+
+63
+00:06:17,390 --> 00:06:22,180
+如果一个调用能帮助模型预测接下来的文本，那它就是有用的。
+A call is useful if it helps the model predict the text that comes next.
+
+64
+00:06:23,470 --> 00:06:24,640
+衡量标准如下：
+Here's the measure.
+
+65
+00:06:25,006 --> 00:06:34,080
+L_z 是模型在给定前缀 z（比如一个工具调用）时，对从位置 i 开始的标记产生的损失。
+Li of Z is the model's loss on the tokens from position I onward when it's given some prefix Z, such as a tool call.
+
+66
+00:06:34,478 --> 00:06:38,160
+损失越低，意味着接下来的词越容易预测。
+Lower loss means the upcoming words were easier to guess.
+
+67
+00:06:38,510 --> 00:06:41,476
+权重倾向于调用之后的标记。
+The weights favor the tokens right after the call.
+
+68
+00:06:41,838 --> 00:06:46,800
+权重每增加一个标记下降 0.2，并在五个标记后降至零。
+They fall by 0.2 per token and hit zero after five tokens.
+
+69
+00:06:47,182 --> 00:06:51,556
+所以，调用必须对附近的文本有帮助，而不是对页面下游的内容有帮助。
+So a call has to help nearby, not somewhere far down the page.
+
+70
+00:06:52,430 --> 00:07:00,960
+现在对比三种情况：完全没有调用、有调用但没有答案、以及有调用且有答案。
+Now compare three situations, no call at all, the call but without its answer, and the call together with its answer.
+
+71
+00:07:01,294 --> 00:07:05,120
+计算每种情况下接下来的词的加权损失。
+Compute the weighted loss on the upcoming words in each case.
+
+72
+00:07:05,486 --> 00:07:09,092
+L_plus 是包含完整调用及其答案时的损失。
+L plus is the loss with the full call and its answer.
+
+73
+00:07:09,518 --> 00:07:12,720
+L_minus 是另外两种备选方案中更好的那一个。
+L--minus is the better of the two alternatives.
+
+74
+00:07:13,102 --> 00:07:21,120
+只有当 L_minus 减去 L_plus 至少达到 tau_f 时，
+才会保留该调用。tau_f 是一个默认设定的阈值。
+The call is kept only if L-L plus is at least tau F, a threshold that is won by default.
+
+75
+00:07:21,454 --> 00:07:23,840
+为什么要包含没有答案的调用？
+Why include the call without its answer?
+
+76
+00:07:24,206 --> 00:07:29,600
+因为这样功劳才会归功于工具的响应，而不仅仅是提问本身。
+Because then the credit has to go to the tool's response, not just to asking the question.
+
+77
+00:07:29,966 --> 00:07:34,148
+这里的增益是 1.6，所以这个调用被保留了。
+Here the gain is 1.6, so this call is kept.
+
+78
+00:07:34,990 --> 00:07:45,732
+另一个候选调用“匹兹堡在哪个国家”得到的答案与
+接下来的词毫无关系，因此它低于阈值并被丢弃。
+The other candidate, which country is Pittsburgh in, gets an answer that says nothing about the next words,
+so it falls below the threshold and is thrown away.
+
+79
+00:07:46,830 --> 00:07:49,792
+这个分数真的能筛选出合理的调用吗？
+Does this score really pick out sensible calls?
+
+80
+00:07:50,126 --> 00:07:54,752
+论文展示了从数据中筛选出的真实案例，并按分数排序。
+The paper shows real examples from its data, sorted by score.
+
+81
+00:07:55,054 --> 00:08:05,252
+排在首位的得分是 5.49，关于 Flodden window 的
+Wikipedia 搜索返回的内容正是文本接下来要描述的历史。
+At the top, scoring 5.49, a Wikipedia search about the Flodden window returns exactly the history the text goes on to describe.
+
+82
+00:08:05,742 --> 00:08:11,152
+关于尼罗河长度的问题返回的正是文本接下来要提到的那个数字。
+A question about the Nile's length returns the very number the text states next.
+
+83
+00:08:11,534 --> 00:08:22,272
+排在末尾的是对模型毫无帮助的调用，比如在迪士尼故事前查询日期，
+或者乱码般的提问“我上次和谁在一起”。
+At the bottom are calls that tell the model nothing, like a date lookup before
+a story about Disneyland or a garbled question, who was last time I was with.
+
+84
+00:08:22,638 --> 00:08:23,792
+这并不是完美的。
+It isn't perfect.
+
+85
+00:08:24,078 --> 00:08:30,432
+搜索“快速列车成功”返回了一首无关的歌曲，但仍然降低了损失。
+A search for fast train success returns an unrelated song, yet still lowers the loss.
+
+86
+00:08:30,798 --> 00:08:33,792
+作者认为一点点噪声甚至是有用的。
+The authors argue a little noise is even useful.
+
+87
+00:08:34,126 --> 00:08:37,952
+它教会模型不要盲目相信每一个结果。
+It teaches the model not to blindly trust every result.
+
+88
+00:08:38,990 --> 00:08:40,672
+有多少案例被保留了下来？
+How many examples survive?
+
+89
+00:08:41,070 --> 00:08:48,992
+当 tau_f 为 1 时，Wikipedia 搜索约保留 61,000 个，但计算器的少于 1,000 个。
+With Tau F at 1, about 61,000 for Wikipedia search, but fewer than a thousand for the calculator.
+
+90
+00:08:49,486 --> 00:08:55,268
+将阈值提高到 2，计算器的案例就只剩下 138 个了。
+Raise the threshold to two, and only 138 calculator examples remain.
+
+91
+00:08:56,366 --> 00:09:03,392
+过滤之后，每个保留下来的调用都会插入到对应的文本中，位置就在它被提议的地方。
+After filtering, each surviving call is inserted into its text, right at the position where it was proposed.
+
+92
+00:09:03,790 --> 00:09:07,792
+对每份文档都这样做，就得到了新的数据集 C*。
+Doing this for every document gives the new dataset C star.
+
+93
+00:09:08,494 --> 00:09:10,372
+这里有一个关键特性。
+And here's the crucial property.
+
+94
+00:09:10,766 --> 00:09:24,260
+除了插入的调用外，C* 包含与原始数据完全相同的文本，因此在它上进行微调可以在不改变模型
+语言学习内容的情况下，教会它使用工具。
+Apart from the inserted calls, CSTAR contains exactly the same text as the original data,
+so fine-tuning on it teaches tool use without changing what the model learns about language.
+
+95
+00:09:25,518 --> 00:09:38,660
+在实验中，模型是拥有 67 亿参数的 GPTJ，它是在 CCNet（一个大型网络爬虫数据集）的子集上
+通过简单的下一个 token 预测训练出来的。
+In the experiments, the model is GPTJ, with 6.7 billion parameters, trained
+with plain next token prediction on a subset of CCNet, a large web crawl.
+
+96
+00:09:39,566 --> 00:09:42,112
+在推理阶段，模型只是在写字。
+At inference time, the model just writes.
+
+97
+00:09:42,542 --> 00:09:46,112
+当它生成箭头 token 时，解码就会暂停。
+When it produces the arrow token, decoding pauses.
+
+98
+00:09:46,446 --> 00:09:53,632
+真正的工具会被调用，它的答案连同结束标记一起被粘贴进去，然后模型继续写下去。
+The real tool is called, its answer is pasted in along with the end marker, and the model carries on writing.
+
+99
+00:09:53,966 --> 00:09:56,032
+评估过程中有两个调整。
+Two tweaks for the evaluations.
+
+100
+00:09:56,430 --> 00:10:08,270
+只要 API token 出现在模型最可能的十个下一个 token 中，模型就可以开始调用，
+而不必非得是唯一的首选；而且每个输入最多只能调用一次，
+The model may start a call whenever the API token is among its ten most likely next tokens, not only when it's the single top choice,
+and it gets at most one call per input, so it can't get stuck calling tools forever.
+
+101
+00:10:08,270 --> 00:10:11,940
+这样它就不会陷入无限调用工具的死循环。
+The model may start a call whenever the API token is among its ten most likely next tokens, not only when it's the single top choice,
+and it gets at most one call per input, so it can't get stuck calling tools forever.
+
+102
+00:10:13,038 --> 00:10:14,512
+接下来看实验。
+On to the experiments.
+
+103
+00:10:14,798 --> 00:10:16,592
+所有的测试都是零样本的。
+Every test is zero shot.
+
+104
+00:10:17,038 --> 00:10:22,832
+模型会收到一个指令，但没有示例，而且没有人告诉它该用哪个工具。
+The model gets an instruction, but no examples, and nobody tells it which tool to use.
+
+105
+00:10:23,182 --> 00:10:38,832
+对比了六个模型：GPTJ，在相同文本上微调但没有调用的 GPTJ，关闭了工具功能的 Toolformer，
+Toolformer 本身，以及两个规模大得多的模型 OPT 和 GPT-3。
+Six models are compared: GPTJ, GPTJ fine-tuned on the same text without calls, toolformer with its tools switched off,
+toolformer itself, and two far larger models, OPT and GPT-3.
+
+106
+00:10:39,950 --> 00:10:45,712
+首先是 LAMA，即补全包含缺失事实的简短陈述，比如日期或地点。
+First LAMA, complete a short statement with a missing fact, like a date or a place.
+
+107
+00:10:46,190 --> 00:10:51,232
+这里关闭了 Wikipedia 搜索，因为 LAMA 是基于 Wikipedia 构建的。
+Wikipedia search is switched off here because Lama was built from Wikipedia.
+
+108
+00:10:51,598 --> 00:11:02,820
+Toolformer 比同尺寸的最佳基准模型高出 11.7、5.2 和 18.6 分，
+并且在所有三项测试中都击败了 GPT-3。
+Toolformer beats the best same-size baseline by 11.7, 5.2, and 18.6 points, and it beats GPT3 on all three.
+
+109
+00:11:03,278 --> 00:11:08,580
+它在 98.1% 的情况下调用了问答工具。
+It asked the question-answering tool in 98.1% of cases.
+
+110
+00:11:09,486 --> 00:11:15,232
+接下来是来自三个基准测试的数学应用题：s-div、svamp 和 morps。
+Next, math word problems from three benchmarks are s-div, svamp, and morps.
+
+111
+00:11:15,630 --> 00:11:17,392
+这里的差距甚至更大。
+Here the gap is even bigger.
+
+112
+00:11:17,710 --> 00:11:24,592
+在允许使用工具的情况下，Toolformer 的得分翻了一倍多，且远高于 GPT-3。
+With tools allowed, toolformer more than doubles its own score and lands far above GPT3.
+
+113
+00:11:25,230 --> 00:11:29,792
+它在 97.9% 的例子中调用了计算器。
+It called the calculator for 97.9% of examples.
+
+114
+00:11:30,126 --> 00:11:34,352
+即使在禁用工具的情况下，它也优于普通的 GPTJ。
+Even with tools disabled, it beats plain GPTJ.
+
+115
+00:11:34,766 --> 00:11:40,432
+作者怀疑所有这些计算器的结果都提升了它自身的算术能力。
+The authors suspect all those calculator results improved its own arithmetic.
+
+116
+00:11:41,614 --> 00:11:48,772
+对于开放式问答，问答工具被禁用了，因为那会让任务变得太简单。
+For open question answering, the question answering tool is disabled, since it would make the task trivial.
+
+117
+00:11:49,134 --> 00:11:55,024
+因此 Toolformer 在 99.3% 的情况下依赖 Wikipedia 搜索。
+So Toolformer leans on Wikipedia search 99.3% of the time.
+
+118
+00:11:55,406 --> 00:12:00,544
+它击败了所有的 GPT-J 模型，但仍逊于 GPT-3。
+It beats every GPT-J model but falls short of GPT-3.
+
+119
+00:12:01,230 --> 00:12:08,836
+作者将原因归咎于他们简单的搜索引擎，以及 Toolformer 无法重构查询或浏览结果的能力。
+The authors blame their simple search engine and Toolformer's inability to rephrase a query or browse results.
+
+120
+00:12:09,710 --> 00:12:15,104
+在多语言问答中，调用翻译器对每种语言都有帮助。
+On multilingual question answering, calling the translator helps in every language.
+
+121
+00:12:15,502 --> 00:12:24,516
+但 Toolformer 并没有始终击败普通的 GPT-J，因为
+在 CCNet 上进行微调已经损害了一些语言的表现。
+But Toolformer doesn't consistently beat plain GPT-J because fine-tuning on CCNet had already hurt some languages.
+
+122
+00:12:25,422 --> 00:12:26,384
+最后是时间。
+Finally, time.
+
+123
+00:12:26,990 --> 00:12:32,304
+在 dateset 数据集上，有一组新问题，比如：30天前是星期几？
+On dateset, a new set of questions like, What day of the week was it 30 days ago?
+
+124
+00:12:32,686 --> 00:12:40,292
+Toolformer 的准确率跃升到 27.3%，在 54.8% 的样本中使用了日历。
+Toolformer jumps to 27.3%, using the calendar for 54.8% of examples.
+
+125
+00:12:40,654 --> 00:12:42,624
+没有其他模型能达到 6。
+No other model reaches 6.
+
+126
+00:12:42,990 --> 00:12:50,544
+在第二个数据集 Temp Lama 上，Toolformer 也领先，但它几乎从不使用日历。
+On a second dataset, Temp Lama, Toolformer also comes out ahead, but it almost never uses the calendar there.
+
+127
+00:12:50,990 --> 00:12:54,980
+提升主要来自搜索和问答。
+The gains came from search and question answering instead.
+
+128
+00:12:56,078 --> 00:12:58,544
+学习使用工具会有什么代价吗？
+Did learning to use tools cost anything?
+
+129
+00:12:58,862 --> 00:13:02,704
+困惑度（Perplexity）衡量模型预测普通文本的能力。
+Perplexity measures how well a model predicts ordinary text.
+
+130
+00:13:03,024 --> 00:13:04,304
+数值越低越好。
+Lower is better.
+
+131
+00:13:04,654 --> 00:13:17,824
+禁用调用时，Toolformer 的困惑度与在相同文本上微调且不带调用的 GPT-J 一致，
+在 WikiText 上是 10.3，在 CCNet 上是 10.5。
+With calls disabled, Toolformer's Perplexity matches GPT-J fine-tuned
+on the same text without calls, 10.3 on WikiText and 10.5 on CCNet.
+
+132
+00:13:18,286 --> 00:13:20,388
+学习工具几乎是免费的。
+Learning the tools came for free.
+
+133
+00:13:21,294 --> 00:13:23,584
+这在更小的模型上也有效吗？
+Does this work for smaller models too?
+
+134
+00:13:23,982 --> 00:13:35,904
+作者用四个 GPT2 模型重复了整个流程，参数量从 1.24 亿到 16 亿不等，并使用了三种工具。
+The authors repeated the whole recipe with four GPT2 models, from 124 million to 1.6 billion parameters, using three of the tools.
+
+135
+00:13:36,270 --> 00:13:42,532
+使用工具的能力仅在 7.75 亿参数左右才出现。
+The ability to use tools only emerges at around 775 million parameters.
+
+136
+00:13:42,926 --> 00:13:47,652
+低于这个数值，有工具和没工具的曲线靠得很近。
+Below that, the curves with and without tools sit close together.
+
+137
+00:13:48,046 --> 00:13:53,024
+高于这个数值，两条曲线就分开了，即使是最大的模型，差距依然很大。
+Above it, they split, and the gap stays large even for the biggest model.
+
+138
+00:13:53,326 --> 00:14:04,452
+例外是问答基准测试中的 Wikipedia 搜索，它甚至能帮助小模型，可能是因为它的使用相对简单。
+The exception is Wikipedia search on the question-answering benchmarks, which helps even the small models,
+probably because it's comparatively easy to use.
+
+139
+00:14:05,518 --> 00:14:07,024
+记住 Top K 技巧。
+Remember the top K trick.
+
+140
+00:14:07,406 --> 00:14:18,944
+在纯贪婪解码、k 等于 1 的情况下，Toolformer 在 T-Rex
+问题中仅调用工具的比例为 40.3%，在 Web QS 上为 8.5%。
+With plain greedy decoding, k equal to 1, Toolformer calls a tool for only 40.3% of T-Rex questions and 8.5% on Web QS.
+
+141
+00:14:19,598 --> 00:14:25,024
+当 K 等于 10 时，这个比例分别上升到 98.1 和 100。
+At K equal to 10, that rises to 98.1 and 100.
+
+142
+00:14:25,358 --> 00:14:28,772
+当 K 等于 1 时，模型的校准程度尚可。
+At K equal to 1, the model is somewhat calibrated.
+
+143
+00:14:29,070 --> 00:14:32,624
+它会在那些模型自己无法回答的样本上调用工具。
+It calls tools on the examples it would get wrong on its own.
+
+144
+00:14:33,038 --> 00:14:40,484
+它跳过的 T-Rex 样本得分是 44.3，远高于从不调用时的 34.9。
+The T-Rex examples its skips score 44.3, well above the 34.9 of never calling.
+
+145
+00:14:40,910 --> 00:14:43,940
+在更高的 K 值下，这种校准就消失了。
+At higher K, that calibration is lost.
+
+146
+00:14:44,846 --> 00:14:47,344
+作者坦诚地说明了局限性。
+The authors are upfront about the limits.
+
+147
+00:14:47,758 --> 00:14:57,264
+Toolformer 无法串联工具，即把一个工具的输出输入到另一个工具中，
+因为训练数据中的每次调用都是独立采样的。
+Toolformer can't chain tools, feeding one tool's output into another,
+because every call in its training data was sampled independently.
+
+148
+00:14:57,614 --> 00:15:01,664
+它无法交互式地使用工具，比如优化搜索。
+It can't use a tool interactively, like refining a search.
+
+149
+00:15:01,998 --> 00:15:05,092
+它对输入的精确措辞很敏感。
+It's sensitive to the exact wording of its input.
+
+150
+00:15:05,454 --> 00:15:15,652
+它的采样效率较低，超过一百万份文档仅产生几千次
+有用的计算器调用，而且它忽略了每次调用的成本。
+It's sample inefficient, over a million documents yield only a few
+thousand useful calculator calls, and it ignores how expensive a call is.
+
+151
+00:15:16,750 --> 00:15:27,780
+所以总结一下，模型在普通文本中标注候选工具调用，运行它们，
+并仅保留那些能让后续词汇更容易预测的调用。
+So to recap, the model annotates ordinary text with candidate tool calls, runs them,
+and keeps only the calls that make the next words easier to predict.
+
+152
+00:15:28,174 --> 00:15:31,012
+然后，它就从自己过滤出来的数据中进行学习。
+Then it learns from its own filtered data.
+
+153
+00:15:31,950 --> 00:15:46,532
+最终得到一个拥有 67 亿参数的模型，它在零样本测试中经常超越规模大出约 25 倍的 GPT-3，
+而且并没有丧失它的语言建模能力。
+The result is a 6.7 billion parameter model that, in zero-shot tests, often beats GPT-3, which is about 25 times larger,
+without giving up its language modeling ability.
+
+154
+00:15:47,406 --> 00:15:57,184
+回过头看，工具调用很快就成了 AI 助手的标准功能，
+现在它们经常会调用搜索、代码执行和其他服务。
+Looking back, tool use soon became a standard feature of AI assistance,
+which now routinely calls search, code execution, and other services.
+
+155
+00:15:57,614 --> 00:16:07,172
+Toolformer 是在 NeurIPS 2023 上发表的，是支持这一理念最早且引用最广泛的论文之一。
+Toolformer, presented at Newer IPS 2023, is one of the most widely cited early papers behind that idea.
+

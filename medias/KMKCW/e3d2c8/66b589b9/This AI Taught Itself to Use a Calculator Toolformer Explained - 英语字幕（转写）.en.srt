@@ -1,0 +1,616 @@
+1
+00:00:00,014 --> 00:00:03,600
+Here's a strange fact about large language models.
+
+2
+00:00:03,950 --> 00:00:13,840
+They can write essays and code from just a few examples, yet they struggle with basic things, like dividing 400 by 1400.
+
+3
+00:00:14,190 --> 00:00:22,308
+A pocket calculator, a tiny program, never gets that wrong, so why not let the language model simply ask one?
+
+4
+00:00:23,182 --> 00:00:29,796
+That's the idea behind Toolformer, a 2023 paper from Meta AI Research.
+
+5
+00:00:30,190 --> 00:00:36,420
+Its title makes a bold claim: Language Models Can Teach Themselves to Use Tools.
+
+6
+00:00:37,294 --> 00:00:46,212
+We'll see how the model writes its own training data, how it judges which tool calls are worth keeping, and how well the result works.
+
+7
+00:00:47,310 --> 00:00:54,480
+The paper begins with a list of things language models are bad at, problems that more scale only partly fixes.
+
+8
+00:00:54,862 --> 00:00:58,788
+They don't know about recent events, and they tend to make facts up.
+
+9
+00:00:59,214 --> 00:01:04,720
+They struggle with rare languages, with precise math, and with the passage of time.
+
+10
+00:01:05,070 --> 00:01:08,160
+Each of these has a simple fix outside the model.
+
+11
+00:01:08,462 --> 00:01:10,640
+A search engine knows the facts.
+
+12
+00:01:10,990 --> 00:01:18,692
+A translator handles rare languages, a calculator does arithmetic, and a calendar knows today's date.
+
+13
+00:01:19,566 --> 00:01:33,520
+Earlier systems did teach models to use tools, but they either needed large amounts of human annotation, or they worked only within one task, where the prompt shows exactly which tool to use and how.
+
+14
+00:01:34,638 --> 00:01:36,560
+Toolformer sets two goals.
+
+15
+00:01:36,846 --> 00:01:42,372
+First, learn tool use in a self-supervised way without a big annotation effort.
+
+16
+00:01:42,766 --> 00:01:49,920
+Second, stay a general language model, one that decides for itself when and how to use which tool.
+
+17
+00:01:50,254 --> 00:01:57,348
+And what humans find useful may differ from what a model finds useful, so let the model be the judge.
+
+18
+00:01:58,446 --> 00:02:01,600
+First, how can a language model use a tool at all?
+
+19
+00:02:01,902 --> 00:02:07,556
+All it can do is produce text, so a tool call has to be written as text too.
+
+20
+00:02:08,878 --> 00:02:13,028
+A call has two parts, the tool's name and its input.
+
+21
+00:02:13,358 --> 00:02:20,240
+Written out, that's the name with the input in parentheses wrapped between special start and end markers.
+
+22
+00:02:20,526 --> 00:02:26,880
+Once the tool answers, its result R goes in after an arrow just before the end marker.
+
+23
+00:02:27,214 --> 00:02:34,480
+In practice, the markers are just square brackets, and the arrow is a dash followed by a greater than sign.
+
+24
+00:02:34,862 --> 00:02:38,052
+Nothing new is added to the model's vocabulary.
+
+25
+00:02:38,990 --> 00:02:41,412
+Here's one of the paper's own examples.
+
+26
+00:02:41,806 --> 00:02:53,120
+Partway through a sentence, the model calls the calculator with 400 divided by 1400, gets back 0.29, and then writes 29%.
+
+27
+00:02:54,638 --> 00:03:05,680
+The paper gives the model five tools: a question-answering system, a Wikipedia search engine, a calculator, a calendar, and a machine translation system.
+
+28
+00:03:06,190 --> 00:03:09,444
+Every input and every output is plain text.
+
+29
+00:03:10,510 --> 00:03:17,444
+Now for the central trick start with a big pile of ordinary text, with no tool calls in it at all.
+
+30
+00:03:17,902 --> 00:03:23,280
+The goal is to turn it into the same text, with useful tool calls sprinkled in.
+
+31
+00:03:23,566 --> 00:03:31,364
+This happens in three steps sample candidate calls, execute them, then filter out the ones that don't help.
+
+32
+00:03:32,654 --> 00:03:34,400
+Take this sentence from the paper.
+
+33
+00:03:34,702 --> 00:03:37,668
+Pittsburgh is also known as the Steel City.
+
+34
+00:03:37,998 --> 00:03:41,760
+Partway through, the model proposes questions it could ask.
+
+35
+00:03:42,094 --> 00:03:46,788
+What other name is Pittsburgh known by, or which country is Pittsburgh in?
+
+36
+00:03:47,054 --> 00:03:51,120
+Executing them gives Steel City and United States.
+
+37
+00:03:51,470 --> 00:03:55,920
+The first answer makes the rest of the sentence much easier to predict.
+
+38
+00:03:56,238 --> 00:04:00,320
+The second doesn't help at all, so only the first survives.
+
+39
+00:04:00,718 --> 00:04:07,200
+The surviving call is written into the text, and the model is then fine-tuned on text like this.
+
+40
+00:04:07,534 --> 00:04:09,252
+Let's go through each step.
+
+41
+00:04:10,350 --> 00:04:14,020
+Step 1 uses the model's own in-context learning.
+
+42
+00:04:14,382 --> 00:04:24,000
+For each tool, the authors write a prompt, a short instruction, plus a few examples of text with calls inserted in sensible places.
+
+43
+00:04:24,398 --> 00:04:27,280
+At the end goes the new piece of text, X.
+
+44
+00:04:27,790 --> 00:04:31,940
+The model's job is to copy X, adding calls of its own.
+
+45
+00:04:32,814 --> 00:04:42,160
+Now at every position I in X, we can ask the model, how likely is it that you'd start an API call right here, just before word i?
+
+46
+00:04:42,702 --> 00:04:46,960
+That's PI, the probability of the a PI token at that spot.
+
+47
+00:04:47,246 --> 00:04:51,680
+Positions where it beats a threshold, tau s, become candidates.
+
+48
+00:04:52,078 --> 00:04:59,460
+By default, tau s is 5%, and at most the top K positions are kept, with K equal to 5.
+
+49
+00:05:00,526 --> 00:05:11,040
+At each kept position, the model then writes out up to M complete calls, also 5 by default, stopping each one when it produces the end marker.
+
+50
+00:05:11,310 --> 00:05:13,280
+Nothing has been checked yet.
+
+51
+00:05:13,614 --> 00:05:17,700
+These are only the model's guesses about where a tool might help.
+
+52
+00:05:18,766 --> 00:05:20,708
+Step 2 is the simple one.
+
+53
+00:05:20,960 --> 00:05:25,680
+Run every call and collect each result as a single piece of text.
+
+54
+00:05:26,094 --> 00:05:33,680
+The question-answering tool is Atlas, a retrieval-augmented language model fine-tuned on natural questions.
+
+55
+00:05:34,062 --> 00:05:40,388
+Wikipedia search is a classic BM25 retriever that returns short snippets.
+
+56
+00:05:40,750 --> 00:05:49,200
+The calculator is a small Python script that knows the four basic operations and rounds to two decimal places.
+
+57
+00:05:49,550 --> 00:05:51,840
+The calendar takes no input at all.
+
+58
+00:05:52,142 --> 00:05:54,320
+It just returns today's date.
+
+59
+00:05:54,702 --> 00:06:05,348
+And the translator is NLLB, a 600 million parameter model covering 200 languages, which always translates into English.
+
+60
+00:06:06,414 --> 00:06:08,800
+Step 3 is the heart of the paper.
+
+61
+00:06:09,134 --> 00:06:14,560
+Without any human in the loop, how do you decide whether a tool call was useful?
+
+62
+00:06:14,862 --> 00:06:17,040
+The answer is beautifully simple.
+
+63
+00:06:17,390 --> 00:06:22,180
+A call is useful if it helps the model predict the text that comes next.
+
+64
+00:06:23,470 --> 00:06:24,640
+Here's the measure.
+
+65
+00:06:25,006 --> 00:06:34,080
+Li of Z is the model's loss on the tokens from position I onward when it's given some prefix Z, such as a tool call.
+
+66
+00:06:34,478 --> 00:06:38,160
+Lower loss means the upcoming words were easier to guess.
+
+67
+00:06:38,510 --> 00:06:41,476
+The weights favor the tokens right after the call.
+
+68
+00:06:41,838 --> 00:06:46,800
+They fall by 0.2 per token and hit zero after five tokens.
+
+69
+00:06:47,182 --> 00:06:51,556
+So a call has to help nearby, not somewhere far down the page.
+
+70
+00:06:52,430 --> 00:07:00,960
+Now compare three situations, no call at all, the call but without its answer, and the call together with its answer.
+
+71
+00:07:01,294 --> 00:07:05,120
+Compute the weighted loss on the upcoming words in each case.
+
+72
+00:07:05,486 --> 00:07:09,092
+L plus is the loss with the full call and its answer.
+
+73
+00:07:09,518 --> 00:07:12,720
+L--minus is the better of the two alternatives.
+
+74
+00:07:13,102 --> 00:07:21,120
+The call is kept only if L-L plus is at least tau F, a threshold that is won by default.
+
+75
+00:07:21,454 --> 00:07:23,840
+Why include the call without its answer?
+
+76
+00:07:24,206 --> 00:07:29,600
+Because then the credit has to go to the tool's response, not just to asking the question.
+
+77
+00:07:29,966 --> 00:07:34,148
+Here the gain is 1.6, so this call is kept.
+
+78
+00:07:34,990 --> 00:07:45,732
+The other candidate, which country is Pittsburgh in, gets an answer that says nothing about the next words, so it falls below the threshold and is thrown away.
+
+79
+00:07:46,830 --> 00:07:49,792
+Does this score really pick out sensible calls?
+
+80
+00:07:50,126 --> 00:07:54,752
+The paper shows real examples from its data, sorted by score.
+
+81
+00:07:55,054 --> 00:08:05,252
+At the top, scoring 5.49, a Wikipedia search about the Flodden window returns exactly the history the text goes on to describe.
+
+82
+00:08:05,742 --> 00:08:11,152
+A question about the Nile's length returns the very number the text states next.
+
+83
+00:08:11,534 --> 00:08:22,272
+At the bottom are calls that tell the model nothing, like a date lookup before a story about Disneyland or a garbled question, who was last time I was with.
+
+84
+00:08:22,638 --> 00:08:23,792
+It isn't perfect.
+
+85
+00:08:24,078 --> 00:08:30,432
+A search for fast train success returns an unrelated song, yet still lowers the loss.
+
+86
+00:08:30,798 --> 00:08:33,792
+The authors argue a little noise is even useful.
+
+87
+00:08:34,126 --> 00:08:37,952
+It teaches the model not to blindly trust every result.
+
+88
+00:08:38,990 --> 00:08:40,672
+How many examples survive?
+
+89
+00:08:41,070 --> 00:08:48,992
+With Tau F at 1, about 61,000 for Wikipedia search, but fewer than a thousand for the calculator.
+
+90
+00:08:49,486 --> 00:08:55,268
+Raise the threshold to two, and only 138 calculator examples remain.
+
+91
+00:08:56,366 --> 00:09:03,392
+After filtering, each surviving call is inserted into its text, right at the position where it was proposed.
+
+92
+00:09:03,790 --> 00:09:07,792
+Doing this for every document gives the new dataset C star.
+
+93
+00:09:08,494 --> 00:09:10,372
+And here's the crucial property.
+
+94
+00:09:10,766 --> 00:09:24,260
+Apart from the inserted calls, CSTAR contains exactly the same text as the original data, so fine-tuning on it teaches tool use without changing what the model learns about language.
+
+95
+00:09:25,518 --> 00:09:38,660
+In the experiments, the model is GPTJ, with 6.7 billion parameters, trained with plain next token prediction on a subset of CCNet, a large web crawl.
+
+96
+00:09:39,566 --> 00:09:42,112
+At inference time, the model just writes.
+
+97
+00:09:42,542 --> 00:09:46,112
+When it produces the arrow token, decoding pauses.
+
+98
+00:09:46,446 --> 00:09:53,632
+The real tool is called, its answer is pasted in along with the end marker, and the model carries on writing.
+
+99
+00:09:53,966 --> 00:09:56,032
+Two tweaks for the evaluations.
+
+100
+00:09:56,430 --> 00:10:11,940
+The model may start a call whenever the API token is among its ten most likely next tokens, not only when it's the single top choice, and it gets at most one call per input, so it can't get stuck calling tools forever.
+
+101
+00:10:13,038 --> 00:10:14,512
+On to the experiments.
+
+102
+00:10:14,798 --> 00:10:16,592
+Every test is zero shot.
+
+103
+00:10:17,038 --> 00:10:22,832
+The model gets an instruction, but no examples, and nobody tells it which tool to use.
+
+104
+00:10:23,182 --> 00:10:38,832
+Six models are compared: GPTJ, GPTJ fine-tuned on the same text without calls, toolformer with its tools switched off, toolformer itself, and two far larger models, OPT and GPT-3.
+
+105
+00:10:39,950 --> 00:10:45,712
+First LAMA, complete a short statement with a missing fact, like a date or a place.
+
+106
+00:10:46,190 --> 00:10:51,232
+Wikipedia search is switched off here because Lama was built from Wikipedia.
+
+107
+00:10:51,598 --> 00:11:02,820
+Toolformer beats the best same-size baseline by 11.7, 5.2, and 18.6 points, and it beats GPT3 on all three.
+
+108
+00:11:03,278 --> 00:11:08,580
+It asked the question-answering tool in 98.1% of cases.
+
+109
+00:11:09,486 --> 00:11:15,232
+Next, math word problems from three benchmarks are s-div, svamp, and morps.
+
+110
+00:11:15,630 --> 00:11:17,392
+Here the gap is even bigger.
+
+111
+00:11:17,710 --> 00:11:24,592
+With tools allowed, toolformer more than doubles its own score and lands far above GPT3.
+
+112
+00:11:25,230 --> 00:11:29,792
+It called the calculator for 97.9% of examples.
+
+113
+00:11:30,126 --> 00:11:34,352
+Even with tools disabled, it beats plain GPTJ.
+
+114
+00:11:34,766 --> 00:11:40,432
+The authors suspect all those calculator results improved its own arithmetic.
+
+115
+00:11:41,614 --> 00:11:48,772
+For open question answering, the question answering tool is disabled, since it would make the task trivial.
+
+116
+00:11:49,134 --> 00:11:55,024
+So Toolformer leans on Wikipedia search 99.3% of the time.
+
+117
+00:11:55,406 --> 00:12:00,544
+It beats every GPT-J model but falls short of GPT-3.
+
+118
+00:12:01,230 --> 00:12:08,836
+The authors blame their simple search engine and Toolformer's inability to rephrase a query or browse results.
+
+119
+00:12:09,710 --> 00:12:15,104
+On multilingual question answering, calling the translator helps in every language.
+
+120
+00:12:15,502 --> 00:12:24,516
+But Toolformer doesn't consistently beat plain GPT-J because fine-tuning on CCNet had already hurt some languages.
+
+121
+00:12:25,422 --> 00:12:26,384
+Finally, time.
+
+122
+00:12:26,990 --> 00:12:32,304
+On dateset, a new set of questions like, What day of the week was it 30 days ago?
+
+123
+00:12:32,686 --> 00:12:40,292
+Toolformer jumps to 27.3%, using the calendar for 54.8% of examples.
+
+124
+00:12:40,654 --> 00:12:42,624
+No other model reaches 6.
+
+125
+00:12:42,990 --> 00:12:50,544
+On a second dataset, Temp Lama, Toolformer also comes out ahead, but it almost never uses the calendar there.
+
+126
+00:12:50,990 --> 00:12:54,980
+The gains came from search and question answering instead.
+
+127
+00:12:56,078 --> 00:12:58,544
+Did learning to use tools cost anything?
+
+128
+00:12:58,862 --> 00:13:02,704
+Perplexity measures how well a model predicts ordinary text.
+
+129
+00:13:03,024 --> 00:13:04,304
+Lower is better.
+
+130
+00:13:04,654 --> 00:13:17,824
+With calls disabled, Toolformer's Perplexity matches GPT-J fine-tuned on the same text without calls, 10.3 on WikiText and 10.5 on CCNet.
+
+131
+00:13:18,286 --> 00:13:20,388
+Learning the tools came for free.
+
+132
+00:13:21,294 --> 00:13:23,584
+Does this work for smaller models too?
+
+133
+00:13:23,982 --> 00:13:35,904
+The authors repeated the whole recipe with four GPT2 models, from 124 million to 1.6 billion parameters, using three of the tools.
+
+134
+00:13:36,270 --> 00:13:42,532
+The ability to use tools only emerges at around 775 million parameters.
+
+135
+00:13:42,926 --> 00:13:47,652
+Below that, the curves with and without tools sit close together.
+
+136
+00:13:48,046 --> 00:13:53,024
+Above it, they split, and the gap stays large even for the biggest model.
+
+137
+00:13:53,326 --> 00:14:04,452
+The exception is Wikipedia search on the question-answering benchmarks, which helps even the small models, probably because it's comparatively easy to use.
+
+138
+00:14:05,518 --> 00:14:07,024
+Remember the top K trick.
+
+139
+00:14:07,406 --> 00:14:18,944
+With plain greedy decoding, k equal to 1, Toolformer calls a tool for only 40.3% of T-Rex questions and 8.5% on Web QS.
+
+140
+00:14:19,598 --> 00:14:25,024
+At K equal to 10, that rises to 98.1 and 100.
+
+141
+00:14:25,358 --> 00:14:28,772
+At K equal to 1, the model is somewhat calibrated.
+
+142
+00:14:29,070 --> 00:14:32,624
+It calls tools on the examples it would get wrong on its own.
+
+143
+00:14:33,038 --> 00:14:40,484
+The T-Rex examples its skips score 44.3, well above the 34.9 of never calling.
+
+144
+00:14:40,910 --> 00:14:43,940
+At higher K, that calibration is lost.
+
+145
+00:14:44,846 --> 00:14:47,344
+The authors are upfront about the limits.
+
+146
+00:14:47,758 --> 00:14:57,264
+Toolformer can't chain tools, feeding one tool's output into another, because every call in its training data was sampled independently.
+
+147
+00:14:57,614 --> 00:15:01,664
+It can't use a tool interactively, like refining a search.
+
+148
+00:15:01,998 --> 00:15:05,092
+It's sensitive to the exact wording of its input.
+
+149
+00:15:05,454 --> 00:15:15,652
+It's sample inefficient, over a million documents yield only a few thousand useful calculator calls, and it ignores how expensive a call is.
+
+150
+00:15:16,750 --> 00:15:27,780
+So to recap, the model annotates ordinary text with candidate tool calls, runs them, and keeps only the calls that make the next words easier to predict.
+
+151
+00:15:28,174 --> 00:15:31,012
+Then it learns from its own filtered data.
+
+152
+00:15:31,950 --> 00:15:46,532
+The result is a 6.7 billion parameter model that, in zero-shot tests, often beats GPT-3, which is about 25 times larger, without giving up its language modeling ability.
+
+153
+00:15:47,406 --> 00:15:57,184
+Looking back, tool use soon became a standard feature of AI assistance, which now routinely calls search, code execution, and other services.
+
+154
+00:15:57,614 --> 00:16:07,172
+Toolformer, presented at Newer IPS 2023, is one of the most widely cited early papers behind that idea.
+
