@@ -1,0 +1,772 @@
+1
+00:00:00,160 --> 00:00:04,800
+Every time someone says containers share the operating system, the next question is the same.
+
+2
+00:00:05,230 --> 00:00:06,400
+Then how are they separate?
+
+3
+00:00:06,862 --> 00:00:11,236
+That answer lives in two Linux ideas, namespaces and C groups.
+
+4
+00:00:11,694 --> 00:00:13,280
+They sound scary, they are not.
+
+5
+00:00:13,520 --> 00:00:17,572
+One decides what a process can see, the other decides how much it can use.
+
+6
+00:00:18,094 --> 00:00:18,564
+That is it.
+
+7
+00:00:18,960 --> 00:00:21,700
+Seeing and using, privacy and limits.
+
+8
+00:00:22,320 --> 00:00:23,972
+Let us start with namespaces.
+
+9
+00:00:24,480 --> 00:00:26,596
+Imagine you and a friend are in the same house.
+
+10
+00:00:26,926 --> 00:00:32,640
+Without namespaces, you both see every room, every drawer, every process, every network cable.
+
+11
+00:00:32,800 --> 00:00:33,440
+Chaos.
+
+12
+00:00:33,966 --> 00:00:37,732
+A namespace gives your process its own private view of part of the system.
+
+13
+00:00:38,126 --> 00:00:39,812
+Same house, different windows.
+
+14
+00:00:40,480 --> 00:00:42,800
+Linux has several important namespaces.
+
+15
+00:00:43,054 --> 00:00:44,388
+Each one hides a different thing.
+
+16
+00:00:44,960 --> 00:00:46,852
+First, the process namespace.
+
+17
+00:00:47,200 --> 00:00:51,332
+Normally every program can see every other program with a command like PS.
+
+18
+00:00:51,662 --> 00:00:55,652
+Inside a process namespace, your container only sees its own processes.
+
+19
+00:00:56,046 --> 00:00:58,052
+To it, it looks like process number one.
+
+20
+00:00:58,478 --> 00:00:59,972
+The rest of the machine disappears.
+
+21
+00:01:00,654 --> 00:01:05,988
+That is why a program inside a container thinks it is alone, even when 50 other containers are running next door.
+
+22
+00:01:06,670 --> 00:01:08,260
+Second, the mount namespace.
+
+23
+00:01:08,558 --> 00:01:10,212
+This controls the file system view.
+
+24
+00:01:10,574 --> 00:01:13,680
+One container can see slash and think that is the whole disk.
+
+25
+00:01:13,870 --> 00:01:16,484
+Another container can have a completely different set of folders.
+
+26
+00:01:17,038 --> 00:01:19,812
+Your host files stay hidden unless you deliberately share them.
+
+27
+00:01:20,238 --> 00:01:22,240
+This is a big upgrade from old school Charot.
+
+28
+00:01:22,606 --> 00:01:25,490
+Charoot could change the root folder, but it was easier to escape.
+
+29
+00:01:25,966 --> 00:01:28,004
+Mount namespaces are stronger and cleaner.
+
+30
+00:01:28,750 --> 00:01:30,276
+Third, the network namespace.
+
+31
+00:01:30,702 --> 00:01:31,364
+This one is fun.
+
+32
+00:01:31,600 --> 00:01:38,160
+Each network namespace can have its own network interfaces, its own IP address, its own routing table, and its own ports.
+
+33
+00:01:38,574 --> 00:01:42,212
+So two containers can both listen on port 80 inside their own world.
+
+34
+00:01:42,510 --> 00:01:43,044
+No fight.
+
+35
+00:01:43,502 --> 00:01:46,244
+From outside, you map those to different host ports if you need to.
+
+36
+00:01:46,958 --> 00:01:48,560
+Fourth, the user namespace.
+
+37
+00:01:48,750 --> 00:01:49,796
+This is about identity.
+
+38
+00:01:50,190 --> 00:01:52,800
+Inside the container, a process can think it is root.
+
+39
+00:01:53,038 --> 00:01:56,772
+Outside, Linux can map that to a normal, unprivileged user on the host.
+
+40
+00:01:57,200 --> 00:01:59,204
+That is a powerful safety trick.
+
+41
+00:01:59,598 --> 00:02:02,884
+Root inside does not automatically mean root of your whole machine.
+
+42
+00:02:03,918 --> 00:02:06,116
+Fifth, the UTS namespace.
+
+43
+00:02:06,478 --> 00:02:07,920
+A small one, but useful.
+
+44
+00:02:08,238 --> 00:02:10,400
+It lets a container have its own host name.
+
+45
+00:02:10,734 --> 00:02:17,220
+So your web container can be called Web1, and your database container can be called DB1, without renaming your actual computer.
+
+46
+00:02:18,280 --> 00:02:20,240
+Six, the IPC namespace.
+
+47
+00:02:20,526 --> 00:02:24,160
+This isolates inter-process communication stuff like shared memory.
+
+48
+00:02:24,494 --> 00:02:27,108
+Programs that talk through those channels stay in their own lane.
+
+49
+00:02:27,694 --> 00:02:33,860
+There are more details and newer namespace types, but these already explain most of what people mean by container isolation.
+
+50
+00:02:35,150 --> 00:02:37,124
+So namespaces answer one question.
+
+51
+00:02:37,518 --> 00:02:39,076
+What am I allowed to see?
+
+52
+00:02:39,694 --> 00:02:40,480
+Now the second half.
+
+53
+00:02:40,800 --> 00:02:41,444
+C groups.
+
+54
+00:02:42,734 --> 00:02:44,640
+C groups stands for control groups.
+
+55
+00:02:45,134 --> 00:02:49,124
+If namespaces are about privacy, C groups are about fairness and limits.
+
+56
+00:02:49,838 --> 00:02:55,908
+Without C groups, one greedy program can eat all the CPU, fill all the memory, and make everything else crawl.
+
+57
+00:02:56,654 --> 00:03:00,196
+With C groups, Linux can put processes into groups and set rules.
+
+58
+00:03:00,718 --> 00:03:04,420
+You can say, this group gets at most two CPU cores.
+
+59
+00:03:04,814 --> 00:03:07,716
+This group can use only 512 megabytes of memory.
+
+60
+00:03:08,334 --> 00:03:10,880
+This group can write only so much to disk per second.
+
+61
+00:03:11,310 --> 00:03:13,764
+This group can use only this much network bandwidth.
+
+62
+00:03:14,990 --> 00:03:18,532
+If the process tries to go beyond the memory limit, Linux can stop it.
+
+63
+00:03:18,894 --> 00:03:20,292
+That protects the rest of the machine.
+
+64
+00:03:21,550 --> 00:03:24,240
+This is why containers feel practical on real servers.
+
+65
+00:03:24,558 --> 00:03:28,612
+You are not just hiding things, you are also preventing noisy neighbors from ruining the party.
+
+66
+00:03:29,518 --> 00:03:30,564
+Let us make this concrete.
+
+67
+00:03:31,246 --> 00:03:33,520
+Suppose you run three containers on one laptop.
+
+68
+00:03:33,902 --> 00:03:35,280
+Container A is your web app.
+
+69
+00:03:35,758 --> 00:03:37,200
+Container B is a database.
+
+70
+00:03:37,518 --> 00:03:40,036
+Container C is a batch job that compresses videos.
+
+71
+00:03:40,846 --> 00:03:44,548
+Namespaces make sure A cannot see B's processes or files by default.
+
+72
+00:03:45,070 --> 00:03:49,444
+C groups make sure C cannot grab all the CPU and freeze the web app while you are testing.
+
+73
+00:03:50,062 --> 00:03:50,720
+Same machine.
+
+74
+00:03:51,054 --> 00:03:53,124
+Separate views, controlled resources.
+
+75
+00:03:53,614 --> 00:03:56,292
+That pairing is the real magic behind modern containers.
+
+76
+00:03:57,262 --> 00:03:59,012
+A lot of people think Docker invented this.
+
+77
+00:03:59,280 --> 00:03:59,920
+It did not.
+
+78
+00:04:00,238 --> 00:04:01,508
+Docker made it usable.
+
+79
+00:04:01,774 --> 00:04:03,940
+The foundations were already in Linux.
+
+80
+00:04:04,270 --> 00:04:10,240
+Years before Docker became famous, projects like LXC were already building containers from these same kernel features.
+
+81
+00:04:10,542 --> 00:04:17,988
+Docker's big win was packaging the workflow so everyday developers could build, ship, and run containers without feeling like kernel engineers.
+
+82
+00:04:18,446 --> 00:04:29,828
+In fact, if you strip containers down to the core idea, you get this start a process, put it in new namespaces, attach it to C groups, give it a file system, maybe give it a network.
+
+83
+00:04:30,222 --> 00:04:31,520
+That is the recipe.
+
+84
+00:04:31,982 --> 00:04:36,996
+Tools like Docker, Podman, and Container D are friendly front ends over those kernel features.
+
+85
+00:04:38,862 --> 00:04:40,128
+Why should a beginner care?
+
+86
+00:04:40,398 --> 00:04:44,928
+Because once you understand namespaces and C groups, containers stop feeling like magic boxes.
+
+87
+00:04:45,088 --> 00:04:48,228
+They become a clever costume around normal Linux processes.
+
+88
+00:04:49,774 --> 00:04:51,248
+And that mental shift helps a lot.
+
+89
+00:04:51,488 --> 00:04:55,008
+Suddenly logs make more sense, networking makes more sense.
+
+90
+00:04:55,342 --> 00:04:58,768
+Why a container can see some files and not others makes more sense.
+
+91
+00:04:59,086 --> 00:05:02,768
+Why Kubernetes cares about CPU and memory requests makes more sense.
+
+92
+00:05:03,150 --> 00:05:06,660
+Those Kubernetes numbers are basically C group settings with better branding.
+
+93
+00:05:08,590 --> 00:05:14,340
+When someone says, give this pod 250 millicores and 512 megs, they are describing a budget.
+
+94
+00:05:14,606 --> 00:05:16,740
+Linux enforces budgets through C groups.
+
+95
+00:05:18,702 --> 00:05:21,808
+Let us walk through a simple story of a process becoming a container.
+
+96
+00:05:22,286 --> 00:05:23,648
+A process starts on Linux.
+
+97
+00:05:23,918 --> 00:05:25,968
+By default, it shares everything with the host.
+
+98
+00:05:26,254 --> 00:05:30,372
+Same process list, same network, same mounts, same resource pool.
+
+99
+00:05:31,278 --> 00:05:33,488
+Then the runtime creates new namespaces for it.
+
+100
+00:05:33,806 --> 00:05:38,564
+New process view, new mount view, new network view, maybe a user mapping too.
+
+101
+00:05:39,342 --> 00:05:42,948
+Then it places that process into C groups with CPU and memory limits.
+
+102
+00:05:45,294 --> 00:05:48,608
+Then it sets up the file system layer so the process sees its own route.
+
+103
+00:05:48,974 --> 00:05:50,692
+Now that process is living in a bubble.
+
+104
+00:05:51,150 --> 00:05:57,892
+Not a virtual machine, not a full guest operating system, just a carefully filtered view of Linux with a leash on its appetite.
+
+105
+00:05:58,350 --> 00:05:59,428
+That is a container.
+
+106
+00:06:00,142 --> 00:06:02,980
+People often ask, is this as safe as a virtual machine?
+
+107
+00:06:03,408 --> 00:06:04,528
+Usually no.
+
+108
+00:06:04,846 --> 00:06:09,568
+Virtual machines isolate at a harder boundary because each VM has its own kernel.
+
+109
+00:06:09,966 --> 00:06:11,524
+Containers share the host kernel.
+
+110
+00:06:11,758 --> 00:06:15,364
+If the kernel has a bad bug, the wall between containers is weaker.
+
+111
+00:06:15,950 --> 00:06:17,728
+That is why security still matters.
+
+112
+00:06:18,126 --> 00:06:19,328
+Keep images updated.
+
+113
+00:06:19,598 --> 00:06:21,568
+Do not run as root unless you must.
+
+114
+00:06:21,870 --> 00:06:23,488
+Drop unnecessary permissions.
+
+115
+00:06:23,886 --> 00:06:25,968
+Use user namespaces when you can.
+
+116
+00:06:26,318 --> 00:06:27,328
+Limit resources.
+
+117
+00:06:27,598 --> 00:06:30,528
+Share only the files and devices you intend to share.
+
+118
+00:06:30,990 --> 00:06:34,368
+Namespaces and C groups give you strong practical isolation.
+
+119
+00:06:34,528 --> 00:06:36,452
+They are not a spell of perfect safety.
+
+120
+00:06:37,198 --> 00:06:39,488
+There is one more piece you'll hear about as you go deeper.
+
+121
+00:06:39,886 --> 00:06:41,796
+Linux capabilities and seccomp.
+
+122
+00:06:42,414 --> 00:06:46,692
+Capabilities break the old, all powerful root model into smaller permissions.
+
+123
+00:06:47,246 --> 00:06:48,356
+Need to bind a low port?
+
+124
+00:06:48,718 --> 00:06:52,208
+Maybe you need one capability, not every superpower in the universe.
+
+125
+00:06:52,686 --> 00:06:56,208
+Setcomp can filter which system calls a process is allowed to make.
+
+126
+00:06:56,526 --> 00:06:57,728
+Fewer dangerous doors.
+
+127
+00:06:58,062 --> 00:06:59,236
+Smaller attack surface.
+
+128
+00:06:59,918 --> 00:07:02,368
+You do not need those on day one, just know this.
+
+129
+00:07:02,766 --> 00:07:05,328
+Namespaces and C groups are the main stage.
+
+130
+00:07:05,614 --> 00:07:08,580
+Capabilities and setcomp are extra locks on the doors.
+
+131
+00:07:09,326 --> 00:07:10,768
+Another common confusion.
+
+132
+00:07:11,086 --> 00:07:13,348
+Are namespaces only for containers?
+
+133
+00:07:13,808 --> 00:07:14,128
+No.
+
+134
+00:07:14,606 --> 00:07:16,368
+Linux can use them for lots of things.
+
+135
+00:07:16,718 --> 00:07:21,568
+Some VPN tools use network namespaces, some testing tools isolate processes.
+
+136
+00:07:21,934 --> 00:07:27,556
+System D uses C groups heavily to manage services on your machine, even when Docker is not involved at all.
+
+137
+00:07:28,110 --> 00:07:34,128
+If you use a modern Linux desktop or server, C groups are already quietly shaping what services can consume.
+
+138
+00:07:34,350 --> 00:07:36,356
+So this is not niche knowledge.
+
+139
+00:07:36,558 --> 00:07:38,404
+This is how Linux manages work.
+
+140
+00:07:39,278 --> 00:07:41,808
+Let us put the two ideas side by side one more time.
+
+141
+00:07:42,222 --> 00:07:45,316
+Namespaces say, here is your private view of the system.
+
+142
+00:07:45,934 --> 00:07:47,748
+C groups say, here is your budget.
+
+143
+00:07:48,334 --> 00:07:51,808
+Privacy plus budget equals a controllable mini environment.
+
+144
+00:07:52,302 --> 00:07:54,528
+That is why cloud platforms love containers.
+
+145
+00:07:54,688 --> 00:07:59,568
+They can pack many workloads onto one machine without every workload needing a full virtual machine.
+
+146
+00:07:59,886 --> 00:08:02,948
+Higher density, faster startup, lower overhead.
+
+147
+00:08:03,534 --> 00:08:06,048
+A virtual machine boots a whole operating system.
+
+148
+00:08:06,350 --> 00:08:10,288
+A container starts a process into prepared namespaces and C groups.
+
+149
+00:08:10,448 --> 00:08:12,708
+That is a huge difference in speed and weight.
+
+150
+00:08:13,326 --> 00:08:17,348
+But remember the trade off shared kernel means shared fate at the deepest layer.
+
+151
+00:08:18,350 --> 00:08:20,420
+Now, a few practical pictures you can remember.
+
+152
+00:08:21,070 --> 00:08:24,356
+Think of namespaces like separate classrooms in the same school building.
+
+153
+00:08:24,608 --> 00:08:30,180
+Each class has its own board, its own attendance list, its own door, but the building foundation is shared.
+
+154
+00:08:30,862 --> 00:08:33,248
+Think of C groups like school rules for each class.
+
+155
+00:08:33,518 --> 00:08:35,844
+This class gets one hour in the computer lab.
+
+156
+00:08:36,110 --> 00:08:38,048
+That class can borrow only two projectors.
+
+157
+00:08:38,350 --> 00:08:40,516
+No class gets to hog the entire cafeteria.
+
+158
+00:08:40,846 --> 00:08:43,940
+Containers are classes with private rooms and clear budgets.
+
+159
+00:08:44,368 --> 00:08:47,588
+Once that clicks, a lot of Docker talk becomes plain English.
+
+160
+00:08:48,014 --> 00:08:52,516
+When Docker says port mapping, that is network namespace stuff meeting the host network.
+
+161
+00:08:52,688 --> 00:08:56,768
+When Docker says volume mount, that is carefully sharing a folder across mount views.
+
+162
+00:08:57,008 --> 00:08:59,524
+When Docker says memory limit, that is a C group.
+
+163
+00:08:59,982 --> 00:09:03,168
+When a container has its own host name, that is a UTS namespace.
+
+164
+00:09:03,328 --> 00:09:07,908
+When root in a container is not real root on the host, that is user namespace mapping.
+
+165
+00:09:08,398 --> 00:09:09,508
+See, same ideas.
+
+166
+00:09:09,838 --> 00:09:10,820
+Friendlier labels.
+
+167
+00:09:11,662 --> 00:09:13,700
+Here is a quick myth check before we wrap up.
+
+168
+00:09:14,158 --> 00:09:16,928
+Myth one, containers are tiny virtual machines.
+
+169
+00:09:17,166 --> 00:09:19,940
+No, they are isolated processes with shared kernels.
+
+170
+00:09:20,494 --> 00:09:23,328
+Myth two, if it isn't a container, it is fully safe.
+
+171
+00:09:23,662 --> 00:09:26,628
+No, configuration and kernel security still matter.
+
+172
+00:09:26,928 --> 00:09:29,476
+Myth three, Docker is the isolation.
+
+173
+00:09:29,968 --> 00:09:30,288
+No.
+
+174
+00:09:30,766 --> 00:09:33,168
+Linux namespaces and C groups are the isolation.
+
+175
+00:09:33,486 --> 00:09:34,564
+Docker is the workflow.
+
+176
+00:09:35,182 --> 00:09:38,448
+Myth four, you only need this if you work at a huge company.
+
+177
+00:09:38,798 --> 00:09:43,652
+No, even a personal project gets cleaner when every app carries its own environment and limits.
+
+178
+00:09:44,526 --> 00:09:46,916
+If you want one sentence for your brain, use this.
+
+179
+00:09:47,438 --> 00:09:49,764
+Namespaces hide, c groups limit.
+
+180
+00:09:50,048 --> 00:09:51,428
+Containers combine both.
+
+181
+00:09:51,982 --> 00:09:55,008
+And if you want one reason this matters for your career, use this.
+
+182
+00:09:55,470 --> 00:10:02,788
+Cloud native computing is built on the idea that applications should be packaged, isolated, limited, started quickly, and moved easily.
+
+183
+00:10:03,248 --> 00:10:06,980
+Namespaces and C groups are the Linux engine under that idea.
+
+184
+00:10:07,662 --> 00:10:11,008
+You do not need to memorize every flag in every subsystem on day one.
+
+185
+00:10:11,214 --> 00:10:12,292
+You just need the map.
+
+186
+00:10:12,942 --> 00:10:14,468
+What can this process see?
+
+187
+00:10:14,926 --> 00:10:16,900
+How much is this process allowed to consume?
+
+188
+00:10:17,486 --> 00:10:20,260
+Linux answers those with namespaces and C groups.
+
+189
+00:10:20,942 --> 00:10:24,288
+And once you see that, containers finally stop feeling mysterious.
+
+190
+00:10:24,526 --> 00:10:25,540
+They feel inevitable.
+
+191
+00:10:26,286 --> 00:10:29,060
+If this helped, stick around on BitByteTalks.
+
+192
+00:10:29,262 --> 00:10:32,644
+We take the scary Linux words and turn them into plain conversation.
+
+193
+00:10:33,134 --> 00:10:38,020
+Next time someone says containers share the kernel but are still isolated, you will know exactly how.
+
