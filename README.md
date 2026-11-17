@@ -6,6 +6,7 @@
 |---|---|---|
 | [Proving and Improving the Platonic Representation Hypothesis with JEPAs](medias/SZV7D/) | CosmoX | 2026-11-16 |
 | [Paper: Route Anything: A Study of Model and Policy Routing for General-Purpose AI Systems](medias/PMBW6/) | Next in AI: Astha La Vista | 2026-11-16 |
+| [Every major CPU Architecture explained in 21 Minutes](medias/8P72C/) | Bit by Bit Explained | 2026-11-16 |
 | [Forget Claude Code: DeepSeek + REA Clones Anything 100% FREE (No Paid API)](medias/15YVZ/) | Maitis | 2026-11-16 |
 | [33,000 Feet Above The Moon, Apollo 11’s Computer Started Failing](medias/N9P7P/) | Parts That Changed History | 2026-11-15 |
 | [How AI Is Transforming Biology: 7 Real Breakthroughs](medias/MZN86/) | Christian Olivieri | 2026-11-15 |
