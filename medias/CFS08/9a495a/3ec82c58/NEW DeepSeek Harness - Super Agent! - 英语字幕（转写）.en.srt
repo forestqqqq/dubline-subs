@@ -1,0 +1,768 @@
+1
+00:00:00,302 --> 00:00:06,720
+Okay, so this past weekend, DeepSeek released something that a lot of people out there are calling the answer to Claude code.
+
+2
+00:00:06,880 --> 00:00:19,760
+It's an agent that sits on a GitHub repo, it watches the issues and pull requests, and when someone on your team asks it to do something, it then goes off into its own session, does the work, and comes back with a PR.
+
+3
+00:00:20,110 --> 00:00:24,960
+Now, while that's cool in itself, that's not really the part that I want to talk about here.
+
+4
+00:00:25,230 --> 00:00:28,320
+The part that I find really interesting is how they built it.
+
+5
+00:00:28,560 --> 00:00:33,988
+The whole thing is just a set of plugins dropped into their agent harness.
+
+6
+00:00:34,240 --> 00:00:38,960
+And to understand why that matters, we need to go back and actually look at the harness itself.
+
+7
+00:00:39,406 --> 00:00:43,120
+So when the Deep Seek harness came out back in August, I didn't actually cover it.
+
+8
+00:00:43,406 --> 00:00:48,640
+And honestly, the reason for that was I just got so busy playing with it and trying out new ideas with it all the time.
+
+9
+00:00:48,814 --> 00:00:53,600
+I kept putting off making the video because I felt like there were so many things that I wanted to show.
+
+10
+00:00:53,902 --> 00:01:02,916
+For me, the whole plug-in architecture of that harness is really cool and it just allows you to do a whole bunch of things like this new Super Agent enables.
+
+11
+00:01:03,278 --> 00:01:06,560
+Now, obviously, in the meantime, a lot of people ended up covering it.
+
+12
+00:01:06,720 --> 00:01:10,000
+It's turned out to be one of the most starred projects on GitHub this year.
+
+13
+00:01:10,318 --> 00:01:15,680
+So in this video, I'm going to do a sort of catch-up on that and look at some of the new stuff that they've actually built on top of this.
+
+14
+00:01:16,160 --> 00:01:19,440
+All right, so the new thing that DeepSeq has launched is called Super Agent.
+
+15
+00:01:19,520 --> 00:01:29,040
+And along with the repo that they launched, they've basically written an article on X called Exploring Super Agent Design Towards a More Autonomous Agent System.
+
+16
+00:01:29,440 --> 00:01:34,480
+in that article in the repo, they're very upfront about that this is a research prototype.
+
+17
+00:01:34,640 --> 00:01:36,612
+It's not an official Deep Seek product.
+
+18
+00:01:37,006 --> 00:01:46,980
+And they even mentioned that it grew out of their own day-to-day development work, and that a lot of the ideas and the engineering here were actually written by coding agents themselves.
+
+19
+00:01:47,566 --> 00:01:55,680
+So the basic idea is this instead of you opening a session and talking to an agent, the agent listens to where your team already works.
+
+20
+00:01:55,886 --> 00:02:04,324
+And the example that they've launched now that happens to be GitHub and also happens to be an app called Feishu, which is Bydance's sort of Slack equivalent.
+
+21
+00:02:04,590 --> 00:02:22,320
+Now, when someone who's allowed to asks it for something, it opens up a work item, it spins up its own session in its own directory, does all of the work, replies back to the original conversation, and then usually in that reply, it's going to have a pull request in there.
+
+22
+00:02:22,574 --> 00:02:34,116
+And in many ways, you can kind of think of this as building on the whole ideas of software factories, of automated software generation and stuff that we've seen a lot of people being talking about over the past couple of months.
+
+23
+00:02:34,606 --> 00:02:39,520
+Now, DeepSync themselves say that they've been running an internal version of this continuously.
+
+24
+00:02:39,680 --> 00:02:49,120
+It's been reproducing and fixing bug issues, responding to code review comments, and it's actually been making improvements to the DeepSync harness itself.
+
+25
+00:02:49,486 --> 00:02:56,240
+So before I go into showing you the how of how it actually all works, I want to show you why the harness layer matters so much.
+
+26
+00:02:56,654 --> 00:03:06,160
+Recently on the Venture Beat Podcast Beyond the Pilot, which I co-host, we've interviewed a number of interesting people, including the CTO of Instacart and the CTO of Box.
+
+27
+00:03:06,414 --> 00:03:10,160
+Now, both of those episodes are coming up over the next couple of weeks or so.
+
+28
+00:03:10,382 --> 00:03:17,200
+But one of the questions that I put to both of them was basically, what's more important now, the model or the harness?
+
+29
+00:03:17,710 --> 00:03:20,320
+Both of them came back on the side of the harness.
+
+30
+00:03:20,494 --> 00:03:24,676
+And I'll leave it for you to watch the full interviews because it was fascinating conversations.
+
+31
+00:03:25,038 --> 00:03:31,520
+But clearly now a lot of the innovation has moved away from just the model itself to the actual harnesses.
+
+32
+00:03:31,680 --> 00:03:35,332
+And maybe it will swing back in the future as we get better models.
+
+33
+00:03:35,440 --> 00:03:38,756
+But currently, you need to be focused on where the harnesses are going.
+
+34
+00:03:39,118 --> 00:03:44,880
+All right, so one of the things that my team and I are trying to do right now is increase the coverage and the number of videos that we're doing.
+
+35
+00:03:45,390 --> 00:03:49,200
+It would really help if you just support the channel by clicking that subscribe button.
+
+36
+00:03:49,360 --> 00:03:53,440
+We know that most of you are watching a lot of the videos and still not subscribed.
+
+37
+00:03:53,742 --> 00:03:56,560
+Anyway, back to why the harness is so important.
+
+38
+00:03:57,038 --> 00:04:00,400
+So this is the Frontier Harness chart and result table.
+
+39
+00:04:00,560 --> 00:04:02,080
+So these aren't my numbers.
+
+40
+00:04:02,160 --> 00:04:05,060
+This comes from a benchmark called Frontier Harness eval.
+
+41
+00:04:05,520 --> 00:04:14,640
+And what they did was take one model, the Kimmy K3, and run it through nine different coding agent harnesses, 12 configurations in total.
+
+42
+00:04:14,960 --> 00:04:19,760
+Codex, Clawed Code, Pi, OpenCode, Deep Seek Harness, etc.
+
+43
+00:04:20,142 --> 00:04:24,080
+They then gave it the same 30 tasks, same model, same runtime.
+
+44
+00:04:24,240 --> 00:04:26,820
+The only thing that changed here was the harness.
+
+45
+00:04:27,214 --> 00:04:38,640
+Now you could make the argument that it's not a totally fair comparison, that Claude Code is optimized for its models, that Codex is optimized for the models, but it's really interesting to see the results that they got here.
+
+46
+00:04:38,894 --> 00:04:43,044
+Codex came out on top with 66.7 pass rate.
+
+47
+00:04:43,342 --> 00:04:52,880
+But if you look at that next row, Deep Seek Harness in its creator configuration and Claude Code both scored 63.3%.
+
+48
+00:04:53,520 --> 00:05:05,520
+That's the same pass rate, same model, but the Deep Seek Harness run costs only about $3.28 per successful task, and Claude Code cost about $18.34.
+
+49
+00:05:05,838 --> 00:05:13,600
+Now across the whole table, the gap between the cheapest and most expensive configurations was actually about 17.5x.
+
+50
+00:05:14,222 --> 00:05:17,680
+Now I would be careful reading too much into the exact configurations here.
+
+51
+00:05:17,902 --> 00:05:21,892
+It's 30 tasks, so one task is worth about three and a third points.
+
+52
+00:05:22,286 --> 00:05:26,720
+The difference between Codex and Deep Seek is literally just one task here.
+
+53
+00:05:26,990 --> 00:05:31,920
+But I do think the big picture holds true here, that the harness isn't just a wrapper.
+
+54
+00:05:32,000 --> 00:05:39,600
+It changes the cost, the caching, the speed, and the success rate, even when the model is held constant.
+
+55
+00:05:39,840 --> 00:05:47,440
+So if you're evaluating a model, I'd try and do it in two or three harnesses before deciding whether the model is any good.
+
+56
+00:05:47,822 --> 00:05:52,400
+Otherwise, you might be just blaming a model for what actually is the harness's responsibility.
+
+57
+00:05:52,840 --> 00:05:55,760
+All right, so what is DeepSeq Harness and why does it do well here?
+
+58
+00:05:55,920 --> 00:06:04,560
+So DeepSeek Harness or DSH came out on August 13th alongside the initial release of DeepSeek version 4 Pro.
+
+59
+00:06:04,654 --> 00:06:07,280
+It's MIT licensed and there's web UI.
+
+60
+00:06:07,600 --> 00:06:11,280
+So you can start with just one NPX command and a desktop app.
+
+61
+00:06:11,440 --> 00:06:13,840
+It's not locked to the DeepSeek models.
+
+62
+00:06:13,920 --> 00:06:16,164
+I think that's really important to stress here.
+
+63
+00:06:16,494 --> 00:06:21,060
+It works with other providers and even with OpenAI compatible endpoints.
+
+64
+00:06:21,486 --> 00:06:26,480
+The key tagline here though that sort of sums this up is that everything is a plugin.
+
+65
+00:06:27,022 --> 00:06:29,360
+And they mean that very literally.
+
+66
+00:06:29,614 --> 00:06:39,120
+In most agent frameworks, you've got a core, the agent loop, the model calls, the tool handling, and then plugins sort of hang off on the side.
+
+67
+00:06:39,374 --> 00:06:42,560
+In DSH, the router itself is a plugin.
+
+68
+00:06:42,990 --> 00:06:46,400
+The tool registry, a plugin, the session log, a plugin.
+
+69
+00:06:46,880 --> 00:06:49,680
+Even the agent loop itself is a plugin.
+
+70
+00:06:50,254 --> 00:06:52,868
+Underneath all of this is a framework called Cordis.
+
+71
+00:06:53,040 --> 00:06:57,760
+And there's a paper behind that from three researchers at the Beijing University.
+
+72
+00:06:57,920 --> 00:07:03,840
+And this framework, DeepSeek, called a programming paradigm for spatio-temporal composability.
+
+73
+00:07:04,142 --> 00:07:07,812
+Now that sounds like a lot, but the two ideas here are actually pretty simple.
+
+74
+00:07:08,080 --> 00:07:11,040
+The first is what they call temporal composability.
+
+75
+00:07:11,200 --> 00:07:15,108
+When you remove a component, everything it did gets completely undone.
+
+76
+00:07:15,280 --> 00:07:21,028
+If a plugin registered a tool or a hook into event, unloading it reverses all of that.
+
+77
+00:07:21,326 --> 00:07:26,000
+The simplest way to think about this is that you can unplug something really cleanly.
+
+78
+00:07:26,240 --> 00:07:29,200
+The second element here is spatial composability.
+
+79
+00:07:29,440 --> 00:07:36,640
+Components declare what they depend on, and the runtime activates or deactivates them as those dependencies come and go.
+
+80
+00:07:36,974 --> 00:07:41,040
+So you can basically plug in things safely and unplug them safely as well.
+
+81
+00:07:41,358 --> 00:07:43,268
+Now, why does an agent harness need this?
+
+82
+00:07:43,520 --> 00:07:45,360
+Because systems are changing constantly.
+
+83
+00:07:45,440 --> 00:07:50,640
+You're swapping models, you're adding tools, you're turning things on and off per permission.
+
+84
+00:07:50,800 --> 00:07:56,560
+And if every one of those changes sort of leaves junk behind, things get messy really quickly.
+
+85
+00:07:56,878 --> 00:08:01,600
+We saw this even when people sort of reverse engineered how Clawed Code was working.
+
+86
+00:08:01,934 --> 00:08:05,680
+Everyone that's making agent harnesses at the moment is moving at such a fast pace.
+
+87
+00:08:05,934 --> 00:08:09,040
+It's just a simple fact that often code gets left behind.
+
+88
+00:08:09,390 --> 00:08:11,280
+Anyway, so how does this look in practice?
+
+89
+00:08:11,470 --> 00:08:17,828
+Well, running DSH is actually a tree of plugins, which gets composed when it boots up from layers.
+
+90
+00:08:18,254 --> 00:08:30,880
+First come bundles, which are package sets of plugins plus their configs, then your profiles patch, a YAML file called cortis.patch, then you've got a home level patch, and then anything you pass in on the command line.
+
+91
+00:08:31,040 --> 00:08:38,240
+So each layer here can target any plugin by its ID and replace its config or insert new ones.
+
+92
+00:08:38,766 --> 00:08:46,948
+They've even got a command in there for dump config that just prints out the whole tree that your machine is booting from, and every row in that can be overridden.
+
+93
+00:08:47,182 --> 00:08:51,008
+Now in the UI, they've got four modes and they work in the same way.
+
+94
+00:08:51,168 --> 00:08:54,368
+You've got standard, PTC, minimal, and creator.
+
+95
+00:08:54,638 --> 00:08:57,888
+And those themselves are just different sets of plugins.
+
+96
+00:08:58,062 --> 00:09:01,508
+The creator mode is sort of the logical endpoint for this.
+
+97
+00:09:01,742 --> 00:09:09,248
+You can describe a plugin in chat and the agent will write it, install it, and then check that it's actually live.
+
+98
+00:09:09,486 --> 00:09:18,084
+So you can kind of think of this as while everyone's been focused on just continual learning for models, this is bringing continual learning into the harness.
+
+99
+00:09:18,542 --> 00:09:23,728
+Another thing that's worth knowing here is that the core repo here isn't taking outside pull requests now.
+
+100
+00:09:23,918 --> 00:09:32,208
+They're pointing people to discussions and building plugins instead, which actually makes total sense for this design, right?
+
+101
+00:09:32,368 --> 00:09:36,804
+If there's no core to patch, then plugins are how you contribute.
+
+102
+00:09:37,008 --> 00:09:39,728
+And that's what brings us back to the whole super agent.
+
+103
+00:09:40,014 --> 00:09:45,728
+So if you open the super agent repo, one of the first files you'll see is the cortis.patchyaml file.
+
+104
+00:09:45,870 --> 00:09:48,128
+And that file is basically the whole integration.
+
+105
+00:09:48,270 --> 00:09:54,724
+It inserts a core super agent plugin, a GitHub Watcher plugin, and a Facial Watcher plugin by default.
+
+106
+00:09:54,990 --> 00:09:57,728
+Now, obviously, if you're not using those, you could just turn those off.
+
+107
+00:09:58,030 --> 00:10:02,368
+But the way Super Agent works is that it defines a separate preset for the workers.
+
+108
+00:10:02,528 --> 00:10:07,728
+You can think of it as DSH's standard preset with a bunch of things stripped out.
+
+109
+00:10:07,888 --> 00:10:14,288
+No asking the person questions, no plan mode, no web fetch, no spinning off subagents, etc.
+
+110
+00:10:14,638 --> 00:10:20,208
+And the shell is set so that any command running longer than five seconds gets pushed to a background job.
+
+111
+00:10:20,494 --> 00:10:26,208
+That way a long build doesn't stop the worker from noticing that someone just left a new comment as it's going through.
+
+112
+00:10:26,542 --> 00:10:40,128
+Obviously, that can be one of the frustrating things with Claude code and Codex is once it starts going, you're sitting there waiting to basically update it and you perhaps want to inject a prompt in while it's still going as you realize it's going in the wrong direction.
+
+113
+00:10:40,398 --> 00:10:44,368
+So what you're looking at in this agent is a fairly different system entirely.
+
+114
+00:10:44,448 --> 00:10:47,396
+It's built from configurations and plugins.
+
+115
+00:10:47,758 --> 00:10:53,808
+There's no forking of the harness, and really that's the whole payoff of the DSH design that we've just talked about.
+
+116
+00:10:54,158 --> 00:11:01,728
+Now, DSH itself did actually have an experimental agent teams feature with a roster, a taskboard, a mailbox.
+
+117
+00:11:01,888 --> 00:11:03,204
+So why build this?
+
+118
+00:11:03,726 --> 00:11:08,928
+Well, you can think about agent teams is about coordinating agents inside one job.
+
+119
+00:11:09,198 --> 00:11:19,968
+The super agent is about handling lots of independent jobs that arrive from the outside world over perhaps a long period of time and also from lots of different people posting here.
+
+120
+00:11:20,206 --> 00:11:24,288
+It's actually addressing a different problem than what the Teams feature did.
+
+121
+00:11:24,448 --> 00:11:29,568
+And one cool practical detail here is that the router and the workers can each be given a different model.
+
+122
+00:11:29,774 --> 00:11:31,588
+So I'll come back to that in a second.
+
+123
+00:11:31,982 --> 00:11:36,516
+Now, if we look at the architecture here, this basically has two layers to it.
+
+124
+00:11:36,688 --> 00:11:39,888
+On top, there's one long-running session that they call the router.
+
+125
+00:11:40,288 --> 00:11:48,004
+It handles all the human interaction, keeps the big picture context, hands out work to perhaps different plugins or different agents.
+
+126
+00:11:48,398 --> 00:11:52,804
+Underneath are those worker agents, each running in their own isolated session.
+
+127
+00:11:53,088 --> 00:11:55,328
+Workers never have to talk to people directly.
+
+128
+00:11:55,488 --> 00:11:59,168
+They report back to the router, the router does all the communication.
+
+129
+00:11:59,408 --> 00:12:02,448
+Everything going in from the outside is a trigger.
+
+130
+00:12:02,638 --> 00:12:06,528
+A new issue, a review comment, a chat message, etc.
+
+131
+00:12:06,894 --> 00:12:10,916
+Each trigger first goes through a gate, which is plain code and not even a model.
+
+132
+00:12:11,150 --> 00:12:20,928
+And that gives you a deterministic feature to basically check is this person even on the allowed list to be able to comment or to be able to file a pull request, etc.
+
+133
+00:12:21,198 --> 00:12:24,996
+It also helps it to answer things like did they actually address the agent?
+
+134
+00:12:25,230 --> 00:12:31,328
+Now only when those checks are passed does the model actually get to look at it and decide, you know, whether it's real work.
+
+135
+00:12:31,566 --> 00:12:34,820
+If it is, it becomes a ticket with what they call a mandate.
+
+136
+00:12:35,008 --> 00:12:40,048
+That's a record of who asked for it, under which rules, how far the work is allowed to go, etc.
+
+137
+00:12:40,334 --> 00:12:43,888
+That ticket and the mandate then get passed to a worker.
+
+138
+00:12:44,174 --> 00:12:46,448
+Now, here's a really cool detail that they've got in there.
+
+139
+00:12:46,688 --> 00:12:50,768
+Once a worker owns a ticket, it subscribes to that conversation.
+
+140
+00:12:51,328 --> 00:12:56,448
+So when someone comments on the PR that it opens, that comment goes straight to the worker.
+
+141
+00:12:56,718 --> 00:12:58,288
+It skips the router entirely.
+
+142
+00:12:58,574 --> 00:13:05,648
+And you can think about that skipping of that orchestration layer and going straight through just saves you a huge amount on tokens, etc.
+
+143
+00:13:05,968 --> 00:13:11,808
+In fact, when they turned off this in their experiments, router decisions actually went up by 30%.
+
+144
+00:13:12,174 --> 00:13:14,608
+And obviously the amount of tokens went up with it.
+
+145
+00:13:14,894 --> 00:13:19,888
+For me, the other part that I find most interesting here though is about the router as the bottleneck.
+
+146
+00:13:20,142 --> 00:13:28,208
+So we would assume that one central session that's doing the orchestration, handing everything out, would just get overwhelmed as things get busy.
+
+147
+00:13:28,368 --> 00:13:31,328
+It actually turns out here that it kind of does the opposite.
+
+148
+00:13:31,488 --> 00:13:38,848
+When triggers arrive while the router is in mid-inference, they pile up and they get handled together in the next call.
+
+149
+00:13:39,118 --> 00:13:48,208
+And because the way that they've structured that router's job to be sort of long input and short on output, it actually allows it to batch these things really cheaply.
+
+150
+00:13:48,462 --> 00:13:54,608
+Now in Deep Seek stress tests, they push the trigger rate from about one a minute to about 40 a minute.
+
+151
+00:13:54,830 --> 00:13:57,956
+Average batch size went from one to 2.8.
+
+152
+00:13:58,382 --> 00:14:03,488
+And sure, each call did get a bit slower, from about 2.5 seconds to 3.9.
+
+153
+00:14:03,808 --> 00:14:12,292
+But the time per decision, because it's being done now in batches, actually drops from 6.4 seconds down to 1.6 seconds.
+
+154
+00:14:12,608 --> 00:14:15,168
+So it got more efficient under load.
+
+155
+00:14:15,566 --> 00:14:21,728
+They also say that the router job is often simpler than you'd expect, and a lighter model usually handles it fine.
+
+156
+00:14:21,998 --> 00:14:31,364
+That kind of goes against the grain for a lot of thinking of where people have been thinking that your orchestrator needs to have the best model and that your sub-ages can get away with simpler models.
+
+157
+00:14:31,726 --> 00:14:34,756
+It turns out that that router doesn't even need a bash tool.
+
+158
+00:14:35,086 --> 00:14:38,448
+So overall, that router can use a fast, cheap model.
+
+159
+00:14:38,766 --> 00:14:41,408
+It can actually use a stronger model for some of your workers.
+
+160
+00:14:41,646 --> 00:14:45,248
+And this is something that I definitely want to test more with open models going forward.
+
+161
+00:14:45,550 --> 00:14:49,968
+Anyway, on top of this, they have this philosophy, which I think is a really useful part.
+
+162
+00:14:50,128 --> 00:14:57,328
+The principle is take as little human attention as possible and give as much value as possible.
+
+163
+00:14:57,710 --> 00:15:01,488
+And I kind of feel as we're building agents, it's really hard to argue against that.
+
+164
+00:15:01,710 --> 00:15:07,876
+You want an agent that only acts when someone allowed asks for it or when a rule the team wrote actually allows it.
+
+165
+00:15:08,078 --> 00:15:24,528
+Interestingly, even in there, when work nobody asks for starts, it actually starts in a mode where it just records what it would have done It then confirms itself whether that would have actually worked, and then only speaks up when there's a result or a decision that somebody needs to make.
+
+166
+00:15:31,022 --> 00:15:32,528
+Okay, so what's missing here?
+
+167
+00:15:32,688 --> 00:15:34,756
+Let me go through a few caveats here.
+
+168
+00:15:35,022 --> 00:15:37,888
+First, this is a prototype, and they say that really clearly.
+
+169
+00:15:38,094 --> 00:15:40,928
+The published code isn't identical to their internal version.
+
+170
+00:15:41,198 --> 00:15:46,128
+Some designs in the article are actually future directions that aren't in the repo yet.
+
+171
+00:15:46,350 --> 00:15:52,740
+And from what I can see, things like the watchdog session perhaps isn't fully there yet, and I'm sure there are others that are missing as well.
+
+172
+00:15:53,166 --> 00:15:55,008
+Second, this is all kind of narrow.
+
+173
+00:15:55,150 --> 00:15:56,768
+It's one GitHub repo.
+
+174
+00:15:56,974 --> 00:16:00,036
+They haven't set this up to work with Slack or with email.
+
+175
+00:16:00,334 --> 00:16:02,128
+But actually, I'm not really worried about that.
+
+176
+00:16:02,318 --> 00:16:08,048
+Because everything is basically a plugin, they've also included a cookbook for adding your own source code in there.
+
+177
+00:16:08,398 --> 00:16:12,928
+So my guess is very quickly we will see forks of this with lots of other integrations in there.
+
+178
+00:16:13,262 --> 00:16:25,088
+Third up, the thing that we should be a little bit concerned about is that the super agent experiments that they ran on and reported their benchmarks on are actually run on synthetic workloads in a simplified environment.
+
+179
+00:16:25,518 --> 00:16:29,028
+And they say themselves that this is basically just a preliminary reference.
+
+180
+00:16:29,390 --> 00:16:32,144
+And on things like the 30 tasks, this is just a small sample.
+
+181
+00:16:32,304 --> 00:16:34,624
+So just treat those rankings as a rough guide.
+
+182
+00:16:34,958 --> 00:16:38,224
+Finally, the big thing to be a little bit concerned about here is security.
+
+183
+00:16:38,478 --> 00:16:47,184
+They do list the problems of prompt injection, credentials leaking, permissions across devices, etc., as things that they haven't fully solved yet.
+
+184
+00:16:47,534 --> 00:16:57,344
+So naturally, you probably want to be a bit careful about how you use this, but if you are using it with local models in a totally locked down environment, you probably don't have a lot to really worry about here.
+
+185
+00:16:57,760 --> 00:17:06,224
+All right, so overall, while I think Super Agent is a really interesting product here, what is even more interesting here is just basically the proof of design.
+
+186
+00:17:06,574 --> 00:17:16,784
+Deep Seekers built something which is quite a different agent system on top of their own harness with just a few patch files and plugins without touching the core of the harness at all.
+
+187
+00:17:17,166 --> 00:17:23,024
+And for me, the bigger point here is just showing you how much harnesses are evolving at such a quick pace at the moment.
+
+188
+00:17:23,264 --> 00:17:29,264
+Anyway, as always, I've put the links to the repos, the paper, the benchmark, all of that's in the description.
+
+189
+00:17:29,518 --> 00:17:31,184
+Let me know in the comments what you think.
+
+190
+00:17:31,344 --> 00:17:45,984
+Do you see the future of the harnesses of being these composable plugins where different people create different ideas in different ways, and we're not just reliant on the same coding agent interfaces that we've seen up until now.
+
+191
+00:17:46,254 --> 00:17:50,864
+As always, if you found the video useful, please click like and subscribe, and I'll talk to you in the next video.
+
+192
+00:17:51,086 --> 00:17:51,844
+Bye for now.
+

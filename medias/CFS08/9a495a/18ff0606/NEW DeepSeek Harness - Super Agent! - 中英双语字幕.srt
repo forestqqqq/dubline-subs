@@ -1,0 +1,1046 @@
+1
+00:00:00,302 --> 00:00:06,720
+好了，就在这个周末，DeepSeek 发布了一个很多人的观点是 Claude Code 答案的东西。
+Okay, so this past weekend, DeepSeek released something that a lot of people out there are calling the answer to Claude code.
+
+2
+00:00:06,880 --> 00:00:19,760
+这是一个驻留在 GitHub 仓库中的 Agent，它会监控 Issue 和 PR，
+当你的团队成员要求它做某些事情时，它会进入自己的会话去干活，然后带着 PR 回来。
+It's an agent that sits on a GitHub repo, it watches the issues and pull requests,
+and when someone on your team asks it to do something, it then goes off into its own session, does the work, and comes back with a PR.
+
+3
+00:00:20,110 --> 00:00:24,960
+虽然这本身就很酷，但那并不是我在这里想要讨论的部分。
+Now, while that's cool in itself, that's not really the part that I want to talk about here.
+
+4
+00:00:25,230 --> 00:00:28,320
+我觉得真正有趣的部分是他们是怎么构建它的。
+The part that I find really interesting is how they built it.
+
+5
+00:00:28,560 --> 00:00:33,988
+整个系统其实就是一系列丢进他们 Agent Harness 里的插件。
+The whole thing is just a set of plugins dropped into their agent harness.
+
+6
+00:00:34,240 --> 00:00:38,960
+为了理解为什么这很重要，我们需要回到过去，实际看看这个 Harness 本身。
+And to understand why that matters, we need to go back and actually look at the harness itself.
+
+7
+00:00:39,406 --> 00:00:43,120
+所以当 DeepSeek Harness 在 8 月份发布时，我其实并没有做相关的报道。
+So when the Deep Seek harness came out back in August, I didn't actually cover it.
+
+8
+00:00:43,406 --> 00:00:48,640
+说实话，原因是我当时太忙于去玩它，并且一直在尝试用它来实现各种新想法。
+And honestly, the reason for that was I just got so busy playing with it and trying out new ideas with it all the time.
+
+9
+00:00:48,814 --> 00:00:53,600
+我一直推迟制作视频，因为我觉得我想展示的东西实在太多了。
+I kept putting off making the video because I felt like there were so many things that I wanted to show.
+
+10
+00:00:53,902 --> 00:01:02,916
+对我来说，这个 Harness 的整个插件化架构非常酷，它让你能够实现很多功能，
+就像这个新的 Super Agent 所展示的那样。
+For me, the whole plug-in architecture of that harness is really cool and it
+just allows you to do a whole bunch of things like this new Super Agent enables.
+
+11
+00:01:03,278 --> 00:01:06,560
+当然，与此同时，已经有很多人的报道了。
+Now, obviously, in the meantime, a lot of people ended up covering it.
+
+12
+00:01:06,720 --> 00:01:10,000
+它已经变成了今年 GitHub 上最受欢迎的项目之一。
+It's turned out to be one of the most starred projects on GitHub this year.
+
+13
+00:01:10,318 --> 00:01:15,680
+所以在这个视频里，我打算对这些内容做个回顾，并看看他们基于此构建的一些新东西。
+So in this video, I'm going to do a sort of catch-up on that and look
+at some of the new stuff that they've actually built on top of this.
+
+14
+00:01:16,160 --> 00:01:19,440
+好了，DeepSeek 新发布的东西叫做 Super Agent。
+All right, so the new thing that DeepSeq has launched is called Super Agent.
+
+15
+00:01:19,520 --> 00:01:29,040
+在他们发布的仓库中，他们基本上在 X 上写了一篇文章，
+叫《探索 Super Agent 设计，迈向更自主的 Agent 系统》。
+And along with the repo that they launched, they've basically written an article
+on X called Exploring Super Agent Design Towards a More Autonomous Agent System.
+
+16
+00:01:29,440 --> 00:01:34,480
+在仓库里的那篇文章中，他们非常坦诚地说明这是一个研究原型。
+in that article in the repo, they're very upfront about that this is a research prototype.
+
+17
+00:01:34,640 --> 00:01:36,612
+它不是 DeepSeek 的官方产品。
+It's not an official Deep Seek product.
+
+18
+00:01:37,006 --> 00:01:46,980
+他们甚至提到，它是从他们日常的开发工作中演变出来的，
+而且这里的很多想法和工程实现实际上是由编码 Agent 自己写出来的。
+And they even mentioned that it grew out of their own day-to-day development work,
+and that a lot of the ideas and the engineering here were actually written by coding agents themselves.
+
+19
+00:01:47,566 --> 00:01:55,680
+所以基本思路是这样的：不是由你开启会话去和 Agent 对话，
+而是 Agent 监听你的团队已经在工作的地方。
+So the basic idea is this instead of you opening a session and talking to an agent,
+the agent listens to where your team already works.
+
+20
+00:01:55,886 --> 00:02:04,324
+他们现在发布的例子恰好是 GitHub，还有一个叫飞书的应用，那是字节跳动版的 Slack。
+And the example that they've launched now that happens to be GitHub and also
+happens to be an app called Feishu, which is Bydance's sort of Slack equivalent.
+
+21
+00:02:04,590 --> 00:02:17,680
+现在，当有人要求它做某事时，它会开启一个工作项，在自己的目录里启动自己的会话，
+完成所有工作，然后回复到原始对话中，通常在那个回复里，它会带上一个 PR。
+Now, when someone who's allowed to asks it for something, it opens up a work item, it spins up its own session in its own directory,
+does all of the work, replies back to the original conversation, and
+
+22
+00:02:17,680 --> 00:02:22,320
+现在，当有人要求它做某事时，它会开启一个工作项，在自己的目录里启动自己的会话，
+完成所有工作，然后回复到原始对话中，通常在那个回复里，它会带上一个 PR。
+then usually in that reply, it's going to have a pull request in there.
+
+23
+00:02:22,574 --> 00:02:34,116
+在很多方面，你可以把这看作是基于软件工厂、自动化软件生成等理念的构建，
+这些都是过去几个月里很多人都在讨论的内容。
+And in many ways, you can kind of think of this as building on the whole ideas of software factories,
+of automated software generation and stuff that we've seen a lot of people being talking about over the past couple of months.
+
+24
+00:02:34,606 --> 00:02:39,520
+DeepSeek 自己说，他们一直在持续运行这个内部版本。
+Now, DeepSync themselves say that they've been running an internal version of this continuously.
+
+25
+00:02:39,680 --> 00:02:49,120
+它一直在重现和修复 Bug 问题，响应代码审查意见，
+实际上还在对 DeepSeek Harness 本身进行改进。
+It's been reproducing and fixing bug issues, responding to code review comments,
+and it's actually been making improvements to the DeepSync harness itself.
+
+26
+00:02:49,486 --> 00:02:56,240
+所以在我向你们展示它具体是如何运作之前，我想先展示为什么 Harness 层如此重要。
+So before I go into showing you the how of how it actually all works, I want to show you why the harness layer matters so much.
+
+27
+00:02:56,654 --> 00:03:06,160
+最近在由我共同主持的 Venture Beat 播客《Beyond the Pilot》中，
+我们采访了许多有趣的人物，包括 Instacart 的 CTO 和 Box 的 CTO。
+Recently on the Venture Beat Podcast Beyond the Pilot, which I co-host, we've interviewed a number of interesting people,
+including the CTO of Instacart and the CTO of Box.
+
+28
+00:03:06,414 --> 00:03:10,160
+这两期节目将在接下来的两周左右上线。
+Now, both of those episodes are coming up over the next couple of weeks or so.
+
+29
+00:03:10,382 --> 00:03:17,200
+但我问他们的其中一个问题基本上是：现在哪个更重要，是模型还是 Harness？
+But one of the questions that I put to both of them was basically, what's more important now, the model or the harness?
+
+30
+00:03:17,710 --> 00:03:20,320
+他们两个都倾向于 Harness。
+Both of them came back on the side of the harness.
+
+31
+00:03:20,494 --> 00:03:24,676
+我会把完整的采访留给你们去看，因为那些对话非常精彩。
+And I'll leave it for you to watch the full interviews because it was fascinating conversations.
+
+32
+00:03:25,038 --> 00:03:31,520
+但显然现在很多创新已经从模型本身转向了实际的 harness 架构。
+But clearly now a lot of the innovation has moved away from just the model itself to the actual harnesses.
+
+33
+00:03:31,680 --> 00:03:35,332
+也许随着模型变得更好，重心未来会重新回到模型上。
+And maybe it will swing back in the future as we get better models.
+
+34
+00:03:35,440 --> 00:03:38,756
+但目前，你需要关注 harness 的发展方向。
+But currently, you need to be focused on where the harnesses are going.
+
+35
+00:03:39,118 --> 00:03:44,880
+好了，我团队现在正尝试增加我们的覆盖范围和视频数量。
+All right, so one of the things that my team and I are trying to do right
+now is increase the coverage and the number of videos that we're doing.
+
+36
+00:03:45,390 --> 00:03:49,200
+如果你能点击订阅按钮支持一下这个频道，那就太棒了。
+It would really help if you just support the channel by clicking that subscribe button.
+
+37
+00:03:49,360 --> 00:03:53,440
+我们知道你们中很多人一直在看视频，但还没订阅。
+We know that most of you are watching a lot of the videos and still not subscribed.
+
+38
+00:03:53,742 --> 00:03:56,560
+总之，回到为什么 harness 如此重要这个话题。
+Anyway, back to why the harness is so important.
+
+39
+00:03:57,038 --> 00:04:00,400
+这是 Frontier Harness 的图表和结果表。
+So this is the Frontier Harness chart and result table.
+
+40
+00:04:00,560 --> 00:04:02,080
+这些不是我自己的数据。
+So these aren't my numbers.
+
+41
+00:04:02,160 --> 00:04:05,060
+这些来自一个叫 Frontier Harness eval 的基准测试。
+This comes from a benchmark called Frontier Harness eval.
+
+42
+00:04:05,520 --> 00:04:14,640
+他们拿出一个模型，就是 Kimmy K3，并在九种不同的
+编程 Agent harness 中运行，总共包含 12 种配置。
+And what they did was take one model, the Kimmy K3, and run it through
+nine different coding agent harnesses, 12 configurations in total.
+
+43
+00:04:14,960 --> 00:04:19,760
+包括 Codex、Claude Code、Pi、OpenCode、DeepSeek Harness 等等。
+Codex, Clawed Code, Pi, OpenCode, Deep Seek Harness, etc.
+
+44
+00:04:20,142 --> 00:04:24,080
+他们给它做了同样的 30 个任务，模型相同，运行环境也相同。
+They then gave it the same 30 tasks, same model, same runtime.
+
+45
+00:04:24,240 --> 00:04:26,820
+这里唯一改变的就是 harness。
+The only thing that changed here was the harness.
+
+46
+00:04:27,214 --> 00:04:38,640
+现在你可以辩称这不是完全公平的比较，因为 Claude Code 是针对其模型优化的，
+Codex 也是针对模型优化的，但看到他们得到的结果真的很耐人寻味。
+Now you could make the argument that it's not a totally fair comparison, that Claude Code is optimized for its models,
+that Codex is optimized for the models, but it's really interesting to see the results that they got here.
+
+47
+00:04:38,894 --> 00:04:43,044
+Codex 以 66.7% 的通过率排名第一。
+Codex came out on top with 66.7 pass rate.
+
+48
+00:04:43,342 --> 00:04:52,880
+但如果你看下一行，DeepSeek Harness 在其创建者配置下的得分和 Claude Code 都是 63.3%。
+But if you look at that next row, Deep Seek Harness in its creator configuration and Claude Code both scored 63.3%.
+
+49
+00:04:53,520 --> 00:05:05,520
+通过率相同，模型也相同，但 DeepSeek Harness 运行的成本仅约为每项成功任务 3.28 美元，
+而 Claude Code 成本约为 18.34 美元。
+That's the same pass rate, same model, but the Deep Seek Harness run costs
+only about $3.28 per successful task, and Claude Code cost about $18.34.
+
+50
+00:05:05,838 --> 00:05:13,600
+现在看整个表格，最便宜和最贵配置之间的差距实际上达到了 17.5 倍。
+Now across the whole table, the gap between the cheapest and most expensive configurations was actually about 17.5x.
+
+51
+00:05:14,222 --> 00:05:17,680
+不过我也会谨慎对待，不要过度解读这里的具体配置。
+Now I would be careful reading too much into the exact configurations here.
+
+52
+00:05:17,902 --> 00:05:21,892
+这是 30 个任务，所以一个任务大约值 3.3 分。
+It's 30 tasks, so one task is worth about three and a third points.
+
+53
+00:05:22,286 --> 00:05:26,720
+Codex 和 DeepSeek 之间的区别在这里字面上只是一个任务而已。
+The difference between Codex and Deep Seek is literally just one task here.
+
+54
+00:05:26,990 --> 00:05:31,920
+但我确实认为大方向是成立的，那就是 harness 不仅仅是一个包装层。
+But I do think the big picture holds true here, that the harness isn't just a wrapper.
+
+55
+00:05:32,000 --> 00:05:39,600
+即使模型保持不变，它也会改变成本、缓存、速度和成功率。
+It changes the cost, the caching, the speed, and the success rate, even when the model is held constant.
+
+56
+00:05:39,840 --> 00:05:47,440
+所以如果你在评估一个模型，我建议在决定模型好坏之前，先在两到三个 harness 中测试一下。
+So if you're evaluating a model, I'd try and do it in two or three harnesses before deciding whether the model is any good.
+
+57
+00:05:47,822 --> 00:05:52,400
+否则，你可能只是在把本该由 harness 负责的问题归咎于模型。
+Otherwise, you might be just blaming a model for what actually is the harness's responsibility.
+
+58
+00:05:52,840 --> 00:05:55,760
+好了，那么什么是 DeepSeek Harness，为什么它在这里表现这么好？
+All right, so what is DeepSeq Harness and why does it do well here?
+
+59
+00:05:55,920 --> 00:06:04,560
+DeepSeek Harness 或 DSH 是在 8 月 13 日与 DeepSeek 版本 4 Pro 的初始发布一同推出的。
+So DeepSeek Harness or DSH came out on August 13th alongside the initial release of DeepSeek version 4 Pro.
+
+60
+00:06:04,654 --> 00:06:07,280
+它是 MIT 协议授权的，并且有 Web UI。
+It's MIT licensed and there's web UI.
+
+61
+00:06:07,600 --> 00:06:11,280
+所以你可以从一个 NPX 命令和桌面应用开始使用。
+So you can start with just one NPX command and a desktop app.
+
+62
+00:06:11,440 --> 00:06:13,840
+它并不局限于 DeepSeek 模型。
+It's not locked to the DeepSeek models.
+
+63
+00:06:13,920 --> 00:06:16,164
+我觉得这一点非常重要，一定要强调一下。
+I think that's really important to stress here.
+
+64
+00:06:16,494 --> 00:06:21,060
+它支持其他供应商，甚至支持兼容 OpenAI 的端点。
+It works with other providers and even with OpenAI compatible endpoints.
+
+65
+00:06:21,486 --> 00:06:26,480
+不过这里最核心的口号，也是概括它的关键点，就是一切都是插件。
+The key tagline here though that sort of sums this up is that everything is a plugin.
+
+66
+00:06:27,022 --> 00:06:29,360
+而且他们是字面意义上的“一切”。
+And they mean that very literally.
+
+67
+00:06:29,614 --> 00:06:39,120
+在大多数 Agent 框架中，你有一个核心，包括 Agent
+循环、模型调用、工具处理，然后插件只是挂在旁边。
+In most agent frameworks, you've got a core, the agent loop, the model calls, the tool handling,
+and then plugins sort of hang off on the side.
+
+68
+00:06:39,374 --> 00:06:42,560
+而在 DSH 中，路由本身就是一个插件。
+In DSH, the router itself is a plugin.
+
+69
+00:06:42,990 --> 00:06:46,400
+工具注册表是一个插件，会话日志也是一个插件。
+The tool registry, a plugin, the session log, a plugin.
+
+70
+00:06:46,880 --> 00:06:49,680
+甚至连 Agent 循环本身也是一个插件。
+Even the agent loop itself is a plugin.
+
+71
+00:06:50,254 --> 00:06:52,868
+在这一切的底层，是一个叫做 Cordis 的框架。
+Underneath all of this is a framework called Cordis.
+
+72
+00:06:53,040 --> 00:06:57,760
+这背后还有一篇由北京大学三位研究人员撰写的论文。
+And there's a paper behind that from three researchers at the Beijing University.
+
+73
+00:06:57,920 --> 00:07:03,840
+这个框架，也就是 DeepSeek，被称为一种用于时空可组合性的编程范式。
+And this framework, DeepSeek, called a programming paradigm for spatio-temporal composability.
+
+74
+00:07:04,142 --> 00:07:07,812
+这听起来很复杂，但这里的两个核心理念其实非常简单。
+Now that sounds like a lot, but the two ideas here are actually pretty simple.
+
+75
+00:07:08,080 --> 00:07:11,040
+第一个是他们所谓的“时间可组合性”。
+The first is what they call temporal composability.
+
+76
+00:07:11,200 --> 00:07:15,108
+当你移除一个组件时，它所做的一切都会被完全撤销。
+When you remove a component, everything it did gets completely undone.
+
+77
+00:07:15,280 --> 00:07:21,028
+如果一个插件注册了一个工具或事件钩子，卸载它就会撤销所有这些操作。
+If a plugin registered a tool or a hook into event, unloading it reverses all of that.
+
+78
+00:07:21,326 --> 00:07:26,000
+最简单的理解方式就是，你可以非常干净地拔掉某个东西。
+The simplest way to think about this is that you can unplug something really cleanly.
+
+79
+00:07:26,240 --> 00:07:29,200
+第二个要素是“空间可组合性”。
+The second element here is spatial composability.
+
+80
+00:07:29,440 --> 00:07:36,640
+组件声明它们所依赖的内容，运行时会根据这些依赖项的出现或消失来激活或停用它们。
+Components declare what they depend on, and the runtime activates or deactivates them as those dependencies come and go.
+
+81
+00:07:36,974 --> 00:07:41,040
+所以你基本上可以安全地插入插件，也可以安全地拔掉插件。
+So you can basically plug in things safely and unplug them safely as well.
+
+82
+00:07:41,358 --> 00:07:43,268
+那么，为什么 Agent 框架需要这个呢？
+Now, why does an agent harness need this?
+
+83
+00:07:43,520 --> 00:07:45,360
+因为系统在不断变化。
+Because systems are changing constantly.
+
+84
+00:07:45,440 --> 00:07:50,640
+你在更换模型，在添加工具，还在根据权限开启或关闭某些功能。
+You're swapping models, you're adding tools, you're turning things on and off per permission.
+
+85
+00:07:50,800 --> 00:07:56,560
+如果每一次变化都留下一些垃圾代码，事情很快就会变得一团糟。
+And if every one of those changes sort of leaves junk behind, things get messy really quickly.
+
+86
+00:07:56,878 --> 00:08:01,600
+甚至在人们反向工程 Claude Code 的工作原理时，我们也看到了这一点。
+We saw this even when people sort of reverse engineered how Clawed Code was working.
+
+87
+00:08:01,934 --> 00:08:05,680
+目前所有在做 Agent 框架的人，都在以极快的速度推进。
+Everyone that's making agent harnesses at the moment is moving at such a fast pace.
+
+88
+00:08:05,934 --> 00:08:09,040
+这是一个简单的事实：代码经常会被遗留在系统里。
+It's just a simple fact that often code gets left behind.
+
+89
+00:08:09,390 --> 00:08:11,280
+总之，这在实践中是什么样子的呢？
+Anyway, so how does this look in practice?
+
+90
+00:08:11,470 --> 00:08:17,828
+运行 DSH 实际上是一个插件树，它在从各层启动时进行组合。
+Well, running DSH is actually a tree of plugins, which gets composed when it boots up from layers.
+
+91
+00:08:18,254 --> 00:08:27,850
+首先是捆绑包，即插件及其配置的软件包，然后是你的配置文件，
+一个叫 cordis.patch 的 YAML 文件，接着是主层级的补丁，
+First come bundles, which are package sets of plugins plus their configs, then your profiles patch, a YAML file called cortis.patch,
+then you've got a home level patch, and then anything you pass in on the command line.
+
+92
+00:08:27,850 --> 00:08:30,880
+最后是你在命令行中传递的任何内容。
+First come bundles, which are package sets of plugins plus their configs, then your profiles patch, a YAML file called cortis.patch,
+then you've got a home level patch, and then anything you pass in on the command line.
+
+93
+00:08:31,040 --> 00:08:38,240
+所以这里的每一层都可以通过 ID 目标任何插件，并替换其配置或插入新配置。
+So each layer here can target any plugin by its ID and replace its config or insert new ones.
+
+94
+00:08:38,765 --> 00:08:46,948
+他们甚至提供了一个 dump config 命令，可以直接打印
+出机器启动时加载的整个树，而且每一行都可以被覆盖。
+They've even got a command in there for dump config that just prints out the whole
+tree that your machine is booting from, and every row in that can be overridden.
+
+95
+00:08:47,182 --> 00:08:51,008
+现在在 UI 中，他们有四种模式，工作原理都是一样的。
+Now in the UI, they've got four modes and they work in the same way.
+
+96
+00:08:51,168 --> 00:08:54,368
+你有标准模式、PTC 模式、极简模式和创作者模式。
+You've got standard, PTC, minimal, and creator.
+
+97
+00:08:54,638 --> 00:08:57,888
+而这些模式本身只是不同的一组插件。
+And those themselves are just different sets of plugins.
+
+98
+00:08:58,062 --> 00:09:01,508
+创作者模式可以说是这个系统的逻辑终点。
+The creator mode is sort of the logical endpoint for this.
+
+99
+00:09:01,742 --> 00:09:09,248
+你可以在聊天中描述一个插件，Agent 就会去编写它、安装它，然后检查它是否真的运行起来了。
+You can describe a plugin in chat and the agent will write it, install it, and then check that it's actually live.
+
+100
+00:09:09,486 --> 00:09:18,084
+所以你可以这样理解：当大家都在关注模型的持续学习时，这是把持续学习引入到了框架中。
+So you can kind of think of this as while everyone's been focused on just continual learning for models,
+this is bringing continual learning into the harness.
+
+101
+00:09:18,542 --> 00:09:23,728
+还有一点值得注意的是，现在的核心仓库不再接受外部的 Pull Request 了。
+Another thing that's worth knowing here is that the core repo here isn't taking outside pull requests now.
+
+102
+00:09:23,918 --> 00:09:32,208
+他们正引导大家去参与讨论和构建插件，这其实非常符合这种设计逻辑，对吧？
+They're pointing people to discussions and building plugins instead, which actually makes total sense for this design, right?
+
+103
+00:09:32,368 --> 00:09:36,804
+如果没有核心代码需要打补丁，那么插件就是你贡献代码的方式。
+If there's no core to patch, then plugins are how you contribute.
+
+104
+00:09:37,008 --> 00:09:39,728
+这就是把我们带回到整个 Super Agent 的话题上。
+And that's what brings us back to the whole super agent.
+
+105
+00:09:40,014 --> 00:09:45,728
+所以如果你打开 Super Agent 的仓库，你会看到
+的第一个文件之一就是 cortis.patch.yaml 文件。
+So if you open the super agent repo, one of the first files you'll see is the cortis.patchyaml file.
+
+106
+00:09:45,870 --> 00:09:48,128
+而那个文件基本上就是整个集成。
+And that file is basically the whole integration.
+
+107
+00:09:48,270 --> 00:09:54,724
+它默认插入了一个核心 Super Agent 插件、一个
+GitHub Watcher 插件和一个 Facial Watcher 插件。
+It inserts a core super agent plugin, a GitHub Watcher plugin, and a Facial Watcher plugin by default.
+
+108
+00:09:54,990 --> 00:09:57,728
+当然，如果你不用这些，你可以直接把它们关掉。
+Now, obviously, if you're not using those, you could just turn those off.
+
+109
+00:09:58,030 --> 00:10:02,368
+但 Super Agent 的工作原理是为 Worker 定义了一个独立的预设。
+But the way Super Agent works is that it defines a separate preset for the workers.
+
+110
+00:10:02,528 --> 00:10:07,728
+你可以把它看作是 DSH 的标准预设，但去掉了很多功能。
+You can think of it as DSH's standard preset with a bunch of things stripped out.
+
+111
+00:10:07,888 --> 00:10:14,288
+比如不提问、没有计划模式、没有网页抓取、不派生子 Agent 等等。
+No asking the person questions, no plan mode, no web fetch, no spinning off subagents, etc.
+
+112
+00:10:14,638 --> 00:10:20,208
+而且 Shell 的设置是，任何运行超过五秒的命令都会被推送到后台任务中。
+And the shell is set so that any command running longer than five seconds gets pushed to a background job.
+
+113
+00:10:20,494 --> 00:10:26,208
+这样一来，长时间的构建就不会阻止 Worker 在执行过程中注意到有人刚刚留下新评论。
+That way a long build doesn't stop the worker from noticing that someone just left a new comment as it's going through.
+
+114
+00:10:26,542 --> 00:10:35,940
+显然，Claude Code 和 Codex 让人沮丧的一点就是，一旦它们开始运行，你就只能干等着更新它，
+而当你意识到它在走错方向时，你可能还想在它运行过程中插入一个提示词。
+Obviously, that can be one of the frustrating things with Claude code and Codex is once it starts going,
+you're sitting there waiting to basically update it and you perhaps want to inject
+
+115
+00:10:35,940 --> 00:10:40,128
+显然，Claude Code 和 Codex 让人沮丧的一点就是，一旦它们开始运行，你就只能干等着更新它，
+而当你意识到它在走错方向时，你可能还想在它运行过程中插入一个提示词。
+a prompt in while it's still going as you realize it's going in the wrong direction.
+
+116
+00:10:40,398 --> 00:10:44,368
+所以你现在看到的这个 Agent 实际上是一个完全不同的系统。
+So what you're looking at in this agent is a fairly different system entirely.
+
+117
+00:10:44,448 --> 00:10:47,396
+它是基于配置和插件构建的。
+It's built from configurations and plugins.
+
+118
+00:10:47,758 --> 00:10:53,808
+不需要 Fork 框架，而这正是我们刚才提到的 DSH 设计的核心优势。
+There's no forking of the harness, and really that's the whole payoff of the DSH design that we've just talked about.
+
+119
+00:10:54,158 --> 00:11:01,728
+现在，DSH 本身确实有一个实验性的 Agent Teams 功能，包含成员名单、任务板和收件箱。
+Now, DSH itself did actually have an experimental agent teams feature with a roster, a taskboard, a mailbox.
+
+120
+00:11:01,888 --> 00:11:03,204
+那为什么要构建这个呢？
+So why build this?
+
+121
+00:11:03,726 --> 00:11:08,928
+嗯，你可以把 Agent Teams 理解为在同一个任务内部协调多个 Agent。
+Well, you can think about agent teams is about coordinating agents inside one job.
+
+122
+00:11:09,198 --> 00:11:19,968
+而 Super Agent 是为了处理来自外部世界、可能在很长一段时间内到达的许多独立任务，
+以及来自许多不同用户发布的各种信息。
+The super agent is about handling lots of independent jobs that arrive from the outside world over perhaps a long period of time and
+also from lots of different people posting here.
+
+123
+00:11:20,206 --> 00:11:24,288
+它实际上解决的是与 Teams 功能不同的问题。
+It's actually addressing a different problem than what the Teams feature did.
+
+124
+00:11:24,448 --> 00:11:29,568
+这里一个很酷的实际细节是，路由器和工作节点可以分别使用不同的模型。
+And one cool practical detail here is that the router and the workers can each be given a different model.
+
+125
+00:11:29,774 --> 00:11:31,588
+所以我等会儿会再回到这一点上。
+So I'll come back to that in a second.
+
+126
+00:11:31,982 --> 00:11:36,516
+现在，如果我们看看这里的架构，它基本上分为两个层级。
+Now, if we look at the architecture here, this basically has two layers to it.
+
+127
+00:11:36,688 --> 00:11:39,888
+最上面是一个长连接会话，他们称之为路由器。
+On top, there's one long-running session that they call the router.
+
+128
+00:11:40,288 --> 00:11:48,004
+它负责处理所有的用户交互，保留宏观上下文，并将任务分发给不同的插件或不同的智能体。
+It handles all the human interaction, keeps the big picture context, hands out work to perhaps different plugins or different agents.
+
+129
+00:11:48,398 --> 00:11:52,804
+在下面是那些工作节点智能体，每个都在独立的会话中运行。
+Underneath are those worker agents, each running in their own isolated session.
+
+130
+00:11:53,088 --> 00:11:55,328
+工作节点永远不需要直接与人交流。
+Workers never have to talk to people directly.
+
+131
+00:11:55,488 --> 00:11:59,168
+它们向路由器汇报，由路由器负责所有的沟通。
+They report back to the router, the router does all the communication.
+
+132
+00:11:59,408 --> 00:12:02,448
+从外部进入的一切都是触发条件。
+Everything going in from the outside is a trigger.
+
+133
+00:12:02,638 --> 00:12:06,528
+比如新的 issue、评审评论、聊天消息等等。
+A new issue, a review comment, a chat message, etc.
+
+134
+00:12:06,894 --> 00:12:10,916
+每个触发条件首先要经过一道关卡，那是纯代码，甚至不是模型。
+Each trigger first goes through a gate, which is plain code and not even a model.
+
+135
+00:12:11,150 --> 00:12:20,928
+这提供了一个确定性的功能，基本上就是检查这个人是否在允许列表中，
+是否有权发表评论或提交 PR 等。
+And that gives you a deterministic feature to basically check is this person even
+on the allowed list to be able to comment or to be able to file a pull request, etc.
+
+136
+00:12:21,198 --> 00:12:24,996
+它还有助于回答诸如“他们是否真的在回应智能体”之类的问题。
+It also helps it to answer things like did they actually address the agent?
+
+137
+00:12:25,230 --> 00:12:31,328
+只有通过这些检查后，模型才会真正去查看并决定，你知道，这是否是真正的任务。
+Now only when those checks are passed does the model actually get to look at it and decide, you know, whether it's real work.
+
+138
+00:12:31,566 --> 00:12:34,820
+如果是，它就变成一个带有他们所谓的“授权”的工单。
+If it is, it becomes a ticket with what they call a mandate.
+
+139
+00:12:35,008 --> 00:12:40,048
+那是关于谁提出了请求、在什么规则下提出、允许工作到什么程度等的记录。
+That's a record of who asked for it, under which rules, how far the work is allowed to go, etc.
+
+140
+00:12:40,334 --> 00:12:43,888
+这个工单和授权随后会被传递给一个工作节点。
+That ticket and the mandate then get passed to a worker.
+
+141
+00:12:44,174 --> 00:12:46,448
+现在，这里有一个他们设计得非常酷的细节。
+Now, here's a really cool detail that they've got in there.
+
+142
+00:12:46,688 --> 00:12:50,768
+一旦工作节点接管了一个工单，它就会订阅那个对话。
+Once a worker owns a ticket, it subscribes to that conversation.
+
+143
+00:12:51,328 --> 00:12:56,448
+所以当有人评论它打开的 PR 时，那个评论会直接发送到工作节点。
+So when someone comments on the PR that it opens, that comment goes straight to the worker.
+
+144
+00:12:56,718 --> 00:12:58,288
+它完全跳过了路由器。
+It skips the router entirely.
+
+145
+00:12:58,574 --> 00:13:05,648
+你可以这样想，跳过那个编排层直接通过，能帮你节省大量的 token 等成本。
+And you can think about that skipping of that orchestration layer and
+going straight through just saves you a huge amount on tokens, etc.
+
+146
+00:13:05,968 --> 00:13:11,808
+事实上，当他们在实验中关闭这个功能时，路由器的决策成本实际上增加了 30%。
+In fact, when they turned off this in their experiments, router decisions actually went up by 30%.
+
+147
+00:13:12,174 --> 00:13:14,608
+显然，消耗的 token 数量也随之增加了。
+And obviously the amount of tokens went up with it.
+
+148
+00:13:14,894 --> 00:13:19,888
+对我来说，我觉得这里最有趣的另一部分是关于路由器作为瓶颈的问题。
+For me, the other part that I find most interesting here though is about the router as the bottleneck.
+
+149
+00:13:20,142 --> 00:13:28,208
+所以我们会假设，那个负责编排、分发一切的单一中心会话，在事情变忙时就会不堪重负。
+So we would assume that one central session that's doing the orchestration, handing everything out,
+would just get overwhelmed as things get busy.
+
+150
+00:13:28,368 --> 00:13:31,328
+但事实证明，这里的情况恰恰相反。
+It actually turns out here that it kind of does the opposite.
+
+151
+00:13:31,488 --> 00:13:38,848
+当路由器正在推理过程中收到触发条件时，它们会堆积起来，并在下一次调用中一起处理。
+When triggers arrive while the router is in mid-inference, they pile up and they get handled together in the next call.
+
+152
+00:13:39,118 --> 00:13:48,208
+而且因为他们把路由器的任务结构设计成长输入、短输出，
+这实际上允许它以非常低廉的成本来批量处理这些内容。
+And because the way that they've structured that router's job to be sort of long input and short on output,
+it actually allows it to batch these things really cheaply.
+
+153
+00:13:48,462 --> 00:13:54,608
+现在在 DeepSeek 的压力测试中，他们将触发频率从每分钟约 1 次提高到了每分钟约 40 次。
+Now in Deep Seek stress tests, they push the trigger rate from about one a minute to about 40 a minute.
+
+154
+00:13:54,830 --> 00:13:57,956
+平均批处理大小从 1 变到了 2.8。
+Average batch size went from one to 2.8.
+
+155
+00:13:58,382 --> 00:14:03,488
+当然，每次调用的速度确实变慢了一点，从大约 2.5 秒变到了 3.9 秒。
+And sure, each call did get a bit slower, from about 2.5 seconds to 3.9.
+
+156
+00:14:03,808 --> 00:14:12,292
+但因为现在是批量处理，每个决策所需的时间实际上从 6.4 秒降到了 1.6 秒。
+But the time per decision, because it's being done now in batches, actually drops from 6.4 seconds down to 1.6 seconds.
+
+157
+00:14:12,608 --> 00:14:15,168
+所以它在高负载下的效率更高了。
+So it got more efficient under load.
+
+158
+00:14:15,566 --> 00:14:21,728
+他们还说，路由任务通常比你想象的要简单，用轻量级模型通常就能搞定。
+They also say that the router job is often simpler than you'd expect, and a lighter model usually handles it fine.
+
+159
+00:14:21,998 --> 00:14:31,364
+这和很多人的想法不太一样，很多人认为编排器必须用最强的模型，而子代理可以用简单的模型。
+That kind of goes against the grain for a lot of thinking of where people have been thinking that your orchestrator needs to have the
+best model and that your sub-ages can get away with simpler models.
+
+160
+00:14:31,726 --> 00:14:34,756
+结果发现，那个路由甚至不需要 bash 工具。
+It turns out that that router doesn't even need a bash tool.
+
+161
+00:14:35,086 --> 00:14:38,448
+所以总的来说，那个路由可以使用快速且廉价的模型。
+So overall, that router can use a fast, cheap model.
+
+162
+00:14:38,766 --> 00:14:41,408
+而对于一些工作节点，它实际上可以使用更强大的模型。
+It can actually use a stronger model for some of your workers.
+
+163
+00:14:41,646 --> 00:14:45,248
+这也是我接下来非常想用开源模型进一步测试的内容。
+And this is something that I definitely want to test more with open models going forward.
+
+164
+00:14:45,550 --> 00:14:49,968
+总之，除此之外，他们还有一种理念，我觉得这部分非常有用。
+Anyway, on top of this, they have this philosophy, which I think is a really useful part.
+
+165
+00:14:50,128 --> 00:14:57,328
+原则是：尽可能减少人类的注意力投入，提供尽可能多的价值。
+The principle is take as little human attention as possible and give as much value as possible.
+
+166
+00:14:57,710 --> 00:15:01,488
+而且我觉得，在我们构建 Agent 的过程中，很难反驳这一点。
+And I kind of feel as we're building agents, it's really hard to argue against that.
+
+167
+00:15:01,710 --> 00:15:07,876
+你希望 Agent 只有在有人授权要求时，或者在团队编写的规则允许时才采取行动。
+You want an agent that only acts when someone allowed asks for it or when a rule the team wrote actually allows it.
+
+168
+00:15:08,078 --> 00:15:20,090
+有趣的是，即使在没人要求的情况下，它也会先进入一种只记录它将要做什么的模式。
+然后它会自我确认这些操作是否真的可行，只有在有结果或需要有人做决策时才会开口。
+Interestingly, even in there, when work nobody asks for starts, it actually starts in a mode where it just records what it would have
+done It then confirms itself whether that would have actually worked, and then
+
+169
+00:15:20,090 --> 00:15:24,528
+有趣的是，即使在没人要求的情况下，它也会先进入一种只记录它将要做什么的模式。
+然后它会自我确认这些操作是否真的可行，只有在有结果或需要有人做决策时才会开口。
+only speaks up when there's a result or a decision that somebody needs to make.
+
+170
+00:15:31,022 --> 00:15:32,528
+好，那这里还缺少什么？
+Okay, so what's missing here?
+
+171
+00:15:32,688 --> 00:15:34,756
+让我说明几个注意事项。
+Let me go through a few caveats here.
+
+172
+00:15:35,022 --> 00:15:37,888
+首先，这是一个原型，他们把这一点说得很清楚。
+First, this is a prototype, and they say that really clearly.
+
+173
+00:15:38,094 --> 00:15:40,928
+发布的代码和他们的内部版本并不完全一致。
+The published code isn't identical to their internal version.
+
+174
+00:15:41,198 --> 00:15:46,128
+文章中的某些设计实际上是未来的发展方向，目前还没在仓库里。
+Some designs in the article are actually future directions that aren't in the repo yet.
+
+175
+00:15:46,350 --> 00:15:52,740
+而且从我看到的情况来看，像 watchdog 会话之类的功能可能还没完全实现，
+而且我肯定还有其他缺失的功能。
+And from what I can see, things like the watchdog session perhaps isn't fully there yet,
+and I'm sure there are others that are missing as well.
+
+176
+00:15:53,166 --> 00:15:55,008
+其次，这一切都有点局限。
+Second, this is all kind of narrow.
+
+177
+00:15:55,150 --> 00:15:56,768
+它只是一个 GitHub 仓库。
+It's one GitHub repo.
+
+178
+00:15:56,974 --> 00:16:00,036
+他们还没有把它设置成可以与 Slack 或电子邮件配合工作。
+They haven't set this up to work with Slack or with email.
+
+179
+00:16:00,334 --> 00:16:02,128
+但实际上，我并不太担心这一点。
+But actually, I'm not really worried about that.
+
+180
+00:16:02,318 --> 00:16:08,048
+因为一切基本上都是插件，他们还提供了一个食谱，教你如何加入自己的源代码。
+Because everything is basically a plugin, they've also included a cookbook for adding your own source code in there.
+
+181
+00:16:08,398 --> 00:16:12,928
+所以我猜很快我们就会看到这个项目的各种分支，里面包含很多其他的集成。
+So my guess is very quickly we will see forks of this with lots of other integrations in there.
+
+182
+00:16:13,262 --> 00:16:25,088
+第三点，我们需要稍微担心的是，他们运行并报告基准测试的 Super Agent 实验，
+实际上是在简化环境下的合成工作负载上运行的。
+Third up, the thing that we should be a little bit concerned about is that the super agent experiments that they ran on and reported
+their benchmarks on are actually run on synthetic workloads in a simplified environment.
+
+183
+00:16:25,518 --> 00:16:29,028
+他们自己也说，这基本上只是一个初步的参考。
+And they say themselves that this is basically just a preliminary reference.
+
+184
+00:16:29,390 --> 00:16:32,144
+而且对于像 30 个任务这样的内容，这只是一个很小的样本。
+And on things like the 30 tasks, this is just a small sample.
+
+185
+00:16:32,304 --> 00:16:34,624
+所以就把那些排名当作大致的参考就行了。
+So just treat those rankings as a rough guide.
+
+186
+00:16:34,958 --> 00:16:38,224
+最后，这里最让人担心的主要问题就是安全性。
+Finally, the big thing to be a little bit concerned about here is security.
+
+187
+00:16:38,478 --> 00:16:47,184
+他们列出了提示词注入、凭证泄露、跨设备权限等问题，并表示这些还没完全解决。
+They do list the problems of prompt injection, credentials leaking, permissions across devices, etc.,
+as things that they haven't fully solved yet.
+
+188
+00:16:47,534 --> 00:16:57,344
+所以理所当然地，你可能得小心点使用它，但如果你是在完全
+封闭的环境下配合本地模型使用，那可能就没什么好担心的。
+So naturally, you probably want to be a bit careful about how you use this, but if you are using it with local models in a totally
+locked down environment, you probably don't have a lot to really worry about here.
+
+189
+00:16:57,760 --> 00:17:06,223
+好了，总的来说，虽然我觉得 Super Agent 是个非常有趣的产品，
+但更让人感兴趣的其实是它的设计理念。
+All right, so overall, while I think Super Agent is a really interesting product here,
+what is even more interesting here is just basically the proof of design.
+
+190
+00:17:06,574 --> 00:17:16,784
+DeepSeek 在他们自己的 Harness 之上构建了一个完全不同的 Agent 系统，
+仅仅用了几个补丁文件和插件，完全没动 Harness 的核心代码。
+Deep Seekers built something which is quite a different agent system on top of their own harness with just a few patch files and
+plugins without touching the core of the harness at all.
+
+191
+00:17:17,165 --> 00:17:23,022
+对我来说，更重要的点是展示目前 Harness 进化速度有多快。
+And for me, the bigger point here is just showing you how much harnesses are evolving at such a quick pace at the moment.
+
+192
+00:17:23,262 --> 00:17:29,264
+总之，和往常一样，我把仓库链接、论文和基准测试都放在描述栏里了。
+Anyway, as always, I've put the links to the repos, the paper, the benchmark, all of that's in the description.
+
+193
+00:17:29,518 --> 00:17:31,184
+欢迎在评论区告诉我你的看法。
+Let me know in the comments what you think.
+
+194
+00:17:31,344 --> 00:17:45,984
+你是否也看到了 Harness 的未来是这种可组合的插件，由不同的人用不同的方式创造不同的创意，
+而我们不再仅仅依赖到目前为止看到的那些相同的编码 Agent 接口？
+Do you see the future of the harnesses of being these composable plugins where different people create different ideas in different
+ways, and we're not just reliant on the same coding agent interfaces that we've seen up until now.
+
+195
+00:17:46,254 --> 00:17:50,864
+和往常一样，如果你觉得这个视频有用，请点赞并订阅，我们下个视频再聊。
+As always, if you found the video useful, please click like and subscribe, and I'll talk to you in the next video.
+
+196
+00:17:51,086 --> 00:17:51,844
+先聊到这，拜拜。
+Bye for now.
+

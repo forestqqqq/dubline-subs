@@ -7,6 +7,7 @@
 | [Proving and Improving the Platonic Representation Hypothesis with JEPAs](medias/SZV7D/) | CosmoX | 2026-11-16 |
 | [Paper: Route Anything: A Study of Model and Policy Routing for General-Purpose AI Systems](medias/PMBW6/) | Next in AI: Astha La Vista | 2026-11-16 |
 | [How Docker Containers Really Work: Namespaces & cgroups Explained](medias/FCX84/) | Bit Byte Talks | 2026-11-16 |
+| [NEW DeepSeek Harness -  Super Agent!](medias/CFS08/) | Sam Witteveen | 2026-11-16 |
 | [OpenAI's NEW GPT-ADA! GPT-6.2 Astra is Fable 5.5 Level?! Hy4 IS OUT, DeepSeek V5, & More! AI NEWS](medias/9TQXE/) | WorldofAI | 2026-11-16 |
 | [Every major CPU Architecture explained in 21 Minutes](medias/8P72C/) | Bit by Bit Explained | 2026-11-16 |
 | [Forget Claude Code: DeepSeek + REA Clones Anything 100% FREE (No Paid API)](medias/15YVZ/) | Maitis | 2026-11-16 |
