@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [Yann LeCun's JEPA Just Proved Bigger Al Isn't the Answer?](medias/PGGA6/) | Squintist | 2026-11-17 |
 | [Is AI Learning the Wrong Thing? Yann LeCun’s Platonic Representation Theorem](medias/NSX1D/) | Ina Hanninger | 2026-11-17 |
 | [DEF CON 34 - CPV - Inside the Guts of Ransomware - Ashley Munoz](medias/NKBVX/) | DEFCONConference | 2026-11-17 |
 | [This AI Taught Itself to Use a Calculator \| Toolformer Explained](medias/KMKCW/) | Paper Explained | 2026-11-17 |
