@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [Build Your FIRST AI Agent in Claude Code. (11 Minutes).](medias/R50XR/) | Tristen O'Brien | 2026-11-17 |
 | [Elon Musk’s Brain Chip: The Reality vs The Hype \| NEURALINK Documentary \| by project Why](medias/QWPEK/) | Project Why | 2026-11-17 |
 | [Yann LeCun's JEPA Just Proved Bigger Al Isn't the Answer?](medias/PGGA6/) | Squintist | 2026-11-17 |
 | [Is AI Learning the Wrong Thing? Yann LeCun’s Platonic Representation Theorem](medias/NSX1D/) | Ina Hanninger | 2026-11-17 |
