@@ -1,0 +1,920 @@
+1
+00:00:03,630 --> 00:00:05,828
+Okay, guys, so let's start.
+
+2
+00:00:06,958 --> 00:00:08,356
+my name is Ashley Munoz.
+
+3
+00:00:09,120 --> 00:00:17,440
+I'm working at Kaspersky and sorry if I'm misspelling some parts because my English is not so perfect.
+
+4
+00:00:17,520 --> 00:00:20,720
+I'm from Mexico, but I will try the best.
+
+5
+00:00:21,600 --> 00:00:25,680
+And this talk is called Inside the Gods of Ransomware.
+
+6
+00:00:25,840 --> 00:00:36,676
+I'm going to talk about how to identify with some tricks, how to identify the different algorithms, encryption algorithms within ransomware.
+
+7
+00:00:37,120 --> 00:00:56,420
+Because we are part of an incident response team, but sometimes we need to identify if we are able to identify a decryption way to decrypt the encrypted files of our customers.
+
+8
+00:00:57,710 --> 00:01:00,880
+So well, I'm part of the GERD.
+
+9
+00:01:01,326 --> 00:01:04,036
+The GERD is global emergency response team.
+
+10
+00:01:04,640 --> 00:01:07,940
+I work there as incident response specialist.
+
+11
+00:01:08,480 --> 00:01:20,240
+I have several years, more or less seven or eight years working in digital forensics, incident response, also malware analysis and reverse engineering, threat hunting.
+
+12
+00:01:20,400 --> 00:01:24,880
+And when I started my professional career, I started as penetration tester.
+
+13
+00:01:25,166 --> 00:01:31,972
+But well, something happened, so I switched to the digital forensics path.
+
+14
+00:01:33,774 --> 00:01:40,132
+I have been speaker in uh DEF CON, Necopari, B sites, and several conferences.
+
+15
+00:01:41,358 --> 00:01:48,900
+And this is a little part of the team in another part of the world.
+
+16
+00:01:50,638 --> 00:02:04,100
+And well, the agenda for today is I'm going to talk about AES in encryption algorithm, salsa 20 and Chacha 20, and also RSA and ECC.
+
+17
+00:02:05,486 --> 00:02:16,004
+But well, as introduction, so you can understand everything about these encryption examples.
+
+18
+00:02:16,800 --> 00:02:28,132
+I'm going to start asking you if have you ever asked how the malware analysts like us or automatic tools identify the encryption algorithms in ransomware.
+
+19
+00:02:28,590 --> 00:02:40,132
+Well, in this session, it's a little session, but I will try to show you some tricks to identify how to differentiate them through static analysis and dynamic analysis.
+
+20
+00:02:40,334 --> 00:02:46,160
+I prepared some videos so you can you can know how to do it.
+
+21
+00:02:46,400 --> 00:02:57,252
+And we must understand how ransomware families implement encryption algorithms and also how to identify encryption patterns via static and dynamic analysis.
+
+22
+00:02:59,760 --> 00:03:05,680
+So, well, we know that malware uses encryption for one or more purposes.
+
+23
+00:03:05,840 --> 00:03:20,560
+For example, to protect communications to the command and control, to obfuscate configuration data, hiding strings, protecting keys, but in this session we are focused on encrypting files.
+
+24
+00:03:21,440 --> 00:03:29,476
+Also, I would like to say that a proficient reverse engineer needs to have a good understanding of cryptography.
+
+25
+00:03:30,542 --> 00:03:52,640
+So, knowing how files are encrypted, uh, it can help us to, for example, if you are a programmer and you know how to understand the the encrypt encryption algorithm algorithms, you can create a program to decrypt the encrypted files.
+
+26
+00:03:52,720 --> 00:04:06,148
+No, so it depends on your skills, how many months will you spend creating this program, this decryptor, but it can help to do it.
+
+27
+00:04:06,414 --> 00:04:11,520
+Also to reveal implementation flows and support incident response and triage.
+
+28
+00:04:12,000 --> 00:04:24,800
+For example, every time we have an incident, we ask the customers to send us the malware sample if they got it, or encrypted files.
+
+29
+00:04:25,070 --> 00:04:33,988
+With encrypted files, we can know sometimes the family of the ransomware, and we can know if we have a decryptor available.
+
+30
+00:04:34,480 --> 00:04:41,124
+also modern ransomware constantly evolves its crypto routines to evade detection.
+
+31
+00:04:43,152 --> 00:04:45,828
+As introduction, I would like to say some concepts.
+
+32
+00:04:46,032 --> 00:04:47,428
+For example, plain text.
+
+33
+00:04:48,032 --> 00:04:50,752
+We must know that is unencrypted data.
+
+34
+00:04:50,832 --> 00:04:53,380
+No, we can read this data.
+
+35
+00:04:54,432 --> 00:04:58,180
+The ciphertext is the data that was already encrypted.
+
+36
+00:04:59,472 --> 00:05:00,612
+We need a key.
+
+37
+00:05:01,232 --> 00:05:07,684
+The key is that is that usually random and it's combined with an algorithm to to encrypt.
+
+38
+00:05:08,432 --> 00:05:13,284
+We know that usually the key should be kept secret.
+
+39
+00:05:14,352 --> 00:05:19,396
+Also, we have the algorithms, so we can have the plain text as input.
+
+40
+00:05:19,712 --> 00:05:23,620
+Then we have a round of operations using the key.
+
+41
+00:05:24,112 --> 00:05:26,884
+And as an output, we have the ciphertext.
+
+42
+00:05:29,166 --> 00:05:31,236
+It means number used once.
+
+43
+00:05:31,472 --> 00:05:34,532
+It's used by algorithms to add variation.
+
+44
+00:05:34,912 --> 00:05:42,020
+So the mesh message is encrypted with the same key and it will it won't produce the same ciphertext.
+
+45
+00:05:42,512 --> 00:05:46,832
+It is not necessarily random, but it should only be used once.
+
+46
+00:05:47,152 --> 00:05:54,116
+Also, we have the initialization vector, like knowns, it must be random.
+
+47
+00:05:55,694 --> 00:05:59,172
+Then this is important to identify the algorithms.
+
+48
+00:05:59,632 --> 00:06:04,004
+We have the SPN, the substitution and permutation network.
+
+49
+00:06:05,742 --> 00:06:09,770
+For example, substitution is to replace bytes with other writes.
+
+50
+00:06:11,502 --> 00:06:21,476
+Substitution is like, for example, if you are here in front of me, so I can replace one of you with other people from there, no?
+
+51
+00:06:22,272 --> 00:06:23,620
+It's some kind of that.
+
+52
+00:06:33,792 --> 00:06:40,804
+This is the different methods to replace and to rearrange bytes during the encryption.
+
+53
+00:06:41,472 --> 00:06:44,432
+And the important part is the S box.
+
+54
+00:06:44,750 --> 00:06:46,852
+We have a substitution box.
+
+55
+00:06:47,278 --> 00:06:49,572
+Substitution box, they are publics.
+
+56
+00:06:50,350 --> 00:06:52,170
+We can have this example there.
+
+57
+00:06:53,006 --> 00:06:57,210
+You can search on internet and you can see all these bytes.
+
+58
+00:06:58,030 --> 00:07:01,690
+The bits as inputs are substituted for other bytes.
+
+59
+00:07:02,112 --> 00:07:07,684
+The substitution box determines the rules for replacing bytes consulting a table.
+
+60
+00:07:07,982 --> 00:07:11,268
+And bits input may differ the number of bits output.
+
+61
+00:07:12,512 --> 00:07:19,492
+Because they are publics, they can be used to identify the AES code embedded in ransomware, for example.
+
+62
+00:07:20,912 --> 00:07:25,764
+During analysis analysis, we can find symmetric and asymmetric algorithms.
+
+63
+00:07:26,192 --> 00:07:31,952
+We know that in cryptography we we have these two parts, the symmetric and asymmetric.
+
+64
+00:07:32,512 --> 00:07:40,032
+Symmetric is algorithms that we have only the private key.
+
+65
+00:07:41,070 --> 00:07:46,112
+For example, AES, salsa 20, Chacha 20, etc.
+
+66
+00:07:46,832 --> 00:07:53,636
+And this is important to remember, these are faster for encrypting large volumes of data.
+
+67
+00:07:54,094 --> 00:07:54,352
+No?
+
+68
+00:07:54,512 --> 00:08:10,372
+And the asymmetric, they are algorithms that the in these algorithms we can have a public key and also the private keys, and these are regularly used to encrypt or to protect the private keys on victims.
+
+69
+00:08:12,974 --> 00:08:18,592
+So AES, this means advanced encryption standard.
+
+70
+00:08:18,766 --> 00:08:23,332
+It's a block cipher, it uses blocks of 128 bits.
+
+71
+00:08:24,592 --> 00:08:30,084
+and it's important to know that it uses the SPN, the substitution and Permutation Network.
+
+72
+00:08:30,352 --> 00:08:34,500
+So it uses an Xbox, the substitution box.
+
+73
+00:08:38,416 --> 00:08:46,336
+I'm not going to involve in a lot of features of this algorithm because it could be boring, but
+
+74
+00:08:49,614 --> 00:08:56,100
+this algorithm maps the bytes to a grid, to a 4-byte grid.
+
+75
+00:08:57,776 --> 00:09:01,456
+And we have different types of encryption.
+
+76
+00:09:01,678 --> 00:09:05,376
+For example, the ECB, CFB, CBC.
+
+77
+00:09:06,016 --> 00:09:09,092
+The most known is the cipher block chaining, the CBC.
+
+78
+00:09:09,998 --> 00:09:16,004
+No, cipherblock chaining, it interconnects each encrypted block with the next one.
+
+79
+00:09:16,334 --> 00:09:20,736
+No, so the ciphertext of last block is XOR.
+
+80
+00:09:21,056 --> 00:09:25,188
+We use XOR operations with plain text of next block.
+
+81
+00:09:25,646 --> 00:09:33,028
+And it uses a random initialization vector as we talked in the beginning.
+
+82
+00:09:33,390 --> 00:09:37,316
+And it's necessary to decrypt all prior blocks to decrypt a block.
+
+83
+00:09:37,774 --> 00:09:38,256
+What well?
+
+84
+00:09:38,736 --> 00:09:48,132
+For example, we are watching an EES using EBC, electronic code view.
+
+85
+00:09:49,216 --> 00:09:56,976
+Because it doesn't use an initialization vector, it will encrypt each block of 128 bits with the same key.
+
+86
+00:09:57,198 --> 00:10:03,236
+So for example, we have this image, we are using this message as input.
+
+87
+00:10:03,376 --> 00:10:15,140
+It is top secret and we are using it three times, we are using the mode ECB, the electronic code book, and the key is this is my pass.
+
+88
+00:10:16,256 --> 00:10:28,016
+So if we are using a message, repeating a message, you can see a little below that the output is the same, no?
+
+89
+00:10:28,526 --> 00:10:43,268
+So this is because it's it's the same, it's uh it's a it's a flaw because you as a crypto analyst we can try to identify the the key or the the the message.
+
+90
+00:10:44,142 --> 00:10:53,508
+And if you we are using CVC, the plain text blocks encrypted with the same key algorithm will produce different ciphertext blocks.
+
+91
+00:10:54,816 --> 00:11:03,456
+We can see the output in the below part, then we are using the same input, but the output is so different.
+
+92
+00:11:03,536 --> 00:11:10,660
+So we can know what is the original message, or the key.
+
+93
+00:11:11,536 --> 00:11:26,176
+And well, the easiest way to discover that if a malware sample or a ransomware is using this algorithm is through the lookup tables, as I already said, the S boxes or T tables, no.
+
+94
+00:11:26,414 --> 00:11:31,844
+So we can speed up our search using a tool known as FindCrypt.
+
+95
+00:11:32,462 --> 00:11:37,572
+If you are using Jidra, you can add a plugin using FindCrypt.
+
+96
+00:11:38,254 --> 00:11:45,856
+This is the web page, so you can download it and add it to your Jidra uh program.
+
+97
+00:11:47,982 --> 00:11:48,548
+Oh sorry.
+
+98
+00:11:50,286 --> 00:11:51,376
+Are you going to take a picture?
+
+99
+00:11:51,856 --> 00:11:52,336
+Yeah.
+
+100
+00:11:53,070 --> 00:11:53,380
+Cool.
+
+101
+00:11:55,246 --> 00:12:00,016
+And well, this plugin will search a specific double word.
+
+102
+00:12:00,462 --> 00:12:04,976
+This is the hexadecimal double word or the string Rindall T E0.
+
+103
+00:12:05,678 --> 00:12:12,656
+No, so you can see on the images on the right that these are the hexadecimal.
+
+104
+00:12:14,446 --> 00:12:20,708
+the first image is the code that you can find on the internet if you search on Google.
+
+105
+00:12:21,230 --> 00:12:35,012
+And then the image below, this is the ransomware open with Jidra, and we can see the same hexadecimal strings.
+
+106
+00:12:35,296 --> 00:12:35,616
+No.
+
+107
+00:12:37,006 --> 00:12:39,536
+And well, this is a video that I prepared for you.
+
+108
+00:12:39,790 --> 00:12:45,376
+You can go to internet, download the the Jidra find script uh plugin.
+
+109
+00:12:47,150 --> 00:12:47,456
+No.
+
+110
+00:12:47,776 --> 00:12:51,140
+Um this is in GitHub.
+
+111
+00:12:54,176 --> 00:12:58,980
+It has the instructions to add it to your Jidra project.
+
+112
+00:12:59,406 --> 00:13:07,588
+So you open the releases, you will find the one of these zip files, you need to download it.
+
+113
+00:13:08,398 --> 00:13:10,628
+Then I'm open Jidra here.
+
+114
+00:13:11,022 --> 00:13:12,736
+No, I already opened Jidra.
+
+115
+00:13:12,976 --> 00:13:21,508
+Then you can go to install extensions to the add button, and you need to find the your recent download.
+
+116
+00:13:22,414 --> 00:13:24,836
+So this is the.zip file.
+
+117
+00:13:25,390 --> 00:13:27,204
+You don't need to unzip the file.
+
+118
+00:13:27,296 --> 00:13:33,060
+You only need to select it, and once you you add it, you will see it in your Jidra project.
+
+119
+00:13:33,486 --> 00:13:37,892
+Then you can open one ransomware sample, for example, this one.
+
+120
+00:13:42,734 --> 00:13:59,524
+Once it's opened, you can go to the I'm going to the to the first part of the program, you can go to the left, to labels, and search on the labels, you will find a new labels.
+
+121
+00:13:59,854 --> 00:14:08,932
+For example, the crypt AES encryption Xbox, and you will find the same hexadecimal strings that you can find on your internet.
+
+122
+00:14:10,958 --> 00:14:22,276
+So this is one way so we can identify which kind of encryption algorithm is using in one ransomware.
+
+123
+00:14:24,110 --> 00:14:27,396
+Then we have salsa 20 and chacha 20.
+
+124
+00:14:28,302 --> 00:14:36,068
+Salsa 20 for the people that know Spanish is not the sauce for tacos, and chacha is not chacha, no?
+
+125
+00:14:37,166 --> 00:14:56,644
+Salsa 20 and Chacha 20 salsa uh was created first, then there was an improved and it it was chacha because it added diffusion, so it's harder to correlate between ciphertext and its corresponding ciphertext.
+
+126
+00:14:57,486 --> 00:15:12,612
+So we have some ARX operations, and also we have a 4x4 matrix which consists of a key plus nonce plus counter.
+
+127
+00:15:12,878 --> 00:15:15,332
+Each square is 32 bits in size.
+
+128
+00:15:17,678 --> 00:15:26,020
+But this is the important part of to identify if the ransomware is using salsa 20 or chacha 20.
+
+129
+00:15:26,576 --> 00:15:28,836
+We have these tables.
+
+130
+00:15:29,486 --> 00:15:37,936
+If we are using Chacha, well both are using this ASCII text, expand 32 byte K.
+
+131
+00:15:38,176 --> 00:15:38,416
+No.
+
+132
+00:15:38,896 --> 00:15:50,816
+So in the left you can see the Chacha is using horizontal, no, expand 32 byte K, then you have the key, a counter, etc.
+
+133
+00:15:51,310 --> 00:15:56,736
+But in salsa you you have this, the order in a different order, no?
+
+134
+00:15:58,062 --> 00:16:03,908
+So this is the key to identify if a malware is using Chacha or Salsa.
+
+135
+00:16:05,390 --> 00:16:18,660
+So if we jump to this direction where find crypt apply the label, and this is a malware sample that we opened and I'm using find crypt again.
+
+136
+00:16:19,182 --> 00:16:23,236
+No, we can see an array of bytes related to this string.
+
+137
+00:16:23,936 --> 00:16:33,828
+So once we clear code bytes from data to string, we can see the string expand 32 byte key.
+
+138
+00:16:36,750 --> 00:16:39,172
+And then we have RSA and ECC.
+
+139
+00:16:40,736 --> 00:16:48,324
+we know that they are asymmetric algorithms, so they are related to public key, cryptography.
+
+140
+00:16:48,590 --> 00:16:55,456
+The public is a shared key, and the private key is secret, no?
+
+141
+00:16:55,536 --> 00:17:00,416
+They are a pair and they are mathematically related to one another.
+
+142
+00:17:00,736 --> 00:17:08,516
+And public key, we we use the public key to encrypt a plain text, no, so we can have a ciphertext.
+
+143
+00:17:08,846 --> 00:17:18,496
+So if we have the private key, the corresponding private key with a public key, we can decrypt the ciphertext, no, so we can have the plain text.
+
+144
+00:17:19,056 --> 00:17:25,924
+so public keys in ransomware are regularly used to encrypt or to protect the private key on victims.
+
+145
+00:17:26,256 --> 00:17:38,372
+So I could ask you why do you think that ransomware is using public keys to encrypt the private keys instead of encrypting the files?
+
+146
+00:17:41,134 --> 00:17:44,688
+Well, in public key cryptography, we have uh RSA.
+
+147
+00:17:45,294 --> 00:17:52,196
+Regularly public RSA key from attacker is embedded in the ransomware regularly.
+
+148
+00:17:52,928 --> 00:18:02,020
+It's used to encrypt the symmetric keys for each encrypted file, and only the attacker knows the corresponding private RSA key.
+
+149
+00:18:02,574 --> 00:18:10,628
+Also, we have Diffie Hellman, it's a key exchange protocol, and it's to accord a share key between two entities.
+
+150
+00:18:12,046 --> 00:18:17,168
+Also, we have the elliptic core cryptography, it's an alternative to RSA.
+
+151
+00:18:18,448 --> 00:18:25,408
+And as a short conclusion, the asymmetric encryption is pretty slow.
+
+152
+00:18:25,568 --> 00:18:40,708
+This is the the the answer, because to encrypt using asymmetric encryption, no, it it wouldn't be it's not um it's not good for the attackers, no?
+
+153
+00:18:41,198 --> 00:18:47,300
+Because once the attacker got in a network, they need to encrypt everything very quick.
+
+154
+00:18:47,568 --> 00:18:59,844
+So the customers or the companies can't stop the attack, So it's not good for file encryption, but it's very good for encrypting the private keys.
+
+155
+00:19:01,518 --> 00:19:08,288
+And RSA, well, its security is based on the difficulty of factoring the multiplication of large prime numbers.
+
+156
+00:19:08,448 --> 00:19:22,116
+For example, if I ask you which are the factors of 901, it's so difficult to guess these factors, no?
+
+157
+00:19:22,382 --> 00:19:29,540
+So for example, if we multiply 53 times 17, we can know the answer.
+
+158
+00:19:29,870 --> 00:19:35,428
+So attackers regularly use RSA via uh Microsoft Crypto API.
+
+159
+00:19:37,134 --> 00:19:53,764
+Microsoft Crypto API, we know that in Windows we have several APIs that you can use to make connections or to make operations between the user and the kernel.
+
+160
+00:19:53,968 --> 00:19:59,012
+So in so in this case, it's an API so related to cryptography.
+
+161
+00:19:59,726 --> 00:20:04,292
+So attackers regularly use these APIs to encrypt the files.
+
+162
+00:20:04,718 --> 00:20:14,724
+So for example, if we disassemble a ransomware that is using these methods, we can see several APIs.
+
+163
+00:20:15,168 --> 00:20:20,644
+For example, crypt acquire context, crypt import key, crypt gen random.
+
+164
+00:20:21,262 --> 00:20:26,884
+But in this case, we are going to focus on crypt and gen key.
+
+165
+00:20:27,168 --> 00:20:37,110
+This is the Microsoft API that will generate a symmetric key or a public-private key payer.
+
+166
+00:20:39,150 --> 00:20:50,340
+Also, when you are debugging a ransomware, you can find all of these APIs, and also you will find other APIs to encrypt.
+
+167
+00:20:50,528 --> 00:20:53,924
+For example, the crypt encrypt, the create file.
+
+168
+00:20:55,168 --> 00:21:14,692
+if you are using a debugger or a monitor to know what is happening with your files, how they are being encrypted, you will find several operations of create file, for example, and write file.
+
+169
+00:21:16,430 --> 00:21:20,768
+But well, I prepared another video so you can open your Jidra.
+
+170
+00:21:21,038 --> 00:21:24,708
+I'm going to open another malware sample, another ransomware sample.
+
+171
+00:21:27,886 --> 00:21:30,148
+so we can go to the imports.
+
+172
+00:21:33,712 --> 00:21:45,444
+And well, for example, it's a ransomware sample, So you will find all of these Windows APIs related to cryptography.
+
+173
+00:21:45,678 --> 00:21:47,332
+So yes, it's a malware sample.
+
+174
+00:21:48,272 --> 00:21:57,124
+maybe it's a malware sample that is it wasn't packed, so we can see the the APIs.
+
+175
+00:21:57,518 --> 00:22:07,556
+So well, once we know that it is using crypto APIs, we can try um to open the malware sample in a debugger.
+
+176
+00:22:09,392 --> 00:22:18,052
+And this is a video in a debugger, so we can put a breakpoint in this case in CryptGengen Key.
+
+177
+00:22:18,990 --> 00:22:20,752
+So we have several breakpoints.
+
+178
+00:22:20,942 --> 00:22:25,380
+This is the main entry point, the main part of the program.
+
+179
+00:22:25,902 --> 00:22:26,788
+We're going ahead.
+
+180
+00:22:28,752 --> 00:22:41,152
+we can see the several crypto APIs of the program, and while it's running the program, we can identify several strings.
+
+181
+00:22:41,232 --> 00:22:43,312
+For example, this is the beginning.
+
+182
+00:22:43,392 --> 00:22:44,036
+I sorry.
+
+183
+00:22:46,520 --> 00:22:48,132
+just a second please.
+
+184
+00:22:56,940 --> 00:22:57,080
+Aha.
+
+185
+00:22:58,318 --> 00:23:08,260
+Yes, so this part we are identified that there is a string related to public cryptography.
+
+186
+00:23:08,878 --> 00:23:09,152
+No?
+
+187
+00:23:09,582 --> 00:23:19,392
+So we are going ahead in the program, then we can make a dump for from for a specific region of the memory.
+
+188
+00:23:19,472 --> 00:23:22,192
+We we can see the RSA string.
+
+189
+00:23:22,414 --> 00:23:28,032
+So yes, it's related to public cryptography, and they then this is the important part.
+
+190
+00:23:28,192 --> 00:23:32,580
+You can see the the values 6610.
+
+191
+00:23:33,326 --> 00:23:35,152
+No, so they are important.
+
+192
+00:23:36,352 --> 00:23:36,644
+thank you.
+
+193
+00:23:38,126 --> 00:23:41,792
+They are so important to identify the algorithm.
+
+194
+00:23:42,062 --> 00:23:43,172
+Oh, just give me a second.
+
+195
+00:23:43,632 --> 00:23:43,844
+Yeah.
+
+196
+00:23:45,152 --> 00:23:45,472
+No.
+
+197
+00:23:52,238 --> 00:23:53,152
+Okay, again.
+
+198
+00:23:54,350 --> 00:23:56,992
+We're doing the dump RSA string.
+
+199
+00:23:57,838 --> 00:23:59,908
+It's a public algorithm.
+
+200
+00:24:02,894 --> 00:24:04,900
+But you remember the crypt gen key?
+
+201
+00:24:05,072 --> 00:24:09,092
+This is the important API.
+
+202
+00:24:09,312 --> 00:24:13,028
+We can see the values 6610.
+
+203
+00:24:14,318 --> 00:24:14,592
+Okay.
+
+204
+00:24:15,694 --> 00:24:21,284
+We can see the push of this string, the hexadecimal values 6610.
+
+205
+00:24:21,582 --> 00:24:27,236
+So we you can go to internet to search the documentation of this API.
+
+206
+00:24:27,982 --> 00:24:33,860
+And if you take a look, you will see the algorithm ID parameter.
+
+207
+00:24:34,592 --> 00:24:37,472
+So it has a table.
+
+208
+00:24:37,712 --> 00:24:43,172
+If we go inside this this link, you will find a table.
+
+209
+00:24:44,398 --> 00:24:54,032
+And you can search the the values that we already identified, 6610, and it will tell us which kind of algorithm is using.
+
+210
+00:24:54,272 --> 00:24:58,912
+This is 256 bit AES.
+
+211
+00:25:00,432 --> 00:25:19,652
+so well, this is a little part of how we as uh as malware analysts, we try to identify the different algorithms so we can try to know if we can create a decryptor or or not.
+
+212
+00:25:21,518 --> 00:25:27,204
+And as a conclusion, why it's important to know the different encryption algorithms in ransomware?
+
+213
+00:25:27,872 --> 00:25:36,432
+Because we can identify new malware samples, new techniques.
+
+214
+00:25:37,632 --> 00:25:43,012
+In this example, we have an incident in Mexico.
+
+215
+00:25:43,632 --> 00:25:51,472
+It was a new new malware because it was using BitLocker to encrypt the server.
+
+216
+00:25:53,614 --> 00:25:56,068
+It was on May 2024.
+
+217
+00:26:06,352 --> 00:26:11,952
+So we were able to develop a way to decrypt all the files of the customer.
+
+218
+00:26:12,174 --> 00:26:17,316
+So the customer was very, very, very, very glad with these results.
+
+219
+00:26:18,192 --> 00:26:23,232
+And as conclusions, AES remains dominant in ransomware encryption.
+
+220
+00:26:23,632 --> 00:26:29,412
+Most families use the RSA 4096 for key wrapping.
+
+221
+00:26:30,190 --> 00:26:33,956
+Also, you can identify sometimes implementation flows.
+
+222
+00:26:35,630 --> 00:26:39,552
+And well, hybrid encryption allows both performance and control.
+
+223
+00:26:40,512 --> 00:27:01,232
+I suggest to always extract and analyze encryption headers or footers from samples, trace, the random number generations, look for reuse of constants or seeds between versions, maintain internal database of crypto partners and signatures.
+
+224
+00:27:01,486 --> 00:27:06,276
+and the collaboration between malware, analysts and cryptographers is so crucial.
+
+225
+00:27:07,150 --> 00:27:24,512
+Also, I will give you a table with another tool, other tools that you can use to try to identify the different algorithms in ransomware, no Kappa, Jara rules, crypto analyzer, it's a plugin for PEID.
+
+226
+00:27:25,872 --> 00:27:27,236
+And that's it.
+
+227
+00:27:27,632 --> 00:27:30,564
+Because the time is it's over.
+
+228
+00:27:31,182 --> 00:27:34,272
+You can search me on LinkedIn or on X.
+
+229
+00:27:35,152 --> 00:27:40,324
+And well, if you have any questions, you you can you can reach me.
+
+230
+00:27:41,006 --> 00:27:42,724
+And thank you so much for being here.
+

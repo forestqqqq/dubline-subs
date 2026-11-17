@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [DEF CON 34 - CPV - Inside the Guts of Ransomware - Ashley Munoz](medias/NKBVX/) | DEFCONConference | 2026-11-17 |
 | [This AI Taught Itself to Use a Calculator \| Toolformer Explained](medias/KMKCW/) | Paper Explained | 2026-11-17 |
 | [Vibe coding an app like a senior engineer \| GPT Astra + Opus 5.5 🔴 LIVE](medias/KM463/) | Asklog | 2026-11-17 |
 | [Creating Logic using Waves: Photonic Gates](medias/KFV64/) | Huygens Optics | 2026-11-17 |

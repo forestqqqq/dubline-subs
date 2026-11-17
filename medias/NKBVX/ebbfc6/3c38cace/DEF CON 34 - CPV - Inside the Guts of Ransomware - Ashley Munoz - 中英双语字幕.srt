@@ -1,0 +1,1192 @@
+1
+00:00:03,630 --> 00:00:05,828
+好了，各位，我们开始吧。
+Okay, guys, so let's start.
+
+2
+00:00:06,958 --> 00:00:08,356
+我的名字是阿什莉·穆诺兹。
+my name is Ashley Munoz.
+
+3
+00:00:09,120 --> 00:00:17,440
+我在 Kaspersky 工作。如果我的英语不够完美导致有些地方发音不准，请见谅。
+I'm working at Kaspersky and sorry if I'm misspelling some parts because my English is not so perfect.
+
+4
+00:00:17,520 --> 00:00:20,720
+我来自墨西哥，但我会尽力而为的。
+I'm from Mexico, but I will try the best.
+
+5
+00:00:21,600 --> 00:00:25,680
+这次演讲的主题是「勒索软件的内部构造」。
+And this talk is called Inside the Gods of Ransomware.
+
+6
+00:00:25,840 --> 00:00:36,676
+我将通过一些技巧，讲解如何识别勒索软件中的不同加密算法。
+I'm going to talk about how to identify with some tricks, how to identify
+the different algorithms, encryption algorithms within ransomware.
+
+7
+00:00:37,120 --> 00:00:56,420
+因为我们是应急响应团队的一员，但有时我们需要判
+断是否能找到解密方法，来解密客户被加密的文件。
+Because we are part of an incident response team, but sometimes we need to identify if we are able to identify a decryption way to
+decrypt the encrypted files of our customers.
+
+8
+00:00:57,710 --> 00:01:00,880
+那么，我是 GERD 的成员。
+So well, I'm part of the GERD.
+
+9
+00:01:01,326 --> 00:01:04,036
+GERD 是全球应急响应团队。
+The GERD is global emergency response team.
+
+10
+00:01:04,640 --> 00:01:07,940
+我在那里担任应急响应专家。
+I work there as incident response specialist.
+
+11
+00:01:08,480 --> 00:01:20,240
+我有好几年的经验，大概是七八年，在数字取证、应急响应，还有恶意软件分析、
+逆向工程和威胁猎捕方面都有经验。
+I have several years, more or less seven or eight years working in digital forensics, incident response,
+also malware analysis and reverse engineering, threat hunting.
+
+12
+00:01:20,400 --> 00:01:24,880
+当我开始职业生涯时，我是作为渗透测试员开始的。
+And when I started my professional career, I started as penetration tester.
+
+13
+00:01:25,166 --> 00:01:31,972
+不过，后来发生了一些情况，所以我转向了数字取证这条路。
+But well, something happened, so I switched to the digital forensics path.
+
+14
+00:01:33,774 --> 00:01:40,132
+我曾在 DEF CON、Necopari、B sites 以及好几个会议上担任演讲嘉宾。
+I have been speaker in uh DEF CON, Necopari, B sites, and several conferences.
+
+15
+00:01:41,358 --> 00:01:48,900
+这是来自世界其他地方团队的一小部分。
+And this is a little part of the team in another part of the world.
+
+16
+00:01:50,638 --> 00:02:04,100
+那么，今天的议程是，我将讲解 AES 加密算法、Salsa20 和 ChaCha20，还有 RSA 和 ECC。
+And well, the agenda for today is I'm going to talk about AES in encryption algorithm, salsa 20 and Chacha 20, and also RSA and ECC.
+
+17
+00:02:05,486 --> 00:02:16,004
+不过作为开场，为了让大家能理解这些加密示例。
+But well, as introduction, so you can understand everything about these encryption examples.
+
+18
+00:02:16,800 --> 00:02:28,132
+我先问大家，你们有没有想过，像我们这样的恶意软件分析师或者自动化工具，
+是如何识别勒索软件中的加密算法的？
+I'm going to start asking you if have you ever asked how the malware analysts
+like us or automatic tools identify the encryption algorithms in ransomware.
+
+19
+00:02:28,590 --> 00:02:40,132
+嗯，这次会议时间比较短，但我会尽量展示一些技巧，
+告诉大家如何通过静态分析和动态分析来区分它们。
+Well, in this session, it's a little session, but I will try to show you some tricks
+to identify how to differentiate them through static analysis and dynamic analysis.
+
+20
+00:02:40,334 --> 00:02:46,160
+我准备了一些视频，让大家知道具体该怎么操作。
+I prepared some videos so you can you can know how to do it.
+
+21
+00:02:46,400 --> 00:02:57,252
+我们必须了解勒索软件家族是如何实现加密算法的，
+以及如何通过静态和动态分析来识别加密模式。
+And we must understand how ransomware families implement encryption algorithms
+and also how to identify encryption patterns via static and dynamic analysis.
+
+22
+00:02:59,760 --> 00:03:05,680
+所以，我们知道恶意软件使用加密是为了一个或多个目的。
+So, well, we know that malware uses encryption for one or more purposes.
+
+23
+00:03:05,840 --> 00:03:20,560
+例如，为了保护与命令和控制中心的通信，为了混淆配置数据，隐藏字符串，保护密钥，
+但在本次会议中，我们重点关注的是文件加密。
+For example, to protect communications to the command and control, to obfuscate configuration data, hiding strings, protecting keys,
+but in this session we are focused on encrypting files.
+
+24
+00:03:21,440 --> 00:03:29,476
+另外，我想说，一个精通逆向工程的人需要对密码学有很好的理解。
+Also, I would like to say that a proficient reverse engineer needs to have a good understanding of cryptography.
+
+25
+00:03:30,542 --> 00:03:52,640
+所以，了解文件是如何被加密的，呃，这可以帮助我们，比如如果你是个程序员，
+并且知道如何理解加密算法，你就可以编写程序来解密被加密的文件。
+So, knowing how files are encrypted, uh, it can help us to, for example, if you are a programmer and you know how to understand the
+the encrypt encryption algorithm algorithms, you can create a program to decrypt the encrypted files.
+
+26
+00:03:52,720 --> 00:04:06,148
+不，这取决于你的技术水平，你可能需要花几个月的时间来创建这个程序，也就是这个解密器，
+但了解算法能帮助你完成这件事。
+No, so it depends on your skills, how many months will you spend creating this program, this decryptor, but it can help to do it.
+
+27
+00:04:06,414 --> 00:04:11,520
+此外，这还能揭示实现流程，并支持应急响应和初步调查。
+Also to reveal implementation flows and support incident response and triage.
+
+28
+00:04:12,000 --> 00:04:24,800
+例如，每当我们遇到一起事件时，我们都会要求客户
+把他们收到的恶意软件样本或者加密文件发给我们。
+For example, every time we have an incident, we ask the customers to send us the malware sample if they got it, or encrypted files.
+
+29
+00:04:25,070 --> 00:04:33,988
+通过加密文件，我们有时可以知道勒索软件的家族，并且可以知道我们是否有可用的解密器。
+With encrypted files, we can know sometimes the family of the ransomware, and we can know if we have a decryptor available.
+
+30
+00:04:34,480 --> 00:04:41,124
+此外，现代勒索软件不断演变其加密程序，以规避检测。
+also modern ransomware constantly evolves its crypto routines to evade detection.
+
+31
+00:04:43,152 --> 00:04:45,828
+作为开场，我想先介绍一些概念。
+As introduction, I would like to say some concepts.
+
+32
+00:04:46,032 --> 00:04:47,428
+例如，明文。
+For example, plain text.
+
+33
+00:04:48,032 --> 00:04:50,752
+我们必须知道，这就是未加密的数据。
+We must know that is unencrypted data.
+
+34
+00:04:50,832 --> 00:04:53,380
+不，我们可以读取这些数据。
+No, we can read this data.
+
+35
+00:04:54,432 --> 00:04:58,180
+密文就是已经被加密的数据。
+The ciphertext is the data that was already encrypted.
+
+36
+00:04:59,472 --> 00:05:00,612
+我们需要一个密钥。
+We need a key.
+
+37
+00:05:01,232 --> 00:05:07,684
+密钥通常是随机生成的，并与算法结合来进行加密。
+The key is that is that usually random and it's combined with an algorithm to to encrypt.
+
+38
+00:05:08,432 --> 00:05:13,284
+我们知道，通常密钥必须保密。
+We know that usually the key should be kept secret.
+
+39
+00:05:14,352 --> 00:05:19,396
+此外，我们还有算法，我们可以把明文作为输入。
+Also, we have the algorithms, so we can have the plain text as input.
+
+40
+00:05:19,712 --> 00:05:23,620
+然后我们有一轮使用密钥的操作。
+Then we have a round of operations using the key.
+
+41
+00:05:24,112 --> 00:05:26,884
+最后输出的就是密文。
+And as an output, we have the ciphertext.
+
+42
+00:05:29,166 --> 00:05:31,236
+它的意思是单次使用的数字。
+It means number used once.
+
+43
+00:05:31,472 --> 00:05:34,532
+它是算法用来增加变数的。
+It's used by algorithms to add variation.
+
+44
+00:05:34,912 --> 00:05:42,020
+所以即使消息是用相同的密钥加密的，它也不会产生相同的密文。
+So the mesh message is encrypted with the same key and it will it won't produce the same ciphertext.
+
+45
+00:05:42,512 --> 00:05:46,832
+它不一定非得是随机的，但它只能使用一次。
+It is not necessarily random, but it should only be used once.
+
+46
+00:05:47,152 --> 00:05:54,116
+此外，我们还有初始化向量，就像已知的，它必须是随机的。
+Also, we have the initialization vector, like knowns, it must be random.
+
+47
+00:05:55,694 --> 00:05:59,172
+然后，这对于识别算法非常重要。
+Then this is important to identify the algorithms.
+
+48
+00:05:59,632 --> 00:06:04,004
+我们有 SPN，也就是置换网络。
+We have the SPN, the substitution and permutation network.
+
+49
+00:06:05,742 --> 00:06:09,770
+例如，置换就是用其他的字节来替换字节。
+For example, substitution is to replace bytes with other writes.
+
+50
+00:06:11,502 --> 00:06:21,476
+置换就像，比如你现在站在我面前，我可以把你换成那边的人，对吧？
+Substitution is like, for example, if you are here in front of me, so I can replace one of you with other people from there, no?
+
+51
+00:06:22,272 --> 00:06:23,620
+它就是这种原理。
+It's some kind of that.
+
+52
+00:06:33,792 --> 00:06:40,804
+这些是加密过程中替换和重新排列字节的不同方法。
+This is the different methods to replace and to rearrange bytes during the encryption.
+
+53
+00:06:41,472 --> 00:06:44,432
+关键部分是 S 盒。
+And the important part is the S box.
+
+54
+00:06:44,750 --> 00:06:46,852
+我们有一个置换盒。
+We have a substitution box.
+
+55
+00:06:47,278 --> 00:06:49,572
+置换盒是公开的。
+Substitution box, they are publics.
+
+56
+00:06:50,350 --> 00:06:52,170
+我们可以看这个例子。
+We can have this example there.
+
+57
+00:06:53,006 --> 00:06:57,210
+你可以在网上搜索，可以看到所有这些字节。
+You can search on internet and you can see all these bytes.
+
+58
+00:06:58,030 --> 00:07:01,690
+输入的比特被替换成其他的字节。
+The bits as inputs are substituted for other bytes.
+
+59
+00:07:02,112 --> 00:07:07,684
+置换盒通过查表来确定替换字节的规则。
+The substitution box determines the rules for replacing bytes consulting a table.
+
+60
+00:07:07,982 --> 00:07:11,268
+而且输入的比特数可能与输出的比特数不同。
+And bits input may differ the number of bits output.
+
+61
+00:07:12,512 --> 00:07:19,492
+因为它们是公开的，所以可以用来识别勒索软件中嵌入的 AES 代码，例如这样。
+Because they are publics, they can be used to identify the AES code embedded in ransomware, for example.
+
+62
+00:07:20,912 --> 00:07:25,764
+在分析过程中，我们可以找到对称算法和非对称算法。
+During analysis analysis, we can find symmetric and asymmetric algorithms.
+
+63
+00:07:26,192 --> 00:07:31,952
+我们知道在密码学中，我们有这两个部分：对称和非对称。
+We know that in cryptography we we have these two parts, the symmetric and asymmetric.
+
+64
+00:07:32,512 --> 00:07:40,032
+对称算法是指我们只有私钥的算法。
+Symmetric is algorithms that we have only the private key.
+
+65
+00:07:41,070 --> 00:07:46,112
+例如 AES、Salsa20、ChaCha20 等。
+For example, AES, salsa 20, Chacha 20, etc.
+
+66
+00:07:46,832 --> 00:07:53,636
+这一点很重要，这些算法在加密大量数据时速度更快。
+And this is important to remember, these are faster for encrypting large volumes of data.
+
+67
+00:07:54,094 --> 00:07:54,352
+不是吗？
+No?
+
+68
+00:07:54,512 --> 00:08:10,372
+而非对称算法，这些算法中我们可以拥有公钥和私钥，它们通常被用来加密或保护受害者的私钥。
+And the asymmetric, they are algorithms that the in these algorithms we can have a public key and also the private keys,
+and these are regularly used to encrypt or to protect the private keys on victims.
+
+69
+00:08:12,974 --> 00:08:18,592
+所以 AES，意思是高级加密标准。
+So AES, this means advanced encryption standard.
+
+70
+00:08:18,766 --> 00:08:23,332
+它是一种分组密码，它使用 128 位的数据块。
+It's a block cipher, it uses blocks of 128 bits.
+
+71
+00:08:24,592 --> 00:08:30,084
+而且很重要的一点是，它使用的是 SPN，也就是置换网络。
+and it's important to know that it uses the SPN, the substitution and Permutation Network.
+
+72
+00:08:30,352 --> 00:08:34,500
+所以它使用 S 盒，也就是置换盒。
+So it uses an Xbox, the substitution box.
+
+73
+00:08:38,416 --> 00:08:46,336
+我不会深入讲解这个算法的很多特性，因为那可能会很枯燥，但是
+I'm not going to involve in a lot of features of this algorithm because it could be boring, but
+
+74
+00:08:49,614 --> 00:08:56,100
+这个算法将字节映射到一个网格中，一个 4 字节的网格。
+this algorithm maps the bytes to a grid, to a 4-byte grid.
+
+75
+00:08:57,776 --> 00:09:01,456
+而且我们有不同类型的加密模式。
+And we have different types of encryption.
+
+76
+00:09:01,678 --> 00:09:05,376
+例如 ECB、CFB、CBC。
+For example, the ECB, CFB, CBC.
+
+77
+00:09:06,016 --> 00:09:09,092
+最广为人知的是密码分组链接，也就是 CBC。
+The most known is the cipher block chaining, the CBC.
+
+78
+00:09:09,998 --> 00:09:16,004
+不对，密码分组链接是将每个加密块与下一个块连接起来。
+No, cipherblock chaining, it interconnects each encrypted block with the next one.
+
+79
+00:09:16,334 --> 00:09:20,736
+不对，所以最后一个块的密文是异或运算。
+No, so the ciphertext of last block is XOR.
+
+80
+00:09:21,056 --> 00:09:25,188
+我们使用异或运算与下一个块的明文进行运算。
+We use XOR operations with plain text of next block.
+
+81
+00:09:25,646 --> 00:09:33,028
+而且它使用随机的初始化向量，就像我们开头提到的那样。
+And it uses a random initialization vector as we talked in the beginning.
+
+82
+00:09:33,390 --> 00:09:37,316
+而且必须解密之前所有的块才能解密当前的块。
+And it's necessary to decrypt all prior blocks to decrypt a block.
+
+83
+00:09:37,774 --> 00:09:38,256
+什么，嗯？
+What well?
+
+84
+00:09:38,736 --> 00:09:48,132
+例如，我们正在观察一个使用 ECB 模式的 AES，也就是电子代码本。
+For example, we are watching an EES using EBC, electronic code view.
+
+85
+00:09:49,216 --> 00:09:56,976
+因为它不使用初始化向量，它会用相同的密钥加密每一个 128 位的块。
+Because it doesn't use an initialization vector, it will encrypt each block of 128 bits with the same key.
+
+86
+00:09:57,198 --> 00:10:03,236
+所以例如，我们有这张图片，我们正在使用这条信息作为输入。
+So for example, we have this image, we are using this message as input.
+
+87
+00:10:03,376 --> 00:10:15,140
+它是绝密信息，我们使用了它三次，我们使用的是
+ECB 模式，也就是电子代码本，密钥是我的密码。
+It is top secret and we are using it three times, we are using the mode ECB, the electronic code book, and the key is this is my pass.
+
+88
+00:10:16,256 --> 00:10:28,016
+所以如果我们使用重复的消息，你可以看到下面输出是一样的，不是吗？
+So if we are using a message, repeating a message, you can see a little below that the output is the same, no?
+
+89
+00:10:28,526 --> 00:10:43,268
+这是因为它们是一样的，这是个缺陷，因为作为密码分析师，我们可以尝试识别出密钥或消息。
+So this is because it's it's the same, it's uh it's a it's a flaw because you
+as a crypto analyst we can try to identify the the key or the the the message.
+
+90
+00:10:44,142 --> 00:10:53,508
+而如果我们使用 CBC，用相同密钥算法加密的明文块将产生不同的密文块。
+And if you we are using CVC, the plain text blocks encrypted with the same key algorithm will produce different ciphertext blocks.
+
+91
+00:10:54,816 --> 00:11:03,456
+我们可以看到下面的输出，虽然输入相同，但输出完全不同。
+We can see the output in the below part, then we are using the same input, but the output is so different.
+
+92
+00:11:03,536 --> 00:11:10,660
+这样我们就能知道原始消息或者密钥是什么。
+So we can know what is the original message, or the key.
+
+93
+00:11:11,536 --> 00:11:26,176
+而且，发现恶意软件样本或勒索软件是否使用这种算法最简单的方法就是通过查找表，
+就像我刚才说的，就是 S 盒或 T 表。
+And well, the easiest way to discover that if a malware sample or a ransomware is using this algorithm is through the lookup tables,
+as I already said, the S boxes or T tables, no.
+
+94
+00:11:26,414 --> 00:11:31,844
+我们可以使用名为 FindCrypt 的工具来加快搜索速度。
+So we can speed up our search using a tool known as FindCrypt.
+
+95
+00:11:32,462 --> 00:11:37,572
+如果你在使用 Jidra，你可以添加一个 FindCrypt 插件。
+If you are using Jidra, you can add a plugin using FindCrypt.
+
+96
+00:11:38,254 --> 00:11:45,856
+这是网页，你可以下载它并添加到你的 Jidra 程序中。
+This is the web page, so you can download it and add it to your Jidra uh program.
+
+97
+00:11:47,982 --> 00:11:48,548
+噢，抱歉。
+Oh sorry.
+
+98
+00:11:50,286 --> 00:11:51,376
+你要拍照吗？
+Are you going to take a picture?
+
+99
+00:11:51,856 --> 00:11:52,336
+是的。
+Yeah.
+
+100
+00:11:53,070 --> 00:11:53,380
+酷。
+Cool.
+
+101
+00:11:55,246 --> 00:12:00,016
+这个插件会搜索特定的双字。
+And well, this plugin will search a specific double word.
+
+102
+00:12:00,462 --> 00:12:04,976
+这是十六进制双字，或者是字符串 Rindall T E0。
+This is the hexadecimal double word or the string Rindall T E0.
+
+103
+00:12:05,678 --> 00:12:12,656
+不，你可以从右边的图片看到这些是十六进制。
+No, so you can see on the images on the right that these are the hexadecimal.
+
+104
+00:12:14,446 --> 00:12:20,708
+第一张图片是你在谷歌上搜索时能在网上找到的代码。
+the first image is the code that you can find on the internet if you search on Google.
+
+105
+00:12:21,230 --> 00:12:35,012
+下面的图片是用 Jidra 打开的勒索软件，我们可以看到相同的十六进制字符串。
+And then the image below, this is the ransomware open with Jidra, and we can see the same hexadecimal strings.
+
+106
+00:12:35,296 --> 00:12:35,616
+不。
+No.
+
+107
+00:12:37,006 --> 00:12:39,536
+这是我为你们准备的视频。
+And well, this is a video that I prepared for you.
+
+108
+00:12:39,790 --> 00:12:45,376
+你可以上网下载 Jidra find script 插件。
+You can go to internet, download the the Jidra find script uh plugin.
+
+109
+00:12:47,150 --> 00:12:47,456
+不。
+No.
+
+110
+00:12:47,776 --> 00:12:51,140
+它在 GitHub 上。
+Um this is in GitHub.
+
+111
+00:12:54,176 --> 00:12:58,980
+里面有将其添加到你的 Jidra 项目中的说明。
+It has the instructions to add it to your Jidra project.
+
+112
+00:12:59,406 --> 00:13:07,588
+打开 releases，你会看到其中一个 zip 文件，你需要下载它。
+So you open the releases, you will find the one of these zip files, you need to download it.
+
+113
+00:13:08,398 --> 00:13:10,628
+然后我在这里打开 Jidra。
+Then I'm open Jidra here.
+
+114
+00:13:11,022 --> 00:13:12,736
+不，我已经打开 Jidra 了。
+No, I already opened Jidra.
+
+115
+00:13:12,976 --> 00:13:21,508
+然后你可以点击安装扩展按钮，找到你最近下载的文件。
+Then you can go to install extensions to the add button, and you need to find the your recent download.
+
+116
+00:13:22,414 --> 00:13:24,836
+这就是那个 .zip 文件。
+So this is the.zip file.
+
+117
+00:13:25,390 --> 00:13:27,204
+你不需要解压文件。
+You don't need to unzip the file.
+
+118
+00:13:27,296 --> 00:13:33,060
+你只需要选中它，添加后，你就能在 Jidra 项目中看到它。
+You only need to select it, and once you you add it, you will see it in your Jidra project.
+
+119
+00:13:33,486 --> 00:13:37,892
+然后你可以打开一个勒索软件样本，比如这个。
+Then you can open one ransomware sample, for example, this one.
+
+120
+00:13:42,734 --> 00:13:59,524
+打开后，我将进入程序的第一个部分，你可以去左
+边的标签页，在标签中搜索，你会发现新的标签。
+Once it's opened, you can go to the I'm going to the to the first part of the program, you can go to the left, to labels,
+and search on the labels, you will find a new labels.
+
+121
+00:13:59,854 --> 00:14:08,932
+例如 AES 加密，你会发现和在网上能找到的一样的十六进制字符串。
+For example, the crypt AES encryption Xbox, and you will find the same hexadecimal strings that you can find on your internet.
+
+122
+00:14:10,958 --> 00:14:22,276
+这就是识别勒索软件中使用了哪种加密算法的一种方法。
+So this is one way so we can identify which kind of encryption algorithm is using in one ransomware.
+
+123
+00:14:24,110 --> 00:14:27,396
+接下来我们有 Salsa20 和 ChaCha20。
+Then we have salsa 20 and chacha 20.
+
+124
+00:14:28,302 --> 00:14:36,068
+对于懂西班牙语的人来说，Salsa20 不是塔可酱，ChaCha20 也不是跳舞，对吧？
+Salsa 20 for the people that know Spanish is not the sauce for tacos, and chacha is not chacha, no?
+
+125
+00:14:37,166 --> 00:14:56,644
+Salsa20 先被创建，然后有了改进版，也就是 ChaCha20，因为它增加了扩散机制，
+所以更难在密文和对应的明文之间建立关联。
+Salsa 20 and Chacha 20 salsa uh was created first, then there was an improved and it it was chacha because it added diffusion,
+so it's harder to correlate between ciphertext and its corresponding ciphertext.
+
+126
+00:14:57,486 --> 00:15:12,612
+所以我们有一些 ARX 操作，还有一个由密钥、Nonce 和计数器组成的 4x4 矩阵。
+So we have some ARX operations, and also we have a 4x4 matrix which consists of a key plus nonce plus counter.
+
+127
+00:15:12,878 --> 00:15:15,332
+每个方格的大小是 32 位。
+Each square is 32 bits in size.
+
+128
+00:15:17,678 --> 00:15:26,020
+但这是识别勒索软件是使用 Salsa20 还是 ChaCha20 的关键部分。
+But this is the important part of to identify if the ransomware is using salsa 20 or chacha 20.
+
+129
+00:15:26,576 --> 00:15:28,836
+我们有这些表。
+We have these tables.
+
+130
+00:15:29,486 --> 00:15:37,936
+如果我们使用 ChaCha，嗯，两者都使用这个 ASCII 文本：expand 32 byte K。
+If we are using Chacha, well both are using this ASCII text, expand 32 byte K.
+
+131
+00:15:38,176 --> 00:15:38,416
+不。
+No.
+
+132
+00:15:38,896 --> 00:15:50,816
+所以你看左边，ChaCha 使用的是水平方向的 expand 32 byte K，然后你有密钥、计数器等等。
+So in the left you can see the Chacha is using horizontal, no, expand 32 byte K, then you have the key, a counter, etc.
+
+133
+00:15:51,310 --> 00:15:56,736
+但在 Salsa 中，它们的顺序是不同的，对吧？
+But in salsa you you have this, the order in a different order, no?
+
+134
+00:15:58,062 --> 00:16:03,908
+这就是识别恶意软件是使用 ChaCha 还是 Salsa 的关键。
+So this is the key to identify if a malware is using Chacha or Salsa.
+
+135
+00:16:05,390 --> 00:16:18,660
+如果我们跳转到这个方向，找到 crypt apply 标签，这是
+我们打开的一个恶意软件样本，我再次使用 find crypt。
+So if we jump to this direction where find crypt apply the label, and
+this is a malware sample that we opened and I'm using find crypt again.
+
+136
+00:16:19,182 --> 00:16:23,236
+不，我们可以看到与这个字符串相关的字节数组。
+No, we can see an array of bytes related to this string.
+
+137
+00:16:23,936 --> 00:16:33,828
+所以一旦我们从数据中清除代码字节到字符串，我们就能看到字符串 expand 32 byte key。
+So once we clear code bytes from data to string, we can see the string expand 32 byte key.
+
+138
+00:16:36,750 --> 00:16:39,172
+然后我们有 RSA 和 ECC。
+And then we have RSA and ECC.
+
+139
+00:16:40,736 --> 00:16:48,324
+我们知道它们是非对称算法，所以它们与公钥加密有关。
+we know that they are asymmetric algorithms, so they are related to public key, cryptography.
+
+140
+00:16:48,590 --> 00:16:55,456
+公钥是共享的，而私钥是保密的，对吧？
+The public is a shared key, and the private key is secret, no?
+
+141
+00:16:55,536 --> 00:17:00,416
+它们是一对，并且在数学上相互关联。
+They are a pair and they are mathematically related to one another.
+
+142
+00:17:00,736 --> 00:17:08,516
+公钥，我们用公钥来加密明文，对吧，这样我们就能得到密文。
+And public key, we we use the public key to encrypt a plain text, no, so we can have a ciphertext.
+
+143
+00:17:08,846 --> 00:17:18,496
+所以如果我们有私钥，也就是与公钥对应的私钥，我
+们就可以解密密文，对吧，这样我们就能得到明文。
+So if we have the private key, the corresponding private key with a public
+key, we can decrypt the ciphertext, no, so we can have the plain text.
+
+144
+00:17:19,056 --> 00:17:25,924
+因此，勒索软件中的公钥通常用于加密或保护受害者机器上的私钥。
+so public keys in ransomware are regularly used to encrypt or to protect the private key on victims.
+
+145
+00:17:26,256 --> 00:17:38,372
+那么我可以问你们，为什么你们认为勒索软件是用公钥来加密私钥，而不是直接加密文件呢？
+So I could ask you why do you think that ransomware is using public keys to encrypt the private keys instead of encrypting the files?
+
+146
+00:17:41,134 --> 00:17:44,688
+嗯，在公钥加密中，我们有 RSA。
+Well, in public key cryptography, we have uh RSA.
+
+147
+00:17:45,294 --> 00:17:52,196
+攻击者的公钥 RSA 通常会被嵌入到勒索软件中。
+Regularly public RSA key from attacker is embedded in the ransomware regularly.
+
+148
+00:17:52,928 --> 00:18:02,020
+它被用来加密每个加密文件的对称密钥，只有攻击者知道对应的 RSA 私钥。
+It's used to encrypt the symmetric keys for each encrypted file, and only the attacker knows the corresponding private RSA key.
+
+149
+00:18:02,574 --> 00:18:10,628
+此外，我们还有 Diffie-Hellman，它是一种密钥交换协议，用于在两个实体之间协商共享密钥。
+Also, we have Diffie Hellman, it's a key exchange protocol, and it's to accord a share key between two entities.
+
+150
+00:18:12,046 --> 00:18:17,168
+此外，我们还有椭圆曲线密码学，它是 RSA 的一种替代方案。
+Also, we have the elliptic core cryptography, it's an alternative to RSA.
+
+151
+00:18:18,448 --> 00:18:25,408
+简单总结一下，非对称加密的速度相当慢。
+And as a short conclusion, the asymmetric encryption is pretty slow.
+
+152
+00:18:25,568 --> 00:18:40,708
+这就是原因，因为用非对称加密来加密，不，这对于攻击者来说并不好，对吧？
+This is the the the answer, because to encrypt using asymmetric encryption,
+no, it it wouldn't be it's not um it's not good for the attackers, no?
+
+153
+00:18:41,198 --> 00:18:47,300
+因为一旦攻击者进入网络，他们需要非常快速地加密所有内容。
+Because once the attacker got in a network, they need to encrypt everything very quick.
+
+154
+00:18:47,568 --> 00:18:59,844
+所以客户或公司就没法阻止攻击了。因此它不适合文件加密，但非常适合加密私钥。
+So the customers or the companies can't stop the attack, So it's not good for file encryption,
+but it's very good for encrypting the private keys.
+
+155
+00:19:01,518 --> 00:19:08,288
+至于 RSA，它的安全性是基于大质数乘积分解的难度。
+And RSA, well, its security is based on the difficulty of factoring the multiplication of large prime numbers.
+
+156
+00:19:08,448 --> 00:19:22,116
+例如，如果我问你 901 的因数是什么，很难猜出这些因数，对吧？
+For example, if I ask you which are the factors of 901, it's so difficult to guess these factors, no?
+
+157
+00:19:22,382 --> 00:19:29,540
+比如，如果我们把 53 乘以 17，我们就能知道答案。
+So for example, if we multiply 53 times 17, we can know the answer.
+
+158
+00:19:29,870 --> 00:19:35,428
+所以攻击者经常通过微软的 Crypto API 来使用 RSA。
+So attackers regularly use RSA via uh Microsoft Crypto API.
+
+159
+00:19:37,134 --> 00:19:53,764
+关于微软的 Crypto API，我们知道在 Windows 中有几个
+可以用来建立连接或在用户和内核之间进行操作的 API。
+Microsoft Crypto API, we know that in Windows we have several APIs that you can
+use to make connections or to make operations between the user and the kernel.
+
+160
+00:19:53,968 --> 00:19:59,012
+所以在这个例子里，这是一个与密码学相关的 API。
+So in so in this case, it's an API so related to cryptography.
+
+161
+00:19:59,726 --> 00:20:04,292
+所以攻击者经常使用这些 API 来加密文件。
+So attackers regularly use these APIs to encrypt the files.
+
+162
+00:20:04,718 --> 00:20:14,724
+比如，如果我们对使用这些方法的勒索软件进行反汇编，我们就能看到好几个 API。
+So for example, if we disassemble a ransomware that is using these methods, we can see several APIs.
+
+163
+00:20:15,168 --> 00:20:20,644
+例如，crypt acquire context，crypt import key，还有 crypt gen random。
+For example, crypt acquire context, crypt import key, crypt gen random.
+
+164
+00:20:21,262 --> 00:20:26,884
+但在这种情况下，我们将重点关注 crypt 和 gen key。
+But in this case, we are going to focus on crypt and gen key.
+
+165
+00:20:27,168 --> 00:20:37,110
+这是微软的 API，它将生成对称密钥或公钥/私钥对。
+This is the Microsoft API that will generate a symmetric key or a public-private key payer.
+
+166
+00:20:39,150 --> 00:20:50,340
+另外，当你调试勒索软件时，你可以找到所有这些 API，还会找到其他用于加密的 API。
+Also, when you are debugging a ransomware, you can find all of these APIs, and also you will find other APIs to encrypt.
+
+167
+00:20:50,528 --> 00:20:53,924
+例如 crypt encrypt 和 create file。
+For example, the crypt encrypt, the create file.
+
+168
+00:20:55,168 --> 00:21:14,692
+如果你使用调试器或监控工具来了解文件发生了什么，它们是如何被加密的，
+你会发现好几个操作，比如 create file 和 write file。
+if you are using a debugger or a monitor to know what is happening with your files, how they are being encrypted,
+you will find several operations of create file, for example, and write file.
+
+169
+00:21:16,430 --> 00:21:20,768
+不过，我准备了另一个视频，所以你可以打开你的 Jidra。
+But well, I prepared another video so you can open your Jidra.
+
+170
+00:21:21,038 --> 00:21:24,708
+我要打开另一个恶意软件样本，另一个勒索软件样本。
+I'm going to open another malware sample, another ransomware sample.
+
+171
+00:21:27,886 --> 00:21:30,148
+所以我们可以查看导入表。
+so we can go to the imports.
+
+172
+00:21:33,712 --> 00:21:45,444
+嗯，例如这是一个勒索软件样本，所以你会看到所有这些与密码学相关的 Windows API。
+And well, for example, it's a ransomware sample, So you will find all of these Windows APIs related to cryptography.
+
+173
+00:21:45,678 --> 00:21:47,332
+所以没错，这是一个恶意软件样本。
+So yes, it's a malware sample.
+
+174
+00:21:48,272 --> 00:21:57,124
+也许这是一个没经过加壳的恶意软件样本，所以我们可以看到这些 API。
+maybe it's a malware sample that is it wasn't packed, so we can see the the APIs.
+
+175
+00:21:57,518 --> 00:22:07,556
+所以，一旦我们知道它正在使用加密 API，我们就可以尝试在调试器中打开恶意软件样本。
+So well, once we know that it is using crypto APIs, we can try um to open the malware sample in a debugger.
+
+176
+00:22:09,392 --> 00:22:18,052
+这是在调试器里的视频，所以在这种情况下，我们可以在 CryptGengen Key 上设置断点。
+And this is a video in a debugger, so we can put a breakpoint in this case in CryptGengen Key.
+
+177
+00:22:18,990 --> 00:22:20,752
+所以我们有好几个断点。
+So we have several breakpoints.
+
+178
+00:22:20,942 --> 00:22:25,380
+这是主入口点，是程序的主要部分。
+This is the main entry point, the main part of the program.
+
+179
+00:22:25,902 --> 00:22:26,788
+我们继续往下看。
+We're going ahead.
+
+180
+00:22:28,752 --> 00:22:41,152
+我们可以看到程序的几个加密 API，而且在程序运行时，我们可以识别出好几个字符串。
+we can see the several crypto APIs of the program, and while it's running the program, we can identify several strings.
+
+181
+00:22:41,232 --> 00:22:43,312
+例如，这是开头。
+For example, this is the beginning.
+
+182
+00:22:43,392 --> 00:22:44,036
+抱歉。
+I sorry.
+
+183
+00:22:46,520 --> 00:22:48,132
+请稍等一下。
+just a second please.
+
+184
+00:22:56,940 --> 00:22:57,080
+啊哈。
+Aha.
+
+185
+00:22:58,318 --> 00:23:08,260
+是的，所以在这部分，我们识别出有一个与公钥加密相关的字符串。
+Yes, so this part we are identified that there is a string related to public cryptography.
+
+186
+00:23:08,878 --> 00:23:09,152
+不是吗？
+No?
+
+187
+00:23:09,582 --> 00:23:19,392
+所以我们继续运行程序，然后我们可以对内存的特定区域进行转储。
+So we are going ahead in the program, then we can make a dump for from for a specific region of the memory.
+
+188
+00:23:19,472 --> 00:23:22,192
+我们可以看到 RSA 字符串。
+We we can see the RSA string.
+
+189
+00:23:22,414 --> 00:23:28,032
+所以是的，它与公钥加密有关，然后这是关键部分。
+So yes, it's related to public cryptography, and they then this is the important part.
+
+190
+00:23:28,192 --> 00:23:32,580
+你可以看到数值 6610。
+You can see the the values 6610.
+
+191
+00:23:33,326 --> 00:23:35,152
+不，这些很重要。
+No, so they are important.
+
+192
+00:23:36,352 --> 00:23:36,644
+谢谢。
+thank you.
+
+193
+00:23:38,126 --> 00:23:41,792
+它们对于识别算法非常重要。
+They are so important to identify the algorithm.
+
+194
+00:23:42,062 --> 00:23:43,172
+噢，给我点时间。
+Oh, just give me a second.
+
+195
+00:23:43,632 --> 00:23:43,844
+是的。
+Yeah.
+
+196
+00:23:45,152 --> 00:23:45,472
+不。
+No.
+
+197
+00:23:52,238 --> 00:23:53,152
+好的，再说一遍。
+Okay, again.
+
+198
+00:23:54,350 --> 00:23:56,992
+我们正在转储 RSA 字符串。
+We're doing the dump RSA string.
+
+199
+00:23:57,838 --> 00:23:59,908
+这是一个公钥算法。
+It's a public algorithm.
+
+200
+00:24:02,894 --> 00:24:04,900
+但你还记得 crypt gen key 吗？
+But you remember the crypt gen key?
+
+201
+00:24:05,072 --> 00:24:09,092
+这是重要的 API。
+This is the important API.
+
+202
+00:24:09,312 --> 00:24:13,028
+我们可以看到数值 6610。
+We can see the values 6610.
+
+203
+00:24:14,318 --> 00:24:14,592
+好的。
+Okay.
+
+204
+00:24:15,694 --> 00:24:21,284
+我们可以看到这个字符串的入栈操作，也就是十六进制数值 6610。
+We can see the push of this string, the hexadecimal values 6610.
+
+205
+00:24:21,582 --> 00:24:27,236
+所以你可以上网搜索这个 API 的文档。
+So we you can go to internet to search the documentation of this API.
+
+206
+00:24:27,982 --> 00:24:33,860
+如果你看一下，你会看到算法 ID 参数。
+And if you take a look, you will see the algorithm ID parameter.
+
+207
+00:24:34,592 --> 00:24:37,472
+所以它有一个表格。
+So it has a table.
+
+208
+00:24:37,712 --> 00:24:43,172
+如果我们进入这个链接，你会找到一个表格。
+If we go inside this this link, you will find a table.
+
+209
+00:24:44,398 --> 00:24:54,032
+你可以搜索我们已经识别出的数值 6610，它会告诉我们使用的是哪种算法。
+And you can search the the values that we already identified, 6610, and it will tell us which kind of algorithm is using.
+
+210
+00:24:54,272 --> 00:24:58,912
+这是 256 位 AES。
+This is 256 bit AES.
+
+211
+00:25:00,432 --> 00:25:19,652
+所以，这就是我们作为恶意软件分析师，尝试识别不同算法的一些方法，
+好让我们知道能不能制作解密工具。
+so well, this is a little part of how we as uh as malware analysts, we try to identify
+the different algorithms so we can try to know if we can create a decryptor or or not.
+
+212
+00:25:21,518 --> 00:25:27,204
+最后总结一下，为什么了解勒索软件中的不同加密算法很重要？
+And as a conclusion, why it's important to know the different encryption algorithms in ransomware?
+
+213
+00:25:27,872 --> 00:25:36,432
+因为我们可以识别出新的恶意软件样本和新技术。
+Because we can identify new malware samples, new techniques.
+
+214
+00:25:37,632 --> 00:25:43,012
+在这个例子中，我们在墨西哥发现了一个事件。
+In this example, we have an incident in Mexico.
+
+215
+00:25:43,632 --> 00:25:51,472
+这是一个新的恶意软件，因为它利用 BitLocker 来加密服务器。
+It was a new new malware because it was using BitLocker to encrypt the server.
+
+216
+00:25:53,614 --> 00:25:56,068
+那是发生在 2024 年 5 月。
+It was on May 2024.
+
+217
+00:26:06,352 --> 00:26:11,952
+所以我们能够开发出一种方法来解密客户的所有文件。
+So we were able to develop a way to decrypt all the files of the customer.
+
+218
+00:26:12,174 --> 00:26:17,316
+因此，客户对这些结果感到非常非常非常非常满意。
+So the customer was very, very, very, very glad with these results.
+
+219
+00:26:18,192 --> 00:26:23,232
+最后总结一下，AES 在勒索软件加密中仍然占据主导地位。
+And as conclusions, AES remains dominant in ransomware encryption.
+
+220
+00:26:23,632 --> 00:26:29,412
+大多数家族使用 RSA 4096 进行密钥封装。
+Most families use the RSA 4096 for key wrapping.
+
+221
+00:26:30,190 --> 00:26:33,956
+此外，有时你还可以识别出具体的实现流程。
+Also, you can identify sometimes implementation flows.
+
+222
+00:26:35,630 --> 00:26:39,552
+而且，混合加密可以兼顾性能和控制。
+And well, hybrid encryption allows both performance and control.
+
+223
+00:26:40,512 --> 00:27:01,232
+我建议始终从样本中提取并分析加密头或尾，追踪随机数生成，
+寻找不同版本之间常量或种子的重复使用，并维护内部的加密参数和特征数据库。
+I suggest to always extract and analyze encryption headers or footers from samples, trace, the random number generations,
+look for reuse of constants or seeds between versions, maintain internal database of crypto partners and signatures.
+
+224
+00:27:01,486 --> 00:27:06,276
+而且，恶意软件分析师和密码学专家之间的协作是至关重要的。
+and the collaboration between malware, analysts and cryptographers is so crucial.
+
+225
+00:27:07,150 --> 00:27:24,512
+此外，我还会给你们一个表格，列出其他可以用来识别勒索软件中不同算法的工具，
+比如 Yara 规则、Crypto Analyzer，它是 PEID 的一个插件。
+Also, I will give you a table with another tool, other tools that you can use to try to identify the different algorithms in
+ransomware, no Kappa, Jara rules, crypto analyzer, it's a plugin for PEID.
+
+226
+00:27:25,872 --> 00:27:27,236
+就到这里。
+And that's it.
+
+227
+00:27:27,632 --> 00:27:30,564
+因为时间到了。
+Because the time is it's over.
+
+228
+00:27:31,182 --> 00:27:34,272
+你们可以在 LinkedIn 或 X 上搜索我。
+You can search me on LinkedIn or on X.
+
+229
+00:27:35,152 --> 00:27:40,324
+而且，如果你有任何问题，你可以联系我。
+And well, if you have any questions, you you can you can reach me.
+
+230
+00:27:41,006 --> 00:27:42,724
+非常感谢大家的参与。
+And thank you so much for being here.
+
