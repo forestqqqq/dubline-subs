@@ -1,0 +1,1463 @@
+1
+00:00:03,470 --> 00:00:06,270
+我想先用一个问题开始今天的演讲。
+I'm going to start this talk off actually with a question.
+
+2
+00:00:06,862 --> 00:00:10,010
+在座的各位，如果你们在使用 Claude，能不能举个手？
+How many of you, could you raise your hand if you guys use Claude?
+
+3
+00:00:11,534 --> 00:00:15,236
+好的，如果你曾尝试用 Claude 做网络安全相关的任务，请继续举手。
+All right, keep your hands up if you have tried to use Claude for cybersecurity.
+
+4
+00:00:19,694 --> 00:00:24,510
+如果你在尝试做网络安全工作时被拦截了，也请继续举手。
+And keep them up if you have been blocked while trying to do cybersecurity work.
+
+5
+00:00:25,210 --> 00:00:26,630
+大家好，我的名字是 Curt Bernard。
+Well, my name is Kurt Barnard.
+
+6
+00:00:26,790 --> 00:00:30,468
+我是网络安全防护的技术政策经理。
+I am the technical policy manager for Cyber Safeguards.
+
+7
+00:00:30,542 --> 00:00:43,310
+我是你们被拦截的原因。我今天来这里是想聊聊为什么会这样，为什么我们这样制定政策，
+以及我们打算如何在未来改进这些政策。
+and I am the reason you guys get blocked and I'm here to talk today about why that is and why we build the policies the way they do
+and How we're looking to improve them in the future.
+
+8
+00:00:43,470 --> 00:00:47,670
+所以，感谢你们在我们在公开场合共同学习的过程中对我们的包容。
+So thank you for bearing with us while we learn in public together.
+
+9
+00:00:47,670 --> 00:00:57,910
+我今天来这里是想聊聊如何最大程度减少伤害、最大化防御，
+以及我们如何帮助 Claude 处理攻防界限，还有我们在其中哪些方面做得很好。
+So I'm here to talk about maximizing harm, maximizing defense and how we help Claude
+navigate the offense-defense divide and How we're doing one of these pretty well.
+
+10
+00:00:57,910 --> 00:00:59,870
+还有哪些方面我觉得我们可以做得更好一点。
+and one of them, I think we could do a little better.
+
+11
+00:01:01,006 --> 00:01:14,120
+所以我们今天要涵盖的内容大概是，首先可能是安全领域最古老的争论之一，即双用途技术，
+以及如何确保防御者拥有保护系统所需的工具，同时拒绝那些意图造成伤害的对手使用这些工具。
+So what we're going to cover today is probably, to start, probably one of the oldest debates in security,
+which is dual use technology and making sure that defenders have the tools they need to protect systems while denying them to
+
+12
+00:01:14,120 --> 00:01:16,730
+所以我们今天要涵盖的内容大概是，首先可能是安全领域最古老的争论之一，即双用途技术，
+以及如何确保防御者拥有保护系统所需的工具，同时拒绝那些意图造成伤害的对手使用这些工具。
+adversaries that intend to use them for harm.
+
+13
+00:01:17,390 --> 00:01:23,170
+我们将简要讨论开放权重模型的基础，以及它带来的风险。
+We're going to talk briefly about the open weight model baseline and the risks that that poses.
+
+14
+00:01:24,398 --> 00:01:31,710
+我们将讨论我们称之为「网络宪法」的内容，它定义
+了我们认为 Claude 可以做什么以及不可以做什么。
+We're going to talk about what we call the cyber constitution, which defines what we think is and is not permissible for Claude to do.
+
+15
+00:01:32,930 --> 00:01:41,550
+我们将讨论 Claude、Fable 5，以及你们可能经常遇到的分类器周围的安全余量。
+We're going to discuss Claude, Fable 5, and the safety margin around the classifier that you all are probably bumping into.
+
+16
+00:01:42,254 --> 00:01:54,110
+最后我们将讨论越狱、我们发布的越狱严重性框架，并简要聊聊我们知道目前哪些地方做得不对，
+以及我们希望在未来如何修正这些问题。
+And we're going to close out by talking about jailbreaks, the jailbreak severity framework that we published,
+and talking a little bit about how we know we're getting this wrong today and how we hope to fix it moving forward.
+
+17
+00:01:55,918 --> 00:01:58,550
+首先，我们要谈谈双用途技术。
+So to start we're going to talk about dual use technology.
+
+18
+00:02:00,814 --> 00:02:05,010
+双用途技术的问题，在我进入这个行业以来就一直存在。
+The problem with dual use technology has been around as long as I have been in the business.
+
+19
+00:02:05,270 --> 00:02:10,750
+我相信你们中很多人都熟悉这些工具，它们在发布时都伴随着争议。
+I'm sure many of you are familiar with these tools that all have come with their own controversy when they have come out.
+
+20
+00:02:11,110 --> 00:02:17,970
+大规模扫描，将扫描整个互联网所需的时间缩短到几乎为零。
+Mass scan, reducing the time it takes to scan the entire internet to almost nothing.
+
+21
+00:02:19,010 --> 00:02:29,030
+Metasploit，我曾与 Metasploit 团队紧密合作，每当我们发布一个 Metasploit 模块时，
+都会引起争议，因为我们知道只要一发布，脚本小子就会拿去攻击整个互联网。
+Metasploit, I worked very closely with the Metasploit team and every single time we released a Metasploit module,
+there was controversy because we know the second that we published a Metasploit module,
+
+22
+00:02:29,030 --> 00:02:32,510
+Metasploit，我曾与 Metasploit 团队紧密合作，每当我们发布一个 Metasploit 模块时，
+都会引起争议，因为我们知道只要一发布，脚本小子就会拿去攻击整个互联网。
+the script kitties would pick it up and hit the entire internet with it.
+
+23
+00:02:32,750 --> 00:02:39,990
+然后还有像 Cobalt Strike 这样的工具，它们确实提
+升了红队人员的水平，但也被现实中的对手所利用。
+And then you have tools like Cobalt Strike that really elevate red teamers, but also are used by adversaries in the wild.
+
+24
+00:02:40,430 --> 00:02:52,550
+甚至像 IDA Pro 和 CodeQL 这样的代码分析工具，它们让识别
+漏洞和生成漏洞利用程序变得快得多，这也伴随着自身的争议。
+And then even like code analysis tools like IDA Pro and CodeQL that have made it much faster to identify vulnerabilities and generate
+exploits in the wild have come with their own controversy.
+
+25
+00:02:52,870 --> 00:03:03,930
+所以对于所有这些工具，技术手段是相同的，但当你看防御者
+如何使用它们以及攻击者如何使用它们时，意图是完全不同的。
+So with all of these tools, the techniques are identical, but the intent is very
+different when you look at how defenders use them and how attackers use them.
+
+26
+00:03:05,150 --> 00:03:08,130
+所以这个问题不是 AI 造就的。
+So this problem was not built by AI.
+
+27
+00:03:09,190 --> 00:03:19,810
+但它确实让这种紧张关系变得更加剧烈，因为我们现在看
+到这些能力以从未见过的速度、规模和易用性呈现出来。
+But it really makes this tension much stronger because we are now seeing these capabilities at speed,
+scale and accessibility that we have never really seen before.
+
+28
+00:03:20,302 --> 00:03:31,470
+我的意思是，以前可能需要几周才能完成的工作，现在有时几
+个小时甚至几分钟就能搞定，例如扫描代码库的能力，对吧？
+I mean the type of work that could take weeks now can be done in sometimes hours, sometimes minutes,
+and for example the ability to scan code bases, right?
+
+29
+00:03:31,566 --> 00:03:35,030
+你不再受限于在单次会话中能集中注意力处理的内容。
+You are no longer limited to what you can focus your attention on in a single session.
+
+30
+00:03:35,246 --> 00:03:38,090
+你可以非常快速地扫描大量的代码库。
+You can scan large swaths of code bases very, very quickly.
+
+31
+00:03:38,766 --> 00:03:41,450
+然后第三点，也许也是最重要的一点，就是易用性。
+And then the third and maybe most important one is accessibility.
+
+32
+00:03:41,750 --> 00:03:55,770
+虽然所有这些工具在经验丰富的从业者手中效果更好，但它们确实提升了脚本小子，
+甚至是那些对安全只有非常基础了解的人所能做到的事情。
+While all of these tools work much better in the hands of practitioners that have deep experience, it really does elevate what,
+you know, script kiddies can do or even folks that have even a very, very basic understanding of security.
+
+33
+00:03:56,370 --> 00:03:59,268
+嗯，它能让他们拥有更强的能力，而且速度快得多。
+Um, it allows them to be much more capable much, much faster.
+
+34
+00:04:01,166 --> 00:04:10,270
+嗯，而且还有一个新的驱动因素，就是那些具有极高网络能力的开放权重模型正变得越来越普遍。
+Um, and, and also there is a new forcing function which is the
+prevalence of open weight models with very high, uh, cyber capabilities.
+
+35
+00:04:10,894 --> 00:04:22,250
+所以在座的各位，如果你在防御网络，你必须假设你的
+最强对手至少在利用目前可用的最强大的开放权重模型。
+And so everyone here, if you were defending a network, you have to assume that your worst adversary is at minimum using the most
+capable open weight models that are available.
+
+36
+00:04:22,950 --> 00:04:36,036
+所以开放权重模型与托管的前沿模型之间的区别在于，我们在每个请求之间设有分类器和政策。
+So the difference between the open weight models and the frontier models that are hosted
+is that we have things like classifiers and policy that can sit between every request.
+
+37
+00:04:36,830 --> 00:04:40,590
+我们可以看到谁有权访问这些模型。
+We have some visibility into who has access into these.
+
+38
+00:04:40,974 --> 00:04:43,990
+我们有能力在事后识别滥用行为。
+We have the ability to identify misuse after the fact.
+
+39
+00:04:44,622 --> 00:04:49,890
+而且在模型发布后，我们还可以调整边界、安全余量和分类器。
+And we can also move the boundaries and the safety margin and the classifiers after the model is released.
+
+40
+00:04:50,050 --> 00:04:55,364
+如果我们发现这些政策在某些地方失效了，我们有能力去更改和更新这些政策。
+We have the ability to change and update these policies as we see that they, if we see that they have failed somewhere.
+
+41
+00:04:56,462 --> 00:05:07,990
+说到开放权重模型，即使模型在发布时带有防止用户进行严重违规行为的防护措施，
+这些措施也可能被微调掉或者被湮灭。
+When it comes to the open weight models, even if a model is published with safeguards to not let you do particularly egregious things,
+those can all be fine-tuned away or obliterated.
+
+42
+00:05:08,030 --> 00:05:13,450
+如果有人听说过模型湮灭，那么你可以绕过开放权重模型中的任何护栏。
+If any folks have heard about model obliteration, you can bypass any of those guardrails in an open weight model.
+
+43
+00:05:13,450 --> 00:05:16,550
+所以，这些防护措施没有任何持久性。
+So, none of those safeguards have any durability.
+
+44
+00:05:17,870 --> 00:05:24,090
+本地推理也意味着没有任何门槛来限制谁可能拥有这些高能力模型的访问权。
+Local inference also means that there is no gate to who potentially has access to these highly capable models.
+
+45
+00:05:25,102 --> 00:05:26,190
+没有使用信号。
+There's no usage signal.
+
+46
+00:05:26,310 --> 00:05:27,490
+没有强制执行的能力。
+There's no ability to enforce.
+
+47
+00:05:28,270 --> 00:05:32,510
+一旦开放权重模型发布，就就像神灯里的精灵被放出来了一样。
+And once an open weight model is released, it is like the genie is out of the bottle.
+
+48
+00:05:32,650 --> 00:05:33,870
+你没法把它放回去。
+You cannot put it back in.
+
+49
+00:05:34,010 --> 00:05:35,130
+它将永远存在于外界。
+It is out there forever.
+
+50
+00:05:35,350 --> 00:05:42,090
+你必须假设它会被湮灭，并且能够被用于明显的恶意活动。
+And you must assume that it is going to be obliterated and it is going to be able to be used for overtly malicious activity.
+
+51
+00:05:42,670 --> 00:05:53,690
+然后是另一个我觉得经常被忽视的一点，就是当我们考虑 AI 安全时，
+开放权重模型在很多方面无法提供对齐保证。
+And then the the other one that I think actually gets overlooked quite a bit is that the open weight models can also provide no
+Alignment guarantees in a lot of ways when we think about AI safety.
+
+52
+00:05:54,110 --> 00:06:07,430
+我们假设模型会有一定的对齐保证，即模型会以符合理性且符合我们社会期望的方式表现，
+但开放权重模型的对齐甚至可能被湮灭。
+We assume that there is some Alignment guarantees that the the model will behave in a way that is rational and aligns with like what
+we as a society want To see the open weight models can even have that alignment obliterated.
+
+53
+00:06:07,630 --> 00:06:14,390
+所以我们有时会谈到混沌模型，它们可能会执行非常不可接受的动作。
+So we talk about like chaos models sometimes that might have their own like they will perform very undesirable actions.
+
+54
+00:06:15,054 --> 00:06:21,796
+所以即使一个开放权重模型发布时具有良好的对齐，因为它是开放的，事后也可能变得不再对齐。
+So even if an open weight model is released and has good alignment it can be misaligned after the fact because it is open.
+
+55
+00:06:23,810 --> 00:06:35,610
+因此，当我们考虑基础模型或前沿模型能为防御者
+提供什么目的或功能时，我们会考虑这种能力差距。
+And so when we think about the purpose or what what the foundational models can
+do or frontier models can do for defenders we think about this capability gap.
+
+56
+00:06:35,730 --> 00:06:44,710
+所以，开放权重模型能进行的明显恶意行为与前沿模型能做的能力之间，存在怎样的差距，
+以及我们能为防御者提供什么价值？
+So what is the delta between what an open weight model can do overtly maliciously
+and what the frontier models can do and what value we can provide to Defender?
+
+57
+00:06:45,090 --> 00:06:48,510
+那就是能力之间的差距。
+And that is the gap between the capabilities.
+
+58
+00:06:48,750 --> 00:06:51,270
+这就是我们能以加速的速度提供给防御者的东西。
+That is what we can provide to Defender at an accelerated pace.
+
+59
+00:06:51,694 --> 00:07:04,970
+这个图表显示了一份来自 UKAC 的报告，我想是 6 月份的，
+展示了最先进的开放权重模型与来自其他前沿实验室的最先进前沿模型的对比。
+So this graph is showing a report from UKAC, I think from June, showing the most advanced open weight models as they compare to the
+most advanced frontier models from the other Frontier Labs.
+
+60
+00:07:05,470 --> 00:07:13,350
+这就是我们认为，如果我们执行得当，可以给防御者提供的缓冲或领先优势。
+And that is kind of the gap that we consider to be the buffer or the head start that we can give to defenders if we execute properly.
+
+61
+00:07:14,630 --> 00:07:25,690
+关于 Kimi K3，我听到社区里很多人说，嗯，我没法用 Anthropic 来满足我的需求，
+但我把它输入到 Kimi K3 里，它就给了我我想要的一切。
+Kimi K3, I heard a lot of folks in my community talk about, well, I can't use Fable for what I need,
+but then I pump it into Kimi K3 and it gives me exactly what I want.
+
+62
+00:07:25,870 --> 00:07:30,430
+有些人甚至在说，这个模型会产出什么结果，这有点可怕。
+And some people are even like, it's kind of scary what will come out of this model.
+
+63
+00:07:31,438 --> 00:07:34,070
+这一点非常重要，而且是我们一直都在思考的问题。
+And it's very important and it's something that we think about all the time.
+
+64
+00:07:34,382 --> 00:07:44,010
+这就像是我们运营中面临的一个阴影，就是开放权重模型的浪潮，
+我们知道它们会被用于不法用途。
+This is sort of a looming shadow that we operate under is this rising tide of the open weight models,
+knowing that they are going to be used for nefarious purposes.
+
+65
+00:07:46,860 --> 00:07:54,920
+所以我们第一次尝试提供这种防御价值，我相信你们很多人都熟悉 Project Glasswing。
+So our first attempt to kind of provide this defensive value, I'm sure many of you are familiar with Project Glasswing.
+
+66
+00:07:55,660 --> 00:08:09,680
+我们的目标是向一些高影响力的组织提供有限的访问权限，让他们能够将其用于强大的防御场景，
+这实际上是作为概念验证，看看这个模型是否合理或可行。
+That was our goal, to provide limited access to a number of very high impact organizations that would be able to use it for strong
+defensive use case, really as a proof of concept to see if this model is even rational or makes sense.
+
+67
+00:08:10,220 --> 00:08:22,860
+我们从许多 Glasswing 合作伙伴那里看到了一些非常出色的成果，我非常推荐其中一个，
+就是 Mozilla 发布的一篇关于他们使用 Mythos 来保护 Firefox 的博客文章。
+We have seen some really fantastic results from a lot of our Glasswing partners and I would encourage you,
+one of my favorites is the blog post that Mozilla put out about their use of Mythos to secure Firefox.
+
+68
+00:08:22,860 --> 00:08:32,020
+当我们考虑安全时，这是技术栈中非常关键的一部分，浏览
+器安全是一个巨大的领域，所以我们很高兴听到这个消息。
+That is like a very critical part of the technology stack when we think
+about security, browser security is a huge one, so we love to hear that.
+
+69
+00:08:32,780 --> 00:08:38,179
+在 Anthropic，我们很快就扫描了 1,000 多个开源项目。
+At Anthropic, we have scanned very quickly more than 1,000 open source projects.
+
+70
+00:08:39,534 --> 00:08:48,080
+我们的 Glasswing 合作伙伴在项目开始的前六周内报告了超过 10,000 个重要的漏洞。
+Our Glasswing partners reported over 10,000 important vulnerabilities within the first six weeks of the program.
+
+71
+00:08:48,840 --> 00:08:55,220
+其中约 90% 被认为是真阳性。我们认为，随着后续模型的发布，这个数字还在增长。
+About 90% of them were considered to be true positives And that number, we think, is rising with every follow-on model release.
+
+72
+00:08:56,142 --> 00:08:59,160
+我们正致力于扩大这些项目的访问权限。
+And we are working very hard to expand access to these programs.
+
+73
+00:08:59,380 --> 00:09:02,780
+我们将项目从最初的 50 个启动合作伙伴扩大到了 200 个。
+We grew the program from the initial 50 launch partners to 200.
+
+74
+00:09:03,278 --> 00:09:05,260
+我们意识到这个速度并不理想。
+We realize that this pace is not very satisfactory.
+
+75
+00:09:05,940 --> 00:09:09,940
+但我们正在竭尽全力，尽可能快地让这些工具到正确的人手中。
+But we are doing everything that we can to get it in the hands of the right people as fast as possible.
+
+76
+00:09:10,880 --> 00:09:17,600
+有一点我真的很希望大家能考虑到，就是整件事才刚刚过去四个月。
+And something that, like, I really want people to think about is this whole thing is only like four months old.
+
+77
+00:09:17,920 --> 00:09:20,840
+这是一个非常、非常短的时间线。
+And that is a really, really short timeline.
+
+78
+00:09:20,840 --> 00:09:35,730
+我知道有很多挫败感，尤其是对于那些无法获得这些模型访问权限的个人研究人员。
+但这是全新的领域，风险确实非常重大，我们觉得采取谨慎的方法非常重要。
+And I know there's like a lot of frustration, especially with individual researchers about not having access to these models But this
+is so new and the the risks really are quite substantial And we feel like it's very important to have a measured approach here Project
+
+79
+00:09:35,730 --> 00:09:36,980
+Project Glasswing 是在 4 月才发布的，对吧？
+And I know there's like a lot of frustration, especially with individual researchers about not having access to these models But this
+is so new and the the risks really are quite substantial And we feel like it's very important to have a measured approach here Project
+
+80
+00:09:36,980 --> 00:09:39,820
+Project Glasswing 是在 4 月才发布的，对吧？
+glass wing was only announced in April, right?
+
+81
+00:09:40,360 --> 00:09:50,280
+现在距离那时已经过去了四个月零一天，然后在大约两个月后，我们扩大了项目。
+we are four four four months and one day past that now and then We expanded the program about two months later.
+
+82
+00:09:50,830 --> 00:09:54,560
+我们发布了 Fable 5，也就是带有高级防护措施的 Mythos。
+We shipped Fable 5, which is Mythos with advanced safeguards.
+
+83
+00:09:54,900 --> 00:09:59,000
+当然，我们随即受到了出口管制的限制，然后我们不得不去解决这些问题。
+And then of course, we're immediately covered by export controls that we then had to remediate.
+
+84
+00:09:59,080 --> 00:10:00,660
+所以这是一个非常微妙的过程。
+So this is a very delicate process.
+
+85
+00:10:01,240 --> 00:10:04,380
+我们正在和你们所有人一起，在公开场合实时学习。
+We are learning in public, in real time with you all.
+
+86
+00:10:04,846 --> 00:10:15,300
+我的整个职业生涯都是从事安全工作的，所以我理解获得这些模型访问权限的好处，
+也理解没能获得访问权限的失望。
+I have been a security practitioner for my entire career, so I understand the benefits of gaining access to these models and the
+disappointment of maybe not being given access to them.
+
+87
+00:10:16,060 --> 00:10:17,960
+但我们正在非常、非常快地推进。
+But we're working very, very fast.
+
+88
+00:10:18,760 --> 00:10:22,116
+而且时间线非常疯狂。
+And the timelines are, are very crazy.
+
+89
+00:10:24,206 --> 00:10:29,880
+在我的整个职业生涯中，给出的建议总是——我是不是听起来像个破唱片？
+And throughout my entire career, the advice has always been, I mean, I felt like a broken record.
+
+90
+00:10:29,900 --> 00:10:36,772
+在每一个演讲、每一篇博客、每一篇论文的结尾，我都
+在说：你们需要更快地打补丁，你们需要更快地打补丁。
+At the end of, like, every single talk, every single blog, every single paper,
+I was just saying, you need to patch faster, you need to patch faster.
+
+91
+00:10:36,960 --> 00:10:37,920
+我感觉自己像个破唱片。
+I felt like a broken record.
+
+92
+00:10:38,000 --> 00:10:39,060
+我对自己说这些也感到厌烦了。
+I was getting very tired of it.
+
+93
+00:10:39,760 --> 00:10:46,440
+现在，我真的希望每个人都能意识到，开放权重模型是一个巨大的、迫在眉睫的驱动因素。
+And now, like, what I really want everyone to realize is there is this big looming forcing function of the open weight models.
+
+94
+00:10:47,160 --> 00:11:01,924
+这种能力正在到来，而且它将是公开的。我们的尝试是在这种能力广泛提供给所有想要将其用于
+不法用途的人之前，提前提供防御方面的效用。
+This capability is coming and it will be in the open and this is our attempt to provide defensive utility ahead of time before this
+capability becomes very broadly available to everyone who wants to use it for bad purposes.
+
+95
+00:11:03,640 --> 00:11:17,000
+所以我要稍微聊聊我们是如何看待网络危害类别的，我们要聊聊网络宪法，
+以及我们想要支持什么，同时我们也意识到，在实践中，我们并不总是能支持我们在哲学上想要
+So I'm gonna talk a little bit about how we think about the cyber harm categories and we're gonna talk about the cyber constitution
+and what we want to support and we also realize that we do not always support in practice the things that we want to support in
+
+96
+00:11:17,000 --> 00:11:17,280
+支持的内容，这就是我们有很多改进空间的地方。
+So I'm gonna talk a little bit about how we think about the cyber harm categories and we're gonna talk about the cyber constitution
+and what we want to support and we also realize that we do not always support in practice the things that we want to support in
+
+97
+00:11:17,280 --> 00:11:20,920
+支持的内容，这就是我们有很多改进空间的地方。
+philosophy, and that's where we have a lot of room for improvement.
+
+98
+00:11:22,440 --> 00:11:26,380
+所以网络宪法是一个书面框架。
+So the cyber constitution is a written framework.
+
+99
+00:11:27,086 --> 00:11:40,160
+我们把它写下来，这是一份非常冗长的文件，描述了我们希望我们的模型如何参与网络安全任务，
+我们希望它们如何表现，我们想要支持哪些安全工作，以及我们明确想要拒绝哪些内容。
+So we write down, it's a very lengthy document that describes how we want our models to engage with cyber security tasks,
+how we want them to behave, what security work we want to support and what we explicitly want to deny.
+
+100
+00:11:40,160 --> 00:11:43,240
+而且它是为了供人讨论和辩论而设计的。
+and it is designed to be argued with.
+
+101
+00:11:43,406 --> 00:11:53,580
+所以当我们和某人坐在一起，描述我们认为应该拦截的内容时，我们总是会指回宪法，
+宪法里有书面的例子，说明我们为什么认为某些事情是好是坏。
+so when we get in a room with someone and we describe what we think we should block,
+we always point back to the Constitution that has written examples of why we think certain things are good and bad.
+
+102
+00:11:53,580 --> 00:11:57,420
+而且这份文件是一个动态文件。
+and this document is a living document.
+
+103
+00:11:57,486 --> 00:11:58,420
+它一直在变。
+it shifts all the time.
+
+104
+00:11:58,702 --> 00:12:06,480
+我们已经提供了这些受限访问四个月了，我们现在有四个版本的宪法。
+we've been providing these restricted access for four months, and we have four versions of the Constitution.
+
+105
+00:12:07,420 --> 00:12:13,320
+所以随着我们与像各位这样的朋友互动并吸取经验，它一直在不断变化。
+So it changes all the time as we learn lessons by engaging with folks like you all.
+
+106
+00:12:14,240 --> 00:12:24,280
+但无论宪法经过多少次迭代，始终不变的高层目标是：我们希望最小化危害，并最大化防御效用。
+But the the high-level goal that has never changed across all the iterations of the Constitution is that the high-level goal is we
+want to minimize harm and we want to maximize defensive utility.
+
+107
+00:12:25,518 --> 00:12:30,660
+不幸的是，在你们输入到 Claude 的几乎每一个网络安全提示词中，这两者都是冲突的。
+And unfortunately those two are in conflict on almost every single cybersecurity security prompt that you pass into CLOG.
+
+108
+00:12:31,880 --> 00:12:38,720
+所以当涉及到我们定义的活动类型时，我们在网络宪法中有四个类别。
+So when it comes to the types of activities that we define, we have four buckets in the cyber constitution.
+
+109
+00:12:38,980 --> 00:12:41,980
+我们有我们认为是可以接受的用途，也就是双重用途。
+We have things that we consider acceptable use, dual use.
+
+110
+00:12:42,382 --> 00:12:45,680
+我们有一个被称为敏感目标的类别，然后是禁止用途。
+We have a bucket that we call sensitive targets, and then prohibited use.
+
+111
+00:12:46,126 --> 00:12:47,800
+禁止用途这个词可能有点误导。
+Prohibited use is a little bit of a misnomer.
+
+112
+00:12:48,620 --> 00:12:52,020
+它可能是风险最高的双重用途能力。
+It might be the most risky dual use capability.
+
+113
+00:12:53,200 --> 00:12:57,476
+但从高层来看，我们想要支持的内容甚至包括 CTFs。
+But you can see at a high level, things that we want to support are things even like CTFs.
+
+114
+00:12:57,742 --> 00:13:03,260
+我们希望支持恶意软件分析，在所有情况下我们都希望支持补丁优先级排序。
+we want to support malware analysis, we want to support patch prioritization in all cases.
+
+115
+00:13:03,440 --> 00:13:04,000
+这就是我们的目标。
+That is our goal.
+
+116
+00:13:04,140 --> 00:13:04,820
+这就是我们的愿望。
+That is our desire.
+
+117
+00:13:05,320 --> 00:13:08,380
+然后有一些双重用途的案例变得复杂得多。
+Then there are dual-use cases that become a lot more complicated.
+
+118
+00:13:08,560 --> 00:13:17,880
+特别是生成复杂漏洞利用程序的能力，尤其是仅从二进制文件生成，
+这可能是最具争议的双重用途案例之一。
+In particular, the ability to generate complex exploits, especially just from binary,
+is probably one of the most controversial dual-use cases.
+
+119
+00:13:18,380 --> 00:13:26,180
+这一切都存在于这样一个背景下：存在大量的敏感目标，坦白说，其中许多目标根本无法打补丁。
+And this all exists in the context that there are a large number of sensitive
+targets that, to be quite frank, many of them cannot be patched at all.
+
+120
+00:13:26,600 --> 00:13:33,620
+其中一些需要技术人员开着面包车去变电站，然后插上一个优盘。
+Some of them require a technician to go in a van to like a power substation and plug in a thumb drive.
+
+121
+00:13:34,080 --> 00:13:45,960
+我曾和一家公用事业供应商交谈过，他们在变电站插上一个调制解调器，
+上面有默认的用户名和密码，你甚至可以直接通过 USB 攻击变电站。
+I talked to a utility provider where they plug in a modem at a power substation that has a default username and password on it,
+and you could literally war drive for a power substation.
+
+122
+00:13:46,126 --> 00:13:59,876
+所以我想我们都知道，许多这些 OT 系统极其不安全，不需要 Mythos 级别的权限就能在这些系
+统中找到漏洞，然而它们仍是我们风险计算的一部分。
+So I think we all know that many of these OT systems are horrendously insecure, does not require mythos level access to be able to
+find vulnerabilities in a lot of these systems and Yet they are part of our risk calculation.
+
+123
+00:13:59,982 --> 00:14:09,660
+这是我们必须考虑的，我们希望意识到这些是我们
+的最关键系统之一，它们有能力造成巨大的破坏。
+It's something that we have to consider, And we, we want to be sensitive to the fact that those are some of our most critical systems
+that have the ability To cause a lot of a lot of damage.
+
+124
+00:14:10,360 --> 00:14:23,440
+然后还有我们称之为禁止用途的内容，我们认为它们非常偏向于攻击，比如构建恶意软件，
+虽然它有防御用途，但我们认为它非常强烈地偏向于攻击。
+And then there are things that we call prohibited use, which we consider very offensively biased Um, things like building malware,
+which there are defensive use cases for it, but we consider it to be very strongly, offensively biased.
+
+125
+00:14:23,980 --> 00:14:31,844
+嗯，自我复制代码，嗯，供应链攻击，诸如此类的东西，在宪法中属于我们所谓的禁止用途。
+Um, self-replicating code, um, supply chain attacks, things like that,
+uh, fall into what we call in the Constitution, uh, prohibited use.
+
+126
+00:14:33,390 --> 00:14:44,160
+然后我们必须将这份文件转化为一系列分类器，这些分类器会查看单个交互，
+并试图判断该活动是否符合这些类别中的任何一类。
+And then we have to translate this document into a series of classifiers that looks at individual exchanges and tries to make a
+determination about whether it fit, whether that activity fits into one of these categories.
+
+127
+00:14:44,160 --> 00:14:50,600
+所以，我们划分的这些类别，全部都在我们关于 Anthropic 的博客文章中。
+So, the categories that we identify, and this is all in our blog post on Fable.
+
+128
+00:14:51,180 --> 00:14:55,100
+我们有被视为良性用途的类别，这与可接受用途高度契合。
+we have what we consider to be benign use, which maps very cleanly to acceptable use.
+
+129
+00:14:55,534 --> 00:15:05,668
+这就是我们一直想要支持的防御性工作，特别是安全软件开发生命周期，
+是我们希望在所有情况下都支持的重要内容。
+and this is the defensive work that we want to always support, which in particular,
+the secure software development life cycle is a very big one that we want to support in all cases.
+
+130
+00:15:06,320 --> 00:15:18,560
+然后我们还有低风险双重用途，虽然它具有潜在的对抗性后果，但我们认为它高度偏向防御。
+And then what we have, we consider low risk dual use, which does have potential adversarial consequences,
+but we consider it to be highly defensively biased.
+
+131
+00:15:18,980 --> 00:15:30,100
+举个我们经常遇到的常见例子：我们不想协助恶意行为人快速开发武器化漏洞利用程序。
+And just to give an example of a very common situation that we encounter is where we do
+not wanna facilitate the rapid development of weaponized exploits for malicious actors.
+
+132
+00:15:30,260 --> 00:15:35,120
+我们不想给勒索软件运营商提供一个简单的按钮，让他们能够大规模地利用漏洞。
+We do not wanna give ransomware operators an easy button to go and exploit things at scale.
+
+133
+00:15:35,470 --> 00:15:43,200
+然而，我们也意识到，当软件作者收到漏洞报告时，他们需要知道漏洞的严重程度。
+However, we also realize that when software authors are given vulnerability reports, they need to know how serious it is.
+
+134
+00:15:43,460 --> 00:15:50,692
+我们实现这一目标的主要方式之一，就是创建概念验证漏洞利用代码，
+以展示某些内容是可以被利用和武器化的。
+And one of the primary ways that we do that is by creating proof of concept
+exploit code to show that something is exploitable and weaponizable.
+
+135
+00:15:51,150 --> 00:15:56,680
+事实上，在许多情况下，如果一个漏洞不被认为是可以利用的，它就永远不会被修复。
+And in fact, in many cases, if a vulnerability is not considered exploitable, it is never fixed at all.
+
+136
+00:15:57,040 --> 00:16:04,320
+但很多时候我们知道，我们有一堆实际上可利用的 CVE 积压在后台，
+只是还没有人真正去研究它们，对吧？
+But a lot of the times we know we have a backlog of CVEs that actually
+are exploitable and just nobody has really looked at them yet, right?
+
+137
+00:16:04,430 --> 00:16:17,330
+所以我们现在根据 CISA KEV 以及是否存在野外 POC 来判断，
+但关于某些内容是否可利用的逻辑在过去六个月里发生了变化，
+So we go now based on things like CISA KEV and whether there's a POC in the wild,
+but the the calculus on whether something is exploitable or not has changed in the last six months,
+
+138
+00:16:17,330 --> 00:16:17,800
+我们必须找到一种好的方法来调整我们对此的认知。
+So we go now based on things like CISA KEV and whether there's a POC in the wild,
+but the the calculus on whether something is exploitable or not has changed in the last six months,
+
+139
+00:16:17,800 --> 00:16:22,940
+我们必须找到一种好的方法来调整我们对此的认知。
+and we have to find a good way to to adjust our mentality around that.
+
+140
+00:16:23,342 --> 00:16:39,900
+然后我们有高风险双重用途，我们认为它相当偏向进攻，还有禁止用途，
+这与禁止用途类别高度契合，其防御效用非常非常低。
+And then we have high-risk dual-use, which we consider to be quite offensively biased, and then and prohibited use,
+which maps very cleanly into the prohibited use bucket, which has a very, very low defensive utility.
+
+141
+00:16:41,070 --> 00:16:47,588
+所以，让我们深入探讨其中两个类别，并举一些例
+子，你们中很多人可能对 CTFs 之类的内容感兴趣。
+And so just to dive in a little bit on two of the categories, and just to give some examples,
+many of you are probably interested in things like CTFs.
+
+142
+00:16:47,640 --> 00:16:49,400
+我们绝对想要支持那个使用场景。
+We absolutely wanna support that use case.
+
+143
+00:16:49,520 --> 00:16:54,600
+我们通过网络验证计划，批准人们在 CTFs 中使用我们的模型。
+We approve folks to use our models and CTFs through the Cyber Verification Program.
+
+144
+00:16:55,660 --> 00:17:04,480
+出于防御目的进行恶意软件分析、优先处理补丁，这些都是我们一直想要支持的内容。
+Doing malware analysis for defensive purposes, prioritizing patches,
+these are all things that we want to be supporting all of the time.
+
+145
+00:17:05,740 --> 00:17:19,780
+然后是一些被我们视为禁止用途的更深层次例子，比如可能导致
+甚至造成网络物理损害的破坏性技术，以及大规模的数据外泄。
+And then some deeper examples on things that we consider to be prohibited use are destructive techniques that might cause even like
+cyber-physical damage to real world systems, scaled data exfiltration of massive amounts of records.
+
+146
+00:17:19,960 --> 00:17:31,590
+我们理解有时你需要展示一个 POC 来证明你可以提取某组信息，但大规模外泄、自我复制代码、
+供应链攻击，这些都是我们非常强烈地想要阻止的
+We understand sometimes you need to show a POC that you can extract some set of information, but exfiltration at scale,
+self-replicating codes, supply chain attacks, these are all things that we really
+
+147
+00:17:31,590 --> 00:17:32,080
+我们理解有时你需要展示一个 POC 来证明你可以提取某组信息，但大规模外泄、自我复制代码、
+供应链攻击，这些都是我们非常强烈地想要阻止的
+very strongly want to stop because we think the propensity for harm is very very high.
+
+148
+00:17:32,080 --> 00:17:36,480
+内容，因为我们认为其造成伤害的倾向非常非常高。
+very strongly want to stop because we think the propensity for harm is very very high.
+
+149
+00:17:37,966 --> 00:17:53,240
+这其中的另一部分极其、极其复杂，甚至在历史上，授权使用、
+授权安全研究和未经授权的安全研究之间的区别就在于意图。
+And the other part of this, that is extremely, extremely complicated, is that even historically the difference between authorized use
+and authorized security research and unauthorized security research is intent.
+
+150
+00:17:53,582 --> 00:17:58,420
+以及你是否会在完成任务后负责任地披露那个漏洞。
+and it's whether you're going to disclose that vulnerability when you're done responsibly or not.
+
+151
+00:17:58,800 --> 00:18:03,400
+即使你看 CFAA，情况实际上甚至比这还要复杂。
+And even if you look at the CFAA, it's actually even quite more complicated than that.
+
+152
+00:18:03,540 --> 00:18:10,140
+司法部有一项起诉建议，即不要起诉从事诚信安全研究的人。
+The Justice Department has a charging recommendation to not charge people for doing good faith security research.
+
+153
+00:18:10,478 --> 00:18:13,780
+但如果你看 CFAA，其实并不那么明确。
+But if you look at the CFAA, it's not actually that clear.
+
+154
+00:18:14,360 --> 00:18:23,920
+所以，如果这是法律系统在法庭程序中都搞不清楚的事情，
+而我们却必须在与 Claude 的单次交互中搞清楚，那就是一个非常具有挑战性的问题。
+And so if this is something that the legal system can't figure out in a court proceeding,
+and we have to figure it out in a single exchange with Claude, that's a very challenging problem.
+
+155
+00:18:24,494 --> 00:18:28,040
+坦白说，这是我们无法做到的。
+And it's something that, frankly, we cannot do.
+
+156
+00:18:28,200 --> 00:18:31,060
+我们无法从单次交互中识别意图。
+We cannot identify intent from an individual exchange.
+
+157
+00:18:31,120 --> 00:18:37,720
+在某些非常明显的情况下，比如有人说「帮我黑掉我
+邻居的 Facebook 账号」之类的事情，我们可以识别。
+We can in the very obvious case where someone says, help me hack my neighbor's Facebook account or something like that.
+
+158
+00:18:37,780 --> 00:18:39,840
+那是非常明显的，很容易捕捉到。
+That's very obvious and that's easy to catch.
+
+159
+00:18:40,580 --> 00:18:49,060
+但大家都知道，你可以通过重新包装你的提示词，让它看起来更良性，
+然后你很可能就能绕过那些非常简单的拦截。
+But everyone knows that you can just reframe your prompt to seem more
+benign and then you're likely to get around that pretty trivial block.
+
+160
+00:18:51,054 --> 00:18:58,640
+所以，如果我们无法从单次交互中理解意图，我们就必须用身份来作为意图的代理。
+So, if we cannot understand intent from an individual exchange, we have to proxy that with identity.
+
+161
+00:18:58,926 --> 00:19:11,270
+这就是网络验证计划的基础，即如果我们能获取一些关于身份的信息，
+我们就可以进行一定程度的审核，确认你是否参与了诚信安全研究，或者是一个已知的好人，
+And so that's the basis for the cyber verification program, is that if we can gain some information about your identity,
+we can do some degree of vetting and identify that you have participated in good faith security research or are a known, like,
+
+162
+00:19:11,270 --> 00:19:11,440
+这就是网络验证计划的基础，即如果我们能获取一些关于身份的信息，
+我们就可以进行一定程度的审核，确认你是否参与了诚信安全研究，或者是一个已知的好人，
+good guy, and then we can expand that access and then we have some accountability levers that we can pull there.
+
+163
+00:19:11,440 --> 00:19:16,840
+然后我们可以扩大相应的访问权限，并拥有一些可以使用的问责杠杆。
+good guy, and then we can expand that access and then we have some accountability levers that we can pull there.
+
+164
+00:19:16,840 --> 00:19:34,540
+所以，我们利用身份作为意图代理的两套系统是网络验证计划和 Project Glasswing，
+我们期待在未来扩大这些计划，并让这些功能变得更加易于获取。
+So, our two systems for leveraging identity as the proxy for intent is the Cyber Verification Program and Project Glasswing,
+and we look forward to expanding those programs and making these capabilities more accessible as we move forward.
+
+165
+00:19:35,320 --> 00:19:47,260
+我想花点时间谈谈 Anthropic，我想你们中很多人可能都有过相关经验，
+因为它在进行防御性网络工作时非常困难，我想谈谈原因。
+I want to take a little bit of time to talk about Fable, which I think many of you probably have some experience with,
+seeing that it is very hard to do defensive cyber work in and why that is.
+
+166
+00:19:49,038 --> 00:19:56,540
+对于所有的安全分类器，由于存在越狱这些分类器的可能性，我们必须设定我们认为的安全余量。
+So with all of our safety classifiers, we have to set what we consider
+to be a safety margin due to the ability to jailbreak these classifiers.
+
+167
+00:19:56,880 --> 00:20:13,800
+因此，我们的目标是确保分类器边界与我们认为有害的行为之间有足够的余量，
+以便我们能及时阻止那些有害活动，尤其是考虑到智能体流在大规模实施伤害时的速度。
+And so it is our goal to make sure that there is enough margin between the classifier boundary and what we consider harmful,
+that we can prevent that harmful activity in time, especially because of the speed of like agentic flows to commit harm at scale.
+
+168
+00:20:15,860 --> 00:20:29,956
+通过 Mythos 以及我们在其中看到的先进能力，我们意识到必须把这个边界设得比其他模型稍微
+宽一点，以便我们能够更有信心地更快地拦截这些滥用行为。
+with Mythos and the advanced capabilities that we saw in that, we realized that we had to set this boundary a little bit wider than we
+did for the other models in order to be to be able to have confidence that we could catch this abuse much much faster.
+
+169
+00:20:30,200 --> 00:20:45,000
+所以我们有这个安全余量的概念，我们知道我们会拦截一些我们本想允许的请求，
+但我们这样做是为了给自己留出一点缓冲，以便我们能按想要的方式执行我们的政策准则。
+So we have this concept of safety margin where we know that we're going to block some requests that we would like to permit,
+but we do that to give ourselves a bit of a buffer in order to be able to enforce our policy lines the way that we want to.
+
+170
+00:20:45,560 --> 00:20:49,300
+所以这里有两个圆圈。
+And so there are there are two circles here.
+
+171
+00:20:49,390 --> 00:20:56,300
+一个是我们希望通过宪法允许的一系列活动，另一个是安全防护措施实际允许的内容。
+One is the set of activity that we want to be permitted by a Constitution, and then what the safeguards actually permit.
+
+172
+00:20:56,440 --> 00:20:57,760
+它们并不相同。
+And they are not the same.
+
+173
+00:20:58,222 --> 00:20:59,860
+我们知道它们并不相同。
+We know that they are not the same.
+
+174
+00:21:01,870 --> 00:21:10,628
+这是完全刻意的，这个边界给了我们一点提前时间来提高我们检测和执行实际政策准线的能力。
+That is absolutely intentional, and that boundary is what gives us a little bit
+of lead time to improve our ability to detect and enforce our actual policy lines.
+
+175
+00:21:12,380 --> 00:21:14,440
+我想在这里花一分钟谈谈越狱。
+And I wanna talk about jailbreaks here for a minute.
+
+176
+00:21:16,654 --> 00:21:19,652
+基本上所有模型在某种程度上都容易受到越狱的影响。
+Basically all models are susceptible to jailbreak in some capacity.
+
+177
+00:21:20,270 --> 00:21:25,732
+所以我们必须生活在一个已知安全防护措施有被越狱可能的世界里。
+So we have to live in a world where we know that our safeguards have the potential to be jailbroken.
+
+178
+00:21:26,318 --> 00:21:29,100
+但并非所有的越狱都是一样的。
+But also not every jailbreak is the same.
+
+179
+00:21:30,062 --> 00:21:35,460
+这些是三种不同类型越狱的例子，这是我们对它们进行不同推理的一个例子。
+So these are three examples of different types of jailbreaks and this is an example of how we reason about them differently.
+
+180
+00:21:35,480 --> 00:21:48,360
+所以，可能会有一些轻微的越狱，它们可能会绕过分类器实际要执行的内容，
+但并不会真正导致执行有害活动。
+So, there can be minor jailbreaks that might bypass what the classifier is actually supposed to enforce,
+but does not actually get through to performing harmful activities.
+
+181
+00:21:48,462 --> 00:21:56,460
+比如，当你们在进行恶意软件逆向工程时被拦截，那是围绕构建恶意软件设置的安全余量。
+So like, when you all get blocked doing malware reverse engineering, right, that is a safety margin around building malware.
+
+182
+00:21:57,180 --> 00:22:02,580
+如果你找到了绕过它来逆向工程恶意软件的方法，那是没问题的。
+And if you found a way to get past it to reverse engineer malware, that's fine.
+
+183
+00:22:02,580 --> 00:22:10,200
+如果你绕过它来构建一个新的 C2，并在勒索软件攻击中恶意使用，我们认为那是不可接受的。
+If you got around it to build a new C2 to use maliciously in a ransomware campaign, we think that is not fine.
+
+184
+00:22:10,350 --> 00:22:12,132
+这就是为什么存在那个安全余量。
+So that is why that safety margin exists.
+
+185
+00:22:12,860 --> 00:22:24,080
+然后还有一些有害的窄域越狱，它们可能会提供某些非常特定的、非通用的能力。
+And then there are narrow jailbreaks that are harmful that might give access to like a very specific capability that is not universal.
+
+186
+00:22:24,760 --> 00:22:39,340
+例如，它可能只给你在漏洞识别方面的额外能力，但对漏洞利用生成毫无作用；
+或者它可能给你一些生成漏洞利用程序的能力，但仅限于跨站脚本攻击。
+So for example, maybe it gives you additional capability in vulnerability identification specifically,
+but does nothing for exploit generation, or maybe it gives you some ability to generate exploits,
+
+187
+00:22:39,340 --> 00:22:42,820
+例如，它可能只给你在漏洞识别方面的额外能力，但对漏洞利用生成毫无作用；
+或者它可能给你一些生成漏洞利用程序的能力，但仅限于跨站脚本攻击。
+but it's only for cross-site scripting attacks.
+
+188
+00:22:43,246 --> 00:22:49,380
+我们认为这些是窄域越狱，而且它们仍然具有潜在的危害。
+We consider those to be narrow jailbreaks that also still are potentially harmful.
+
+189
+00:22:50,670 --> 00:23:01,690
+然后是通用越狱，这是我们最担忧的，即通过某种修改或提示，
+你可以获得我们想要防止的所有有害活动。
+And then there's universal jailbreaks, which are the ones that we have the highest degree of concern about,
+which is where through some sort of modification or prompting, you can
+
+190
+00:23:01,690 --> 00:23:05,760
+然后是通用越狱，这是我们最担忧的，即通过某种修改或提示，
+你可以获得我们想要防止的所有有害活动。
+gain access to all of the harmful activity that we want to prevent.
+
+191
+00:23:06,740 --> 00:23:13,180
+这还允许你围绕这些构建智能体流，这是特别令人担忧的一点。
+And that also allows you to build agentic flows around that, which is the particularly concerning thing.
+
+192
+00:23:13,280 --> 00:23:18,180
+所以，如果你能够构建一台大规模进行网络战争的机器，那就是我们不希望看到的。
+So if you're able to build a machine that does cyber war at scale, that is what we do not want.
+
+193
+00:23:18,280 --> 00:23:22,000
+所以通用越狱才是威胁模型所在的核心。
+So a universal jailbreak is really where that threat model lies.
+
+194
+00:23:22,460 --> 00:23:26,040
+所以这些就是我们思考越狱时的几种场景。
+And so these are kind of the scenarios where we think about jailbreaks.
+
+195
+00:23:27,438 --> 00:23:36,860
+所以由于 Fable 5 分类器的越狱报告，迫使我们出于必要性构建了一个新框架。
+So due to the jailbreak report for the Fable 5 classifier, it required us to build a new framework kind of out of necessity.
+
+196
+00:23:38,798 --> 00:23:41,380
+所以我们构建了我们称之为越狱严重性框架的东西。
+So we built what we call the jailbreak severity framework.
+
+197
+00:23:41,870 --> 00:23:47,820
+它是非常松散地基于 CVSS，我知道这里的每个人都很
+喜欢它，完全没有任何抱怨，它是普遍受到欢迎的。
+It is based very loosely on CVSS, which I know everyone here loves and has no complaints about at all, universally beloved.
+
+198
+00:23:49,820 --> 00:23:53,540
+然而，它已经完成了任务，而且已经坚持了非常、非常长的时间。
+However, it has gotten the job done for a very, very long time.
+
+199
+00:23:53,998 --> 00:24:01,120
+所以，呃，我们寻求在那个框架上构建一些东西，我们认为这里有四个核心标准。
+So, uh, we look to build something, uh, on that framework and we consider there to be kind of four core criteria.
+
+200
+00:24:01,774 --> 00:24:03,960
+嗯，第一个标准是能力增益。
+Um, the first criteria is capability gain.
+
+201
+00:24:04,142 --> 00:24:15,780
+例如，如果你能越狱一个高能力模型去寻找漏洞，但那些漏洞极其简单，
+我们认为那是非常低的能力增益。
+So, for example, if you are able to jailbreak a highly capable model into, uh, finding vulnerabilities,
+but those vulnerabilities are extremely trivial, we consider that to be very low capability gain.
+
+202
+00:24:15,860 --> 00:24:26,840
+例如，嗯，有些报告的越狱，如果你把它推到，嗯，嗯，任何开放权重模型上，
+它们都会提供相同的输出，没有任何拒绝或拦截。
+So, for example, um, some of the reported jailbreaks, if you push it into, uh, um, any of the open weight models,
+they will provide the same output without any refusals or any blocks at all.
+
+203
+00:24:27,280 --> 00:24:31,000
+我们认为那是非常低的提升，能力增益也非常微小。
+We consider that to be very low uplift and the capability gain to be very minimal.
+
+204
+00:24:31,440 --> 00:24:44,080
+然而，如果它能够逆向工程一个混淆二进制文件并为其制作零日漏洞利用，现在，
+也许不是下个月，但现在我们认为那是相当高的、高提升的能力。
+However, if it's able to reverse engineer an obfuscated binary and make a zero-day exploit for that, right now, maybe not next month,
+but right now we consider that to be a pretty high, high uplift capability.
+
+205
+00:24:44,960 --> 00:24:46,840
+嗯，接下来是获益广度。
+Um, the next is the breadth of gain.
+
+206
+00:24:47,342 --> 00:24:54,244
+所以是指你获得了多少种不同类型的有害活动，这
+很大程度上是基于宪法，也就是其中一些离散列表。
+So it's how many different types of harmful activities have you gained access
+to and that's largely based on the constitution, some of those discrete lists.
+
+207
+00:24:54,840 --> 00:25:00,580
+所以如果它只获得了其中一两个，那就是有限范围的获益广度。
+So if it, if it gains access to just like one of those or two of those, that's a limited scope uh, breadth.
+
+208
+00:25:01,240 --> 00:25:05,720
+呃，但如果它是整个禁止用途类别，那就是一个完全不同的情况。
+Uh, but if it's the entire category of prohibited use, that's a very different scenario.
+
+209
+00:25:07,118 --> 00:25:08,660
+然后我们有武器化难易度。
+Then we have ease of weaponization.
+
+210
+00:25:09,230 --> 00:25:18,820
+嗯，这和你们思考传统漏洞的方式有点不同，因为有很多标准可以纳入这里，
+比如一个越狱可能要求你在越狱成功前花费价值一百万美元的 token。
+Um, this is like a little bit different from how you think about traditional vulnerabilities,
+because there's a lot of criteria that could into here, such as a jailbreak may
+
+211
+00:25:18,820 --> 00:25:23,556
+嗯，这和你们思考传统漏洞的方式有点不同，因为有很多标准可以纳入这里，
+比如一个越狱可能要求你在越狱成功前花费价值一百万美元的 token。
+require that you spend a million dollars worth of tokens before the jailbreak works.
+
+212
+00:25:24,174 --> 00:25:28,600
+如果是这种情况，武器化难易度，呃，就是……
+if that's the case, ease of weaponization, uh is uh.
+
+213
+00:25:28,654 --> 00:25:30,300
+那就是不容易被武器化。
+that is that is not easy to weaponize.
+
+214
+00:25:30,478 --> 00:25:37,920
+有些需要非常复杂的手段，或者你必须进行套件封装，或者，呃，非常深度的……
+some of them require a very convoluted, or you have to do harnessing or, uh, like very deep.
+
+215
+00:25:37,920 --> 00:25:44,540
+比如上下文投毒，其中许多都被认为是难以武器化的。
+like context poisoning, many of those are considered difficult to weaponize.
+
+216
+00:25:45,040 --> 00:25:50,980
+然而，如果你的提示词是像「请修复这段代码」这样的，那就非常容易。
+However, if your prompt is something like, please just fix this code, that is very easy.
+
+217
+00:25:51,720 --> 00:25:53,840
+所以这就是它在武器化难易度上的表现。
+So that's where that falls on ease of weaponization.
+
+218
+00:25:54,940 --> 00:26:04,760
+对于可发现性，这一项有点挑战，因为它也与我们思考传统漏洞的方式非常不同。
+For discoverability, this one is a little bit challenging because it's
+also very different from how we think about traditional vulnerabilities.
+
+219
+00:26:04,760 --> 00:26:20,800
+嗯，有些越狱对于一个在家里拿着键盘、只是打字的人来说相当简单，用来识别护栏在哪里，
+并很快发现：哦，如果我只要打出这个，我就能绕过那个通常被拦截的东西。
+Um, some jailbreaks are fairly trivial for someone at home with a keyboard and just typing things out to identify where the guardrails
+are and to very quickly find, oh, if I just type this, I get around this thing that is normally blocked.
+
+220
+00:26:21,480 --> 00:26:29,360
+嗯，如果一个绕过方法被公开发布了，嗯，那就足够了。
+Um, if, if a bypass is published publicly, um, that is enough.
+
+221
+00:26:29,550 --> 00:26:32,380
+就像你不需要一个，它已经像是一个 POC 了。
+Like you don't need a, it's already like a POC.
+
+222
+00:26:32,380 --> 00:26:43,540
+它已经是野外存在的漏洞了，所以一旦它们被发布，就已经完全可发现了，
+而且实际上任何人都可以使用它，然后我们就只取决于武器化难易度，比如 token 成本很高。
+it's already an exploit in the wild, so once they are published, it already is fully discoverable, and effectively anyone can use it,
+and then we're just hinging on ease of weaponization, so if like token cost is high.
+
+223
+00:26:43,980 --> 00:26:52,920
+所以可发现性在这里是一种与我们思考漏洞完全不同的访问方式，
+这是该框架中一个非常重要的区别。
+So discoverability is like a very different kind of access here relative to what we think about for vulnerability,
+and a very important distinction in this framework.
+
+224
+00:26:53,582 --> 00:27:00,940
+我们在 Anthropic 构建并发布了这个框架，但我们希望看到一个更受社区认可的标准。
+We at Anthropic built and published this framework, but we hope to see a more community accepted standard.
+
+225
+00:27:01,280 --> 00:27:11,960
+初衷不是为了建立 Anthropic 越狱框架，而是为了奠定基础，
+建立一个所有实验室和社区都可以团结一致的通用框架。
+The intent was not to make the anthropic jailbreak framework, it was to lay the groundwork
+to have a universal framework that all of the labs and the community can rally around.
+
+226
+00:27:12,620 --> 00:27:17,460
+所以我们期待与合作伙伴共同努力，让这成为一个通用标准，而不是 Anthropic 的标准。
+And so we look forward to working with our partners to make this a common standard rather than an anthropic standard.
+
+227
+00:27:20,462 --> 00:27:25,000
+有些地方我们知道这些政策确实做得不够好，还有很大的改进空间。
+So some places where we know these policies really fall short and we have room for improvement.
+
+228
+00:27:26,286 --> 00:27:29,780
+我们知道安全余量会阻碍实际的工作。
+We know that the safety margin blocks real work.
+
+229
+00:27:30,080 --> 00:27:41,280
+我们知道在今天很多对话中，很多人都说，我喜欢 Claude，
+我喜欢 Anthropic 的模型，我一直都在用，除了安全领域。
+We know that many people in many of the conversations that I've had today, I've heard tons of people say, I love Claude,
+I love anthropic models, I use it all the time, except for security.
+
+230
+00:27:41,582 --> 00:27:42,560
+我们经常听到这样的反馈。
+We hear that all the time.
+
+231
+00:27:42,620 --> 00:27:47,800
+我们理解这些拦截可能会造成很大困难，尤其是对于智能体流。
+And we understand that these blocks can make it very difficult, especially for agentic flows.
+
+232
+00:27:48,520 --> 00:27:50,480
+我们知道这是一个问题。
+And we know that that is an issue.
+
+233
+00:27:51,000 --> 00:27:58,040
+我们也意识到，独立研究人员，可能就像在座的各位一样，
+在获取高级能力方面面临最困难的路径。
+We also recognize that independent researchers, probably like many of you here, have the worst path to advanced capabilities.
+
+234
+00:27:58,510 --> 00:28:07,700
+我们明白 Project Glasswing 看起来似乎只提供给一小部分客户，如果你是漏洞赏金研究人员，
+比如在进行非常诚意的安全工作，我们意识到你获取这些能
+We understand that Project Glasswing looks like it's available only to a small subset of customers,
+and if you were a bug bounty researcher, for example, doing really good faith security work,
+
+235
+00:28:07,700 --> 00:28:08,850
+我们明白 Project Glasswing 看起来似乎只提供给一小部分客户，如果你是漏洞赏金研究人员，
+比如在进行非常诚意的安全工作，我们意识到你获取这些能
+we realize that you have the hardest path for those capable models, and that's something that we're working on.
+
+236
+00:28:08,850 --> 00:28:13,020
+力模型时面临最困难的路径，这是我们正在努力解决的问题。
+we realize that you have the hardest path for those capable models, and that's something that we're working on.
+
+237
+00:28:13,614 --> 00:28:17,340
+另一件事是，我们谈到了分类器的这四个类别。
+The other thing is we talked about these four buckets for classifiers.
+
+238
+00:28:17,902 --> 00:28:24,360
+这还不足以让我们在这里实施非常精细的强制政策。
+That is not enough nuance in order to have like, a really fine-grained enforcement policy here.
+
+239
+00:28:24,900 --> 00:28:29,680
+当你把事情仅仅归入四个类别时，太多的上下文信息就会被抹平。
+Too much context is flattened when you put things into just four buckets.
+
+240
+00:28:31,790 --> 00:28:36,280
+我们也意识到拒绝解释太模糊了。
+And we also realized that the refusal explanations are vague.
+
+241
+00:28:36,740 --> 00:28:48,800
+很多人说，嘿，我不应该被拦截，但我被拦截了，而你可
+能不知道那是触发了越狱分类器，而不是网络安全分类器。
+Many people say, hey, I'm not supposed to be getting cyber blocks and I got blocked on something,
+and you might not know that it triggered a jailbreak classifier, and actually was not a cyber classifier.
+
+242
+00:28:48,920 --> 00:28:49,820
+我们以前见过这种情况。
+We have seen that before.
+
+243
+00:28:49,820 --> 00:29:04,860
+但是，特别是如果你在听这个演讲，你会想，嘿，你说我应该能够为了防御目的去逆向工程恶意
+软件，但我被拦截了，这并没有解释模型在思考过程中到底在想什么。
+But also, especially if you're looking at this talk and you're like, hey, you said that I should be able to reverse engineer malware
+for defensive purposes and I got blocked, it doesn't explain what it was that could be even in the model's thinking.
+
+244
+00:29:05,560 --> 00:29:12,560
+你可能看到也可能看不到，甚至没去关注，但它可能在想：嗯，我该如何设计恶意软件？
+That you may or may not see or even look at, could have been thinking about, well, how would I design malware?
+
+245
+00:29:12,760 --> 00:29:16,560
+噢，那就会触发分类器，因为它不应该告诉你如何设计恶意软件。
+Oh, well, that's gonna trip the classifier because it's not supposed to tell you how to design malware.
+
+246
+00:29:17,220 --> 00:29:21,140
+所以这是我们知道有很多成长空间的四个类别。
+So these are the four categories where we know that we really have a lot of room to grow.
+
+247
+00:29:21,140 --> 00:29:22,340
+我们还有很多工作要做。
+we have a lot of work to do.
+
+248
+00:29:22,862 --> 00:29:30,040
+总之，这些界限将会变动，分类器也会改变。
+and and all that to say, these lines are going to move the classifiers change.
+
+249
+00:29:30,040 --> 00:29:33,340
+每个分类器里具体包含什么内容，都在不断变化。
+what is what is exactly in each of those classifiers change all the time.
+
+250
+00:29:33,870 --> 00:29:39,800
+我们来到这里是想听听大家在遇到问题时的案例。
+we are here to hear from you all about the cases where you run into problems.
+
+251
+00:29:39,800 --> 00:29:41,420
+我们想听听你们的意见。
+we want to hear from you guys.
+
+252
+00:29:41,710 --> 00:29:43,240
+宪法是一份动态文件。
+the Constitution is a living document.
+
+253
+00:29:43,240 --> 00:29:44,040
+我们会更新它。
+we update it.
+
+254
+00:29:44,078 --> 00:29:46,400
+就像我说的，我们在四个月内已经更新到了第四版。
+like I said, I, we're on the fourth revision in four months.
+
+255
+00:29:46,780 --> 00:29:48,120
+我们一直在不断更新它。
+We update it all the time.
+
+256
+00:29:49,038 --> 00:29:54,140
+通过与像你们这样的社区交流，是我们共同解决这些问题的办法。
+And talking and engaging with the community like you all is how we can work together to fix that.
+
+257
+00:29:55,438 --> 00:29:57,940
+所以，演讲结束后，我会在舞台旁边。
+So, I will be here to the side of the stage afterwards.
+
+258
+00:29:58,460 --> 00:30:00,380
+所以，大家如果有任何问题，欢迎上来提问。
+So, feel free to come up if you have any questions.
+
+259
+00:30:00,880 --> 00:30:02,080
+我的演讲就到这里。
+And that's it for my time.
+
+260
+00:30:02,180 --> 00:30:02,740
+非常感谢。
+Thank you very much.
+

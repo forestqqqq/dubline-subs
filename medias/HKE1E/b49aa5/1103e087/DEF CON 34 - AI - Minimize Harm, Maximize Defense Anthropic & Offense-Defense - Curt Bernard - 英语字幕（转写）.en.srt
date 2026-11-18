@@ -1,0 +1,972 @@
+1
+00:00:03,470 --> 00:00:06,270
+I'm going to start this talk off actually with a question.
+
+2
+00:00:06,862 --> 00:00:10,010
+How many of you, could you raise your hand if you guys use Claude?
+
+3
+00:00:11,534 --> 00:00:15,236
+All right, keep your hands up if you have tried to use Claude for cybersecurity.
+
+4
+00:00:19,694 --> 00:00:24,510
+And keep them up if you have been blocked while trying to do cybersecurity work.
+
+5
+00:00:25,210 --> 00:00:26,630
+Well, my name is Kurt Barnard.
+
+6
+00:00:26,790 --> 00:00:30,468
+I am the technical policy manager for Cyber Safeguards.
+
+7
+00:00:30,542 --> 00:00:43,310
+and I am the reason you guys get blocked and I'm here to talk today about why that is and why we build the policies the way they do and How we're looking to improve them in the future.
+
+8
+00:00:43,470 --> 00:00:47,670
+So thank you for bearing with us while we learn in public together.
+
+9
+00:00:47,670 --> 00:00:57,910
+So I'm here to talk about maximizing harm, maximizing defense and how we help Claude navigate the offense-defense divide and How we're doing one of these pretty well.
+
+10
+00:00:57,910 --> 00:00:59,870
+and one of them, I think we could do a little better.
+
+11
+00:01:01,006 --> 00:01:16,730
+So what we're going to cover today is probably, to start, probably one of the oldest debates in security, which is dual use technology and making sure that defenders have the tools they need to protect systems while denying them to adversaries that intend to use them for harm.
+
+12
+00:01:17,390 --> 00:01:23,170
+We're going to talk briefly about the open weight model baseline and the risks that that poses.
+
+13
+00:01:24,398 --> 00:01:31,710
+We're going to talk about what we call the cyber constitution, which defines what we think is and is not permissible for Claude to do.
+
+14
+00:01:32,930 --> 00:01:41,550
+We're going to discuss Claude, Fable 5, and the safety margin around the classifier that you all are probably bumping into.
+
+15
+00:01:42,254 --> 00:01:54,110
+And we're going to close out by talking about jailbreaks, the jailbreak severity framework that we published, and talking a little bit about how we know we're getting this wrong today and how we hope to fix it moving forward.
+
+16
+00:01:55,918 --> 00:01:58,550
+So to start we're going to talk about dual use technology.
+
+17
+00:02:00,814 --> 00:02:05,010
+The problem with dual use technology has been around as long as I have been in the business.
+
+18
+00:02:05,270 --> 00:02:10,750
+I'm sure many of you are familiar with these tools that all have come with their own controversy when they have come out.
+
+19
+00:02:11,110 --> 00:02:17,970
+Mass scan, reducing the time it takes to scan the entire internet to almost nothing.
+
+20
+00:02:19,010 --> 00:02:32,510
+Metasploit, I worked very closely with the Metasploit team and every single time we released a Metasploit module, there was controversy because we know the second that we published a Metasploit module, the script kitties would pick it up and hit the entire internet with it.
+
+21
+00:02:32,750 --> 00:02:39,990
+And then you have tools like Cobalt Strike that really elevate red teamers, but also are used by adversaries in the wild.
+
+22
+00:02:40,430 --> 00:02:52,550
+And then even like code analysis tools like IDA Pro and CodeQL that have made it much faster to identify vulnerabilities and generate exploits in the wild have come with their own controversy.
+
+23
+00:02:52,870 --> 00:03:03,930
+So with all of these tools, the techniques are identical, but the intent is very different when you look at how defenders use them and how attackers use them.
+
+24
+00:03:05,150 --> 00:03:08,130
+So this problem was not built by AI.
+
+25
+00:03:09,190 --> 00:03:19,810
+But it really makes this tension much stronger because we are now seeing these capabilities at speed, scale and accessibility that we have never really seen before.
+
+26
+00:03:20,302 --> 00:03:31,470
+I mean the type of work that could take weeks now can be done in sometimes hours, sometimes minutes, and for example the ability to scan code bases, right?
+
+27
+00:03:31,566 --> 00:03:35,030
+You are no longer limited to what you can focus your attention on in a single session.
+
+28
+00:03:35,246 --> 00:03:38,090
+You can scan large swaths of code bases very, very quickly.
+
+29
+00:03:38,766 --> 00:03:41,450
+And then the third and maybe most important one is accessibility.
+
+30
+00:03:41,750 --> 00:03:55,770
+While all of these tools work much better in the hands of practitioners that have deep experience, it really does elevate what, you know, script kiddies can do or even folks that have even a very, very basic understanding of security.
+
+31
+00:03:56,370 --> 00:03:59,268
+Um, it allows them to be much more capable much, much faster.
+
+32
+00:04:01,166 --> 00:04:10,270
+Um, and, and also there is a new forcing function which is the prevalence of open weight models with very high, uh, cyber capabilities.
+
+33
+00:04:10,894 --> 00:04:22,250
+And so everyone here, if you were defending a network, you have to assume that your worst adversary is at minimum using the most capable open weight models that are available.
+
+34
+00:04:22,950 --> 00:04:36,036
+So the difference between the open weight models and the frontier models that are hosted is that we have things like classifiers and policy that can sit between every request.
+
+35
+00:04:36,830 --> 00:04:40,590
+We have some visibility into who has access into these.
+
+36
+00:04:40,974 --> 00:04:43,990
+We have the ability to identify misuse after the fact.
+
+37
+00:04:44,622 --> 00:04:49,890
+And we can also move the boundaries and the safety margin and the classifiers after the model is released.
+
+38
+00:04:50,050 --> 00:04:55,364
+We have the ability to change and update these policies as we see that they, if we see that they have failed somewhere.
+
+39
+00:04:56,462 --> 00:05:07,990
+When it comes to the open weight models, even if a model is published with safeguards to not let you do particularly egregious things, those can all be fine-tuned away or obliterated.
+
+40
+00:05:08,030 --> 00:05:13,450
+If any folks have heard about model obliteration, you can bypass any of those guardrails in an open weight model.
+
+41
+00:05:13,450 --> 00:05:16,550
+So, none of those safeguards have any durability.
+
+42
+00:05:17,870 --> 00:05:24,090
+Local inference also means that there is no gate to who potentially has access to these highly capable models.
+
+43
+00:05:25,102 --> 00:05:26,190
+There's no usage signal.
+
+44
+00:05:26,310 --> 00:05:27,490
+There's no ability to enforce.
+
+45
+00:05:28,270 --> 00:05:32,510
+And once an open weight model is released, it is like the genie is out of the bottle.
+
+46
+00:05:32,650 --> 00:05:33,870
+You cannot put it back in.
+
+47
+00:05:34,010 --> 00:05:35,130
+It is out there forever.
+
+48
+00:05:35,350 --> 00:05:42,090
+And you must assume that it is going to be obliterated and it is going to be able to be used for overtly malicious activity.
+
+49
+00:05:42,670 --> 00:05:53,690
+And then the the other one that I think actually gets overlooked quite a bit is that the open weight models can also provide no Alignment guarantees in a lot of ways when we think about AI safety.
+
+50
+00:05:54,110 --> 00:06:07,430
+We assume that there is some Alignment guarantees that the the model will behave in a way that is rational and aligns with like what we as a society want To see the open weight models can even have that alignment obliterated.
+
+51
+00:06:07,630 --> 00:06:14,390
+So we talk about like chaos models sometimes that might have their own like they will perform very undesirable actions.
+
+52
+00:06:15,054 --> 00:06:21,796
+So even if an open weight model is released and has good alignment it can be misaligned after the fact because it is open.
+
+53
+00:06:23,810 --> 00:06:35,610
+And so when we think about the purpose or what what the foundational models can do or frontier models can do for defenders we think about this capability gap.
+
+54
+00:06:35,730 --> 00:06:44,710
+So what is the delta between what an open weight model can do overtly maliciously and what the frontier models can do and what value we can provide to Defender?
+
+55
+00:06:45,090 --> 00:06:48,510
+And that is the gap between the capabilities.
+
+56
+00:06:48,750 --> 00:06:51,270
+That is what we can provide to Defender at an accelerated pace.
+
+57
+00:06:51,694 --> 00:07:04,970
+So this graph is showing a report from UKAC, I think from June, showing the most advanced open weight models as they compare to the most advanced frontier models from the other Frontier Labs.
+
+58
+00:07:05,470 --> 00:07:13,350
+And that is kind of the gap that we consider to be the buffer or the head start that we can give to defenders if we execute properly.
+
+59
+00:07:14,630 --> 00:07:25,690
+Kimi K3, I heard a lot of folks in my community talk about, well, I can't use Fable for what I need, but then I pump it into Kimi K3 and it gives me exactly what I want.
+
+60
+00:07:25,870 --> 00:07:30,430
+And some people are even like, it's kind of scary what will come out of this model.
+
+61
+00:07:31,438 --> 00:07:34,070
+And it's very important and it's something that we think about all the time.
+
+62
+00:07:34,382 --> 00:07:44,010
+This is sort of a looming shadow that we operate under is this rising tide of the open weight models, knowing that they are going to be used for nefarious purposes.
+
+63
+00:07:46,860 --> 00:07:54,920
+So our first attempt to kind of provide this defensive value, I'm sure many of you are familiar with Project Glasswing.
+
+64
+00:07:55,660 --> 00:08:09,680
+That was our goal, to provide limited access to a number of very high impact organizations that would be able to use it for strong defensive use case, really as a proof of concept to see if this model is even rational or makes sense.
+
+65
+00:08:10,220 --> 00:08:22,860
+We have seen some really fantastic results from a lot of our Glasswing partners and I would encourage you, one of my favorites is the blog post that Mozilla put out about their use of Mythos to secure Firefox.
+
+66
+00:08:22,860 --> 00:08:32,020
+That is like a very critical part of the technology stack when we think about security, browser security is a huge one, so we love to hear that.
+
+67
+00:08:32,780 --> 00:08:38,180
+At Anthropic, we have scanned very quickly more than 1,000 open source projects.
+
+68
+00:08:39,534 --> 00:08:48,080
+Our Glasswing partners reported over 10,000 important vulnerabilities within the first six weeks of the program.
+
+69
+00:08:48,840 --> 00:08:55,220
+About 90% of them were considered to be true positives And that number, we think, is rising with every follow-on model release.
+
+70
+00:08:56,142 --> 00:08:59,160
+And we are working very hard to expand access to these programs.
+
+71
+00:08:59,380 --> 00:09:02,780
+We grew the program from the initial 50 launch partners to 200.
+
+72
+00:09:03,278 --> 00:09:05,260
+We realize that this pace is not very satisfactory.
+
+73
+00:09:05,940 --> 00:09:09,940
+But we are doing everything that we can to get it in the hands of the right people as fast as possible.
+
+74
+00:09:10,880 --> 00:09:17,600
+And something that, like, I really want people to think about is this whole thing is only like four months old.
+
+75
+00:09:17,920 --> 00:09:20,840
+And that is a really, really short timeline.
+
+76
+00:09:20,840 --> 00:09:39,820
+And I know there's like a lot of frustration, especially with individual researchers about not having access to these models But this is so new and the the risks really are quite substantial And we feel like it's very important to have a measured approach here Project glass wing was only announced in April, right?
+
+77
+00:09:40,360 --> 00:09:50,280
+we are four four four months and one day past that now and then We expanded the program about two months later.
+
+78
+00:09:50,830 --> 00:09:54,560
+We shipped Fable 5, which is Mythos with advanced safeguards.
+
+79
+00:09:54,900 --> 00:09:59,000
+And then of course, we're immediately covered by export controls that we then had to remediate.
+
+80
+00:09:59,080 --> 00:10:00,660
+So this is a very delicate process.
+
+81
+00:10:01,240 --> 00:10:04,380
+We are learning in public, in real time with you all.
+
+82
+00:10:04,846 --> 00:10:15,300
+I have been a security practitioner for my entire career, so I understand the benefits of gaining access to these models and the disappointment of maybe not being given access to them.
+
+83
+00:10:16,060 --> 00:10:17,960
+But we're working very, very fast.
+
+84
+00:10:18,760 --> 00:10:22,116
+And the timelines are, are very crazy.
+
+85
+00:10:24,206 --> 00:10:29,880
+And throughout my entire career, the advice has always been, I mean, I felt like a broken record.
+
+86
+00:10:29,900 --> 00:10:36,772
+At the end of, like, every single talk, every single blog, every single paper, I was just saying, you need to patch faster, you need to patch faster.
+
+87
+00:10:36,960 --> 00:10:37,920
+I felt like a broken record.
+
+88
+00:10:38,000 --> 00:10:39,060
+I was getting very tired of it.
+
+89
+00:10:39,760 --> 00:10:46,440
+And now, like, what I really want everyone to realize is there is this big looming forcing function of the open weight models.
+
+90
+00:10:47,160 --> 00:11:01,924
+This capability is coming and it will be in the open and this is our attempt to provide defensive utility ahead of time before this capability becomes very broadly available to everyone who wants to use it for bad purposes.
+
+91
+00:11:03,640 --> 00:11:20,920
+So I'm gonna talk a little bit about how we think about the cyber harm categories and we're gonna talk about the cyber constitution and what we want to support and we also realize that we do not always support in practice the things that we want to support in philosophy, and that's where we have a lot of room for improvement.
+
+92
+00:11:22,440 --> 00:11:26,380
+So the cyber constitution is a written framework.
+
+93
+00:11:27,086 --> 00:11:40,160
+So we write down, it's a very lengthy document that describes how we want our models to engage with cyber security tasks, how we want them to behave, what security work we want to support and what we explicitly want to deny.
+
+94
+00:11:40,160 --> 00:11:43,240
+and it is designed to be argued with.
+
+95
+00:11:43,406 --> 00:11:53,580
+so when we get in a room with someone and we describe what we think we should block, we always point back to the Constitution that has written examples of why we think certain things are good and bad.
+
+96
+00:11:53,580 --> 00:11:57,420
+and this document is a living document.
+
+97
+00:11:57,486 --> 00:11:58,420
+it shifts all the time.
+
+98
+00:11:58,702 --> 00:12:06,480
+we've been providing these restricted access for four months, and we have four versions of the Constitution.
+
+99
+00:12:07,420 --> 00:12:13,320
+So it changes all the time as we learn lessons by engaging with folks like you all.
+
+100
+00:12:14,240 --> 00:12:24,280
+But the the high-level goal that has never changed across all the iterations of the Constitution is that the high-level goal is we want to minimize harm and we want to maximize defensive utility.
+
+101
+00:12:25,518 --> 00:12:30,660
+And unfortunately those two are in conflict on almost every single cybersecurity security prompt that you pass into CLOG.
+
+102
+00:12:31,880 --> 00:12:38,720
+So when it comes to the types of activities that we define, we have four buckets in the cyber constitution.
+
+103
+00:12:38,980 --> 00:12:41,980
+We have things that we consider acceptable use, dual use.
+
+104
+00:12:42,382 --> 00:12:45,680
+We have a bucket that we call sensitive targets, and then prohibited use.
+
+105
+00:12:46,126 --> 00:12:47,800
+Prohibited use is a little bit of a misnomer.
+
+106
+00:12:48,620 --> 00:12:52,020
+It might be the most risky dual use capability.
+
+107
+00:12:53,200 --> 00:12:57,476
+But you can see at a high level, things that we want to support are things even like CTFs.
+
+108
+00:12:57,742 --> 00:13:03,260
+we want to support malware analysis, we want to support patch prioritization in all cases.
+
+109
+00:13:03,440 --> 00:13:04,000
+That is our goal.
+
+110
+00:13:04,140 --> 00:13:04,820
+That is our desire.
+
+111
+00:13:05,320 --> 00:13:08,380
+Then there are dual-use cases that become a lot more complicated.
+
+112
+00:13:08,560 --> 00:13:17,880
+In particular, the ability to generate complex exploits, especially just from binary, is probably one of the most controversial dual-use cases.
+
+113
+00:13:18,380 --> 00:13:26,180
+And this all exists in the context that there are a large number of sensitive targets that, to be quite frank, many of them cannot be patched at all.
+
+114
+00:13:26,600 --> 00:13:33,620
+Some of them require a technician to go in a van to like a power substation and plug in a thumb drive.
+
+115
+00:13:34,080 --> 00:13:45,960
+I talked to a utility provider where they plug in a modem at a power substation that has a default username and password on it, and you could literally war drive for a power substation.
+
+116
+00:13:46,126 --> 00:13:59,876
+So I think we all know that many of these OT systems are horrendously insecure, does not require mythos level access to be able to find vulnerabilities in a lot of these systems and Yet they are part of our risk calculation.
+
+117
+00:13:59,982 --> 00:14:09,660
+It's something that we have to consider, And we, we want to be sensitive to the fact that those are some of our most critical systems that have the ability To cause a lot of a lot of damage.
+
+118
+00:14:10,360 --> 00:14:23,440
+And then there are things that we call prohibited use, which we consider very offensively biased Um, things like building malware, which there are defensive use cases for it, but we consider it to be very strongly, offensively biased.
+
+119
+00:14:23,980 --> 00:14:31,844
+Um, self-replicating code, um, supply chain attacks, things like that, uh, fall into what we call in the Constitution, uh, prohibited use.
+
+120
+00:14:33,390 --> 00:14:44,160
+And then we have to translate this document into a series of classifiers that looks at individual exchanges and tries to make a determination about whether it fit, whether that activity fits into one of these categories.
+
+121
+00:14:44,160 --> 00:14:50,600
+So, the categories that we identify, and this is all in our blog post on Fable.
+
+122
+00:14:51,180 --> 00:14:55,100
+we have what we consider to be benign use, which maps very cleanly to acceptable use.
+
+123
+00:14:55,534 --> 00:15:05,668
+and this is the defensive work that we want to always support, which in particular, the secure software development life cycle is a very big one that we want to support in all cases.
+
+124
+00:15:06,320 --> 00:15:18,560
+And then what we have, we consider low risk dual use, which does have potential adversarial consequences, but we consider it to be highly defensively biased.
+
+125
+00:15:18,980 --> 00:15:30,100
+And just to give an example of a very common situation that we encounter is where we do not wanna facilitate the rapid development of weaponized exploits for malicious actors.
+
+126
+00:15:30,260 --> 00:15:35,120
+We do not wanna give ransomware operators an easy button to go and exploit things at scale.
+
+127
+00:15:35,470 --> 00:15:43,200
+However, we also realize that when software authors are given vulnerability reports, they need to know how serious it is.
+
+128
+00:15:43,460 --> 00:15:50,692
+And one of the primary ways that we do that is by creating proof of concept exploit code to show that something is exploitable and weaponizable.
+
+129
+00:15:51,150 --> 00:15:56,680
+And in fact, in many cases, if a vulnerability is not considered exploitable, it is never fixed at all.
+
+130
+00:15:57,040 --> 00:16:04,320
+But a lot of the times we know we have a backlog of CVEs that actually are exploitable and just nobody has really looked at them yet, right?
+
+131
+00:16:04,430 --> 00:16:22,940
+So we go now based on things like CISA KEV and whether there's a POC in the wild, but the the calculus on whether something is exploitable or not has changed in the last six months, and we have to find a good way to to adjust our mentality around that.
+
+132
+00:16:23,342 --> 00:16:39,900
+And then we have high-risk dual-use, which we consider to be quite offensively biased, and then and prohibited use, which maps very cleanly into the prohibited use bucket, which has a very, very low defensive utility.
+
+133
+00:16:41,070 --> 00:16:47,588
+And so just to dive in a little bit on two of the categories, and just to give some examples, many of you are probably interested in things like CTFs.
+
+134
+00:16:47,640 --> 00:16:49,400
+We absolutely wanna support that use case.
+
+135
+00:16:49,520 --> 00:16:54,600
+We approve folks to use our models and CTFs through the Cyber Verification Program.
+
+136
+00:16:55,660 --> 00:17:04,480
+Doing malware analysis for defensive purposes, prioritizing patches, these are all things that we want to be supporting all of the time.
+
+137
+00:17:05,740 --> 00:17:19,780
+And then some deeper examples on things that we consider to be prohibited use are destructive techniques that might cause even like cyber-physical damage to real world systems, scaled data exfiltration of massive amounts of records.
+
+138
+00:17:19,960 --> 00:17:36,480
+We understand sometimes you need to show a POC that you can extract some set of information, but exfiltration at scale, self-replicating codes, supply chain attacks, these are all things that we really very strongly want to stop because we think the propensity for harm is very very high.
+
+139
+00:17:37,966 --> 00:17:53,240
+And the other part of this, that is extremely, extremely complicated, is that even historically the difference between authorized use and authorized security research and unauthorized security research is intent.
+
+140
+00:17:53,582 --> 00:17:58,420
+and it's whether you're going to disclose that vulnerability when you're done responsibly or not.
+
+141
+00:17:58,800 --> 00:18:03,400
+And even if you look at the CFAA, it's actually even quite more complicated than that.
+
+142
+00:18:03,540 --> 00:18:10,140
+The Justice Department has a charging recommendation to not charge people for doing good faith security research.
+
+143
+00:18:10,478 --> 00:18:13,780
+But if you look at the CFAA, it's not actually that clear.
+
+144
+00:18:14,360 --> 00:18:23,920
+And so if this is something that the legal system can't figure out in a court proceeding, and we have to figure it out in a single exchange with Claude, that's a very challenging problem.
+
+145
+00:18:24,494 --> 00:18:28,040
+And it's something that, frankly, we cannot do.
+
+146
+00:18:28,200 --> 00:18:31,060
+We cannot identify intent from an individual exchange.
+
+147
+00:18:31,120 --> 00:18:37,720
+We can in the very obvious case where someone says, help me hack my neighbor's Facebook account or something like that.
+
+148
+00:18:37,780 --> 00:18:39,840
+That's very obvious and that's easy to catch.
+
+149
+00:18:40,580 --> 00:18:49,060
+But everyone knows that you can just reframe your prompt to seem more benign and then you're likely to get around that pretty trivial block.
+
+150
+00:18:51,054 --> 00:18:58,640
+So, if we cannot understand intent from an individual exchange, we have to proxy that with identity.
+
+151
+00:18:58,926 --> 00:19:16,840
+And so that's the basis for the cyber verification program, is that if we can gain some information about your identity, we can do some degree of vetting and identify that you have participated in good faith security research or are a known, like, good guy, and then we can expand that access and then we have some accountability levers that we can pull there.
+
+152
+00:19:16,840 --> 00:19:34,540
+So, our two systems for leveraging identity as the proxy for intent is the Cyber Verification Program and Project Glasswing, and we look forward to expanding those programs and making these capabilities more accessible as we move forward.
+
+153
+00:19:35,320 --> 00:19:47,260
+I want to take a little bit of time to talk about Fable, which I think many of you probably have some experience with, seeing that it is very hard to do defensive cyber work in and why that is.
+
+154
+00:19:49,038 --> 00:19:56,540
+So with all of our safety classifiers, we have to set what we consider to be a safety margin due to the ability to jailbreak these classifiers.
+
+155
+00:19:56,880 --> 00:20:13,800
+And so it is our goal to make sure that there is enough margin between the classifier boundary and what we consider harmful, that we can prevent that harmful activity in time, especially because of the speed of like agentic flows to commit harm at scale.
+
+156
+00:20:15,860 --> 00:20:29,956
+with Mythos and the advanced capabilities that we saw in that, we realized that we had to set this boundary a little bit wider than we did for the other models in order to be to be able to have confidence that we could catch this abuse much much faster.
+
+157
+00:20:30,200 --> 00:20:45,000
+So we have this concept of safety margin where we know that we're going to block some requests that we would like to permit, but we do that to give ourselves a bit of a buffer in order to be able to enforce our policy lines the way that we want to.
+
+158
+00:20:45,560 --> 00:20:49,300
+And so there are there are two circles here.
+
+159
+00:20:49,390 --> 00:20:56,300
+One is the set of activity that we want to be permitted by a Constitution, and then what the safeguards actually permit.
+
+160
+00:20:56,440 --> 00:20:57,760
+And they are not the same.
+
+161
+00:20:58,222 --> 00:20:59,860
+We know that they are not the same.
+
+162
+00:21:01,870 --> 00:21:10,628
+That is absolutely intentional, and that boundary is what gives us a little bit of lead time to improve our ability to detect and enforce our actual policy lines.
+
+163
+00:21:12,380 --> 00:21:14,440
+And I wanna talk about jailbreaks here for a minute.
+
+164
+00:21:16,654 --> 00:21:19,652
+Basically all models are susceptible to jailbreak in some capacity.
+
+165
+00:21:20,270 --> 00:21:25,732
+So we have to live in a world where we know that our safeguards have the potential to be jailbroken.
+
+166
+00:21:26,318 --> 00:21:29,100
+But also not every jailbreak is the same.
+
+167
+00:21:30,062 --> 00:21:35,460
+So these are three examples of different types of jailbreaks and this is an example of how we reason about them differently.
+
+168
+00:21:35,480 --> 00:21:48,360
+So, there can be minor jailbreaks that might bypass what the classifier is actually supposed to enforce, but does not actually get through to performing harmful activities.
+
+169
+00:21:48,462 --> 00:21:56,460
+So like, when you all get blocked doing malware reverse engineering, right, that is a safety margin around building malware.
+
+170
+00:21:57,180 --> 00:22:02,580
+And if you found a way to get past it to reverse engineer malware, that's fine.
+
+171
+00:22:02,580 --> 00:22:10,200
+If you got around it to build a new C2 to use maliciously in a ransomware campaign, we think that is not fine.
+
+172
+00:22:10,350 --> 00:22:12,132
+So that is why that safety margin exists.
+
+173
+00:22:12,860 --> 00:22:24,080
+And then there are narrow jailbreaks that are harmful that might give access to like a very specific capability that is not universal.
+
+174
+00:22:24,760 --> 00:22:42,820
+So for example, maybe it gives you additional capability in vulnerability identification specifically, but does nothing for exploit generation, or maybe it gives you some ability to generate exploits, but it's only for cross-site scripting attacks.
+
+175
+00:22:43,246 --> 00:22:49,380
+We consider those to be narrow jailbreaks that also still are potentially harmful.
+
+176
+00:22:50,670 --> 00:23:05,760
+And then there's universal jailbreaks, which are the ones that we have the highest degree of concern about, which is where through some sort of modification or prompting, you can gain access to all of the harmful activity that we want to prevent.
+
+177
+00:23:06,740 --> 00:23:13,180
+And that also allows you to build agentic flows around that, which is the particularly concerning thing.
+
+178
+00:23:13,280 --> 00:23:18,180
+So if you're able to build a machine that does cyber war at scale, that is what we do not want.
+
+179
+00:23:18,280 --> 00:23:22,000
+So a universal jailbreak is really where that threat model lies.
+
+180
+00:23:22,460 --> 00:23:26,040
+And so these are kind of the scenarios where we think about jailbreaks.
+
+181
+00:23:27,438 --> 00:23:36,860
+So due to the jailbreak report for the Fable 5 classifier, it required us to build a new framework kind of out of necessity.
+
+182
+00:23:38,798 --> 00:23:41,380
+So we built what we call the jailbreak severity framework.
+
+183
+00:23:41,870 --> 00:23:47,820
+It is based very loosely on CVSS, which I know everyone here loves and has no complaints about at all, universally beloved.
+
+184
+00:23:49,820 --> 00:23:53,540
+However, it has gotten the job done for a very, very long time.
+
+185
+00:23:53,998 --> 00:24:01,120
+So, uh, we look to build something, uh, on that framework and we consider there to be kind of four core criteria.
+
+186
+00:24:01,774 --> 00:24:03,960
+Um, the first criteria is capability gain.
+
+187
+00:24:04,142 --> 00:24:15,780
+So, for example, if you are able to jailbreak a highly capable model into, uh, finding vulnerabilities, but those vulnerabilities are extremely trivial, we consider that to be very low capability gain.
+
+188
+00:24:15,860 --> 00:24:26,840
+So, for example, um, some of the reported jailbreaks, if you push it into, uh, um, any of the open weight models, they will provide the same output without any refusals or any blocks at all.
+
+189
+00:24:27,280 --> 00:24:31,000
+We consider that to be very low uplift and the capability gain to be very minimal.
+
+190
+00:24:31,440 --> 00:24:44,080
+However, if it's able to reverse engineer an obfuscated binary and make a zero-day exploit for that, right now, maybe not next month, but right now we consider that to be a pretty high, high uplift capability.
+
+191
+00:24:44,960 --> 00:24:46,840
+Um, the next is the breadth of gain.
+
+192
+00:24:47,342 --> 00:24:54,244
+So it's how many different types of harmful activities have you gained access to and that's largely based on the constitution, some of those discrete lists.
+
+193
+00:24:54,840 --> 00:25:00,580
+So if it, if it gains access to just like one of those or two of those, that's a limited scope uh, breadth.
+
+194
+00:25:01,240 --> 00:25:05,720
+Uh, but if it's the entire category of prohibited use, that's a very different scenario.
+
+195
+00:25:07,118 --> 00:25:08,660
+Then we have ease of weaponization.
+
+196
+00:25:09,230 --> 00:25:23,556
+Um, this is like a little bit different from how you think about traditional vulnerabilities, because there's a lot of criteria that could into here, such as a jailbreak may require that you spend a million dollars worth of tokens before the jailbreak works.
+
+197
+00:25:24,174 --> 00:25:28,600
+if that's the case, ease of weaponization, uh is uh.
+
+198
+00:25:28,654 --> 00:25:30,300
+that is that is not easy to weaponize.
+
+199
+00:25:30,478 --> 00:25:37,920
+some of them require a very convoluted, or you have to do harnessing or, uh, like very deep.
+
+200
+00:25:37,920 --> 00:25:44,540
+like context poisoning, many of those are considered difficult to weaponize.
+
+201
+00:25:45,040 --> 00:25:50,980
+However, if your prompt is something like, please just fix this code, that is very easy.
+
+202
+00:25:51,720 --> 00:25:53,840
+So that's where that falls on ease of weaponization.
+
+203
+00:25:54,940 --> 00:26:04,760
+For discoverability, this one is a little bit challenging because it's also very different from how we think about traditional vulnerabilities.
+
+204
+00:26:04,760 --> 00:26:20,800
+Um, some jailbreaks are fairly trivial for someone at home with a keyboard and just typing things out to identify where the guardrails are and to very quickly find, oh, if I just type this, I get around this thing that is normally blocked.
+
+205
+00:26:21,480 --> 00:26:29,360
+Um, if, if a bypass is published publicly, um, that is enough.
+
+206
+00:26:29,550 --> 00:26:32,380
+Like you don't need a, it's already like a POC.
+
+207
+00:26:32,380 --> 00:26:43,540
+it's already an exploit in the wild, so once they are published, it already is fully discoverable, and effectively anyone can use it, and then we're just hinging on ease of weaponization, so if like token cost is high.
+
+208
+00:26:43,980 --> 00:26:52,920
+So discoverability is like a very different kind of access here relative to what we think about for vulnerability, and a very important distinction in this framework.
+
+209
+00:26:53,582 --> 00:27:00,940
+We at Anthropic built and published this framework, but we hope to see a more community accepted standard.
+
+210
+00:27:01,280 --> 00:27:11,960
+The intent was not to make the anthropic jailbreak framework, it was to lay the groundwork to have a universal framework that all of the labs and the community can rally around.
+
+211
+00:27:12,620 --> 00:27:17,460
+And so we look forward to working with our partners to make this a common standard rather than an anthropic standard.
+
+212
+00:27:20,462 --> 00:27:25,000
+So some places where we know these policies really fall short and we have room for improvement.
+
+213
+00:27:26,286 --> 00:27:29,780
+We know that the safety margin blocks real work.
+
+214
+00:27:30,080 --> 00:27:41,280
+We know that many people in many of the conversations that I've had today, I've heard tons of people say, I love Claude, I love anthropic models, I use it all the time, except for security.
+
+215
+00:27:41,582 --> 00:27:42,560
+We hear that all the time.
+
+216
+00:27:42,620 --> 00:27:47,800
+And we understand that these blocks can make it very difficult, especially for agentic flows.
+
+217
+00:27:48,520 --> 00:27:50,480
+And we know that that is an issue.
+
+218
+00:27:51,000 --> 00:27:58,040
+We also recognize that independent researchers, probably like many of you here, have the worst path to advanced capabilities.
+
+219
+00:27:58,510 --> 00:28:13,020
+We understand that Project Glasswing looks like it's available only to a small subset of customers, and if you were a bug bounty researcher, for example, doing really good faith security work, we realize that you have the hardest path for those capable models, and that's something that we're working on.
+
+220
+00:28:13,614 --> 00:28:17,340
+The other thing is we talked about these four buckets for classifiers.
+
+221
+00:28:17,902 --> 00:28:24,360
+That is not enough nuance in order to have like, a really fine-grained enforcement policy here.
+
+222
+00:28:24,900 --> 00:28:29,680
+Too much context is flattened when you put things into just four buckets.
+
+223
+00:28:31,790 --> 00:28:36,280
+And we also realized that the refusal explanations are vague.
+
+224
+00:28:36,740 --> 00:28:48,800
+Many people say, hey, I'm not supposed to be getting cyber blocks and I got blocked on something, and you might not know that it triggered a jailbreak classifier, and actually was not a cyber classifier.
+
+225
+00:28:48,920 --> 00:28:49,820
+We have seen that before.
+
+226
+00:28:49,820 --> 00:29:04,860
+But also, especially if you're looking at this talk and you're like, hey, you said that I should be able to reverse engineer malware for defensive purposes and I got blocked, it doesn't explain what it was that could be even in the model's thinking.
+
+227
+00:29:05,560 --> 00:29:12,560
+That you may or may not see or even look at, could have been thinking about, well, how would I design malware?
+
+228
+00:29:12,760 --> 00:29:16,560
+Oh, well, that's gonna trip the classifier because it's not supposed to tell you how to design malware.
+
+229
+00:29:17,220 --> 00:29:21,140
+So these are the four categories where we know that we really have a lot of room to grow.
+
+230
+00:29:21,140 --> 00:29:22,340
+we have a lot of work to do.
+
+231
+00:29:22,862 --> 00:29:30,040
+and and all that to say, these lines are going to move the classifiers change.
+
+232
+00:29:30,040 --> 00:29:33,340
+what is what is exactly in each of those classifiers change all the time.
+
+233
+00:29:33,870 --> 00:29:39,800
+we are here to hear from you all about the cases where you run into problems.
+
+234
+00:29:39,800 --> 00:29:41,420
+we want to hear from you guys.
+
+235
+00:29:41,710 --> 00:29:43,240
+the Constitution is a living document.
+
+236
+00:29:43,240 --> 00:29:44,040
+we update it.
+
+237
+00:29:44,078 --> 00:29:46,400
+like I said, I, we're on the fourth revision in four months.
+
+238
+00:29:46,780 --> 00:29:48,120
+We update it all the time.
+
+239
+00:29:49,038 --> 00:29:54,140
+And talking and engaging with the community like you all is how we can work together to fix that.
+
+240
+00:29:55,438 --> 00:29:57,940
+So, I will be here to the side of the stage afterwards.
+
+241
+00:29:58,460 --> 00:30:00,380
+So, feel free to come up if you have any questions.
+
+242
+00:30:00,880 --> 00:30:02,080
+And that's it for my time.
+
+243
+00:30:02,180 --> 00:30:02,740
+Thank you very much.
+
