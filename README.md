@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [Advances in computational protein design \| The Royal Society](medias/V45YC/) | The Royal Society | 2026-11-17 |
 | [Windows Are Absurd](medias/RSRD4/) | Practical Engineering | 2026-11-17 |
 | [Build Your FIRST AI Agent in Claude Code. (11 Minutes).](medias/R50XR/) | Tristen O'Brien | 2026-11-17 |
 | [Elon Musk’s Brain Chip: The Reality vs The Hype \| NEURALINK Documentary \| by project Why](medias/QWPEK/) | Project Why | 2026-11-17 |
