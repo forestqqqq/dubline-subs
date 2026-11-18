@@ -9,6 +9,7 @@
 | [Elon Musk’s Brain Chip: The Reality vs The Hype \| NEURALINK Documentary \| by project Why](medias/QWPEK/) | Project Why | 2026-11-17 |
 | [Yann LeCun's JEPA Just Proved Bigger Al Isn't the Answer?](medias/PGGA6/) | Squintist | 2026-11-17 |
 | [Is AI Learning the Wrong Thing? Yann LeCun’s Platonic Representation Theorem](medias/NSX1D/) | Ina Hanninger | 2026-11-17 |
+| [Are We Cooked? CMU Faculty on AI, Careers and Learning](medias/NMG2W/) | Carnegie AI Safety Initiative | 2026-11-17 |
 | [The Engineer Who Coded Like an AI Before AI Existed \| Michael Novati](medias/NMB4X/) | Philip Has Questions | 2026-11-17 |
 | [DEF CON 34 - CPV - Inside the Guts of Ransomware - Ashley Munoz](medias/NKBVX/) | DEFCONConference | 2026-11-17 |
 | [This AI Taught Itself to Use a Calculator \| Toolformer Explained](medias/KMKCW/) | Paper Explained | 2026-11-17 |
