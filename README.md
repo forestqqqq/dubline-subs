@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [What Frontier Labs Buy: A Data Deep Dive with Handshake AI — Garrett Lord & Team](medias/NA3MM/) | Latent Space | 2026-11-18 |
 | [DEF CON 34 - AI - Minimize Harm, Maximize Defense Anthropic  & Offense-Defense  - Curt Bernard](medias/HKE1E/) | DEFCONConference | 2026-11-18 |
 | [The Complete Rust Ecosystem Explained (Why Rust is the Future)](medias/GFRGC/) | Cloud X Berry | 2026-11-18 |
 | [AI Is Becoming a Scientist — And That's Changing Everything!](medias/G9QYN/) | Zenith Byte | 2026-11-18 |
