@@ -1,0 +1,844 @@
+1
+00:00:00,000 --> 00:00:02,884
+AI 可以在几分钟内生成一个可运行的原型。
+AI can generate a working prototype in minutes.
+
+2
+00:00:03,560 --> 00:00:08,039
+但当这个原型需要处理成千上万次请求时，棘手的问题就开始出现了。
+But when that prototype needs to serve thousands of requests, the hard questions begin.
+
+3
+00:00:08,720 --> 00:00:10,000
+它占用了多少内存？
+How much memory does it use?
+
+4
+00:00:10,510 --> 00:00:12,280
+它能同时处理很多连接吗？
+Can it handle many connections at once?
+
+5
+00:00:12,910 --> 00:00:15,120
+当它接收到意外的数据时会发生什么？
+What happens when it receives unexpected data?
+
+6
+00:00:15,760 --> 00:00:18,720
+而且随着规模扩大，团队还能保持它的快速和安全吗？
+And can the team keep it fast and secure as it grows?
+
+7
+00:00:19,438 --> 00:00:22,000
+这就是 Rust 受到这么多关注的一个原因。
+That's one reason Rust is getting so much attention.
+
+8
+00:00:22,606 --> 00:00:30,500
+它提供底层控制和高性能，同时它的编译器能在程序运行前防止许多内存和并发错误。
+It offers low-level control and high performance, while its compiler
+helps prevent many memory and concurrency bugs before the program runs.
+
+9
+00:00:31,120 --> 00:00:35,540
+但说每个人都在用 Rust 重写所有东西，这说法需要一点背景说明。
+But the claim that everyone is rewriting everything in Rust needs a little context.
+
+10
+00:00:36,260 --> 00:00:39,240
+Rust 的采用率正在增长，但通常是有选择性的。
+Rust adoption is growing, but it's usually selective.
+
+11
+00:00:40,020 --> 00:00:46,940
+当性能、资源占用或安全性重要到足以抵消学习曲线和重写成本时，团队就会选择它。
+Teams reach for it when performance, resource use, or safety matter enough to justify the learning curve and rewrite cost.
+
+12
+00:00:47,438 --> 00:00:52,600
+而且在 AI 时代，Rust 往往是与 Python 协同工作，而不是取代它。
+And in the AI era, Rust is often working alongside Python rather than replacing it.
+
+13
+00:00:53,006 --> 00:00:59,812
+为了理解原因，让我们跟随一个 AI 产品从原型到生产的过程，看看支持它的生态系统。
+To understand why, let's follow an AI product from prototype to production and look at the ecosystem that supports it.
+
+14
+00:01:00,270 --> 00:01:03,780
+首先，让我们看看 Rust 是什么，以及为什么团队会选择它。
+Firstly, let's see what Rust is and why teams choose it.
+
+15
+00:01:04,239 --> 00:01:06,360
+想象一下一个正在构建 AI 助手的团队。
+Imagine a team building an AI assistant.
+
+16
+00:01:07,100 --> 00:01:10,420
+Python 是实验模型和功能的自然选择。
+Python is a natural place to experiment with models and features.
+
+17
+00:01:11,022 --> 00:01:19,040
+但最终产品可能还需要处理大量文本、运行快速的网络服务，
+并在不浪费内存的情况下处理大量用户。
+But the finished product may also need to process large amounts of text, run a fast network service,
+and handle many users without wasting memory.
+
+18
+00:01:19,630 --> 00:01:23,980
+Rust 是为那些同时要求高性能和可靠性的软件而设计的。
+Rust is designed for software where performance and reliability both matter.
+
+19
+00:01:24,620 --> 00:01:31,640
+它编译成原生机器码，不需要垃圾回收器，并让开发者能够控制数据的处理方式。
+It compiles to native machine code, doesn't require a garbage collector, and gives developers control over how data is handled.
+
+20
+00:01:32,200 --> 00:01:39,100
+它的所有权和类型系统让编译器能在程序运行前捕捉到许多内存安全和并发错误。
+Its ownership and type systems let the compiler catch many memory safety and concurrency mistakes before the program runs.
+
+21
+00:01:39,630 --> 00:01:42,160
+这种结合解释了 Rust 的吸引力。
+That combination helps explain Rust's appeal.
+
+22
+00:01:42,760 --> 00:01:48,120
+团队不必在系统级语言的控制力和日常代码的强力保护之间做选择。
+Teams don't have to choose between the control of a system's language and strong safeguards in everyday code.
+
+23
+00:01:48,120 --> 00:01:53,320
+Rust 两者兼备，尽管开发者必须学习它的规则并与编译器配合。
+Rust offers both, though developers have to learn its rules and work with the compiler.
+
+24
+00:01:53,934 --> 00:02:00,132
+为了看看这些保护是如何工作的，让我们看看 Rust 的编译器及其最独特的理念——所有权。
+To see how those safeguards work, let's look at Rust's compiler and its most distinctive idea—ownership.
+
+25
+00:02:00,718 --> 00:02:06,692
+在带有垃圾回收器的语言中，运行时会定期清理程序不再需要的内存。
+In a language with a garbage collector, the runtime periodically cleans up memory that the program no longer needs.
+
+26
+00:02:07,278 --> 00:02:15,540
+在 Rust 中，编译器会检查所有权规则，这些规则决定了谁负责某段数据，
+以及这段数据何时可以被使用或更改。
+In Rust, the compiler checks ownership rules that determine who is
+responsible for a piece of data and when that data can be used or changed.
+
+27
+00:02:16,078 --> 00:02:17,260
+想象一个共享文档。
+Think of a shared document.
+
+28
+00:02:17,900 --> 00:02:23,920
+如果一个人正在编辑它，系统需要防止其他人同时进行冲突的编辑。
+If one person is editing it, the system needs to prevent someone else from making a conflicting edit at the same time.
+
+29
+00:02:24,220 --> 00:02:26,340
+Rust 将类似的理念应用于数据。
+Rust applies a similar idea to data.
+
+30
+00:02:27,020 --> 00:02:33,780
+程序的许多部分可以同时读取一个值，或者其中一部分可以更改它，但冲突的访问是被限制的。
+Many parts of a program can read a value at once, or one part can change it, but conflicting access is restricted.
+
+31
+00:02:34,478 --> 00:02:36,840
+这可能会让代码在刚开始时让人觉得要求很高。
+That can make code feel more demanding at first.
+
+32
+00:02:37,460 --> 00:02:43,680
+Rust 可能会拒绝一个对初学者来说看起来合理的程序，因为它无法证明数据会被安全地使用。
+Rust may reject a program that seems reasonable to a beginner because it can't prove that the data will be used safely.
+
+33
+00:02:43,680 --> 00:02:50,760
+但只要满足了这些规则，程序就能避免许多常见的内存错误，
+而且不需要在运行时使用垃圾回收机制。
+But once the rules are satisfied, the program avoids many common memory errors without needing a garbage collector at runtime.
+
+34
+00:02:51,560 --> 00:02:55,780
+Rust 还有助于处理并发，也就是不同任务同时运行的情况。
+Rust also helps with concurrency, where different tasks run at the same time.
+
+35
+00:02:56,430 --> 00:03:00,560
+它的类型系统能捕捉到许多在线程间共享数据的危险做法。
+Its type system catches many unsafe ways of sharing data across threads.
+
+36
+00:03:01,230 --> 00:03:07,236
+这并不能让所有程序都无 Bug，但它能为开发者在代码发布前提供有效的安全检查。
+This doesn't make all programs bug-free, but it gives developers a useful safety check before the code ships.
+
+37
+00:03:07,918 --> 00:03:13,560
+既然我们已经看到了编译器检查了什么，现在来看看开发者每天用来处理 Rust 的工具。
+Now that we've seen what the compiler checks, let's look at the tools developers use to work with Rust every day.
+
+38
+00:03:14,240 --> 00:03:18,620
+rustup 用于安装和管理 Rust 工具链，包括稳定的编译器。
+RustUp installs and manages Rust toolchains, including the stable compiler.
+
+39
+00:03:19,342 --> 00:03:26,540
+编译器本身被称为 rustc，但大多数开发者是通过 Cargo 与其交互，
+Cargo 是 Rust 的构建和包管理工具。
+The compiler itself is called RustC, but most developers interact with it through Cargo, Rust's build and package tool.
+
+40
+00:03:27,120 --> 00:03:32,760
+在编辑器中，Rust Analyzer 提供代码补全、导航和诊断功能。
+Inside an editor, Rust Analyzer provides code completion, navigation, and diagnostics.
+
+41
+00:03:33,358 --> 00:03:39,100
+它可以显示类型定义的位置，或者帮助找出为什么某个值无法以特定方式被借用。
+It can show where a type is defined or help identify why a value cannot be borrowed in a particular way.
+
+42
+00:03:39,100 --> 00:03:46,240
+Rust FMT 用来格式化代码，而 Clippy 则负责寻找常见错误并建议更符合 Rust 习惯的写法。
+Rust FMT formats the code, while Clippy looks for common mistakes and suggests more idiomatic Rust.
+
+43
+00:03:46,900 --> 00:03:51,600
+这些工具共同协作，让编译器成为日常开发流程的一部分。
+Together, these tools turn the compiler into part of the everyday development process.
+
+44
+00:03:52,300 --> 00:03:59,300
+开发者不需要等到遥远的测试阶段才发现某些错误，而是在写代码时就能得到反馈。
+Instead of waiting until a distant testing stage to find some classes of errors, the developer gets feedback while writing the code.
+
+45
+00:04:00,000 --> 00:04:04,460
+Rust 以学习曲线陡峭而闻名，这个名声并非虚传。
+Rust has a reputation for a steep learning curve, and that reputation is earned.
+
+46
+00:04:04,460 --> 00:04:08,680
+所有权、借用和生命周期都需要时间去理解。
+Ownership, borrowing, and lifetimes take time to understand.
+
+47
+00:04:09,358 --> 00:04:12,260
+但这些工具能让编译器的反馈变得更有用。
+But the tooling helps make compiler feedback more useful.
+
+48
+00:04:12,860 --> 00:04:17,980
+一旦团队掌握了这门语言，这些检查就会成为他们构建和审查软件的一部分。
+And once a team learns the language, those checks become part of how it builds and reviews software.
+
+49
+00:04:18,670 --> 00:04:20,740
+这些工具能帮助开发者编写 Rust。
+The tools help developers write Rust.
+
+50
+00:04:21,230 --> 00:04:25,080
+但一个真正的项目还需要一种管理代码和复用库的方法。
+But a real project also needs a way to manage code and reuse libraries.
+
+51
+00:04:25,870 --> 00:04:27,780
+这就是 Cargo 和 crates 的用武之地。
+That's where Cargo and Crates come in.
+
+52
+00:04:28,334 --> 00:04:34,900
+Cargo 可以创建项目、编译项目、运行测试、管理依赖并打包库。
+Cargo creates projects, compiles them, runs tests, manages dependencies, and packages libraries.
+
+53
+00:04:35,598 --> 00:04:41,200
+Rust 库通常被称为 crate，开发者可以通过 crates.io 来共享这些 crate。
+A Rust library is commonly called a crate, and developers can share crates through crates.io.
+
+54
+00:04:41,870 --> 00:04:46,080
+项目的 Cargo.toml 文件列出了它的依赖项和配置。
+A project's cargo.toml file lists its dependencies and configuration.
+
+55
+00:04:46,940 --> 00:04:56,400
+Cargo 会解析这些依赖项，并将选定的版本记录在 lock 文件中，
+帮助团队在不同机器和自动化系统中构建出版本一致的软件。
+Cargo resolves those dependencies and records the selected versions in a lock file,
+helping the team build with consistent versions across different machines and automated systems.
+
+56
+00:04:56,782 --> 00:05:00,980
+对于大型项目，Cargo workspaces 可以将相关的包组合在一起。
+For larger projects, Cargo workspaces group-related packages together.
+
+57
+00:05:01,700 --> 00:05:09,560
+Rust 还自带标准库，用于处理常见的任务，比如操作集合、文件、输入输出和线程。
+Rust also comes with a standard library for common tasks, such as working with collections, files, input and output, and threads.
+
+58
+00:05:10,100 --> 00:05:16,620
+当标准库不够用时，开发者可以选择社区提供的 crates，而不是自己去写每一个功能。
+When the standard library isn't enough, developers can choose from community crates rather than writing every feature themselves.
+
+59
+00:05:17,240 --> 00:05:22,080
+这个生态系统在不断增长，但团队仍需谨慎选择依赖项。
+This ecosystem keeps growing, but teams still need to choose dependencies carefully.
+
+60
+00:05:22,080 --> 00:05:29,880
+因为一个 crate 会成为他们发布软件的一部分，所以它是否得到维护、
+是否安全以及是否适合当前任务都非常重要。
+A crate becomes part of the software they ship, so it matters whether it's maintained, secure, and appropriate for the job.
+
+61
+00:05:30,420 --> 00:05:37,080
+项目和依赖准备就绪后，开发人员需要对数据建模，并明确可能出现的错误。
+Once the project and its dependencies are in place, developers need to model their data and make possible errors explicit.
+
+62
+00:05:37,820 --> 00:05:41,340
+Rust 的类型可以帮助描述程序能做什么以及不能做什么。
+Rust types help describe what a program can and cannot do.
+
+63
+00:05:41,920 --> 00:05:48,700
+结构体可以组合相关信息，而枚举可以表示必须是已知选项之一的数值。
+A struct can group related information, while an enum can represent a value that must be one of a known set of choices.
+
+64
+00:05:48,700 --> 00:05:54,780
+例如，一个 AI 请求可能是排队中、运行中、已完成或失败。
+For example, an AI request might be queued, running, completed, or failed.
+
+65
+00:05:55,440 --> 00:05:59,300
+Rust 还会明确数据缺失或失败的可能性。
+Rust also makes the possibility of missing data or failure explicit.
+
+66
+00:05:59,980 --> 00:06:03,140
+Option 代表可能存在或不存在的数值。
+Option represents a value that may or may not exist.
+
+67
+00:06:03,820 --> 00:06:08,100
+Result 代表可能成功或返回错误的各种操作。
+Result represents an operation that can either succeed or return an error.
+
+68
+00:06:08,686 --> 00:06:13,668
+程序必须处理这些可能性，而不是默认假设一切都会正常运行。
+The program has to handle those possibilities, instead of silently assuming everything will work.
+
+69
+00:06:14,126 --> 00:06:22,620
+对于 AI 软件来说，这可能意味着模型文件不可用、
+输入文档无法解析，或者请求到另一个服务时超时。
+For AI software, that might mean a model file isn't available, An input
+document can't be parsed, or a request to another service times out.
+
+70
+00:06:23,054 --> 00:06:27,840
+团队可以在代码中表示这些结果，并决定应用程序应如何做出反应。
+The team can represent those outcomes in its code and decide how the application should respond.
+
+71
+00:06:28,500 --> 00:06:37,320
+当数据跨越边界时，比如 HTTP 请求以 JSON 格式
+到达，serde 可以转换 Rust 数据结构和常见格式。
+When data crosses a boundary, such as an HTTP request arriving as JSON,
+CERD can convert between RUST data structures and common formats.
+
+72
+00:06:37,838 --> 00:06:43,680
+这意味着服务可以将请求解析为类型化数据，并将响应序列化回 JSON。
+That means the service can parse a request into typed data and serialize its response back into JSON.
+
+73
+00:06:43,680 --> 00:06:49,680
+在定义好数据结构后，应用程序需要一种与用户和其他服务进行通信的方式。
+With the data structures defined, the application needs a way to communicate with users and other services.
+
+74
+00:06:50,350 --> 00:06:52,720
+让我们来看看 Rust 的网络和 Web 工具。
+Let's look at Rust's web and networking tools.
+
+75
+00:06:53,358 --> 00:06:57,060
+Web 框架将传入的请求连接到处理这些请求的代码上。
+A web framework connects incoming requests to the code that handles them.
+
+76
+00:06:57,660 --> 00:07:01,080
+Axum 是在 Rust 中构建 HTTP 服务的一个选择。
+Axum is one option for building HTTP services in Rust.
+
+77
+00:07:01,646 --> 00:07:08,780
+团队可以定义路由、接收 JSON、验证请求，并返回带有适当状态码的响应。
+The team can define routes, accept JSON, validate requests, and return responses with the appropriate status codes.
+
+78
+00:07:09,358 --> 00:07:17,720
+例如，一个 AI 服务可能会提供一个端点，用于接
+收问题、检查请求、将其发送到模型层并返回答案。
+For example, an AI service might expose an endpoint that accepts a question,
+checks the request, sends it to the model layer, and returns an answer.
+
+79
+00:07:18,320 --> 00:07:26,300
+中间件可以处理共享任务，如追踪、超时或授权，从而避免在每个路由中重复编写这些逻辑。
+Middleware can handle shared tasks, such as tracing, timeouts, or
+authorization, keeping that logic from being repeated in every route.
+
+80
+00:07:26,940 --> 00:07:29,160
+该服务通常还需要一个数据库。
+The service will often need a database as well.
+
+81
+00:07:29,720 --> 00:07:38,240
+SQLX 提供了一种异步操作 SQL 数据库的方法，并
+且它可以在开发期间根据数据库模式检查某些查询。
+SQLX provides an asynchronous way to work with SQL databases, and it can
+check certain queries against the database schema during development.
+
+82
+00:07:38,830 --> 00:07:45,200
+数据库连接池让应用程序能够重用连接，而不是为每个请求都创建一个新连接。
+A database connection pool lets the application reuse connections, rather than creating a new one for every request.
+
+83
+00:07:45,780 --> 00:07:59,260
+框架不会决定系统如何存储数据或保护用户信息——这些仍是设计职责——但它为构建 API 并将其连
+接到应用程序的其他部分提供了清晰的结构。
+The framework doesn't decide how the system should store data or protect user information — those are still design responsibilities —
+but it provides a clear structure for building the API and connecting it to other parts of the application.
+
+84
+00:07:59,860 --> 00:08:03,240
+服务还需要高效地处理大量的网络请求。
+A service also needs to handle many network requests efficiently.
+
+85
+00:08:03,240 --> 00:08:07,500
+这就是异步 Rust 和像 Tokio 这样的运行时发挥作用的地方。
+That's where asynchronous Rust and runtimes like Tokyo come in.
+
+86
+00:08:08,000 --> 00:08:14,860
+服务器经常花费大量时间在等待，比如等待数据库查询、模型响应或远程 API。
+A server often spends much of its time waiting, for a database query, a model response, or a remote API.
+
+87
+00:08:15,600 --> 00:08:20,900
+异步编程允许程序在等待时暂停一个任务，同时推进另一个任务。
+Asynchronous programming lets a program pause one task while it waits, and make progress on another.
+
+88
+00:08:21,580 --> 00:08:27,920
+Rust 的 async 和 await 语法描述了这种工作方式，但异步代码需要运行时来执行它。
+Rust's async and await syntax describes this work, but async code needs a runtime to execute it.
+
+89
+00:08:28,300 --> 00:08:30,600
+Tokio 是一个广泛使用的 Rust 运行时。
+Tokyo is a widely used Rust runtime.
+
+90
+00:08:30,600 --> 00:08:36,480
+它负责调度异步任务，并提供网络、定时器和协调工具。
+It schedules asynchronous tasks and provides tools for networking, timers, and coordination.
+
+91
+00:08:37,120 --> 00:08:41,200
+这对于处理大量并发连接的服务特别有用。
+This is especially useful for services that handle many simultaneous connections.
+
+92
+00:08:41,900 --> 00:08:48,420
+当一个请求在等待模型或数据库时，服务器可以处理另一个请求，而不是让线程闲置。
+While one request is waiting for a model or database, the server can work on another request rather than leaving a thread idle.
+
+93
+00:08:48,878 --> 00:08:50,460
+这里有一个重要的区别。
+There's an important distinction here.
+
+94
+00:08:51,200 --> 00:08:53,640
+异步处理有助于处理那些需要等待的任务。
+Async helps with work that spends time waiting.
+
+95
+00:08:54,318 --> 00:08:56,900
+它不会自动加快繁重的计算。
+It doesn't automatically speed up a heavy calculation.
+
+96
+00:08:56,900 --> 00:09:04,060
+如果服务在进行 CPU 密集型工作，团队可能需要并行处理或专门的库。
+If the service is doing CPU-intensive work, the team may need parallel processing or a specialized library.
+
+97
+00:09:04,622 --> 00:09:09,340
+这就是为什么 Rust 在 AI 中的角色往往既在模型周围，也在模型内部。
+That's why Rust's role in AI often sits around the model as well as inside it.
+
+98
+00:09:09,880 --> 00:09:16,068
+数据传输、文本处理和请求分发都会影响应用程序的速度和成本。
+Moving data, processing text, and serving requests can all affect an application's speed and cost.
+
+99
+00:09:16,558 --> 00:09:23,520
+所以让我们更仔细地看看 Rust 在 AI 生态系统中的位置，
+以及为什么这并不意味着 Python 必须消失。
+So let's look more closely at where Rust fits into the AI ecosystem, and why that doesn't mean Python has to disappear.
+
+100
+00:09:24,078 --> 00:09:27,880
+Python 仍然是模型研究和实验的主要语言。
+Python remains a major language for model research and experimentation.
+
+101
+00:09:28,720 --> 00:09:35,320
+许多流行的机器学习工具都是围绕 Python 设计的，
+所以 Rust 不需要取代那个工作流也能发挥作用。
+Many popular machine learning tools are designed around Python, so Rust doesn't need to replace that workflow to be useful.
+
+102
+00:09:35,860 --> 00:09:40,100
+相反，Rust 可以承担 AI 产品中对性能敏感的部分。
+Instead, Rust can take on performance-sensitive parts of an AI product.
+
+103
+00:09:40,740 --> 00:09:45,540
+HuggingFace 的 Tokenizers 库是用 Rust 实现的，并且可以在 Python 中使用。
+HuggingFace's Tokenizers library is implemented in Rust and can be used from Python.
+
+104
+00:09:46,240 --> 00:09:55,236
+分词是将文本转换为模型输入的步骤，在处理大量请求时，
+它可能成为生产工作负载中的重要组成部分。
+Tokenization, the step that turns text into model inputs, can become a significant
+part of a production workload, especially when processing many requests.
+
+105
+00:09:55,840 --> 00:09:58,440
+也有一些用 Rust 编写的机器学习项目。
+There are also machine learning projects written in Rust.
+
+106
+00:09:58,760 --> 00:10:06,580
+Candle 提供了 Transformer 模型的原生 Rust 实现，
+而 Burn 是一个用于训练和推理的 Rust 深度学习框架。
+Candle provides native Rust implementations of transformer models,
+while Burn is a Rust deep learning framework for training and inference.
+
+107
+00:10:07,246 --> 00:10:18,220
+这些项目为开发者提供了更多用 Rust 构建 AI 技术栈的选择，尽管可用的模型、
+硬件支持和工具可能与更成熟的 Python 工作流有所不同。
+These projects give developers options for building more of the AI stack in Rust, though the available models, hardware support,
+and tooling may differ from more established Python workflows.
+
+108
+00:10:18,830 --> 00:10:21,140
+Rust 也可以直接与 Python 配合工作。
+Rust can also work directly with Python.
+
+109
+00:10:21,760 --> 00:10:28,100
+Py03 让开发者可以用 Rust 编写原生的 Python 模
+块，而像 Maturin 这样的工具可以帮助进行打包。
+Py03 lets developers write a native Python module in Rust, and tools such as Maturin help package it.
+
+110
+00:10:28,580 --> 00:10:36,340
+团队可以将最容易实验的部分保留在 Python 中，并
+将瓶颈部分移到 Rust 中，而无需重写整个应用程序。
+A team can keep the parts that are easiest to experiment with in Python
+and move a bottleneck into Rust without rewriting the entire application.
+
+111
+00:10:37,120 --> 00:10:40,760
+Rust 并不会让模型的 GPU 计算神奇地变快。
+Rust doesn't make a model's GPU calculations magically faster.
+
+112
+00:10:41,358 --> 00:10:43,020
+它的价值取决于工作负载。
+Its value depends on the workload.
+
+113
+00:10:43,662 --> 00:10:50,060
+它可以在内存占用、文本处理、网络、并发或部署开销重要的环节提供帮助。
+It can help where memory use, text processing, networking, concurrency, or deployment overhead matter.
+
+114
+00:10:50,766 --> 00:10:57,920
+随着 Rust 进入更多的生产系统，测试、安全检查和可观测性成为了生态系统的重要组成部分。
+As Rust enters more production systems, testing, security checks, and observability become essential parts of the ecosystem.
+
+115
+00:10:58,780 --> 00:11:04,800
+Rust 编译器可以捕捉许多类别的错误，但它无法判断应用程序的逻辑是否正确。
+Rust's compiler catches many classes of mistakes, but it cannot tell whether the application's logic is correct.
+
+116
+00:11:05,422 --> 00:11:09,960
+团队仍然需要针对预期行为、边缘情况和故障进行测试。
+The team still needs tests for expected behavior, edge cases, and failures.
+
+117
+00:11:10,620 --> 00:11:14,052
+Cargo 可以运行单元测试、集成测试和文档测试。
+Cargo runs unit, integration, and documentation tests.
+
+118
+00:11:14,638 --> 00:11:21,140
+Clippy 可以帮助识别可疑或过于复杂的代码，而 Rust FMT 则能保持格式的一致性。
+Clippy helps identify suspicious or overly complicated code, and Rust FMT keeps formatting consistent.
+
+119
+00:11:21,880 --> 00:11:27,320
+在持续集成工作流中，这些检查可以在开发者提出代码更改时随时运行。
+In a continuous integration workflow, these checks can run whenever a developer proposes a code change.
+
+120
+00:11:28,100 --> 00:11:29,780
+安全性也需要专门的关注。
+Security needs its own attention.
+
+121
+00:11:30,500 --> 00:11:39,820
+Safe Rust 能防止许多内存安全问题，但应用程序仍可能存在权限错误、
+配置不安全或依赖项存在漏洞的情况。
+SafeRust prevents many memory safety problems, but an application can still have
+incorrect authorization, insecure configuration, or a vulnerable dependency.
+
+122
+00:11:39,820 --> 00:11:44,860
+像 Cargo Audit 这样的工具可以根据已知的安全公告检查依赖项。
+Tools such as Cargo Audit check dependencies against known security advisories.
+
+123
+00:11:45,500 --> 00:11:52,860
+当底层操作需要时，可以使用 Unsafe Rust，但这
+伴随着额外的责任，并且应当严格限制其使用范围。
+Unsafe Rust is available when low-level operations require it, but it
+comes with additional responsibilities and should be carefully limited.
+
+124
+00:11:53,614 --> 00:11:57,380
+当应用程序运行时，团队需要了解它正在做什么。
+When the application is running, the team needs to understand what it's doing.
+
+125
+00:11:57,966 --> 00:12:03,180
+tracing 生态系统可以记录结构化事件，并将它们与产生这些操作的动作关联起来。
+The tracing ecosystem records structured events and connects them to the operations that produced them.
+
+126
+00:12:03,662 --> 00:12:10,380
+这有助于追踪请求在多个任务和服务中的流转，从而更容易发现缓慢的操作或故障。
+This helps follow a request through multiple tasks and services, making it easier to find slow operations or failures.
+
+127
+00:12:11,118 --> 00:12:15,680
+一旦服务经过测试并具备可观测性，最后一步就是交付给用户。
+Once the service is tested and observable, the final step is getting it to users.
+
+128
+00:12:16,380 --> 00:12:18,780
+Cargo 可以构建优化后的发布二进制文件。
+Cargo can build an optimized release binary.
+
+129
+00:12:19,342 --> 00:12:24,620
+该二进制文件可以打包到容器中，或者部署到支持该服务的环境中。
+That binary can be packaged into a container or deployed to an environment that supports the service.
+
+130
+00:12:25,340 --> 00:12:32,820
+Rust 还可以针对不同的操作系统和处理器架构，不过交叉编译可能需要额外的平台工具。
+Rust can also target different operating systems and processor
+architectures, though cross-compilation may require extra platform tools.
+
+131
+00:12:33,486 --> 00:12:35,920
+而且 Rust 的应用范围远不止于 Web 后端。
+And Rust reaches well beyond web backends.
+
+132
+00:12:36,430 --> 00:12:43,620
+开发者用它来开发命令行工具、网络基础设施、嵌入式软件、WebAssembly 以及系统编程。
+Developers use it for command-line tools, network infrastructure, embedded software, web assembly, and systems programming.
+
+133
+00:12:44,206 --> 00:12:48,600
+Linux 内核包含了对 Rust 的支持，而 C 仍然是它的主要语言。
+The Linux kernel includes Rust support, while C remains its primary language.
+
+134
+00:12:48,940 --> 00:12:51,620
+这是技术采用通常是如何运作的一个很好的例子。
+That's a good example of how adoption often works.
+
+135
+00:12:52,280 --> 00:12:57,540
+在 Rust 能带来明显收益的地方引入它，而不是假设整个代码库都必须重写。
+Add Rust where it offers a clear benefit, without assuming an entire codebase has to be rewritten.
+
+136
+00:12:58,140 --> 00:13:00,760
+有很多团队做出这种选择的公开案例。
+There are visible examples of teams making that choice.
+
+137
+00:13:01,422 --> 00:13:07,600
+Cloudflare 在之前的代理基础设施达到极限后，构建了基于 Rust 的代理 Pingora。
+Cloudflare built Pingora, a Rust-based proxy, after reaching limits with its previous proxy infrastructure.
+
+138
+00:13:08,240 --> 00:13:16,900
+Cloudflare 报告称，Pingora 每天处理超过一万亿次请求，
+而仅消耗了之前系统大约三分之一的 CPU 和内存资源。
+Cloudflare reported that Pingora served more than a trillion requests a day,
+while using about a third of the CPU and memory resources of the previous system.
+
+139
+00:13:17,486 --> 00:13:26,740
+谷歌也在 Android 的部分环节引入了 Rust，并报告称与 C++ 变更相比，
+Rust 变更在代码审查和回滚措施方面有所改进。
+Google has also introduced Rust in parts of Android, and reported improvements in
+code review and rollback measures for its Rust changes compared with C++ changes.
+
+140
+00:13:27,278 --> 00:13:30,120
+这些结果源于特定的系统和工作负载。
+Those results come from particular systems and workloads.
+
+141
+00:13:30,798 --> 00:13:34,340
+它们并不能保证每一次 Rust 重写都能获得同样的收益。
+They aren't a guarantee that every Rust rewrite will produce the same gains.
+
+142
+00:13:35,022 --> 00:13:37,560
+那么，为什么团队要重写某些组件呢？
+So, why are teams rewriting some components?
+
+143
+00:13:38,382 --> 00:13:40,360
+通常，他们有特定的原因。
+Usually, they have a specific reason.
+
+144
+00:13:41,020 --> 00:13:42,860
+某个服务需要降低资源消耗。
+A service needs lower resource use.
+
+145
+00:13:43,310 --> 00:13:45,000
+某个解析器需要处理高风险输入。
+A parser handles risky input.
+
+146
+00:13:45,582 --> 00:13:47,860
+某个网络组件是性能瓶颈。
+A network component is a performance bottleneck.
+
+147
+00:13:48,206 --> 00:13:50,980
+或者某个系统层需要更强的内存安全性。
+Or a systems layer needs stronger memory safety.
+
+148
+00:13:51,700 --> 00:13:58,620
+仅仅因为 Rust 很流行就重写一个稳定的应用程序，
+可能会增加成本和风险，而无法解决实际问题。
+Rewriting a stable application just because Rust is popular can add cost and risk without solving a real problem.
+
+149
+00:13:59,280 --> 00:14:01,960
+Rust 的采用正在增长，但它是有选择性的。
+Rust adoption is growing, but it's selective.
+
+150
+00:14:02,740 --> 00:14:10,340
+Rust 项目 2025 年的调查收集了 7,000 多份回复，报告显示受访者对招聘仍有持续兴趣。
+The Rust Project's 2025 survey gathered more than 7,000 responses and reported continued hiring interest among respondents.
+
+151
+00:14:11,182 --> 00:14:16,388
+这显示了 Rust 社区的势头，但这并不是对每家公司或每个开发者的全面普查。
+That shows momentum in the Rust community, but it's not a census of every company or developer.
+
+152
+00:14:17,006 --> 00:14:32,220
+Rust 生态系统包括语言和编译器、工具链、编辑器支持、Cargo、crates、Web 框架、
+异步运行时、数据库库、测试和安全工具，以及与 Python 等语言的连接。
+The Rust ecosystem includes the language and compiler, toolchain, editor support, cargo, crates, web frameworks, async runtimes,
+database libraries, testing and security tools, and connections to languages such as Python.
+
+153
+00:14:32,820 --> 00:14:35,860
+在 AI 时代，Rust 的机遇显而易见。
+In the AI era, Rust's opportunity is clear.
+
+154
+00:14:36,640 --> 00:14:45,880
+AI 让软件开发变快了，但生产系统仍需高效利用资源、安全处理并发，并可靠运行。
+AI makes it faster to create software, but production systems still need
+to use resources efficiently, handle concurrency safely, and run reliably.
+
+155
+00:14:46,660 --> 00:14:55,660
+Rust 是这类工作的强有力选择，无论它是驱动 API、
+分词器、网络服务，还是作为 Python 的原生扩展。
+Rust is one strong option for that work, whether it powers an API,
+a tokenizer, a network service, or a native extension beside Python.
+
+156
+00:14:56,270 --> 00:15:01,620
+它并不是每个项目的最佳工具，团队也不需要重写所有代码才能从中受益。
+It isn't the right tool for every project, and teams don't need to rewrite everything to benefit from it.
+
+157
+00:15:02,158 --> 00:15:05,240
+采用 Rust 最强有力的理由是一个非常具体的理由。
+The strongest reason to adopt Rust is a concrete one.
+
+158
+00:15:05,838 --> 00:15:09,240
+它的保障和性能解决了真正重要的问题。
+The guarantees and performance solve a problem that matters.
+
+159
+00:15:09,966 --> 00:15:18,800
+这就是为什么 Rust 正在成为软件栈中更重要的一部分，也是为什么即使 Rust 永远不会成为你
+的唯一语言，了解它的生态系统依然很有用。
+That's why Rust is becoming a bigger part of the software stack, and why
+understanding its ecosystem is useful even if Rust never becomes your only language.
+
