@@ -7,6 +7,7 @@
 | [DEF CON 34 - AI - Minimize Harm, Maximize Defense Anthropic  & Offense-Defense  - Curt Bernard](medias/HKE1E/) | DEFCONConference | 2026-11-18 |
 | [The Complete Rust Ecosystem Explained (Why Rust is the Future)](medias/GFRGC/) | Cloud X Berry | 2026-11-18 |
 | [AI Is Becoming a Scientist — And That's Changing Everything!](medias/G9QYN/) | Zenith Byte | 2026-11-18 |
+| [I Bet Nobody Explained Real Developer Life in IT Like This (3-Hour Course)](medias/G9PKA/) | Cloud X Berry | 2026-11-18 |
 | [Anthropic Just Issued a WARNING About Its Own AI…](medias/0YBX5/) | AI Copium | 2026-11-18 |
 | [Trusted agents, real outcomes: Driving AI impact at scale with Google's Agentic Data Cloud](medias/ZQFBA/) | Google Cloud Tech | 2026-11-17 |
 | [CodeShift EP003 — From Prompt to Pull Request: Working with AI Coding Agents.](medias/YP3G8/) | CodeShift Podcast | 2026-11-17 |
