@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [Can AI Coding Agents Actually Build Maintainable Software?](medias/48KCA/) | Boundary | 2026-11-19 |
 | [Web API Structures and Data Models Analysis // Souhaila Serbout // ICSA 2022](medias/14CCC/) | Software Institute | 2026-11-19 |
 | [🔴 Oct 2's Top Cyber News NOW! - Ep 1257](medias/0HQT9/) | Simply Cyber - Gerald Auger, PhD | 2026-11-19 |
 | [Is This the End of LLMs? This Stanford Paper Could Make Nvidia's Memory Chips Unnecessary](medias/0E10T/) | Alex - a1crew | 2026-11-19 |
