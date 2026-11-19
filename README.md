@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [Is This the End of LLMs? This Stanford Paper Could Make Nvidia's Memory Chips Unnecessary](medias/0E10T/) | Alex - a1crew | 2026-11-19 |
 | [What Frontier Labs Buy: A Data Deep Dive with Handshake AI — Garrett Lord & Team](medias/NA3MM/) | Latent Space | 2026-11-18 |
 | [DEF CON 34 - AI - Minimize Harm, Maximize Defense Anthropic  & Offense-Defense  - Curt Bernard](medias/HKE1E/) | DEFCONConference | 2026-11-18 |
 | [The Complete Rust Ecosystem Explained (Why Rust is the Future)](medias/GFRGC/) | Cloud X Berry | 2026-11-18 |

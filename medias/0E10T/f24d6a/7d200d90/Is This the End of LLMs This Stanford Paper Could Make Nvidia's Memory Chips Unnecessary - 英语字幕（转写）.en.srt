@@ -1,0 +1,724 @@
+1
+00:00:00,142 --> 00:00:08,320
+What if I told you that a single Stanford research paper might just render NVIDIA most expensive memory chip completely unnecessary?
+
+2
+00:00:08,590 --> 00:00:11,204
+Here's the thing about the AI industry right now.
+
+3
+00:00:11,630 --> 00:00:13,284
+We have hit a massive wall.
+
+4
+00:00:13,614 --> 00:00:20,388
+Everyone talks about compute limits, but the real silent killer of traditional language models is memory bandwidth.
+
+5
+00:00:20,640 --> 00:00:23,600
+We physically cannot build memory chips fast enough.
+
+6
+00:00:23,760 --> 00:00:26,400
+We need them to feed these massive AI models.
+
+7
+00:00:26,560 --> 00:00:29,440
+Let us back up and look at how things work today.
+
+8
+00:00:29,680 --> 00:00:34,148
+You can think of a standard language model as the gigantic matrix of numbers.
+
+9
+00:00:34,414 --> 00:00:39,076
+You give this model a prompt, it predicts the next most likely token.
+
+10
+00:00:39,280 --> 00:00:42,020
+A token is just a short piece of word.
+
+11
+00:00:42,286 --> 00:00:46,148
+It predicts your token based on your prompt and its training data.
+
+12
+00:00:46,414 --> 00:00:48,100
+Then it repeats this process.
+
+13
+00:00:48,590 --> 00:00:51,396
+It moves forward one token at a time.
+
+14
+00:00:51,840 --> 00:00:55,040
+It does this until the entire answer is complete.
+
+15
+00:00:55,214 --> 00:00:58,148
+It is basically a really big autocomplete system.
+
+16
+00:00:58,480 --> 00:01:01,124
+This process takes a huge amount of resources.
+
+17
+00:01:01,550 --> 00:01:05,700
+To get a 1000-word answer, the model runs 1000 times.
+
+18
+00:01:06,158 --> 00:01:07,780
+It runs in a strict sequence.
+
+19
+00:01:08,080 --> 00:01:12,484
+During every single pass, the graphic card needs to read the model parameters.
+
+20
+00:01:12,814 --> 00:01:14,532
+It reads them from the video memory.
+
+21
+00:01:14,720 --> 00:01:16,836
+A massive model has trillions of numbers.
+
+22
+00:01:17,200 --> 00:01:21,440
+The processor has to load these numbers 1000 separate times.
+
+23
+00:01:21,760 --> 00:01:23,620
+This method is incredibly slow.
+
+24
+00:01:24,046 --> 00:01:26,916
+It also consumes a massive amount of electricity.
+
+25
+00:01:27,360 --> 00:01:31,140
+But most importantly, it requires extreme memory bandwidth.
+
+26
+00:01:31,440 --> 00:01:34,628
+The speed of the memory limits the speed of the AI.
+
+27
+00:01:35,086 --> 00:01:37,092
+The processor often sits there.
+
+28
+00:01:37,550 --> 00:01:43,280
+It waits for the memory to send the data, and the problem gets even worse with long conversations.
+
+29
+00:01:43,534 --> 00:01:46,468
+The model has to remember all the previous tokens.
+
+30
+00:01:46,720 --> 00:01:48,960
+It stores them in a temporary cache.
+
+31
+00:01:49,166 --> 00:01:51,204
+We will call this a KV cache.
+
+32
+00:01:51,520 --> 00:01:54,756
+As the conversations get longer, this cache grows.
+
+33
+00:01:54,960 --> 00:01:59,360
+In long context models, this memory cache grows way too fast.
+
+34
+00:01:59,520 --> 00:02:01,920
+It eats up all the available video memory.
+
+35
+00:02:02,126 --> 00:02:06,340
+Hardware companies try to fix this by packing more memory onto the cards.
+
+36
+00:02:06,560 --> 00:02:11,364
+They use high bandwidth memory, but these chips are incredibly expensive.
+
+37
+00:02:11,950 --> 00:02:14,148
+They are also very hard to manufacture.
+
+38
+00:02:14,574 --> 00:02:17,124
+This creates a massive hardware bottleneck.
+
+39
+00:02:17,678 --> 00:02:19,200
+So how do we fix this?
+
+40
+00:02:19,374 --> 00:02:21,988
+Without just buying more expensive memory chips.
+
+41
+00:02:22,160 --> 00:02:26,468
+A research team from Stanford University recently dropped a new architecture.
+
+42
+00:02:26,862 --> 00:02:30,628
+It is called next concept modeling, or NCP for short.
+
+43
+00:02:30,880 --> 00:02:33,200
+NCP takes a radically different approach.
+
+44
+00:02:33,454 --> 00:02:35,600
+It generates the entire answer in parallel.
+
+45
+00:02:35,760 --> 00:02:39,680
+To do this, the researchers borrowed an idea from image generation models.
+
+46
+00:02:39,854 --> 00:02:42,212
+Think about how an AI generates a picture.
+
+47
+00:02:42,606 --> 00:02:44,480
+It starts with the blurry layer.
+
+48
+00:02:44,640 --> 00:02:46,756
+This layer represents a rough image.
+
+49
+00:02:46,960 --> 00:02:49,476
+Then the next layer adds more details.
+
+50
+00:02:50,030 --> 00:02:52,720
+You repeat this until you get a sharp final image.
+
+51
+00:02:52,910 --> 00:02:55,972
+NCP does this exact same thing with text.
+
+52
+00:02:56,558 --> 00:02:58,800
+Words live inside a collection of layers.
+
+53
+00:02:58,960 --> 00:03:02,308
+At the top layer you have a very rough outline of a concept.
+
+54
+00:03:02,480 --> 00:03:04,932
+The researchers call these concepts discrete codes.
+
+55
+00:03:05,200 --> 00:03:08,320
+The code is just a tiny digital representation of an idea.
+
+56
+00:03:08,560 --> 00:03:11,428
+In each new layer, the concept gets refined.
+
+57
+00:03:11,600 --> 00:03:15,780
+The model stores only the new requirements as additional codes.
+
+58
+00:03:16,334 --> 00:03:20,740
+So every subsequent layer has more codes than the layer before it.
+
+59
+00:03:21,040 --> 00:03:23,204
+This continues down to the bottom layer.
+
+60
+00:03:23,600 --> 00:03:27,556
+At this final layer, every code becomes a real output token.
+
+61
+00:03:27,760 --> 00:03:30,880
+If you combine all these layers, you get the final text.
+
+62
+00:03:31,054 --> 00:03:33,444
+So you ask the NCM model a question.
+
+63
+00:03:33,870 --> 00:03:36,480
+The model runs exactly one time per layer.
+
+64
+00:03:36,640 --> 00:03:39,780
+Each layer predicts the entire output in parallel.
+
+65
+00:03:40,174 --> 00:03:42,084
+The top layers are very coarse.
+
+66
+00:03:42,638 --> 00:03:49,828
+If you look at the words in the top layer, they would look like complete garbage, but the fidelity increases layer by layer.
+
+67
+00:03:50,030 --> 00:03:53,732
+By the final pass, you get a high-quality text output.
+
+68
+00:03:54,080 --> 00:03:56,228
+This text is the answer to your prompt.
+
+69
+00:03:56,400 --> 00:03:59,172
+Let us go back to our 1000 word example.
+
+70
+00:03:59,598 --> 00:04:03,332
+A traditional model takes 1000 passes to write that answer.
+
+71
+00:04:03,726 --> 00:04:07,520
+The Stanford NCM model takes just 32 passes.
+
+72
+00:04:07,694 --> 00:04:12,400
+The graphics card only reads 32 gigabytes of memory instead of 1000.
+
+73
+00:04:12,880 --> 00:04:15,172
+This is a massive drop in memory bandwidth.
+
+74
+00:04:15,440 --> 00:04:21,444
+It is more than 30 times as efficient, but generating everything in parallel creates a huge problem.
+
+75
+00:04:21,998 --> 00:04:28,772
+How do you force an AI to actually learn a high level concept instead of just memorizing the training data?
+
+76
+00:04:29,040 --> 00:04:32,560
+Wait, how does a computer even know what a concept is?
+
+77
+00:04:32,846 --> 00:04:35,200
+This brings us to the second technical secret.
+
+78
+00:04:35,374 --> 00:04:38,404
+The Stanford researchers used a brutal training trick.
+
+79
+00:04:39,086 --> 00:04:40,932
+They called it a nested dropout.
+
+80
+00:04:41,216 --> 00:04:45,136
+They use a special program to turn text into those discrete codes.
+
+81
+00:04:45,296 --> 00:04:49,604
+During training, the researchers randomly drop the detailed bottom layers.
+
+82
+00:04:49,776 --> 00:04:55,940
+Imagine you need to study for a big math test, but someone rips out the last three chapters of your textbook.
+
+83
+00:04:56,398 --> 00:04:58,852
+You have to deeply understand the core concepts.
+
+84
+00:04:59,246 --> 00:05:02,336
+You cannot just memorize the formulas at the end of the book.
+
+85
+00:05:02,542 --> 00:05:05,956
+If you are enjoying our chat, I have something important to share with you.
+
+86
+00:05:06,990 --> 00:05:10,308
+Looks like YouTube algorithm is not a big fan of my videos.
+
+87
+00:05:11,086 --> 00:05:13,136
+This is why, guys, I need your support.
+
+88
+00:05:13,422 --> 00:05:16,656
+Hit the like button to tell the Google that the content is dope.
+
+89
+00:05:16,816 --> 00:05:21,216
+If you use social media and have friends in tech, please share this video.
+
+90
+00:05:21,454 --> 00:05:24,896
+If you are not subscribed yet, please do get subscribed right now.
+
+91
+00:05:25,216 --> 00:05:29,380
+YouTube algorithm should know that the tech community is not that.
+
+92
+00:05:29,616 --> 00:05:35,268
+But getting back to our topic, nested dropouts does exactly this to the AI model.
+
+93
+00:05:35,456 --> 00:05:37,444
+It puts a lot of pressure on the system.
+
+94
+00:05:37,696 --> 00:05:42,756
+It forces the top layers to pack maximum meaning into a tiny sequence of codes.
+
+95
+00:05:43,056 --> 00:05:47,076
+The model cannot rely on the bottom layers to fix the output layer.
+
+96
+00:05:47,376 --> 00:05:53,444
+The bottom layers might be missing entirely, so the top layers actually learn true concepts.
+
+97
+00:05:53,870 --> 00:05:56,496
+They do not just output compressed static.
+
+98
+00:05:56,656 --> 00:06:00,068
+This is why NCM actually understands what it writes.
+
+99
+00:06:00,336 --> 00:06:04,100
+It learns the core idea before it writes the specific words.
+
+100
+00:06:04,416 --> 00:06:05,828
+That is actually wild.
+
+101
+00:06:06,350 --> 00:06:09,988
+But this course to find design has a major vulnerability.
+
+102
+00:06:10,176 --> 00:06:14,016
+What happens if the model makes a mistake at the very top layer?
+
+103
+00:06:14,222 --> 00:06:16,260
+This brings us to compounding errors.
+
+104
+00:06:16,782 --> 00:06:22,116
+If the top layer hallucinates a bad concept, that mistake ripples down.
+
+105
+00:06:22,510 --> 00:06:26,692
+It corrupts the final text, it creates a total error death spiral.
+
+106
+00:06:26,976 --> 00:06:31,044
+To fix this, the team engineered something called conditioning corruption.
+
+107
+00:06:31,438 --> 00:06:33,220
+This is our second technical secret.
+
+108
+00:06:33,456 --> 00:06:37,508
+During training, they deliberately inject wrong codes into the middle layers.
+
+109
+00:06:37,936 --> 00:06:42,404
+They use corrupted data, but they keep the correct final answers intact.
+
+110
+00:06:42,576 --> 00:06:45,220
+Imagine you teach a kid to ride a bike.
+
+111
+00:06:45,696 --> 00:06:48,804
+You randomly push the bike slightly off balance.
+
+112
+00:06:49,376 --> 00:06:56,336
+The kid has to learn how to correct their posture, they learn to recover their balance before they crash into a tree.
+
+113
+00:06:56,526 --> 00:06:59,076
+Conditioning corruption does this for the AI.
+
+114
+00:06:59,296 --> 00:07:01,828
+It trains the lower levels to be resilient.
+
+115
+00:07:02,096 --> 00:07:05,540
+It forces the model to self-correct its own mistakes.
+
+116
+00:07:06,158 --> 00:07:09,572
+It fixes bad concepts before they turn into garbage tags.
+
+117
+00:07:09,936 --> 00:07:15,296
+Because nobody wants their AI to confidently output complete garbage faster than before.
+
+118
+00:07:15,536 --> 00:07:18,180
+But now we have a model that is fast.
+
+119
+00:07:18,574 --> 00:07:22,020
+It is memory efficient and it fixes its own errors.
+
+120
+00:07:22,416 --> 00:07:24,548
+But it is still a very small model.
+
+121
+00:07:24,942 --> 00:07:30,276
+How does a tiny model compete with the reasoning power of a massive frontier model?
+
+122
+00:07:30,496 --> 00:07:34,148
+This is where we see a massive developer trend for 2026.
+
+123
+00:07:34,496 --> 00:07:36,228
+It is called test time scaling.
+
+124
+00:07:36,656 --> 00:07:39,012
+And this is our third technical secret.
+
+125
+00:07:39,534 --> 00:07:41,444
+NCM is extremely fast.
+
+126
+00:07:41,616 --> 00:07:45,764
+It generates entire blocks of text in a fraction of the normal time.
+
+127
+00:07:45,936 --> 00:07:48,868
+You can use this save time to buy more intelligence.
+
+128
+00:07:49,326 --> 00:07:54,180
+Instead of just taking the first answer, you generate 20 different candidate answers.
+
+129
+00:07:54,638 --> 00:07:56,708
+You generate all of them in parallel.
+
+130
+00:07:57,006 --> 00:07:58,976
+Then you run a mathematical filter.
+
+131
+00:07:59,246 --> 00:08:03,108
+The filter is called minimum Bayes risk or MBR.
+
+132
+00:08:03,630 --> 00:08:10,468
+MBR looks at all 20 answers, it mathematically selects the candidate that has the highest consensus among the groups.
+
+133
+00:08:10,702 --> 00:08:13,188
+Imagine you have a really tough coding problem.
+
+134
+00:08:13,486 --> 00:08:18,788
+You could ask one senior developer for an answer, or you could ask 20 junior developers.
+
+135
+00:08:18,976 --> 00:08:21,796
+Then you find the common threats in all the answers.
+
+136
+00:08:22,176 --> 00:08:25,124
+You mathematically pick the best overall solution.
+
+137
+00:08:25,456 --> 00:08:30,212
+You literally trade the model's extreme speed to boost its reasoning at runtime.
+
+138
+00:08:30,496 --> 00:08:35,396
+You do not need to train a bigger model, you just run the small model multiple times.
+
+139
+00:08:35,982 --> 00:08:39,616
+The researchers tested this exact theory on games of Sudoku.
+
+140
+00:08:40,016 --> 00:08:43,376
+They used a 25 million parameter NCM model.
+
+141
+00:08:43,790 --> 00:08:47,428
+It solves 86 out of 100 hardboards.
+
+142
+00:08:47,872 --> 00:08:52,900
+The researchers compared these results against the standard language model of the same size.
+
+143
+00:08:53,390 --> 00:08:55,940
+The standard model solved exactly one board.
+
+144
+00:08:56,272 --> 00:08:59,140
+That is an 8600% improvement.
+
+145
+00:08:59,598 --> 00:09:00,740
+I love this part.
+
+146
+00:09:01,166 --> 00:09:04,832
+It shows how speed can directly translate into better logic.
+
+147
+00:09:04,992 --> 00:09:09,472
+But why should the massive hardware companies care about an AI playing Sudoku?
+
+148
+00:09:09,872 --> 00:09:13,632
+Because this paper exposes a fatal flaw in the current AI economy.
+
+149
+00:09:13,872 --> 00:09:17,092
+NCM shifts the main bottleneck entirely.
+
+150
+00:09:17,486 --> 00:09:21,508
+It moves the bottleneck from the memory bandwidth to pure compute.
+
+151
+00:09:21,742 --> 00:09:24,132
+This is the billion dollar hardware flip.
+
+152
+00:09:24,352 --> 00:09:26,432
+As always, there is no free launch.
+
+153
+00:09:26,592 --> 00:09:29,124
+Look at the bottom layers of the NCM model.
+
+154
+00:09:29,550 --> 00:09:33,028
+It has four times as many codes as output tokens.
+
+155
+00:09:33,312 --> 00:09:36,932
+Evaluating all those extra codes takes more processing power.
+
+156
+00:09:37,422 --> 00:09:43,792
+The architecture drastically reduces the memory bandwidth you need, but it requires more raw compute.
+
+157
+00:09:44,032 --> 00:09:48,932
+Right now, the industry buys expensive NVIDIA chips, mostly for their memory.
+
+158
+00:09:49,262 --> 00:09:52,516
+We need that high bandwidth memory to hold the massive cache.
+
+159
+00:09:52,992 --> 00:09:56,612
+But NCM does not need that massive memory bandwidth.
+
+160
+00:09:56,752 --> 00:09:58,116
+It just needs raw compute.
+
+161
+00:09:58,512 --> 00:10:03,780
+This means we could theoretically run frontier level AI on a consumer-grade silicon.
+
+162
+00:10:04,206 --> 00:10:09,028
+You could use standard chips that have massive compute but limited video memory.
+
+163
+00:10:09,312 --> 00:10:12,672
+This makes the current token by token paradigm look bloated.
+
+164
+00:10:12,992 --> 00:10:14,512
+It makes it look like a relic.
+
+165
+00:10:14,672 --> 00:10:20,292
+An algorithmic left field breakthrough might actually solve our massive hardware supply chain problem.
+
+166
+00:10:20,512 --> 00:10:23,876
+It threatens to upend the entire hardware monopoly.
+
+167
+00:10:24,366 --> 00:10:28,100
+Will NCM hold up when we scale it to trillions of parameters?
+
+168
+00:10:28,512 --> 00:10:30,084
+We do not really know yet.
+
+169
+00:10:30,510 --> 00:10:32,192
+But it proves something important.
+
+170
+00:10:32,526 --> 00:10:36,420
+We should not accept today's hardware's limits as permanent laws of physics.
+
+171
+00:10:36,752 --> 00:10:41,552
+New model architectures show us that a massive breakthrough are still possible.
+
+172
+00:10:41,806 --> 00:10:46,564
+To sum it all up, NCM ditches token by token generation entirely.
+
+173
+00:10:46,958 --> 00:10:49,316
+It generates text in parallel layers.
+
+174
+00:10:49,712 --> 00:10:54,340
+It uses nested dropouts to force the model to learn real concepts.
+
+175
+00:10:54,592 --> 00:10:57,952
+It uses condition and corruption to fix its own errors.
+
+176
+00:10:58,062 --> 00:11:02,500
+And it uses test time scaling to artificially boost its reasoning.
+
+177
+00:11:03,054 --> 00:11:05,764
+It trades memory bandwidth for pure compute.
+
+178
+00:11:05,952 --> 00:11:17,540
+If you want to stay ahead of these massive algorithmic shifts, hit the like button, subscribe to the channel, and let me know in the comments below if you think consumer graphic cards will finally run frontier models.
+
+179
+00:11:17,712 --> 00:11:18,752
+Thank you for watching.
+
+180
+00:11:19,022 --> 00:11:20,260
+See you in the next one.
+
+181
+00:11:20,752 --> 00:11:21,392
+Bye.
+

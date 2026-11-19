@@ -1,0 +1,908 @@
+1
+00:00:00,142 --> 00:00:08,320
+如果我告诉你，斯坦福大学的一篇研究论文可能会让
+Nvidia 最昂贵的内存芯片完全变得没用，你会怎么想？
+What if I told you that a single Stanford research paper might just render NVIDIA most expensive memory chip completely unnecessary?
+
+2
+00:00:08,590 --> 00:00:11,204
+这就是目前 AI 行业的现状。
+Here's the thing about the AI industry right now.
+
+3
+00:00:11,630 --> 00:00:13,284
+我们撞上了一堵巨大的墙。
+We have hit a massive wall.
+
+4
+00:00:13,614 --> 00:00:20,388
+大家都在谈论算力限制，但传统语言模型真正的隐形杀手是内存带宽。
+Everyone talks about compute limits, but the real silent killer of traditional language models is memory bandwidth.
+
+5
+00:00:20,640 --> 00:00:23,600
+我们物理上无法制造足够快的内存芯片。
+We physically cannot build memory chips fast enough.
+
+6
+00:00:23,760 --> 00:00:26,400
+我们需要这些芯片来喂养这些庞大的 AI 模型。
+We need them to feed these massive AI models.
+
+7
+00:00:26,560 --> 00:00:29,440
+让我们倒回去看看现在的运作方式。
+Let us back up and look at how things work today.
+
+8
+00:00:29,680 --> 00:00:34,148
+你可以把标准的语言模型想象成一个巨大的数字矩阵。
+You can think of a standard language model as the gigantic matrix of numbers.
+
+9
+00:00:34,414 --> 00:00:39,076
+你给这个模型一个提示词，它会预测下一个最可能的 token。
+You give this model a prompt, it predicts the next most likely token.
+
+10
+00:00:39,280 --> 00:00:42,020
+token 只是单词的一个片段。
+A token is just a short piece of word.
+
+11
+00:00:42,286 --> 00:00:46,148
+它根据你的提示词和它的训练数据来预测你的 token。
+It predicts your token based on your prompt and its training data.
+
+12
+00:00:46,414 --> 00:00:48,100
+然后它重复这个过程。
+Then it repeats this process.
+
+13
+00:00:48,590 --> 00:00:51,396
+它一次推进一个 token。
+It moves forward one token at a time.
+
+14
+00:00:51,840 --> 00:00:55,040
+它一直这样做，直到整个答案完成。
+It does this until the entire answer is complete.
+
+15
+00:00:55,214 --> 00:00:58,148
+它基本上就是一个超级巨大的自动补全系统。
+It is basically a really big autocomplete system.
+
+16
+00:00:58,480 --> 00:01:01,124
+这个过程消耗了大量的资源。
+This process takes a huge amount of resources.
+
+17
+00:01:01,550 --> 00:01:05,700
+为了得到一个 1000 字的答案，模型要运行 1000 次。
+To get a 1000-word answer, the model runs 1000 times.
+
+18
+00:01:06,158 --> 00:01:07,780
+它是按严格的顺序运行的。
+It runs in a strict sequence.
+
+19
+00:01:08,080 --> 00:01:12,484
+在每一次运行中，显卡都需要读取模型参数。
+During every single pass, the graphic card needs to read the model parameters.
+
+20
+00:01:12,814 --> 00:01:14,532
+它从显存中读取这些数据。
+It reads them from the video memory.
+
+21
+00:01:14,720 --> 00:01:16,836
+一个巨大的模型拥有数万亿个数字。
+A massive model has trillions of numbers.
+
+22
+00:01:17,200 --> 00:01:21,440
+处理器必须把这些数字加载 1000 次。
+The processor has to load these numbers 1000 separate times.
+
+23
+00:01:21,760 --> 00:01:23,620
+这种方法慢得惊人。
+This method is incredibly slow.
+
+24
+00:01:24,046 --> 00:01:26,916
+它还消耗大量的电能。
+It also consumes a massive amount of electricity.
+
+25
+00:01:27,360 --> 00:01:31,140
+但最重要的是，它需要极高的内存带宽。
+But most importantly, it requires extreme memory bandwidth.
+
+26
+00:01:31,440 --> 00:01:34,628
+内存的速度限制了 AI 的速度。
+The speed of the memory limits the speed of the AI.
+
+27
+00:01:35,086 --> 00:01:37,092
+处理器经常就在那儿干等着。
+The processor often sits there.
+
+28
+00:01:37,550 --> 00:01:43,280
+它在等待内存发送数据，而在长对话中，这个问题变得更严重。
+It waits for the memory to send the data, and the problem gets even worse with long conversations.
+
+29
+00:01:43,534 --> 00:01:46,468
+模型必须记住之前所有的 token。
+The model has to remember all the previous tokens.
+
+30
+00:01:46,720 --> 00:01:48,960
+它把它们存储在一个临时缓存里。
+It stores them in a temporary cache.
+
+31
+00:01:49,166 --> 00:01:51,204
+我们称之为 KV cache。
+We will call this a KV cache.
+
+32
+00:01:51,520 --> 00:01:54,756
+随着对话变长，这个缓存也会变大。
+As the conversations get longer, this cache grows.
+
+33
+00:01:54,960 --> 00:01:59,360
+在长文本模型中，这个内存缓存增长得太快了。
+In long context models, this memory cache grows way too fast.
+
+34
+00:01:59,520 --> 00:02:01,920
+它吃掉了所有的可用显存。
+It eats up all the available video memory.
+
+35
+00:02:02,126 --> 00:02:06,340
+硬件公司试图通过在显卡上塞入更多内存来解决这个问题。
+Hardware companies try to fix this by packing more memory onto the cards.
+
+36
+00:02:06,560 --> 00:02:11,364
+他们使用 High Bandwidth Memory，但这些芯片极其昂贵。
+They use high bandwidth memory, but these chips are incredibly expensive.
+
+37
+00:02:11,950 --> 00:02:14,148
+而且它们也非常难制造。
+They are also very hard to manufacture.
+
+38
+00:02:14,574 --> 00:02:17,124
+这造成了一个巨大的硬件瓶颈。
+This creates a massive hardware bottleneck.
+
+39
+00:02:17,678 --> 00:02:19,200
+那么我们该如何解决这个问题呢？
+So how do we fix this?
+
+40
+00:02:19,374 --> 00:02:21,988
+而不是单纯去买更贵的内存芯片。
+Without just buying more expensive memory chips.
+
+41
+00:02:22,160 --> 00:02:26,468
+斯坦福大学的一个研究团队最近发布了一种新架构。
+A research team from Stanford University recently dropped a new architecture.
+
+42
+00:02:26,862 --> 00:02:30,628
+它被称为 Next Concept Modeling，简称 NCP。
+It is called next concept modeling, or NCP for short.
+
+43
+00:02:30,880 --> 00:02:33,200
+NCP 采用了一种截然不同的方法。
+NCP takes a radically different approach.
+
+44
+00:02:33,454 --> 00:02:35,600
+它并行生成整个答案。
+It generates the entire answer in parallel.
+
+45
+00:02:35,760 --> 00:02:39,680
+为了做到这一点，研究人员借鉴了图像生成模型的一个思路。
+To do this, the researchers borrowed an idea from image generation models.
+
+46
+00:02:39,854 --> 00:02:42,212
+想想 AI 是如何生成图片的。
+Think about how an AI generates a picture.
+
+47
+00:02:42,606 --> 00:02:44,480
+它从模糊的层开始。
+It starts with the blurry layer.
+
+48
+00:02:44,640 --> 00:02:46,756
+这一层代表一张粗略的图像。
+This layer represents a rough image.
+
+49
+00:02:46,960 --> 00:02:49,476
+然后下一层会增加更多细节。
+Then the next layer adds more details.
+
+50
+00:02:50,030 --> 00:02:52,720
+你不断重复这个过程，直到得到清晰的最终图像。
+You repeat this until you get a sharp final image.
+
+51
+00:02:52,910 --> 00:02:55,972
+NCP 对文本的处理也是完全一样的。
+NCP does this exact same thing with text.
+
+52
+00:02:56,558 --> 00:02:58,800
+词汇存在于一系列层级之中。
+Words live inside a collection of layers.
+
+53
+00:02:58,960 --> 00:03:02,308
+在顶层，你拥有一个非常粗略的概念轮廓。
+At the top layer you have a very rough outline of a concept.
+
+54
+00:03:02,480 --> 00:03:04,932
+研究人员称这些概念为离散代码。
+The researchers call these concepts discrete codes.
+
+55
+00:03:05,200 --> 00:03:08,320
+代码只是一个想法的微小数字表示。
+The code is just a tiny digital representation of an idea.
+
+56
+00:03:08,560 --> 00:03:11,428
+在每一个新层中，概念都会被精炼。
+In each new layer, the concept gets refined.
+
+57
+00:03:11,600 --> 00:03:15,780
+模型仅将新的要求作为额外的代码存储。
+The model stores only the new requirements as additional codes.
+
+58
+00:03:16,334 --> 00:03:20,740
+因此，每一个后续层拥有的代码都比前一层多。
+So every subsequent layer has more codes than the layer before it.
+
+59
+00:03:21,040 --> 00:03:23,204
+这一直持续到最底层。
+This continues down to the bottom layer.
+
+60
+00:03:23,600 --> 00:03:27,556
+在这一最终层，每个代码都变成一个真实的输出 token。
+At this final layer, every code becomes a real output token.
+
+61
+00:03:27,760 --> 00:03:30,880
+把所有这些层结合起来，你就得到了最终的文本。
+If you combine all these layers, you get the final text.
+
+62
+00:03:31,054 --> 00:03:33,444
+所以，你向 NCM 模型提问。
+So you ask the NCM model a question.
+
+63
+00:03:33,870 --> 00:03:36,480
+模型每层只运行一次。
+The model runs exactly one time per layer.
+
+64
+00:03:36,640 --> 00:03:39,780
+每一层都会并行预测整个输出。
+Each layer predicts the entire output in parallel.
+
+65
+00:03:40,174 --> 00:03:42,084
+顶层的内容非常粗略。
+The top layers are very coarse.
+
+66
+00:03:42,638 --> 00:03:49,828
+如果你看顶层的词，它们看起来就像垃圾，但准确度会随着层数的增加而提高。
+If you look at the words in the top layer, they would look like complete garbage, but the fidelity increases layer by layer.
+
+67
+00:03:50,030 --> 00:03:53,732
+到最后一轮时，你就能得到高质量的文本输出。
+By the final pass, you get a high-quality text output.
+
+68
+00:03:54,080 --> 00:03:56,228
+这段文本就是对你提示词的回答。
+This text is the answer to your prompt.
+
+69
+00:03:56,400 --> 00:03:59,172
+让我们回到那个 1000 字的例子。
+Let us go back to our 1000 word example.
+
+70
+00:03:59,598 --> 00:04:03,332
+传统模型需要经过 1000 次迭代才能写出那个答案。
+A traditional model takes 1000 passes to write that answer.
+
+71
+00:04:03,726 --> 00:04:07,520
+而斯坦福的 NCM 模型只需要 32 次迭代。
+The Stanford NCM model takes just 32 passes.
+
+72
+00:04:07,694 --> 00:04:12,400
+显卡只需要读取 32 GB 的内存，而不是 1000 GB。
+The graphics card only reads 32 gigabytes of memory instead of 1000.
+
+73
+00:04:12,880 --> 00:04:15,172
+这是内存带宽的巨大下降。
+This is a massive drop in memory bandwidth.
+
+74
+00:04:15,440 --> 00:04:21,444
+它的效率提高了 30 多倍，但并行生成所有内容会带来一个巨大的问题。
+It is more than 30 times as efficient, but generating everything in parallel creates a huge problem.
+
+75
+00:04:21,998 --> 00:04:28,772
+你该如何强迫 AI 去真正学习高层概念，而不是仅仅死记硬背训练数据呢？
+How do you force an AI to actually learn a high level concept instead of just memorizing the training data?
+
+76
+00:04:29,040 --> 00:04:32,560
+等等，电脑到底是怎么知道什么是“概念”的？
+Wait, how does a computer even know what a concept is?
+
+77
+00:04:32,846 --> 00:04:35,200
+这就带到了第二个技术秘密。
+This brings us to the second technical secret.
+
+78
+00:04:35,374 --> 00:04:38,404
+斯坦福的研究人员使用了一种强硬的训练技巧。
+The Stanford researchers used a brutal training trick.
+
+79
+00:04:39,086 --> 00:04:40,932
+他们称之为 nested dropout。
+They called it a nested dropout.
+
+80
+00:04:41,216 --> 00:04:45,136
+他们使用一个特殊的程序将文本转换为那些离散代码。
+They use a special program to turn text into those discrete codes.
+
+81
+00:04:45,296 --> 00:04:49,604
+在训练期间，研究人员会随机丢弃底层的细节。
+During training, the researchers randomly drop the detailed bottom layers.
+
+82
+00:04:49,776 --> 00:04:55,940
+想象一下，你需要准备一场大型数学考试，但有人把教科书的最后三章撕掉了。
+Imagine you need to study for a big math test, but someone rips out the last three chapters of your textbook.
+
+83
+00:04:56,398 --> 00:04:58,852
+你必须深入理解核心概念。
+You have to deeply understand the core concepts.
+
+84
+00:04:59,246 --> 00:05:02,336
+你不能只是死记硬背书末尾的公式。
+You cannot just memorize the formulas at the end of the book.
+
+85
+00:05:02,542 --> 00:05:05,956
+如果你喜欢我们的聊天，我有一件重要的事情要分享给你。
+If you are enjoying our chat, I have something important to share with you.
+
+86
+00:05:06,990 --> 00:05:10,308
+看来 YouTube 的算法不太喜欢我的视频。
+Looks like YouTube algorithm is not a big fan of my videos.
+
+87
+00:05:11,086 --> 00:05:13,136
+这就是为什么，伙计们，我需要你们的支持。
+This is why, guys, I need your support.
+
+88
+00:05:13,422 --> 00:05:16,656
+点个赞告诉 Google，这个内容很酷。
+Hit the like button to tell the Google that the content is dope.
+
+89
+00:05:16,816 --> 00:05:21,216
+如果你使用社交媒体并且有技术圈的朋友，请分享这个视频。
+If you use social media and have friends in tech, please share this video.
+
+90
+00:05:21,454 --> 00:05:24,896
+如果你还没订阅，请现在就订阅吧。
+If you are not subscribed yet, please do get subscribed right now.
+
+91
+00:05:25,216 --> 00:05:29,380
+YouTube 的算法应该知道技术社区并不是那样的。
+YouTube algorithm should know that the tech community is not that.
+
+92
+00:05:29,616 --> 00:05:35,268
+但回到正题，nested dropout 对 AI 模型的作用正是如此。
+But getting back to our topic, nested dropouts does exactly this to the AI model.
+
+93
+00:05:35,456 --> 00:05:37,444
+它给系统带来了巨大的压力。
+It puts a lot of pressure on the system.
+
+94
+00:05:37,696 --> 00:05:42,756
+它迫使顶层将最大的含义压缩进极短的代码序列中。
+It forces the top layers to pack maximum meaning into a tiny sequence of codes.
+
+95
+00:05:43,056 --> 00:05:47,076
+模型不能依赖底层去修复输出层。
+The model cannot rely on the bottom layers to fix the output layer.
+
+96
+00:05:47,376 --> 00:05:53,444
+底层可能完全缺失，所以顶层实际上学会了真正的概念。
+The bottom layers might be missing entirely, so the top layers actually learn true concepts.
+
+97
+00:05:53,870 --> 00:05:56,496
+它们不仅仅是输出压缩后的静态内容。
+They do not just output compressed static.
+
+98
+00:05:56,656 --> 00:06:00,068
+这就是为什么 NCM 实际上能理解它写的内容。
+This is why NCM actually understands what it writes.
+
+99
+00:06:00,336 --> 00:06:04,100
+它在写出具体词汇之前，先学会核心思想。
+It learns the core idea before it writes the specific words.
+
+100
+00:06:04,416 --> 00:06:05,828
+这确实很疯狂。
+That is actually wild.
+
+101
+00:06:06,350 --> 00:06:09,988
+但这种设计路线有一个重大漏洞。
+But this course to find design has a major vulnerability.
+
+102
+00:06:10,176 --> 00:06:14,016
+如果模型在最顶层犯了错，会发生什么？
+What happens if the model makes a mistake at the very top layer?
+
+103
+00:06:14,222 --> 00:06:16,260
+这就引出了复合错误的问题。
+This brings us to compounding errors.
+
+104
+00:06:16,782 --> 00:06:22,116
+如果顶层幻觉出一个错误的概念，那个错误就会向下传递。
+If the top layer hallucinates a bad concept, that mistake ripples down.
+
+105
+00:06:22,510 --> 00:06:26,692
+它会破坏最终的文本，造成彻底的错误死亡螺旋。
+It corrupts the final text, it creates a total error death spiral.
+
+106
+00:06:26,976 --> 00:06:31,044
+为了解决这个问题，团队设计了一种叫 conditioning corruption 的技术。
+To fix this, the team engineered something called conditioning corruption.
+
+107
+00:06:31,438 --> 00:06:33,220
+这是我们的第二个技术秘密。
+This is our second technical secret.
+
+108
+00:06:33,456 --> 00:06:37,508
+在训练过程中，他们故意在中间层注入错误的编码。
+During training, they deliberately inject wrong codes into the middle layers.
+
+109
+00:06:37,936 --> 00:06:42,404
+他们使用损坏的数据，但保持最终答案的正确性。
+They use corrupted data, but they keep the correct final answers intact.
+
+110
+00:06:42,576 --> 00:06:45,220
+想象一下你教一个孩子骑自行车。
+Imagine you teach a kid to ride a bike.
+
+111
+00:06:45,696 --> 00:06:48,804
+你会随机把自行车稍微推偏一点。
+You randomly push the bike slightly off balance.
+
+112
+00:06:49,376 --> 00:06:56,336
+孩子必须学会如何纠正姿势，在撞到树之前学会找回平衡。
+The kid has to learn how to correct their posture, they learn to recover their balance before they crash into a tree.
+
+113
+00:06:56,526 --> 00:06:59,076
+conditioning corruption 对 AI 就是这么做的。
+Conditioning corruption does this for the AI.
+
+114
+00:06:59,296 --> 00:07:01,828
+它训练底层具备韧性。
+It trains the lower levels to be resilient.
+
+115
+00:07:02,096 --> 00:07:05,540
+它迫使模型自我纠正错误。
+It forces the model to self-correct its own mistakes.
+
+116
+00:07:06,158 --> 00:07:09,572
+它在错误概念变成垃圾信息之前就把它们修正了。
+It fixes bad concepts before they turn into garbage tags.
+
+117
+00:07:09,936 --> 00:07:15,296
+因为没人希望 AI 比以前更快地自信地输出一堆垃圾。
+Because nobody wants their AI to confidently output complete garbage faster than before.
+
+118
+00:07:15,536 --> 00:07:18,180
+但现在我们有一个速度很快的模型。
+But now we have a model that is fast.
+
+119
+00:07:18,574 --> 00:07:22,020
+它内存效率高，而且能自我修复错误。
+It is memory efficient and it fixes its own errors.
+
+120
+00:07:22,416 --> 00:07:24,548
+但它仍然是一个非常小的模型。
+But it is still a very small model.
+
+121
+00:07:24,942 --> 00:07:30,276
+一个小模型怎么能和庞大的前沿模型在推理能力上竞争呢？
+How does a tiny model compete with the reasoning power of a massive frontier model?
+
+122
+00:07:30,496 --> 00:07:34,148
+这就是我们看到的 2026 年的一个重大开发者趋势。
+This is where we see a massive developer trend for 2026.
+
+123
+00:07:34,496 --> 00:07:36,228
+它被称为测试时扩展。
+It is called test time scaling.
+
+124
+00:07:36,656 --> 00:07:39,012
+这是我们的第三个技术秘密。
+And this is our third technical secret.
+
+125
+00:07:39,534 --> 00:07:41,444
+NCM 的速度极快。
+NCM is extremely fast.
+
+126
+00:07:41,616 --> 00:07:45,764
+它能在极短的时间内生成整块文本。
+It generates entire blocks of text in a fraction of the normal time.
+
+127
+00:07:45,936 --> 00:07:48,868
+你可以利用节省下来的时间来换取更多的智能。
+You can use this save time to buy more intelligence.
+
+128
+00:07:49,326 --> 00:07:54,180
+与其只拿第一个答案，不如生成 20 个不同的候选答案。
+Instead of just taking the first answer, you generate 20 different candidate answers.
+
+129
+00:07:54,638 --> 00:07:56,708
+你可以并行生成所有这些答案。
+You generate all of them in parallel.
+
+130
+00:07:57,006 --> 00:07:58,976
+然后运行一个数学过滤器。
+Then you run a mathematical filter.
+
+131
+00:07:59,246 --> 00:08:03,108
+这个过滤器被称为 Minimum Bayes Risk，简称 MBR。
+The filter is called minimum Bayes risk or MBR.
+
+132
+00:08:03,630 --> 00:08:10,468
+MBR 查看所有 20 个答案，并在数学上选出在各组中共识最高的候选答案。
+MBR looks at all 20 answers, it mathematically selects the candidate that has the highest consensus among the groups.
+
+133
+00:08:10,702 --> 00:08:13,188
+想象一下你有一个非常棘手的编程问题。
+Imagine you have a really tough coding problem.
+
+134
+00:08:13,486 --> 00:08:18,788
+你可以向一名资深开发人员寻求答案，也可以向 20 名初级开发人员寻求答案。
+You could ask one senior developer for an answer, or you could ask 20 junior developers.
+
+135
+00:08:18,976 --> 00:08:21,796
+然后找出所有答案中的共同点。
+Then you find the common threats in all the answers.
+
+136
+00:08:22,176 --> 00:08:25,124
+从数学上选出最佳的整体解决方案。
+You mathematically pick the best overall solution.
+
+137
+00:08:25,456 --> 00:08:30,212
+你实际上是用模型的极速来提升它在运行时推理能力。
+You literally trade the model's extreme speed to boost its reasoning at runtime.
+
+138
+00:08:30,496 --> 00:08:35,395
+你不需要训练更大的模型，只需要运行多次小模型。
+You do not need to train a bigger model, you just run the small model multiple times.
+
+139
+00:08:35,982 --> 00:08:39,616
+研究人员在数独游戏中测试了这个理论。
+The researchers tested this exact theory on games of Sudoku.
+
+140
+00:08:40,015 --> 00:08:43,376
+他们使用了一个拥有 2500 万参数的 NCM 模型。
+They used a 25 million parameter NCM model.
+
+141
+00:08:43,789 --> 00:08:47,428
+它解决了 100 个难题中的 86 个。
+It solves 86 out of 100 hardboards.
+
+142
+00:08:47,872 --> 00:08:52,900
+研究人员将这些结果与同等规模的标准语言模型进行了对比。
+The researchers compared these results against the standard language model of the same size.
+
+143
+00:08:53,390 --> 00:08:55,940
+标准模型只解决了一个。
+The standard model solved exactly one board.
+
+144
+00:08:56,272 --> 00:08:59,140
+这是 8600% 的提升。
+That is an 8600% improvement.
+
+145
+00:08:59,598 --> 00:09:00,740
+我非常喜欢这一部分。
+I love this part.
+
+146
+00:09:01,166 --> 00:09:04,832
+它展示了速度如何能直接转化为更好的逻辑。
+It shows how speed can directly translate into better logic.
+
+147
+00:09:04,992 --> 00:09:09,472
+但为什么那些大型硬件公司要关心 AI 玩数独呢？
+But why should the massive hardware companies care about an AI playing Sudoku?
+
+148
+00:09:09,872 --> 00:09:13,632
+因为这篇论文揭示了当前 AI 经济中的一个致命缺陷。
+Because this paper exposes a fatal flaw in the current AI economy.
+
+149
+00:09:13,872 --> 00:09:17,092
+NCM 完全改变了主要的瓶颈。
+NCM shifts the main bottleneck entirely.
+
+150
+00:09:17,486 --> 00:09:21,508
+它将瓶颈从内存带宽转移到了纯算力上。
+It moves the bottleneck from the memory bandwidth to pure compute.
+
+151
+00:09:21,742 --> 00:09:24,132
+这就是价值数十亿美元的硬件变革。
+This is the billion dollar hardware flip.
+
+152
+00:09:24,352 --> 00:09:26,432
+一如既往，天下没有免费的午餐。
+As always, there is no free launch.
+
+153
+00:09:26,592 --> 00:09:29,124
+看看 NCM 模型的底层。
+Look at the bottom layers of the NCM model.
+
+154
+00:09:29,550 --> 00:09:33,028
+它的代码量是输出 token 的四倍。
+It has four times as many codes as output tokens.
+
+155
+00:09:33,312 --> 00:09:36,932
+评估所有这些额外的代码需要更多的处理能力。
+Evaluating all those extra codes takes more processing power.
+
+156
+00:09:37,422 --> 00:09:43,792
+这种架构大幅降低了所需的内存带宽，但它需要更多的原始算力。
+The architecture drastically reduces the memory bandwidth you need, but it requires more raw compute.
+
+157
+00:09:44,032 --> 00:09:48,932
+目前，整个行业都在购买昂贵的 Nvidia 芯片，主要是为了它们的内存。
+Right now, the industry buys expensive NVIDIA chips, mostly for their memory.
+
+158
+00:09:49,262 --> 00:09:52,516
+我们需要那种 High Bandwidth Memory 来容纳海量的缓存。
+We need that high bandwidth memory to hold the massive cache.
+
+159
+00:09:52,992 --> 00:09:56,612
+但 NCM 不需要那么高的内存带宽。
+But NCM does not need that massive memory bandwidth.
+
+160
+00:09:56,752 --> 00:09:58,116
+它只需要原始算力。
+It just needs raw compute.
+
+161
+00:09:58,512 --> 00:10:03,780
+这意味着理论上我们可以在消费级芯片上运行前沿水平的 AI。
+This means we could theoretically run frontier level AI on a consumer-grade silicon.
+
+162
+00:10:04,206 --> 00:10:09,028
+你可以使用那些拥有强大算力但显存有限的标准芯片。
+You could use standard chips that have massive compute but limited video memory.
+
+163
+00:10:09,312 --> 00:10:12,672
+这让目前的逐个 token 生成范式看起来臃肿不堪。
+This makes the current token by token paradigm look bloated.
+
+164
+00:10:12,992 --> 00:10:14,512
+它看起来就像是个时代的遗物。
+It makes it look like a relic.
+
+165
+00:10:14,672 --> 00:10:20,292
+一个算法上的突破，或许真的能解决我们巨大的硬件供应链问题。
+An algorithmic left field breakthrough might actually solve our massive hardware supply chain problem.
+
+166
+00:10:20,512 --> 00:10:23,876
+它威胁到整个硬件垄断地位。
+It threatens to upend the entire hardware monopoly.
+
+167
+00:10:24,366 --> 00:10:28,100
+当我们将 NCM 扩展到数万亿参数时，它还能撑得住吗？
+Will NCM hold up when we scale it to trillions of parameters?
+
+168
+00:10:28,512 --> 00:10:30,084
+我们目前还不知道。
+We do not really know yet.
+
+169
+00:10:30,510 --> 00:10:32,192
+但它证明了一件重要的事情。
+But it proves something important.
+
+170
+00:10:32,526 --> 00:10:36,420
+我们不应该把今天的硬件限制当成永久的物理定律。
+We should not accept today's hardware's limits as permanent laws of physics.
+
+171
+00:10:36,752 --> 00:10:41,552
+新的模型架构告诉我们，巨大的突破依然是可能的。
+New model architectures show us that a massive breakthrough are still possible.
+
+172
+00:10:41,806 --> 00:10:46,564
+总而言之，NCM 完全抛弃了逐个 token 生成。
+To sum it all up, NCM ditches token by token generation entirely.
+
+173
+00:10:46,958 --> 00:10:49,316
+它在并行层中生成文本。
+It generates text in parallel layers.
+
+174
+00:10:49,712 --> 00:10:54,340
+它使用 nested dropout 来迫使模型学习真正的概念。
+It uses nested dropouts to force the model to learn real concepts.
+
+175
+00:10:54,592 --> 00:10:57,952
+它利用条件和损坏机制来修正自身的错误。
+It uses condition and corruption to fix its own errors.
+
+176
+00:10:58,062 --> 00:11:02,500
+它还利用测试时扩展来人为提升推理能力。
+And it uses test time scaling to artificially boost its reasoning.
+
+177
+00:11:03,054 --> 00:11:05,764
+它用内存带宽换取纯粹的算力。
+It trades memory bandwidth for pure compute.
+
+178
+00:11:05,952 --> 00:11:17,540
+如果你想紧跟这些巨大的算法变革，请点赞，订阅频道，并在评论区告诉我，
+你是否认为消费级显卡最终能运行前沿模型。
+If you want to stay ahead of these massive algorithmic shifts, hit the like button, subscribe to the channel,
+and let me know in the comments below if you think consumer graphic cards will finally run frontier models.
+
+179
+00:11:17,712 --> 00:11:18,752
+感谢观看。
+Thank you for watching.
+
+180
+00:11:19,022 --> 00:11:20,260
+我们下期再见。
+See you in the next one.
+
+181
+00:11:20,752 --> 00:11:21,392
+再见。
+Bye.
+
