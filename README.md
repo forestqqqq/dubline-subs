@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [This might be the worst AI warning we get.](medias/HWDBP/) | AI In Context | 2026-11-19 |
 | [Beyond AI Coding Agents: Introducing Ownership-Driven Development](medias/HPG18/) | TIWA Technologies Inc. | 2026-11-19 |
 | [Power BI Tutorial for Beginners](medias/EKM1H/) | Kevin Stratvert | 2026-11-19 |
 | [2026-10-19 - NITheCS Colloquium: 'English Is the New Programming Language - Willem Visser](medias/E7FQ7/) | NITheCS | 2026-11-19 |
