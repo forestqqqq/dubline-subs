@@ -1,0 +1,464 @@
+1
+00:00:19,694 --> 00:00:20,740
+That was a slow start.
+
+2
+00:00:22,318 --> 00:00:28,388
+So, speaking of slow starts, congestion control is critical to how we run and operate networks.
+
+3
+00:00:28,910 --> 00:00:44,484
+Depending on what congestion control algorithm you're running in your network, it's probably going to influence decisions like how you size your buffers, what kind of EQMs you run, and also how you think about the fairness between the flows in your network and the deployability of these congestion control algorithms themselves.
+
+4
+00:00:46,094 --> 00:00:52,676
+This last concern on fairness and deployability has received particular attention from the internet community in the past few years.
+
+5
+00:00:53,360 --> 00:01:01,092
+And one of the reasons this has happened is because we found that the current mix of congestion control algorithms on the internet is very diverse.
+
+6
+00:01:01,582 --> 00:01:09,828
+Many people are deploying very different congestion control algorithms, and often these algorithms have been found to not compete very fairly with each other.
+
+7
+00:01:11,214 --> 00:01:18,148
+So, to give you an example, currently the two most popular congestion control algorithms on the internet are called Cubic and BBR.
+
+8
+00:01:18,542 --> 00:01:24,292
+And there are several studies that have found that when cubic and BBR compete with each other, they can be extremely unfair.
+
+9
+00:01:24,974 --> 00:01:37,796
+So, just quoting the study from 2019, they found that a single BBR flow was able to get a fixed 35 to 40% share of the link capacity while sharing the same bottleneck with as many as 16 cubic flows.
+
+10
+00:01:38,798 --> 00:01:46,244
+So the deployment of these quote-unquote unfair algorithms on the internet has naturally created many concerns with regards to fairness.
+
+11
+00:01:47,886 --> 00:01:58,692
+And a lot of this discussion around fairness has centered around making calls for changing how a lot of these unfair congestion control algorithms operate algorithmically.
+
+12
+00:01:58,990 --> 00:02:05,124
+There have also been calls for reviewing what we think are deployability standards for modern internet congestion control algorithms.
+
+13
+00:02:05,582 --> 00:02:15,280
+So, for example, at SICOM in 2024, we had a community discussion on what we think these modern deployability standards should look like in order to ensure fairness over the internet.
+
+14
+00:02:15,790 --> 00:02:19,600
+There are many similar discussions happening at the IETF currently.
+
+15
+00:02:20,398 --> 00:02:25,476
+But what I find interesting about this is that we've been doing congestion control on the internet for decades.
+
+16
+00:02:26,062 --> 00:02:30,052
+Then why is suddenly the internet becoming heterogeneous and unfair?
+
+17
+00:02:30,400 --> 00:02:33,348
+Where is this heterogeneity and unfairness coming from?
+
+18
+00:02:34,318 --> 00:02:47,044
+So, in order to answer this question, we did a measurement study about a couple of years ago where we tried to figure out who was deploying which congestion control algorithm on the internet in order to maybe try to understand where this heterogeneity was coming from.
+
+19
+00:02:48,334 --> 00:02:59,588
+So, one of the key results of our study was that when you look at the most popular websites, different people are deploying different things, which is a confirmation of the fact that the internet's congestion control landscape is heterogeneous.
+
+20
+00:03:00,334 --> 00:03:08,452
+But I think one of the more interesting results that we found was that this deployment of congestion control algorithms was different across regions.
+
+21
+00:03:08,910 --> 00:03:14,980
+So, for example, Amazon was served using BBR in Ohio, but it was being served using Cubic in India.
+
+22
+00:03:16,238 --> 00:03:24,772
+And more interestingly, even within the same website, depending on the types of assets that they were delivering, they would use different congestion control algorithms.
+
+23
+00:03:25,358 --> 00:03:33,700
+So if you look at Twitch over here, we found that Twitch was delivering its video using BBR, whereas the static assets and images were being delivered using Cubic.
+
+24
+00:03:34,254 --> 00:03:42,020
+And it was this key trend that made us re-evaluate this goal of bandwidth level fairness that we hold so dear on the internet.
+
+25
+00:03:43,278 --> 00:03:46,820
+So why do we need to go beyond this idea of bandwidth and fairness?
+
+26
+00:03:47,662 --> 00:03:52,548
+On the face of it, bandwidth and fairness is a great goal if two things are true about your network.
+
+27
+00:03:53,198 --> 00:03:55,748
+So the first is that bandwidth must be finite.
+
+28
+00:03:55,840 --> 00:04:01,700
+And this is indeed true for the internet, which is why it makes sense to come up with a good way to share bandwidth between the flows.
+
+29
+00:04:02,382 --> 00:04:09,604
+But the second assumption that a pure bandwidth fairness based goal for the internet makes is that everyone only cares about throughput.
+
+30
+00:04:10,094 --> 00:04:13,508
+And this is really the thing that doesn't add up about today's internet.
+
+31
+00:04:13,920 --> 00:04:19,492
+Because if everyone cares about the same thing, then they would be deploying the same congestion control algorithms.
+
+32
+00:04:22,574 --> 00:04:32,356
+And the reason people are deploying different congestion control algorithms today is because today congestion control algorithms also capture an application's desired throughput delay trade-offs.
+
+33
+00:04:32,846 --> 00:04:40,772
+Depending on what your application cares about, whether it's more throughput or more delay, they might deploy different congestion control algorithms.
+
+34
+00:04:41,102 --> 00:04:47,300
+And these are indeed trends that we saw in our measurement study where we were measuring who was deploying what congestion control algorithms.
+
+35
+00:04:48,206 --> 00:04:54,116
+And we can understand why this is the case when we simply look at how some of these congestion control algorithms operate.
+
+36
+00:04:54,990 --> 00:04:58,948
+So for example, over here, I have two congestion control algorithms in the Linux kernel.
+
+37
+00:04:59,280 --> 00:05:01,924
+You've probably heard about them, Cubic and Vegas.
+
+38
+00:05:02,734 --> 00:05:08,932
+Over here, I ran them through identical networks that had 100 Mbps links in a 10 BDP buffer.
+
+39
+00:05:09,326 --> 00:05:14,404
+And we see that in identical circumstances, they make very different throughput delay trade-offs.
+
+40
+00:05:14,990 --> 00:05:31,120
+So we can see Vegas, which happens to be delay optimizing, chooses to make to minimize delay, whereas Cubic, which tries to be throughput optimizing, wants to put packets in the buffer in order to maximize throughput.
+
+41
+00:05:31,406 --> 00:05:36,900
+And it's these different goals that sort of motivate, that sort of create the unfairness between them.
+
+42
+00:05:37,230 --> 00:05:50,148
+Because if I repeat this experiment and this time I force Cubic and Vegas to use the same bottleneck link, Cubic steals most of the bandwidth while Vegas flow starves because it tries to minimize the delay.
+
+43
+00:05:50,734 --> 00:06:05,828
+And more specifically in this picture of the throughput delay trade-off, what we see is that the competing flows, because they're competing with someone who wants something very different, show significant translation from where they want to operate to where they end up operating under contention.
+
+44
+00:06:06,638 --> 00:06:10,788
+And this is something that's not unique just to these two congestion control algorithms.
+
+45
+00:06:11,520 --> 00:06:15,012
+It's something that happens for most algorithms that are running on the internet today.
+
+46
+00:06:15,502 --> 00:06:25,956
+So, for example, over here I've pulled up four more popular congestion control algorithms that are being deployed on the internet, which all make different throughput delay trade-offs when they are run in isolation.
+
+47
+00:06:26,382 --> 00:06:35,844
+But as soon as I run them in the same network and I force them to compete, again we see this significant translation between where they want to operate and where they end up operating.
+
+48
+00:06:37,614 --> 00:06:49,188
+So, given these trends and given the fact that most of the congestion control algorithms on the internet today want to make these different throughput delay trade-offs that typically lie along this period of frontier.
+
+49
+00:06:49,550 --> 00:06:57,092
+I think a valuable goal for the internet would be to allow these algorithms to make the desired trade-offs independent of who they are competing with.
+
+50
+00:06:57,774 --> 00:07:10,660
+So the goal that we try to motivate in this paper, aside from fairness, is some idea of performance isolation between these flows, where these flows are free to make the desired throughput delay trade-offs, regardless of who they are competing with.
+
+51
+00:07:11,822 --> 00:07:15,108
+So, how can we create this isolation between these flows?
+
+52
+00:07:15,918 --> 00:07:19,460
+Well, there's a very simple, naive solution, which is just fair queuing.
+
+53
+00:07:19,950 --> 00:07:22,560
+I could give each of my flows a different queue.
+
+54
+00:07:22,720 --> 00:07:24,740
+That way they're isolated from everyone else.
+
+55
+00:07:25,102 --> 00:07:29,540
+They're free to place as many packets as they want in their queues, and everyone's happy.
+
+56
+00:07:30,734 --> 00:07:37,188
+Unsurprisingly, this is not a practical solution for the internet because the internet has too many flows and too few queues.
+
+57
+00:07:37,934 --> 00:07:46,532
+So, what this goal now dilutes into is that now we need to come up with a way to provide this isolation between flows, but only with a handful of cues.
+
+58
+00:07:48,046 --> 00:07:54,820
+This is the core question that we try to answer in this paper, and let me try to build the intuition towards a solution step by step.
+
+59
+00:07:56,334 --> 00:08:04,740
+The first thing that we observed was that in order for these different flows to be happy, you don't want to provide perfect isolation between them.
+
+60
+00:08:05,166 --> 00:08:07,844
+Often approximate performance isolation is enough.
+
+61
+00:08:08,462 --> 00:08:19,140
+So, for example, let's say over here I have all these flows that are trying to make all of their different throughput-delay trade-offs, but I have only three queues available to provide some performance isolation between them.
+
+62
+00:08:19,726 --> 00:08:27,780
+What I can do over here is figure out which flows want similar trade-offs, cluster them accordingly, and then map each cluster to each queue.
+
+63
+00:08:28,320 --> 00:08:43,680
+That way, I'm working on the intuition that if competing flows want similar trade-offs, they're likely to coexist well together compared to flows that want very different things that are going to create significant translations in their operating points.
+
+64
+00:08:44,206 --> 00:08:47,972
+So we have this new goal of approximate performance isolation for the internet.
+
+65
+00:08:48,400 --> 00:08:50,596
+But this still isn't a complete solution.
+
+66
+00:08:51,246 --> 00:08:56,964
+Because the next big problem we need to solve is really inferring what trade offs each flow wants to make.
+
+67
+00:08:57,838 --> 00:08:59,780
+In the network, a packet is a packet.
+
+68
+00:09:00,000 --> 00:09:04,356
+It does not come with a label of how much it cares about throughput or how much it cares about delay.
+
+69
+00:09:04,720 --> 00:09:10,436
+These are things that we want to infer in the network, ideally without any cooperation from the end hosts.
+
+70
+00:09:12,078 --> 00:09:16,900
+So, luckily, we have a solution for this as well, which I'm going to try to build with you guys through a simple example.
+
+71
+00:09:17,486 --> 00:09:28,836
+So, let's say I have a multi-queue system that somehow has converged to this steady state behavior where all the flows are mapping correctly to the correct clusters and therefore the correct queues.
+
+72
+00:09:29,454 --> 00:09:37,092
+In this steady state, let's say a new flow enters, and I've colored this black because I have no idea what kind of throughput delay trade-offs I want to make.
+
+73
+00:09:37,710 --> 00:09:41,696
+Now, to begin with, what I could do is I can place it in a random queue.
+
+74
+00:09:41,870 --> 00:09:48,676
+Let's say I place it in queue number two, and then over a fixed time horizon, I can observe how it competes with the other flows in queue two.
+
+75
+00:09:49,198 --> 00:09:55,936
+So let's say, for example, this new flow is extremely aggressive and it eats up a lot of bandwidth compared to the other flows in Q2.
+
+76
+00:09:56,256 --> 00:09:59,652
+I know that this flow cares about throughput more than the other flows in Q2.
+
+77
+00:10:00,078 --> 00:10:06,176
+And that can be my signal to promote this flow to Q number one, where I'm housing my other throughput hungry flows.
+
+78
+00:10:06,958 --> 00:10:14,212
+And indeed, this simple shuffling behavior is something that you can do for each queue over subsequent round intervals.
+
+79
+00:10:14,702 --> 00:10:23,268
+So every round interval, what you can do is you can go over each queue, you can figure out which flows are struggling or which flows are succeeding, and then shuffle them accordingly.
+
+80
+00:10:23,694 --> 00:10:29,540
+So let's say over here in the middle queue we find out that the flow that we're interested in is getting hardly any of the bandwidth.
+
+81
+00:10:29,934 --> 00:10:34,852
+We can take these flows that are playing too nice and then shuffle them down to the more delay-sensitive queues.
+
+82
+00:10:35,918 --> 00:10:44,656
+On the other hand, if you observe that the flow is eating a lot of bandwidth, we can take these naughty flows and then promote them up to the throughput hungry queues.
+
+83
+00:10:44,976 --> 00:10:49,956
+And we implemented our multi-queue AQM around the simple shuffling idea.
+
+84
+00:10:50,318 --> 00:10:56,388
+We call our AQM Santa because every round it's making a list of all the naughty and nice flows and shuffling them accordingly.
+
+85
+00:10:57,454 --> 00:11:10,276
+We implemented Santa on a real P4 switch, where aside from the Santa queues, we also had a dedicated mice queue that was dedicated for flows that were too short to respond to the shuffles that Santa creates.
+
+86
+00:11:11,822 --> 00:11:21,776
+Each of the Santa queues were given bandwidth proportional to the number of flows that they were housing, but of course, this is a configurable parameter depending on how you want to treat flows in your network.
+
+87
+00:11:22,222 --> 00:11:30,404
+We then used the sojourn time of each packet in each queue as a proxy for estimating how much bandwidth it was consuming in each of these queues.
+
+88
+00:11:30,798 --> 00:11:44,336
+These sojourn times were then used to update our shuffling decisions, which was used to update the weights for each of these queues, bandwidth allocation, as well as the initial matrix that maps the packets to their corresponding queues.
+
+89
+00:11:45,902 --> 00:11:59,940
+Naturally, we took the paths that operate on a per round level and implemented them in the control plane, while the queue assignment and the bandwidth tracking is done within the data plane of our P4 switch.
+
+90
+00:12:01,038 --> 00:12:06,816
+So we built Santa around this ideal of trying to have approximate performance isolation between flows.
+
+91
+00:12:07,054 --> 00:12:08,484
+Let's see if we achieve that goal.
+
+92
+00:12:09,806 --> 00:12:16,708
+So in the paper, we have many experiments that we try to use to justify that we are indeed meeting these goals.
+
+93
+00:12:17,456 --> 00:12:21,220
+In the interest of time, in this talk, I'll just go over one of these experiments.
+
+94
+00:12:22,062 --> 00:12:39,492
+So one thing that we did, one of our experiments was that we ran nine long-running flows, three each of Qubic, BBR, and Vegas, all three of which won by different trade-offs, and we asked Santa to shuffle these flows around every five seconds in order to converge to a good allocation.
+
+95
+00:12:40,942 --> 00:12:47,696
+Just to give you a context, the baseline that we're working with is a FIFO baseline, where there's no isolation between these flows.
+
+96
+00:12:47,856 --> 00:12:49,412
+Everyone is sharing the same queue.
+
+97
+00:12:49,774 --> 00:12:55,108
+And something that we're targeting is fair queuing, where we are able to give each flow its own queue.
+
+98
+00:12:56,206 --> 00:12:57,924
+So, how does Santa perform?
+
+99
+00:12:58,542 --> 00:13:00,656
+It turns out Santa performs really well.
+
+100
+00:13:00,816 --> 00:13:11,812
+And this is something that you can see from this graph, where we can see that the operating points that these flows achieve while passing through Santa show very small displacement from where their isolated operating points are.
+
+101
+00:13:12,494 --> 00:13:22,372
+In the paper, we compare against many approximate fair killing schemes as well, which unfortunately are not able to provide these approximate performance isolation guarantees.
+
+102
+00:13:23,918 --> 00:13:32,612
+Now, given how Santa works, another natural question I'm sure you have is how many queues do you need in order to provide this approximate performance isolation?
+
+103
+00:13:33,166 --> 00:13:46,820
+For this, in the paper, we provide this really nice analysis where we show that any given configuration of Santa actually sits between the continuum of no isolation in a FIFO queue versus perfect isolation in a fair queuing system.
+
+104
+00:13:47,694 --> 00:13:54,404
+So if I run Santa with just one queue, it's going to operate exactly like a FIFO queue, where all the flows are free to compete with each other.
+
+105
+00:13:54,896 --> 00:14:03,172
+But this really cool thing happens when I start supplying Santa with more and more flows, where I see that the flows start meandering towards their desired operating points.
+
+106
+00:14:03,694 --> 00:14:10,148
+And indeed, when I provide Santa with enough queues to house all these flows, Santa converges to the fair queuing behavior.
+
+107
+00:14:11,726 --> 00:14:28,816
+We have more scalability experiments in the paper where we show that Santa is indeed able to achieve these isolation guarantees for higher number of flows as well, where we show that obviously having more queues is better for performance isolation, but even with a handful of queues, we can get reasonable performance.
+
+108
+00:14:30,190 --> 00:14:38,916
+Before I end, I would like to point out that Santa is in no way a silver bullet solution to all the issues that heterogeneity is creating on the internet.
+
+109
+00:14:39,502 --> 00:14:44,964
+In particular, one of the challenges that Santa has is really tuning this shuffling interval.
+
+110
+00:14:45,326 --> 00:14:53,444
+As you can imagine, in realistic scenarios where there's significant flow churn, Santa's shuffling interval can be critical in providing performance isolation.
+
+111
+00:14:54,030 --> 00:15:07,300
+We also need to explore more dynamic buffer and bandwidth allocation strategies, probably something similar to titrate, as well as trying to imagine new mechanisms and new vulnerabilities for Santa and figuring out if there's a way to game the system as well.
+
+112
+00:15:09,070 --> 00:15:20,772
+Finally, if there's something that you take away from today, I hope I've helped you realize that in order to solve the unfairness issues on the internet driven by heterogeneity, we need to learn how to compare apples to oranges.
+
+113
+00:15:21,326 --> 00:15:26,176
+For this, we motivate approximate performance isolation as a modern goal for the modern internet.
+
+114
+00:15:26,542 --> 00:15:30,496
+And with Santa, we show that this is indeed a practical goal for today's internet.
+
+115
+00:15:31,086 --> 00:15:34,820
+Santa's P4 implementation is open source and available on GitHub.
+
+116
+00:15:35,534 --> 00:15:38,576
+Thank you for your attention, and I'll be more than happy to take questions.
+
