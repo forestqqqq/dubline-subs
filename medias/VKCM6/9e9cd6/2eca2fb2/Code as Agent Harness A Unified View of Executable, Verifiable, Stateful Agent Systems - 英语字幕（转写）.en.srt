@@ -1,0 +1,328 @@
+1
+00:00:00,014 --> 00:00:05,360
+Picture trying to coach someone through fixing a sprawling software project entirely over text message.
+
+2
+00:00:05,550 --> 00:00:13,284
+You can describe what to do, but you can't see the screen, you can't run the tests, and you can't remember what you said three messages ago.
+
+3
+00:00:13,710 --> 00:00:19,748
+That, in essence, is the predicament of a large language model trying to act as an autonomous agent.
+
+4
+00:00:20,014 --> 00:00:25,860
+And the survey we're walking through today argues that the answer to this predicament is hiding in plain sight.
+
+5
+00:00:26,160 --> 00:00:34,480
+Code itself, not as a thing the model produces, but as the operational scaffolding that lets it act, observe, and remember.
+
+6
+00:00:34,798 --> 00:00:50,560
+The paper is titled Code as Agent Harness, and it offers a unified survey and conceptual framing for how code has quietly evolved from being the output of language models into being the medium through which agentic systems actually function.
+
+7
+00:00:50,990 --> 00:01:07,716
+The authors borrow a term from the systems community, the agent harness, which refers to the software layer, wrapping a language model with tools, sandboxes, memory stores, validators, permission boundaries, execution loops, and feedback channels.
+
+8
+00:01:08,526 --> 00:01:21,476
+Their core claim is that the bottleneck for autonomous agents is no longer just raw reasoning ability, but the reliability of the harness that connects model outputs to long-running actions and persistent state.
+
+9
+00:01:22,222 --> 00:01:32,644
+And code, they argue, is uniquely suited to be the substrate of that harness, because it is simultaneously executable, inspectable, and stateful.
+
+10
+00:01:33,454 --> 00:01:38,308
+To understand why this matters, consider how prior work has typically used code.
+
+11
+00:01:39,118 --> 00:01:53,220
+Program-aided reasoning approaches like Program of Thoughts or PAL recognize that language models are unreliable at arithmetic and symbolic manipulation, so they delegate computation to a Python interpreter.
+
+12
+00:01:53,550 --> 00:02:00,452
+The model writes a program, the interpreter runs it, and the answer comes back grounded in real execution.
+
+13
+00:02:00,846 --> 00:02:08,260
+Embodied agents like SACAN or CODAS policies use generated programs as robot control policies.
+
+14
+00:02:08,654 --> 00:02:17,028
+Software engineering benchmarks like SWE bench treat repositories, tests, and execution traces as the environment.
+
+15
+00:02:17,518 --> 00:02:23,360
+Each of these is a slice of a broader pattern, but the field has lacked a unifying frame.
+
+16
+00:02:23,694 --> 00:02:29,348
+The authors offer that frame by organizing the entire landscape into three connected layers.
+
+17
+00:02:29,806 --> 00:02:35,396
+The first layer is the harness interface, which is where code first enters the agent loop.
+
+18
+00:02:35,694 --> 00:02:37,760
+Here code plays three roles.
+
+19
+00:02:38,094 --> 00:02:47,460
+It serves as a reasoning substrate, externalizing internal computation into programs that interpreters or formal verifiers can check.
+
+20
+00:02:47,886 --> 00:02:55,620
+Think of this as the difference between doing arithmetic in your head versus writing it on paper where someone can audit each step.
+
+21
+00:02:56,110 --> 00:03:09,796
+It serves as an action interface, translating high-level intent into executable operations, whether that means robot motion commands, GUI clicks grounded in DOM trees, or API calls.
+
+22
+00:03:10,318 --> 00:03:22,756
+And it serves as an environment model where repositories, simulators, execution traces, and tests become the persistent, queryable representation of the world the agent operates in.
+
+23
+00:03:23,502 --> 00:03:26,756
+The crucial insight is that code is not metaphorical here.
+
+24
+00:03:27,150 --> 00:03:36,160
+The authors explicitly bound the term to mean executable or machine checkable artifacts, distinguishing it from raw perception or latent model reasoning.
+
+25
+00:03:36,366 --> 00:03:45,764
+The second layer is harness mechanisms, and this is where the survey gets into the operational machinery that keeps agents reliable over long horizons.
+
+26
+00:03:47,086 --> 00:03:54,880
+Planning is reframed not as an internal model capability, but as a harness control problem, with four flavors.
+
+27
+00:03:55,246 --> 00:03:59,920
+Linear decomposition, where the agent commits to a single ordered plan;
+
+28
+00:04:00,160 --> 00:04:06,628
+structure-grounded planning that anchors decisions in dependency graphs or repository structure;
+
+29
+00:04:06,960 --> 00:04:14,080
+search-based planning that explores multiple trajectories using Monte Carlo tree search or similar techniques;
+
+30
+00:04:14,382 --> 00:04:20,100
+and orchestration-based planning, where specialized roles coordinate through staged workflows.
+
+31
+00:04:20,622 --> 00:04:35,108
+Memory engineering becomes a state management layer that decides what stays in the active context window, what gets compacted into summaries, and what gets offloaded to external storage like vector databases or file system artifacts.
+
+32
+00:04:35,726 --> 00:04:54,660
+A clever recent practice they highlight is treating PLAN files like plan.md or status logs as persistent harness objects, version controlled and inspectable, so that an agent can survive context resets the way a software engineer survives going home for the night and coming back the next morning.
+
+33
+00:04:55,150 --> 00:05:07,600
+Tool use, control loops that plan, execute, and verify against deterministic sensors and even harness self-improvement through telemetry and evolution agents all live in this layer.
+
+34
+00:05:07,918 --> 00:05:11,440
+The third layer scales the harness from one agent to many.
+
+35
+00:05:11,790 --> 00:05:33,280
+When multiple agents collaborate over a shared code base, the harness must coordinate roles like manager, planner, coder, reviewer, and tester, support interaction modes from cooperative programming to adversarial red teaming, and arrange them in topologies, ranging from centralized to distributed to streaming.
+
+36
+00:05:33,678 --> 00:05:46,788
+The shared code artifacts, repositories, tests, and execution traces become the common workspace, much like how a Git repository serves as the source of truth for a human engineering team.
+
+37
+00:05:47,502 --> 00:05:56,004
+The harness here is no longer just the runtime around one model, it's the social and technical fabric through which many models reach consensus.
+
+38
+00:05:56,686 --> 00:06:02,948
+The authors then survey how this code as harness view manifests across application domains.
+
+39
+00:06:03,438 --> 00:06:08,420
+Coding assistants, like Claude Code and Codex, use repositories as state.
+
+40
+00:06:08,910 --> 00:06:17,124
+GUI and OS agents ground actions in DOM trees and accessibility APIs with executable evaluators.
+
+41
+00:06:17,518 --> 00:06:24,720
+Scientific discovery agents compose hypothesis testing pipelines spanning simulations and lab protocols.
+
+42
+00:06:25,070 --> 00:06:29,840
+Embodied agents like Voyager build persistent skill libraries in Minecraft.
+
+43
+00:06:30,160 --> 00:06:34,400
+Personalization agents maintain executable user profiles.
+
+44
+00:06:34,734 --> 00:06:35,920
+The pattern repeats.
+
+45
+00:06:36,206 --> 00:06:40,004
+Code provides the inspectable, executable substrate.
+
+46
+00:06:40,430 --> 00:06:43,840
+Now for the limitations, the survey honestly surfaces.
+
+47
+00:06:44,110 --> 00:06:52,000
+Evaluation is a significant open problem because most benchmarks measure final task success rather than harness quality.
+
+48
+00:06:52,398 --> 00:07:00,452
+If a benchmark doesn't stress long-range dependency management, you can't tell whether planning improvements are real or artifacts of the test setup.
+
+49
+00:07:01,006 --> 00:07:08,160
+Verification under incomplete feedback remains hard, because not every failure produces a clean runtime exception.
+
+50
+00:07:08,494 --> 00:07:12,480
+A robot reaching past its workspace might just silently fail.
+
+51
+00:07:12,846 --> 00:07:21,120
+Regression-free harness improvement is an unsolved problem, since evolving the harness itself risks breaking workflows that previously worked.
+
+52
+00:07:21,454 --> 00:07:27,040
+Multi agent systems struggle with transactional shared state and semantic conflict resolution.
+
+53
+00:07:27,342 --> 00:07:35,040
+Similar to the classic database consistency problem, but harder, because the conflicts can be semantic rather than syntactic.
+
+54
+00:07:35,918 --> 00:07:47,428
+And human oversight for safety critical actions, multimodal extensions beyond text and code, and the lack of a real science of harness engineering all remain open frontiers.
+
+55
+00:07:47,822 --> 00:07:51,792
+Now let's walk through some questions you might have after hearing all of this.
+
+56
+00:07:52,078 --> 00:07:57,152
+First, why is code specifically better than natural language as a harness medium?
+
+57
+00:07:57,582 --> 00:08:00,644
+The answer comes down to three properties that work together.
+
+58
+00:08:01,070 --> 00:08:10,500
+Executability means the harness can actually verify what the model intended by running it and observing real consequences, not just paraphrasing it.
+
+59
+00:08:10,862 --> 00:08:18,500
+Inspectability means failures produce traces and stack frames that the harness can read and feed back into the next reasoning step.
+
+60
+00:08:18,990 --> 00:08:28,112
+And statefulness means the program itself, the repository, or the execution log persists across steps so the agent's progress isn't lost.
+
+61
+00:08:28,526 --> 00:08:31,300
+Natural language gives you none of these reliably.
+
+62
+00:08:31,598 --> 00:08:37,476
+You can describe an action in English, but you can't run it, you can't diff it, and you can't merge it.
+
+63
+00:08:37,902 --> 00:08:44,292
+Second, what's actually new about framing things as a harness rather than just calling it agent infrastructure?
+
+64
+00:08:44,878 --> 00:08:51,872
+The reframing matters because it shifts the locus of reliability away from the model and onto the system.
+
+65
+00:08:52,302 --> 00:09:03,712
+If you believe the harness is the bottleneck, you stop trying to make the model smarter and start trying to make the surrounding scaffolding more robust, more inspectable, and more recoverable.
+
+66
+00:09:03,982 --> 00:09:06,832
+It also unifies disparate research threads.
+
+67
+00:09:07,182 --> 00:09:23,556
+Program-aided reasoning, robot policy synthesis, repository-level coding agents, and multi-agent debate frameworks all turn out to be instances of the same underlying pattern, which means insights from one domain can transfer to another.
+
+68
+00:09:24,206 --> 00:09:30,500
+Third, how does dynamically generated code relate to the human-designed harness infrastructure?
+
+69
+00:09:30,990 --> 00:09:33,952
+This is a subtle point the survey emphasizes.
+
+70
+00:09:34,350 --> 00:09:44,672
+Agent-generated code, like a temporary script the agent writes to inspect a database or a reusable skill it adds to its library, does not replace the broader harness.
+
+71
+00:09:45,294 --> 00:09:54,180
+The human-designed layer still owns the sandbox boundaries, the permission tiers, the verification oracles, and the human review gates.
+
+72
+00:09:54,512 --> 00:10:12,612
+Generated code makes the harness more adaptive because the agent can reshape its execution environment around the current task, but the policy-governed system around it decides what code may be executed, trusted, or promoted into future workflows.
+
+73
+00:10:13,326 --> 00:10:22,468
+Think of the agent as a contractor who can build tools on the job, but the building code, the inspections, and the permits are set by someone else.
+
+74
+00:10:23,246 --> 00:10:30,404
+Now, how do these ideas land in the world of large-scale recommendation systems serving hundreds of millions of users?
+
+75
+00:10:30,862 --> 00:10:42,148
+Consider that modern recommenders are increasingly moving toward agentic patterns where a language model orchestrates retrieval, ranking, explanation, and personalization.
+
+76
+00:10:42,734 --> 00:10:55,876
+The code as harness view suggests treating user state, candidate pools, ranking signals, and policy constraints as executable, inspectable artifacts rather than opaque embeddings.
+
+77
+00:10:56,526 --> 00:11:12,420
+A personalization agent could maintain a user's preference model as a versioned, queryable program rather than a fixed embedding, allowing for explicit edits, auditing, and rollback when preferences shift or a recommendation goes wrong.
+
+78
+00:11:13,198 --> 00:11:30,180
+Tools like sandboxed execution and deterministic verification map directly onto the safety challenges of serving billions of impressions, where you need bright lines between what an agent may suggest, what it may A B test, and what it may push to production.
+
+79
+00:11:30,702 --> 00:11:42,592
+More concretely, the orchestration-based planning patterns and multi-agent harnesses are highly relevant for candidate retrieval and ranking pipelines, where specialized agents could handle.
+
+80
+00:11:42,592 --> 00:11:52,112
+recall, re-rank, diversity, and policy compliance, coordinating through shared executable state, like feature stores or candidate logs.
+
+81
+00:11:52,398 --> 00:12:05,220
+The harness telemetry idea, treating execution traces as the substrate for harness improvement, maps onto the offline replay and counterfactual evaluation infrastructure that recommender teams already build.
+
+82
+00:12:05,550 --> 00:12:22,116
+And the open problem of regression free harness improvement is essentially the same problem as safely evolving a ranking system without degrading user metrics, suggesting that techniques developed for code agents could feed back into the experimentation discipline that production recommenders rely on.
+
