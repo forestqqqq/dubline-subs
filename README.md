@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [Power BI Tutorial for Beginners](medias/EKM1H/) | Kevin Stratvert | 2026-11-19 |
 | [2026-10-19 - NITheCS Colloquium: 'English Is the New Programming Language - Willem Visser](medias/E7FQ7/) | NITheCS | 2026-11-19 |
 | [Building Deterministic AI Coding Workflows with Claude Code](medias/B87GT/) | This Dot Media | 2026-11-19 |
 | [Adding Data Management to Orleans – A Journey with Phil Bernstein](medias/5PHAE/) | UCIBrenICS | 2026-11-19 |
