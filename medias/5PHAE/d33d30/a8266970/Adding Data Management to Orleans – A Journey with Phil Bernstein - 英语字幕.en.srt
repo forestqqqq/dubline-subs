@@ -1,0 +1,2444 @@
+1
+00:00:08,560 --> 00:00:11,652
+Phil Bernstein as our speaker today.
+
+2
+00:00:12,640 --> 00:00:17,348
+Dr. Bernstein is a distinguished scientist at Microsoft Research.
+
+3
+00:00:17,934 --> 00:00:24,228
+He has published more than 150 papers and two textbooks, two books, all related to database systems.
+
+4
+00:00:25,280 --> 00:00:31,748
+He is a world-class expert on many different topics, especially database transaction processing.
+
+5
+00:00:32,800 --> 00:00:34,240
+He has a long list of awards.
+
+6
+00:00:34,480 --> 00:00:40,708
+To name a few, he's an ACM Fellow, a recipient of the ACM Sigmod COD Innovation Award.
+
+7
+00:00:42,000 --> 00:00:54,148
+One thing I want to mention is Dr. Bernstein has a very high reputation for his very constructive professional comments when he reviews conference papers.
+
+8
+00:00:54,560 --> 00:00:58,320
+especially I noticed that when I was chair for some conference.
+
+9
+00:00:58,640 --> 00:01:05,600
+another thing I want to mention is Dr. Bernstein also influences some of our own work at the UCI.
+
+10
+00:01:05,920 --> 00:01:12,772
+for example, my team has been building an open source system called Texera to do parallel data analytics.
+
+11
+00:01:13,198 --> 00:01:20,420
+And our decision of choosing the ACT model was partially based on a conversation I had with Dr. Bernstein a few years ago.
+
+12
+00:01:21,230 --> 00:01:24,196
+So without further ado, let's welcome Dr. Bernstein.
+
+13
+00:01:25,902 --> 00:01:28,800
+Great, thank you, Chen, for the very nice introduction.
+
+14
+00:01:29,966 --> 00:01:39,440
+so I'm here to give you a retrospective on a project that I spent many years on and called Orleans.
+
+15
+00:01:40,240 --> 00:01:47,524
+And I'm gonna start though with a um my slides are not, there we go.
+
+16
+00:01:48,400 --> 00:02:06,180
+I'm gonna start with a kind of a meta discussion about database research in the systems area and just how I go about doing it and how I think what what I think is really driving the agenda, since I understand the entire audience here is our database people.
+
+17
+00:02:06,800 --> 00:02:08,320
+Um so what do you do?
+
+18
+00:02:08,400 --> 00:02:20,932
+Well, you want to identify obviously a challenging research problem that's related to databases, which generally means storage, indexing, queries, and updates over large, persistent shared data.
+
+19
+00:02:21,422 --> 00:02:24,240
+Then you got to come up with a novel solution, of course.
+
+20
+00:02:25,530 --> 00:02:35,760
+gotta show that it works, have experiments that proves where it really works, and ideally show where it doesn't, although not everybody is so diligent about that.
+
+21
+00:02:35,840 --> 00:02:42,212
+Um, but it's oh and then finally have a success story where it actually made a difference to somebody somewhere.
+
+22
+00:02:43,374 --> 00:02:46,240
+Um, so where do these problems come from?
+
+23
+00:02:46,926 --> 00:02:52,080
+And I claim there's actually a short list that covers the gamut.
+
+24
+00:02:52,160 --> 00:02:53,760
+This is for systems problems now.
+
+25
+00:02:53,840 --> 00:02:58,640
+There are many database problems that are not related to systems, they're more user-oriented.
+
+26
+00:02:58,720 --> 00:03:03,396
+But at the systems level, one thing that drives the agenda is hardware mechanisms.
+
+27
+00:03:03,680 --> 00:03:15,040
+Every time a new hardware mechanism comes along, often not targeted for databases in particular, um, you know, we all look at it and say, gee, that looks like something that we could make use of somehow.
+
+28
+00:03:15,120 --> 00:03:17,280
+We should figure out how best to use it.
+
+29
+00:03:17,678 --> 00:03:20,644
+Multi-core vector processing, et cetera, et cetera.
+
+30
+00:03:21,040 --> 00:03:25,348
+Umftware mechanism has shown up.
+
+31
+00:03:26,000 --> 00:03:37,600
+again, not necessarily targeting databases, but we start looking and seeing how we might leverage that mechanism to solve some well known problems in databases.
+
+32
+00:03:37,680 --> 00:03:43,524
+So distributed hash table, machine learning, blockchain, log structured storage, and so on.
+
+33
+00:03:45,902 --> 00:03:53,696
+Third source of problems is a new systems platform, which is not just a mechanism, but just a whole way of organizing computing.
+
+34
+00:03:53,936 --> 00:04:00,336
+So cloud computing is an obvious example, or specifically cloud storage, very large main memories.
+
+35
+00:04:00,496 --> 00:04:09,540
+Now people are talking about cloud fog edge, where you some in-network processing in addition to the cloud processors and the edge processors.
+
+36
+00:04:10,416 --> 00:04:16,612
+Each of those is a cause to rethink some of your solutions for data management.
+
+37
+00:04:17,454 --> 00:04:21,055
+Then there's the possibility of a new workload, a new usage scenario.
+
+38
+00:04:21,230 --> 00:04:28,164
+You know, you're going to train ML models, or you have graph algorithms over big data for knowledge bases or data science.
+
+39
+00:04:28,416 --> 00:04:31,056
+So that's another source of problems.
+
+40
+00:04:31,136 --> 00:04:35,456
+And then finally, you optimize for a new metric.
+
+41
+00:04:35,536 --> 00:04:51,172
+You know, maybe instead of latency or throughput, which are the usual ones for performance, maybe scalability, scaling out or minimizing cost um best you can within um within some performance envelope, and so on.
+
+42
+00:04:52,622 --> 00:04:55,972
+so the interesting thing about this list is I think it's complete.
+
+43
+00:04:57,486 --> 00:05:07,376
+I think that pretty much every systems-oriented database research that you find will be motivated by one or more of these bullets.
+
+44
+00:05:07,936 --> 00:05:15,428
+and it's also kind of useful for grad students and others just to try to think about what it is they're trying to accomplish.
+
+45
+00:05:17,166 --> 00:05:23,076
+now obviously, in order to make it research, um, you got to claim novelty.
+
+46
+00:05:24,494 --> 00:05:26,656
+and unfortunately, there's not much new in the world.
+
+47
+00:05:26,816 --> 00:05:36,996
+Back when I started doing research in the 70s, there was a lot of low-hanging fruit, so many problems that nobody had ever even thought of before.
+
+48
+00:05:38,830 --> 00:05:42,416
+and so there was plenty of opportunity to innovate.
+
+49
+00:05:42,496 --> 00:05:45,056
+It's not so easy, and now very often.
+
+50
+00:05:45,136 --> 00:06:07,056
+when you look at solutions to database systems, problems, you find people are are repackaging versions of salute techniques, like the ones listed here, in a different combination, in a different way, on a different hardware platform, using a different computing platform, et cetera, et cetera.
+
+51
+00:06:07,136 --> 00:06:12,068
+But it's it's um it's coming up with a genuinely new technique is rare.
+
+52
+00:06:12,656 --> 00:06:22,148
+And it's really where, I mean, that's these days that's the kind of thing that wins Turing awards, you know, as you come up with a really different way of solving.
+
+53
+00:06:22,576 --> 00:06:36,656
+It does happen periodically, you know, you see blockchain show up or or um consistent hashing or you know um enclaves in in hardware for for um for highly secure computing and so on.
+
+54
+00:06:36,736 --> 00:06:42,816
+So they do appear from time to time, but they're not a dime a dozen.
+
+55
+00:06:44,238 --> 00:06:46,816
+Now I work in an industrial research environment.
+
+56
+00:06:46,896 --> 00:07:00,548
+I used to be a professor for some years, and but I've been in industry now for more than 30 years, and in industry the time horizon tends to be shorter than in academia.
+
+57
+00:07:01,216 --> 00:07:04,176
+Um more like say five years.
+
+58
+00:07:04,334 --> 00:07:08,576
+You know, sometimes we work even shorter, just a little bit ahead of a product group.
+
+59
+00:07:08,736 --> 00:07:20,004
+But um, when we see problems that we think are more than you know, more like 10 years out, we say that's a that's a great thing for a university to work on, but nobody can predict where the business is going to be in 10 years.
+
+60
+00:07:20,256 --> 00:07:22,756
+So we try to work a little closer in.
+
+61
+00:07:23,536 --> 00:07:28,976
+Um you want there to be a big opportunity for revenue or cost saving.
+
+62
+00:07:29,056 --> 00:07:41,616
+That doesn't mean you're going to succeed, but if you can't even tell a good story as to why the company ought to be interested in the work you're doing, then it's unclear why it should be paid for by the company.
+
+63
+00:07:41,696 --> 00:07:43,696
+And again, not just something that's
+
+64
+00:07:48,112 --> 00:07:49,312
+more academic.
+
+65
+00:07:50,432 --> 00:07:53,952
+and our goal here is to de-risk the solution.
+
+66
+00:07:54,112 --> 00:08:01,872
+I mean, that it's often the engineers building stuff are just as smart as we are, but the thing they don't have is time.
+
+67
+00:08:01,998 --> 00:08:06,112
+I mean, they've got to be working on something that's going to ship in the next year or so.
+
+68
+00:08:07,232 --> 00:08:16,740
+and if they can't put the work on a schedule because they don't know how long it's going to take, then it's really hard for them.
+
+69
+00:08:17,152 --> 00:08:27,044
+And so de-risking the solution is a big deal, producing a prototype that shows that it actually can be built and they can visualize how long it's going to take to do it.
+
+70
+00:08:28,494 --> 00:08:37,347
+ideally, you get the product group involved early on because impact is important and if they're invested early, the more likely that they'll be interested in using it.
+
+71
+00:08:37,792 --> 00:08:54,788
+And then finally, since we're a research lab, Microsoft Research, we want to publish it both for public recognition, but also kind of to prove that it was research and not something that the product guys should have done and it was not really research.
+
+72
+00:08:55,712 --> 00:08:58,912
+so that's where I'm coming from in all of this.
+
+73
+00:08:59,246 --> 00:09:19,152
+And so, in some sense, the work that I'm going to be talking about for the rest of the seminar about Orleans, is really a case study in a particular data point in this model, if you will, of database research in the industrial sector.
+
+74
+00:09:19,438 --> 00:09:30,532
+So the research problem that we chose was how to add database features to a cloud programming framework, which is Orleans.
+
+75
+00:09:31,312 --> 00:09:35,072
+And first question is why is it research?
+
+76
+00:09:35,472 --> 00:09:41,072
+people have added, I mean, every programming language has some ability to do database management.
+
+77
+00:09:41,152 --> 00:09:42,832
+What makes this one research?
+
+78
+00:09:43,312 --> 00:09:57,636
+well, the first is that we're doing it on the cloud computing platform, in particular with cloud storage, and cloud storage has very different characteristics than a disk attached to your server where you're running your program.
+
+79
+00:09:58,752 --> 00:10:02,112
+secondly, is that we're running a different workload.
+
+80
+00:10:02,192 --> 00:10:06,980
+We're doing state we stateful cloud services, and I'll explain what I mean by that in a moment.
+
+81
+00:10:07,632 --> 00:10:16,992
+Um, and finally, um the metrics here are scope are in addition to good performance, it has to scale out because we're going to run on large numbers of servers.
+
+82
+00:10:17,152 --> 00:10:27,492
+It's got to be robust, it's got to be something that if the workload changes a little bit or the platform changes a little bit, you know, failures, it still works fine.
+
+83
+00:10:28,032 --> 00:10:38,276
+Um and and finally, programmability, ease of use was a big deal in the development of Orleans for the means of use for the developers.
+
+84
+00:10:39,342 --> 00:10:45,572
+So let's move forward and see what the problem is in a little more detail and how we went about solving it.
+
+85
+00:10:46,158 --> 00:10:53,552
+So I said that we're interested in stateful application services.
+
+86
+00:10:53,792 --> 00:11:05,472
+So the service has to be maintaining some kind of state information, Internet of Things, games, social networking, mobile applications, telemetry.
+
+87
+00:11:07,632 --> 00:11:16,832
+just by the description of the of the of the application type, you can easily imagine that there's a lot of state information that has to be maintained in order to offer the service.
+
+88
+00:11:19,726 --> 00:11:23,428
+and so that's the style of application.
+
+89
+00:11:25,678 --> 00:11:33,536
+And I probably should stop here and just say that from now on if you want to interrupt with questions, I'm all for you know, raise your hand, speak up.
+
+90
+00:11:33,856 --> 00:11:41,376
+you might have your mic disabled, so you probably have to raise your hand in order to speak, and one of us will will um will turn on your mic for you.
+
+91
+00:11:41,776 --> 00:11:41,936
+Sure.
+
+92
+00:11:42,096 --> 00:11:52,804
+So one protocol we can follow is if you have questions, you can raise your hand or you can type in your question in the chat window, and I'm going to monitor both.
+
+93
+00:11:53,646 --> 00:11:54,948
+Okay, great, great.
+
+94
+00:11:55,342 --> 00:11:57,060
+Happy to make this interactive.
+
+95
+00:11:57,376 --> 00:11:59,696
+So that's the style of application.
+
+96
+00:11:59,776 --> 00:12:06,468
+And if you look at that list, that's like a that is a large fraction of the new applications that are being developed these days.
+
+97
+00:12:08,016 --> 00:12:11,748
+not um you could cover covers quite a wide gamut.
+
+98
+00:12:13,936 --> 00:12:20,068
+in all of these applications that I just listed, application state is usually represented as objects.
+
+99
+00:12:21,070 --> 00:12:30,736
+And the reason is that in all these cases, the state information is usually the state of some object in the real world.
+
+100
+00:12:30,976 --> 00:12:39,456
+Um, you know, the state of a device or the state of a game or the you know the state of a of a um of a mobile device, etc.
+
+101
+00:12:39,776 --> 00:12:44,100
+So um it's these are naturally object-oriented applications.
+
+102
+00:12:46,638 --> 00:12:58,336
+in a game, you might have you can have players, games, grid positions, lobbies, player profiles, leaderboards, money, in-game money, weapons caches, if it's that kind of game.
+
+103
+00:12:58,896 --> 00:13:06,656
+so you know you can easily see that there's a lot of different kinds of objects that are being maintained as state.
+
+104
+00:13:06,736 --> 00:13:12,324
+And so it's really natural to implement these applications as in an object-oriented way.
+
+105
+00:13:14,190 --> 00:13:26,176
+in the IoT area, for example, where you've got a lot of sensors and out there devices, it's clear the things, the internet of things, it's the things, and so those things are objects.
+
+106
+00:13:26,496 --> 00:13:45,444
+And there's a modeling technique called digital twins, which has become quite popular where you have objects running in the cloud, they're called twins, which are basically surrogates for the object out there in the physical world.
+
+107
+00:13:45,934 --> 00:13:54,020
+So you've got a thermometer hooked up to a server somewhere, and then you've got its digital twin, which is an object running in the cloud.
+
+108
+00:13:55,374 --> 00:14:02,052
+and their entire systems built around this to make those digital twin models available to application developers.
+
+109
+00:14:04,014 --> 00:14:06,736
+the applications themselves have a number of interesting properties.
+
+110
+00:14:07,136 --> 00:14:09,060
+First of all, they manage millions of objects.
+
+111
+00:14:11,214 --> 00:14:14,336
+streams, images, videos, knowledge graphs.
+
+112
+00:14:14,862 --> 00:14:16,736
+there's lots and lots of them.
+
+113
+00:14:17,296 --> 00:14:20,228
+secondly, is the objects are active for quite a while.
+
+114
+00:14:21,006 --> 00:14:25,536
+this is not where you just spin up an object and then have it disappear quickly.
+
+115
+00:14:25,696 --> 00:14:27,936
+Usually they're they're active at least for minutes.
+
+116
+00:14:28,016 --> 00:14:36,068
+You know, you log in to play a game, and maybe you're playing the game for 20 minutes, and all those objects are around for um for that period.
+
+117
+00:14:36,336 --> 00:14:43,616
+Um, and and sometimes they're basically as long as the application is up and running, you expect the objects to be active.
+
+118
+00:14:43,776 --> 00:14:47,012
+For example, digital twins in an IoT application.
+
+119
+00:14:47,936 --> 00:14:50,340
+the application does heavy computation.
+
+120
+00:14:51,216 --> 00:14:55,216
+some of it's lightweight interactive stuff, but some of it is really quite heavy.
+
+121
+00:14:55,296 --> 00:14:56,416
+You do complex actions.
+
+122
+00:14:56,576 --> 00:15:04,896
+Maybe you're rendering images, you're running heavyweight queries over high-speed streams of data flowing in from the outside world.
+
+123
+00:15:04,976 --> 00:15:20,164
+Maybe you're running computations over graphs or searching knowledge graph in response to an interaction with with a with an end um with a communication endpoint, a user or some other device.
+
+124
+00:15:20,846 --> 00:15:22,976
+And finally, there's heavy communication.
+
+125
+00:15:23,056 --> 00:15:27,056
+There's messages between objects at a pretty high rate.
+
+126
+00:15:27,216 --> 00:15:29,376
+There's also a high bandwidth message streams.
+
+127
+00:15:29,616 --> 00:15:50,000
+So this need for lots of objects, lots of computation, and lots of communication leads to a implementation structure where the um, the system is split up into tiers where you have storage.
+
+128
+00:15:50,400 --> 00:15:55,520
+you've got a middle tier of comp compute, and you've got a front-end communications.
+
+129
+00:15:55,760 --> 00:16:00,000
+And this enables you to scale out each of these functions independently.
+
+130
+00:16:00,240 --> 00:16:09,920
+So, you know, whereas you know, people build database systems often with server attached storage and stored procedures, and it's all wrapped up in one box.
+
+131
+00:16:10,158 --> 00:16:16,080
+You know, you the computation to run the query, the storage connected to that box.
+
+132
+00:16:16,910 --> 00:16:21,092
+but in this environment, you really want to be able to scale this stuff out independently.
+
+133
+00:16:21,440 --> 00:16:27,920
+And so generally the storage is not co-located on the machines where the computation is done.
+
+134
+00:16:28,080 --> 00:16:36,932
+And then similarly, all the front-end chattiness with the outside world is generally done on front-end servers like web servers and like
+
+135
+00:16:41,198 --> 00:16:46,948
+these sorts of applications are often implemented these days with what's called an actor system.
+
+136
+00:16:48,160 --> 00:16:58,340
+and the reason why people like actors is that the programming model of actors simplifies distributed programming in this multi-tier architecture.
+
+137
+00:16:58,800 --> 00:17:00,080
+So, what's an actor?
+
+138
+00:17:00,240 --> 00:17:01,520
+Well, it's simply an object.
+
+139
+00:17:01,742 --> 00:17:03,520
+So why even give it another name?
+
+140
+00:17:03,680 --> 00:17:07,715
+Well, it's it's got it, it's an object, but it has a couple of extra properties.
+
+141
+00:17:08,400 --> 00:17:16,900
+first of all, the actors communicate only using message passing, there's no shared memory between them.
+
+142
+00:17:17,294 --> 00:17:25,060
+And this is again it's natural if you think about the objects in the applications that I'm describing, they can't share memory.
+
+143
+00:17:25,599 --> 00:17:29,600
+they're running on different machines, they're accessing remote storage.
+
+144
+00:17:30,560 --> 00:17:34,880
+you can't count on them being co-located so that they could share memory.
+
+145
+00:17:35,120 --> 00:17:38,500
+So it's best to just assume they can't share memory.
+
+146
+00:17:40,080 --> 00:17:45,600
+and the actors, each actor is also single-threaded.
+
+147
+00:17:45,680 --> 00:17:52,196
+It runs one, it processes one message at a time, does the work, and then returns to its caller.
+
+148
+00:17:52,750 --> 00:17:56,000
+So there's no multi-threaded execution inside of an actor.
+
+149
+00:17:56,160 --> 00:18:04,720
+Now, on today's multi-processors, this sounds like a terrible idea because you know, you've got all this parallelism in the compute uh framework.
+
+150
+00:18:04,880 --> 00:18:07,760
+You expect multi-threading in order to benefit from it.
+
+151
+00:18:07,840 --> 00:18:13,028
+But but um it's it's for an application developer, it's very hard.
+
+152
+00:18:13,326 --> 00:18:22,480
+You know, first of all, you've got multi-threads, they're running inside the same process, they're sharing the state of the um the process.
+
+153
+00:18:22,560 --> 00:18:26,320
+Um they trip over each other, one updates with no one reads.
+
+154
+00:18:26,480 --> 00:18:27,520
+This stuff is hard.
+
+155
+00:18:27,600 --> 00:18:31,440
+And for those of you who've done multi-threaded programming, you know it's difficult.
+
+156
+00:18:31,600 --> 00:18:36,708
+And this is really supposed to be an easy-to-use programming environment for applications.
+
+157
+00:18:37,774 --> 00:18:41,520
+plus, the actors are these fine-grained objects out there in the world.
+
+158
+00:18:41,680 --> 00:18:45,840
+So it's not clear you even need multiple threads running inside the actor.
+
+159
+00:18:46,000 --> 00:18:51,204
+The rate at which they're processing messages is not so high that it can't be handled by a single thread.
+
+160
+00:18:51,680 --> 00:18:58,404
+So the assumption is that the actors are pretty fine-grained, and therefore it's fine to just have them execute.
+
+161
+00:18:58,880 --> 00:19:01,188
+each actor executes on a single thread.
+
+162
+00:19:02,480 --> 00:19:06,160
+there are many programming environments for actors.
+
+163
+00:19:06,400 --> 00:19:08,240
+they were listed actually on the last page.
+
+164
+00:19:08,320 --> 00:19:10,640
+I should probably have said something about that on the right.
+
+165
+00:19:10,720 --> 00:19:15,680
+There's Erlang, which is probably the most well known of these, it's the oldest.
+
+166
+00:19:15,760 --> 00:19:26,788
+There's a system called ACO, which is basically the Erlang programming model implemented in Java and Orleans, which is the system, the system that I work on.
+
+167
+00:19:28,526 --> 00:19:40,576
+Orleans is an open source cross-platform framework for actors building robust app distributed applications on the Microsoft platform on.NET.
+
+168
+00:19:41,216 --> 00:19:46,148
+It's been open source since 2014, I think.
+
+169
+00:19:47,456 --> 00:19:53,988
+And it's pretty widely used outside Microsoft is very widely used inside Microsoft.
+
+170
+00:19:54,670 --> 00:20:12,656
+So many of the Microsoft services that you know about, a lot of the games on Xbox, Teams, Skype, fraud detection, service for our application, suite, Office, and our IoT framework.
+
+171
+00:20:12,816 --> 00:20:17,696
+they all, they all have major subsystems that are built on top of Orleans.
+
+172
+00:20:18,350 --> 00:20:31,236
+And for anybody who's been involved in the Orleans, those of you at UCI have been doing it, you know from just watching the chat rooms, there are people all over the world that are active at any given time working on this.
+
+173
+00:20:32,736 --> 00:20:37,540
+The big thing about Orleans is that it invented the virtual actor model.
+
+174
+00:20:41,376 --> 00:20:44,004
+The idea is that each object has a primary key.
+
+175
+00:20:44,976 --> 00:20:46,976
+Objects are loaded on demand.
+
+176
+00:20:47,296 --> 00:20:54,576
+So what that means is you don't you don't use the new operator to create a new instance of an object.
+
+177
+00:20:54,736 --> 00:20:58,336
+All you do is you just reference the object based on its key.
+
+178
+00:20:58,576 --> 00:21:03,268
+And if the object is is running, then it's invoked.
+
+179
+00:21:04,176 --> 00:21:08,496
+If the object is not running, it's loaded and activated on demand.
+
+180
+00:21:08,576 --> 00:21:10,256
+Basically, the system will,
+
+181
+00:21:14,016 --> 00:21:15,776
+it will pick a um server.
+
+182
+00:21:15,776 --> 00:21:17,296
+that's um lightly loaded.
+
+183
+00:21:17,376 --> 00:21:18,628
+it will, it will.
+
+184
+00:21:19,136 --> 00:21:28,816
+um, uh, load the object, load its state, um, it'll run its its constructor, um and um and thereby make it available.
+
+185
+00:21:28,896 --> 00:21:31,364
+and it'll remember where it put the object.
+
+186
+00:21:31,982 --> 00:21:34,736
+And the object will stay there for for a while.
+
+187
+00:21:35,022 --> 00:21:36,896
+As long as it's being used, it will stay there.
+
+188
+00:21:36,976 --> 00:21:40,336
+It'll only be deactivated after an idle period.
+
+189
+00:21:40,576 --> 00:21:51,056
+So generally, the application developer does not preload the object or it doesn't try to deactivate it manually.
+
+190
+00:21:51,136 --> 00:21:54,980
+You just let the underlying runtime do this do this for you.
+
+191
+00:21:55,776 --> 00:22:01,776
+Um and and for scalability, load Orleans will load balance the objects across servers.
+
+192
+00:22:01,936 --> 00:22:04,336
+Usually what it does is it's just round robin.
+
+193
+00:22:04,496 --> 00:22:13,700
+Each each object that's created goes to a different server, but but there are other load balancing techniques that are built into the system and can be can be used instead.
+
+194
+00:22:14,816 --> 00:22:23,748
+Um that um the application, if you look at it, is just plain old C sharp.
+
+195
+00:22:24,336 --> 00:22:29,316
+It supports F sharp, which is the functional um language for .NET.
+
+196
+00:22:29,616 --> 00:22:34,336
+Um and and people um people have used JavaScript.
+
+197
+00:22:34,416 --> 00:22:42,148
+I mean there are other other um language integrations, but most people write their Orleans applications in C sharp.
+
+198
+00:22:43,616 --> 00:22:51,376
+Um it runs on it runs on Windows, it runs on Linux, um, it's um it's portable.
+
+199
+00:22:51,616 --> 00:22:52,976
+So, how did I get involved?
+
+200
+00:22:53,056 --> 00:23:02,096
+So, this is maybe a little bit, this is sort of another little industrial research story, and this is a retrospective, so we're kind of explaining how this all came about.
+
+201
+00:23:02,416 --> 00:23:14,176
+So the project was created around 2008 to address the issue of cloud programming, make cloud application development easier.
+
+202
+00:23:14,496 --> 00:23:24,336
+And in three years later, I was, I moved into a group, into a lab in which the Orleans project was active, had been running for a few years.
+
+203
+00:23:24,654 --> 00:23:27,296
+and the managers were not really too sure.
+
+204
+00:23:27,296 --> 00:23:29,124
+what this Orleans thing was.
+
+205
+00:23:29,536 --> 00:23:46,916
+and and um asked, they wanted somebody who'd been around for a while to go take a look at it and see what they thought of the whole project, and whether it was an important one or something that maybe should be ramped down.
+
+206
+00:23:47,918 --> 00:23:50,112
+I looked at it and I said, Oh, I get it.
+
+207
+00:23:50,192 --> 00:23:51,952
+This is transactional middleware.
+
+208
+00:23:52,032 --> 00:23:56,672
+I've seen programming frameworks like this before.
+
+209
+00:23:57,232 --> 00:23:59,312
+And yeah, it looks really useful.
+
+210
+00:23:59,630 --> 00:24:03,312
+It's pretty interesting though that it doesn't have transactions.
+
+211
+00:24:03,502 --> 00:24:22,660
+It's this interactive environment, you know, like you see for what used to be enterprise Java Beans or J2EE, or before that, transaction processing monitors like CICS, or yeah, I mean, it's just another way of writing distributed applications, make it easy to do.
+
+212
+00:24:23,552 --> 00:24:30,272
+but in spite of the fact that it didn't actually support transactions, I was surprised that the users really liked it.
+
+213
+00:24:30,352 --> 00:24:43,072
+You know, the the the folks in the Xbox game division really loved it as a way of getting more applications to run.
+
+214
+00:24:43,342 --> 00:24:45,152
+Yeah, Chen, got a question?
+
+215
+00:24:45,518 --> 00:24:53,392
+Yeah, I mean before you were asked to evaluate the audience, how did the audience get started inside of Microsoft?
+
+216
+00:24:54,112 --> 00:25:04,672
+so Jim Laris, um, who many of you know is a pretty well-known computer scientist, researcher, he's currently dean of computer science at EPFL.
+
+217
+00:25:04,832 --> 00:25:17,188
+At the time he was in Microsoft research, and he had this idea that it would be a good idea to come up with a programming system that would make it easy to develop applications for the cloud.
+
+218
+00:25:17,872 --> 00:25:27,552
+and he hired a senior engineer, Sergei Bykhoff, and the two of them went off and started conceptualizing what this was.
+
+219
+00:25:27,632 --> 00:25:41,872
+And I guess it took them about a year or more, and they settled in on the actor model as being a good way of simplifying the programming, the programming model to do this, and you know, then slowly ramped up the project from there.
+
+220
+00:25:42,352 --> 00:25:55,312
+the project was about this was nearly three years old when the first maybe two and a half years old when the first internal users appeared on the scene from Xbox.
+
+221
+00:25:55,472 --> 00:25:57,232
+I mean they they had been advertising it.
+
+222
+00:25:57,312 --> 00:26:15,844
+You know, we have these internal trade shows essentially at Microsoft once a year, and the product people all come and see all the cool stuff coming out of MSR, and some people from the game division looked at it and said, gee, I think we could use this.
+
+223
+00:26:16,302 --> 00:26:22,020
+And so that led to conversations, which led to their first um first internal users.
+
+224
+00:26:24,942 --> 00:26:25,232
+Um
+
+225
+00:26:25,232 --> 00:26:26,992
+there's one question from Sherrod.
+
+226
+00:26:27,232 --> 00:26:29,828
+Uh Sherrod, if you're there, can you ask the question?
+
+227
+00:26:32,592 --> 00:26:35,268
+So, I, uh, hi, hi, Phil. So.
+
+228
+00:26:35,712 --> 00:26:41,712
+my question is that in the context of, let's say, I, you're motivating actors from the context of IoT applications.
+
+229
+00:26:41,872 --> 00:26:52,592
+but in IoT, we normally also model environment, and the entities are sort of integrated inside a common shared sort of environment where they interact.
+
+230
+00:26:52,846 --> 00:26:59,632
+So I'm just wondering if the actors only have message passing and there is no shared memory and there's no such such stuff.
+
+231
+00:26:59,792 --> 00:27:02,084
+How do you model then the environment?
+
+232
+00:27:03,232 --> 00:27:10,272
+Um they have to be turned into actors and if you're going to use if you're going to use it in this in this way, or it's got to be a shared database.
+
+233
+00:27:10,542 --> 00:27:13,712
+You know, I'm going to show you how to access shared shared databases.
+
+234
+00:27:13,792 --> 00:27:14,192
+Um
+
+235
+00:27:14,192 --> 00:27:18,916
+so there is a concept of uh context sharing that can actually then happen in the context of actors.
+
+236
+00:27:19,534 --> 00:27:23,072
+Well, yeah, but it has to be done through a data, it has to be done through an external database.
+
+237
+00:27:23,152 --> 00:27:24,804
+It's not going to be through shared memory.
+
+238
+00:27:26,432 --> 00:27:30,820
+that means it'll be cached and you're gonna have to worry about um cache consistency and all that.
+
+239
+00:27:31,392 --> 00:27:31,712
+Okay.
+
+240
+00:27:33,312 --> 00:27:38,752
+Um so I looked at this, didn't have transactions, and I said, gee, I think I can help.
+
+241
+00:27:39,792 --> 00:27:44,272
+I know something about how to integrate transactions into a framework like this.
+
+242
+00:27:44,832 --> 00:27:49,392
+and I hired an intern to help me get started on it.
+
+243
+00:27:50,512 --> 00:27:53,872
+and while I was doing this, Orleans got more traction.
+
+244
+00:27:54,032 --> 00:28:01,792
+This big success story with Halo, which is the biggest game on Xbox at the time, attracted lots of other users.
+
+245
+00:28:01,872 --> 00:28:09,632
+You know, they had a high profile customer, so that made other people interested.
+
+246
+00:28:09,872 --> 00:28:18,912
+And by 2014, I was hooked, and this was the main thing I was doing and remained the main thing I was doing for almost five years.
+
+247
+00:28:20,592 --> 00:28:26,192
+the last major sub project that I did on Orleans was in 2019.
+
+248
+00:28:26,752 --> 00:28:30,084
+and I did it in parallel with ramping up on some other work.
+
+249
+00:28:31,982 --> 00:28:33,584
+I may get back to it at some point.
+
+250
+00:28:33,664 --> 00:28:41,904
+It's not that I lost interest or ran out of things to do, but I've been doing it for a long time and thought it was time to maybe do something different.
+
+251
+00:28:42,384 --> 00:29:00,544
+So the good news in all of this is that the virtual actor model automates scalability because you know if you add, you can look you can add more um add more servers, and um Orleans will simply spread the um the new objects out on the new servers, right?
+
+252
+00:29:00,704 --> 00:29:01,424
+Because that's what it does.
+
+253
+00:29:01,504 --> 00:29:05,504
+Every time you spin up a new object, it finds a server on which to run it.
+
+254
+00:29:05,744 --> 00:29:19,428
+Um and if the load lightens up, eventually it can just start killing servers and you can even kill actors, and they'll just resurrect the next time they're invoked, because that's all automated as part of the platform.
+
+255
+00:29:19,904 --> 00:29:25,264
+So scalability is something that the application developer can ignore, it happens automatically.
+
+256
+00:29:25,424 --> 00:29:34,944
+And similarly, fault tolerance, as long as the actor saves state at the right times, the system will recognize when an object is running.
+
+257
+00:29:35,104 --> 00:29:40,944
+And so if if the server, let's suppose if server fails, take an extreme case, a server fails.
+
+258
+00:29:41,344 --> 00:29:46,464
+obviously all the actors running on that server fail, cannot be used.
+
+259
+00:29:47,150 --> 00:29:48,064
+so what happens?
+
+260
+00:29:48,224 --> 00:29:55,344
+Well, the next time any of those actors are invoked, the runtime, the Orleans runtime, says, Oh, that object isn't running.
+
+261
+00:29:55,424 --> 00:30:02,384
+And so it'll simply pick another server and it'll load the object on that server and start running it.
+
+262
+00:30:02,624 --> 00:30:07,300
+Um, the fact that it had previously failed, I mean, the runtime doesn't know or care.
+
+263
+00:30:07,630 --> 00:30:09,904
+Um, it just sees that it's not running.
+
+264
+00:30:10,384 --> 00:30:26,064
+now obviously, if the object has state and you it fails and then you're going to bring it back on another server, it was up to the object to save its state so that if it failed, it would be resurrected in the right in the right state.
+
+265
+00:30:26,224 --> 00:30:30,304
+So state saving state is up to the application developer.
+
+266
+00:30:30,464 --> 00:30:34,756
+That is hard, and that's one of the problems that transactions helps with.
+
+267
+00:30:35,184 --> 00:30:45,732
+But but um but the the um you know things like fault failure detection, server failure, resurrecting objects, all of that is automated by the runtime.
+
+268
+00:30:46,510 --> 00:30:48,772
+Phil, there's one question from Nalini.
+
+269
+00:30:49,070 --> 00:30:49,584
+Nalini?
+
+270
+00:30:50,304 --> 00:30:50,544
+Yeah.
+
+271
+00:30:50,784 --> 00:31:18,304
+Hi, Phil. So I have a question in terms of how Orleans uses the sort of the more pure version of the actor model, which has this concept of what we call acquaintances, which is how which actors can communicate with which other actors, which um, you know, in the pure actor model, you can communicate acquaintances and messages, and that creates this dynamic communication topology of all these objects.
+
+272
+00:31:18,544 --> 00:31:32,384
+I wonder whether um, you know, Orleans leverages those concepts in order to sort of improve, um, you know, to support interaction as well as manage the concurrency.
+
+273
+00:31:33,344 --> 00:31:34,504
+Um,
+
+274
+00:31:34,504 --> 00:31:39,876
+um any object can talk to any other object as long as it knows its identity.
+
+275
+00:31:41,104 --> 00:31:41,264
+Okay.
+
+276
+00:31:41,504 --> 00:31:43,824
+So there's no there's no nothing special.
+
+277
+00:31:43,950 --> 00:31:46,464
+Um there there are no special communication paths here.
+
+278
+00:31:46,544 --> 00:31:48,452
+Every object can talk to every other object.
+
+279
+00:31:49,024 --> 00:31:52,224
+And how does an object discover other objects?
+
+280
+00:31:52,464 --> 00:31:56,224
+Is it the given, communicated?
+
+281
+00:31:56,384 --> 00:31:57,384
+Is there
+
+282
+00:31:57,384 --> 00:32:00,704
+well it's I guess that's application programming.
+
+283
+00:32:00,864 --> 00:32:11,584
+Um, but um usually the objects the every object has identity, and its identity is generally comprehensible to the application.
+
+284
+00:32:11,744 --> 00:32:20,784
+So, you know, games have game ID, player has player ID, um, you know, device has device ID, and so on.
+
+285
+00:32:20,944 --> 00:32:26,144
+And so generally speaking, the application knows you know what object it's looking for.
+
+286
+00:32:26,304 --> 00:32:32,324
+That um you know, player a player logs into the Halo game, they enter a lobby.
+
+287
+00:32:32,704 --> 00:32:36,624
+Um the lobby has no, I mean the lobby is basically anonymous.
+
+288
+00:32:36,704 --> 00:32:39,264
+I mean, they're all there are many lob copies of the lobby.
+
+289
+00:32:39,344 --> 00:32:46,564
+You once you're in the lobby, the lobby object tries to find other people for you to play the game with.
+
+290
+00:32:47,184 --> 00:32:50,144
+And you know, so it runs a matchmaking service.
+
+291
+00:32:50,224 --> 00:32:54,384
+The matchmaking service knows the identity of all the players in the lobby.
+
+292
+00:32:54,944 --> 00:33:00,544
+it runs, you know, it knows their profile given that they given that it knows their identity, it knows their profile.
+
+293
+00:33:00,624 --> 00:33:10,304
+It can now run an algorithm that tries to figure out which players are at the same skill level and are good candidates to play the game with each other, you know, and so on.
+
+294
+00:33:10,384 --> 00:33:19,492
+So you can kind of visualize how this might go that the um that the identity of the objects would would unfold as the application meets them.
+
+295
+00:33:20,782 --> 00:33:21,252
+Thank you.
+
+296
+00:33:24,238 --> 00:33:27,312
+But in all of this, the application is responsible for managing state.
+
+297
+00:33:27,472 --> 00:33:29,872
+Orleans does not help you manage state.
+
+298
+00:33:30,032 --> 00:33:37,220
+So the idea of saving state at the right time, reading it back, accessing it, that's all part of the application.
+
+299
+00:33:38,352 --> 00:33:42,352
+And over time we've we've improved that situation.
+
+300
+00:33:42,432 --> 00:33:45,632
+But at the time I got involved, that was where we are.
+
+301
+00:33:46,032 --> 00:33:46,992
+That's where we were.
+
+302
+00:33:47,072 --> 00:33:50,912
+And as soon as I looked at this, I said, boy, this is a great opportunity for database research.
+
+303
+00:33:50,992 --> 00:33:53,632
+You're running stateful actors, you're not managing state.
+
+304
+00:33:53,838 --> 00:33:55,684
+Like I said, I think I can help.
+
+305
+00:33:57,614 --> 00:34:04,032
+And so we over time, this is not the first conceptual view we had.
+
+306
+00:34:04,192 --> 00:34:11,952
+but over time, we realized that what we were basically building was an actor-oriented database system where the actors were being stored.
+
+307
+00:34:12,032 --> 00:34:20,100
+the actor states were being stored in a database, and they needed to support all the usual abstractions that databases support.
+
+308
+00:34:20,782 --> 00:34:30,752
+Indexing, indexes, transactions, queries, This is all the standard stuff you get in the you know learn about when you learn about databases.
+
+309
+00:34:31,072 --> 00:34:41,380
+Um the um this actor-oriented database now can use um any kind of database, any kind of storage.
+
+310
+00:34:41,632 --> 00:34:43,556
+Um, and that's kind of weird.
+
+311
+00:34:43,712 --> 00:34:52,831
+Um that when you build a database system, normally the database system implements the storage system, and it's all you know, it's wired all the way down to the disk drive.
+
+312
+00:34:52,911 --> 00:34:56,324
+But but here you're working with cloud storage, it can be anything.
+
+313
+00:34:56,654 --> 00:35:02,596
+It can be a blob service, it can be a JSON service, a SQL service, could be anything.
+
+314
+00:35:02,992 --> 00:35:13,924
+Um now, if you're going to have stateful objects, um, for those of you who've been around for a while, you might say, I have seen this somewhere before.
+
+315
+00:35:15,438 --> 00:35:16,672
+at least in two places.
+
+316
+00:35:16,832 --> 00:35:26,752
+One is back in the 80s and 90s, there was two lines of work that had stateful act, stateful objects.
+
+317
+00:35:26,912 --> 00:35:29,796
+One of them was persistent programming languages.
+
+318
+00:35:31,380 --> 00:35:34,272
+Argus comes to mind, there were a number of them.
+
+319
+00:35:35,232 --> 00:35:51,684
+where the understanding was that um you would tag some of your program state as being persistent, and um, and then the programming language runtime would store this stuff out in storage somewhere.
+
+320
+00:35:52,592 --> 00:35:56,272
+Um and it would all be all be transparent.
+
+321
+00:35:56,592 --> 00:36:02,192
+Um it's a little different than this one though, because first of all, it was not it was not really an actor system.
+
+322
+00:36:02,272 --> 00:36:09,952
+You know, they were multi-threaded, and I mean they had all the you know, there was a different um, and and they didn't really target this kind of application.
+
+323
+00:36:10,032 --> 00:36:14,916
+I mean, they were looking at more classical database applications of that period.
+
+324
+00:36:15,232 --> 00:36:19,632
+The other one is object-oriented databases, and the same story.
+
+325
+00:36:19,712 --> 00:36:26,192
+I mean, they were building database systems where what was being manipulated was objects, and what the
+
+326
+00:36:29,232 --> 00:36:31,908
+motivation there was computer-aided design.
+
+327
+00:36:32,352 --> 00:36:39,952
+Um that um there, you know, literally, you know, electronic CAD were that was the target.
+
+328
+00:36:40,238 --> 00:36:50,272
+And there were a whole bunch of different um startup companies that were off building these object-oriented databases, and they've almost all faded away by now.
+
+329
+00:36:50,432 --> 00:36:57,312
+But um that was um just because the market never really developed to be as big as they had hoped.
+
+330
+00:36:57,632 --> 00:37:00,836
+Um, so in some sense, here we go again.
+
+331
+00:37:01,232 --> 00:37:12,032
+Um that um you know it's an object-oriented database, calling an actor-oriented database, and but with a different um a different motivation.
+
+332
+00:37:12,112 --> 00:37:17,152
+You know, we're going after a different category of application, different kind of programming model.
+
+333
+00:37:17,390 --> 00:37:18,432
+And it's hard.
+
+334
+00:37:18,512 --> 00:37:18,752
+um.
+
+335
+00:37:19,072 --> 00:37:24,832
+because when you integrate with a programming system, you got to be compatible with the.
+
+336
+00:37:24,832 --> 00:37:28,992
+um, the programs, um, abstractions.
+
+337
+00:37:29,072 --> 00:37:40,356
+you know, that this model for actor invocation and life cycle of an actor and threading and, and you know, the communication between the actors, exception handling, load, balancing, caching.
+
+338
+00:37:40,750 --> 00:37:43,392
+I mean, these are all part of the programming environment.
+
+339
+00:37:43,552 --> 00:37:58,852
+And so When you integrate data management into it, you've got to do it in a way that there's not much of an impedance mismatch between what the database is offering and what the programming framework is offering.
+
+340
+00:37:59,758 --> 00:38:00,560
+So we got a question.
+
+341
+00:38:01,040 --> 00:38:01,280
+Right.
+
+342
+00:38:01,440 --> 00:38:12,560
+I mean, in this architecture, are those actors uh implemented inside database system as different modules, or is really a middleware layer?
+
+343
+00:38:14,350 --> 00:38:15,200
+It's a middleware layer.
+
+344
+00:38:15,920 --> 00:38:32,740
+It's a middleware layer, although it does lead to the question is if the abstraction, if you're using a storage service that implements that abstraction, then how do you expose it without repeating it, you know, without duplicating it in the programming framework?
+
+345
+00:38:33,550 --> 00:38:51,204
+You know, for example, if the if the if the storage system supports an indexing, as many of them do, then how do you expose that so that I can go in and get all the players who work in Irvine?
+
+346
+00:38:52,110 --> 00:38:57,988
+You know, I mean, yeah, you've got you know, where player location is one of the attributes of player.
+
+347
+00:38:58,240 --> 00:39:04,640
+And you know, I can index it in the database, but I'm accessing it in the programming language.
+
+348
+00:39:04,720 --> 00:39:13,348
+And so how do I link those up so that I'm not just repeating the same thing, but I've got to integrate it so that it's nicely exposed in the programming language.
+
+349
+00:39:14,320 --> 00:39:26,080
+Um, so um just examples of all these, you know, you have a transaction like player X buys a kryptonite shield and pays with a gold coin.
+
+350
+00:39:26,862 --> 00:39:29,120
+we actually do things like this in the games.
+
+351
+00:39:29,360 --> 00:39:42,244
+Um replication, maybe if you're playing a board game, which is you know slow-moving game, you might want to have the state replicated in different regions of the world so that I can play chess with somebody in China, let's say.
+
+352
+00:39:42,800 --> 00:40:00,880
+Um that um getting all the players in in a in a particular city, if city is one of the attributes of player, um maybe more elaborate queries, SQL-like queries over um over these actors.
+
+353
+00:40:01,040 --> 00:40:09,360
+Um, there's a lot of streams wherever wherever you have these interactive applications, there's always a lot of events flowing around, and so you want to monitor them.
+
+354
+00:40:09,440 --> 00:40:17,920
+So stream processing, like one that we do, is we monitor player behavior to look for cheaters by analyzing streams of behavior.
+
+355
+00:40:19,280 --> 00:40:26,240
+and maybe having a database view over these actor types, is another possibility.
+
+356
+00:40:28,240 --> 00:40:33,840
+there are several technical challenges that make this really different than other kinds of databases.
+
+357
+00:40:34,000 --> 00:40:53,200
+The first is there's no server-attached storage, which is really wild for a database person, to be making, supporting database abstractions, but you've got to go over the data center network to get to the data, which presumably is much slower than you're used to.
+
+358
+00:40:53,280 --> 00:40:56,080
+It's not directly connected to the server.
+
+359
+00:40:56,720 --> 00:41:00,160
+moreover, it's going to be high latency.
+
+360
+00:41:00,320 --> 00:41:03,440
+So it's not only disconnected, but it's high latency.
+
+361
+00:41:03,600 --> 00:41:05,760
+On the other hand, it's also highly reliable.
+
+362
+00:41:05,920 --> 00:41:09,200
+Those cloud storage services are replicated out the wazoo.
+
+363
+00:41:09,520 --> 00:41:15,440
+And so you can really count on them to be there, um, which is also different.
+
+364
+00:41:15,600 --> 00:41:20,960
+Normally, you know, we worry very much about whether we have to mirror disks or replicate across servers.
+
+365
+00:41:21,760 --> 00:41:30,480
+Unnecessary, this cloud storage service is for all practical purposes, you know, um failure proof.
+
+366
+00:41:30,720 --> 00:41:42,560
+Um, third, it's got to work with any cloud storage system, because everybody who builds an application using Orleans is going to have their own preference as to which.
+
+367
+00:41:42,960 --> 00:41:52,960
+Somebody wants to use SQL Server, somebody else wants to use Cassandra, the next one wants to use MongoDB or some key value, other key value store.
+
+368
+00:41:53,120 --> 00:42:08,400
+And if we wire this tightly into one database system, we're really narrowing the market for this system a lot because when people come to build an application, they may already have, you know, we're a Cassandra shop.
+
+369
+00:42:08,560 --> 00:42:10,160
+Our data is all in Cassandra.
+
+370
+00:42:10,240 --> 00:42:12,960
+If you can't run on Cassandra, we can't use you.
+
+371
+00:42:13,120 --> 00:42:19,280
+Um, you know, we're not going to, you know, start out with another database system in order to be able to use your programming environment.
+
+372
+00:42:19,440 --> 00:42:24,320
+So it's essential this works on many different kinds of cloud storage systems.
+
+373
+00:42:24,494 --> 00:42:28,240
+Um, this is unlike any other database problem I know of.
+
+374
+00:42:28,334 --> 00:42:33,348
+I mean, that um to to make it so disconnected from the storage layer.
+
+375
+00:42:34,800 --> 00:42:36,480
+so what did we actually do?
+
+376
+00:42:36,640 --> 00:42:39,972
+Well, we implemented um oh, I see, we got another question here.
+
+377
+00:42:40,720 --> 00:42:41,040
+Um
+
+378
+00:42:55,022 --> 00:42:56,272
+Yeah, I think that worked.
+
+379
+00:42:56,432 --> 00:42:56,672
+Okay.
+
+380
+00:42:56,832 --> 00:43:09,632
+Yeah, I think it was mentioned uh actors uh will be sort of load balanced round robin style across servers to handle this automatic uh scaling, right?
+
+381
+00:43:09,792 --> 00:43:18,272
+I'm curious how uh latency handling of say actor access across all these nodes as you continue to scale with more actors and more nodes.
+
+382
+00:43:18,432 --> 00:43:19,312
+How does that happen?
+
+383
+00:43:19,392 --> 00:43:24,292
+And do you do you leave it all up to application programming to handle things like interpolation?
+
+384
+00:43:24,992 --> 00:43:34,832
+Um so I'm not sure what you mean by interpolation, but but the the um one so in general it works well um is what we've found.
+
+385
+00:43:34,912 --> 00:43:48,032
+But but um certainly there are cases where you end up with objects that get chatty with each other and they're sitting on different servers, and the latency of RPC communication between them becomes an issue.
+
+386
+00:43:48,206 --> 00:43:51,792
+Um, and there's actually a very nice research paper they published about this.
+
+387
+00:43:52,078 --> 00:44:12,192
+My colleagues, I was not involved in this part of the project, but they basically build a graph where they keep track of the amount of crosstalk between actors and migrate the actors in order to get the chatty ones co-located on the same server.
+
+388
+00:44:12,432 --> 00:44:16,912
+Um that appeared in Eurosys a few years ago.
+
+389
+00:44:19,022 --> 00:44:25,392
+it's not widely used, it comes up, but it doesn't seem to be a real pain.
+
+390
+00:44:25,472 --> 00:44:25,952
+It's interesting.
+
+391
+00:44:27,472 --> 00:44:29,952
+I'm very sympathetic with the question.
+
+392
+00:44:30,032 --> 00:44:38,992
+I think when you see a system like this, you just expect that reducing the amount of crosstalk between actors would be an important optimization, but it seems not.
+
+393
+00:44:39,152 --> 00:44:41,312
+I mean, it seems like most of the systems work fine.
+
+394
+00:44:41,472 --> 00:44:43,632
+I guess communication is fast enough.
+
+395
+00:44:45,102 --> 00:44:48,196
+but we do have technology to make it much better.
+
+396
+00:44:48,672 --> 00:44:53,380
+Um in this uh it's in the way that I just described.
+
+397
+00:44:54,672 --> 00:44:59,072
+So so um what features do we want to add?
+
+398
+00:44:59,152 --> 00:45:16,452
+Well, we added transactions, which I'm gonna tell you a little bit about, um geodistribution, so that um you can have actors talking to each other in different data centers, added secondary indexing, so you can do things like getting all players in Irvine.
+
+399
+00:45:17,392 --> 00:45:20,032
+but what I'm gonna I only have a limited time left.
+
+400
+00:45:20,112 --> 00:45:26,032
+I'm gonna focus just on transactions, just as an example, to take it down a level of detail.
+
+401
+00:45:26,432 --> 00:45:34,432
+So um the interface for writing transactions in Orleans is the same as in.NET or Java Enterprise Edition.
+
+402
+00:45:34,512 --> 00:45:46,592
+And the way it works is that if you um when you define an actor, you tag methods um with um if you want them to run as a transaction.
+
+403
+00:45:46,672 --> 00:45:56,992
+So if you want the withdraw function on an account to run as a transaction, you set the transaction option attribute to be required.
+
+404
+00:45:57,262 --> 00:45:58,756
+Transaction is required.
+
+405
+00:45:59,072 --> 00:46:05,988
+All right, and this goes back to the late 1990s, and it's it's become pretty much the universal way of doing this.
+
+406
+00:46:06,190 --> 00:46:16,708
+Um it actually came originally from a Microsoft project called Microsoft Transaction Server introduced it in um the late 90s, and everybody's adopted it since then.
+
+407
+00:46:17,472 --> 00:46:21,872
+Um but there are big performance challenges in doing this in Orleans.
+
+408
+00:46:21,952 --> 00:46:34,112
+The first is when you build transactions, the first thing you need is a log to keep track of all the updates and all the changes of transaction state from active to committed or aborted.
+
+409
+00:46:34,318 --> 00:46:36,356
+But in the cloud, there is no log.
+
+410
+00:46:37,774 --> 00:46:38,528
+I mean, I don't know.
+
+411
+00:46:38,768 --> 00:46:45,092
+As far as I know, none of the cloud vendors offer log as a service to application developers.
+
+412
+00:46:45,488 --> 00:46:47,332
+So you got to do this yourself.
+
+413
+00:46:48,208 --> 00:47:01,408
+The second is the latency and accessing storage is going to be a problem because normally the way you implement these things is you set locks, and if you're going to run the transaction for too long, you're going to be holding the lock for a while.
+
+414
+00:47:01,488 --> 00:47:02,852
+It's going to create contention.
+
+415
+00:47:03,968 --> 00:47:06,608
+The third is that objects migrate between servers.
+
+416
+00:47:06,688 --> 00:47:12,768
+You know, if the server, if an object is deactivated, when it's activated the next time, it might not be in the same server.
+
+417
+00:47:12,928 --> 00:47:15,168
+So you can't cache state on that server.
+
+418
+00:47:15,248 --> 00:47:19,044
+You've always got to go to the storage service to load it.
+
+419
+00:47:19,968 --> 00:47:27,396
+And unlike you know, most distributed transaction systems rely on the fact that most transactions are not distributed.
+
+420
+00:47:28,078 --> 00:47:38,884
+You know, they can run distributed transactions, but you go to great pains to make sure that most of your transactions run locally on one machine because the distribution is so expensive.
+
+421
+00:47:39,248 --> 00:47:45,328
+Here, all the transactions are going to be distributed because the the actors are spread out.
+
+422
+00:47:46,048 --> 00:47:49,060
+You can't cluster them very easily.
+
+423
+00:47:49,808 --> 00:47:57,888
+So the solution that we came up with is to use a speculative commit operation to hide the storage latency.
+
+424
+00:47:58,126 --> 00:47:59,876
+I'm going to show you how that works.
+
+425
+00:48:01,198 --> 00:48:05,728
+So you execute a transaction, I think what you would regard as the obvious way.
+
+426
+00:48:05,808 --> 00:48:16,608
+You've got a root object here on the right, and it um it starts calling the other objects, you know, remote procedure call to the other objects.
+
+427
+00:48:17,088 --> 00:48:28,528
+eventually when it hits these objects, it sets locks on the objects that it accesses, standard two-phase locking, like any standard transaction system.
+
+428
+00:48:29,168 --> 00:48:36,260
+and then at the end, the um when everything returns to the root object, the root object tries to commit.
+
+429
+00:48:36,782 --> 00:48:39,876
+And that runs this two-phase commit protocol.
+
+430
+00:48:40,288 --> 00:48:51,408
+Um, and generally in these systems, you have a transaction manager, a separate service that runs the two-phase commit protocol to make sure the transaction is atomic.
+
+431
+00:48:51,568 --> 00:48:59,168
+By that I mean that either all the objects um commit the data permanently or none of them do.
+
+432
+00:48:59,406 --> 00:49:00,356
+It's all or nothing.
+
+433
+00:49:01,088 --> 00:49:07,248
+And in order to do this, the transaction manager has to have a log, it's got to keep track of its state somewhere.
+
+434
+00:49:07,408 --> 00:49:11,908
+And since there is no server private storage, it has to do this in the cloud.
+
+435
+00:49:12,270 --> 00:49:18,052
+So that log has got to be in some storage system somewhere in the data center.
+
+436
+00:49:19,568 --> 00:49:21,008
+So let's see how this works.
+
+437
+00:49:21,088 --> 00:49:23,728
+So this is the standard way of running two phase commits.
+
+438
+00:49:23,808 --> 00:49:35,940
+So you got this transaction manager, and you got these three objects that are part of the transaction, and then the transaction manager has storage nearby and in storage service, and then the objects have storage.
+
+439
+00:49:36,494 --> 00:49:41,188
+So the way it starts is the the transaction manager asks the objects to prepare.
+
+440
+00:49:42,190 --> 00:49:46,724
+By that it means it's going to store its updates on disk somewhere in storage.
+
+441
+00:49:47,502 --> 00:49:54,340
+And when it's all done, when it has an acknowledgement that the data is saved to storage, it's going to acknowledge that it's prepared.
+
+442
+00:49:55,566 --> 00:50:03,568
+And this when the transaction manager gets that acknowledgement from all of the objects, then it proceeds to tell them all to um commit.
+
+443
+00:50:03,648 --> 00:50:04,848
+So it commits locally.
+
+444
+00:50:04,928 --> 00:50:08,292
+That's the operation that actually says the transaction is committed.
+
+445
+00:50:08,622 --> 00:50:11,008
+From here on, you can't back out.
+
+446
+00:50:11,214 --> 00:50:12,356
+It's got to be committed.
+
+447
+00:50:12,878 --> 00:50:16,836
+And so it just goes off and it tells all the objects to commit.
+
+448
+00:50:17,168 --> 00:50:26,980
+And so the object releases its lock now since it knows that its update is permanent and thereby makes it available to other transactions, logs its commit.
+
+449
+00:50:27,886 --> 00:50:33,028
+In its own storage and returns to the transaction manager.
+
+450
+00:50:33,488 --> 00:50:44,528
+Now the problem with this is you've got all this back and forth communications and two whoops and two communications with um with storage.
+
+451
+00:50:44,688 --> 00:50:47,652
+And during that whole period, you're holding this lock.
+
+452
+00:50:48,238 --> 00:50:49,648
+So that's a long time.
+
+453
+00:50:49,808 --> 00:50:57,008
+That's you know 10 um tenth a second, 10th of a second, many tenths of a second.
+
+454
+00:50:57,390 --> 00:51:03,556
+You're gonna get very low throughput on that piece of data because you're holding the lock for so long.
+
+455
+00:51:04,014 --> 00:51:10,372
+So what we decided to do instead is to release the lock right away.
+
+456
+00:51:10,608 --> 00:51:17,924
+When that request to prepare shows up at the object, the first thing the object does is it releases its lock before it does anything else.
+
+457
+00:51:18,368 --> 00:51:26,660
+So there's you don't accept you know you the locking is not gonna incur any of the delay of storage accesses.
+
+458
+00:51:27,008 --> 00:51:29,088
+And then the rest proceeds as before.
+
+459
+00:51:29,168 --> 00:51:38,532
+You log the update, you vote prepared, when all the updates, when all the objects agree to prepare, you're gonna log commit, and then you finish up.
+
+460
+00:51:39,488 --> 00:51:42,128
+So why is this a bad thing?
+
+461
+00:51:42,288 --> 00:51:48,288
+Well, the problem is that once you release the lock, other transactions now can jump in.
+
+462
+00:51:48,448 --> 00:51:48,900
+Whoops.
+
+463
+00:51:51,728 --> 00:51:59,088
+Other transactions can jump in and can start updating this object, even though it's not committed, right?
+
+464
+00:52:00,334 --> 00:52:07,168
+Until it gets the commit message, it doesn't know whether the transaction is going to be committed because it could abort.
+
+465
+00:52:07,408 --> 00:52:13,168
+I mean, there could be a crash, one of the other objects could have disappeared and not be willing to prepare.
+
+466
+00:52:13,454 --> 00:52:29,476
+So once you release this lock, you're running a risk that if another transaction accesses or updates that object, you could end up updating, you could end up reading data that is actually going to be undone, that's gonna actually be thrown out.
+
+467
+00:52:30,048 --> 00:52:38,768
+And and so in order to make that okay, um, you've got to take a you've got to take what's called a commit dependency.
+
+468
+00:52:38,848 --> 00:52:40,448
+So let's walk through this now.
+
+469
+00:52:40,608 --> 00:52:43,888
+I I don't know any, I don't know how to do this in pictures.
+
+470
+00:52:44,048 --> 00:52:55,652
+So the transaction um right, it sets a lock when it receives the prepare, um it releases the lock and starts its write, as I just showed you.
+
+471
+00:52:56,046 --> 00:53:04,484
+And now we have the second transaction and it comes in and it reads the object, which in a normal database system would be disallowed.
+
+472
+00:53:04,768 --> 00:53:07,968
+And what it does is it takes a commit dependency on T1.
+
+473
+00:53:08,048 --> 00:53:15,044
+And what that means is T2 is not going to commit until that dependency is resolved, which means T1 has already been committed.
+
+474
+00:53:15,408 --> 00:53:24,048
+So T2 finishes, it receives a prepare, it releases its lock, it can't do anything because T1 is still in flight.
+
+475
+00:53:24,174 --> 00:53:25,888
+It's got to wait for T1 to finish.
+
+476
+00:53:25,998 --> 00:53:26,980
+It can't do anything.
+
+477
+00:53:27,568 --> 00:53:33,248
+But now that T2 released its lock, T3 can go jump in and it can update this object.
+
+478
+00:53:33,328 --> 00:53:35,728
+And T4 can then update.
+
+479
+00:53:35,808 --> 00:53:40,768
+You can have a whole bunch of transactions, one after the other, that can read and write this object.
+
+480
+00:53:40,928 --> 00:53:48,580
+Um, and after it finishes its write, um then all those updates can go out in a batch.
+
+481
+00:53:49,358 --> 00:54:01,648
+And when it finishes that batch, then it update, then it can acknowledge, it can acknowledge the prepare and and and can go through the commit.
+
+482
+00:54:01,808 --> 00:54:14,788
+So basically, you're able to batch all of these updates to write them to storage at once, and you're also able to avoid this this um uh this contention.
+
+483
+00:54:15,648 --> 00:54:20,388
+So um anyway, we get huge performance improvements from this.
+
+484
+00:54:20,878 --> 00:54:22,916
+Um we wrote a paper about it.
+
+485
+00:54:24,686 --> 00:54:28,288
+The paper was rejected, revised it, submitted it again.
+
+486
+00:54:30,510 --> 00:54:31,748
+Got rejected again.
+
+487
+00:54:32,206 --> 00:54:34,032
+This is motivation for graduate students.
+
+488
+00:54:34,112 --> 00:54:39,152
+So for those of you who know me for my transaction work, even I get my transaction papers rejected.
+
+489
+00:54:39,232 --> 00:54:44,036
+So it's um, but we finally published it as a tech report, and the paper remains unpublished.
+
+490
+00:54:44,592 --> 00:54:51,872
+Um, it's still we we still haven't got a proper reviewed refereed publication describing the work.
+
+491
+00:54:52,192 --> 00:54:54,756
+Um, and then the customer showed up.
+
+492
+00:54:55,214 --> 00:55:00,112
+Um, I don't have much time left, but let me just say that um this was great.
+
+493
+00:55:00,272 --> 00:55:06,592
+This was one of those success stories where somebody we built it as a research project, somebody actually wanted it.
+
+494
+00:55:06,832 --> 00:55:12,032
+Um, and they were basically going to implement um commerce inside a game.
+
+495
+00:55:12,112 --> 00:55:16,912
+They wanted to be able to do things like buy a kryptonite shield with a gold bar.
+
+496
+00:55:16,992 --> 00:55:19,312
+That was like literally what they wanted to do.
+
+497
+00:55:19,552 --> 00:55:22,468
+And so um they needed transactions to do it.
+
+498
+00:55:23,758 --> 00:55:26,404
+But it turned out we had to redo the whole thing.
+
+499
+00:55:26,592 --> 00:55:28,752
+Um, there were all kinds of problems.
+
+500
+00:55:28,992 --> 00:55:38,192
+Um we we we used inheritance in order to pick in order to have actors pick up their transaction behavior.
+
+501
+00:55:38,272 --> 00:55:42,752
+We had to use something else that they had replaced it with called dependency injection.
+
+502
+00:55:43,392 --> 00:55:49,472
+they didn't like the idea that a single object transaction had to go talk to this transaction manager.
+
+503
+00:55:49,632 --> 00:56:00,772
+They didn't like the fact that there were all these transaction manager services around because that meant they had to deploy them in a separate cluster and and keep track of all of that.
+
+504
+00:56:01,232 --> 00:56:07,152
+Um it was just um it was just too too complicated for what they wanted.
+
+505
+00:56:07,392 --> 00:56:14,992
+Um, and moreover, they thought that trans centralized transaction manager, even though we we knew it was very high performance, we've carefully optimized it.
+
+506
+00:56:15,152 --> 00:56:18,432
+They said, gee, you know, we don't like centralized anything in this system.
+
+507
+00:56:18,592 --> 00:56:21,860
+It looks like it's going to be too costly, it's going to be a bottleneck.
+
+508
+00:56:22,382 --> 00:56:25,220
+And so we had to go back and redo the whole thing.
+
+509
+00:56:25,792 --> 00:56:33,632
+Um and and so we came up with um single object transactions, we're able to resolve their dependencies locally.
+
+510
+00:56:33,872 --> 00:56:41,472
+Um, we have we we had a transaction manager embedded in each object so there were no separate transaction managers.
+
+511
+00:56:41,792 --> 00:56:48,352
+Um, and because the objects were geo-distributed, you got geo-distributed transactions out of this, so everybody was happy.
+
+512
+00:56:48,432 --> 00:56:59,392
+It took about a year to redo all of this, and in the course of that, we realized that there were some performance issues that we could get past by doing operation logging.
+
+513
+00:56:59,952 --> 00:57:12,740
+and we actually have another version of this system that was done as a research project, again unpublished, and also it's not in the product, it's sitting on a shelf waiting for some other internal user um to meet it.
+
+514
+00:57:13,550 --> 00:57:14,672
+Um, so I'm out of time.
+
+515
+00:57:14,832 --> 00:57:20,512
+Let me um I'm gonna skip to the end here.
+
+516
+00:57:22,126 --> 00:57:25,072
+I just I have another whole section on geodistribution.
+
+517
+00:57:25,152 --> 00:57:32,612
+I I knew there was very little chance I was going to get to it, but um I kept it around, just in case.
+
+518
+00:57:40,512 --> 00:57:51,712
+Um so we have a bunch of other projects that we that we did um that um hash indexes, stream processing, primary copy replication, and plenty more that we could do.
+
+519
+00:57:51,792 --> 00:57:57,312
+That these are if I get back to Orleans again, these are things I might do in the future.
+
+520
+00:57:57,472 --> 00:58:00,752
+But um it's it's been a lot of it's been a lot of fun.
+
+521
+00:58:00,912 --> 00:58:20,420
+Um and um the hash indexes were published in CIDR, the um geodistribution was published at Uppsala in 2017, but in summary, created a model here for database system research to show you where these problems come from and explained how this.
+
+522
+00:58:21,838 --> 00:58:28,384
+Orleans um work fit into that, talked about the virtual actor model, distributed transactions.
+
+523
+00:58:28,544 --> 00:58:31,904
+I didn't get time to talk about geodistribution.
+
+524
+00:58:32,270 --> 00:58:37,984
+And let me just close with keep this up on the screen with references.
+
+525
+00:58:38,144 --> 00:58:41,024
+This is there's a lot available on the on the web.
+
+526
+00:58:41,184 --> 00:58:46,464
+The Orleans is one of the most active open source projects out of Microsoft.
+
+527
+00:58:46,624 --> 00:58:54,244
+It's after.NET and the um and the um C-sharp compiler, the Roslyn compiler.
+
+528
+00:58:54,574 --> 00:59:01,028
+Um it's it's probably the most active open source project at Microsoft.
+
+529
+00:59:02,304 --> 00:59:07,664
+and lots of people have contributed to the work I've described here.
+
+530
+00:59:07,824 --> 00:59:13,412
+Many of them are students in other places, maybe not half of them are at Microsoft.
+
+531
+00:59:14,542 --> 00:59:15,584
+and I'll leave this up.
+
+532
+00:59:15,664 --> 00:59:15,904
+I don't know.
+
+533
+00:59:15,984 --> 00:59:23,588
+I'm happy to, I know we're past time, but if people have additional questions, Shara, do you want to want to say something?
+
+534
+00:59:24,142 --> 00:59:25,824
+Yeah, Sarah has a question.
+
+535
+00:59:26,094 --> 00:59:26,596
+Yeah, go ahead.
+
+536
+00:59:26,958 --> 00:59:30,660
+So, Phil, yeah, that idea of early rock release is pretty cute.
+
+537
+00:59:31,264 --> 00:59:36,784
+so I'm not just to this thing, I'm not the one who reviewed or rejected, just to be sure.
+
+538
+00:59:38,544 --> 00:59:40,292
+But I had a question about that.
+
+539
+00:59:40,704 --> 00:59:43,744
+So a while ago we had tried something similar.
+
+540
+00:59:43,824 --> 00:59:54,148
+We called it O2PC protocol, and only in the context of primary backup systems, and the complexity we ran into is that when you had multiple logs, this gets a lot, lot harder.
+
+541
+00:59:54,478 --> 00:59:56,624
+I wonder how you address that aspect.
+
+542
+00:59:56,704 --> 00:59:59,588
+So for a single log, this is relatively straightforward, I think, right?
+
+543
+00:59:59,950 --> 01:00:05,504
+But if you have multiple logs, uh the commit dependency tracing can be pretty complicated.
+
+544
+01:00:05,584 --> 01:00:10,244
+And so I was just wondering, do you deal with that aspect or is there a single log implementation of it?
+
+545
+01:00:10,864 --> 01:00:13,664
+No, I mean you you you know you have you have to face that.
+
+546
+01:00:13,744 --> 01:00:17,668
+I mean, you have to keep track of the dependence, you have to log the dependencies.
+
+547
+01:00:18,464 --> 01:00:28,932
+and in the event of a failure, when you recover, when a transaction, you know, let's suppose an object fails, an actor fails, it recovers.
+
+548
+01:00:31,424 --> 01:00:34,628
+in the current system, each actor has its own log.
+
+549
+01:00:35,118 --> 01:00:38,628
+So when it recovers, that's the log is part of its state.
+
+550
+01:00:39,264 --> 01:00:53,796
+And if it had a prepared transaction, then its list of dependencies are in the log, along with the identity of the transactions it depends on.
+
+551
+01:00:53,998 --> 01:01:01,636
+And for each of those transactions, it knows the identity of the root object for that transaction.
+
+552
+01:01:02,624 --> 01:01:09,344
+um, which um, you know, was part of the part of the dependency information.
+
+553
+01:01:09,614 --> 01:01:16,196
+and so it simply invokes that object that invokes that actor to find out what the resolution was.
+
+554
+01:01:17,424 --> 01:01:34,052
+because the nature of Orleans is you know, if you if you know the identity of the actor, you're asking to answer your state question, you know, committed or aborted, it'll just spin up the object if it isn't running, and you can immediately get an answer.
+
+555
+01:01:34,704 --> 01:01:36,580
+So it turned out not to be that.
+
+556
+01:01:36,942 --> 01:01:42,624
+I mean, it's it's yes, it's recovery is where all the complexity is in two-phase commit.
+
+557
+01:01:42,704 --> 01:01:46,308
+And so, you know we had to do that with distributed logs.
+
+558
+01:01:46,944 --> 01:01:49,892
+So if I can do a quick follow-up on that one, right?
+
+559
+01:01:50,190 --> 01:01:57,024
+So imagine that there's one transaction which has become or one object whose state is not decided yet, right?
+
+560
+01:01:57,104 --> 01:02:00,260
+And there's a commit dependency, so it's released, it's logs, it's waiting.
+
+561
+01:02:00,686 --> 01:02:04,932
+So there's a commit dependency that forms, so there's a whole cascade of stuff that's happening, right?
+
+562
+01:02:05,294 --> 01:02:12,676
+Now the question is if at this stage my my commitment depends on your commitment, right?
+
+563
+01:02:13,104 --> 01:02:18,692
+But the let's say the site running or the where the object was, that particular server fails.
+
+564
+01:02:19,118 --> 01:02:21,572
+So I don't know if you committed or aborted at that stage.
+
+565
+01:02:21,934 --> 01:02:27,984
+So now I the the I'll have to make some kind of a decision whether I abort myself or I sort of continue waiting forever.
+
+566
+01:02:28,302 --> 01:02:29,504
+So there has to be some decision on this.
+
+567
+01:02:29,584 --> 01:02:33,188
+So I would assume that you're sort of then tracking it down and aborting the whole chain of things.
+
+568
+01:02:33,344 --> 01:02:35,492
+Is that um is that correct it's not correct?
+
+569
+01:02:36,464 --> 01:02:40,064
+Yes, but it won't happen in Orleans because um.
+
+570
+01:02:42,192 --> 01:02:56,452
+As long as cloud storage is available, then the object that you invoke to find out the state of the transaction will be able to answer the question of what is this, what you know, did it commit or not?
+
+571
+01:02:57,038 --> 01:02:57,712
+I see, I got it.
+
+572
+01:02:57,872 --> 01:02:57,952
+Okay.
+
+573
+01:02:58,192 --> 01:03:00,036
+You know, we don't normally, yeah.
+
+574
+01:03:00,352 --> 01:03:10,512
+Normally you've got this blocking problem in distributed transactions where if the server fails and it is the only place that the state of that transaction is stored, you're screwed.
+
+575
+01:03:10,702 --> 01:03:12,432
+You know, you simply have to wait.
+
+576
+01:03:12,512 --> 01:03:14,032
+But that's just not going to happen.
+
+577
+01:03:14,112 --> 01:03:20,356
+And one of the benefits of having this highly reliable cloud storage system is solves the problem for you.
+
+578
+01:03:20,846 --> 01:03:21,312
+Nice, nice.
+
+579
+01:03:21,392 --> 01:03:22,692
+Yeah, no, and that makes sense.
+
+580
+01:03:23,950 --> 01:03:28,112
+Okay, we have time for at most two more two more questions.
+
+581
+01:03:28,352 --> 01:03:29,508
+Nalin, you want to go next?
+
+582
+01:03:31,086 --> 01:03:31,952
+Oh, all right.
+
+583
+01:03:32,432 --> 01:03:37,860
+So Phil, does Orleans support some form of distributed garbage collection for the actors?
+
+584
+01:03:38,432 --> 01:03:46,112
+Because I would think that with all the replication and migration, you would probably have actors that need to be garbage collected, right?
+
+585
+01:03:48,206 --> 01:03:55,556
+yeah, so it's actually local to the the garb the um the deactivation of objects happens at each server.
+
+586
+01:03:56,590 --> 01:03:59,232
+so it's just based on lack of activity.
+
+587
+01:03:59,312 --> 01:04:02,192
+They have a timer, and if the actor
+
+588
+01:04:08,432 --> 01:04:13,072
+has not been active, has not processed any messages within some period of time.
+
+589
+01:04:13,392 --> 01:04:19,952
+then it's removed from the list of the table of actors.
+
+590
+01:04:20,192 --> 01:04:25,956
+At that point, there are no links to the object, and so the.NET garbage collector will pick it up.
+
+591
+01:04:27,822 --> 01:04:30,436
+There's no remote links to the object either?
+
+592
+01:04:32,272 --> 01:04:38,512
+there may be, but those links, you know, those references are all to the object's identity.
+
+593
+01:04:38,752 --> 01:04:46,272
+And so they you know that that you it's it's not a hard, it's not a hard link.
+
+594
+01:04:46,352 --> 01:04:49,072
+It's a you know, it's a it's a um logical link.
+
+595
+01:04:49,232 --> 01:05:00,132
+And so if the actor on the other server calls that object and it's not running, you know, the Orleans runtime will load it and run it.
+
+596
+01:05:01,902 --> 01:05:02,112
+I see.
+
+597
+01:05:02,272 --> 01:05:07,632
+So it's in some sense, garbage collection means that it's persisted and can be reactivated if needed.
+
+598
+01:05:07,952 --> 01:05:14,512
+Yeah, basically, the way to think about it is that all the objects of a given class always exist.
+
+599
+01:05:15,072 --> 01:05:15,472
+Right.
+
+600
+01:05:15,712 --> 01:05:18,912
+You know, advantage of having cloud storage, I guess.
+
+601
+01:05:19,502 --> 01:05:23,972
+Yeah, they're not created or destroyed, they always exist, they can always be invoked.
+
+602
+01:05:24,832 --> 01:05:26,672
+it's just they might not be active.
+
+603
+01:05:27,072 --> 01:05:27,908
+I see, I see.
+
+604
+01:05:28,832 --> 01:05:29,072
+Okay.
+
+605
+01:05:29,552 --> 01:05:29,792
+Right.
+
+606
+01:05:29,872 --> 01:05:34,032
+In the interest of time, we can stop this webinar here.
+
+607
+01:05:34,592 --> 01:05:37,732
+thank you very much, uh uh Feo for your wonderful talk.
+
+608
+01:05:38,190 --> 01:05:40,452
+Yeah, we resume our meeting in the afternoon.
+
+609
+01:05:41,102 --> 01:05:43,152
+Yep, yep, I'll see many of you um.
+
+610
+01:05:43,552 --> 01:05:44,832
+So we can do this
+
+611
+01:05:44,832 --> 01:05:48,612
+virtual uh uh class.
+

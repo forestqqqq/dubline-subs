@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [Adding Data Management to Orleans – A Journey with Phil Bernstein](medias/5PHAE/) | UCIBrenICS | 2026-11-19 |
 | [Can AI Coding Agents Actually Build Maintainable Software?](medias/48KCA/) | Boundary | 2026-11-19 |
 | [Web API Structures and Data Models Analysis // Souhaila Serbout // ICSA 2022](medias/14CCC/) | Software Institute | 2026-11-19 |
 | [🔴 Oct 2's Top Cyber News NOW! - Ep 1257](medias/0HQT9/) | Simply Cyber - Gerald Auger, PhD | 2026-11-19 |
