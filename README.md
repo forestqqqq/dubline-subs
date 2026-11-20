@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [Security and Privacy in the Underserved Majority World: Practices, Challenges, and Opportunities](medias/TQSYN/) | Microsoft Research | 2026-11-20 |
 | [MLOps Explained in 10 Minutes \| Complete Beginner Guide \| Learn MLOps Step-by-Step \| Best Practices](medias/TJC65/) | DevOps Hint | 2026-11-20 |
 | [Continuous Deployment, Agents, and Workflows with Bryan Finster](medias/NWVEW/) | Better Than Vibes | 2026-11-19 |
 | [Kiro en el mundo real: cómo se está usando en equipos de software](medias/NBQR5/) | Try Catch | 2026-11-19 |
