@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [Continuous Deployment, Agents, and Workflows with Bryan Finster](medias/NWVEW/) | Better Than Vibes | 2026-11-19 |
 | [Kiro en el mundo real: cómo se está usando en equipos de software](medias/NBQR5/) | Try Catch | 2026-11-19 |
 | [This might be the worst AI warning we get.](medias/HWDBP/) | AI In Context | 2026-11-19 |
 | [Beyond AI Coding Agents: Introducing Ownership-Driven Development](medias/HPG18/) | TIWA Technologies Inc. | 2026-11-19 |
