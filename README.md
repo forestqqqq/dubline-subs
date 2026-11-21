@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [DERC 2020 \| Virtual Conference](medias/RH3D8/) | Rajans Professional Collective | 2026-11-21 |
 | [Google CEO Sundar Pichai: AI’s Infinite Possibilities, Compute Scarcity Dilemmas, Future AI Products](medias/VKMF4/) | Alex Kantrowitz | 2026-11-20 |
 | [Code as Agent Harness: A Unified View of Executable, Verifiable, Stateful Agent Systems](medias/VKCM6/) | AI Papers Explained | 2026-11-20 |
 | [NSDI '26 - Managing Congestion Control Heterogeneity on the Internet with Approximate Performance...](medias/VAC0F/) | USENIX | 2026-11-20 |
