@@ -1,0 +1,2812 @@
+1
+00:00:00,970 --> 00:00:06,930
+I'm gonna I'm gonna present in English because it's I'm more comfortable with with doing so technical terms.
+
+2
+00:00:07,090 --> 00:00:18,670
+So Thank you so much for having me and I think it was really really great that we could you know, make this happen I've been away from the elixir world for a while and last year.
+
+3
+00:00:18,730 --> 00:00:30,350
+I've started my own personal project what I what I intend to chat with you about today is is my journey, my tricks, some of the stuff that I've learned that works for me.
+
+4
+00:00:31,450 --> 00:00:42,730
+The one thing that I would ask you as well is not to take this advice very seriously, because I'm the guy that told him that we could schedule this for today, when Real Madrid is playing.
+
+5
+00:00:43,070 --> 00:00:47,350
+So, you can see my timing is perfect, so take my advice with a pinch of salt, okay?
+
+6
+00:00:49,210 --> 00:01:02,210
+So, again, today I'm going to chat a bit about building Elixir apps with Tidewave and AI agents, beyond the typical autocomplete that we all saw probably a year and a half ago, right?
+
+7
+00:01:03,050 --> 00:01:20,450
+A bit about myself, so I'm Paulo, currently I'm VP of engineering at Lingokids, before that I worked as a VP of engineering at Remote, so Remote.com, it was the place where I probably had the privilege of working with a bigger workforce, developing only in Elixir.
+
+8
+00:01:21,070 --> 00:01:26,930
+And I used to joke a lot that Elixir is really a scalable language, and it's not just systems.
+
+9
+00:01:27,150 --> 00:01:29,850
+It's actually scaling in terms of understanding and people.
+
+10
+00:01:30,222 --> 00:01:33,830
+Because we went from 25 to 180 engineers in one year and a half.
+
+11
+00:01:34,370 --> 00:01:40,430
+The code base grew massively, half of the developers were backend, so using Elixir, and it scaled beautifully.
+
+12
+00:01:40,570 --> 00:01:46,150
+So that's probably a talk for another day around scalability of the language in terms of cognitive load.
+
+13
+00:01:46,862 --> 00:01:49,910
+In 2013, I started with Elixir.
+
+14
+00:01:51,118 --> 00:01:54,610
+Just curious about it, I bought the book from Dave Thomas.
+
+15
+00:01:55,930 --> 00:02:03,790
+At the time, I think he did the same thing for Elixir that he did for Ruby, with his Pickaxe book, and started looking into this.
+
+16
+00:02:04,070 --> 00:02:07,670
+I tried to learn a bit of Erlang without great success.
+
+17
+00:02:08,490 --> 00:02:11,230
+and then, in February 2014.
+
+18
+00:02:12,270 --> 00:02:24,550
+I actually started using this in the first real project with a friend who was doing a real-time application to collect data from the electric grid.
+
+19
+00:02:25,470 --> 00:02:27,050
+and he needed kind of real-time communication.
+
+20
+00:02:27,650 --> 00:02:39,070
+and I remember very painfully having to adapt Cowboy, so on the router, actually having to write, adapting Cowboy to the syntax of Erlang within Elixir.
+
+21
+00:02:39,374 --> 00:02:41,730
+It was painful, but it was actually quite nice.
+
+22
+00:02:43,086 --> 00:02:44,610
+And I do love Plug, right?
+
+23
+00:02:44,870 --> 00:02:45,690
+I do love Plug.
+
+24
+00:02:46,570 --> 00:02:53,250
+And then, mid-2015, this is where I actually started using Elixir professionally at Tonfido, the company I was in.
+
+25
+00:02:53,410 --> 00:02:57,430
+We did background checks and we started pivoting towards identity verification.
+
+26
+00:02:58,126 --> 00:03:14,350
+And we had a bunch of weird systems that we had to connect in orchestrates and using porcelain ports, I was actually able to convince people that that thing would actually work, and then all of the biometrics systems were built afterwards in Elixir.
+
+27
+00:03:14,950 --> 00:03:18,930
+If you're interested, I don't have many things public in GitHub.
+
+28
+00:03:19,290 --> 00:03:24,770
+I am lucky to have a good friend and former colleague, which is Peter Ulrich, you probably know from the community.
+
+29
+00:03:25,294 --> 00:03:28,590
+He's actually developing Pushin, which is Git hosting in Europe.
+
+30
+00:03:29,230 --> 00:03:30,530
+It works really well.
+
+31
+00:03:31,350 --> 00:03:34,810
+If you want to just comment, chat, there's like the two handles.
+
+32
+00:03:35,374 --> 00:03:36,290
+I do not have Twitter.
+
+33
+00:03:36,510 --> 00:03:37,610
+I will not have Twitter again.
+
+34
+00:03:38,382 --> 00:03:38,990
+End of politics.
+
+35
+00:03:39,630 --> 00:03:40,110
+Yes,
+
+36
+00:03:43,540 --> 00:03:43,920
+PAP.
+
+37
+00:03:44,300 --> 00:03:45,840
+It's my Paulo Alves Pereira.
+
+38
+00:03:47,374 --> 00:03:50,760
+This one was actually very, very, like my old Twitter handle.
+
+39
+00:03:51,790 --> 00:03:52,640
+It's much more complicated.
+
+40
+00:03:54,542 --> 00:03:58,980
+It's probably, you can note it, I'm very restless, so it kind of means that.
+
+41
+00:04:04,942 --> 00:04:06,810
+Yes, that one, yes.
+
+42
+00:04:07,210 --> 00:04:08,070
+That one you can.
+
+43
+00:04:08,310 --> 00:04:08,550
+You can.
+
+44
+00:04:09,950 --> 00:04:10,350
+Cool.
+
+45
+00:04:10,930 --> 00:04:27,750
+So, tonight, I'm going to talk a bit about my personal project, because, again, I'm managing people these days, so in the two hours or something that I can take every day, plus some of the weekends, this is being recorded, I hope my wife doesn't see, because I tell her that it's work.
+
+46
+00:04:29,710 --> 00:04:36,110
+I'm actually developing this project with a former colleague of mine who has nothing to do with technology, which is very good.
+
+47
+00:04:36,210 --> 00:04:39,370
+I can focus on the technology and he can focus on all the other stuff.
+
+48
+00:04:40,878 --> 00:04:42,410
+I'm using a lot Tidewave.
+
+49
+00:04:43,022 --> 00:04:44,710
+I'm using Tidewave for a simple reason.
+
+50
+00:04:44,930 --> 00:04:57,430
+I discovered Tidewave not because of the MCP, that's very handy, but I'm using Tidewave for the web browser and I'm actually paying for it because I could not do front-end, even if my life depended on it.
+
+51
+00:04:57,630 --> 00:05:01,130
+Again, I have this thing, back-ender content is not my thing.
+
+52
+00:05:01,690 --> 00:05:05,710
+And then, at the end, I'm going to chat a bit about my setup, what I'm using.
+
+53
+00:05:06,210 --> 00:05:14,670
+Again, what are the tools that I'm using, the skills, and this is, again, it's the advice of the guy that's scheduled this talk for the day, where Real Madrid plays, okay?
+
+54
+00:05:16,334 --> 00:05:18,150
+So, let's get started.
+
+55
+00:05:19,690 --> 00:05:31,110
+Nomadica, what we're doing with this platform, we met at a travel company, and what we're trying to do is to create a platform for people to actually share experiences between themselves.
+
+56
+00:05:32,174 --> 00:05:42,470
+Sounds very weird to say this, but we're trying to remove AI out of the equation, or make it seamless for people to actually be able to connect and to share their experiences.
+
+57
+00:05:42,990 --> 00:05:50,590
+The idea, it revolves around postcards, which people will fill with some data, and then people will plan trips together.
+
+58
+00:05:52,462 --> 00:05:54,130
+It's a work in progress, okay?
+
+59
+00:05:54,130 --> 00:06:01,010
+Again, my development constraints, personal project, limited time, front-end, right?
+
+60
+00:06:01,830 --> 00:06:06,490
+And I'm going to show you something that's very, very, very, very, very gruesome.
+
+61
+00:06:08,630 --> 00:06:11,770
+This is then, beginning of all.
+
+62
+00:06:12,910 --> 00:06:16,790
+I don't claim that it's much better, but I think you'll appreciate at least the effort.
+
+63
+00:06:17,510 --> 00:06:21,370
+This is what the initial page that we did.
+
+64
+00:06:21,450 --> 00:06:23,530
+This is the logged out page.
+
+65
+00:06:23,530 --> 00:06:27,690
+When you log in, it's this beautiful thing, right?
+
+66
+00:06:28,366 --> 00:06:29,330
+Design shops, right?
+
+67
+00:06:29,990 --> 00:06:32,490
+I mean, it's very nostalgic, bootstrap, right?
+
+68
+00:06:32,790 --> 00:06:33,790
+It looks like.
+
+69
+00:06:34,810 --> 00:06:47,110
+And then, again, using AI and Tidewave, again, a bit of open design and stuff like that, we're able to have this webpage and this UI.
+
+70
+00:06:47,290 --> 00:06:48,510
+I can show a bit around.
+
+71
+00:06:49,326 --> 00:06:51,010
+I mean, I'm proud of myself.
+
+72
+00:06:52,238 --> 00:06:58,150
+Again, I'm not saying that, some friend of mine told me it looks a bit AI-ish, of course it looks, because it is.
+
+73
+00:06:58,690 --> 00:07:02,430
+But at least I think we got to a place where I'm happier.
+
+74
+00:07:02,850 --> 00:07:05,730
+And there was a huge process between then and now.
+
+75
+00:07:06,570 --> 00:07:12,010
+And the amazing thing is that I was actually able to iterate a lot and to move quite fast and to change ideas.
+
+76
+00:07:12,650 --> 00:07:19,430
+And the cost of changing my mind and the cost of seeing things was very cheap in my personal time, limited time, etc.
+
+77
+00:07:20,878 --> 00:07:24,230
+Do feel free to interrupt if you have any questions.
+
+78
+00:07:25,690 --> 00:07:26,550
+So Tidewave.
+
+79
+00:07:26,810 --> 00:07:29,870
+Who of you have worked with Tidewave already?
+
+80
+00:07:31,630 --> 00:07:31,870
+Awesome.
+
+81
+00:07:32,790 --> 00:07:32,950
+Cool.
+
+82
+00:07:33,490 --> 00:07:50,990
+And you've been using it more on the UI side of things, the MCP server, the stuff that's basically for free, which you can use this as an MCP connector, and you will have access to logs, code execution, So, basically a direct line with IEX, which works really, really well.
+
+83
+00:07:51,390 --> 00:07:53,410
+That's the free part.
+
+84
+00:07:54,610 --> 00:07:57,510
+You can go on to the documentation, it kind of explains quite well.
+
+85
+00:07:57,838 --> 00:08:01,830
+It also works with Rails, and I think it worked with some of the JavaScript front-ends.
+
+86
+00:08:02,510 --> 00:08:04,390
+I cannot say anything about that.
+
+87
+00:08:04,490 --> 00:08:08,090
+I'm using it exclusively with Elixir, with Phoenix in this case.
+
+88
+00:08:08,558 --> 00:08:12,810
+And then there's the paid version, $12 if I'm not mistaken.
+
+89
+00:08:12,810 --> 00:08:21,110
+I'm not affiliated, I'm not getting any money from them, but I do find it quite worthy, because you get a lot of stuff.
+
+90
+00:08:21,230 --> 00:08:28,950
+You get a board, you get a terminal, you get lots of diagnostics and accessibility checks.
+
+91
+00:08:29,326 --> 00:08:32,610
+Remember the same guy who doesn't know a damn about frontend?
+
+92
+00:08:33,614 --> 00:08:45,350
+The site that I'm building is actually, I mean, I hope, I haven't run the full blown accessibility checks, but I think it's actually, you know, fulfilling all of the accessibility standards, which is good.
+
+93
+00:08:45,902 --> 00:08:48,370
+Going from nothing to be able to actually do this.
+
+94
+00:08:48,770 --> 00:08:52,490
+And there's actually a very, very nice tool, and I'll show you how this works in a minute.
+
+95
+00:08:53,582 --> 00:08:53,890
+Questions?
+
+96
+00:08:56,430 --> 00:09:00,430
+If I'm speaking too fast, please tell me, because this is a flaw.
+
+97
+00:09:00,430 --> 00:09:00,830
+Yes,
+
+98
+00:09:04,200 --> 00:09:13,460
+I can show
+
+99
+00:09:13,460 --> 00:09:20,580
+a bit around, and actually I was telling you, one of the things that I need to do, because I don't want to share different windows.
+
+100
+00:09:21,440 --> 00:09:26,500
+I'm actually going to use the terminal that's in there to actually show you the Pi setup and the terminal setup.
+
+101
+00:09:27,020 --> 00:09:35,800
+Yeah, you have a terminal, you have a board, you have diagnostics, and there's a thing that they have now, you probably haven't used it yet, which is a thing called Tide Wave Connect, which is brilliant.
+
+102
+00:09:36,260 --> 00:09:47,320
+You're on your console, you create the session, you pass on those parameters there, there's a connection established, and you start seeing your terminal driving the UI, doing the tests, clicking elements, et cetera, et cetera.
+
+103
+00:09:47,854 --> 00:09:48,676
+It's actually quite nice.
+
+104
+00:09:49,518 --> 00:09:52,880
+You get tokens in your subscription, or do you have to use your own?
+
+105
+00:09:52,980 --> 00:10:00,960
+You can use, you can use, so it works with the multiple providers, with your subscription, not necessarily just API, can use API keys or you can use your plans.
+
+106
+00:10:03,662 --> 00:10:08,200
+No, no, the price, no, no, no, no, the price, no, the $12, I think it's just a subscription for the software.
+
+107
+00:10:08,960 --> 00:10:10,080
+Then, yes,
+
+108
+00:10:10,080 --> 00:10:26,240
+I started, I think we can swear in this, right, it's being recorded, but I was a very cheap bastard and I started this with, you know, I didn't have any subscriptions at the time, so I just went with Copilot, which I had, it was quite cheap, $9 at the time before they started charging a shit ton of money.
+
+109
+00:10:26,860 --> 00:10:27,280
+Yes.
+
+110
+00:10:27,886 --> 00:10:33,920
+But now I'm using it actually with my OpenAI subscription, like the plan, not the tokens.
+
+111
+00:10:34,318 --> 00:10:49,140
+But it's actually quite, and I think, I think they posted something a couple of months ago, but it still appears there, because there was this shady place where Anthropic would not allow.
+
+112
+00:10:49,600 --> 00:11:00,660
+They issued a warning saying that for people to be aware that one day they may get cut off from accessing with Cloud, but I think it's still, well, I think no, the screenshot was taken yesterday, so it's still possible.
+
+113
+00:11:03,982 --> 00:11:04,690
+So let's,
+
+114
+00:11:04,690 --> 00:11:04,920
+yep.
+
+115
+00:11:05,520 --> 00:11:11,080
+The Cloud Code works via HTTP, so it's actually using the Cloud Code agent.
+
+116
+00:11:11,340 --> 00:11:25,080
+You're right, you're right, yeah, you're right, you're right, you're right, you're right, that's the, because that's the way they can, they can actually, yeah, and I think the open code, if I'm not mistaken, the open code also works via ACP, yes, if I'm not mistaken.
+
+117
+00:11:25,760 --> 00:11:40,600
+So what I'm going to do now, I'm trying, I haven't recorded this, I will try to just do a live demo where I will add a feature and basically get kind of a walkthrough of the UI.
+
+118
+00:11:40,600 --> 00:11:51,140
+So, this is my project running inside, so, localhost, running inside.
+
+119
+00:11:52,302 --> 00:12:10,620
+You can see there, there's like a URL for TideWave, and then there's an internal browser where you look into things, there's a diagnostics, there's an accessibility check, there's basically the annotation tool where you can start selecting elements one by one, and then there's the typical UI.
+
+120
+00:12:10,620 --> 00:12:26,500
+I'm using my faithful 5.6 sol, and basically that's the prompt, and what I'm going to do is tell it what I want to do, which would be something like this.
+
+121
+00:12:27,022 --> 00:12:30,460
+And now I'm going to type this very, very fast, because I'm this good.
+
+122
+00:12:31,380 --> 00:12:31,560
+See?
+
+123
+00:12:32,560 --> 00:12:32,960
+Okay.
+
+124
+00:12:33,294 --> 00:12:39,640
+so I'm basically asking it to add a secondary browse postcard next to this button.
+
+125
+00:12:41,166 --> 00:12:43,360
+Actually, no, let me do one thing beforehand.
+
+126
+00:12:45,326 --> 00:12:47,320
+So that you don't think that I'm cheating.
+
+127
+00:12:47,700 --> 00:12:50,060
+I told you about the accessibility thing, right?
+
+128
+00:12:51,246 --> 00:12:55,020
+There is a button here called accessibility.
+
+129
+00:12:56,046 --> 00:13:00,220
+And I, on purpose, introduced something on my project.
+
+130
+00:13:02,382 --> 00:13:07,680
+Basically, I broke this, and it tells me that links must have discernible text.
+
+131
+00:13:07,940 --> 00:13:08,060
+Okay.
+
+132
+00:13:10,222 --> 00:13:10,760
+So, fix.
+
+133
+00:13:12,174 --> 00:13:12,520
+That's it.
+
+134
+00:13:13,400 --> 00:13:16,600
+It's gonna, I hope it does this today.
+
+135
+00:13:18,446 --> 00:13:21,400
+I probably need to approve stuff.
+
+136
+00:13:23,620 --> 00:13:23,860
+Yes.
+
+137
+00:13:26,382 --> 00:13:27,480
+Let me check what this is doing.
+
+138
+00:13:27,580 --> 00:13:28,760
+It's reading a bunch of files.
+
+139
+00:13:29,582 --> 00:13:35,740
+Again, I'm cheating a bit, because this has the context of my project, and it sees the changes that were made that basically are uncommitted, right?
+
+140
+00:13:36,020 --> 00:13:37,300
+So, I'm cheating a bit.
+
+141
+00:13:39,118 --> 00:13:39,700
+Full disclosure.
+
+142
+00:13:41,454 --> 00:13:44,280
+Taking you guys away from the Real Madrid match and lying to you.
+
+143
+00:13:45,040 --> 00:13:45,480
+So,
+
+144
+00:13:49,710 --> 00:13:50,930
+it's running a bunch of divs.
+
+145
+00:13:51,110 --> 00:13:52,470
+Again, this can be very verbose.
+
+146
+00:13:56,430 --> 00:14:00,830
+And I realize now that it probably would have been a better idea to record this and then fast forward.
+
+147
+00:14:01,390 --> 00:14:01,830
+But...
+
+148
+00:14:03,880 --> 00:14:07,180
+or use a faster model, because for this...
+
+149
+00:14:07,180 --> 00:14:07,700
+Yeah, yeah, yeah.
+
+150
+00:14:08,270 --> 00:14:11,420
+It's pretty dumb, but I bet with Luna, it could be...
+
+151
+00:14:11,420 --> 00:14:12,940
+Yes, probably, probably.
+
+152
+00:14:13,294 --> 00:14:15,780
+I don't think I can change halfway through, but let's check.
+
+153
+00:14:18,990 --> 00:14:21,920
+Yeah, man, it's like, I mean, I'm not paying for this.
+
+154
+00:14:21,960 --> 00:14:24,340
+It's a flat rate, and they're resetting this every five minutes.
+
+155
+00:14:24,654 --> 00:14:25,320
+I'm joking, yes.
+
+156
+00:14:26,320 --> 00:14:27,840
+But to be
+
+157
+00:14:27,840 --> 00:14:31,960
+honest, I leave this kind of running while I'm doing other stuff, right, on my two hours.
+
+158
+00:14:31,960 --> 00:14:34,580
+So it's, I'm joking, it's, but yeah, you're right.
+
+159
+00:14:34,670 --> 00:14:36,000
+It's probably better to do this thing.
+
+160
+00:14:36,380 --> 00:14:40,920
+So now it actually is doing one thing, and this is already part of my instructions.
+
+161
+00:14:41,180 --> 00:14:49,140
+This thing that you're seeing here, every single thing that's happening, it stops, it runs this, and only then it continues.
+
+162
+00:14:49,550 --> 00:14:50,520
+This is the fast one.
+
+163
+00:14:50,894 --> 00:14:57,060
+It will take probably 19 seconds, which just runs unit tests, and I'll chat a bit about that, and nothing else.
+
+164
+00:14:57,720 --> 00:15:13,460
+Then, if I'm going to commit, and actually sometimes after the mix check, it does a very redundant thing, which is running a more complete test suite with more checks, which I'm also doing as a git hook before any commit.
+
+165
+00:15:13,740 --> 00:15:19,120
+So I have these two things, and these are kind of my boundaries to make sure that things work quite well.
+
+166
+00:15:19,470 --> 00:15:24,240
+You follow Elixir posts on BlueSky, Macedon.
+
+167
+00:15:24,820 --> 00:15:27,260
+There's a guy called Mike Zornick;
+
+168
+00:15:27,380 --> 00:15:33,290
+he recently adds an article about how to unslopify, you know,
+
+169
+00:15:33,290 --> 00:15:35,960
+and
+
+170
+00:15:35,960 --> 00:15:44,740
+so the main thing he speaks about this, I actually ended up not implementing much because, by coincidence, I had similar checks already implemented before.
+
+171
+00:15:45,300 --> 00:15:46,320
+Again, this is still processing.
+
+172
+00:15:46,500 --> 00:15:47,960
+I hope this thing goes fast.
+
+173
+00:15:48,080 --> 00:15:50,340
+But again, now this is the stupid thing, right?
+
+174
+00:15:51,118 --> 00:15:52,100
+It's running the mix pre-commit.
+
+175
+00:15:53,582 --> 00:15:55,120
+I have it on my agents MD.
+
+176
+00:15:55,860 --> 00:16:07,180
+I have it on my agents MD and we can check afterwards that I'm doing the same thing with sub-agents that I set up on Py, giving them clear instructions on when to run the security ones, when to run the pre-commit.
+
+177
+00:16:08,174 --> 00:16:19,320
+I know that this is highly undeterministic, but the number of swear words that I've been screaming late nights in the last couple of months has reduced a lot.
+
+178
+00:16:19,854 --> 00:16:22,480
+Which means there's some level of predictability.
+
+179
+00:16:22,480 --> 00:16:26,580
+I mean, in the midst of the unpredictability.
+
+180
+00:16:26,800 --> 00:16:26,900
+Yeah,
+
+181
+00:16:30,430 --> 00:16:33,284
+sorry, no, no, no, no, no, no, no, no.
+
+182
+00:16:33,530 --> 00:16:41,970
+Okay, a guy that starts managing people who then does not code, at least let me type the instructions so that I don't lose mobility.
+
+183
+00:16:42,510 --> 00:16:44,570
+I think this is taking a lot of time.
+
+184
+00:16:46,170 --> 00:16:48,610
+It's done, so let's rerun.
+
+185
+00:16:49,614 --> 00:16:50,230
+No issues found.
+
+186
+00:16:50,702 --> 00:16:53,810
+I'm not gonna fix the one that I also have on page.
+
+187
+00:16:53,810 --> 00:16:57,310
+Again, it's a lack of alt text I kept to, but I don't want to log out.
+
+188
+00:16:57,326 --> 00:17:01,510
+Another thing I am using, and then, sorry, this is another detour.
+
+189
+00:17:01,510 --> 00:17:10,849
+If you ever find an issue with Google off, basically what I have is general magic link, normal authentication.
+
+190
+00:17:10,849 --> 00:17:12,510
+I'm using Ash a lot.
+
+191
+00:17:12,510 --> 00:17:20,130
+The one thing that I'm doing is the admins of this platform are all on the same Google account;
+
+192
+00:17:20,130 --> 00:17:23,790
+it's just three people, and it requires Google OAuth, right?
+
+193
+00:17:24,589 --> 00:17:29,412
+The thing is, in order for me to log in with Google OAuth, it will not work because of the redirection.
+
+194
+00:17:29,646 --> 00:17:30,870
+I'm running this thing inside the browser.
+
+195
+00:17:31,090 --> 00:17:35,950
+So what I do is I go to another web page, I log in, and then I get back to Tidewave.
+
+196
+00:17:36,078 --> 00:17:40,230
+If you ever find some funky stuff like this, it's probably that.
+
+197
+00:17:40,590 --> 00:17:48,690
+Now, I swear, I'm going to try to be faster, and let's see if we can do another session, and have this thing implement
+
+198
+00:17:54,090 --> 00:17:55,270
+What is here?
+
+199
+00:17:55,430 --> 00:18:00,090
+I was about to try to show this without him being here.
+
+200
+00:18:00,210 --> 00:18:02,370
+Now he's going to miss again the board thing.
+
+201
+00:18:03,230 --> 00:18:05,630
+So the board is this.
+
+202
+00:18:06,190 --> 00:18:06,370
+What?
+
+203
+00:18:07,086 --> 00:18:07,490
+New board.
+
+204
+00:18:08,470 --> 00:18:23,770
+You basically can start You can start instructing the agent via the prompt to actually use this, create the tasks, sub-tasks, et cetera, and it's going to do organization for you.
+
+205
+00:18:24,130 --> 00:18:39,810
+I don't find this very compelling for me because the way I work, I use Markdown files within my directory, and this is not that scalable because it means that to access the boards, I need to actually go into TideWave and I want a bit more control.
+
+206
+00:18:40,010 --> 00:18:44,730
+I tend to use the GH when I'm using GitHub, the GH tool, and create the issues and read the issues.
+
+207
+00:18:45,490 --> 00:18:46,150
+It's faster.
+
+208
+00:18:46,270 --> 00:18:51,070
+But it's nice if you have something a bit more complex that you want to implement.
+
+209
+00:18:51,534 --> 00:18:55,930
+It also now has this design canvas, which is good, kind of gives you two ideas.
+
+210
+00:18:56,558 --> 00:18:57,750
+It doesn't work quite well for me.
+
+211
+00:18:57,950 --> 00:19:05,150
+I actually had to connect to get to this design, connect this with a tool called Open Design, working outside and creating the design system, etc.
+
+212
+00:19:05,150 --> 00:19:07,930
+But again, it has a lot of interesting tools.
+
+213
+00:19:08,610 --> 00:19:20,270
+It has the accessibility, it has the diagnostics, it has now a code review view, where you can actually look into the diffs of what was done.
+
+214
+00:19:20,910 --> 00:19:24,990
+So this is how it fixed my mistakes on purpose.
+
+215
+00:19:25,370 --> 00:19:27,230
+I actually even did the test and everything.
+
+216
+00:19:27,430 --> 00:19:31,410
+So this is my markdown, which is also on the file.
+
+217
+00:19:31,534 --> 00:19:31,750
+Okay.
+
+218
+00:19:33,390 --> 00:19:40,010
+And it has this thing that I'm going to use later, which is also a terminal where you can run stuff, which is convenient.
+
+219
+00:19:41,326 --> 00:19:42,470
+Okay, let's get back to the preview.
+
+220
+00:19:42,810 --> 00:19:43,870
+I'm going to add this.
+
+221
+00:19:44,090 --> 00:19:45,770
+I'm going to add doing this with the Luna.
+
+222
+00:19:46,030 --> 00:19:49,250
+Probably the quality is not that well, but thank you for the tip.
+
+223
+00:19:49,582 --> 00:19:49,930
+It's faster.
+
+224
+00:19:50,710 --> 00:19:53,030
+It's still XI, but, again.
+
+225
+00:19:56,180 --> 00:19:56,580
+Yes.
+
+226
+00:19:56,590 --> 00:19:57,740
+In Codex,
+
+227
+00:19:57,740 --> 00:20:01,220
+I could, but I'm not sure
+
+228
+00:20:01,220 --> 00:20:05,500
+what
+
+229
+00:20:05,500 --> 00:20:16,820
+CISO experience, but I've been getting to 92-90% %%. and then all of a sudden, it resets before the end of the week.
+
+230
+00:20:17,420 --> 00:20:21,760
+So I've been caught using fast on Astra a few times.
+
+231
+00:20:21,760 --> 00:20:22,440
+I
+
+232
+00:20:22,440 --> 00:20:23,780
+mean,
+
+233
+00:20:23,780 --> 00:20:27,500
+you know, it's a flat rate, and I know, I know, I know, I'm getting spoiled.
+
+234
+00:20:28,280 --> 00:20:34,260
+This already does some stuff that I don't get on my agent set up.
+
+235
+00:20:34,700 --> 00:20:38,320
+Let me check if we can actually do this, which is guardian review, okay.
+
+236
+00:20:39,220 --> 00:20:46,220
+Okay, it's just to tell me that it's auto-approving some of the tool usage or MCP calls, etc.
+
+237
+00:20:47,758 --> 00:20:48,000
+Right?
+
+238
+00:20:49,040 --> 00:20:50,420
+It's explicit enough.
+
+239
+00:20:50,420 --> 00:21:04,140
+Let's probably think about, I'm just going to wait a bit more, I don't want you guys to get like cold pizzas, but if this is getting too boring, we can stop and get back afterwards.
+
+240
+00:21:05,454 --> 00:21:11,640
+Again thinking a bit, inspecting stuff, and what you're going to see is pretty much what you've seen before.
+
+241
+00:21:11,760 --> 00:21:19,800
+This thing now implements, creates the tests, goes in and does the mix check thing and does mix pre-commit.
+
+242
+00:21:20,718 --> 00:21:30,940
+Today we're being very lucky because the other thing that this thing does is actually, I have some issues sometimes with the refresh rates and the screen starts blinking a bit.
+
+243
+00:21:31,480 --> 00:21:32,140
+I've also seen that.
+
+244
+00:21:32,240 --> 00:21:34,580
+If you find it, report the bug.
+
+245
+00:21:35,278 --> 00:21:39,300
+It's useful and they tend to be quick at responding.
+
+246
+00:21:39,520 --> 00:21:41,280
+See, this is the thing that you can get with autoconnect.
+
+247
+00:21:41,360 --> 00:21:41,900
+You saw the hand.
+
+248
+00:21:42,318 --> 00:21:43,340
+It's actually now testing.
+
+249
+00:21:44,302 --> 00:21:50,420
+It clicked the button that it created, but the Tide Wave Connect, and it's now testing with responsive design.
+
+250
+00:21:52,820 --> 00:21:54,960
+This is kind of the big difference for me, right?
+
+251
+00:21:55,950 --> 00:22:02,760
+And what you can actually do with Tide Wave Connect is that you can be comfortably in your terminal, and it will do the same thing.
+
+252
+00:22:03,790 --> 00:22:09,460
+Instead of like opening the web browser, instead of going here, you can do that thing directly, and I'll show you later.
+
+253
+00:22:11,086 --> 00:22:12,388
+Actually, I think right after this.
+
+254
+00:22:12,910 --> 00:22:14,940
+Is it taking like a photo?
+
+255
+00:22:16,180 --> 00:22:16,780
+No, no, no.
+
+256
+00:22:17,100 --> 00:22:22,180
+See that thing that's next to the, next to the, to the arrow?
+
+257
+00:22:22,380 --> 00:22:22,640
+So sorry.
+
+258
+00:22:22,860 --> 00:22:27,480
+I'm pointing and I have a, so this thing that you have here, it's called video mode.
+
+259
+00:22:27,854 --> 00:22:32,460
+Then it actually starts recording videos and taking snapshots and sending it to the agent.
+
+260
+00:22:32,640 --> 00:22:34,940
+Now it's, it's only using browser scripts.
+
+261
+00:22:35,854 --> 00:22:38,440
+Let me check if it has something here.
+
+262
+00:22:38,440 --> 00:22:45,900
+Looks like iWave Connect is super similar to Chrome MCP
+
+263
+00:22:45,900 --> 00:22:46,900
+And
+
+264
+00:22:46,900 --> 00:22:57,560
+it can do pretty much the same things like controlling the browser Yes So, do you know something about how it's implemented?
+
+265
+00:22:58,500 --> 00:22:59,820
+No, no, no, no, I don't.
+
+266
+00:22:59,820 --> 00:23:04,000
+What I know that is, from the start, what I've seen is like, again, they were using internally.
+
+267
+00:23:04,000 --> 00:23:05,600
+Like, I think they were putting, again.
+
+268
+00:23:05,840 --> 00:23:08,380
+this is a very scientific explanation.
+
+269
+00:23:08,380 --> 00:23:17,060
+they were basically putting like the UI elements on top of the connection that they had with Tidewave, like the MCP, the code execution, etc.
+
+270
+00:23:17,360 --> 00:23:28,040
+And actually taking advantage of the developer tools on the browser because they were running, you know, JavaScript, snippets, being able to diagnose, being able to access the console logs and getting what was being returned.
+
+271
+00:23:28,840 --> 00:23:38,040
+I can show one of the things that I did, which is this wizard, this wizard, as actually that's okay, it's still running, I think it doesn't mind.
+
+272
+00:23:38,222 --> 00:23:40,920
+Let's stop the responsive thing, let's close,
+
+273
+00:23:40,920 --> 00:23:44,004
+yeah.
+
+274
+00:23:45,900 --> 00:23:50,740
+And what I've done is this, this is crap, right?
+
+275
+00:23:50,740 --> 00:23:54,980
+This is crap, but this, and now it's refreshing because it's trying to do stuff.
+
+276
+00:23:55,022 --> 00:24:04,040
+This is Map box, this is me with having, you know, open place and, you know, being able to check things and like all of this in the Map box.
+
+277
+00:24:04,040 --> 00:24:13,460
+Map box implementation, like a lot of iteration, a lot of correction, a lot of like pointing, "this is wrong .". But then I got to a point where this thing would, I gave it.
+
+278
+00:24:13,580 --> 00:24:14,440
+the design is like, "Okay.
+
+279
+00:24:14,500 --> 00:24:14,920
+let me check.
+
+280
+00:24:14,920 --> 00:24:24,320
+if this works, if this works on a phone, if this works on a tablet ," and it's beautiful, because once I nailed it on the desktop, minor corrections and I got this working.
+
+281
+00:24:24,640 --> 00:24:30,360
+I mean, as it is, which we probably need a lot more, a lot more iteration.
+
+282
+00:24:30,360 --> 00:24:35,500
+By the way, I recommend Mercat de l'Olivar, beautiful, for some oysters in the morning.
+
+283
+00:24:40,750 --> 00:24:43,050
+Oh, yeah, yeah, yeah, it's because why?
+
+284
+00:24:43,190 --> 00:24:43,750
+It's cheap.
+
+285
+00:24:43,850 --> 00:24:49,670
+It's the 272K context window, because you pay more if you get like the one million.
+
+286
+00:24:49,850 --> 00:24:50,372
+Yes, yes.
+
+287
+00:24:52,014 --> 00:24:54,530
+But again, what's a compaction these days, right?
+
+288
+00:24:55,950 --> 00:24:58,470
+There is another thing, and I'm joking, but there's another thing.
+
+289
+00:24:58,926 --> 00:25:01,350
+I was chatting earlier before this.
+
+290
+00:25:01,410 --> 00:25:03,190
+There's another tool that I'm using that helps a lot.
+
+291
+00:25:03,470 --> 00:25:06,948
+which of you have been dabbing with Rails in the past?
+
+292
+00:25:07,550 --> 00:25:25,570
+There is a committer called Akita, Akita on Rails, Fabio Akita, and he actually developed a tool in Rust, which is a thing called AI Memory, which I use when I'm in different sessions, different sessions, different like Codex and Py and OpenCode and Tideway and whatever.
+
+293
+00:25:26,290 --> 00:25:35,210
+Basically, it starts storing sessions and handovers and pre-compaction logs in a SQLite database.
+
+294
+00:25:35,850 --> 00:25:41,650
+It's very, very, very, very cool because you actually open this thing without having to resume the previous session.
+
+295
+00:25:42,030 --> 00:25:49,050
+And if you're asking something similar, it will do a query, check what you've done latest, and will also consult if you have some sort of like rules.
+
+296
+00:25:49,670 --> 00:25:51,550
+Nowadays, I do not define any rules.
+
+297
+00:25:51,930 --> 00:25:56,350
+By the way, while this thing is actually, ah, I think it already completed.
+
+298
+00:25:56,910 --> 00:26:11,290
+But very, very, very quickly, Basically this is AI memory, sorry the thing is very small because I'm trying to read my presenter notes, but pages, a lot of them, right?
+
+299
+00:26:12,174 --> 00:26:19,390
+Then things like concepts, disabling or re-enabling account, revokes, all of this, like this is not for human consumption.
+
+300
+00:26:19,710 --> 00:26:24,190
+We are reading this, but this is definitely not for human consumption.
+
+301
+00:26:24,814 --> 00:26:26,570
+And there will be a lot of queries done.
+
+302
+00:26:26,570 --> 00:26:31,290
+And I'll have the links for, I have the GitHub links, so that you can check afterwards.
+
+303
+00:26:33,230 --> 00:26:45,430
+Again, it implemented this, I think it passed, and you saw all of the, you know, the magic of this thing going around, and doing all of the funky stuff with the cursor.
+
+304
+00:26:45,890 --> 00:26:50,230
+Now if we go on to the code review, I can get here, I can see what was added, again.
+
+305
+00:26:51,886 --> 00:26:54,390
+Ah, Jesus, we're back at the spaces versus tabs.
+
+306
+00:26:54,390 --> 00:26:54,970
+Okay.
+
+307
+00:26:56,302 --> 00:26:56,570
+Anyway.
+
+308
+00:26:58,414 --> 00:27:00,170
+Again, I could get here.
+
+309
+00:27:00,310 --> 00:27:01,950
+I could say it's reviewed.
+
+310
+00:27:02,450 --> 00:27:03,250
+No, not reviewed.
+
+311
+00:27:03,350 --> 00:27:05,030
+I need to actually commit reviewed.
+
+312
+00:27:06,606 --> 00:27:07,190
+Stage reviewed.
+
+313
+00:27:07,790 --> 00:27:09,550
+I haven't used this.
+
+314
+00:27:09,630 --> 00:27:10,190
+No, okay.
+
+315
+00:27:10,250 --> 00:27:10,530
+Of course.
+
+316
+00:27:12,494 --> 00:27:13,430
+Mark this thing as reviewed.
+
+317
+00:27:13,850 --> 00:27:17,370
+Then I can check what was reviewed and what was unreviewed.
+
+318
+00:27:17,410 --> 00:27:20,230
+Again, this is just a convenience if you want to keep track.
+
+319
+00:27:20,750 --> 00:27:22,730
+Because who's actually reviewing code these days, right?
+
+320
+00:27:24,558 --> 00:27:25,710
+Yeah, I saw some laughs.
+
+321
+00:27:26,450 --> 00:27:30,870
+I'm not an AI bro, this is not, you know, like just ship, ship, ship, ship, ship.
+
+322
+00:27:31,670 --> 00:27:35,630
+But still, there's a limit.
+
+323
+00:27:36,250 --> 00:27:39,270
+Anyway, let's get back to this.
+
+324
+00:27:39,530 --> 00:27:46,190
+Again, you saw, well, the tests actually running like the automated ones.
+
+325
+00:27:47,854 --> 00:27:48,610
+Give me a second.
+
+326
+00:27:48,610 --> 00:27:56,090
+So now, we saw the state, and now I'm going to talk a bit about my terminal setup.
+
+327
+00:27:56,550 --> 00:28:02,190
+And what I'm using is, I have a subscription with OpenAI, the models, Frontier models are great, etc.
+
+328
+00:28:04,450 --> 00:28:14,410
+I tested GPT 6.1, and it's verbose as hell, and it's a mess.
+
+329
+00:28:14,410 --> 00:28:19,210
+This costs three times more, two times more, I'll stick with this for some time now.
+
+330
+00:28:20,090 --> 00:28:28,590
+And what I'm doing is, I'm always not on Tidewave, because on Tidewave I am using my OpenAI subscription.
+
+331
+00:28:29,614 --> 00:28:35,550
+But when I'm using Pi, I'm actually using both OpenAI and OLAMA.
+
+332
+00:28:36,046 --> 00:28:37,270
+So I'm using the OLAMA cloud.
+
+333
+00:28:38,926 --> 00:28:48,510
+I have this thing about, you know, I'm not sure if they are that good at maintaining their word, but they say that the models run either in Europe, most of them in the US.
+
+334
+00:28:49,582 --> 00:28:55,970
+What I'm trying to do is having a second, a different type of models actually reviewing.
+
+335
+00:28:56,290 --> 00:29:01,790
+I'm also getting ready to test them, know a bit what they are capable, because sometimes I just change the main model.
+
+336
+00:29:02,350 --> 00:29:18,590
+But the key thing here is, for instance, GLM 5.3, I found it to be absolutely amazing on security, which is one of the reviewers that I have, and I always like to have this kind of, you know, a model implements a different model from a different provider actually reviewing.
+
+337
+00:29:19,694 --> 00:29:29,850
+Sometimes you get into a loop, my most typed sentence is, this is not NASA, no one is going to die, just, you know, do not optimize that much.
+
+338
+00:29:29,850 --> 00:29:39,230
+But again, the rare times, DeepSeek, a huge, huge powerhouse, and Mistral.
+
+339
+00:29:39,930 --> 00:29:41,850
+I'm thinking about this.
+
+340
+00:29:41,930 --> 00:29:51,350
+I'm trying Minimax 3.1 Flash, the first model, as I was telling you, in a long time, that decided to ignore instructions that all of the models were following.
+
+341
+00:29:52,050 --> 00:29:54,410
+But it's been quite nice.
+
+342
+00:29:55,410 --> 00:29:59,890
+So, I was telling you, the models,
+
+343
+00:30:06,370 --> 00:30:08,090
+a
+
+344
+00:30:08,090 --> 00:30:10,270
+mix of all of that.
+
+345
+00:30:10,710 --> 00:30:16,970
+but then what I did is, I sometimes have secured, like, in my flow, and you're going to see it.
+
+346
+00:30:17,990 --> 00:30:22,130
+the sub-agents will run with the models that are predefined.
+
+347
+00:30:22,370 --> 00:30:31,130
+and I have the ability of overriding, saying, "Hey, this time, before running the security checks, run . because I have two or three models configured for each agent, run with Mistral, or run with whatever.
+
+348
+00:30:33,102 --> 00:30:40,830
+And sometimes what I do is I tend to plan some of the, using some of the skills, plan, the work, and I start multiple sessions with different models.
+
+349
+00:30:40,974 --> 00:30:42,470
+and I compare the results with work, trees.
+
+350
+00:30:42,894 --> 00:30:58,910
+And it's more of a taste thing, right, seeing things like models getting stuck in loops, because when they get out, especially in Olema Cloud, Mistral Large was very very prone in the beginning, the first few days, to actually get into loops and never getting out.
+
+351
+00:30:59,430 --> 00:31:07,990
+So I also started learning that I need to establish a number of turns in the sub-agent so that the thing actually stops by itself and returns.
+
+352
+00:31:08,250 --> 00:31:10,210
+Again, experience, mainly experience.
+
+353
+00:31:11,510 --> 00:31:15,950
+And again, as I said, Real Madrid, booking this thing, this is just my experience.
+
+354
+00:31:16,622 --> 00:31:21,290
+And it works for this particular case, with my particular setup, with these guards that I've developed.
+
+355
+00:31:22,606 --> 00:31:25,570
+So, let's very quickly check the TideWave Connect.
+
+356
+00:31:26,414 --> 00:31:48,610
+This is the same TideWave things, but instead of going on to the connection that you get from this tool, open browser, etc, you go directly on to your server, you append TideWave and connect, and you get this page.
+
+357
+00:31:49,358 --> 00:31:52,770
+I'm cheating a bit, because I don't want to open and change things with the terminal.
+
+358
+00:31:52,890 --> 00:31:57,070
+It doesn't mean that Tidewave will know about this, because we're going to run this inside Pi.
+
+359
+00:31:57,310 --> 00:32:03,530
+You do new session, the new session opens your browser, and you say copy instructions.
+
+360
+00:32:05,198 --> 00:32:12,010
+Now what I'm going to do is I'm going to the other Tidewave thing, where I have the terminal, and I'm going to start Pi.
+
+361
+00:32:14,030 --> 00:32:15,270
+This is my setup.
+
+362
+00:32:15,550 --> 00:32:16,610
+I have a package update.
+
+363
+00:32:17,010 --> 00:32:32,130
+As you can see, I was the guy that was doing all of the skills, all of the bells and whistles, bring it on.
+
+364
+00:32:33,010 --> 00:32:35,050
+I really, really found it refreshing.
+
+365
+00:32:35,850 --> 00:32:46,210
+I think Pi since 1.2 or 1.1, I'm not sure, it was actually the day I started actually using by chance, they actually adopted MCP connections, because that was an extra.
+
+366
+00:32:46,670 --> 00:32:48,330
+What I'm doing here is extensions.
+
+367
+00:32:49,902 --> 00:33:03,550
+As extensions, I'm using AI memory, so it's just, it's actually, it was not me creating the TypeScript, because not even the back-end in JavaScript I'm good at, but AI memory actually creates the extension for Pi, so it's the tool itself.
+
+368
+00:33:04,090 --> 00:33:07,310
+I'm using a very interesting extension, Ponytail.
+
+369
+00:33:07,450 --> 00:33:09,830
+You remember the SysAdmins with the Ponytail?
+
+370
+00:33:09,830 --> 00:33:16,170
+This is the kind of thing that will tell you that you don't need that, you're repeating yourself, do that with less lines of code.
+
+371
+00:33:17,582 --> 00:33:20,570
+Funny enough, with the Elixir projects, it rarely chimes in.
+
+372
+00:33:21,270 --> 00:33:25,090
+I'm using PyWebAccess, so in order to do web browsing.
+
+373
+00:33:26,062 --> 00:33:28,770
+I'm using subagents to be able to use the subagents.
+
+374
+00:33:29,210 --> 00:33:32,710
+And RTK is a tool to reduce the number of tokens.
+
+375
+00:33:33,570 --> 00:33:35,650
+What it does, it basically compresses the output.
+
+376
+00:33:35,662 --> 00:33:40,330
+I think it still outputs to a directory, but then it, yeah.
+
+377
+00:33:43,170 --> 00:33:43,610
+Yeah.
+
+378
+00:33:45,006 --> 00:33:45,210
+Yes.
+
+379
+00:33:45,430 --> 00:33:51,530
+But I'm normally at the 50, as with everything on life, like trying to be on the middle of things at the 50% saving.
+
+380
+00:33:52,150 --> 00:33:56,630
+I added this before from OpenCode, I added from Claude, and I just migrated with me.
+
+381
+00:33:57,262 --> 00:34:05,530
+And then the session cost was actually a tool that I wrote, if you're curious about knowing out what this thing would cost me, I can actually show you as well.
+
+382
+00:34:06,030 --> 00:34:08,130
+And again, this is basically my setup.
+
+383
+00:34:08,610 --> 00:34:11,140
+Now, I've copy-pasted this,
+
+384
+00:34:11,140 --> 00:34:12,964
+I
+
+385
+00:34:16,610 --> 00:34:19,389
+also have an allow list of commands.
+
+386
+00:34:19,510 --> 00:34:27,190
+So basically I've allowed list all of the writes and stuff that it's not that, I mean, that sensitive.
+
+387
+00:34:27,810 --> 00:34:38,030
+Again, this is not running on a sandbox, this could be safer for sure, but what I'm doing is forbidding things like deletions, removals, the agents do not have access to not even Git.
+
+388
+00:34:38,230 --> 00:34:47,389
+What I've done is a small tool in TypeScript that actually is passed on to the sub-agents, and they are very limited.
+
+389
+00:34:47,590 --> 00:34:49,380
+The sub-agents cannot use Bash, for instance.
+
+390
+00:34:49,810 --> 00:34:57,490
+They can only use the primitives, like the reads, the greps, that come with the harness, nothing else.
+
+391
+00:34:57,582 --> 00:35:06,210
+So it's again, blacklisted everything, started having to approve, approve, approve, to then have another pile on the sides, like this thing can run.
+
+392
+00:35:06,710 --> 00:35:08,290
+Changes the setup.
+
+393
+00:35:08,410 --> 00:35:10,090
+So iterative process.
+
+394
+00:35:10,862 --> 00:35:12,150
+Again, as I said, works for me.
+
+395
+00:35:15,830 --> 00:35:26,790
+When the harness has the skills to know what it is and how to invoke itself, you can build the extension for applovals if you need it, or use another place.
+
+396
+00:35:34,130 --> 00:35:37,470
+Yeah, I still don't trust it that much.
+
+397
+00:35:37,750 --> 00:35:39,150
+But still, yes, you can.
+
+398
+00:35:39,470 --> 00:35:49,990
+And again, the edits that I'm doing, I'm actually also having the edits open on a different thing, which then with the AI memory, I can go and see what, you know, it's actually doing.
+
+399
+00:35:50,542 --> 00:35:52,710
+I sometimes do some sort of like paranoid audits.
+
+400
+00:35:53,486 --> 00:35:56,930
+Okay, so I'm saying that this has a page.
+
+401
+00:35:57,050 --> 00:36:10,620
+Let's say that we want, I want you to test the maps page in different, let's see if it works.
+
+402
+00:36:10,740 --> 00:36:13,640
+Now I'm going to switch tabs, see if this thing picks it up.
+
+403
+00:36:14,894 --> 00:36:16,700
+Planning front-end UI testing approach.
+
+404
+00:36:17,500 --> 00:36:20,160
+And let's hope no agent has used this session just now.
+
+405
+00:36:20,320 --> 00:36:21,960
+It used, probably connected to this.
+
+406
+00:36:22,862 --> 00:36:24,400
+You can see there the status changing.
+
+407
+00:36:25,180 --> 00:36:25,300
+Yep.
+
+408
+00:36:26,510 --> 00:36:27,280
+It's not me.
+
+409
+00:36:27,580 --> 00:36:28,160
+It's not a video.
+
+410
+00:36:30,158 --> 00:36:32,940
+So it's basically doing the same thing.
+
+411
+00:36:33,400 --> 00:36:34,600
+Probably not yet getting into
+
+412
+00:36:37,700 --> 00:36:39,140
+the...
+
+413
+00:36:39,500 --> 00:36:43,080
+It's doing something over there.
+
+414
+00:36:43,380 --> 00:36:48,760
+But again, I think this highlights, and I'm being mindful of time, this kind of highlights the power of this.
+
+415
+00:36:48,900 --> 00:36:52,160
+You don't even need to see what's going on in the browser.
+
+416
+00:36:52,160 --> 00:36:59,140
+You can just stick on your terminal, and you will have information about, well, it's actually doing the responsive thing.
+
+417
+00:36:59,640 --> 00:37:00,940
+I swear it wasn't me, again.
+
+418
+00:37:01,640 --> 00:37:03,640
+it, basically.
+
+419
+00:37:03,960 --> 00:37:04,100
+yeah.
+
+420
+00:37:05,006 --> 00:37:05,580
+what it does.
+
+421
+00:37:05,700 --> 00:37:07,100
+you can see like the logs.
+
+422
+00:37:07,380 --> 00:37:09,800
+basically, it's doing the eval, connecting to this session.
+
+423
+00:37:10,320 --> 00:37:12,280
+the action inputs, etc . etc.
+
+424
+00:37:12,360 --> 00:37:17,140
+It's actually quite nice, because you're able to actually, if you trust the thing.
+
+425
+00:37:17,440 --> 00:37:22,260
+and if you've seen it work a couple of times, you can actually trust that it's doing something on the background and it's testing this.
+
+426
+00:37:22,460 --> 00:37:25,720
+So what I tend to do is I start at the Tidewave Connect session.
+
+427
+00:37:26,340 --> 00:37:32,700
+I add the data and the details onto my Pi prompt and then with a plan and leave it be.
+
+428
+00:37:35,502 --> 00:37:39,460
+Does that mean that the site that you're testing, does that have to be written in Elixir?
+
+429
+00:37:39,726 --> 00:37:41,000
+Can Tidewave just control?
+
+430
+00:37:41,000 --> 00:37:44,020
+No, it can control Elixir or Rails.
+
+431
+00:37:44,160 --> 00:37:45,120
+That I know for a fact.
+
+432
+00:37:46,510 --> 00:37:53,000
+But it has to be one of those because it's actually using internal stuff.
+
+433
+00:37:56,014 --> 00:38:11,580
+So I think probably, you were mentioning the Chrome dev extensions, I think probably the Chrome MCP will allow you to do these kinds of things, but for Tidewave, yes, it needs to be on one of these languages.
+
+434
+00:38:33,102 --> 00:38:39,810
+And it's actually behaving, it's still Luna, so I forgot about, no, it's not Luna, it's sorry, see, I'm being very stupid.
+
+435
+00:38:40,390 --> 00:38:52,370
+It's not Luna, it is gptSol5.6, right, medium, this is the model that I have running as my a normal go-to model, okay?
+
+436
+00:38:54,222 --> 00:38:59,890
+This, do not let this thing kind of fool you because I'm running the terminal, but it could be a detached terminal.
+
+437
+00:39:01,518 --> 00:39:04,130
+Okay, let's leave this thing doing its stuff.
+
+438
+00:39:05,190 --> 00:39:07,204
+So again, and I'm not sharing this.
+
+439
+00:39:08,750 --> 00:39:12,790
+I told you that I also, in my setup, I have different agents.
+
+440
+00:39:12,910 --> 00:39:13,730
+This is just an excerpt.
+
+441
+00:39:13,810 --> 00:39:14,650
+This is the agents MD.
+
+442
+00:39:14,750 --> 00:39:15,790
+It's not the full definition.
+
+443
+00:39:16,206 --> 00:39:30,610
+There's a JSON definition with the types of models that I'm using, the limits in the number of turns, etc, etc, the number of tool usages that they allow each one to actually prevent them to getting into loops and getting nowhere.
+
+444
+00:39:31,410 --> 00:39:33,170
+This is what works again for me.
+
+445
+00:39:33,330 --> 00:39:38,550
+I'm using a reviewer, a security reviewer, a researcher, a scout, a worker, and an oracle.
+
+446
+00:39:39,022 --> 00:39:42,910
+The worker is pretty much the same model, which is 5.6 sol.
+
+447
+00:39:43,470 --> 00:39:44,910
+The oracle is normally Astra.
+
+448
+00:39:44,910 --> 00:39:45,690
+I have it there.
+
+449
+00:39:45,910 --> 00:39:51,750
+If there's something that, you know, it's weird or, you know, it's getting on a loop with a bug, it will basically end off to Astra.
+
+450
+00:39:52,494 --> 00:39:53,270
+This is what's happening.
+
+451
+00:39:53,910 --> 00:39:55,030
+Please help coordinate.
+
+452
+00:39:56,030 --> 00:40:00,730
+The Scout, I call it Oracle, you can call it.
+
+453
+00:40:00,878 --> 00:40:07,150
+This is kind of the judge that will, you know, just, you know, if you're stuck and you need answers, ask the Oracle.
+
+454
+00:40:08,290 --> 00:40:10,090
+The Scout, very cheap.
+
+455
+00:40:10,150 --> 00:40:10,970
+I'm using DeepSeek.
+
+456
+00:40:11,450 --> 00:40:12,250
+Very cheap.
+
+457
+00:40:12,250 --> 00:40:16,150
+doing some research on files and being very quick.
+
+458
+00:40:16,830 --> 00:40:23,250
+The security reviewer, GLM, and currently I also have the reviewer as GLM, so two different personas.
+
+459
+00:40:23,886 --> 00:40:28,250
+One looking into the cyber security side of things, the other one as a reviewer.
+
+460
+00:40:28,622 --> 00:40:34,590
+What they do is they run, they compact, they send over the information to the main implementer.
+
+461
+00:40:35,070 --> 00:40:39,550
+and then it's almost like, not necessarily a vote, but it's kind of, "there's defects.
+
+462
+00:40:39,550 --> 00:40:39,830
+here.
+
+463
+00:40:39,910 --> 00:40:40,310
+there's not.
+
+464
+00:40:40,450 --> 00:40:41,490
+let's fix this.
+
+465
+00:40:41,550 --> 00:40:50,370
+I haven't catched this .", And it's nice to see some of the ping-pong, which oftentimes does not go endlessly, which is kind of good.
+
+466
+00:40:51,630 --> 00:41:09,700
+And again, as I said, using the researcher, it's also Astra, yes, I haven't mentioned, but it's Astra as well, doing not the web searches necessarily, but setting the plans for research, which can then delegate to the scouts and DeepSeek can actually do the search.
+
+467
+00:41:10,720 --> 00:41:24,720
+Again, this is the thing that, the four things that I use a lot, and if you want to check the slides afterwards, if you want to just check it out, the Oliver Kryska skills are absolutely amazing.
+
+468
+00:41:25,166 --> 00:41:36,880
+I've used probably five on a day-to-day basis, and I can show you some quick examples, namely for deps, dependency updates, which is really, really, really well written.
+
+469
+00:41:36,880 --> 00:41:49,892
+That thing not only checks if you have dependencies that need to be updated, but it also goes in, downloads the full source code, analyzes some of it, compares the before and after, runs that thing, sandboxed.
+
+470
+00:41:50,300 --> 00:41:51,280
+It's really, really nice.
+
+471
+00:41:51,440 --> 00:41:53,120
+And then you have, like, a report.
+
+472
+00:41:53,680 --> 00:41:55,560
+I'm using EI memory, which has nothing to do.
+
+473
+00:41:55,620 --> 00:41:58,760
+It's written in Rust by Akita on Rails, Tidewave.
+
+474
+00:41:59,246 --> 00:42:13,880
+And there's this thing, which is usage rules, where it's a very, very nice library that will give you kind of directions on how to use things like OTP, Ash, Ecto, which is a good addition to my setup.
+
+475
+00:42:14,280 --> 00:42:27,620
+Again, as I said, it works really well for me, especially because I think it also helps the fact that I'm using Ash, so a lot of the code is actually derived, I'm not writing all of the controllers, it's what they say, it's declared once run, something like that.
+
+476
+00:42:29,134 --> 00:42:32,420
+Very, very happy to see how the project is progressing.
+
+477
+00:42:33,000 --> 00:42:33,440
+No,
+
+478
+00:42:37,440 --> 00:42:38,180
+no, I just.
+
+479
+00:42:38,400 --> 00:42:42,660
+the slides were done in ChatGPT, and it actually had usage rules on the other side.
+
+480
+00:42:42,660 --> 00:42:43,980
+and it's like just, no.
+
+481
+00:42:44,206 --> 00:42:47,020
+but I would say, but
+
+482
+00:42:47,020 --> 00:42:55,540
+I would say that's probably, but I would say that that's probably, I would say a memory would be small because I don't even know that I'm using it.
+
+483
+00:42:55,600 --> 00:42:56,680
+It's completely on the background.
+
+484
+00:42:57,380 --> 00:43:02,460
+Elixir Phoenix is probably the thing that I use the most for planning, for executing, for a bunch of stuff.
+
+485
+00:43:02,700 --> 00:43:04,300
+It's really, really, really helpful.
+
+486
+00:43:05,760 --> 00:43:08,340
+And TideWave, it's just big because I was presenting about TideWave.
+
+487
+00:43:10,000 --> 00:43:17,260
+This is an example of one of the skills that you have there, which is Phoenix Audit.
+
+488
+00:43:18,340 --> 00:43:22,480
+And in this case, it actually launched three more reviewers.
+
+489
+00:43:23,340 --> 00:43:28,720
+It actually, two reviewers with different tasks, again, architecture track for a full nomadic and blah, blah, blah.
+
+490
+00:43:29,198 --> 00:43:37,860
+It basically assesses your project in terms of security, performance, architecture, dependency management, etc, etc.
+
+491
+00:43:38,120 --> 00:43:38,940
+It gives you a score.
+
+492
+00:43:39,598 --> 00:43:41,240
+Super proud because I'm 90-something.
+
+493
+00:43:42,126 --> 00:43:43,500
+But it's graded by AI, right?
+
+494
+00:43:44,750 --> 00:43:48,000
+And the output of this is something like this.
+
+495
+00:43:48,040 --> 00:43:49,640
+It runs a bunch of agents in parallel.
+
+496
+00:43:50,060 --> 00:43:54,040
+Again, as I showed you before, architecture, security, performance, and tests.
+
+497
+00:43:54,960 --> 00:43:56,700
+Then zero critical issues.
+
+498
+00:43:56,910 --> 00:43:57,340
+Very happy.
+
+499
+00:43:58,080 --> 00:43:59,720
+And you basically get this.
+
+500
+00:43:59,820 --> 00:44:00,600
+I run this periodically.
+
+501
+00:44:00,880 --> 00:44:04,800
+It's stored on Markdown files because it has like conventions on the skills.
+
+502
+00:44:05,600 --> 00:44:06,920
+And it's really nice.
+
+503
+00:44:07,420 --> 00:44:11,080
+Very quickly, I will show you the potential ones.
+
+504
+00:44:11,918 --> 00:44:14,260
+So if you do this, you can see, right?
+
+505
+00:44:14,660 --> 00:44:15,640
+Small, right?
+
+506
+00:44:16,526 --> 00:44:23,000
+The thing that I use the most is basically audit, which gets like a full audit of the code base.
+
+507
+00:44:23,000 --> 00:44:31,280
+I use stuff like review, right, and you can do Phoenix review, for instance.
+
+508
+00:44:31,800 --> 00:44:32,880
+Something like this.
+
+509
+00:44:32,980 --> 00:44:37,300
+Phoenix review, and I think I'm missing an M.
+
+510
+00:44:38,542 --> 00:44:39,380
+Changes, okay.
+
+511
+00:44:42,734 --> 00:44:44,320
+So basically this is a Py thing.
+
+512
+00:44:44,480 --> 00:45:02,020
+It's like doing this with this instruction, and it most likely will trigger, I would say starts reading and it will then trigger some parallel agents, and I can leave it here just for it to start so that you can see the type of stuff that this thing is actually doing.
+
+513
+00:45:02,060 --> 00:45:14,560
+It's actually looking, cheating, completely cheating, it's reading the markdown file, but again, AI's identifying and track doc as a requirement source.
+
+514
+00:45:15,700 --> 00:45:22,240
+Okay, it will probably know that it has connection to Tidewave Connect, it will do a browser test because it's connected.
+
+515
+00:45:22,420 --> 00:45:23,140
+If not, it would not.
+
+516
+00:45:24,000 --> 00:45:34,980
+And then I think it will, soon enough, I think it will trigger the, I hope, it actually triggers the sub-agents.
+
+517
+00:45:36,526 --> 00:45:38,840
+Again, identifying what are the files.
+
+518
+00:45:43,278 --> 00:45:43,640
+I hope.
+
+519
+00:45:43,822 --> 00:45:44,120
+Let's see.
+
+520
+00:45:45,400 --> 00:45:47,800
+And let me just check another thing.
+
+521
+00:45:52,450 --> 00:45:52,630
+Okay.
+
+522
+00:45:52,750 --> 00:45:58,270
+Very quickly, I think the only thing I need to then show you is a bit like the checks that I've put in place.
+
+523
+00:45:59,598 --> 00:46:00,870
+OK, it's doing browser eval.
+
+524
+00:46:00,890 --> 00:46:10,370
+I think it's getting completely sidetracked because it found the connection and the browser is probably jumping like crazy around here, maybe.
+
+525
+00:46:11,278 --> 00:46:12,010
+Just now, yes.
+
+526
+00:46:12,526 --> 00:46:12,990
+Just now.
+
+527
+00:46:15,680 --> 00:46:16,220
+Doing stuff.
+
+528
+00:46:16,740 --> 00:46:27,200
+But again, trust me, what this thing does is actually then it will do also a security review once it finishes playing around with the browser to check if, let me try to steer.
+
+529
+00:46:28,910 --> 00:46:29,180
+Stop.
+
+530
+00:46:39,598 --> 00:46:42,460
+And then I probably need to, yeah, stop prostitutes.
+
+531
+00:46:45,880 --> 00:46:49,760
+Jesus, one needs to be, I normally would have sworn a bit more, but.
+
+532
+00:46:51,086 --> 00:46:53,820
+Could you go deeper into the AI memory usage?
+
+533
+00:46:54,160 --> 00:47:00,920
+Like, my first question is, your Agent Derby is working like in sequence, or?
+
+534
+00:47:01,320 --> 00:47:01,720
+Sorry, the?
+
+535
+00:47:02,920 --> 00:47:03,920
+your agents,
+
+536
+00:47:03,920 --> 00:47:04,800
+do
+
+537
+00:47:04,800 --> 00:47:06,880
+they work like a pipeline, like sequence?
+
+538
+00:47:08,240 --> 00:47:17,760
+Sub-agents will be coordinated by the harness, like it has like a master, like the main worker would say, hey, I need this, do this, and then they sync, it will wait for the replies.
+
+539
+00:47:18,400 --> 00:47:25,940
+The AI memory, let me think, yes, it's setups, and we can look into the, not look, because otherwise it will take a lot of time.
+
+540
+00:47:26,260 --> 00:47:37,260
+There's a TypeScript, and it basically uses hooks on save, sorry, on save, on change, on completion, and basically, every time you edit the file and you finish that thing, it will send something to update the session.
+
+541
+00:47:37,742 --> 00:47:38,500
+So it's basically with
+
+542
+00:47:38,500 --> 00:47:39,140
+hooks.
+
+543
+00:47:41,860 --> 00:47:44,540
+In theory, this is just to keep logs.
+
+544
+00:47:44,820 --> 00:47:47,000
+No, I've planned about doing that, like the handovers.
+
+545
+00:47:47,380 --> 00:48:03,040
+You can do that explicitly, but I think you don't need, this is me talking by heart, I think you don't need that, because with Py and with OpenCode, You have like, you can actually pass and connect the sessions, different ones, in a much, much easier way.
+
+546
+00:48:03,400 --> 00:48:05,280
+I think you have a server that allows you to do that.
+
+547
+00:48:05,600 --> 00:48:06,220
+You don't need the memory.
+
+548
+00:48:06,460 --> 00:48:08,820
+I'm using the memory just to keep track of things.
+
+549
+00:48:09,280 --> 00:48:22,920
+And if I start, for instance, if I, if I'm jumping from here, look, sorry, GLM 5.3 running on Olamacloud, the other thing that I've done is also I whitelisted the models that I have.
+
+550
+00:48:22,920 --> 00:48:27,060
+There is a very, very small subset instead of the bedrock open code, blah, blah, blah.
+
+551
+00:48:27,470 --> 00:48:29,892
+It's a very subset list of models that I can use.
+
+552
+00:48:30,420 --> 00:48:33,572
+But to answer your question, if I want to do something, I can do something like this.
+
+553
+00:48:34,446 --> 00:48:40,640
+Can you please hand over work?
+
+554
+00:48:41,420 --> 00:48:44,340
+I'm not sure if it will detect this or not.
+
+555
+00:48:44,440 --> 00:48:46,280
+I did not marry.
+
+556
+00:48:50,542 --> 00:48:52,860
+I think it's working async, so it will pick this up.
+
+557
+00:48:57,100 --> 00:48:58,360
+Okay, checking the sub-agent.
+
+558
+00:48:58,360 --> 00:49:03,320
+memory handoff begins, summary reviewed, blah blah blah, this is going to get stored.
+
+559
+00:49:04,700 --> 00:49:11,380
+And when you start a new session on the same project, the first thing that the hook on the memory will do is read the last information.
+
+560
+00:49:11,760 --> 00:49:13,600
+So it will basically detect that there is a handoff.
+
+561
+00:49:14,020 --> 00:49:15,920
+It's almost like if you're doing a compression.
+
+562
+00:49:23,580 --> 00:49:30,980
+You could do that by reading again, as I showed you the page briefly before, and I can show you after this, because otherwise we're going to the rabbit hole.
+
+563
+00:49:31,982 --> 00:49:36,840
+You can see that thing, but basically it's a view on a SQLite database, which is not for us to use.
+
+564
+00:49:36,920 --> 00:49:40,760
+But you can query the SQLite, you can actually ask the agent to query the SQLite database.
+
+565
+00:49:41,280 --> 00:49:45,680
+And the agents themselves, with the instructions they have, they are able to actually query that.
+
+566
+00:49:46,222 --> 00:49:49,412
+Give me information about X, or...
+
+567
+00:49:54,094 --> 00:49:57,440
+No,
+
+568
+00:49:57,440 --> 00:49:58,540
+it doesn't.
+
+569
+00:49:58,600 --> 00:50:05,280
+And I'm actually running this thing on Podman, which is a complete container, I wrote a shell script to do the backup, yeah, yeah.
+
+570
+00:50:05,806 --> 00:50:10,420
+I actually run like, this thing, my convenience is I start, I stop, I restart.
+
+571
+00:50:11,020 --> 00:50:16,460
+There's the AI memory also has the possibility of using a key with an LLM, you don't need to.
+
+572
+00:50:16,800 --> 00:50:19,840
+I'm doing, sorry, I don't want to get into the rabbit hole, tell me to stop.
+
+573
+00:50:20,380 --> 00:50:29,000
+My AI memory has, it's using the Gemma embedded, embedding model, the smaller one which does not have video or audio because I don't need.
+
+574
+00:50:29,934 --> 00:50:35,700
+The 274 million parameters thing, running via Lemma locally.
+
+575
+00:50:36,620 --> 00:50:42,340
+So I'm doing embeddings of all of these memories, and they are being stored not as text, but as vectors.
+
+576
+00:50:43,000 --> 00:50:48,680
+And I'm also using DeepSeek for that thing on a daily basis to consolidate the memories that it has.
+
+577
+00:50:48,700 --> 00:50:51,000
+It goes through things and says, okay, we have a learning here.
+
+578
+00:50:51,700 --> 00:50:56,820
+But that's probably tangential to this, but yes, you can set up the tool to do that.
+
+579
+00:51:08,380 --> 00:51:17,160
+I can show you the directory I'm generating information for humans, but I'm not necessarily doing my best.
+
+580
+00:51:17,260 --> 00:51:25,340
+I think I have also instructions for when things change, to actually go and update how to test, how this thing is working.
+
+581
+00:51:25,678 --> 00:51:29,740
+I have a lot of instructions on that, but Honestly, this is just my experience.
+
+582
+00:51:30,020 --> 00:51:35,300
+I tend not to trust too much on that because at the speed at which things move, the documentation gets stale.
+
+583
+00:51:35,640 --> 00:51:43,380
+But I also, one of the things that the audit thing does, it actually goes through the documentation that it finds and then it basically fixes.
+
+584
+00:51:43,790 --> 00:51:46,720
+Sometimes I'm on a stale documentation for a couple of days.
+
+585
+00:51:47,260 --> 00:51:49,740
+The other day I've updated Elixir to the latest version.
+
+586
+00:51:49,860 --> 00:51:53,200
+I'm also running via Docker and deploying via Docker.
+
+587
+00:51:53,200 --> 00:51:59,340
+there, the version of Elixir on the documentation was actually older than the one that I'm using, the thing picked it up and fixed it afterwards.
+
+588
+00:52:00,942 --> 00:52:04,000
+Very quickly, so that we can actually have pizza.
+
+589
+00:52:05,340 --> 00:52:12,220
+These are the two things that I've set up, which I think help me a lot in getting things under control.
+
+590
+00:52:13,006 --> 00:52:15,020
+Every time I run Mixtrack, I do a format.
+
+591
+00:52:15,470 --> 00:52:18,420
+I always do compile with warnings as errors.
+
+592
+00:52:18,960 --> 00:52:29,220
+Like, I mean, if you're doing it yourself, you tend to Like, do this with the LLM, it will go over, it will fix, basically it stops, fixes, iterates until it fixes.
+
+593
+00:52:29,838 --> 00:52:33,360
+The assets check, it's, you know, Phoenix.
+
+594
+00:52:34,030 --> 00:52:38,300
+I'm doing also an ash code gen check to see if there's no pending code generation, etc.
+
+595
+00:52:39,342 --> 00:52:43,000
+I'm doing a credo, minus minus strict, anyone use credo already?
+
+596
+00:52:44,014 --> 00:53:01,960
+I'm also using a couple of recently jump, as sent a couple more, I've tested them with the LLM, again, analyzing the projects, understanding what made sense or not, it starts enabling one by one, so that this thing is probably not good for you, it caught some stuff, which is good.
+
+597
+00:53:02,040 --> 00:53:06,440
+So I'm doing standard Credo with a bit of the jump Credo checks.
+
+598
+00:53:06,990 --> 00:53:12,320
+It runs a test, and it runs a Sobolow with a config, so security.
+
+599
+00:53:12,940 --> 00:53:19,460
+The one thing that I want you to also be aware of is that this thing is new from X 2.5.
+
+600
+00:53:19,740 --> 00:53:26,680
+Before this I was using deps audit, which is a library that you can use, but with X, X already brings this in.
+
+601
+00:53:26,980 --> 00:53:32,520
+It will warn you if you have compromised packages, security vulnerabilities, etc.
+
+602
+00:53:32,740 --> 00:53:37,980
+And I'm running this, actually the other day, everything was working, pre-commit was passing, and the deployment failed.
+
+603
+00:53:37,980 --> 00:53:50,760
+I got like, on my phone, what happened, okay, there was an Ash Postgres package with CVE and it basically failed to deploy because the thing was failing.
+
+604
+00:53:50,840 --> 00:53:52,840
+So again, it runs on the pre-commit.
+
+605
+00:53:53,294 --> 00:54:02,520
+The only thing that I'm doing a bit more, the tests there, I'm running unit tests, plain vanilla, in here, 19 seconds, 59 seconds, okay?
+
+606
+00:54:03,160 --> 00:54:04,660
+This is running property tests.
+
+607
+00:54:04,660 --> 00:54:09,380
+I have a couple of property-based tests to test some of the stuff, integration tests.
+
+608
+00:54:09,780 --> 00:54:17,700
+I'm not running like end-to-end tests, which that I can, I have another Elias that I can do with external providers, with, you know, storage, et cetera, et cetera.
+
+609
+00:54:18,062 --> 00:54:21,220
+I can do that, but I don't tend to do that on the day-to-day basis.
+
+610
+00:54:21,760 --> 00:54:36,060
+Doing integration, I'm doing property, and then checking the cover, because I think I have a setting on the test, if I'm not mistaken, Elias, that actually requires that the test coverage for the project is above 80 per cent.
+
+611
+00:54:37,550 --> 00:54:49,340
+The thing that I review the most, actually, it's debatable, throw me stones, whatever you want, I don't review code that much, generated code, I review a lot of the tests that this thing generates.
+
+612
+00:54:51,310 --> 00:54:59,880
+So, and then the CI, this is the thing that I'm running on CI, it's just to kind of rely so that we are on the same page, but what's going on?
+
+613
+00:55:00,686 --> 00:55:12,740
+Again, my mantra, and we were talking about this earlier today, you're not going to like, this is a talk about AI, about agentic development, and it's really, really powerful.
+
+614
+00:55:13,582 --> 00:55:14,160
+It's happening.
+
+615
+00:55:14,766 --> 00:55:16,480
+It opens a lot of possibilities.
+
+616
+00:55:17,934 --> 00:55:24,700
+But I get sick when I start hearing things like it allowed me to, you know, increase the number of lines of code.
+
+617
+00:55:24,920 --> 00:55:26,580
+I can do a lot more PRs.
+
+618
+00:55:26,920 --> 00:55:39,000
+Like, crying out loud, I think everyone that's been here around and remembers the IBM OS2 thing, when they were paid by the line of code, they created this massive bloatware, never went anywhere.
+
+619
+00:55:39,440 --> 00:55:40,880
+Like, it's not having more code.
+
+620
+00:55:40,960 --> 00:55:44,440
+For me, the power of this is actually the ability of experimenting a lot.
+
+621
+00:55:45,230 --> 00:55:47,940
+You have one idea, two ideas, ten ideas, build them all.
+
+622
+00:55:48,760 --> 00:55:53,100
+But ship only what's actually meaningful for users, what makes sense for you.
+
+623
+00:55:53,480 --> 00:55:54,500
+But build a lot.
+
+624
+00:55:54,740 --> 00:56:03,060
+We no longer have to spend time, sometimes hours, with this paralysis of, this is so expensive on my time, on my money, that I need to choose right.
+
+625
+00:56:03,160 --> 00:56:04,340
+I can only take one path.
+
+626
+00:56:04,800 --> 00:56:08,260
+Take the four paths, and then commit to one or two, OK?
+
+627
+00:56:10,380 --> 00:56:11,980
+Anyway, thank you so much.
+
+628
+00:56:13,006 --> 00:56:13,340
+Questions?
+
+629
+00:56:21,020 --> 00:56:21,160
+Yeah?
+
+630
+00:56:34,830 --> 00:56:45,640
+So what I've done is I've iterated with OpenDesign, which is a different tool, I'm not sure it's good for me to show it right now, but we can check afterwards if you want.
+
+631
+00:56:46,240 --> 00:56:59,040
+I'm using OpenDesign because it helped me, it's basically a competitor of Cloud Design when it came in, and it allowed me to create that thing and to create a design system.
+
+632
+00:56:59,120 --> 00:57:09,840
+So I want this and this and that, show me three options around these concepts based on the product that I have, the ideas and the values, show me three options.
+
+633
+00:57:09,840 --> 00:57:14,800
+And I ended up with this design by no particular reason.
+
+634
+00:57:15,278 --> 00:57:15,800
+I've tried.
+
+635
+00:57:17,230 --> 00:57:29,690
+Sorry, let me just do one thing, which is I ended up, you know, icon and all of this, going from dark modes, teal, green, white.
+
+636
+00:57:29,710 --> 00:57:33,650
+What I ended up with, this thing, a bit more simple, which has this, these kinds of shades.
+
+637
+00:57:34,862 --> 00:57:51,910
+After a couple of iterations with open design and getting this design system, getting this design system, which I then told him, "Hey, I'm using Phoenix, port me this onto my project And basically it's using these primitives with LiveView.
+
+638
+00:57:52,494 --> 00:58:04,810
+Again, changing the design at this point in time is me going into OpenDesign with the files that I got, this is what I have, I want this in more blue, with the icon on this size, that thing changes, syncs with the app, refresh, done.
+
+639
+00:58:05,690 --> 00:58:07,830
+I mean, it's a bit more complex than that.
+
+640
+00:58:09,230 --> 00:58:10,050
+No, open design.
+
+641
+00:58:11,086 --> 00:58:13,810
+So it's, let me, I think I can share.
+
+642
+00:58:17,294 --> 00:58:21,530
+By the way, this is highly, highly, highly, let me check.
+
+643
+00:58:21,730 --> 00:58:22,370
+Not illegal.
+
+644
+00:58:22,490 --> 00:58:23,990
+I'm not going to say illegal, because it's not illegal.
+
+645
+00:58:24,490 --> 00:58:33,650
+I'm using, let me try to share, okay, I need to go here, and I need to share a different window.
+
+646
+00:58:40,780 --> 00:58:40,980
+No?
+
+647
+00:58:41,582 --> 00:58:41,960
+Why not?
+
+648
+00:58:41,960 --> 00:58:54,520
+Okay, let's do one thing, let's, when we're on the pizzas I'll kind of open the laptop, it's easier to show, and I can show you also the file documentation, you were asking about this, how I have this structured.
+
+649
+00:58:58,766 --> 00:59:08,480
+The question is, to build that product, that this product for travel, have you do it iteratively?
+
+650
+00:59:08,480 --> 00:59:18,660
+Or have you used some kind of spec-driven development that you beforehand said what you expect to the LLM to build?
+
+651
+00:59:19,060 --> 00:59:24,600
+And after they build it, you can check if it is properly done.
+
+652
+00:59:24,680 --> 00:59:37,420
+Because one of the problems that I found when I build something with the LLM is that it's hard to know if it has done the things in the correct way.
+
+653
+00:59:37,420 --> 00:59:38,420
+Yes, yes.
+
+654
+00:59:39,200 --> 00:59:45,760
+Okay, taking that with a pinch of salt, the correct way is very hard to, even for humans, right?
+
+655
+00:59:46,280 --> 00:59:49,140
+Two of us checking the same thing will have like a very different opinion.
+
+656
+00:59:50,030 --> 00:59:52,260
+What we started was discussing the concept.
+
+657
+00:59:52,820 --> 01:00:04,060
+I was earlier on telling that like we started this with, you know, hey, let's do, you know, voice and let's do recommendations and let's do, you know, let's do more AI in the thing.
+
+658
+01:00:04,160 --> 01:00:05,780
+And then we ended up this is not what we want.
+
+659
+01:00:05,820 --> 01:00:10,440
+What we want is actually to strip all of that, and to focus on human connections.
+
+660
+01:00:10,900 --> 01:00:18,120
+Now we're going to gradually add AI to help, but help without being at the forefront of everything.
+
+661
+01:00:18,660 --> 01:00:21,980
+I have running, so I basically have two versions running.
+
+662
+01:00:23,918 --> 01:00:24,640
+This thing here.
+
+663
+01:00:25,860 --> 01:00:33,080
+The idea is, you have recommendations, by the way, my favorite place on earth, until the next favorite place on earth.
+
+664
+01:00:33,840 --> 01:00:37,200
+So, you know, stuff like this, it was really fun, right?
+
+665
+01:00:37,260 --> 01:00:42,200
+I'm not sure if it's going to sound anything, but like, nah, it doesn't have the audio enabled.
+
+666
+01:00:42,600 --> 01:00:48,860
+It will read you a short description, it's generated with the LLM, it basically translates if you're doing in English and all of that jazz.
+
+667
+01:00:49,000 --> 01:00:50,680
+So to tell you, it was iterative.
+
+668
+01:00:51,246 --> 01:00:55,720
+We had this, again, do not focus on the UI, we had like, even the concept was very different.
+
+669
+01:00:56,430 --> 01:01:11,080
+Then we started thinking about traveling people, you know, this whole idea about sending a postcard, sending something that, you know, it's kind of limited, a bit like what Twitter did with the 140 characters, but like it's limited, but it's something personal that you would trade with others.
+
+670
+01:01:11,534 --> 01:01:20,100
+Again, I'm not saying that the concept is good, we'll see, but the idea here is, you know, we iterated on that, and then our decisions were, how do we get there?
+
+671
+01:01:20,942 --> 01:01:24,560
+And our decisions at some points were, you know, I call it avalanche iteration.
+
+672
+01:01:24,942 --> 01:01:27,680
+You just jump, and you see where you land.
+
+673
+01:01:28,440 --> 01:01:33,980
+But then you get up, and you analyze, and you go back to a particular place, and you try again.
+
+674
+01:01:34,670 --> 01:01:35,640
+Most of them were intentful.
+
+675
+01:01:35,740 --> 01:01:53,700
+And when we have that intent, I tend to actually speak with the person that's actually building this with me, not on a technical side, but has a lot of experience with travel, has a lot of connections, and actually discuss the problems, and then try to create specs, things very vague that we want to build, and then feed that.
+
+676
+01:01:53,800 --> 01:01:57,440
+So this is why I'm using one of the skills, the PHX, like the Phoenix plan.
+
+677
+01:01:57,998 --> 01:02:01,580
+Like, this is the input, these are the requirements, these are the things that I want to explore.
+
+678
+01:02:01,966 --> 01:02:03,300
+Do this, it will generate a plan.
+
+679
+01:02:03,726 --> 01:02:09,760
+It will automatically generate a scratch path, progress, and markdown, which you can actually track as it goes along.
+
+680
+01:02:11,854 --> 01:02:15,640
+One last question, anyone?
+
+681
+01:02:16,270 --> 01:02:23,400
+What do you think, if you didn't have AI, and you had to write this product with a team.
+
+682
+01:02:25,806 --> 01:02:29,580
+Would you estimate how many people do you think you would need or how much time?
+
+683
+01:02:30,360 --> 01:02:33,740
+Because it's amazing what you can do with a single developer.
+
+684
+01:02:34,200 --> 01:02:37,760
+Yes, sorry, with a single developer in part-time, you know?
+
+685
+01:02:37,920 --> 01:02:38,860
+Yeah, yeah, yeah, yeah, yeah.
+
+686
+01:02:41,102 --> 01:02:42,920
+So, sorry, wait, wait, wait, wait, wait.
+
+687
+01:02:43,260 --> 01:02:49,940
+I call me a developer, I'm managing people for the past, you know, couple of years, but yeah, I'm joking, but like, it's a lot.
+
+688
+01:02:50,400 --> 01:02:50,660
+It's a lot.
+
+689
+01:02:50,740 --> 01:02:55,940
+And this is the part where I said, like, the possibility that you have on validating your ideas and building it.
+
+690
+01:02:56,140 --> 01:03:05,240
+I've started 10 other projects, which is like, I don't have the energy, I don't have the time, I, you know, this thing is going on, by the way, this thing is going on for a year.
+
+691
+01:03:05,486 --> 01:03:09,720
+Like, all of this iteration, we have a life and, you know, we're accelerating a bit more now.
+
+692
+01:03:10,040 --> 01:03:16,920
+But it's this whole thing about I'm doing something, but I'm also learning a lot about the technology and what's possible.
+
+693
+01:03:16,920 --> 01:03:33,188
+this whole thing of me saying that I'm very happy with the setup that I have, the number of times that I'm screaming unspoken words and want to throw the laptop through the window has reduced drastically in the last three months.
+
+694
+01:03:33,560 --> 01:03:35,760
+Not just the models,
+
+695
+01:03:35,760 --> 01:03:37,620
+it's the balances.
+
+696
+01:03:39,360 --> 01:03:40,320
+But it works for me.
+
+697
+01:03:40,980 --> 01:03:43,760
+I would estimate, I don't know, I don't know how much money.
+
+698
+01:03:44,700 --> 01:03:52,200
+Basically I would have to raise, get some contractors, be on top of things, and it would not save me time.
+
+699
+01:03:52,480 --> 01:03:57,540
+I think I would spend more time trying to manage the thing than I'm actually spending in building it.
+
+700
+01:03:57,840 --> 01:03:59,820
+So yes, it's a super tool.
+
+701
+01:04:02,382 --> 01:04:03,620
+But let's not AI, bro.
+
+702
+01:04:05,100 --> 01:04:07,812
+Token Max and PRs and...
+
+703
+01:04:08,558 --> 01:04:08,860
+Thank you.
+
