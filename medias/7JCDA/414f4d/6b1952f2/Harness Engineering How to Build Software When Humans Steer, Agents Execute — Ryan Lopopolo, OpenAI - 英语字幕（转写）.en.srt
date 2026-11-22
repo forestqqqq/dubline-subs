@@ -1,0 +1,1528 @@
+1
+00:00:04,460 --> 00:00:05,240
+The next
+
+2
+00:00:15,374 --> 00:00:23,690
+speaker is here to speak about Harness Engineering, how to build software when humans steer and agents execute.
+
+3
+00:00:24,366 --> 00:00:31,110
+Please join me in welcoming to the stage, member of technical staff at OpenAI, Ryan Lopopolo.
+
+4
+00:00:40,366 --> 00:00:41,100
+Good morning, London.
+
+5
+00:00:46,446 --> 00:00:47,910
+I'm super excited to be here today.
+
+6
+00:00:47,910 --> 00:00:49,130
+I'm Ryan Lopopolo.
+
+7
+00:00:49,590 --> 00:00:55,550
+And for the last nine months, I have had the privilege of building software exclusively with agents.
+
+8
+00:00:56,390 --> 00:00:57,910
+I am a token billionaire.
+
+9
+00:00:58,350 --> 00:01:08,030
+And I believe that in order for us to get into our AGI future, we want everybody to be token billionaires, to use the models to do the full job.
+
+10
+00:01:08,770 --> 00:01:17,130
+And what that means is to lean into the idea that the models are capable of being a full software engineer.
+
+11
+00:01:17,130 --> 00:01:24,650
+And I've lived that experience by banning my team from even touching their editors to have to work through the models in order to get the job done.
+
+12
+00:01:25,450 --> 00:01:37,490
+And today, I'm going to talk to you a little bit about what it means to lean into that and operationalize the way you work, the code spaces you live in, and the processes on your teams in order to get the agents to do the full job.
+
+13
+00:01:40,800 --> 00:01:45,252
+I believe I'm preaching to the choir here when I say that the way we build software has changed.
+
+14
+00:01:45,838 --> 00:02:05,500
+In the last six months, we have seen coding agents take over the world, and capability has continually advanced at a super-fast pace to have these models and the harnesses within which they live take more complex actions, do more complicated work with higher reliability over longer time horizons.
+
+15
+00:02:06,500 --> 00:02:14,760
+And the place we've gotten to here is that implementation is no longer the scarce resource of what it means to do the job of software engineering.
+
+16
+00:02:15,406 --> 00:02:16,120
+Code is free.
+
+17
+00:02:16,600 --> 00:02:26,116
+We have an abundance of code to solve the problems that we come across in our day-to-day as we run our teams, build software, and solve user problems.
+
+18
+00:02:27,900 --> 00:02:34,960
+Hiring the hands on the keyboards as part of our teams is only constrained by GPU capacity and token budgets.
+
+19
+00:02:35,822 --> 00:02:46,200
+And each engineer today in this room has access to 5, 50, or 5,000 engineers worth of capacity, 24-7 every day of the year.
+
+20
+00:02:47,182 --> 00:02:57,760
+The only thing that needs to happen, our roles, is to figure out how to productively deploy these resources into our code and into our teams to make use of this new capacity.
+
+21
+00:02:59,150 --> 00:03:11,420
+And in this world, skill sets are shifting more towards systems thinking, system design, and delegation in order to make use of this abundant capacity to produce code to solve problems.
+
+22
+00:03:11,420 --> 00:03:16,520
+And there are three reasons that this happened, all of which happened in late 2025.
+
+23
+00:03:19,310 --> 00:03:25,860
+For me, the magic moment was GPT 5.2, which, when it came out, was able to do the full job of a software engineer.
+
+24
+00:03:26,766 --> 00:03:37,560
+The models at this point are good enough where they're isomorphic to you and I in terms of the ability to produce code at high quality that solve real user problems in real code bases.
+
+25
+00:03:39,920 --> 00:03:40,580
+Code is free.
+
+26
+00:03:41,422 --> 00:03:53,660
+And I know this is maybe a scary thing to hear, because code carries maintenance burden, but it's free to produce, free to refactor, and it is not a thing to get hung up on any more.
+
+27
+00:03:54,862 --> 00:04:03,640
+We think of code as burden because it's a synchronous attention drain on the human engineers on our team, but the models are incredibly patient.
+
+28
+00:04:04,080 --> 00:04:05,420
+they're infinitely parallel.
+
+29
+00:04:05,870 --> 00:04:15,332
+so the ability to produce, maintain, refactor and delete code is no longer a forcing function on figuring out how to allocate resources on your engineering teams.
+
+30
+00:04:16,462 --> 00:04:29,320
+So sort of be AGI-pilled here is to believe that the models are capable of producing every line of code we could ever possibly need, figuring out when to delete them, figuring out when to refactor them or make them more reliable.
+
+31
+00:04:29,998 --> 00:04:43,060
+And it's your role as software engineers to figure out how to unblock your team of agents and humans driving those agents from being able to drive them over long horizon work to do the full job.
+
+32
+00:04:44,814 --> 00:04:47,700
+The idea here is that every one of you is a staff engineer.
+
+33
+00:04:48,280 --> 00:04:54,060
+You have as many team members as you can possibly drive concurrently and have tokens to support.
+
+34
+00:04:54,940 --> 00:05:07,020
+And you need to look one day, one week, six months into the future to figure out what structures you need to put in place to productively harness this infinite capacity to produce code.
+
+35
+00:05:10,574 --> 00:05:21,040
+The scarce resources in this world that we see today are three things, human time, human and model attention, and model context window.
+
+36
+00:05:22,060 --> 00:05:37,980
+And in the world where human time and attention is scarce, the role is to think about where that time is going, figure out ways to productively automate it, and move that synchronous human time into higher leverage activities.
+
+37
+00:05:40,366 --> 00:05:47,480
+In a world where human time is scarce, and human time is required to produce code, we have a stack rank.
+
+38
+00:05:48,180 --> 00:05:50,620
+Things are either P0s or P2s.
+
+39
+00:05:50,940 --> 00:05:52,780
+Those P3s will never get done.
+
+40
+00:05:53,360 --> 00:06:02,020
+However, in a world where code is free and infinitely abundant, all those P3s get kicked off immediately, maybe 4x in parallel.
+
+41
+00:06:02,542 --> 00:06:05,680
+We pick one that solves the problem, and in it goes.
+
+42
+00:06:07,054 --> 00:06:22,440
+I've had the privilege of building a ton of agents internally at OpenAI to improve the productivity of my co-workers, and, when code is free, all these internal tools can have good localisation and internationalisation from day one.
+
+43
+00:06:23,214 --> 00:06:39,400
+I can make tools that my colleagues in London, Dublin, Paris, Brussels, Zurich, and Munich are able to experience in their native languages without really having to trade against any of my other team's capacity in order to make high-quality tools.
+
+44
+00:06:40,814 --> 00:06:51,200
+We should be working with the assumption that the best parts of software engineering that we all know, live, and breathe are available in any product that we could ever build all the time.
+
+45
+00:06:52,622 --> 00:06:55,860
+Humans no longer need to concern themselves with implementation.
+
+46
+00:06:56,846 --> 00:07:00,760
+The important thing is not the code, but the prompt and the guardrails that got you there.
+
+47
+00:07:01,486 --> 00:07:17,340
+This is why leaving breadcrumbs, documentation, ADRs, persona-oriented documentation around what a good job looks like, all the historical logs of tickets and code reviews, this is the process that got you and your teams to the code and products that you have today.
+
+48
+00:07:17,780 --> 00:07:21,660
+And this is what needs to happen in order to get your agents there as well.
+
+49
+00:07:23,054 --> 00:07:29,160
+Your job is to build systems, software, and structures that enable your team to be successful.
+
+50
+00:07:29,900 --> 00:07:35,588
+And to do that, we need to make them legible to those agents that are driving the implementation.
+
+51
+00:07:36,462 --> 00:07:50,580
+That means structuring them in a way that's native to the agents, writing them in a way that is respecting of scarce context, which is this other scarce resource here, and figuring out ways to make the tokens that are required to do the job easy to predict.
+
+52
+00:07:51,118 --> 00:07:58,360
+That means making things the same as much as possible so we can limit the amount of attention and the model needs to activate in order to do the job.
+
+53
+00:07:59,662 --> 00:08:02,500
+Large-scale refactoring in this world is free.
+
+54
+00:08:02,926 --> 00:08:06,500
+So making things the same is something that you are all able to do.
+
+55
+00:08:06,990 --> 00:08:13,360
+There's never going to be a migration that hangs open for six months now that you can't get the last parts of the code base to do.
+
+56
+00:08:13,806 --> 00:08:16,860
+Because you can just fire off 15 agents to drive that work to completion.
+
+57
+00:08:17,550 --> 00:08:19,680
+This is what it means to have a migration, right?
+
+58
+00:08:19,700 --> 00:08:20,680
+We can finish them now.
+
+59
+00:08:21,614 --> 00:08:21,860
+Come on.
+
+60
+00:08:22,734 --> 00:08:23,120
+That's good.
+
+61
+00:08:23,220 --> 00:08:23,400
+Clap.
+
+62
+00:08:23,400 --> 00:08:33,640
+But there's sort of this meta epistemological question here about what it means to do a good job.
+
+63
+00:08:34,320 --> 00:08:37,660
+And doing a good job as a software engineer is hard.
+
+64
+00:08:38,606 --> 00:08:51,492
+It requires us years of being in the industry to fully internalize what it means to write high-quality, maintainable, reliable code that our teammates are able to build on top of that is going to accrue leverage to the code base.
+
+65
+00:08:51,500 --> 00:09:04,300
+To do a single patch well probably requires 500 little decisions along the way around the underspecified non-functional requirements that go into producing good code.
+
+66
+00:09:05,486 --> 00:09:15,780
+The agents, the models during their training, have seen trillions of lines of code that make every possible choice of those non-functional requirements that you could ever imagine.
+
+67
+00:09:16,526 --> 00:09:27,900
+So it's our job to specify those non-functional requirements, to write them down in a way that the agents can see, this is what it is to do a good, acceptable job that's going to produce a merge patch.
+
+68
+00:09:28,718 --> 00:09:38,060
+And if the agents aren't doing that, it's our job to figure out ways to refine and restrict their output such that the code they write is acceptable.
+
+69
+00:09:38,798 --> 00:09:40,860
+You can just simply say, do not produce slop.
+
+70
+00:09:41,582 --> 00:09:42,380
+Don't accept slop.
+
+71
+00:09:42,400 --> 00:09:43,780
+You won't get slop in your code base.
+
+72
+00:09:44,110 --> 00:09:51,900
+But to do that requires taking short-term velocity hits in order to back up or double-click into a task to figure out what it is.
+
+73
+00:09:51,900 --> 00:10:04,960
+the agents are struggling with in your environment, put the guardrails in place, so they stop making those mistakes, and then figure out ways to step back and spend your time on higher leverage activities.
+
+74
+00:10:04,960 --> 00:10:07,840
+once you solve some of the blockers in the short term.
+
+75
+00:10:09,742 --> 00:10:15,220
+When I think about empowering my team in this way, everyone is an expert in what it is they bring.
+
+76
+00:10:15,758 --> 00:10:33,560
+I have a diverse, full-stack team that is experts in front-end architecture, back-end scalability, being product-minded, and each one of those different personas fleshes out the skill set of my team by bringing a different understanding, a different set of solves for those non-functional requirements.
+
+77
+00:10:34,542 --> 00:10:42,140
+Getting teammates to write those down actually means that every engineer driving agents gets the best of every single person on my team.
+
+78
+00:10:42,702 --> 00:10:49,720
+I don't need to block on low-signal code review in order to learn what it means to write a good QA plan.
+
+79
+00:10:50,894 --> 00:10:58,260
+To have one engineer on my team document that in a durable way means every agent trajectory is going to get a good QA plan.
+
+80
+00:10:58,580 --> 00:11:02,780
+And we can do this once in a high leverage way that we're able to stack on top of.
+
+81
+00:11:05,680 --> 00:11:08,240
+So how can we get the agents to do a good job?
+
+82
+00:11:08,320 --> 00:11:20,360
+What are some of the tools and techniques we have in order to essentially prompt inject our agents and continually remind them of what it means to make those specific choices that we expect around those non-functional requirements.
+
+83
+00:11:21,294 --> 00:11:22,720
+And there's a bunch of ways we can do this.
+
+84
+00:11:23,406 --> 00:11:25,800
+We can write good-agents.md files.
+
+85
+00:11:26,000 --> 00:11:34,620
+However, with auto-compaction, which is a thing that has continued to improve, GPT 5.4 and Codex is fantastic at auto-compaction.
+
+86
+00:11:34,700 --> 00:11:37,520
+I essentially never have to write slash new anymore.
+
+87
+00:11:38,286 --> 00:11:46,080
+I've got some pictures on my Twitter of me strapping my laptop into the back of my car so I can continue running inference while I'm commuting to and from work.
+
+88
+00:11:46,798 --> 00:11:55,060
+and in this world, you have to kind of build for that expectation that context will get paged out over time.
+
+89
+00:11:55,502 --> 00:12:09,220
+We need to be continually refreshing context as the agent goes about doing a task, and the ways we can do that are by having reviewer agents look at the code along the way through the lens of what it means to be successful, right?
+
+90
+00:12:09,838 --> 00:12:25,580
+We have security and reliability review agents in our codebase that are continually running as part of every push in CI that look at those documentations and the proposed patch and do simple things like say, are there timeouts and retries on this bit of network code?
+
+91
+00:12:26,030 --> 00:12:30,720
+Has the code that has been introduced have a secure interface that is impossible to misuse?
+
+92
+00:12:32,334 --> 00:12:50,080
+I'm sure everyone here has been paged at some point for network code that failed in production, causing an outage that could have been remediated by a retry and a timeout, and I know I'm guilty of putting that retry and timeout in, merging the bug fix, and otherwise ignoring that.
+
+93
+00:12:50,638 --> 00:12:55,500
+I am not a reliable reviewer or author of code with respect to this non-functional requirement.
+
+94
+00:12:56,120 --> 00:13:10,720
+However, taking the time to write some docs, write a lint that is bespoke to my code base that is gonna look at every time I call fetch to make sure that there's a retry and a timeout wrapped around it, means I've durably solved this problem.
+
+95
+00:13:10,720 --> 00:13:22,080
+And I'm able to do it because I lean on this axiom that code is free, that the agents are able to do a good job, that I can completely migrate the code base to solve this problem durably once and for all.
+
+96
+00:13:23,060 --> 00:13:36,080
+And in order to kind of operate in this way, we need to step back and look at the durable classes of failures that the agents and the humans in the code base are making time after time.
+
+97
+00:13:37,134 --> 00:13:39,400
+figure out why we're spending time on.
+
+98
+00:13:39,400 --> 00:13:50,240
+it, devise a solution to systematically eliminate this class of misbehavior, and then continue to observe, refine, and make additional choices on those non-functional requirements.
+
+99
+00:13:51,406 --> 00:13:59,428
+One really neat trick I use here is that you can write tests about the source code as well that are separate from lints.
+
+100
+00:13:59,900 --> 00:14:07,940
+If we know that context is limited, we can write a test that limits the fact that files are no longer than 350 lines.
+
+101
+00:14:08,814 --> 00:14:19,420
+We're adapting our code base to the harness, this to the models to do a little bit of engineering to be context efficient and squeeze more juice out of the model capability that we have today.
+
+102
+00:14:22,222 --> 00:14:32,890
+The other things we can think about are providing good error messages that give actual remediation steps to the model and to humans for how to proceed next.
+
+103
+00:14:33,454 --> 00:14:45,230
+It's not enough to say we've got a lint failure because we're awaiting in a loop or that we have an unknown at this deep part of the code base, and why is the model writing a function called isRecord?
+
+104
+00:14:45,838 --> 00:15:04,410
+What we need to do is provide a prompt via a lint or a test failure that says, no, no, no, you shouldn't have an unknown here at all, because we parse don't validate at the edge, and you certainly have a type here which was derived from Zot, load-bearing infrastructure for our AI future.
+
+105
+00:15:10,094 --> 00:15:11,120
+You can just prompt things.
+
+106
+00:15:11,940 --> 00:15:14,560
+Everything I've talked about here today is a prompt.
+
+107
+00:15:14,560 --> 00:15:17,840
+You can do this without touching the model weights at all.
+
+108
+00:15:19,886 --> 00:15:37,120
+Kind of a funny digression here is, it seems like each advancement we've had in the complexity of the way we write code to interact with these models comes from both increasing capability in the models and increasingly niche ways for injecting prompts into those models.
+
+109
+00:15:37,760 --> 00:15:40,200
+Prompts, I'm sure you're aware, are prompts.
+
+110
+00:15:40,780 --> 00:15:41,940
+Powers, prompts.
+
+111
+00:15:42,440 --> 00:15:43,620
+Rules files, prompts.
+
+112
+00:15:44,238 --> 00:15:56,100
+skills, prompts, these lint error messages that I am talking about, prompts, review agents that inject comments onto the PR that we require the agent to address before it is able to propose it for merge, prompts.
+
+113
+00:15:57,422 --> 00:16:06,500
+You're gonna find lots of ways to insert prompts into your code, and one way you can do that is by embedding agent SDKs into your tests.
+
+114
+00:16:07,086 --> 00:16:12,920
+They're gonna review the code base for acceptability using prompts that get embedded into the code.
+
+115
+00:16:13,486 --> 00:16:19,600
+And if I find myself spending a ton of time writing prompts, we can actually shell out to the agent for that as well.
+
+116
+00:16:21,280 --> 00:16:40,660
+I've pointed Codex at all of the prompting cookbooks we have on the OpenAI developer guide and told him to synthesize a skill out of them for how to write prompts, which means when I find a need to write prompts in order to improve my agent performance locally in the code, I use the skill to write prompts that I wrote with the agent I mean, looking at the prompts to write the prompts.
+
+117
+00:16:45,518 --> 00:16:53,290
+All the leverage that you're encoding into your repository, your team, and the agents in this way, stacks incredibly well.
+
+118
+00:16:54,062 --> 00:17:05,230
+To kind of pull back to this idea that a single product-minded engineer on my team was able to give us a big lift, they know what it means to write a good QA plan.
+
+119
+00:17:05,646 --> 00:17:16,570
+To write a good QA plan, though, you have to document all the features that you have, the critical user journeys, and how users engage with your applications, web apps, APIs, and services.
+
+120
+00:17:17,838 --> 00:17:32,510
+Once you write those down on how to write a good QA plan with the expectation that all user-facing work has a QA plan, now a review agent is able to assert expectations around what it means to prove that you have effectively written the feature.
+
+121
+00:17:33,030 --> 00:17:53,124
+A QA plan indicates what media should be attached to the PR for the humans and agents is to know that you've done a good job, which has the consequence of me trusting the output more, needing to shoulder surf the agent less, and removing myself from the loop, even more, to delegate more and more of the work to agents.
+
+122
+00:17:53,678 --> 00:18:06,170
+And all of this is just making sure the agents have the tools and tokens and context to do the full job, to remove myself from the need as a synchronous driver.
+
+123
+00:18:07,406 --> 00:18:08,710
+The models crave tokens.
+
+124
+00:18:09,310 --> 00:18:17,910
+We can operationalize our code base to give them tokens to drive them forward, using subagents and all these other techniques to refine the agent output.
+
+125
+00:18:20,782 --> 00:18:25,360
+I'm excited to let you all know today, in the way you all do, that you can just go build things.
+
+126
+00:18:26,126 --> 00:18:31,800
+Do not hesitate to remove yourselves from the loop by getting the agents to do the full job, because they can.
+
+127
+00:18:32,526 --> 00:18:32,900
+Thank you.
+
+128
+00:18:34,830 --> 00:18:37,840
+Very excited to bring on our guest.
+
+129
+00:18:38,126 --> 00:18:39,700
+We've got Ryan Lopopolo today.
+
+130
+00:18:39,840 --> 00:18:40,720
+He just gave the keynote.
+
+131
+00:18:41,518 --> 00:18:42,400
+Very exciting speaker.
+
+132
+00:18:42,880 --> 00:18:46,300
+The man is full send hyperengineering at OpenAI.
+
+133
+00:18:46,660 --> 00:18:48,400
+So a little bit of background.
+
+134
+00:18:48,980 --> 00:18:50,900
+We did a LatentSpace episode with him.
+
+135
+00:18:50,980 --> 00:18:52,120
+We shipped it the other day.
+
+136
+00:18:52,540 --> 00:18:55,460
+The story, he wrote this great article called Harness Engineering.
+
+137
+00:18:55,820 --> 00:18:57,780
+And we're like, wow, this is pure gold.
+
+138
+00:18:57,880 --> 00:18:58,720
+We have him on the podcast.
+
+139
+00:18:59,260 --> 00:19:03,480
+He's a token billionaire spending over a billion and output tokens a day.
+
+140
+00:19:03,780 --> 00:19:04,840
+That's like over $1,000.
+
+141
+00:19:05,340 --> 00:19:07,180
+So man is really living it.
+
+142
+00:19:07,620 --> 00:19:12,860
+We want to keep this exciting, ask good questions, ask interesting stuff, ask things that people can learn from.
+
+143
+00:19:13,040 --> 00:19:14,780
+But let's welcome Ryan onto the stage.
+
+144
+00:19:20,020 --> 00:19:20,460
+Hi, folks.
+
+145
+00:19:20,480 --> 00:19:20,900
+How's it going?
+
+146
+00:19:21,060 --> 00:19:21,900
+Excited to be here.
+
+147
+00:19:23,022 --> 00:19:29,000
+London has been fantastic and excited to kind of walk through what it is that we do and how we work here.
+
+148
+00:19:29,454 --> 00:19:30,400
+I think you got to come on this.
+
+149
+00:19:30,400 --> 00:19:31,900
+The camera is just here.
+
+150
+00:19:32,040 --> 00:19:34,280
+I got blinded by the QR code, so we're good.
+
+151
+00:19:34,840 --> 00:19:37,800
+OK, so background, we have about an hour.
+
+152
+00:19:38,990 --> 00:19:40,100
+Scan this QR code.
+
+153
+00:19:40,200 --> 00:19:41,280
+You should get Slido.
+
+154
+00:19:41,934 --> 00:19:43,380
+Slido will let you ask questions.
+
+155
+00:19:43,860 --> 00:19:48,380
+If you see interesting stuff, you can thumbs them up, and we'll try to get through them.
+
+156
+00:19:48,520 --> 00:19:51,960
+Unfortunately, the first one, I can't super do, but let's just kick it off.
+
+157
+00:19:52,400 --> 00:19:54,500
+Ryan, can you show us your actual working setup?
+
+158
+00:19:54,820 --> 00:19:55,400
+With no laptop?
+
+159
+00:19:57,020 --> 00:20:02,160
+Yeah, here, beach, margarita, linear, right?
+
+160
+00:20:04,860 --> 00:20:07,180
+I'll say what's the podcast we put out.
+
+161
+00:20:07,320 --> 00:20:08,760
+We go through some of the work.
+
+162
+00:20:09,000 --> 00:20:16,100
+But if you want to talk about it, I guess without actually showing us what's your workflow like, what's your setup, how do you approach a task?
+
+163
+00:20:17,060 --> 00:20:24,440
+Sure, so the way me and my team work is to start with tickets, right?
+
+164
+00:20:24,500 --> 00:20:29,860
+We have chunks of work that we want to do, features we want to add to our apps, reliability work that we want to do.
+
+165
+00:20:30,600 --> 00:20:36,700
+We give that ticket to an agent, along with a couple of skills that enable it to manipulate our app.
+
+166
+00:20:37,540 --> 00:20:43,660
+We want the entry point to the development process to be Codex, not an environment which we build around it.
+
+167
+00:20:44,020 --> 00:20:48,060
+So we kind of do things outside in, right?
+
+168
+00:20:48,180 --> 00:20:53,400
+Like, Codex is the entry point, the same way you would be, and we give it tools, we give it instructions on how to cook.
+
+169
+00:20:53,870 --> 00:21:05,860
+So rather than, like, creating a shell that our app and Codex get spawned into, we have a skill that teaches Codex how to launch the app, that teaches Codex how to spin up that at local observability stack to give it logging and telemetry.
+
+170
+00:21:06,318 --> 00:21:18,460
+We give it a skill that enables it to boot up Chrome DevTools and attach to the application with a local CLI that will connect via some daemon that we have.
+
+171
+00:21:18,990 --> 00:21:25,700
+So the whole way we have set up the repository and all of the local DevTools is for Codex to invoke them first.
+
+172
+00:21:26,500 --> 00:21:33,920
+That means we have kind of like a bunch of little mini harnesses within the code base that make it really easy for us to slot in additional guardrails.
+
+173
+00:21:35,000 --> 00:21:41,200
+A big package of custom ESLint rules which get wired into every PNPM package in the workspace.
+
+174
+00:21:41,838 --> 00:21:54,720
+We have another sort of local dev harness that allows us to add sort of like higher level wholesome tests that assert the structure of the code itself rather than like either the syntax or the behavior of the code.
+
+175
+00:21:55,200 --> 00:22:02,436
+Things like package privacy, dependency edges between different layers of our stack, these sorts of things.
+
+176
+00:22:02,920 --> 00:22:13,348
+Making sure that across multiple files, odd schemas are deduplicated, that there's a single canonical implementation of our async helpers, these sorts of things.
+
+177
+00:22:14,158 --> 00:22:24,580
+Because the way we have seen the agents work is to sometimes optimize for local coherence of a package rather than using our shared utilities and things like that.
+
+178
+00:22:24,800 --> 00:22:37,400
+So having observed that behavior, we kind of have built a bunch of little pseudo-linter source code verification things that shake out some of that bad behavior so the humans don't get distracted paying attention to that in reviews.
+
+179
+00:22:37,870 --> 00:22:38,400
+Stuff like that.
+
+180
+00:22:39,150 --> 00:22:47,840
+But the setup optimizes for the agent to do the job and for the humans to not have to keep track of the high churn in the codebase.
+
+181
+00:22:49,102 --> 00:22:52,280
+We kind of centralize our leverage around 5 to 10 skills.
+
+182
+00:22:52,960 --> 00:22:57,660
+We don't go super wide on skills, preferring to make the existing skills better.
+
+183
+00:22:58,222 --> 00:23:06,420
+Because at least I find that the infrastructure within the repository, all the local developer tools, change super frequently.
+
+184
+00:23:06,926 --> 00:23:10,000
+And I don't really have the bandwidth to keep track of this.
+
+185
+00:23:10,094 --> 00:23:17,480
+So we hide all that complexity beneath the skills that the human has to invoke and let the agent just kind of figure it out.
+
+186
+00:23:17,920 --> 00:23:28,440
+One kind of neat thing here is when we move from using Chrome DevTools Protocol directly to having this like daemon thing, like, I didn't know that had happened for like three weeks.
+
+187
+00:23:28,960 --> 00:23:35,040
+It was like totally fine, because Codex was able to do the thing, you know, with the documentation and things that we had in place.
+
+188
+00:23:35,790 --> 00:23:38,080
+And part of this, you can get more detail in your article.
+
+189
+00:23:38,200 --> 00:23:41,260
+So some background, you wrote a great piece called Harness Engineering.
+
+190
+00:23:41,710 --> 00:23:48,100
+There's a whole section in there on how you thought about skills, thousands of skills versus simplifying it to just quite a few.
+
+191
+00:23:48,366 --> 00:23:54,660
+But OK, continuing on, how do you stop yourself from over-engineering harnesses?
+
+192
+00:23:55,020 --> 00:24:01,280
+And a little bit of a similar follow-up is, do you often build small tools for yourself, if ever?
+
+193
+00:24:01,902 --> 00:24:03,236
+Do you build custom tools?
+
+194
+00:24:04,280 --> 00:24:15,080
+Yeah, so I think this is kind of gesturing in the direction of the bitter lesson here, which is, how do I make sure the work that I do isn't completely obsoleted by an increase in model capability?
+
+195
+00:24:15,630 --> 00:24:28,240
+And the way I have thought about that is doing sort of the bare minimum amount of context management to kind of pull in requirements for the agent to do an acceptable job over the course of its work.
+
+196
+00:24:28,900 --> 00:24:32,860
+And context is a thing that I don't think will ever be obsoleted, right?
+
+197
+00:24:32,940 --> 00:24:39,680
+Like the models must be told, like, the requirements of the task, which guardrails to pay attention to, these sorts of things.
+
+198
+00:24:40,302 --> 00:24:50,820
+So a good harness is really operationalize around giving the model text at the right time so it can look at the work it has done and the information around what a good job looks like.
+
+199
+00:24:51,720 --> 00:24:55,820
+And, you know, fundamentally the models are trained to follow instructions.
+
+200
+00:24:56,280 --> 00:25:00,120
+All the harness should do is surface instructions to the model at the right time.
+
+201
+00:25:00,750 --> 00:25:03,640
+So we do want to minimize that too, right?
+
+202
+00:25:03,660 --> 00:25:08,300
+You don't want to front load all those instructions because then you kind of like overwhelm the agent.
+
+203
+00:25:08,942 --> 00:25:15,020
+But all of these sort of requirements around what a good job do need to be paid attention to over the entire course of a PR, right?
+
+204
+00:25:15,342 --> 00:25:23,940
+So figuring out ways to either defer or just in time surface those instructions is kind of what a good harness should do, right?
+
+205
+00:25:24,878 --> 00:25:37,120
+If you know that you want your React components, right, to be decomposed so that they make good snapshot tests for individual more stateless pieces, right, you don't need to load that up front.
+
+206
+00:25:37,540 --> 00:25:41,900
+Instead, you should kind of let the agent cook and prototype and experiment with the UI you want to build.
+
+207
+00:25:42,360 --> 00:25:45,920
+And then at lint or test time, say, OK, you've done the work.
+
+208
+00:25:46,020 --> 00:25:56,920
+In order to finish it, you have to break this apart so that your components are small and as stateless as possible and have local dependencies on hooks instead of prop drilling or whatever it is that you want the code to look like.
+
+209
+00:25:57,300 --> 00:26:00,260
+And then the agent will say, oh, this is a new instruction for me.
+
+210
+00:26:00,420 --> 00:26:04,380
+Let me take the patch as written, modify it to make sure that it adheres to the instructions.
+
+211
+00:26:04,910 --> 00:26:06,300
+And then up it goes to GitHub.
+
+212
+00:26:06,862 --> 00:26:11,960
+And this sort of thing is not going can be obsoleted by increases in model capability.
+
+213
+00:26:12,120 --> 00:26:16,540
+It's really just about getting that right text, that right context to the agent at the right time.
+
+214
+00:26:17,966 --> 00:26:20,220
+Can we talk about an example of a good harness?
+
+215
+00:26:20,782 --> 00:26:26,660
+So a lot of people are asking about the Codex model, the Codex harness, how does that compare to other harnesses?
+
+216
+00:26:26,720 --> 00:26:31,260
+So Cloud Code, Open Code, how do you guys take these decisions into play?
+
+217
+00:26:31,534 --> 00:26:39,620
+You don't work directly on Codex, but if there's stuff you can speak about the Codex harness, is what you guys see as you architect it out.
+
+218
+00:26:40,320 --> 00:26:52,820
+Yeah, so one thing that I think is super powerful is this notion that the labs are not just post-training the models, but post-training the models in the context of the harness in which they are primarily deployed in.
+
+219
+00:26:53,120 --> 00:27:10,240
+Like, the apply patch tool, or the specific quoting semantics of how to invoke the bash tool are in the loop for the post-training process for the harnesses from the labs, which means there is leverage to be had by depending on these first-party harnesses directly.
+
+220
+00:27:10,640 --> 00:27:11,900
+At least, this is what I believe.
+
+221
+00:27:13,000 --> 00:27:30,960
+And as such, being able to direct through them via things like the SDK or manipulating the Codex app server directly means you get to ride the wave of all that leverage in post-training and instead focus on the parts that you care about, which is what correct code looks like.
+
+222
+00:27:33,006 --> 00:27:37,880
+I kind of have high confidence that things like Cloud Code and Codex will continue to get better.
+
+223
+00:27:38,320 --> 00:27:42,040
+That is the responsibility of, like, the teams working on these coding agents.
+
+224
+00:27:42,280 --> 00:27:54,560
+So in my role, where I don't really want to focus on the coding harness at all, is figuring out ways to plug into them in ways that kind of, like, steer the agent.
+
+225
+00:27:55,150 --> 00:28:04,380
+That means my job can sort of, like, move up to thinking about differences in model behavior between releases, rather than deeply understanding the nuts and bolts of the harness.
+
+226
+00:28:05,020 --> 00:28:14,020
+Instead, I can think about what it means to, you know, drive the behavior that I want based on the observed behavior, rather than, like, the inner mechanics of the thing.
+
+227
+00:28:14,798 --> 00:28:20,340
+It's a perfect follow-up to the next question, which is, do you have any recommendations for collaboration platforms?
+
+228
+00:28:20,620 --> 00:28:29,300
+So when you're in the software development lifecycle, is there any platform that you use for agents, engineers, developers, all to collaborate on working on anything?
+
+229
+00:28:29,678 --> 00:28:30,940
+Any tips, any tools?
+
+230
+00:28:32,720 --> 00:28:45,100
+Yeah, so in this world, it has largely been just markdown files in the repository and GitHub that have been the primary sort of hub and spoke sort of thing.
+
+231
+00:28:46,030 --> 00:28:55,440
+If you think about collaborating on a document, like you open Google Docs, you write something, you ask for feedback, people comment, you apply suggestions, these sorts of things.
+
+232
+00:28:55,726 --> 00:29:00,920
+This is kind of like a little clean room environment just for this work artifact that you're producing.
+
+233
+00:29:01,320 --> 00:29:03,560
+Like a PR kind of has a similar purpose.
+
+234
+00:29:03,880 --> 00:29:11,380
+So we kind of treat that as a big hub and spoke broadcast domain where all of the agents and humans collaborate together.
+
+235
+00:29:12,420 --> 00:29:17,960
+And because we optimize for throughput, we don't block on any sort of contribution to that.
+
+236
+00:29:18,260 --> 00:29:19,960
+Like folks can either review or not.
+
+237
+00:29:20,060 --> 00:29:21,600
+Agents can either review or not.
+
+238
+00:29:21,902 --> 00:29:37,140
+the implementation agent can acknowledge, defer, or reject any feedback that it gets, really allowing each participant in the production of diffs to kind of make their own judgments around what it means to deliver, receive, respond to feedback.
+
+239
+00:29:37,760 --> 00:29:43,400
+And this has the nice property of not putting the model in a box in a bunch of places.
+
+240
+00:29:43,480 --> 00:29:46,980
+We want them to use their good reasoning sort of thing.
+
+241
+00:29:47,140 --> 00:30:04,860
+So being super prescriptive around every bit of feedback must be addressed can kind of have this catastrophic failure mode of your coding agent being bullied by all of the reviewers, when really we want a bias toward code being accepted, not perfect, not drowning in minutiae, and these sorts of things.
+
+242
+00:30:06,318 --> 00:30:08,580
+How should people get started with using coding agents?
+
+243
+00:30:08,900 --> 00:30:15,480
+People that have been doing a lot of manually written code, how do they start to transition?
+
+244
+00:30:15,700 --> 00:30:16,680
+What should they offload?
+
+245
+00:30:17,020 --> 00:30:21,540
+How do they kind of come over that barrier of, OK, I'm still checking every PR.
+
+246
+00:30:21,806 --> 00:30:23,700
+I'm copy-pasting from codecs.
+
+247
+00:30:24,174 --> 00:30:27,540
+How should the average engineer start to use these tools?
+
+248
+00:30:28,718 --> 00:30:30,620
+I think there's two ways to approach this problem.
+
+249
+00:30:30,900 --> 00:30:38,920
+One is to start using the coding agents to improve your confidence in the code itself, as it is written today.
+
+250
+00:30:39,260 --> 00:30:50,760
+I think we would all agree that more tests is probably a good thing, to assert that our programs are well-specified and behave correctly as our users interact with them is a good thing.
+
+251
+00:30:51,440 --> 00:31:00,300
+And the agents are super good at looking at the existing code with some context around how it is meant to be used and writing tests that assert that behavior.
+
+252
+00:31:00,800 --> 00:31:15,300
+So kind of using this to improve your confidence in the quality of the code will also increase the agent's ability to successfully navigate it, which means you don't have to worry as much around doing super detailed review of the agent output.
+
+253
+00:31:16,302 --> 00:31:20,860
+The other way to think about this is to look at how you are spending your time.
+
+254
+00:31:21,806 --> 00:31:24,660
+Is it, you know, staring at your editor, writing code?
+
+255
+00:31:24,900 --> 00:31:26,440
+Is it waiting for tests to run?
+
+256
+00:31:26,780 --> 00:31:28,920
+Is it waiting for human review feedback?
+
+257
+00:31:29,326 --> 00:31:30,280
+Is CI slow?
+
+258
+00:31:30,980 --> 00:31:32,220
+And you're, like, waiting on that.
+
+259
+00:31:32,300 --> 00:31:33,660
+Maybe you have a ton of flaky tests.
+
+260
+00:31:33,980 --> 00:31:39,600
+And using the agents to incrementally automate the parts where you are spending your time.
+
+261
+00:31:40,270 --> 00:31:51,556
+Because ultimately, the high leverage parts of our jobs is to define the work that must be done, prioritize and schedule that work, and then effectively empower folks on our team to do that work.
+
+262
+00:31:52,380 --> 00:32:07,876
+And the more and more we can delegate and move into sort of this sequencing and orchestration role, even if you just think about managing your teams, the more parallel and the more deeper individual executions of those delegations we're able to do.
+
+263
+00:32:08,910 --> 00:32:16,560
+If I put primitives in place that make it super easy to like spin up ways to respond to events on my Kafka queue, right?
+
+264
+00:32:16,640 --> 00:32:22,080
+Like I don't really need to be in the weeds with every engineer making sure they like implement a consumer correctly, right?
+
+265
+00:32:22,350 --> 00:32:28,840
+And these same sort of like building block style techniques apply really well to the agents and stack really well, too.
+
+266
+00:32:29,966 --> 00:32:30,360
+Fun one.
+
+267
+00:32:30,542 --> 00:32:31,960
+How do you work with agents in your car?
+
+268
+00:32:35,120 --> 00:32:40,460
+So I have not used the new voice mode that launched in CarPlay recently.
+
+269
+00:32:41,200 --> 00:32:55,660
+I'm not ready for that, but usually what I'll do is kick off a task right before I leave the office, tether my laptop to my phone, buckle it into the back seat and let it cook in the 30 minutes it takes me to get home.
+
+270
+00:32:56,140 --> 00:33:13,700
+Most of the time with the skills we invoke that tell the agent you're operating on a task, you go until the tests are green, I don't have to reach back there and poke yes, continue on to the thing, and I'm basically able to more fully saturate my day with token consumption.
+
+271
+00:33:15,310 --> 00:33:20,700
+The dream here is that I actually have 50 agents running 24-7 and I don't have to interact with them at all.
+
+272
+00:33:21,580 --> 00:33:29,820
+And the way to do that is to define the work well, figure out ways for it to automatically be scheduled, and remove myself from having to click the button, right?
+
+273
+00:33:30,126 --> 00:33:37,460
+Every time I have to type continue to the agent is like a failure of the harness to provide enough context around what it means to continue to completion.
+
+274
+00:33:38,990 --> 00:33:39,220
+Wow.
+
+275
+00:33:39,520 --> 00:33:41,080
+Good, good statement at the end.
+
+276
+00:33:41,200 --> 00:33:43,840
+Every time you have to interact with the agent is a failure.
+
+277
+00:33:44,460 --> 00:33:44,620
+Okay.
+
+278
+00:33:44,942 --> 00:33:47,760
+So the following question kind of scales this out, right?
+
+279
+00:33:47,840 --> 00:33:54,500
+As your org knowledge map scales, what practical steps do you have to, like, enable progressive disclosure?
+
+280
+00:33:54,660 --> 00:34:00,420
+So as you have a larger and larger code base, as you have more people, how do you scale your agents to work better with this?
+
+281
+00:34:00,910 --> 00:34:01,160
+Yeah.
+
+282
+00:34:01,160 --> 00:34:16,200
+So, when I sort of initially started this project that I was working on, blank repository, create Electron app, right, you know, v-single package, all this sort of stuff, and eventually ended up with a mess, right?
+
+283
+00:34:16,260 --> 00:34:23,100
+Because there's no package privacy that allows me to enforce invariance around what APIs are public versus which ones are not.
+
+284
+00:34:23,534 --> 00:34:30,860
+The agent didn't have, like, concrete hooks in the file system to determine which domains were separate from the other ones.
+
+285
+00:34:31,278 --> 00:34:52,760
+So we ended up going like full 10,000 engineer organization heavy on the architecture, 750 packages in the PMPM, workspace, isolated by business, logic domain or layer of the stack, individual small util packages that encapsulate reusable functionality that we'd linked on being used, that we can encode leverage in.
+
+286
+00:34:53,358 --> 00:35:08,516
+And I do think that like in this world, Even if you don't actually have microservices, structuring your repositories in ways that you can actually scope the directory subtree you are looking in to be able to do most of the change helps.
+
+287
+00:35:11,150 --> 00:35:17,720
+And code in the file system is also text, which means it's effectively prompts that you're giving to your coding agent.
+
+288
+00:35:18,440 --> 00:35:30,212
+So making the code as much the same as possible kind of makes it so that regardless of where or in the repository your agent is looking, it develops a ton of transferable context.
+
+289
+00:35:30,720 --> 00:35:35,588
+You should have one way to do a bounded concurrency helper.
+
+290
+00:35:35,982 --> 00:35:42,000
+You should have one way to construct observable and instrumented side-effectful command.
+
+291
+00:35:42,414 --> 00:35:43,860
+You should have one ORM.
+
+292
+00:35:44,160 --> 00:35:45,720
+You should have one programming language.
+
+293
+00:35:45,840 --> 00:35:47,600
+You should have one way of writing CI scripts.
+
+294
+00:35:47,700 --> 00:35:50,500
+You should have one way of adding additional lint rules, these sorts of things.
+
+295
+00:35:50,862 --> 00:35:58,420
+Because it means that the tokens that you want the model to produce, are easier to predict, and more consistently predicted regardless of where it looks.
+
+296
+00:35:59,726 --> 00:36:07,800
+So I would say, figure out ways to structure the code so it is local to a subtree in a repository for most of the ways you would interact with that system.
+
+297
+00:36:08,142 --> 00:36:12,640
+And then figure out a way to use these agents to completely migrate the code base to be the same.
+
+298
+00:36:13,360 --> 00:36:19,080
+Empower someone on your team to be a dictator, to say this is the way it must be done, or figure that out together.
+
+299
+00:36:20,820 --> 00:36:25,956
+and write it down, evolve the code so that it reflects that reality, these sorts of things.
+
+300
+00:36:26,798 --> 00:36:28,680
+We've got a few questions on code review.
+
+301
+00:36:28,920 --> 00:36:32,060
+How do you approach code review now that you have such high velocity?
+
+302
+00:36:32,820 --> 00:36:34,120
+Do you just not read the code?
+
+303
+00:36:34,240 --> 00:36:36,080
+Do you just trust the test coverage?
+
+304
+00:36:36,720 --> 00:36:38,060
+How do you write good tests?
+
+305
+00:36:38,340 --> 00:36:45,348
+How do you offload that sigma of like, you have a mental blocker, I need to manually check everything before I merge PRs?
+
+306
+00:36:46,660 --> 00:37:01,980
+So, that same sort of idea where you have to look at where you're spending your time and figure out ways to spend less of it, you know, when we started, right, the first thing to do was figure out how to get the agent reliably producing code that we would accept.
+
+307
+00:37:02,542 --> 00:37:12,840
+And a big challenge we ran into is with each engineer producing three to five PRs per day, even on a team of three, merge conflicts were super miserable, right?
+
+308
+00:37:12,840 --> 00:37:15,160
+because these PRs tended to be pretty big.
+
+309
+00:37:15,440 --> 00:37:18,380
+We were working on the same parts of the code base.
+
+310
+00:37:18,542 --> 00:37:20,880
+So that's where we moved in two directions.
+
+311
+00:37:21,100 --> 00:37:32,680
+One was to like tree out the code a bit more to minimize these merge conflicts, but also minimize the amount of time PRs were open so that we were reducing the likelihood of a merge conflict actually occurring.
+
+312
+00:37:33,280 --> 00:37:42,660
+And the reason PRs were staying open so long was because we needed a code review you, because humans were being the blocker in this scenario.
+
+313
+00:37:43,720 --> 00:37:48,640
+So, in order to do that piece automatically.
+
+314
+00:37:49,166 --> 00:37:53,360
+I essentially asked every engineer on the team to take one day a week, Fridays.
+
+315
+00:37:53,774 --> 00:38:08,380
+we called it garbage collection day, where our entire job was to take every bit of slop we had observed over the course of the week that was making a PR difficult to merge and figure out ways to categorically eliminate it.
+
+316
+00:38:08,398 --> 00:38:26,500
+From ever happening in the first place, which is where we kind of started closing this loop between the feedback that humans were giving on the PR indicates some context failure on behalf of the agent, getting that into the repository, and then figuring out ways to automatically prompt inject the agent so that it would self-heal when it produced this bad behavior.
+
+317
+00:38:26,920 --> 00:38:44,380
+And this is kind of how you go from synchronous human time spent giving feedback as code review to comments, to documentation in the repository, to automatically surfing this documentation, either via a failing test or a viewer agent who is primed to review the code as written in the context of these docs.
+
+318
+00:38:45,518 --> 00:38:50,600
+But all of that happens by putting those docs in a single place that all these processes are able to attach to.
+
+319
+00:38:53,806 --> 00:39:06,480
+We kind of asked folks to basically bucket the types of review feedback they were giving into the persona they were operating as, like front-end architect, you know, reliability, engineer, scalability sort of thing.
+
+320
+00:39:06,862 --> 00:39:13,360
+And then basically for each of those personas, we spun up a review agent that gets triggered on every push that says, is this code good?
+
+321
+00:39:13,518 --> 00:39:19,940
+Surface any P2s or above that would block this PR from merging based on these documentation that says what good looks like.
+
+322
+00:39:21,100 --> 00:39:27,260
+And with that, and just continuously appending to these files, we started to see slop reduce, reduce, reduce.
+
+323
+00:39:27,260 --> 00:39:30,800
+People have questions about your billion tokens.
+
+324
+00:39:31,280 --> 00:39:33,060
+Where do you think those are split up?
+
+325
+00:39:33,140 --> 00:39:35,100
+So how much of it is on code review?
+
+326
+00:39:35,580 --> 00:39:38,400
+Where is the majority of that usage coming from?
+
+327
+00:39:38,740 --> 00:39:45,640
+And a follow-up, for people that are just getting started, say they've jumped and done a $200 pro plan, right?
+
+328
+00:39:45,934 --> 00:39:51,280
+If you had to cut your usage by a fifth, how should people maximize their usage, right?
+
+329
+00:39:51,280 --> 00:39:52,560
+You run into usage limits.
+
+330
+00:39:53,300 --> 00:40:01,500
+You don't want to just copy-paste million lines of code every six hours, no prompt cache hit, but how should we think about that?
+
+331
+00:40:01,920 --> 00:40:02,120
+Yeah.
+
+332
+00:40:02,542 --> 00:40:06,500
+So I would say probably...
+
+333
+00:40:08,014 --> 00:40:18,640
+It's probably a third, a third, a third between, like, planning, ticket curation, documentation, implementation, and stuff that runs in CI.
+
+334
+00:40:18,894 --> 00:40:19,620
+Do you use plan mode?
+
+335
+00:40:21,820 --> 00:40:31,460
+I've used exec plans, which was kind of like an early version of this that we published, which is sort of like a proto-skill that says this is how you should structure a plan with milestones and acceptance criteria.
+
+336
+00:40:33,038 --> 00:40:35,600
+I haven't really used plan mode as part of the harness at all.
+
+337
+00:40:35,800 --> 00:40:45,440
+My sort of expectation here is that I should be able to drop a ticket in and have it do the job anyway without diverting through a plan, because most of the time I'm never going to read it anyway.
+
+338
+00:40:46,180 --> 00:40:54,820
+So I find that if you do use a plan and you approve it without reading it at all, you're actually encoding a bunch of instructions that you don't necessarily all you want followed.
+
+339
+00:40:55,440 --> 00:41:09,444
+So if you are going to use plans, my recommendation is to push those up as single PRs with just the plan, where you actually have humans review every line of it and block on human approval before they get merged and then kicked off.
+
+340
+00:41:10,510 --> 00:41:17,180
+Because you're effectively potentially wasting your time on a rollout with instructions that are bad.
+
+341
+00:41:17,646 --> 00:41:20,080
+So you want to minimize the time that happens.
+
+342
+00:41:20,206 --> 00:41:30,920
+But I do think that kind of getting tokens to be spent in CI is a necessary part here, because writing code no longer is the hard part.
+
+343
+00:41:31,100 --> 00:41:38,260
+Like, getting code accepted and advancing the code and product forward is, like, what it takes to make that written code be valuable.
+
+344
+00:41:39,060 --> 00:41:43,960
+And you know, kind of have all heard the aphorism that, like, you know, senior engineers give good code reviews.
+
+345
+00:41:44,040 --> 00:41:46,680
+Like, we expect our senior engineers as agents to do the same.
+
+346
+00:41:47,182 --> 00:41:52,200
+Someone asked, is code a disposable build artifact?
+
+347
+00:41:53,500 --> 00:41:53,740
+Yes.
+
+348
+00:41:54,820 --> 00:42:00,780
+I think we touch on this with Symfony, which is sort of this agent orchestrator that we released.
+
+349
+00:42:00,880 --> 00:42:10,820
+This idea that, you know, we can publish a library that's actually a super well-defined spec that the code is a compiled artifact of.
+
+350
+00:42:11,182 --> 00:42:18,840
+And I think like using LLM as fuzzy compiler is like an interesting mental model to have, right?
+
+351
+00:42:18,900 --> 00:42:31,160
+Like all of the context that we're putting in the code base for harness engineering is effectively like constraints and optimization passes on which code is acceptable to build in the first place.
+
+352
+00:42:31,566 --> 00:42:40,260
+And this is pretty similar to like the static analysis and optimization passes that something like LLVM would do in the process of compiling Rust code.
+
+353
+00:42:41,120 --> 00:42:52,340
+And sort of swapping out one model for another is sort of like changing your code generation backend from, you know, LLVM to Cranelift in the Rust compiler.
+
+354
+00:42:52,782 --> 00:43:06,596
+And you would expect that all of the sort of rules around what acceptable Rust code looks like produce valid sound machine code at the back, even if the generation process is different and you end up with different x86 instructions.
+
+355
+00:43:07,182 --> 00:43:11,380
+So same sort of mindset for LLMs, of swapping out different models sort of thing.
+
+356
+00:43:11,694 --> 00:43:20,740
+We want the structure around the code to basically limit how it is written to things that would be acceptable to us.
+
+357
+00:43:21,838 --> 00:43:26,200
+At a high level, can you give us a picture of what future you're building for?
+
+358
+00:43:26,542 --> 00:43:27,700
+Does context still matter?
+
+359
+00:43:28,110 --> 00:43:31,680
+How do people do engineering, harness engineering, context engineering?
+
+360
+00:43:32,046 --> 00:43:33,120
+What does the future look like?
+
+361
+00:43:35,790 --> 00:43:48,760
+Sort of the future that I want to build toward here is where I'm able to take a token budget and a quarter, a half, or a year's worth of work.
+
+362
+00:43:50,126 --> 00:43:52,180
+take the human input to rank.
+
+363
+00:43:52,238 --> 00:44:05,700
+what is most important, success, metrics, reliability metrics, give it to the machines, and have them continually work and advance my product forward without my hands explicitly on the wheels at all.
+
+364
+00:44:05,742 --> 00:44:21,920
+As we have gone through very early prototyping to internal alpha, internal beta, external alpha, I kind of have felt that new parts of the software engineering process have kind of started from zero.
+
+365
+00:44:22,100 --> 00:44:31,980
+and we've had to build up capability, kind of like these pentagonal personality charts, where I spike in this direction, maybe I'm weak over here.
+
+366
+00:44:31,980 --> 00:44:44,080
+And, you know, when we get to deployed software for the first time, right, the agent's ability to do, like, QA smoke testing on our built artifacts before they're promoted to distribution was weak.
+
+367
+00:44:44,180 --> 00:44:45,620
+We hadn't invested any time in this.
+
+368
+00:44:45,680 --> 00:44:46,280
+There were no docs.
+
+369
+00:44:46,380 --> 00:44:56,300
+There were no tools that the agents could use to, like, download the built artifact, launch it, poke around to make sure that our, like, most critical user journeys were well validated and tested.
+
+370
+00:44:56,300 --> 00:45:04,740
+So, because I don't want to be touching the computer, we needed to figure out, like, ways for the agents to build themselves tools to do that part.
+
+371
+00:45:06,860 --> 00:45:11,160
+And there's a whole universe of software engineering outside of writing code, right?
+
+372
+00:45:11,220 --> 00:45:14,340
+Like, I am triaging user feedback, I'm triaging pages.
+
+373
+00:45:14,958 --> 00:45:20,380
+I am making sure that we don't have any PII leaking in the logs in production.
+
+374
+00:45:20,878 --> 00:45:23,460
+I'm making sure that, like, the Twitter vibes are good.
+
+375
+00:45:23,460 --> 00:45:36,860
+and people are enjoying my software, that our user operations staff are supported with well-written run books that allow them to triage and mitigate high-volume user issues, and then moving that into the code itself.
+
+376
+00:45:36,860 --> 00:45:38,140
+so they don't happen in the first place.
+
+377
+00:45:38,680 --> 00:45:57,220
+And as I no longer have to produce code, like, my mind can shift to these other higher-level or more squishy activities, but the agents are good enough to do these things, too, and figuring out how to write down the processes and the acceptance criteria becomes like the sort of like metaprogramming part of the job using these agents.
+
+378
+00:45:57,742 --> 00:45:58,920
+That's a great way to end it.
+
+379
+00:45:58,980 --> 00:45:59,820
+What an exciting feature.
+
+380
+00:46:00,206 --> 00:46:01,100
+Give it up for Ryan, guys.
+
+381
+00:46:01,240 --> 00:46:01,820
+Thank you, folks.
+
+382
+00:46:01,820 --> 00:46:01,860
+Thank you.
+
