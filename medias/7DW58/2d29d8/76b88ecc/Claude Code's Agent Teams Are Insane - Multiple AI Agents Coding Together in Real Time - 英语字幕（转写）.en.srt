@@ -1,0 +1,836 @@
+1
+00:00:00,302 --> 00:00:01,640
+Take a look at this.
+
+2
+00:00:01,780 --> 00:00:09,660
+I have four instances of Cloud Code working at the exact same time together to perform a code review on my code base.
+
+3
+00:00:09,760 --> 00:00:15,440
+And this is all thanks to the new Agents Teams feature that Anthropic has built into Cloud Code.
+
+4
+00:00:15,840 --> 00:00:22,596
+And man, let me tell you, it really does look like I'm peering into the future of agentic engineering when I am using it.
+
+5
+00:00:22,990 --> 00:00:33,540
+So we have our primary lead agent on the left-hand side and in real time I watched it spin up each one of these tmux terminals to create these agents to collaborate on the same task.
+
+6
+00:00:34,080 --> 00:00:40,560
+Now people have been doing this sort of split-pane, multi-tmux terminal sort of setup for a while now.
+
+7
+00:00:40,942 --> 00:00:45,580
+So it's not really new, but there are a couple of things that make this super novel.
+
+8
+00:00:46,062 --> 00:00:53,660
+The first is that our primary agent, it actually decided the team to form based on the request that I gave it.
+
+9
+00:00:53,940 --> 00:01:01,940
+And the other part of this that makes it so powerful is that under the hood, of each one of these agents is working on the exact same task list together.
+
+10
+00:01:02,126 --> 00:01:04,100
+So this goes way beyond sub-agents.
+
+11
+00:01:04,462 --> 00:01:08,600
+These agents actually talk to each other, like, oh, let me complete this before you work on this.
+
+12
+00:01:08,878 --> 00:01:14,480
+They have that kind of communication that makes it so that we can take this idea of parallel agents a lot further.
+
+13
+00:01:15,022 --> 00:01:18,380
+So in this video, I wanna cover how Agent Teams works with you.
+
+14
+00:01:18,542 --> 00:01:21,580
+It's a new experimental feature that you have to enable.
+
+15
+00:01:21,700 --> 00:01:22,900
+We'll talk about how to set it up.
+
+16
+00:01:23,182 --> 00:01:27,812
+I also really wanna cover how Agent Teams is different from sub-agents.
+
+17
+00:01:28,220 --> 00:01:31,820
+A lot of people are confused by this right now because they operate really similarly.
+
+18
+00:01:32,238 --> 00:01:35,820
+The main difference is we have collaboration versus isolation.
+
+19
+00:01:36,340 --> 00:01:38,240
+There are pros and cons here that I want to cover.
+
+20
+00:01:38,700 --> 00:01:41,740
+Agent teams is really powerful, but it is not perfect.
+
+21
+00:01:41,860 --> 00:01:45,980
+So we'll get into that, which will also lead into a template that I have for you.
+
+22
+00:01:46,094 --> 00:01:47,620
+This is a command that I've built.
+
+23
+00:01:48,078 --> 00:01:59,520
+Basically you can use this to give instructions for Cloud Code on how to use agent teams better Because, believe it or not, even though this is a feature built into Cloud Code, it's not actually that good at using it.
+
+24
+00:01:59,600 --> 00:02:04,836
+And so I'll show you how to really take advantage of this new feature to do some pretty incredible things.
+
+25
+00:02:05,358 --> 00:02:11,876
+Now, this code review demonstration that I have for you is just a really simple example of what we can do with Agent Teams.
+
+26
+00:02:12,440 --> 00:02:17,780
+Anthropic has published a couple of articles where they've shown how far we can push this idea.
+
+27
+00:02:17,880 --> 00:02:25,800
+For example, Anthropic used 16 agents running together with this new Agent Teams feature to build an entire C compiler.
+
+28
+00:02:26,120 --> 00:02:29,956
+And let me tell you, building a compiler from scratch is not easy.
+
+29
+00:02:30,126 --> 00:02:41,540
+If you were to hire a dev team to do this, it would probably be hundreds of thousands of dollars, but they were able to do it with only $20,000 in API costs, which yes, that is still an insane amount of money.
+
+30
+00:02:41,940 --> 00:02:54,276
+Agent teams is very token heavy, which is one of the downsides we'll talk about in a little bit, but it's still really cool to see how far they were able to push what is possible with coding agents It's just running together, collaborating autonomously.
+
+31
+00:02:54,460 --> 00:03:01,820
+They literally just threw this in essentially a RELF loop where they forced it to write, I believe hundreds of thousands of lines of code to create this.
+
+32
+00:03:01,920 --> 00:03:03,860
+So it's very, very incredible.
+
+33
+00:03:03,860 --> 00:03:13,636
+The kind of thing that they say later in this article, there's no way that a single agent would have been able to do, even if you were to give this whole task to, you know, Opus 4.6, for example.
+
+34
+00:03:14,200 --> 00:03:20,120
+All right, so really quickly, I wanna show you how you can get your first agent team up and running in just a couple of minutes.
+
+35
+00:03:20,174 --> 00:03:25,440
+And then we'll get into how it's different from sub-agents because it is really important to understand.
+
+36
+00:03:25,998 --> 00:03:28,540
+So I will have a link to this page in the description.
+
+37
+00:03:28,760 --> 00:03:31,780
+This is the official guide on agent teams from Anthropic.
+
+38
+00:03:32,270 --> 00:03:34,620
+However, there is a lot of information here.
+
+39
+00:03:34,798 --> 00:03:35,780
+It's pretty overwhelming.
+
+40
+00:03:35,918 --> 00:03:38,860
+And so I just want to break it down nice and simple for you right now.
+
+41
+00:03:39,310 --> 00:03:46,084
+So the first thing you have to do because this is an experimental feature that is far from perfect, trust me, you have to enable it.
+
+42
+00:03:46,382 --> 00:03:54,000
+And so you can either set this environment variable on your computer or in a just a terminal session or you can add this to your settings.json.
+
+43
+00:03:54,126 --> 00:03:56,920
+So this is one of the config files for Cloud Code.
+
+44
+00:03:57,300 --> 00:04:01,700
+You probably worked with this before because it's where you set things like your MCP servers and your hooks.
+
+45
+00:04:01,934 --> 00:04:07,880
+And so we can set this at either the global.cloud level or in the .cloud project directory.
+
+46
+00:04:08,558 --> 00:04:12,132
+And so you can enable agent teams just for specific projects if you want.
+
+47
+00:04:12,366 --> 00:04:21,940
+So the other thing that you have to set up if you want that split-pane mode, where you can see all the terminals at the exact same time, is you need to install either TMUX or iTerm2.
+
+48
+00:04:22,414 --> 00:04:28,520
+These are terminal applications that support the split-pane mode, and these are just the two that are supported by Clod Code right now.
+
+49
+00:04:28,654 --> 00:04:39,340
+So if you install TMUX, which is my recommendation, or iTerm2, then Clod Code can leverage that directly to create those terminals, and you can watch them appear in real We'll see that in a second.
+
+50
+00:04:39,460 --> 00:04:40,960
+It is really, really cool.
+
+51
+00:04:41,380 --> 00:04:51,160
+And so the instructions is a bit different depending on your operating system, but actually in the agent team skill resource that I have for you, I have a readme that gives you the installation instructions.
+
+52
+00:04:51,342 --> 00:04:52,140
+So really, really easy.
+
+53
+00:04:52,220 --> 00:04:55,720
+Just keep in mind for Windows, you do need WSL.
+
+54
+00:04:56,140 --> 00:04:57,080
+And so I actually have that.
+
+55
+00:04:57,102 --> 00:04:59,120
+So I got my Linux subsystem here on Windows.
+
+56
+00:04:59,220 --> 00:05:00,480
+I'm running on Windows right now.
+
+57
+00:05:00,974 --> 00:05:04,520
+And so the first thing you have to do is you have to set that environment variable.
+
+58
+00:05:04,660 --> 00:05:07,960
+So either like this or in that settings.json file.
+
+59
+00:05:08,046 --> 00:05:09,840
+So clod code experimental agent teams.
+
+60
+00:05:10,286 --> 00:05:10,500
+Boom.
+
+61
+00:05:10,600 --> 00:05:10,940
+There we go.
+
+62
+00:05:10,940 --> 00:05:14,916
+And so now, the next time I go into, clod agent teams is available to me.
+
+63
+00:05:15,374 --> 00:05:23,140
+So now, just like with sub agents, all we have to do is tell clod we want to use the agent team feature, and it's gonna know exactly what we mean.
+
+64
+00:05:23,502 --> 00:05:27,820
+And so for a very simple example, I'm gonna send in this request right here.
+
+65
+00:05:28,014 --> 00:05:32,800
+So I'm asking it to create an agent team to review my code base, similar to the demo I showed you earlier.
+
+66
+00:05:32,800 --> 00:05:34,840
+That was a lot longer of a prompt, though.
+
+67
+00:05:34,840 --> 00:05:40,836
+But for simplicity, I'm just going to say, have one agent focused on security, one on code quality, and the other on documentation.
+
+68
+00:05:41,550 --> 00:05:44,560
+Now we could use sub-agents for this as well.
+
+69
+00:05:44,740 --> 00:05:49,660
+But the collaboration we have here, even for a simple example like this, I think is really powerful.
+
+70
+00:05:50,126 --> 00:05:54,420
+Because for example, the review on security might affect the way that we see documentation.
+
+71
+00:05:54,760 --> 00:05:59,524
+Like maybe we need to make sure we document any potential security issues that exist in the code base.
+
+72
+00:05:59,854 --> 00:06:19,140
+I think you get the idea of how that collaboration, even for a review, But especially for when we're diving into actually writing code that is really really necessary And so the lead agent here It's going to do its initial analysis think about the team to generate and then it'll spin those off So I'll pause and come back once we've gotten to that point.
+
+73
+00:06:19,220 --> 00:06:38,140
+So here we go Usually the indicator is something like let me create the tasks and spawn all three review agents because it defines the task list That is shared between all the agents once they collaborate and then in just a second here We'll see the first pane spin up on the right hand side, and then it'll do all three one by one.
+
+74
+00:06:38,380 --> 00:06:38,940
+And boom!
+
+75
+00:06:39,060 --> 00:06:39,660
+There we go.
+
+76
+00:06:39,740 --> 00:06:42,340
+We have our security reviewer to start.
+
+77
+00:06:42,766 --> 00:06:45,520
+And you can see the command that the lead agent runs.
+
+78
+00:06:45,870 --> 00:06:51,180
+It's just starting another Cloud Code session, but it's passing in the prompt to give it that context around its role.
+
+79
+00:06:51,540 --> 00:06:53,000
+It is the security reviewer.
+
+80
+00:06:53,240 --> 00:06:56,640
+And then giving it the task list and access to manage that with the other agents.
+
+81
+00:06:56,840 --> 00:06:58,300
+And yeah, a lot is happening here.
+
+82
+00:06:58,360 --> 00:06:59,260
+A lot of buzz on my screen.
+
+83
+00:06:59,260 --> 00:07:05,660
+But it has started all three agents now, really, really quickly, and each one of them is focused on their individual task.
+
+84
+00:07:05,710 --> 00:07:08,200
+But they'll start communicating with each other now.
+
+85
+00:07:08,200 --> 00:07:17,240
+One thing that I will say is you have to watch the logs very, very closely just to get a sense for when the agents are actually talking to each other.
+
+86
+00:07:17,240 --> 00:07:24,000
+So, maybe that's one of the gripes that I have with agent teams right now, is there's really not that much visibility into the actual collaboration.
+
+87
+00:07:24,720 --> 00:07:28,036
+And so I have seen examples as I've been testing things.
+
+88
+00:07:28,180 --> 00:07:32,980
+And if you ask the lead agent after how the agents collaborated, it will give you a good answer.
+
+89
+00:07:33,400 --> 00:07:38,580
+But for a lot of it, I just feel like I'm trusting that the agents really are working on the task list together.
+
+90
+00:07:38,940 --> 00:07:41,340
+There's not a really good way to dive into it.
+
+91
+00:07:41,940 --> 00:07:49,580
+Now, one thing you can do is you can press control B, and then you can press an arrow key to navigate between the different TMUX terminals.
+
+92
+00:07:49,680 --> 00:07:52,720
+And so I can and chat with any one of the agents here to ask it.
+
+93
+00:07:52,860 --> 00:07:54,320
+Like, what are you currently working on?
+
+94
+00:07:54,420 --> 00:07:55,860
+How are you collaborating with this agent?
+
+95
+00:07:56,366 --> 00:07:59,560
+It's also really powerful to go to the primary agent and ask it that as well.
+
+96
+00:07:59,662 --> 00:08:03,360
+Like, give me a status update on the task list and what the agents are working on.
+
+97
+00:08:03,790 --> 00:08:16,160
+And then by the way, once all of the agents in the team are done, the lead agent will spin down all those terminals and you're brought back to the simple view here where you can continue to work with the primary Cloud Code agent or spin up another team if you want.
+
+98
+00:08:16,558 --> 00:08:20,420
+So I wanna take a little bit of a different break from the video than I usually do.
+
+99
+00:08:20,780 --> 00:08:24,620
+I'm speaking at an event this March, which I am super excited to tell you about.
+
+100
+00:08:24,700 --> 00:08:29,060
+It is the Sonar Summit, which is Sonar's first ever global virtual event.
+
+101
+00:08:29,454 --> 00:08:35,040
+And I'm doing a fireside chat on building self-validation and guardrails into AI coding systems.
+
+102
+00:08:35,320 --> 00:08:45,476
+And this has been a big focus of mine, because here's the thing, AI is already writing 30 to 40% of new code at major tech companies, so adoption is pretty much universal.
+
+103
+00:08:45,480 --> 00:08:52,460
+But teams are realizing that shipping code faster does not necessarily mean also shipping quality faster.
+
+104
+00:08:52,640 --> 00:08:57,360
+Review times are climbing, incidents are up, and security vulnerabilities just slip through.
+
+105
+00:08:57,742 --> 00:09:01,740
+So for my session, I'll be covering what I call the AI Validation Pyramid.
+
+106
+00:09:01,966 --> 00:09:09,600
+This is a framework that allows us to define the validation requirements before we even write a single line of code, so it's a part of our plan.
+
+107
+00:09:10,030 --> 00:09:16,420
+And we have our agent handle the foundation, all the easy things like the type checking and linting, and our initial round of testing.
+
+108
+00:09:16,620 --> 00:09:19,524
+And then we as the humans control the layers that matter most.
+
+109
+00:09:20,040 --> 00:09:23,740
+And besides my event, there is a lot more going on at the Sonar Summit.
+
+110
+00:09:23,900 --> 00:09:37,100
+There are four tracks in total with keynotes on the future of software development in the AI era, deep dives into SonarCube, sessions on integrating code quality into CICD pipelines, a lot of awesome events to attend.
+
+111
+00:09:37,220 --> 00:09:43,680
+And by the way, it's free to come to Sonar Summit and they are running this virtual event in pretty much every single time zone.
+
+112
+00:09:44,046 --> 00:09:52,036
+And so if you want to know how to ship quality at speed, not just code at speed, I would highly recommend checking it out and I will have a link in the description.
+
+113
+00:09:52,654 --> 00:09:56,720
+So hopefully the value of agent teams and how to run them is clear to you.
+
+114
+00:09:56,800 --> 00:09:59,960
+Now I want to talk about how they are different from sub-agents.
+
+115
+00:10:00,060 --> 00:10:07,380
+And this is a really important distinction because now whenever you want to do parallel work with Cloud Code, you have to make that decision.
+
+116
+00:10:07,470 --> 00:10:12,612
+Should I ask Cloud to use sub-agents or should I ask Cloud to spin up an agent team?
+
+117
+00:10:13,006 --> 00:10:25,320
+And spoiler, there still are a lot of times where you want to use subagents instead, especially because of a couple of problems with agent teams that I'll talk about that'll lead really nicely into this skill that I have built for you.
+
+118
+00:10:25,460 --> 00:10:29,020
+This makes Clawd a lot better at using agent teams.
+
+119
+00:10:29,100 --> 00:10:30,780
+So I'm really excited to show you this.
+
+120
+00:10:31,060 --> 00:10:32,964
+But first, let's talk about subagents.
+
+121
+00:10:33,454 --> 00:10:36,900
+So the primary idea with subagents is context isolation.
+
+122
+00:10:36,900 --> 00:10:45,420
+We want some way to be able to dish out a request that could take tens or even hundreds to the thousands of tokens, but all we need back is a summary.
+
+123
+00:10:45,680 --> 00:10:52,900
+So our primary agent knows generally what happened, but it doesn't have to be polluted by the context of the entire task.
+
+124
+00:10:53,300 --> 00:10:59,460
+And this is important because context is the most precious resource when you are using an AI coding assistant.
+
+125
+00:10:59,820 --> 00:11:13,120
+But this context isolation has downsides to it because there is no coordination between sub-agents and the entire process is just a black box because it is only the summary, the final output that is given back to our primary agent.
+
+126
+00:11:13,660 --> 00:11:24,612
+And so that is why I say that sub-agents are generally used for focused tasks, usually something like research, because all we care about is the result, that summary at the end of the research.
+
+127
+00:11:24,942 --> 00:11:33,360
+If we're doing something like coding and we have a sub-agent actually write code, then we don't have any idea into the process of the sub-agent.
+
+128
+00:11:33,440 --> 00:11:40,580
+And so the main agent loses a lot of context as to what was actually implemented, which is why I say research over implementation.
+
+129
+00:11:40,740 --> 00:11:42,160
+There's no coordination at all.
+
+130
+00:11:42,446 --> 00:11:54,212
+These sub-agents work completely in isolation, which does make them very token efficient because they're honed in on a single task and they're only communicating a little bit back to the primary agent.
+
+131
+00:11:54,360 --> 00:11:56,500
+But sometimes you need a lot more than that.
+
+132
+00:11:56,640 --> 00:12:01,400
+Sometimes you need your agents to coordinate with each other, manage a task list together.
+
+133
+00:12:01,520 --> 00:12:03,588
+And that is where Agent Teams comes in.
+
+134
+00:12:04,380 --> 00:12:08,484
+With Agent Teams, we still have a primary agent and spinning off these sub-processes.
+
+135
+00:12:09,080 --> 00:12:12,020
+But the difference here is they're actually talking to each other.
+
+136
+00:12:12,160 --> 00:12:17,920
+So they have this shared task list, they're updating each other on their progress, communicating to the main agent as well.
+
+137
+00:12:18,222 --> 00:12:23,260
+And you can instruct Cloud Code in a lot of different ways how this communication actually takes place.
+
+138
+00:12:23,566 --> 00:12:25,280
+We'll talk about that in a little bit.
+
+139
+00:12:25,646 --> 00:12:28,020
+So we have true peer-to-peer coordination.
+
+140
+00:12:28,660 --> 00:12:30,916
+And this is so powerful for implementation.
+
+141
+00:12:31,566 --> 00:12:43,340
+Because for example, our backend agent might change something in an API endpoint where we would have to tell the front-end agent, hey, I changed this API, make sure you update the front-end component that uses the API as well.
+
+142
+00:12:43,598 --> 00:12:45,160
+And it can actually do that.
+
+143
+00:12:45,230 --> 00:12:51,960
+When we had sub-agents in the past doing that kind of implementation, those kinds of things would break all the time because they're not talking to each other.
+
+144
+00:12:52,046 --> 00:12:55,260
+So you'd step on each other's toes, but not know they're doing so.
+
+145
+00:12:55,580 --> 00:13:00,964
+And so it was up to the main agent after to find all those bugs and fix it, and it was just a complete mess.
+
+146
+00:13:01,440 --> 00:13:04,004
+And so Agent Teams is a lot better for implementation.
+
+147
+00:13:04,040 --> 00:13:10,080
+But, you have to keep in mind that sub-agents are a lot more token efficient.
+
+148
+00:13:10,300 --> 00:13:20,900
+It takes a lot of tokens to set up this task list, maintain that collaboration and the communication between the lead agent and all of the other agents in the team.
+
+149
+00:13:21,340 --> 00:13:31,748
+And so this is a really, really rough estimate, but yeah, oftentimes when you're using agent teams, it's like two to four times the token usage compared to just using Cloud Code by itself or using sub-agents.
+
+150
+00:13:32,334 --> 00:13:35,380
+And so you oftentimes need the collaboration for coding.
+
+151
+00:13:35,790 --> 00:13:45,660
+So generally I would say, if you want a really simple rule of thumb right now, you should use sub-agents for any kind of research, like diving into a code base or searching the web.
+
+152
+00:13:46,030 --> 00:13:49,400
+And then you should use agent teams for your actual implementation.
+
+153
+00:13:49,960 --> 00:14:03,920
+And so a lot of times when you're working with a single conversation of cloud code, you might start with sub-agent research, like analyzing the code base, and then create that task list and spin up the agent team to knock out the plan that you created from the research.
+
+154
+00:14:04,140 --> 00:14:10,340
+So again, it's sub-agents for research, feed that into a plan, and then send that plan into an agent team.
+
+155
+00:14:10,926 --> 00:14:23,480
+Now, as powerful as agent teams are, there are two more issues that I wanna talk about with you, and then we'll get into the template where I've been starting to address this and experiment with some things to make agent teams more reliable.
+
+156
+00:14:23,982 --> 00:14:41,320
+So the first problem that I've encountered, as I've done a lot of testing on both Linux and Mac, Is that a lot of times you have to be very specific with Claude Like you have to say create an agent team with four teammates to do this and this and this if you aren't really specific It's just kind of hallucinates.
+
+157
+00:14:41,380 --> 00:14:42,540
+It'll make weird teams.
+
+158
+00:14:42,894 --> 00:15:00,980
+Sometimes it doesn't understand how to handle the t-mux terminals Most of the time it will work But there's just those odd instances I ran into where it just totally fell flat on its face and then the other problem that I've encountered is sometimes, even with the agents communicating with each other, they can't truly run in parallel.
+
+159
+00:15:01,550 --> 00:15:06,720
+For example, I had it happen once where I had my database and back-end agent run at the same time.
+
+160
+00:15:07,342 --> 00:15:16,740
+The database agent defined a bunch of the schema, and then by the time it told the back-end agent what the schema actually was, the back-end agent almost was done with its work.
+
+161
+00:15:16,814 --> 00:15:22,628
+So it created this entire back-end based on a completely incorrect schema, so I had to go back and do a lot of work.
+
+162
+00:15:22,990 --> 00:15:33,092
+And so, yes, the communication was there for it to fix itself, but it would have been a lot more token efficient if we just did database agent first, then the backend agent.
+
+163
+00:15:33,380 --> 00:15:41,300
+And so I have been working hard through a lot of experimentation to address both of these things with this skill that I, of course, will have links in the description.
+
+164
+00:15:41,560 --> 00:15:56,420
+This is giving instructions for Cloud Code on how to more reliably create agent teams and manage the issue of sometimes things can't be totally parallel and being really specific for how to use the terminals and how to create good teams.
+
+165
+00:15:57,100 --> 00:16:00,760
+And so I have this clone locally, ready to go to create a brand new project.
+
+166
+00:16:00,878 --> 00:16:08,480
+And by the way, you can use this skill and I'll show you how to in a little bit to create brand new projects or features in existing code bases.
+
+167
+00:16:08,960 --> 00:16:14,020
+And so everything is driven from these instructions here, which I'm not going to get too in the weeds with this right now.
+
+168
+00:16:14,040 --> 00:16:21,680
+But essentially, all we have to do is give it a plan, something we've created with sub agent research or whatever, like here's the next feature we want to build.
+
+169
+00:16:21,710 --> 00:16:31,680
+So we give it the plan and then it'll use these instructions to figure out what's the optimal team to address this plan Should we create a back-end front-end and database agent for the team?
+
+170
+00:16:31,740 --> 00:16:42,380
+Like what should it be also giving instructions for how to manage the terminals effectively to reduce some of those Hallucinations and then most importantly I have this process called contract first spawning.
+
+171
+00:16:42,500 --> 00:16:52,516
+So we're not doing everything in parallel Well, we're setting the stage up front for some of that work that has to be done before we can just kick off all the agents like here's our database schema for example.
+
+172
+00:16:53,100 --> 00:17:05,700
+Then we send the agents to work in parallel and this has gotten very reliable results for me versus just telling Claude spin up an agent team to do XYZ without any additional instructions and running this is super easy.
+
+173
+00:17:06,080 --> 00:17:21,140
+So all you have to do is follow the instructions in the README and like I showed earlier I even have instructions for how to install TMUX and then enable the experimental feature, copy this into to the skills directory, either global or for your project, and then that'll give you the command.
+
+174
+00:17:21,582 --> 00:17:23,880
+And so you can run slash build with agent team.
+
+175
+00:17:24,206 --> 00:17:33,320
+You give it the path to the plan that you've created already, and then you can define the number of agents for the team, or also let Cloud Code figure that out based on your plan.
+
+176
+00:17:33,390 --> 00:17:34,720
+So it can be very, very dynamic.
+
+177
+00:17:34,830 --> 00:17:37,180
+So I have an example here in my tmux terminal.
+
+178
+00:17:37,582 --> 00:17:44,020
+I pointed it to a plan for a brand new project, so I'm starting something from scratch, and I'm gonna have a team of three agents.
+
+179
+00:17:44,440 --> 00:17:52,140
+And so I'll send this in, and it'll look very similar to the demo that I showed you earlier for the code review, but this one's a lot more intricate.
+
+180
+00:17:52,300 --> 00:17:58,800
+We're building an entire project that has to think quite deeply about the agent team that it'll create, and we'll see it spin that up in a little bit here.
+
+181
+00:17:59,280 --> 00:18:00,640
+All right, so take a look at this.
+
+182
+00:18:00,680 --> 00:18:04,164
+It's a fresh project, and it's defined the contract chain.
+
+183
+00:18:04,366 --> 00:18:12,100
+So we need things to be set up at least partly in the database before we can even go to the backend, and then same thing with backend before we go to the frontend.
+
+184
+00:18:12,174 --> 00:18:13,760
+So it made the decision here.
+
+185
+00:18:13,760 --> 00:18:15,780
+This is all dynamic just based on the instructions.
+
+186
+00:18:15,940 --> 00:18:20,980
+I gave it to spawn the database agent first So it's the most upstream in the contract chain.
+
+187
+00:18:21,262 --> 00:18:22,340
+So its first job.
+
+188
+00:18:22,638 --> 00:18:27,540
+Oh, I lost that there It's first job is to build the database layer and then send me its contract.
+
+189
+00:18:27,540 --> 00:18:32,800
+So it doesn't have to be done done It just has to send the contract then it can spin up the back-end agent.
+
+190
+00:18:32,846 --> 00:18:39,960
+So we're still gonna have some Parallel work, but there's a little bit of the groundwork It has to lay first and there we go.
+
+191
+00:18:39,980 --> 00:18:43,240
+The database agent sent the contract back to the lead agent.
+
+192
+00:18:43,406 --> 00:18:48,840
+So the groundwork was done, the lead agent knew that, and so it started the back-end agent as well.
+
+193
+00:18:48,840 --> 00:18:52,980
+And then I kicked off another request, so the database agent keeps working, actually.
+
+194
+00:18:53,326 --> 00:18:56,380
+And so we're seeing this all happen in parallel still.
+
+195
+00:18:56,380 --> 00:19:01,780
+But we had a much smarter Flow, and so we'll see the front-end start up in a bit as well.
+
+196
+00:19:01,780 --> 00:19:06,880
+I'm not going to show this full example here, because the point more is to show the intelligence up front.
+
+197
+00:19:06,958 --> 00:19:09,980
+And I really encourage you to try this command for yourself.
+
+198
+00:19:10,094 --> 00:19:15,120
+Just see the consistency for creating these teams based on the plans, managing the terminals.
+
+199
+00:19:15,598 --> 00:19:16,480
+It's so powerful.
+
+200
+00:19:16,820 --> 00:19:22,180
+Once you have a bit of instruction to cloud code for how you specifically want to use agent teams.
+
+201
+00:19:22,540 --> 00:19:34,460
+So I'd also encourage you to adjust the skill and the command as you're using it, make it mold to your use case and how you want to work with these teams because there's a lot of customization that you can do for the specific coordination as well.
+
+202
+00:19:34,500 --> 00:19:36,640
+Like I'm doing this contract first approach.
+
+203
+00:19:37,006 --> 00:19:39,040
+You can do whatever your heart desires.
+
+204
+00:19:39,040 --> 00:19:43,320
+So that my friend is all that I got for you right now on the new agent team feature.
+
+205
+00:19:43,694 --> 00:19:49,636
+Super powerful stuff, like I said at the start of the video, I really feel like I am peering into the future of agentic development.
+
+206
+00:19:49,742 --> 00:20:05,140
+But like we've talked about, it is far from perfect right now, and so I'll definitely be covering it in the future as Anthropic continues to improve it, once it's beyond the experimental feature, and also once I work on the skill and continue to use agent teams better and better.
+
+207
+00:20:05,520 --> 00:20:10,580
+And so if you appreciate this video and you're Looking forward to more things on agent teams and agentic coding.
+
+208
+00:20:10,958 --> 00:20:12,900
+I would really appreciate a like and a subscribe.
+
+209
+00:20:13,260 --> 00:20:15,360
+And with that, I will see you in the next video.
+
