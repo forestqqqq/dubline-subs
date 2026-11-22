@@ -1,0 +1,792 @@
+1
+00:00:00,238 --> 00:00:01,160
+Welcome to Starry Hope.
+
+2
+00:00:02,670 --> 00:00:05,320
+Today we're looking at what Omachi is, under the hood.
+
+3
+00:00:06,062 --> 00:00:10,140
+You may have seen it in the video already, tiled windows and bright color themes.
+
+4
+00:00:10,702 --> 00:00:15,540
+It looks like one finished product, but it's built from separate projects stacked on top of each other.
+
+5
+00:00:16,302 --> 00:00:21,800
+We'll go up through those projects layer by layer, then see why it's built this way and what version 4 changed.
+
+6
+00:00:22,606 --> 00:00:26,840
+After that come updates, the people and the money behind the project, and what critics say.
+
+7
+00:00:28,590 --> 00:00:31,240
+Umachi comes from DHH, David Heinemeier Hanson.
+
+8
+00:00:31,726 --> 00:00:34,180
+He sums it up at the start of his launch video for version 4.
+
+9
+00:00:34,760 --> 00:00:44,420
+Umachi is a beautiful, modern, and opinionated Linux system built on top of Arch, HyperLinux, and now Quickshell.
+
+10
+00:00:45,326 --> 00:00:48,500
+Those are three separate projects, stacked one on another.
+
+11
+00:00:49,358 --> 00:00:50,760
+At the bottom is Arch Linux.
+
+12
+00:00:51,662 --> 00:00:53,740
+It's the base everything else is built on.
+
+13
+00:00:54,542 --> 00:00:58,360
+Arch is popular with those who like to build and customize their systems by hand.
+
+14
+00:00:59,420 --> 00:01:02,240
+Omachi does all the hard customization work for you.
+
+15
+00:01:03,406 --> 00:01:12,240
+Hyperland runs on top of Arch. It's a tiling compositor, the program that draws every window and arranges them side by side, with nothing overlapping.
+
+16
+00:01:13,134 --> 00:01:14,780
+Omachi doesn't build its own copy.
+
+17
+00:01:15,380 --> 00:01:19,500
+Hyperland installs straight from Arch. On its own, Hyperland comes bare.
+
+18
+00:01:20,220 --> 00:01:25,040
+DHH wrote that you have to figure out everything yourself, even a lock screen or a menu bar.
+
+19
+00:01:26,060 --> 00:01:28,000
+Quickshell supplies those missing parts.
+
+20
+00:01:28,620 --> 00:01:32,140
+It's a toolkit for building a desktop's bar, menus, and panels.
+
+21
+00:01:32,846 --> 00:01:34,280
+And here, it draws all of them.
+
+22
+00:01:35,534 --> 00:01:37,800
+The project's own code forms the next layer.
+
+23
+00:01:38,660 --> 00:01:44,240
+Omachi's base install is 147 packages, the separate pieces of software that make up the system.
+
+24
+00:01:44,980 --> 00:01:47,480
+127 come from Arch's own repositories.
+
+25
+00:01:47,480 --> 00:01:51,500
+The other 20 come from one extra repository that the project runs itself.
+
+26
+00:01:52,200 --> 00:01:56,540
+None come from the AUR, the Arch User Repository of Community Build Scripts.
+
+27
+00:01:57,262 --> 00:02:03,020
+The project's own code ships as two ordinary Arch packages, called omachi and omachi-settings.
+
+28
+00:02:03,580 --> 00:02:09,300
+Their scripts are installed in the system's bin folder, where programs live, each named omachi-something.
+
+29
+00:02:09,920 --> 00:02:13,120
+4.0.4 has 443 of them.
+
+30
+00:02:13,838 --> 00:02:15,600
+One omachi command routes to them.
+
+31
+00:02:16,100 --> 00:02:18,900
+omachi theme-set runs the theme-set script.
+
+32
+00:02:19,438 --> 00:02:22,680
+That puts more than 400 scripts behind one name you can remember.
+
+33
+00:02:23,502 --> 00:02:25,960
+Most of the other files live in one system folder.
+
+34
+00:02:26,560 --> 00:02:29,420
+Slash user, slash share, slash omachi.
+
+35
+00:02:30,638 --> 00:02:32,500
+Below Arch is one more layer.
+
+36
+00:02:32,940 --> 00:02:33,540
+The Linux kernel.
+
+37
+00:02:34,190 --> 00:02:35,560
+The core that talks to the hardware.
+
+38
+00:02:36,360 --> 00:02:41,740
+Since 4.0.4, the project ships its own version of the Linux kernel, the default on most PCs.
+
+39
+00:02:42,520 --> 00:02:47,060
+The release notes say it's tuned to keep the desktop responsive, even under heavy load or memory pressure.
+
+40
+00:02:47,920 --> 00:02:53,500
+On a system upgraded from an older version, the previous kernel stays installed, in case the new one can't boot.
+
+41
+00:02:54,798 --> 00:02:56,280
+Your own settings are the top layer.
+
+42
+00:02:56,974 --> 00:02:59,360
+Hyperland's config file shows how the layers stack.
+
+43
+00:03:00,110 --> 00:03:03,320
+The file loads the shipped defaults first, and your own files after them.
+
+44
+00:03:03,854 --> 00:03:08,320
+A comment in that file says this lets package updates improve the defaults without rewriting your files.
+
+45
+00:03:09,198 --> 00:03:12,080
+New defaults also don't reach your existing config files on their own.
+
+46
+00:03:12,846 --> 00:03:16,740
+A resync command copies them in, but it resets your files to the defaults.
+
+47
+00:03:17,486 --> 00:03:20,540
+A few system files under slash etc work the other way.
+
+48
+00:03:21,038 --> 00:03:23,460
+An update overwrites them, and any edits you made are lost.
+
+49
+00:03:25,980 --> 00:03:30,260
+DHH has explained why he chose these layers, and who the project is for.
+
+50
+00:03:31,054 --> 00:03:35,980
+The reason for Arch goes back to DHH's first attempt, Omacub, in June 2024.
+
+51
+00:03:36,782 --> 00:03:40,840
+It was a script that turned a fresh Ubuntu install into a full web development setup.
+
+52
+00:03:41,680 --> 00:03:44,200
+Ubuntu lacked many of the tools he wanted though.
+
+53
+00:03:44,654 --> 00:03:48,940
+He wrote that he had to package a million of them himself in sort of janky ways.
+
+54
+00:03:49,774 --> 00:03:56,360
+On the project's website, he says the ideas he cared about, like tiling and a keyboard first desktop, kept fighting the platform.
+
+55
+00:03:57,180 --> 00:04:01,360
+Talking with Misha Vandenberg, he compared Ubuntu's parts to toy building blocks.
+
+56
+00:04:01,360 --> 00:04:08,360
+It was just a Lego set dumped on the floor, and then an invitation to build your own Millennium Falcon.
+
+57
+00:04:09,582 --> 00:04:11,360
+That's not typically what I want out of a computer.
+
+58
+00:04:11,620 --> 00:04:18,220
+But what I realized was, if I want the perfect computer, I have to start from the smallest Lego blocks.
+
+59
+00:04:18,620 --> 00:04:21,960
+And the blocks that Ubuntu gave me were not small enough.
+
+60
+00:04:22,200 --> 00:04:24,480
+They were Duplos, not Legos.
+
+61
+00:04:24,942 --> 00:04:33,920
+DHH released Omachi in June 2025, and described it as an opinionated setup of Arch and Hyper His first big idea is tiling.
+
+62
+00:04:34,446 --> 00:04:37,800
+Each new window takes a share of the screen and the keyboard moves you between them.
+
+63
+00:04:38,540 --> 00:04:42,480
+DHH calls tiling an acquired taste, like champagne or coffee.
+
+64
+00:04:43,054 --> 00:04:46,360
+He told Network Chuck how tiling feels to someone used to a mouse.
+
+65
+00:04:46,862 --> 00:04:53,700
+And it's a really alien way of using a computer if you're used to using a mouse and dragging little windows around.
+
+66
+00:04:53,840 --> 00:04:57,020
+But once you get the hang of it, it's like a superpower.
+
+67
+00:04:57,020 --> 00:05:02,260
+It's like you strap a jetpack on your back and boom, here goes productivity in front of the keyboard.
+
+68
+00:05:02,880 --> 00:05:05,760
+DHH's second big idea is strong defaults.
+
+69
+00:05:06,286 --> 00:05:09,500
+In his words, opinions are about defaults, not options.
+
+70
+00:05:10,190 --> 00:05:13,860
+The default setup arrives ready, and the options are still there if you want them.
+
+71
+00:05:14,606 --> 00:05:20,860
+Out of the box, that means the foot terminal, the Chromium browser, the NeoVim editor, and Hey for email links.
+
+72
+00:05:21,422 --> 00:05:26,520
+In his launch video, he uses the Japanese word omakase, the meal where the chef picks every course.
+
+73
+00:05:27,020 --> 00:05:28,580
+Because this is your computer, right?
+
+74
+00:05:29,038 --> 00:05:37,180
+I am preparing it omikase for you so that when you unwrap this thing, after you install it, it takes all about one minute on a modern fast machine.
+
+75
+00:05:37,838 --> 00:05:38,520
+It's beautiful.
+
+76
+00:05:38,900 --> 00:05:39,420
+It's gorgeous.
+
+77
+00:05:39,540 --> 00:05:40,080
+It's all set up.
+
+78
+00:05:40,160 --> 00:05:43,920
+Everything is integrated and you have all my favorite background images.
+
+79
+00:05:44,020 --> 00:05:48,036
+But then you can tweak it exactly how you like it.
+
+80
+00:05:48,206 --> 00:05:56,940
+Whether that is the style or as we'll see a little later on, the plugins, you can tweak Make it just how you like it and you can make it yours.
+
+81
+00:05:57,360 --> 00:06:01,700
+And then, I mean, if you make a mistake here, of course, you can just restore to default and then boom, you're back to Emachi.
+
+82
+00:06:01,840 --> 00:06:03,260
+But you should make it yours.
+
+83
+00:06:03,780 --> 00:06:06,900
+You should put in your logo there and make it yours.
+
+84
+00:06:07,380 --> 00:06:11,640
+His third big idea, new in version 4, is AI coding agents.
+
+85
+00:06:12,240 --> 00:06:16,020
+Version 4 comes wired for them, but you pick which agent to use.
+
+86
+00:06:16,300 --> 00:06:17,280
+None is set by default.
+
+87
+00:06:17,966 --> 00:06:23,420
+In the project's own words, agents launched from the menu run unattended, without stopping to ask first.
+
+88
+00:06:24,080 --> 00:06:28,840
+DHH sees Linux as a natural match for agents, as he told Misha Vandenberg.
+
+89
+00:06:29,300 --> 00:06:31,660
+Linux is the perfect fit for AI.
+
+90
+00:06:32,200 --> 00:06:39,560
+Everything is a CLI, everything is a config file, everything can be scripted, everything can be encoded, everything can be captured.
+
+91
+00:06:40,238 --> 00:06:43,920
+And therefore, everything can also be debugged and evolved.
+
+92
+00:06:44,590 --> 00:06:49,440
+As for the audience, DHH says the project wasn't built to win over existing Linux users.
+
+93
+00:06:49,440 --> 00:06:52,440
+Early in his launch video, he named who it's for.
+
+94
+00:06:52,860 --> 00:06:53,120
+Nope.
+
+95
+00:06:53,420 --> 00:07:04,240
+This is a mission to give people on Windows and Mac a different, better, more malleable alternative as their operating system.
+
+96
+00:07:05,262 --> 00:07:12,000
+The largest release so far, version 4, came out on August 14, 2026, about 14 months after the first.
+
+97
+00:07:12,760 --> 00:07:16,080
+DHH called it one of the greatest software releases of his career.
+
+98
+00:07:16,846 --> 00:07:21,520
+DHH says version 4 was downloaded more than 300,000 times in its first month.
+
+99
+00:07:22,360 --> 00:07:24,440
+The biggest change was the desktop itself.
+
+100
+00:07:25,102 --> 00:07:30,880
+Before, eight separate programs handled it, one each for jobs like the bar, the launcher, and the lock screen.
+
+101
+00:07:31,854 --> 00:07:35,760
+Version 4 replaced all eight with a single quick shell process that keeps running.
+
+102
+00:07:37,102 --> 00:07:42,220
+A week before the release, DHH told Network Chuck what Arch, Hyperland, and Quick Shell let him build.
+
+103
+00:07:42,220 --> 00:07:50,680
+All the menus, all the panels, all the bars, all the icons, all the everything is in this thing called Quickshell.
+
+104
+00:07:50,840 --> 00:08:05,440
+And the combination of those three things, Arch, Hyperland, and Quickshell, has allowed me to build Umachi into this perfect distillation of aesthetics, productivity, and everything I love about computers.
+
+105
+00:08:05,440 --> 00:08:11,400
+In 4.0.4, the shell built on QuickShell is nearly 42,000 lines of code.
+
+106
+00:08:12,180 --> 00:08:13,500
+Version 3 had almost none of it.
+
+107
+00:08:13,980 --> 00:08:18,760
+Its only file in QML, the language QuickShell uses, was a small login screen theme.
+
+108
+00:08:19,438 --> 00:08:22,480
+That makes nearly all of today's shell new in version 4.
+
+109
+00:08:23,246 --> 00:08:24,500
+Every part of the shell is a plugin.
+
+110
+00:08:25,020 --> 00:08:26,520
+And 23 come built in.
+
+111
+00:08:27,240 --> 00:08:29,580
+Anyone can add more from a link to the plugin's code.
+
+112
+00:08:30,350 --> 00:08:34,000
+If you add one, have an AI coding agent read through its code first.
+
+113
+00:08:34,000 --> 00:08:38,420
+The project said over a thousand plugins were created in the week after the launch.
+
+114
+00:08:39,840 --> 00:08:42,520
+Version 4 also changed where the project lives on your disk.
+
+115
+00:08:43,054 --> 00:08:47,840
+Up to version 3, it was a downloaded copy of the code, in a hidden folder in your home directory.
+
+116
+00:08:48,462 --> 00:08:53,960
+Version 4 moved it into the two system packages from earlier, to keep your changes separate from the shipped files.
+
+117
+00:08:54,640 --> 00:08:59,780
+Since version 4, you install it only from an ISO, the disk image you write to a USB stick.
+
+118
+00:08:59,780 --> 00:09:05,380
+The release notes say installs got about 30% faster, and the ISO shrank by over a gigabyte.
+
+119
+00:09:07,790 --> 00:09:14,910
+Once the system is installed, updates run through one command, omachi update, which needs at least 10 gigabytes of free space.
+
+120
+00:09:15,726 --> 00:09:19,030
+It first saves a snapshot, a copy of the system as it is right then.
+
+121
+00:09:19,822 --> 00:09:25,110
+After that, it updates the packages and runs migrations, small scripts that fix up existing installs.
+
+122
+00:09:25,670 --> 00:09:28,030
+4.0.4 carries 106 of them.
+
+123
+00:09:28,030 --> 00:09:33,910
+The usual Arch upgrade command, sudo pacman-syu, doesn't run here.
+
+124
+00:09:34,670 --> 00:09:37,970
+A hook, a check that runs before the upgrade starts, blocks it.
+
+125
+00:09:38,530 --> 00:09:42,390
+Its message starts with, whoa partner, and points you back to a machi update.
+
+126
+00:09:43,214 --> 00:09:45,970
+One extra setting on the command gets past the hook when you need it.
+
+127
+00:09:46,770 --> 00:09:48,890
+If an update goes wrong, there's a way back.
+
+128
+00:09:49,530 --> 00:09:54,230
+Snapper, the snapshot tool, keeps the last five snapshots, all taken at update time.
+
+129
+00:09:54,862 --> 00:09:59,370
+The boot menu, liminy, lists them, so you start the system as it was before the update.
+
+130
+00:10:00,078 --> 00:10:01,990
+That rollback has been there since version 2.
+
+131
+00:10:02,770 --> 00:10:04,370
+There are also four update channels.
+
+132
+00:10:04,770 --> 00:10:10,110
+Stable, a release candidate channel, Edge, and Dev, which is meant for the project's own developers.
+
+133
+00:10:12,622 --> 00:10:16,080
+The code has grown fast, and so has the group of people behind it.
+
+134
+00:10:16,814 --> 00:10:23,060
+The code started on June 1, 2025, with one commit from DHH of 836 lines.
+
+135
+00:10:23,758 --> 00:10:28,560
+By 4.0.4, the code had grown to about 140,000 lines.
+
+136
+00:10:29,060 --> 00:10:31,720
+That's about 170 times the size of the first commit.
+
+137
+00:10:33,600 --> 00:10:36,400
+605 names appear in the development branch's history.
+
+138
+00:10:37,180 --> 00:10:42,620
+But DHH still makes most of the commits – about 72% as of 4.0.4.
+
+139
+00:10:43,470 --> 00:10:46,180
+Ryan Hughes is second, with about 12%.
+
+140
+00:10:47,420 --> 00:10:52,780
+Nearly 800 commits on the development branch also name an AI model as a co-author, most Christoph and Claude.
+
+141
+00:10:53,262 --> 00:10:55,400
+The first of those appeared in October 2025.
+
+142
+00:10:56,340 --> 00:11:00,420
+DHH wrote that version 4 has almost exclusively been built by agents.
+
+143
+00:11:01,582 --> 00:11:05,720
+Until version 4, DHH says it was mostly him and Ryan running everything.
+
+144
+00:11:06,350 --> 00:11:10,920
+A core team formed in August 2026, including Ryan Hughes and Toby Lutka.
+
+145
+00:11:11,662 --> 00:11:15,640
+Later, it added a kernel lead, a lead for the shell, and a head of security.
+
+146
+00:11:16,462 --> 00:11:21,700
+The kernel's lead developer, Christoph Wilczynski, Money was the first full-time hire of the foundation behind the project.
+
+147
+00:11:22,478 --> 00:11:27,480
+The Primogen, one of the hosts of the Stand Up podcast, joined in September to lead quality testing with agents.
+
+148
+00:11:28,206 --> 00:11:32,360
+His harness boots the desktop and virtual machines and lets agents drive it the way a person would.
+
+149
+00:11:33,806 --> 00:11:38,580
+The Omicom Foundation, a non-profit that launched on August 21st, handles the money.
+
+150
+00:11:38,980 --> 00:11:43,600
+It holds the trademarks and pays for infrastructure and the open-source developers the project depends on.
+
+151
+00:11:44,270 --> 00:11:47,960
+On the Stand Up, DHH named some of the people who pledged money at the launch.
+
+152
+00:11:47,960 --> 00:11:57,380
+I'm incorporating the Omicron Foundation with $8 million in pledged funding from just like a few people you might have heard of.
+
+153
+00:11:57,480 --> 00:11:58,720
+Maybe you've heard of Michael Dell.
+
+154
+00:11:58,920 --> 00:12:00,520
+Maybe you've heard of Toby Lutka.
+
+155
+00:12:00,740 --> 00:12:09,080
+Maybe you've heard of Patrick Coulson or Matthew Prince or Brendan Arieb or Jason Freed or Jack Dorsey.
+
+156
+00:12:09,550 --> 00:12:11,180
+Pledges have grown since then.
+
+157
+00:12:11,726 --> 00:12:15,280
+The foundation's page now lists about $23.7 million.
+
+158
+00:12:15,280 --> 00:12:15,720
+dollars.
+
+159
+00:12:16,494 --> 00:12:20,900
+That includes 1.5 million in Grok tokens from SpaceX's AI arm.
+
+160
+00:12:21,678 --> 00:12:23,640
+Some of that money pays for the projects underneath.
+
+161
+00:12:24,462 --> 00:12:29,480
+The foundation is the exclusive sponsor of Hyperland and its creator, Vaxri, for three years.
+
+162
+00:12:32,000 --> 00:12:34,300
+The project hasn't been without its critics, though.
+
+163
+00:12:35,080 --> 00:12:40,660
+Several critics on X called it only dot files, the hidden config files people keep for their own setups.
+
+164
+00:12:41,326 --> 00:12:48,480
+One post called it an Arch installer plus a Hyperland Rice, which is a custom desktop look, plus DHH's favorite apps.
+
+165
+00:12:49,102 --> 00:12:55,360
+Another, from Christian Lempa, called it Arch, a tiling compositor, and someone else's defaults with a famous name on the ISO.
+
+166
+00:12:56,334 --> 00:13:00,620
+DHH has conceded that the .files label wasn't entirely wrong at the start.
+
+167
+00:13:01,326 --> 00:13:04,860
+On the Tech Over Tea podcast, he described how that label fits his own setup today.
+
+168
+00:13:05,294 --> 00:13:06,900
+I mean, founder's privilege here.
+
+169
+00:13:07,118 --> 00:13:09,900
+When I'm up and running with Emachi, it's literally my system.
+
+170
+00:13:10,060 --> 00:13:11,460
+I don't have .files anymore.
+
+171
+00:13:12,000 --> 00:13:13,520
+The .files is the distro.
+
+172
+00:13:13,980 --> 00:13:19,100
+And I mean, I think that's a wonderful circle of joke here about how things started and now people say it's .files.
+
+173
+00:13:19,200 --> 00:13:21,240
+I'm like, actually, you're kind of right.
+
+174
+00:13:21,840 --> 00:13:35,760
+On Lex Friedman's podcast, DHH compared his goal with what first drew people to Arch. The people who were attracted to Arch in the first place were the ones who were attracted to building everything by hand themselves, doing it the hard way because they like to do it hard.
+
+175
+00:13:36,120 --> 00:13:39,172
+And I'm building the polar opposite of that."
+
+176
+00:13:39,502 --> 00:13:45,700
+Another critic on X says version 4 moved the pretty parts into one process, but the glue is still fragile scripts.
+
+177
+00:13:46,320 --> 00:13:50,940
+In 4.0.4, 438 of the commands are bash scripts.
+
+178
+00:13:51,740 --> 00:13:57,580
+Some posts on X call the project vibe-coded, meaning written by AI without enough care.
+
+179
+00:13:59,360 --> 00:14:03,780
+Security drew criticism after the launch, and two defaults changed within weeks.
+
+180
+00:14:04,340 --> 00:14:08,720
+4.0.1 was mostly security fixes, checked by a new security team.
+
+181
+00:14:09,454 --> 00:14:13,540
+Up to 4.0.0, the installer put you in the Docker group.
+
+182
+00:14:14,100 --> 00:14:16,640
+Membership in that group amounts to full control of the system.
+
+183
+00:14:17,360 --> 00:14:19,460
+4.0.1 made that opt-in.
+
+184
+00:14:20,174 --> 00:14:27,100
+The project's package repository also accepted packages without a signature, the digital stamp that proves where a package came from.
+
+185
+00:14:27,740 --> 00:14:30,140
+4.0.2 made signatures required.
+
+186
+00:14:30,880 --> 00:14:36,980
+Since then, the foundation has funded a $100,000 bug bounty, which pays people who report security holes.
+
+187
+00:14:39,500 --> 00:14:42,400
+A few interesting changes are in development for a future version.
+
+188
+00:14:43,220 --> 00:14:48,460
+They include support for Macs with Apple's own chips and for laptops with Qualcomm Snapdragon chips.
+
+189
+00:14:49,280 --> 00:14:53,660
+Others include a dock for floating windows and the desktop translated into 50 languages.
+
+190
+00:14:56,520 --> 00:14:57,060
+That's Omachi.
+
+191
+00:14:58,222 --> 00:15:01,860
+Under the bright themes sits Arch Linux running on the project's own kernel.
+
+192
+00:15:02,740 --> 00:15:06,100
+Hyperland arranges the windows and Quickshell draws the bar and menus.
+
+193
+00:15:06,926 --> 00:15:10,600
+On top of that come hundreds of Omachi's own scripts and your own settings.
+
+194
+00:15:11,480 --> 00:15:17,300
+Omachi started as one developer's personal setup, and it now has a foundation and a core team behind it.
+
+195
+00:15:18,062 --> 00:15:23,100
+It's for people who want a finished Linux desktop without building it by hand, but still want to make it their own.
+
+196
+00:15:24,622 --> 00:15:30,740
+If you'd like to try this yourself, every source we used is in the full guide on starryhope.com linked below.
+
+197
+00:15:31,340 --> 00:15:33,860
+If this video helped, a like and a subscribe help the channel.
+
+198
+00:15:34,382 --> 00:15:34,940
+Thanks for watching.
+

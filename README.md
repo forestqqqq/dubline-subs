@@ -10,6 +10,7 @@
 | [View Source: Building with the Source research preview](medias/SYY7T/) | Webflow | 2026-11-21 |
 | [DERC 2020 \| Virtual Conference](medias/RH3D8/) | Rajans Professional Collective | 2026-11-21 |
 | [AlloyDB AI & Agentic Orchestrations Day, India 2026](medias/51KK2/) | Google Cloud Events | 2026-11-21 |
+| [Omarchy Explained: A Deep Dive](medias/3AZFZ/) | Starry Hope | 2026-11-21 |
 | [Google CEO Sundar Pichai: AI’s Infinite Possibilities, Compute Scarcity Dilemmas, Future AI Products](medias/VKMF4/) | Alex Kantrowitz | 2026-11-20 |
 | [Code as Agent Harness: A Unified View of Executable, Verifiable, Stateful Agent Systems](medias/VKCM6/) | AI Papers Explained | 2026-11-20 |
 | [NSDI '26 - Managing Congestion Control Heterogeneity on the Internet with Approximate Performance...](medias/VAC0F/) | USENIX | 2026-11-20 |
