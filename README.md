@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [MCP Servers Explained & Built](medias/9H9YD/) | Tech With Tim | 2026-11-22 |
 | [Deploying modern software architecture - the ASML case study (keynote at ICSA 2026)](medias/99WPB/) | International Conference on Software Architecture | 2026-11-22 |
 | [Module 8  MLOps Lifecycle Explained \| RAPIDS, NeMo, TensorRT, Triton, DCGM \| NCA-AIIO](medias/8PKXZ/) | QuickTechie Official | 2026-11-22 |
 | [Design a smart grid control system (Part I) - A frequently asked system design question from OpenAI](medias/80P04/) | ShowOffer - Tech Interview Coaching Platform | 2026-11-22 |

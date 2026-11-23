@@ -1,0 +1,2219 @@
+1
+00:00:00,160 --> 00:00:02,500
+大家都在谈论 MCP 服务器。
+Everyone keeps talking about MCP servers.
+
+2
+00:00:02,800 --> 00:00:12,320
+Claude 有，Cursor 有，ChatGPT 也有，说实话，
+大多数人的解释让它听起来比实际情况复杂得多。
+Claude has them, Cursor has them, ChatGPT has them, and honestly, the way that most
+people explain them makes them sound way more complicated than they actually are.
+
+3
+00:00:12,590 --> 00:00:18,240
+其实，MCP 服务器就是一个给 AI 模型提供一组允许调用的函数列表的程序。
+Now, an MCP server is just a program that gives an AI model a list of functions that's allowed to call.
+
+4
+00:00:18,414 --> 00:00:18,800
+就这么简单。
+That's it.
+
+5
+00:00:19,086 --> 00:00:28,910
+所以在这段视频中，我将详细解析它们的工作原理，然后我们将在 Python 中从零开始构建一个，
+我还会展示几乎所有教程都会跳过的部分，也就是
+So in this video, I'm going to break down exactly how they work, then we're going to build one from scratch in Python,
+and I'm going to show you the part that almost every tutorial skips, which is
+
+6
+00:00:28,910 --> 00:00:29,410
+所以在这段视频中，我将详细解析它们的工作原理，然后我们将在 Python 中从零开始构建一个，
+我还会展示几乎所有教程都会跳过的部分，也就是
+actually putting it live and setting up real authentication and authorization.
+
+7
+00:00:29,410 --> 00:00:33,120
+如何真正让它上线，并设置真实的身份验证和授权。
+actually putting it live and setting up real authentication and authorization.
+
+8
+00:00:33,454 --> 00:00:34,756
+请继续观看，让我们开始吧。
+Stay tuned, let's dive in.
+
+9
+00:00:34,990 --> 00:00:36,640
+那么，什么是 MCP 服务器？
+So, what is an MCP server?
+
+10
+00:00:36,750 --> 00:00:38,788
+好吧，让我尽可能简单地解释一下。
+Well, let me break this down as simply as possible.
+
+11
+00:00:39,054 --> 00:00:41,252
+现在，语言模型本身什么也做不了。
+Now a language model on its own can't do anything.
+
+12
+00:00:41,454 --> 00:00:45,636
+它不能读取你的文件，不能检查你的日历，甚至不能查询你的数据库。
+It can't read your files, it can't check your calendar, it can't even query your database.
+
+13
+00:00:45,934 --> 00:00:49,508
+它唯一能做的就是接收文本，然后给你输出文本。
+All it can do is simply take text and then give you text output.
+
+14
+00:00:49,710 --> 00:00:53,284
+所以如果你想让模型做点什么，你就必须给它提供工具的访问权限。
+So if you want a model to do something, you have to give it access to tools.
+
+15
+00:00:53,520 --> 00:00:59,440
+而工具其实就是一个拥有名称、描述和一些参数的函数，也就是有一些输入和一些输出。
+And a tool is really just a function that has a name, a description, and some parameters, so some input and some output.
+
+16
+00:00:59,566 --> 00:01:05,040
+现在模型可以读取这些工具列表，然后决定：好，我需要调用这个工具或者工具 X，对吧？
+Now the model can read these list of tools and decide, okay, I need to call this tool or tool X, right?
+
+17
+00:01:05,230 --> 00:01:10,880
+现在，当你的模型想要调用一个工具时，它实际上只是输出一段说明它想要调用哪个工具的文本。
+Now, when your model wants to call a tool, really all it's going to do is output text that says what tool it wants to call.
+
+18
+00:01:11,040 --> 00:01:17,840
+你的代码将去执行那个工具，然后你把结果发回给模型或大语言模型，它就能处理这个结果了。
+Your code is going to execute that tool, and then you're going to send the
+result back to the model or the LLM where it will be able to process it.
+
+19
+00:01:17,966 --> 00:01:26,720
+所以模型从来不直接调用工具，它只是请求调用，由你的代
+码去调用，然后把结果传回给它，模型始终是在处理文本。
+So the model never calls the tool, it simply requests to call it, your code
+calls it, gives it the result back, the model is always working with text.
+
+20
+00:01:26,830 --> 00:01:34,800
+在 MCP 出现之前，存在一个问题，那就是每一个应用
+程序都必须自己构建我们刚才提到的那些工具管道。
+Now, before MCP existed, there was a bit of a problem, and that's that every single
+application had to build that tool plumbing that we just talked about themselves.
+
+21
+00:01:34,926 --> 00:01:38,160
+而且对于每一个模型和每一个工具，这些管道都不一样。
+And it was different for every single model and for every single tool.
+
+22
+00:01:38,414 --> 00:01:44,640
+所以如果你为 Claude 构建了一个 GitHub 集成，
+它在 Cursor 里就没法用，在 ChatGPT 里也没法用。
+So if you built a GitHub integration, for example, for Claude, it didn't work inside of Cursor, it didn't work inside of ChatGPT.
+
+23
+00:01:44,814 --> 00:01:49,700
+所以每个人都在一遍又一遍地重写同样的东西，而我们得到的 AI 智能体却越来越多。
+So everyone was rewriting the same thing over and over again, and we kept getting more and more agents.
+
+24
+00:01:49,998 --> 00:01:52,800
+因此，MCP 就是作为这一标准的发明。
+So MCP was invented just as a standard for that.
+
+25
+00:01:53,006 --> 00:02:02,852
+它的全称是模型上下文协议，意思就是你只需要把工具作为 MCP 服务器写一次，
+然后任何支持 MCP 的应用都可以使用这些工具。
+Now it stands for model context protocol, and it just means that you write tools one time as an MCP server,
+and then any app that speaks MCP can use those tools.
+
+26
+00:02:03,118 --> 00:02:07,680
+不管是 Claude、Cursor、VS Code、ChatGPT，不管是什么 AI 智能体。
+So Claude, cursor, VS Code, ChatGPT, doesn't matter, any AI agent out there.
+
+27
+00:02:07,790 --> 00:02:11,492
+现在人们喜欢把它比作 AI 工具领域的 USB-C。
+Now people like to refer to this as something like USB-C for AI tools.
+
+28
+00:02:11,630 --> 00:02:13,520
+说实话，这个类比非常贴切。
+And honestly, that's a pretty good analogy.
+
+29
+00:02:13,646 --> 00:02:17,028
+它就像是一个可以在几乎所有适配器上使用的插头。
+It's just kind of one plug that works in pretty much every adapter.
+
+30
+00:02:17,198 --> 00:02:19,200
+现在这里有两个方面你需要理解。
+Now there's two sides here that you need to understand.
+
+31
+00:02:19,406 --> 00:02:22,640
+第一个是 MCP 服务器，也就是你的代码。
+Now the first is the MCP server, which is just your code.
+
+32
+00:02:22,862 --> 00:02:24,080
+它负责暴露这些工具。
+So it exposes the tools.
+
+33
+00:02:24,302 --> 00:02:27,920
+现在，MCP 客户端就是模型所在的应用程序。
+Now the MCP client is the app that the model lives inside of.
+
+34
+00:02:28,110 --> 00:02:35,840
+比如 Claude Desktop 或者 Cursor，你的 AI 智能体就像是客户端，
+而服务器是你实际编写并暴露工具的地方。
+So something like Claude Desktop or Cursor, your AI agent kind of acts as the client,
+and then the server is where you actually write and expose the tools.
+
+35
+00:02:36,014 --> 00:02:40,160
+当客户端启动时，它会简单地询问服务器：你有哪些工具？
+Now, when a client starts up, it simply asks the server, what tools do you have?
+
+36
+00:02:40,366 --> 00:02:46,080
+服务器随后会返回一个包含所有名称和描述的列表，这个列表会被交给模型。
+The server then sends back a list with all of the names and the descriptions, and that list gets handed to the model.
+
+37
+00:02:46,240 --> 00:02:50,560
+然后当模型想要调用其中一个工具时，客户端会向服务器发送请求。
+Then when the model wants to call one of these tools, the client sends a request to the server.
+
+38
+00:02:50,734 --> 00:02:56,880
+服务器只需运行该工具或函数，然后返回结果，所有这些操作都会通过 JSON 处理。
+The server will simply run the tool or run the function and then send back the result, and all of this will be handled in JSON.
+
+39
+00:02:57,006 --> 00:03:02,800
+所以它就像是在来回传递：嘿，我想调用这个工具；
+好的，调用工具；获取结果；传回去；交给模型。
+So it'll kind of just go back and forth, say, hey, I want to call this tool,
+okay, call the tool, get the result, give it back, give it to the model.
+
+40
+00:03:02,880 --> 00:03:03,600
+哦，这是结果。
+Oh, that's the result.
+
+41
+00:03:03,680 --> 00:03:04,800
+也许我该调用另一个工具。
+Maybe I should call another tool.
+
+42
+00:03:04,960 --> 00:03:05,600
+你大概明白意思了。
+You get the idea.
+
+43
+00:03:05,806 --> 00:03:08,400
+MCP 服务器主要有两种运行方式。
+And there's two main ways that an MCP server can run.
+
+44
+00:03:08,560 --> 00:03:09,840
+第一种是本地运行。
+The first way is local.
+
+45
+00:03:10,000 --> 00:03:19,520
+这意味着客户端实际上是将你的服务器作为子进程在你的机器上启动，
+并通过标准输入输出或者 标准输入输出 直接与其通信。
+And that just means that the client actually launches your server as a subprocess that's running on your machine and it talks to it
+directly over standard input and output or stdi.
+
+46
+00:03:20,014 --> 00:03:26,560
+现在，Claude Desktop 实际上会运行类似 Python
+myserver.py 的命令，并直接把 JSON 管道传给它。
+Now, Claude Desktop literally will run something like Python, myserver.py, and it will just pipe JSON into it.
+
+47
+00:03:26,700 --> 00:03:29,760
+这就是目前 90% 的教程展示的内容。
+Now that's what maybe 90% of the tutorials out there show you.
+
+48
+00:03:29,934 --> 00:03:34,240
+它非常适合个人用途，但当其他人需要访问服务器时，它就行不通了。
+And it's great for personal stuff, but it doesn't work when other people need to access the server.
+
+49
+00:03:34,400 --> 00:03:37,280
+第二种运行 MCP 服务器的方式是远程运行。
+Now, the second way that you can run MCP servers is remotely.
+
+50
+00:03:37,390 --> 00:03:39,520
+在这种情况下，你的服务器将运行在互联网上的某个地方。
+Now your server will run somewhere on the internet.
+
+51
+00:03:39,694 --> 00:03:43,200
+所以它有一个 URL，客户端将通过 HTTP 连接到它。
+So it has a URL and a client will connect to it over HTTP.
+
+52
+00:03:43,342 --> 00:03:45,600
+这几乎是所有真实产品的做法。
+Now, this is how pretty much every real product does it.
+
+53
+00:03:45,968 --> 00:03:50,688
+例如 GitHub MCP 服务器、Notion 的、Stripe 的，它们其实都是 URL。
+For example, the GitHub MCP server, the Notion one, Stripe, they're all really just URLs.
+
+54
+00:03:50,768 --> 00:03:58,528
+如果你是为其他人构建产品，或者想在不同的机器上使用你的工具，比如手机、
+笔记本电脑或工作机，这就是你需要的，你懂我的意思。
+And this is what you want if you're building something for other people, or you want to use your tools from different machines like
+your phone, your laptop, your work machine, you get the idea.
+
+55
+00:03:58,798 --> 00:04:00,688
+所以基本上，就是本地和远程两种。
+So basically, you have local and remote.
+
+56
+00:04:00,910 --> 00:04:04,448
+远程是首选方案，尤其是如果你打算投入生产环境的话。
+Remote's going to be the preferred option, especially if you're going to go into production.
+
+57
+00:04:04,622 --> 00:04:12,608
+然而，一旦有了远程 MCP 服务器，你就需要小心了，
+因为你会引入一个本地版本永远不会遇到的问题。
+However, as soon as you have a remote MCP server, you need to be careful
+because you introduce a problem that your local version never would have had.
+
+58
+00:04:12,750 --> 00:04:14,688
+那个问题就是访问控制。
+Now that problem is access control.
+
+59
+00:04:14,928 --> 00:04:19,620
+如果你的 MCP 服务器在互联网上，这意味着任何拥有 URL 的人都可以调用你的工具。
+If your MCP server is on the internet, that means that anyone has the URL can call your tools.
+
+60
+00:04:19,790 --> 00:04:21,168
+你的工具是会执行操作的，对吧？
+So your tools do things, right?
+
+61
+00:04:21,390 --> 00:04:24,288
+它们读取数据、写入数据，甚至可能删除某些东西。
+They read data, they write data, maybe they delete something.
+
+62
+00:04:24,494 --> 00:04:27,648
+所以你需要在每一个请求上回答三个问题。
+So you need to answer three questions on every single request.
+
+63
+00:04:27,854 --> 00:04:28,608
+是谁在调用它？
+Who is calling this?
+
+64
+00:04:28,814 --> 00:04:29,888
+他们被允许做什么？
+What are they allowed to do?
+
+65
+00:04:30,048 --> 00:04:32,048
+他们是代表谁在操作？
+And who are they doing it on behalf of?
+
+66
+00:04:32,208 --> 00:04:35,648
+如果你要用远程 MCP 服务器，就必须回答这些问题。
+These are questions that need to be answered if you're going to have a remote MCP server.
+
+67
+00:04:35,808 --> 00:04:39,364
+考虑到这一点，这里有一部分内容让我非常震惊，这是我实际深入研究时发现的。
+Now, with that in mind, here's the part that really shocked me when I actually looked into this.
+
+68
+00:04:39,598 --> 00:04:45,728
+今年的安全审计发现，大约四分之一的公共 MCP 服务器根本没有任何身份验证。
+Now, security audits this year found that about a quarter of public MCP servers have no authentication at all.
+
+69
+00:04:45,808 --> 00:04:49,860
+而在那些有做点什么的服务器中，大部分都在使用静态 API 密钥。
+And of the ones that do have something, most of them are using a static API key.
+
+70
+00:04:50,048 --> 00:04:54,208
+也就是说，只有一个长效密钥，就放在大家都能共享的配置文件里。
+So just one long-lived secret that's sitting in a config file that's shared by everyone.
+
+71
+00:04:54,318 --> 00:04:59,328
+现在，只有极少数的服务器真正使用了正确的身份验证方案，也就是 OAuth。
+Now, only a tiny fraction of them actually use the proper authentication scheme, which is OAuth.
+
+72
+00:04:59,502 --> 00:05:02,368
+你可能会想，静态 API 密钥有什么问题？
+Now you might be thinking, why is a static API key a problem?
+
+73
+00:05:02,528 --> 00:05:03,328
+嗯，你想想看，对吧？
+Well, think about it, right?
+
+74
+00:05:03,488 --> 00:05:08,836
+如果有五个不同的 Agent 在请求你的服务器，而且它们都用同一个密钥，你就没法分辨它们。
+If five different agents are hitting your server and they're all using the same key, you're not able to tell them apart.
+
+75
+00:05:08,974 --> 00:05:11,728
+你看不出是哪个用户让哪个 Agent 去做了什么。
+You can't see which user told which agent to do what.
+
+76
+00:05:11,982 --> 00:05:15,008
+而且如果其中一个被攻破了，你也无法撤销那一个。
+And if one of them gets compromised, you can't revoke that one.
+
+77
+00:05:15,214 --> 00:05:18,048
+你必须废弃整个密钥，导致所有的 Agent 同时崩溃。
+You have to kill the key and break all of the agents at once.
+
+78
+00:05:18,254 --> 00:05:22,436
+对于小型项目来说这没问题，但对于任何真实的生产环境来说都不行。
+And that's fine for a short project, but it's not fine for anything that's real and in production.
+
+79
+00:05:22,702 --> 00:05:31,488
+所以 MCP 官方规范其实给出了答案，而且这就是所有严肃的应用已经在使用的东西，叫做 OAuth。
+So the MCP official specification actually has an answer for this, and it's the same
+thing that all serious applications have already been using, which is called OAuth.
+
+80
+00:05:31,888 --> 00:05:35,248
+具体来说，他们引用了带有 PKCE 的 OAuth 2.1。
+specifically they reference OAuth 2.1 with PKCE.
+
+81
+00:05:35,328 --> 00:05:43,648
+如果这听起来很吓人，别担心，因为你永远不会自己去构建这个东西，
+但你应该理解它是怎么回事，因为我们马上就要把它集成到我们即将构建的 MCP 服务器中。
+Now, if that sounds scary, don't worry, because you're never going to build this thing yourself,
+but you should understand what it is because we're going to build it into the MCP server we build in just a minute.
+
+82
+00:05:43,808 --> 00:05:46,528
+这是确保你的 MCP 服务器安全的关键部分。
+It's an important part to keep your MCP servers safe.
+
+83
+00:05:46,734 --> 00:05:50,596
+现在来看看这个流程是怎么运作的：你的 MCP 服务器永远不会登录任何东西。
+Now here's how this flow works your MCP server never signs into anything.
+
+84
+00:05:50,688 --> 00:05:52,048
+这才是最核心要理解的一点。
+That's really the key thing to understand.
+
+85
+00:05:52,238 --> 00:06:00,208
+当 Claude 或任何 MCP 客户端尝试在不传递有效令牌的情况下调用你的服务器时，
+你的服务器只会返回 401 未授权。
+When Claude or any MCP client tries to call your server without passing a valid token, your server just says 401 not authorized.
+
+86
+00:06:00,430 --> 00:06:05,088
+哦，顺便说一下，这是你可以去实际登录的地方提供的 URL。
+And oh, by the way, here's the URL of the place that you can go to actually sign in.
+
+87
+00:06:05,168 --> 00:06:09,636
+服务器返回的那个地方被称为授权服务器。
+Now that place there that the server is going to return is called an authorization server.
+
+88
+00:06:09,728 --> 00:06:12,448
+所以 Agent 或者，抱歉，是客户端会去那里。
+So the agent or sorry, the client will go there.
+
+89
+00:06:12,622 --> 00:06:18,848
+用户随后会看到一个正常的登录界面，他们可以用 Google、
+电子邮件或者任何你已同意或设置好的方式登录。
+The user will then see a normal login screen and they can sign in with Google, email,
+or whatever you've consented with or whatever you've set up.
+
+90
+00:06:18,928 --> 00:06:24,528
+他们会看到一个同意界面，然后他们就可以批准操作并登录，
+就像他们在任何其他应用程序中做的那样。
+They'll get a consent screen and then they're able to approve an action and sign in just like they do with any other application.
+
+91
+00:06:24,718 --> 00:06:29,808
+所以基本上，接下来发生的事情是，用户将点击允许或者授权服务器要求的任何操作。
+So basically, what happens from here is that the user is going to click allow or whatever the authorization server says.
+
+92
+00:06:29,968 --> 00:06:35,716
+然后它会获取一个令牌，并把它交给 Claude 或者你正在使用的任何 Agent。
+It's then going to take a token and it's going to hand that over to Claude or again to whatever agent you're using.
+
+93
+00:06:35,888 --> 00:06:43,008
+然后，那个 AI 智能体就能在每次请求你的 MCP 服务器时都带上那个令牌，从而识别出你的身份。
+And then that agent will be able to send that token with every single
+request to your MCP server, and that's going to identify who you are.
+
+94
+00:06:43,214 --> 00:06:48,288
+所以你的服务器会检查那个令牌的签名，确保它是专门发给这个服务器的。
+So your server is going to check the signature of that token, make sure that it was meant for this specific server.
+
+95
+00:06:48,368 --> 00:06:51,008
+它还会检查里面包含哪些权限或权限范围。
+It's going to check what permissions or scopes are inside.
+
+96
+00:06:51,182 --> 00:06:52,228
+然后它就会运行那个工具。
+And then it's going to run the tool.
+
+97
+00:06:52,526 --> 00:06:57,860
+顺便说一下，为了统一术语，令牌里的权限被称为权限范围。
+Now, just by the way, to go through some terminology, the permissions that are inside of the token are called scopes.
+
+98
+00:06:58,126 --> 00:07:04,208
+所以你可能会有比如“读取笔记”权限范围或“写入笔记”权
+限范围，或者还有其他类型的权限范围，总之就是这样。
+So you might have like a notes read scope or a notes write scope, or you might have, you know, some other types of scopes, whatever.
+
+99
+00:07:04,368 --> 00:07:10,532
+基本上，你服务器里的工具可以说：嘿，为了执行这个操作，我需要这个权限范围或这个权限。
+And basically the tools in your server can say, hey, I need this scope or this permission in order to do this.
+
+100
+00:07:10,830 --> 00:07:18,660
+这样一来，你不仅可以验证用户身份，还可以控制该用户能够做什么，
+并检查他们是否拥有所需的权限。
+So this allows you to not only just authenticate a user, but also to control
+what that user is able to do and to check if they have the required permissions.
+
+101
+00:07:18,830 --> 00:07:21,568
+现在，这个令牌还会告诉你用户是谁。
+Now, this token will also tell you who the user is.
+
+102
+00:07:21,998 --> 00:07:31,040
+在这些令牌数据中，它包含了权限范围、用户 ID 以及一些额外信息，
+这意味着你的服务器实际上可以代表用户进行操作，从而实现扩展，而不仅仅是为单个实体工作。
+So embedded inside of that token data, it will have the scopes, it will have the user ID,
+and it'll have a little bit more information, which means your server can actually act
+
+103
+00:07:31,040 --> 00:07:35,248
+在这些令牌数据中，它包含了权限范围、用户 ID 以及一些额外信息，
+这意味着你的服务器实际上可以代表用户进行操作，从而实现扩展，而不仅仅是为单个实体工作。
+on behalf of a user so it can scale out and not just work for one individual entity.
+
+104
+00:07:35,502 --> 00:07:45,088
+还有一点你需要注意到的，就是你的客户端，也就是你的 AI 智能体，在允许你登录之前，
+需要先在你的授权服务器上进行注册。
+And there's just one more piece that you should be aware of here, which is that your clients, your AI agents,
+need to register themselves with your authorization server before they're going to allow you to log in.
+
+105
+00:07:45,198 --> 00:07:48,608
+规范中有一项叫做动态客户端注册来处理这个。
+And the spec has something called dynamic client registration for that.
+
+106
+00:07:48,878 --> 00:07:50,208
+所以它们可以直接自动完成。
+So they can just do it automatically.
+
+107
+00:07:50,288 --> 00:07:58,528
+你不需要在这里做任何设置，但你应该知道，实际上发生的情况是：
+你的客户端会向授权服务器注册，说：嘿，我想登录。
+You don't have to set anything up here, but you should just be aware that effectively what's going to happen is your client is going
+to register with the authorization server, say, Hey, I want to sign in.
+
+108
+00:07:58,688 --> 00:08:09,120
+授权服务器向用户发送一个 URL，用户登录后，系统就会发放一个令牌给客户端，
+客户端然后在每次请求时都把令牌发给服务器，这样就能识别出你这个用户，
+Authorization server sends a URL to the user, they sign in, that then grants a token, it gives that to the client,
+the client then sends that to the server on every single request, and that identifies you, the user,
+
+109
+00:08:09,120 --> 00:08:09,570
+以及你拥有的所有与 MCP 服务器相关的权限范围。
+Authorization server sends a URL to the user, they sign in, that then grants a token, it gives that to the client,
+the client then sends that to the server on every single request, and that identifies you, the user,
+
+110
+00:08:09,570 --> 00:08:12,356
+以及你拥有的所有与 MCP 服务器相关的权限范围。
+and all of the scopes that you have with the MCP server.
+
+111
+00:08:12,528 --> 00:08:24,470
+这是一个非常棒的流程，你可以自己构建所有这些内容，比如登录页面、同意界面、令牌签名、
+客户端注册、刷新逻辑，或者你也可以直接接入已经实现这些功能的组件，
+It's actually a really nice flow, and you could build all of this yourself, like the login page, the consent screen, you know,
+the token signing, the client registration, the refresh logic, or you can just plug in something that's already doing this,
+
+112
+00:08:24,470 --> 00:08:24,800
+这是一个非常棒的流程，你可以自己构建所有这些内容，比如登录页面、同意界面、令牌签名、
+客户端注册、刷新逻辑，或者你也可以直接接入已经实现这些功能的组件，
+which I'm going to show you in a second, because there's a lot of great tools out there that handle all of the MCP config for you.
+
+113
+00:08:24,800 --> 00:08:30,448
+我等会儿会展示给你看，因为有很多优秀的工具可以帮你处理所有的 MCP 配置。
+which I'm going to show you in a second, because there's a lot of great tools out there that handle all of the MCP config for you.
+
+114
+00:08:30,608 --> 00:08:33,087
+总之，现在我想切换到电脑上。
+Anyways, at this point, what I want to do is go onto the computer.
+
+115
+00:08:33,260 --> 00:08:37,727
+我想向你们展示如何构建一个简单的 MCP 服务器，以及如何将其连接到各种客户端。
+I want to show you how to build a simple MCP server and how to connect it to various clients.
+
+116
+00:08:37,933 --> 00:08:47,648
+然后我将展示如何添加授权组件，这样你就可以构建一个能为真实用户大规模运行的 MCP 服务器，
+而且你不需要担心我们刚才提到的那些繁琐的细节。
+Then I'm gonna show you how to add the authorization component so you can build an MCP server that works at scale for real users,
+and you don't have to worry about all of the finicky details that we talked about here.
+
+117
+00:08:47,918 --> 00:08:52,484
+好了，我现在在电脑前了，我将演示如何使用 Python 构建一个简单的 MCP 服务器。
+Okay, so I'm on the computer now and I'm gonna show you how to build a simple MCP server using Python.
+
+118
+00:08:53,102 --> 00:08:57,028
+好了，首先让我们快速了解一下构建这个过程是怎么样的。
+All right, so first let's quickly understand kind of how building this works.
+
+119
+00:08:57,454 --> 00:08:58,448
+现在我这里有代码，对吧？
+Now I have the code here, right?
+
+120
+00:08:58,528 --> 00:09:03,168
+我会过一遍，你会看到它非常基础，你可以引入像 FastMCP 这样的模块。
+And I'll go through it and you'll see it's very basic and you can bring in a module like FastMCP.
+
+121
+00:09:03,374 --> 00:09:07,716
+不过，如果你不想用，当然也可以不用框架来构建这个，框架只是会让过程变得更容易。
+However, you don't need to use a framework to build this if you don't want to, of course, it's just going to make it easier.
+
+122
+00:09:08,334 --> 00:09:15,808
+基本上，这些框架为你做的事情——你等会儿就能看到——就是确保你的服务器符合 MCP 协议，对吧？
+Basically, all these frameworks are going to do for you, which you'll see in a second,
+is just make sure that your server adheres to the MCP protocol, right?
+
+123
+00:09:15,968 --> 00:09:17,444
+也就是模型上下文协议。
+The model context protocol.
+
+124
+00:09:17,742 --> 00:09:29,920
+因为归根结底，我们做的其实就是构建一个普通的 API 或简单的服务器，
+就像在任何编程语言中做的那样，我们只是采用了一套固定的响应和请求结构，
+Because after all, really all we're doing is just building a normal API or simple server like we would in any programming language,
+and we're just having a kind of set response and request structure that allows
+
+125
+00:09:29,920 --> 00:09:30,060
+让它表现得像个 MCP 服务器，这就是整个协议的全部内容。
+Because after all, really all we're doing is just building a normal API or simple server like we would in any programming language,
+and we're just having a kind of set response and request structure that allows
+
+126
+00:09:30,060 --> 00:09:34,596
+让它表现得像个 MCP 服务器，这就是整个协议的全部内容。
+it to behave like an MCP server, and that's effectively the entire protocol.
+
+127
+00:09:34,990 --> 00:09:38,208
+现在你可以去 modelcontextprotocol.io 阅读协议。
+Now you can read the protocol from model contextprotocol.io.
+
+128
+00:09:38,528 --> 00:09:42,340
+我将快速过一遍一些高层内容，然后我会在代码中展示给你看。
+I'm going to really quickly go through some high-level stuff and then I'm going to show it to you in code.
+
+129
+00:09:42,798 --> 00:09:51,044
+所以基本上，你可以看到 MCP 提供了一种标准化的方式，
+让应用程序共享信息、暴露工具并构建可组合集成。
+So basically, you can see that MCP provides a standardized way for an application
+to share information, expose tools, and build composable integrations.
+
+130
+00:09:51,502 --> 00:09:52,528
+现在有一些关键细节。
+Now there's some key details.
+
+131
+00:09:52,608 --> 00:09:58,448
+好，我们要使用 JSON，这里有一些功能，而且 MCP 实际上比大多数人展示给你的要深入得多。
+Okay, we're going to use JSON, here's some features that we have, and MCP actually goes a lot further than most people show you.
+
+132
+00:09:58,734 --> 00:10:00,228
+如果你想读一下，尽管去看。
+If you want to read through it, feel free.
+
+133
+00:10:00,622 --> 00:10:07,408
+如果你去这里的架构选项卡，你可以看到有一些图表解释了宿主、客户端、服务器和设计原则。
+If you go over to the architecture tab here, you can see there's some diagrams that explain host, clients, servers, design principles.
+
+134
+00:10:07,568 --> 00:10:08,448
+你大概明白意思了。
+You get the idea.
+
+135
+00:10:08,686 --> 00:10:15,972
+基本上，这就是我想在这里展示给你们看的，也就是
+MCP 服务器如何与不同参与者进行通信的时序图。
+And basically, this is what I want to show you right here, which is the
+sequence diagram of how an MCP server communicates with the different actors.
+
+136
+00:10:16,846 --> 00:10:18,244
+现在你可以看到我们有一个客户端。
+Now you can see that we have a client.
+
+137
+00:10:18,638 --> 00:10:24,208
+客户端将能够发现服务器，然后获取关于服务器信息的详情，对吧？
+The client will be able to discover the server and then get back details about the server's info, right?
+
+138
+00:10:24,368 --> 00:10:31,620
+然后用户或模型可以发起操作，它会向服务器发送请求，服务器只需发送回响应。
+Then the user or model can initiate an action, it will send a request over to the server, and the server simply sends a response back.
+
+139
+00:10:31,918 --> 00:10:33,648
+我们把那个转发给 AI，对吧？
+We forward that to AI, right?
+
+140
+00:10:33,728 --> 00:10:36,708
+然后就这样来回传递，你可以看看这个时序图。
+And then just go back and forth and you can view the sequence diagram.
+
+141
+00:10:37,038 --> 00:10:45,924
+现在，每一个请求和响应都有一套固定的结构，服务器必须遵守这些结构，
+才能与任何兼容 MCP 的内容协同工作。
+Now, every single one of these requests and response has a set structure that the
+server needs to adhere to in order to work with anything that's MCP compatible.
+
+142
+00:10:46,158 --> 00:10:55,328
+如果你查看这里的整个协议，所有这些细节都会列出来，比如消息模式，例如请求如何发送，
+响应如何发送，还有很多其他内容，对吧？
+Now, all of that is detailed if you go through the entire protocol here, like the message patterns, for example,
+how the request is sent, how the response is sent, multiple things, right?
+
+143
+00:10:55,408 --> 00:10:56,288
+你大概明白意思了。
+You get the idea.
+
+144
+00:10:56,526 --> 00:10:59,300
+重点是，我们不需要自己去构建这些东西。
+The point is that we don't need to build any of this ourself.
+
+145
+00:10:59,568 --> 00:11:03,088
+我们可以直接使用已经帮我们处理好这些事情的框架和工具。
+We can just use frameworks and tools that already handle it for us.
+
+146
+00:11:03,278 --> 00:11:11,044
+实际上，我们负责的只是设置授权，然后设置工具以及身份提供相关的东西，你一会儿就能看到。
+And really, all we're responsible for is setting up the authorization and then setting
+up the tools and kind of the identity providing stuff, which you'll see in a second.
+
+147
+00:11:11,470 --> 00:11:18,848
+所以我只想让你快速了解一下，如果你想查看并了
+解协议在底层是如何工作的，尽管去这个页面看看。
+So I just want you to kind of quickly understand that if you want to look through this
+and understand how the protocol works on a lower level, feel free to go to this page.
+
+148
+00:11:18,928 --> 00:11:20,768
+它非常详细地概述了所有内容。
+It outlines everything very detailed.
+
+149
+00:11:20,878 --> 00:11:22,288
+其实并没有那么复杂。
+It's actually not that complicated.
+
+150
+00:11:22,478 --> 00:11:25,284
+但现在，让我们进入代码部分，让我给你们演示几个例子。
+But for now, let's go to code and let me show you a few demos.
+
+151
+00:11:25,582 --> 00:11:31,396
+第一个要看的演示是一个本地 MCP 服务器，它仅对本设备上的客户端可用。
+So the first demo to look at is a local MCP server, which is only available to clients on this device.
+
+152
+00:11:31,808 --> 00:11:39,204
+当我们构建自己的快速原型进行测试时非常有用，但当然，
+它对其他客户端不起作用，因为它只在我们的机器上。
+Useful when we're building our own kind of quick thing to tinker with, but of course,
+it doesn't work for any other clients because it's just on our own machine.
+
+153
+00:11:39,758 --> 00:11:42,276
+现在，基本上这就是我们设置 MCP 服务器的方法。
+Now, basically, this is how we set up an MCP server.
+
+154
+00:11:42,574 --> 00:11:45,248
+我们可以引入像 FastMCP 这样的模块。
+We can bring in a module like FastMCP.
+
+155
+00:11:45,454 --> 00:11:47,088
+你可以直接用 pip 安装它。
+You can just install this using pip.
+
+156
+00:11:47,248 --> 00:11:48,688
+例如，如果我查看我的 mypyproject。
+For example, if I go to mypyproject.
+
+157
+00:11:53,294 --> 00:11:56,080
+然后我们可以引入一些提供工具的代码。
+And then we can bring in some tool providing codes.
+
+158
+00:11:56,208 --> 00:11:58,180
+例如，我有一个笔记数据库。
+for example, I have this notes database.
+
+159
+00:11:58,574 --> 00:12:07,588
+如果我们看看这里，你可以看到我只是有一些简单的函数，
+用来连接到 Postgres SQL 数据库来添加、删除、列出一些笔记，然后当然还要连接。
+If we have a look here, you can see I just have some simple functions that just connect to a Postgres SQL database to add, delete,
+list a few notes, and then of course connect.
+
+160
+00:12:08,430 --> 00:12:16,580
+好了，接下来我只需要在这里写一些 Python 函数，然后用 @mcp.tool 来装饰它们。
+Okay, and then all I do is I literally just write some Python functions here and decorate them with this at MCP.dot tool.
+
+161
+00:12:16,974 --> 00:12:31,524
+这样一来，FastMCP 就会自动把这些函数添加到模式或者可用工具列表中，
+每当我把 MCP 客户端连接到这个 MCP 服务器时，它就会通知这些工具的存在。
+Now, when I do that, what will happen is that FastMCP will automatically add these to the schema or the list of available tools,
+and it will communicate that these tools exist whenever I connect an MCP client to this MCP server.
+
+162
+00:12:32,078 --> 00:12:33,200
+所以，就这么简单，对吧？
+So that's literally it, right?
+
+163
+00:12:33,280 --> 00:12:37,520
+你只需要装饰几个不同的函数，现在我们就可以运行 MCP 服务器了。
+You can just decorate a few different functions, and now we can run the MCP server.
+
+164
+00:12:37,838 --> 00:12:40,320
+我马上就演示一下我们如何添加配置。
+I'll show you how we add the configuration in one second.
+
+165
+00:12:40,494 --> 00:12:47,908
+突然之间，任何连接到这个服务器的东西就都能开始使用
+这些不同的工具来创建笔记、设置笔记，你懂我的意思。
+And all of a sudden, anything that we connect to this will start being able
+to use these different tools to create notes, set notes, you get the idea.
+
+166
+00:12:48,110 --> 00:12:51,200
+不过，注意这里没有任何身份验证或授权。
+However, notice there's no authentication or authorization here.
+
+167
+00:12:51,470 --> 00:12:56,740
+所以任何获得这个服务器访问权限的人都可以调用这些工具并做任何事情，没有任何检查。
+So anyone who gets access to this server can call any of these tools and do anything without any checks.
+
+168
+00:12:57,166 --> 00:12:59,840
+在这个例子里没问题，但稍后我们要修复这个问题。
+In this instance, it's fine, but later we're going to want to fix that.
+
+169
+00:13:00,110 --> 00:13:01,920
+当然，这里还有更多你可以做的事情。
+And of course, there's more things you can do here.
+
+170
+00:13:02,190 --> 00:13:08,160
+例如，你可以给 MCP 工具添加描述，这样我们就能描述这个函数的功能。
+For example, with the MCP tool, you can add a description to it so that we can actually describe what the function is.
+
+171
+00:13:08,462 --> 00:13:12,400
+默认情况下，它实际上会从函数中的文档字符串里获取描述。
+By default, it will actually take the description from the doc string in the function.
+
+172
+00:13:12,654 --> 00:13:18,640
+所以你可以看到这里我们有文档字符串，这就是用来告诉 AI 模型这个工具实际功能的。
+So you can see here we have doc string, and that's what will be used to tell the AI model what this tool actually does.
+
+173
+00:13:18,926 --> 00:13:20,880
+然后你会看到我们还对这个进行了标注。
+And then you'll see that we've also annotated this.
+
+174
+00:13:21,070 --> 00:13:23,076
+也就是说，我们在 Python 中添加了类型提示。
+So we've added the type hints in Python.
+
+175
+00:13:23,310 --> 00:13:30,240
+这非常有帮助，因为再次强调，当它向我们的 AI
+客户端描述这些函数时，它会增加更多的上下文。
+This is super helpful because again, it will add more context when it's describing these functions to our AI client.
+
+176
+00:13:30,510 --> 00:13:32,800
+所以它就知道，嘿，我应该用字符串来调用这个函数。
+So it knows, hey, I should call this function with a string.
+
+177
+00:13:32,974 --> 00:13:34,244
+好，我将获得一个字典作为返回结果。
+Okay, I'm going to get a dictionary back.
+
+178
+00:13:34,574 --> 00:13:37,316
+好，我应该用整数来调用这个函数，我将获得一个字符串作为返回结果。
+Okay, I should call this function with an int, I'm going to get a string back.
+
+179
+00:13:37,646 --> 00:13:48,708
+所以具体到 Python，当你使用像 FastMCP 这样的框架时，
+记得添加文档字符串并标注函数参数和返回类型，因为这能让你的 AI 模型给出更高质量的响应。
+So specifically in Python, when you're using a framework like FastMCP, add doc strings and annotate the function parameters and return
+types because it will give you a higher quality response from your AI models.
+
+180
+00:13:49,230 --> 00:14:01,980
+总之，如果我们是在 Cursor 这种可以添加 MCP 服务器的 AI 客户端里，
+我们需要做的就是去这里的设置，进入工具和 MCP，然后点击添加自定义 MCP，
+Anyways, if we're inside of something like Cursor, which is something that's an AI client, right, that we can add an MCP server to,
+what we would need to do is go to the settings here, go to Tools and MCP, and then we just need to go to add custom mcp and we can add
+
+181
+00:14:01,980 --> 00:14:03,780
+我们可以添加一个配置来运行我们的本地服务器。
+Anyways, if we're inside of something like Cursor, which is something that's an AI client, right, that we can add an MCP server to,
+what we would need to do is go to the settings here, go to Tools and MCP, and then we just need to go to add custom mcp and we can add
+
+182
+00:14:03,780 --> 00:14:06,404
+我们可以添加一个配置来运行我们的本地服务器。
+a configuration here to run our local server.
+
+183
+00:14:06,734 --> 00:14:17,284
+现在，因为我们要以标准输入输出或本地 标准输入输出 运行，我们需要给 Cursor 指令，
+让它在我们的电脑上把这个作为子进程运行。
+Now, because we're going to run this as standard input output or local st IO, what we need to do is give cursor the instructions to
+actually run this as a subprocess on our own computer.
+
+184
+00:14:17,614 --> 00:14:18,532
+让我给你们看看那是长什么样的。
+Let me show you what that looks like.
+
+185
+00:14:18,800 --> 00:14:21,040
+好的，这就是配置的样子。
+Okay, so this is what the configuration will look like.
+
+186
+00:14:21,326 --> 00:14:23,172
+注意我这里有 mcp servers。
+Notice what I have is mcp servers.
+
+187
+00:14:23,360 --> 00:14:26,308
+我有我 MCP 服务器的名字，也就是 notes local。
+I have the name of my MCP server, which is notes local.
+
+188
+00:14:26,480 --> 00:14:31,360
+我有我想执行的命令，也就是 uv，因为我想用 Python 来执行它。
+I have the command that I want to execute, which is uv, because I want to execute this using Python.
+
+189
+00:14:31,520 --> 00:14:34,000
+如果这是 JavaScript，命令就是 node，对吧？
+If this was in JavaScript, the command would be node, right?
+
+190
+00:14:34,080 --> 00:14:35,556
+如果我运行的是 node.js 服务器。
+If I'm running a node.js server.
+
+191
+00:14:35,950 --> 00:14:38,880
+然后我还有我想传递给这个命令的参数。
+I then have that the arguments that I want to pass to this command.
+
+192
+00:14:38,960 --> 00:14:46,308
+所以就像是 UV 运行目录，我电脑上的目录，然后是我想运行的文件，也就是 v1 local。
+So it's like UV space run directory, the directory on my computer, and then the file that I want to run, which is v1 local.
+
+193
+00:14:46,574 --> 00:14:55,748
+再次强调，因为我是在本地运行这个，所以 Cursor 会通过
+我的终端或标准输入输出与它通信，不会发送 HTTP 请求。
+Now again, because I'm running this locally, what will happen is cursor will just communicate with this using my terminal or standard
+input output, and there's no HTTP requests being sent.
+
+194
+00:14:56,046 --> 00:14:57,988
+这又是运行服务器的第一种方式。
+This again is the first way to run the server.
+
+195
+00:14:58,414 --> 00:15:03,200
+所以我可以简单地到这里检查 notes local 是否已连接。
+So what I can do is I can simply just go here and check if notes local is connected.
+
+196
+00:15:03,342 --> 00:15:06,000
+回到 MCP，我们可以看到启用了三个工具。
+So I go back to MCP, we can see three tools are enabled.
+
+197
+00:15:06,222 --> 00:15:08,480
+我们有列出、添加笔记，然后是删除笔记。
+We have list, add a note, and then delete a note.
+
+198
+00:15:08,782 --> 00:15:17,360
+如果我新建一个智能体窗口，例如，我可以问：嘿，你在我的笔记服务器里能做什么？
+And if I go and make a new agent window, for example, I can say, hey, what can you do in my notes server?
+
+199
+00:15:17,678 --> 00:15:22,116
+它应该能够把这些已连接的不同工具拉出来，并立即开始使用它们。
+And it should be able to actually pull up these different tools that are connected and start using it immediately.
+
+200
+00:15:22,542 --> 00:15:25,440
+你可以看到它显示了列出笔记、添加笔记，然后是删除笔记。
+So you can see it says list notes, add a note, and then delete a note.
+
+201
+00:15:25,600 --> 00:15:31,120
+然后我们可以说类似：创建一个笔记，内容是我的名字重复五次。
+And then we could say something like create a note that says my name five times.
+
+202
+00:15:31,982 --> 00:15:32,560
+好，让我们看看。
+Okay, let's see.
+
+203
+00:15:32,640 --> 00:15:33,920
+我甚至不知道它知不知道我的名字。
+I don't even know if it knows my name.
+
+204
+00:15:34,240 --> 00:15:35,280
+也许它会要求我提供。
+Maybe it will ask for that.
+
+205
+00:15:35,470 --> 00:15:36,612
+让我们看看能不能把它列出来。
+And let's see if we can list it out.
+
+206
+00:15:36,814 --> 00:15:38,320
+好吧，不知为什么它居然知道我的名字。
+Okay, so for some reason it does know my name.
+
+207
+00:15:38,480 --> 00:15:44,132
+你可以看到它在这里发起了一个调用，只是在添加名
+字，然后我要说：好，你能列出所有可用的笔记吗？
+You can see it made a call here and it's just adding the name, and then I'm going to say, okay,
+can you list all of the notes that are available?
+
+208
+00:15:45,198 --> 00:15:47,396
+让我们看看我们有哪些笔记，以及它是否能把它们列出来。
+And let's see what notes we have and if it's able to list that.
+
+209
+00:15:47,950 --> 00:15:50,928
+再次说明，我知道这非常基础，但我只是想向你们展示这是如何设置的。
+Again, I know it's super basic, but I'm just trying to show you how this is set up.
+
+210
+00:15:51,088 --> 00:15:52,928
+所以你可以看到现在它正在运行这个命令。
+So you can see now it's running this command.
+
+211
+00:15:53,088 --> 00:15:57,008
+它说：嘿，笔记二，砰，这就是选项，然后它就把那些笔记给了我。
+It says, hey, note two, boom, here are the options, and then it gives me those notes.
+
+212
+00:15:57,168 --> 00:15:58,916
+当然，如果我想，我也可以把它删掉。
+Then of course I could delete it if I want.
+
+213
+00:15:59,246 --> 00:16:03,168
+所以我实际上做的就是说：好，这是运行服务器的命令。
+So literally all I did is I said, okay, here's the command to run the server.
+
+214
+00:16:03,342 --> 00:16:07,648
+因为我使用的是这个 fast MCP，它帮我处理了所有与协议相关的内容。
+Because I'm using this fast MCP, it handles everything else related to the protocol for me.
+
+215
+00:16:07,822 --> 00:16:16,196
+现在我有了三个工具，我可以把它们变成任何我想要的东西，做任何我添加到 Cursor 里的操作，
+而且我也能把它们添加到几乎任何其他 AI 智能体中。
+And now I just have three tools and I can make these anything that I want, doing anything
+at all that I've added to cursor and that I could add to pretty much any other AI agent.
+
+216
+00:16:16,528 --> 00:16:23,008
+现在让我们看看如何把它改成远程模式，这样我们就可以通过互联网上的任何 URL 来访问它。
+Now let's have a look at how we can change this to remote so that we can actually access this over a URL anywhere on the internet.
+
+217
+00:16:23,406 --> 00:16:28,208
+好，注意在我的 v1 local 脚本里，我有这个 mcp.run。
+Okay, so notice in my V1 local script here, I have this mcp.run.
+
+218
+00:16:28,366 --> 00:16:34,244
+默认情况下，当我运行 MCP 服务器时，它是通过 标准输入输出 或标准输入输出运行的。
+And just by default, when I run the MCP server, it runs with stdio or standard input output.
+
+219
+00:16:34,574 --> 00:16:43,972
+如果我想把它改成远程运行，我只需要把这一行改
+为以下内容：我想运行的传输方式、宿主和端口。
+And if I want to change this to running remotely, all I need to do is just change this line right here to say the following the
+transport, the host, and the port that I want to run this on.
+
+220
+00:16:44,206 --> 00:16:57,380
+现在这会把它改为通过 HTTP 或可流式传输的 HTTP 运行，这将允许我直接向 URL 发送请求，
+只需使用 HTTP，而不需要把它作为本地子进程运行。
+Now this will change it to run over HTTP or streamable HTTP, which will allow me to actually send requests directly to a URL and just
+have HTTP rather than having to run this as a local subprocess.
+
+221
+00:16:57,870 --> 00:17:08,387
+在这种情况下，我只是在自己的本地电脑上运行它，但如果我在 VPS 或某种服务器上运行它，
+我只需要把 URL 给别人，他们就能连接到这个 MCP 服务器了。
+Now in this case, I'm just running this on my local computer, but if I ran this on a VPS or some kind of server,
+all I would have to do is just give someone the URL and then they would be able to connect to this MCP server as well.
+
+222
+00:17:08,781 --> 00:17:10,367
+所以我要做的就是运行这个。
+So what I'm going to do is just run this.
+
+223
+00:17:10,478 --> 00:17:18,048
+注意，我得自己运行它，而且它得一直运行，因为它现在是跑在，怎么说呢，HTTP 上。
+Now notice I'll have to run this myself and it has to stay running because this is going to be run on what do you call it, HTTP.
+
+224
+00:17:18,348 --> 00:17:22,180
+所以我只需输入 uv run 然后是 v2 remote.py。
+So I'm just going to say uv run and then v2 remote.py.
+
+225
+00:17:22,382 --> 00:17:25,887
+注意看，它现在就像普通的 FastAPI 服务器一样在运行。
+Notice that it's just running like a normal fast API server for me right here.
+
+226
+00:17:25,968 --> 00:17:28,420
+所以你可以看到 UVCord 正在这个 URL 上运行。
+So you can see UVCord is running on this URL.
+
+227
+00:17:28,654 --> 00:17:30,884
+现在我能做的就是去 Cursor。
+And now what I'm able to do is I can go to cursor.
+
+228
+00:17:31,630 --> 00:17:33,764
+让我们看看我们的 MCP。
+Let's go over to our MCP.
+
+229
+00:17:34,510 --> 00:17:35,460
+把这个调大一点。
+Let's make this a little bit bigger.
+
+230
+00:17:35,694 --> 00:17:39,488
+这次当我们添加自定义 MCP 服务器时，我们只需要给它起个名字。
+And when we add the custom MCP server this time, all we have to do is give it a name.
+
+231
+00:17:39,694 --> 00:17:40,900
+那我们就叫它 notes。
+So let's just call this notes.
+
+232
+00:17:41,488 --> 00:17:41,808
+好的。
+Okay.
+
+233
+00:17:42,350 --> 00:17:51,328
+然后对于 URL，我们只需输入这个 URL 冒号，然后填入我们服务器的 URL，它在哪呢？
+And then for the URL, we're just going to say like this URL colon, and
+then we're going to put the URL to our server, which is where is it?
+
+234
+00:17:51,488 --> 00:17:51,968
+就在这里。
+Right here.
+
+235
+00:17:52,398 --> 00:17:55,488
+就是这个 localhost 端口 8000。
+So this 000 or just localhost port 8000.
+
+236
+00:17:56,142 --> 00:18:00,836
+我们可以直接粘贴这个，我把它改成 localhost 然后保存。
+So we can just paste this, and I'll just change this to say localhost and then save.
+
+237
+00:18:01,006 --> 00:18:06,928
+现在突然就能看到请求被发送到这个 MCP 服务器了，我们基本上就搞定了。
+And now all of a sudden you can see that a request gets sent to this MCP server, and we're effectively good to go.
+
+238
+00:18:07,086 --> 00:18:13,088
+我们需要在这个 URL 末尾加上 /MCP，因为这个 URL 是必须要求的。
+And we do need to add this slash MCP to the end of this URL here because that's required for this URL.
+
+239
+00:18:13,262 --> 00:18:19,728
+现在你可以看到请求正在通过，我们得到了 OK，而不是之前弹出的那些错误。
+And you can see now that the requests are going through, and we get okay, okay, okay, okay, okay, whatever, uh,
+rather than the errors that were popping up here before.
+
+240
+00:18:19,918 --> 00:18:23,044
+所以实际上，我做的就是说，嘿，这是我服务器的名字，叫 notes。
+So effectively, all I did is say, hey, here's the name of my server, which is notes.
+
+241
+00:18:23,342 --> 00:18:24,288
+这是 URL。
+This is the URL.
+
+242
+00:18:24,526 --> 00:18:28,688
+然后我填入 URL，也就是 localhost 端口 8000，再加个 /MCP。
+And then I put the URL, which is localhost port 8000, slash MCP again.
+
+243
+00:18:28,848 --> 00:18:30,128
+确保你加上了那一部分。
+Make sure you add that part.
+
+244
+00:18:30,318 --> 00:18:31,888
+现在我们可以开始和它通信了。
+And now we can start communicating with it.
+
+245
+00:18:31,968 --> 00:18:38,020
+如果我回到这里的 Agent 聊天框，我会问：你连接到任何工具 MCP 服务器了吗？
+And if I go over to my agent chat here, I'm gonna say, are you connected to any tools MCP servers?
+
+246
+00:18:38,798 --> 00:18:40,448
+它应该就能把信息展示给我们。
+And it should hopefully just show that to us.
+
+247
+00:18:40,782 --> 00:18:45,968
+同样，如果我们去设置里，你可以看到这里有三个工具，我们可以列出、添加和删除笔记。
+And same thing if we go to the settings, you can see three tools are here, and we can list, add, and delete a note.
+
+248
+00:18:46,048 --> 00:18:49,568
+而这一次，Cursor 不再为我们运行那个子进程了。
+And this time, cursor's not running that subprocess for us.
+
+249
+00:18:49,742 --> 00:18:52,608
+它是在终端里运行的，虽然现在看起来有点乱。
+It's running in the terminal, even though it's a little bit messed up right now.
+
+250
+00:18:52,718 --> 00:18:57,156
+然后任何能够访问这个 URL 的客户端就都能访问这个服务器。
+And then any client that's able to access this URL will be able to access this server.
+
+251
+00:18:57,838 --> 00:19:05,650
+所以我可以从 Cloud Code 访问它，也可以从 ChatGPT 访问它，
+我可以把它添加到任何支持 MCP 服务器的地方，
+So I can access it from cloud Code, I can access it from ChatGPT, I can add it to anywhere that I want where it accepts an MCP server,
+and it's just good to go because we're running it remotely over HTTP.
+
+252
+00:19:05,650 --> 00:19:09,348
+因为它现在是通过 HTTP 远程运行的，直接就能用。
+So I can access it from cloud Code, I can access it from ChatGPT, I can add it to anywhere that I want where it accepts an MCP server,
+and it's just good to go because we're running it remotely over HTTP.
+
+253
+00:19:09,678 --> 00:19:14,436
+现在，我想再次提醒一下，让我先关掉这个服务器，现在这里没有任何访问控制。
+Now, again, at this point, I want to call out, let me just shut down this server, then there's no access control here.
+
+254
+00:19:14,606 --> 00:19:15,728
+所以现在它是开放的。
+So now this is open.
+
+255
+00:19:15,950 --> 00:19:17,808
+任何拥有这个 URL 的人都可以访问它。
+Anyone who has this URL can access it.
+
+256
+00:19:17,966 --> 00:19:23,332
+他们可以删除笔记、添加笔记、列出笔记，而且这些笔记并没有针对特定用户进行作用域限制。
+They can delete the notes, they can add a note, they can list a note, and the notes aren't scoped to an individual user.
+
+257
+00:19:23,662 --> 00:19:33,360
+所以如果我们真的想构建这个系统并让多个客户端使用，我们就需要识别每个客户端，
+为这些客户端设置不同的作用域或权限，知道谁是谁，
+So if we did want to actually build this out and have it be used by multiple clients, we would want to identify each client,
+have different scopes or permissions for those clients, know who is who, and
+
+258
+00:19:33,360 --> 00:19:33,630
+所以如果我们真的想构建这个系统并让多个客户端使用，我们就需要识别每个客户端，
+为这些客户端设置不同的作用域或权限，知道谁是谁，
+obviously only allow certain people to access our machine or access our server.
+
+259
+00:19:33,630 --> 00:19:37,328
+并且显然只允许特定的人访问我们的机器或服务器。
+obviously only allow certain people to access our machine or access our server.
+
+260
+00:19:37,486 --> 00:19:46,128
+如果我们想让所有人都能访问，那我们仍然希望他们拥有某种身份，
+这样我们才知道哪些笔记是谁的，而且我们有不同客户端拥有不同类型的控制，对吧？
+And if we wanted to just allow everyone, well, still we want them to have some identity so we know which notes are whose,
+and we have different clients that have different kinds of controls, right?
+
+261
+00:19:46,208 --> 00:19:51,408
+所以也许我可以从不同的客户端登录到我的账户并访问所有的笔记，
+或者我可以创建一个第二个账户。
+So maybe I could sign into my account from different clients and access all of my notes, or I can make a second account.
+
+262
+00:19:51,568 --> 00:19:52,368
+你明白我的意思。
+You get the idea.
+
+263
+00:19:52,622 --> 00:19:55,620
+现在，为了做到这一点，我们将使用一个非常棒的工具，叫做 Descope。
+Now, in order to do that, we're going to use a great tool called D scope.
+
+264
+00:19:55,854 --> 00:20:04,164
+Descope 是今天视频的赞助商，老实说，他们非常契
+合，因为这正是他们的智能体身份中心所设计的用途。
+Now, D Scope is the sponsor of today's video, and honestly, they're a perfect
+fit here because this is exactly what their agentic identity hub is built for.
+
+265
+00:20:04,590 --> 00:20:08,004
+它是一个面向 AI 智能体和 MCP 服务器的身份提供商。
+Now it's an identity provider for AI agents and MCP servers.
+
+266
+00:20:08,526 --> 00:20:19,812
+所以它充当我们之前提到的授权服务器，它处理登录界面、同意界面、
+动态客户端注册以及所有其他部分，这样你就不需要自己构建这些内容了。
+So it acts as the authorization server that we just talked about before, and it handles the login screen, the consent screen,
+dynamic client registration, and all of the other pieces so that you don't need to build any of this yourself.
+
+267
+00:20:20,078 --> 00:20:32,996
+它还有一个叫连接的功能，这是一个保险库，存储用户所有的 Google、GitHub、Slack 等令牌，
+这样你的智能体就可以代表用户调用这些令牌，而你不需要存储任何长期有效的密钥。
+Now it also has this thing called connections, which is a vault that stores your users' Google, GitHub, Slack, whatever,
+all of their tokens, so your agent can call those on behalf of your users without you ever storing a long-lived key.
+
+268
+00:20:33,358 --> 00:20:36,560
+我会在最后展示这一点，而且他们提供永久免费的层级。
+And I'll show you that at the end here, but they've got a free forever tier.
+
+269
+00:20:36,718 --> 00:20:37,840
+链接就在描述栏里。
+The link is in the description.
+
+270
+00:20:37,920 --> 00:20:42,000
+如果你想和他们聊聊你的特定使用案例，下面还有一个预约链接。
+And if you want to talk to them about your specific use case, there's a booking link down there as well.
+
+271
+00:20:42,350 --> 00:20:43,760
+总之，我要向你们展示如何设置它。
+Anyways, I'm going to show you how to set it up.
+
+272
+00:20:44,014 --> 00:20:44,676
+让我们来看看。
+Let's take a look.
+
+273
+00:20:45,326 --> 00:20:48,320
+我现在在 Descope 的着陆页上，他们提供很多功能。
+So I'm on the D scope landing page here, and they do a lot of stuff.
+
+274
+00:20:48,558 --> 00:20:57,156
+他们提供的主要功能之一是智能体身份中心，它允许你
+在不同的客户端和登录它的用户之间处理智能体身份。
+Now, one of the main things that they provide is an agentic identity hub, which
+allows you to handle agentic identity between different clients and people signing it.
+
+275
+00:20:57,422 --> 00:21:04,996
+现在你可以用他们来构建 MCP 服务器，也可以构建 AI 智能体，他们提供各种各样的东西，
+但当然，我们关心的是 MCP 组件。
+Now you can build MCP servers with them, you can build AI agents, there's all
+kinds of stuff that they provide, but of course, we care about the MCP components.
+
+276
+00:21:05,454 --> 00:21:07,120
+所以你可以点击描述栏里的链接。
+So what you can do is go to the link in the description.
+
+277
+00:21:07,200 --> 00:21:08,000
+它是完全免费的。
+It's completely free.
+
+278
+00:21:08,142 --> 00:21:09,360
+你不需要支付任何费用。
+You don't need to pay for anything.
+
+279
+00:21:09,582 --> 00:21:13,764
+只需注册一个新账户，然后它应该会带你进入 Descope 控制台。
+Just sign up for a new account, and then it should bring you into the D scope console.
+
+280
+00:21:14,222 --> 00:21:17,840
+从这里，你可以创建一个新项目，它应该会立即带你进入一个项目。
+From here, you can make a new project where it should just bring you right into one immediately.
+
+281
+00:21:18,000 --> 00:21:20,880
+所以我这就创建一个新项目，名字就叫这个教程。
+So I'll just make a new one and just call this tutorial.
+
+282
+00:21:21,198 --> 00:21:24,800
+目前，它将是非生产环境，但当然你以后可以把它放入生产环境。
+For now, it's going to be non-production, but of course you can put it in production later.
+
+283
+00:21:24,960 --> 00:21:26,980
+我们直接点击创建。
+And we'll just go ahead and press on create.
+
+284
+00:21:27,374 --> 00:21:30,640
+现在，项目创建后，我们稍等一下。
+Now, as soon as this project is created, we'll just give this a second here.
+
+285
+00:21:30,862 --> 00:21:33,764
+我们要做的就是找到这个智能体身份中心。
+What we're going to do is find this agentic identity hub.
+
+286
+00:21:33,920 --> 00:21:34,240
+好的。
+Okay.
+
+287
+00:21:34,542 --> 00:21:41,840
+现在，从智能体身份中心出发，我们要去这里的 MCP 服务器，
+因为我们要创建一个新的 MCP 服务器。
+Now, from the agentic identity hub, what we want to do is go over here to MCP servers because we're going to create a new MCP server.
+
+288
+00:21:41,966 --> 00:21:47,200
+这基本上将为那个 MCP 服务器提供授权服务器。
+And this is going to essentially provide the authorization server for that MCP server.
+
+289
+00:21:47,566 --> 00:21:52,484
+这样我们就能用 Google、GitHub 等方式登录，并将身份提供给 MCP 服务器。
+So we'll be able to sign in with Google, GitHub, whatever, and provide that identity to the MCP server.
+
+290
+00:21:52,942 --> 00:21:55,760
+那我们到这里，点击加号来添加 MCP 服务器。
+So let's go here and press plus for MCP server.
+
+291
+00:21:55,918 --> 00:21:57,764
+名字的话，我们就叫它 notes。
+For the name, we're just going to call this notes.
+
+292
+00:21:58,030 --> 00:21:59,440
+描述的话，我们可以随便写点什么。
+For the description, we can give it something.
+
+293
+00:21:59,600 --> 00:22:00,320
+不写也可以。
+We don't have to.
+
+294
+00:22:00,526 --> 00:22:06,960
+至于 MCP 服务器 URL，这里就填 HTTP 斜杠斜杠 localhost 端口 8000。
+And for the MCP server URL, this is just going to be HTTP slash slash localhost port 8000.
+
+295
+00:22:07,280 --> 00:22:10,756
+现在填的时候，一定要记得加上这个斜杠 MCP。
+Now make sure when you're filling this in that you actually include this slash MCP.
+
+296
+00:22:10,880 --> 00:22:12,292
+如果没有这个，它就没法工作。
+If you don't have this, this won't work.
+
+297
+00:22:12,718 --> 00:22:14,948
+好，然后我们可以向下滚动，添加权限范围。
+Okay, then we can scroll down and we can add the scopes.
+
+298
+00:22:15,246 --> 00:22:20,772
+对于权限范围，我们添加 notes read，并说明允许用户读取 notes。
+For the scopes, we're just going to add notes read and we're going to say allow the user to read notes.
+
+299
+00:22:21,422 --> 00:22:24,520
+然后我们再添加另一个权限范围，就是 notes，对吧？
+And then we're going to add another scope, which is going to be notes right?
+
+300
+00:22:24,910 --> 00:22:28,196
+同样的操作，允许用户修改、编辑和创建 notes。
+And then the same thing, allow the user to modify, edit, and create notes.
+
+301
+00:22:29,038 --> 00:22:30,320
+好了，这些都是自定义的权限范围。
+Okay, now these are custom scopes.
+
+302
+00:22:30,400 --> 00:22:31,760
+你可以创建任何你想要的权限。
+You can make any ones that you want.
+
+303
+00:22:31,950 --> 00:22:35,680
+这些就是我们稍后用来查看用户实际拥有哪些权限的内容。
+And these are what we'll be able to read later to see what permissions the user actually has.
+
+304
+00:22:35,900 --> 00:22:38,180
+这样他们在登录时就可以允许或禁用它们。
+So then they can allow or disallow them when they're signing in.
+
+305
+00:22:38,702 --> 00:22:41,028
+现在从这里，我们只需要启用 CIMD。
+Now from here, we're just going to enable CIMD.
+
+306
+00:22:41,120 --> 00:22:48,000
+然后我们点击创建，并记下这里的这个 URL，也就是这个已知 URL。
+And then we're going to just press on create and make a note of this URL right here, this well-known URL.
+
+307
+00:22:48,302 --> 00:22:53,360
+所以现在我要做的就是把它复制到环境变量文件中，我大概会给你们展示一下这段代码长什么样。
+So for now, what I'm going to do is just copy that into an environment variable file,
+and I'll kind of show you what this code looks like.
+
+308
+00:22:53,582 --> 00:22:56,160
+不过别担心，你们可以从描述栏里的链接下载全部内容。
+But don't worry, you can download it all from the link in the description.
+
+309
+00:22:56,462 --> 00:23:08,000
+好了，我刚才创建了两个环境变量，一个叫 D scope config URL，
+我把这个显示的已知 URL 放进去，这基本上就是我们授权服务器的 URL。
+Okay, so what I've done is I've just created two environment variables here, one called D scope config URL,
+where I've just put this well-known URL, which appears right here, which is essentially the URL to our authorization server.
+
+310
+00:23:08,238 --> 00:23:15,428
+如果你向下滚动，你可以看到这里有一些 FastMCP 的代码示例，
+比如我们用的 Fersell 和 SkyBridge 的例子。
+And if you scroll down, you can see that there's some code examples here with FastMCP, for example,
+like what we're using with Fersell, with SkyBridge.
+
+311
+00:23:15,566 --> 00:23:17,412
+它会准确展示如何连接它。
+So it shows you exactly how to connect it.
+
+312
+00:23:17,710 --> 00:23:24,740
+然后我添加了这个 MCP 服务器 URL 变量，我把它改成了本地 MCP 服务器的 URL。
+And then I've added this MCP server URL variable where I've just changed it to be the local MCP server URL.
+
+313
+00:23:25,134 --> 00:23:25,412
+完美。
+Perfect.
+
+314
+00:23:25,870 --> 00:23:28,640
+现在我要做的就是进入我的 v3 auth.py 文件。
+So now what I'm going to do is go into my v3 auth.py.
+
+315
+00:23:28,720 --> 00:23:29,760
+我已经把代码全部写好了。
+I've already written all of the code.
+
+316
+00:23:29,840 --> 00:23:31,440
+我还会把链接放在描述栏里。
+Again, I'll link it in the description.
+
+317
+00:23:31,662 --> 00:23:35,332
+你会注意到我用的是 Descope MCP SDK。
+And you'll notice that I'm using the D scope MCP SDK.
+
+318
+00:23:35,598 --> 00:23:39,600
+如果你想在 Python 里导入或引入它，只需用 pip 安装即可。
+If you want to import that or bring it in in Python, what you can do is just pip install it.
+
+319
+00:23:39,758 --> 00:23:42,692
+你可以看到 Descope MCP，或者用 UV 来安装。
+You can see just D scope MCP or install it with UV.
+
+320
+00:23:43,118 --> 00:23:45,440
+现在从这里开始，我导入了一些需要的东西。
+Now from here, I've imported a few things that I need.
+
+321
+00:23:45,646 --> 00:23:47,600
+我加载了我的环境变量文件。
+I've loaded my environment variable file.
+
+322
+00:23:47,694 --> 00:23:49,600
+这样我就能获取到这里的这些值了。
+So I have access to these values right here.
+
+323
+00:23:49,838 --> 00:23:58,468
+我获取配置 URL、服务器 URL，然后去掉末尾的 /MCP，
+以确保即使我不小心加了它，也能拿到基础 URL。
+And I'm just getting my config URL, my server URL, and then just removing this
+slash MCP to make sure that I get the base URL in case I accidentally added it.
+
+324
+00:23:59,054 --> 00:24:02,320
+接下来，我正在连接 FastMCP。
+From there, what I'm doing is connecting fastMCP.
+
+325
+00:24:02,542 --> 00:24:10,000
+你可以看到我在这里创建了一个带有 Descope 的认证提供者，
+放入我的配置 URL、基础 URL，以及我将支持的权限范围。
+So you can see I create an auth provider here with D scope, put my config URL, my base URL,
+and then the scopes that I'm going to support.
+
+326
+00:24:10,286 --> 00:24:11,440
+这些是自定义的权限范围。
+So these are custom scopes.
+
+327
+00:24:11,520 --> 00:24:13,680
+你可以按你的想法去编写、修改或调整它们。
+You can write them, modify them, adjust them how you want.
+
+328
+00:24:13,760 --> 00:24:15,684
+所以我有了 notes read 和 notes write。
+So I have notes read and notes write.
+
+329
+00:24:16,000 --> 00:24:20,720
+然后我有了 MCP，FastMCP，给它起个名字，然后 auth 等于 auth。
+I then have MCP, fastMCP, give it a name, and then auth equals auth.
+
+330
+00:24:20,910 --> 00:24:23,120
+所以我提供了 Descope 认证提供者。
+So I'm providing the D scope auth provider.
+
+331
+00:24:23,342 --> 00:24:29,732
+然后我在这里初始化 Descope，使用已知 URL，只是为了确保它在里面，
+并且我们已经加载好并准备就绪了。
+I'm then initializing D scope here with the well known URL just to make
+sure that it's inside of here and we've got it loaded and ready to go.
+
+332
+00:24:30,080 --> 00:24:36,708
+然后我有了和之前完全一样的 MCP 服务器，只是这里多加了一点点逻辑来处理各种权限范围。
+I then have the exact same MCP server I had before, just with a little bit more wiring here to handle the various scopes.
+
+333
+00:24:37,166 --> 00:24:39,492
+你可以看到我有一个获取当前用户的功能。
+So you can see I have a function that gets the current user.
+
+334
+00:24:40,174 --> 00:24:43,632
+这个功能的作用是从 Descope 获取访问令牌，对吧？
+What this does is it gets the access token from D scope, right?
+
+335
+00:24:43,712 --> 00:24:53,232
+我们只需查看声明，就能看到我们是否有主体或用户
+ID，那就是通过 Descope 登录的当前用户，对吧？
+And we simply look through the claims and we're able to actually see if we have a sub or a user ID,
+and that's the current user that's signed in with D scope, right?
+
+336
+00:24:53,312 --> 00:24:55,204
+或者说，那是实际登录到我们应用程序的用户。
+Or that's actually signed into our application.
+
+337
+00:24:55,502 --> 00:24:56,912
+然后我们有一个 MCP 工具。
+Then we have an MCP tool.
+
+338
+00:24:57,072 --> 00:25:01,632
+这一切做的仅仅是说明当前用户是谁，只是为了让我们能在视频中测试并看到它。
+All this does is literally just say who the current user is, just so we can test it and see it in the video.
+
+339
+00:25:01,934 --> 00:25:06,692
+然后我们有列出笔记、添加笔记和删除笔记的功能，和之前完全一样。
+We then have a list notes, add a note, and delete a note function, the exact same as before.
+
+340
+00:25:07,118 --> 00:25:16,420
+唯一的区别是，这次我们实际上会查看当前用户，
+并检查他们是否拥有执行此操作的当前权限范围。
+The only difference is that what we do this time is we actually look in the current user
+and we check if they have the current scope that's allowed to perform this operation.
+
+341
+00:25:16,782 --> 00:25:23,620
+这样我们就可以实际上对某些工具进行权限隔离，限制访问，并控制哪些用户可以访问哪些笔记。
+So that way we can actually gate off certain tools and gate access and control which users are accessing which notes.
+
+342
+00:25:24,032 --> 00:25:24,352
+对吧？
+Right?
+
+343
+00:25:24,432 --> 00:25:28,100
+所以基本上，对，笔记的所有者就是用户 ID。
+So basically, right, the owner of the note is the user ID.
+
+344
+00:25:28,334 --> 00:25:30,112
+当然，节点 ID 就是节点 ID。
+And the node ID, of course, is the node ID.
+
+345
+00:25:30,192 --> 00:25:35,872
+相比之前，如果我们往回看，我们一直是用这种静态本地 ID 来标识笔记的。
+Whereas previously, if we look back here, we were always using this kind of static local ID for our notes.
+
+346
+00:25:36,046 --> 00:25:37,988
+现在它与已签名用户相关联了。
+Now it's associated with the signed user.
+
+347
+00:25:38,350 --> 00:25:41,152
+为了向大家展示这是如何工作的，我现在可以运行这个服务器。
+So now just to show you how this works, what I can do is run this server.
+
+348
+00:25:41,232 --> 00:25:44,964
+所以我可以说 uv run v3 auth.py。
+So I can say uv run v3 auth.py.
+
+349
+00:25:45,198 --> 00:25:46,832
+它将运行 MCP 服务器。
+It's gonna run the MCP server.
+
+350
+00:25:46,990 --> 00:25:52,432
+如果我回到 Cursor，我们可以检查一下这里是否连接到了 MCP。
+And if I go back to cursor, we can just check and see if we're connected here to the MCP.
+
+351
+00:25:52,840 --> 00:25:56,512
+我现在要做的是退出登录，因为它之前运行过并缓存了登录状态。
+Now what I'm gonna do here is just log out because it was cached and logged in from a previous run.
+
+352
+00:25:56,718 --> 00:26:00,992
+但你会看到笔记 MCP 服务器保持不变，因为它运行在同一个 URL 上。
+But you'll see that the notes MCP server has stayed the same because it's running on the same URL.
+
+353
+00:26:01,198 --> 00:26:07,712
+你会注意到，Cursor 实际上发送了这个请求，并说
+这是“Well-known OAuth Protected Resource MCP”。
+And you'll notice that what happened is cursor actually sent this request and said well known OAuth Protected Resource MCP.
+
+354
+00:26:07,918 --> 00:26:13,152
+它的实际作用是给 Cursor 提供我们需要登录的授权链接。
+What that actually does is it gives Cursor the authorization URL that we need to sign in.
+
+355
+00:26:13,422 --> 00:26:15,312
+你会看到它显示需要身份验证。
+And you'll see it says needs authentication.
+
+356
+00:26:15,534 --> 00:26:19,232
+现在如果我点击连接，它应该会在我的浏览器中打开。
+So now if I press on connect, it should open in my browser.
+
+357
+00:26:19,470 --> 00:26:24,672
+我们可以看到它实际上打开了一个同意界面，哦不对，不是同意界面，是这里的登录界面。
+And we can see that it actually brings open a consent screen, or sorry, not a consent screen, a login screen here.
+
+358
+00:26:24,942 --> 00:26:26,752
+我要用 Google 登录。
+I'm going to go ahead and sign in with Google.
+
+359
+00:26:26,862 --> 00:26:29,952
+现在当你进入这里的构建模式时，你可以更改登录方式。
+Now you can change how you sign in here when you go into the build mode here.
+
+360
+00:26:30,032 --> 00:26:34,592
+你可以设置魔术链接、嵌入式链接、社交登录，所有这些东西。
+You can set magic links, you know, embedded links, social logins, all of this kind of stuff.
+
+361
+00:26:34,672 --> 00:26:36,432
+你都可以直接从控制台进行操作。
+You can do it all directly from the console.
+
+362
+00:26:36,686 --> 00:26:41,796
+我现在不打算深入讲解那个，重点是我们可以去这个界面，登录一下，看看它是否有效。
+I'm Not going to get into that right now, but point is we can go to this screen, let's sign in and let's see if it works.
+
+363
+00:26:42,062 --> 00:26:48,112
+好的，注意当我登录时，它给了我这里的同意界面，
+我可以允许或禁止这些不同的权限范围，对吧？
+Okay, so notice that when I sign in, it gives me the consent screen
+here, and I can either allow or disallow these different scopes, right?
+
+364
+00:26:48,206 --> 00:26:50,512
+我直接点击授权。
+And I just go ahead and press on authorize.
+
+365
+00:26:50,734 --> 00:26:52,272
+当然，我们现在还没有 Logo。
+Of course, we don't have a logo right now.
+
+366
+00:26:52,558 --> 00:26:54,992
+然后如果我们回到 Cursor，你可以看到我现在已经登录了。
+And then if we go back to cursor, you can see I'm now signed in.
+
+367
+00:26:55,072 --> 00:27:01,124
+我们有了“我是谁”、“列出笔记”、“添加笔记”和“删除笔记”，
+并且我通过这个特定的客户端与该服务器完成了身份验证。
+We have who am I, list notes, add a note, and delete a note, and I'm authenticated with this server with this specific client.
+
+368
+00:27:01,422 --> 00:27:06,272
+现在如果我到这边，我可以问：你能帮我创建一个写着“Tim 是最棒的”新笔记吗？
+So now if I go over here, I can say, can you create a new note for me that says Tim is the best?
+
+369
+00:27:06,352 --> 00:27:09,380
+然后通过调用笔记 MCP 服务器告诉我我是谁。
+And then also tell me who I am by calling the notes MCP server.
+
+370
+00:27:09,952 --> 00:27:10,272
+好的。
+Okay.
+
+371
+00:27:10,670 --> 00:27:13,312
+现在它应该能够做到这一点，并与服务器通信。
+And it should be able to do that now and communicate with the server.
+
+372
+00:27:13,550 --> 00:27:16,836
+如果我们等一秒钟，我们可以看到它正在发送请求。
+And if we give this a second, we can see that it's sending the requests.
+
+373
+00:27:17,390 --> 00:27:20,512
+如果再等一秒钟，我们应该能看到它开始在这里发送请求。
+And if we give this a second, we should see that it starts sending the requests here.
+
+374
+00:27:20,592 --> 00:27:24,912
+让我把这个调小一点，这样我们就能在服务器上看到它了。
+Let me just make this smaller so we can see this in the server right here.
+
+375
+00:27:25,134 --> 00:27:26,512
+瞧，搞定了。
+So it says boom, it's done.
+
+376
+00:27:26,766 --> 00:27:28,592
+它调用了好几次 MCP。
+And it called MCP a bunch of times.
+
+377
+00:27:28,718 --> 00:27:30,692
+如果我们看这里，可以看到 Tim is the best。
+And if we go here, you can see Tim is the best.
+
+378
+00:27:31,072 --> 00:27:33,232
+然后我们再看，它显示“我是谁？”
+And then if we look, it says who am I?
+
+379
+00:27:33,472 --> 00:27:38,272
+我们得到了用户 ID、客户端ID，还有权限范围，包括节点读取和节点写入。
+we get our user ID, client ID, and then the scopes, nodes read and nodes write.
+
+380
+00:27:38,510 --> 00:27:40,132
+这就是这里的过期日期。
+And this is the expiry date right here.
+
+381
+00:27:40,686 --> 00:27:40,912
+搞定。
+Boom.
+
+382
+00:27:41,198 --> 00:27:52,272
+现在如果我们回到 Descope，如果你想看看，我们可以去用户页面，我们应该能看到我的用户，
+带有我的邮箱，登录时使用的是 Google，然后我可以删除用户或禁用他们。
+Now if we go back to D scope, if you want to see, we can now go over to users, and we should see we have my user with my email,
+signed in with Google when I signed in, and then I can delete the user, disable them.
+
+383
+00:27:52,352 --> 00:27:55,072
+你知道，我可以直接从这个控制台完全控制他们。
+You know, I have full control over them right from this console.
+
+384
+00:27:55,310 --> 00:28:00,672
+再说一遍，你不需要为这个付费，它会帮你处理所有这些事情，要是你自己去做的话就非常麻烦。
+Again, you don't have to pay for this, and it handles all of that stuff for you, which is a massive pain to do yourself.
+
+385
+00:28:00,846 --> 00:28:04,192
+现在我可以换个用户登录，我就没权限访问这些笔记了。
+And now I can sign in with a different user and I would not have access to these notes.
+
+386
+00:28:04,352 --> 00:28:07,172
+让我给你们看看我目前能访问哪些笔记。
+Let me show you what notes do I currently have access to.
+
+387
+00:28:07,854 --> 00:28:08,836
+让我们看看这里。
+Let's see it right here.
+
+388
+00:28:09,166 --> 00:28:11,792
+它应该告诉我们有哪些内容。
+It should tell us what there is.
+
+389
+00:28:12,238 --> 00:28:14,592
+那我们来看看，从服务器中列出你的笔记。
+So let's see, unlist your notes from the server.
+
+390
+00:28:14,926 --> 00:28:17,472
+然后我想做的就是登出，然后用另一个用户登录。
+And then what I want to do is sign out, sign in with a different user.
+
+391
+00:28:17,632 --> 00:28:20,068
+所以你可以看到它显示你有一条笔记，Tim is the best。
+So you can see it says you have one note, Tim is the best.
+
+392
+00:28:20,462 --> 00:28:26,272
+现在如果我回到 Cursor 设置，我们去 MCP 这里。
+And now if I go back over to my cursor settings, so let's go here to MCP.
+
+393
+00:28:26,542 --> 00:28:27,552
+点一下登出。
+Let's press logout.
+
+394
+00:28:27,950 --> 00:28:29,552
+好了，你可以看到我现在处于未认证状态。
+Okay, so you can see I'm unauthenticated now.
+
+395
+00:28:29,632 --> 00:28:31,792
+如果我尝试使用笔记服务器，它就没法工作了。
+And if I try to use the note server, it's not gonna work.
+
+396
+00:28:32,046 --> 00:28:36,164
+现在我们连接一下，它给了我一个新的 URL，让我们用另一个 Google 账号登录。
+Let's connect now, brings me a new URL, and let's sign in with a different Google account.
+
+397
+00:28:36,590 --> 00:28:38,352
+好的，我正在用另一个账号登录。
+Okay, so I'm signing in with a different account.
+
+398
+00:28:38,512 --> 00:28:39,472
+让我们授权。
+Let's authorize.
+
+399
+00:28:39,632 --> 00:28:44,192
+好了，回到 Cursor，现在我要说，其实，让我开个新对话，这样我就不会遇到任何问题。
+Okay, let's go back to cursor and now I'm gonna say, so actually, let me just make a new chat here so I don't get any issues.
+
+400
+00:28:44,366 --> 00:28:47,364
+使用笔记 MCP 服务器，告诉我我有哪些可用的笔记。
+Using the notes MCP server, tell me what notes I have available to me.
+
+401
+00:28:48,654 --> 00:28:51,428
+它应该能列出那些笔记，让我们看看有没有收到响应。
+And it should be able to list those notes and let's see if we get the response.
+
+402
+00:28:51,982 --> 00:28:57,380
+你可以看到它说当前用户在你的已认证身份下没有任何笔记，这正是我们预期的结果。
+So you can see it says your current user has no notes under your authenticated identity, and that's exactly what we were expecting.
+
+403
+00:28:57,998 --> 00:28:58,308
+完美。
+Perfect.
+
+404
+00:28:58,670 --> 00:29:04,560
+当然，我们还可以做得更深入，通过这个，我们还可以连接到各种连接，这超级好用。
+Now, of course, we can go a lot further here, and with this, we can actually connect to connections as well, which is super useful.
+
+405
+00:29:04,910 --> 00:29:16,868
+比如，如果我们想要一个能操作其他服务提供商，比如你的 GitHub 账号、
+Slack 或 Notion 的 MCP 服务器，你可以通过点击这里的连接来完成连接。
+So, for example, if we wanted to have an MCP server that can do something with other providers like your GitHub account or your Slack
+or your Notion, you can actually connect that by going over here to connections inside of this.
+
+406
+00:29:17,358 --> 00:29:22,880
+所以在这里我可以点击连接，添加 Airtable、Asana，或者任何他们提供的连接。
+So here I can go connection, I can add Airtable, Asana, right, whatever, all the connections that they have here.
+
+407
+00:29:23,118 --> 00:29:27,680
+然后我可以把这些连接关联到我 MCP 服务器里的权限范围中。
+And then I can connect those connections to the scopes inside of my MCP server.
+
+408
+00:29:27,840 --> 00:29:32,100
+比如，我可以添加一个新的连接，并把它关联到其中一个权限范围里。
+So for example, I can add a new connection and I can connect it to one of the scopes.
+
+409
+00:29:32,462 --> 00:29:40,132
+这样，如果我想让别人比如给我 GitHub 的访问权限，我就能做到这一点，
+而且让 Descope 直接帮我处理所有的身份验证。
+So then if I want someone to, for example, give me access to their GitHub,
+I can do that and have D scope handle all of that auth directly for me.
+
+410
+00:29:40,462 --> 00:29:42,480
+比如，我现在正用我的 Google 账号登录。
+So I'm signing in with my Google, for example.
+
+411
+00:29:42,640 --> 00:29:50,180
+接着我会允许 MCP 服务器访问我的 GitHub，我将通过 GitHub 进行身份验证，
+然后 Descope 会自动帮我存储所有这些信息。
+I'm then gonna allow the MCP server access to my GitHub, I'll authenticate with GitHub,
+and then Dscope will store all of that automatically for me.
+
+412
+00:29:50,734 --> 00:29:57,220
+再次强调，我不会演示完整的流程，但你可以通过连接连接权限范围，
+并在这个仪表板上建立连接，非常轻松就能搞定。
+Again, not going to go through the full demo, but you can set that up very easily
+by connecting the connection scopes and making the connection from this dashboard.
+
+413
+00:29:57,870 --> 00:30:00,080
+总之，各位，今天的视频就到这里。
+Anyways, guys, that's gonna wrap up this video.
+
+414
+00:30:00,302 --> 00:30:02,160
+希望这能让你了解一些关于 MCP 服务器的知识。
+I hope this taught you about MCP servers.
+
+415
+00:30:02,286 --> 00:30:05,956
+如果你喜欢这个视频，请点个赞，订阅频道，我们下期再见。
+If you enjoyed, leave a like, subscribe, and I will see you in the next one.
+

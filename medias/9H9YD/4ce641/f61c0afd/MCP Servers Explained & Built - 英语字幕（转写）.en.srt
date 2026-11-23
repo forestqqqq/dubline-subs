@@ -1,0 +1,1604 @@
+1
+00:00:00,160 --> 00:00:02,500
+Everyone keeps talking about MCP servers.
+
+2
+00:00:02,800 --> 00:00:12,320
+Claude has them, Cursor has them, ChatGPT has them, and honestly, the way that most people explain them makes them sound way more complicated than they actually are.
+
+3
+00:00:12,590 --> 00:00:18,240
+Now, an MCP server is just a program that gives an AI model a list of functions that's allowed to call.
+
+4
+00:00:18,414 --> 00:00:18,800
+That's it.
+
+5
+00:00:19,086 --> 00:00:33,120
+So in this video, I'm going to break down exactly how they work, then we're going to build one from scratch in Python, and I'm going to show you the part that almost every tutorial skips, which is actually putting it live and setting up real authentication and authorization.
+
+6
+00:00:33,454 --> 00:00:34,756
+Stay tuned, let's dive in.
+
+7
+00:00:34,990 --> 00:00:36,640
+So, what is an MCP server?
+
+8
+00:00:36,750 --> 00:00:38,788
+Well, let me break this down as simply as possible.
+
+9
+00:00:39,054 --> 00:00:41,252
+Now a language model on its own can't do anything.
+
+10
+00:00:41,454 --> 00:00:45,636
+It can't read your files, it can't check your calendar, it can't even query your database.
+
+11
+00:00:45,934 --> 00:00:49,508
+All it can do is simply take text and then give you text output.
+
+12
+00:00:49,710 --> 00:00:53,284
+So if you want a model to do something, you have to give it access to tools.
+
+13
+00:00:53,520 --> 00:00:59,440
+And a tool is really just a function that has a name, a description, and some parameters, so some input and some output.
+
+14
+00:00:59,566 --> 00:01:05,040
+Now the model can read these list of tools and decide, okay, I need to call this tool or tool X, right?
+
+15
+00:01:05,230 --> 00:01:10,880
+Now, when your model wants to call a tool, really all it's going to do is output text that says what tool it wants to call.
+
+16
+00:01:11,040 --> 00:01:17,840
+Your code is going to execute that tool, and then you're going to send the result back to the model or the LLM where it will be able to process it.
+
+17
+00:01:17,966 --> 00:01:26,720
+So the model never calls the tool, it simply requests to call it, your code calls it, gives it the result back, the model is always working with text.
+
+18
+00:01:26,830 --> 00:01:34,800
+Now, before MCP existed, there was a bit of a problem, and that's that every single application had to build that tool plumbing that we just talked about themselves.
+
+19
+00:01:34,926 --> 00:01:38,160
+And it was different for every single model and for every single tool.
+
+20
+00:01:38,414 --> 00:01:44,640
+So if you built a GitHub integration, for example, for Claude, it didn't work inside of Cursor, it didn't work inside of ChatGPT.
+
+21
+00:01:44,814 --> 00:01:49,700
+So everyone was rewriting the same thing over and over again, and we kept getting more and more agents.
+
+22
+00:01:49,998 --> 00:01:52,800
+So MCP was invented just as a standard for that.
+
+23
+00:01:53,006 --> 00:02:02,852
+Now it stands for model context protocol, and it just means that you write tools one time as an MCP server, and then any app that speaks MCP can use those tools.
+
+24
+00:02:03,118 --> 00:02:07,680
+So Claude, cursor, VS Code, ChatGPT, doesn't matter, any AI agent out there.
+
+25
+00:02:07,790 --> 00:02:11,492
+Now people like to refer to this as something like USB-C for AI tools.
+
+26
+00:02:11,630 --> 00:02:13,520
+And honestly, that's a pretty good analogy.
+
+27
+00:02:13,646 --> 00:02:17,028
+It's just kind of one plug that works in pretty much every adapter.
+
+28
+00:02:17,198 --> 00:02:19,200
+Now there's two sides here that you need to understand.
+
+29
+00:02:19,406 --> 00:02:22,640
+Now the first is the MCP server, which is just your code.
+
+30
+00:02:22,862 --> 00:02:24,080
+So it exposes the tools.
+
+31
+00:02:24,302 --> 00:02:27,920
+Now the MCP client is the app that the model lives inside of.
+
+32
+00:02:28,110 --> 00:02:35,840
+So something like Claude Desktop or Cursor, your AI agent kind of acts as the client, and then the server is where you actually write and expose the tools.
+
+33
+00:02:36,014 --> 00:02:40,160
+Now, when a client starts up, it simply asks the server, what tools do you have?
+
+34
+00:02:40,366 --> 00:02:46,080
+The server then sends back a list with all of the names and the descriptions, and that list gets handed to the model.
+
+35
+00:02:46,240 --> 00:02:50,560
+Then when the model wants to call one of these tools, the client sends a request to the server.
+
+36
+00:02:50,734 --> 00:02:56,880
+The server will simply run the tool or run the function and then send back the result, and all of this will be handled in JSON.
+
+37
+00:02:57,006 --> 00:03:02,800
+So it'll kind of just go back and forth, say, hey, I want to call this tool, okay, call the tool, get the result, give it back, give it to the model.
+
+38
+00:03:02,880 --> 00:03:03,600
+Oh, that's the result.
+
+39
+00:03:03,680 --> 00:03:04,800
+Maybe I should call another tool.
+
+40
+00:03:04,960 --> 00:03:05,600
+You get the idea.
+
+41
+00:03:05,806 --> 00:03:08,400
+And there's two main ways that an MCP server can run.
+
+42
+00:03:08,560 --> 00:03:09,840
+The first way is local.
+
+43
+00:03:10,000 --> 00:03:19,520
+And that just means that the client actually launches your server as a subprocess that's running on your machine and it talks to it directly over standard input and output or stdi.
+
+44
+00:03:20,014 --> 00:03:26,560
+Now, Claude Desktop literally will run something like Python, myserver.py, and it will just pipe JSON into it.
+
+45
+00:03:26,700 --> 00:03:29,760
+Now that's what maybe 90% of the tutorials out there show you.
+
+46
+00:03:29,934 --> 00:03:34,240
+And it's great for personal stuff, but it doesn't work when other people need to access the server.
+
+47
+00:03:34,400 --> 00:03:37,280
+Now, the second way that you can run MCP servers is remotely.
+
+48
+00:03:37,390 --> 00:03:39,520
+Now your server will run somewhere on the internet.
+
+49
+00:03:39,694 --> 00:03:43,200
+So it has a URL and a client will connect to it over HTTP.
+
+50
+00:03:43,342 --> 00:03:45,600
+Now, this is how pretty much every real product does it.
+
+51
+00:03:45,968 --> 00:03:50,688
+For example, the GitHub MCP server, the Notion one, Stripe, they're all really just URLs.
+
+52
+00:03:50,768 --> 00:03:58,528
+And this is what you want if you're building something for other people, or you want to use your tools from different machines like your phone, your laptop, your work machine, you get the idea.
+
+53
+00:03:58,798 --> 00:04:00,688
+So basically, you have local and remote.
+
+54
+00:04:00,910 --> 00:04:04,448
+Remote's going to be the preferred option, especially if you're going to go into production.
+
+55
+00:04:04,622 --> 00:04:12,608
+However, as soon as you have a remote MCP server, you need to be careful because you introduce a problem that your local version never would have had.
+
+56
+00:04:12,750 --> 00:04:14,688
+Now that problem is access control.
+
+57
+00:04:14,928 --> 00:04:19,620
+If your MCP server is on the internet, that means that anyone has the URL can call your tools.
+
+58
+00:04:19,790 --> 00:04:21,168
+So your tools do things, right?
+
+59
+00:04:21,390 --> 00:04:24,288
+They read data, they write data, maybe they delete something.
+
+60
+00:04:24,494 --> 00:04:27,648
+So you need to answer three questions on every single request.
+
+61
+00:04:27,854 --> 00:04:28,608
+Who is calling this?
+
+62
+00:04:28,814 --> 00:04:29,888
+What are they allowed to do?
+
+63
+00:04:30,048 --> 00:04:32,048
+And who are they doing it on behalf of?
+
+64
+00:04:32,208 --> 00:04:35,648
+These are questions that need to be answered if you're going to have a remote MCP server.
+
+65
+00:04:35,808 --> 00:04:39,364
+Now, with that in mind, here's the part that really shocked me when I actually looked into this.
+
+66
+00:04:39,598 --> 00:04:45,728
+Now, security audits this year found that about a quarter of public MCP servers have no authentication at all.
+
+67
+00:04:45,808 --> 00:04:49,860
+And of the ones that do have something, most of them are using a static API key.
+
+68
+00:04:50,048 --> 00:04:54,208
+So just one long-lived secret that's sitting in a config file that's shared by everyone.
+
+69
+00:04:54,318 --> 00:04:59,328
+Now, only a tiny fraction of them actually use the proper authentication scheme, which is OAuth.
+
+70
+00:04:59,502 --> 00:05:02,368
+Now you might be thinking, why is a static API key a problem?
+
+71
+00:05:02,528 --> 00:05:03,328
+Well, think about it, right?
+
+72
+00:05:03,488 --> 00:05:08,836
+If five different agents are hitting your server and they're all using the same key, you're not able to tell them apart.
+
+73
+00:05:08,974 --> 00:05:11,728
+You can't see which user told which agent to do what.
+
+74
+00:05:11,982 --> 00:05:15,008
+And if one of them gets compromised, you can't revoke that one.
+
+75
+00:05:15,214 --> 00:05:18,048
+You have to kill the key and break all of the agents at once.
+
+76
+00:05:18,254 --> 00:05:22,436
+And that's fine for a short project, but it's not fine for anything that's real and in production.
+
+77
+00:05:22,702 --> 00:05:31,488
+So the MCP official specification actually has an answer for this, and it's the same thing that all serious applications have already been using, which is called OAuth.
+
+78
+00:05:31,888 --> 00:05:35,248
+specifically they reference OAuth 2.1 with PKCE.
+
+79
+00:05:35,328 --> 00:05:43,648
+Now, if that sounds scary, don't worry, because you're never going to build this thing yourself, but you should understand what it is because we're going to build it into the MCP server we build in just a minute.
+
+80
+00:05:43,808 --> 00:05:46,528
+It's an important part to keep your MCP servers safe.
+
+81
+00:05:46,734 --> 00:05:50,596
+Now here's how this flow works your MCP server never signs into anything.
+
+82
+00:05:50,688 --> 00:05:52,048
+That's really the key thing to understand.
+
+83
+00:05:52,238 --> 00:06:00,208
+When Claude or any MCP client tries to call your server without passing a valid token, your server just says 401 not authorized.
+
+84
+00:06:00,430 --> 00:06:05,088
+And oh, by the way, here's the URL of the place that you can go to actually sign in.
+
+85
+00:06:05,168 --> 00:06:09,636
+Now that place there that the server is going to return is called an authorization server.
+
+86
+00:06:09,728 --> 00:06:12,448
+So the agent or sorry, the client will go there.
+
+87
+00:06:12,622 --> 00:06:18,848
+The user will then see a normal login screen and they can sign in with Google, email, or whatever you've consented with or whatever you've set up.
+
+88
+00:06:18,928 --> 00:06:24,528
+They'll get a consent screen and then they're able to approve an action and sign in just like they do with any other application.
+
+89
+00:06:24,718 --> 00:06:29,808
+So basically, what happens from here is that the user is going to click allow or whatever the authorization server says.
+
+90
+00:06:29,968 --> 00:06:35,716
+It's then going to take a token and it's going to hand that over to Claude or again to whatever agent you're using.
+
+91
+00:06:35,888 --> 00:06:43,008
+And then that agent will be able to send that token with every single request to your MCP server, and that's going to identify who you are.
+
+92
+00:06:43,214 --> 00:06:48,288
+So your server is going to check the signature of that token, make sure that it was meant for this specific server.
+
+93
+00:06:48,368 --> 00:06:51,008
+It's going to check what permissions or scopes are inside.
+
+94
+00:06:51,182 --> 00:06:52,228
+And then it's going to run the tool.
+
+95
+00:06:52,526 --> 00:06:57,860
+Now, just by the way, to go through some terminology, the permissions that are inside of the token are called scopes.
+
+96
+00:06:58,126 --> 00:07:04,208
+So you might have like a notes read scope or a notes write scope, or you might have, you know, some other types of scopes, whatever.
+
+97
+00:07:04,368 --> 00:07:10,532
+And basically the tools in your server can say, hey, I need this scope or this permission in order to do this.
+
+98
+00:07:10,830 --> 00:07:18,660
+So this allows you to not only just authenticate a user, but also to control what that user is able to do and to check if they have the required permissions.
+
+99
+00:07:18,830 --> 00:07:21,568
+Now, this token will also tell you who the user is.
+
+100
+00:07:21,998 --> 00:07:35,248
+So embedded inside of that token data, it will have the scopes, it will have the user ID, and it'll have a little bit more information, which means your server can actually act on behalf of a user so it can scale out and not just work for one individual entity.
+
+101
+00:07:35,502 --> 00:07:45,088
+And there's just one more piece that you should be aware of here, which is that your clients, your AI agents, need to register themselves with your authorization server before they're going to allow you to log in.
+
+102
+00:07:45,198 --> 00:07:48,608
+And the spec has something called dynamic client registration for that.
+
+103
+00:07:48,878 --> 00:07:50,208
+So they can just do it automatically.
+
+104
+00:07:50,288 --> 00:07:58,528
+You don't have to set anything up here, but you should just be aware that effectively what's going to happen is your client is going to register with the authorization server, say, Hey, I want to sign in.
+
+105
+00:07:58,688 --> 00:08:12,356
+Authorization server sends a URL to the user, they sign in, that then grants a token, it gives that to the client, the client then sends that to the server on every single request, and that identifies you, the user, and all of the scopes that you have with the MCP server.
+
+106
+00:08:12,528 --> 00:08:30,448
+It's actually a really nice flow, and you could build all of this yourself, like the login page, the consent screen, you know, the token signing, the client registration, the refresh logic, or you can just plug in something that's already doing this, which I'm going to show you in a second, because there's a lot of great tools out there that handle all of the MCP config for you.
+
+107
+00:08:30,608 --> 00:08:33,088
+Anyways, at this point, what I want to do is go onto the computer.
+
+108
+00:08:33,262 --> 00:08:37,728
+I want to show you how to build a simple MCP server and how to connect it to various clients.
+
+109
+00:08:37,934 --> 00:08:47,648
+Then I'm gonna show you how to add the authorization component so you can build an MCP server that works at scale for real users, and you don't have to worry about all of the finicky details that we talked about here.
+
+110
+00:08:47,918 --> 00:08:52,484
+Okay, so I'm on the computer now and I'm gonna show you how to build a simple MCP server using Python.
+
+111
+00:08:53,102 --> 00:08:57,028
+All right, so first let's quickly understand kind of how building this works.
+
+112
+00:08:57,454 --> 00:08:58,448
+Now I have the code here, right?
+
+113
+00:08:58,528 --> 00:09:03,168
+And I'll go through it and you'll see it's very basic and you can bring in a module like FastMCP.
+
+114
+00:09:03,374 --> 00:09:07,716
+However, you don't need to use a framework to build this if you don't want to, of course, it's just going to make it easier.
+
+115
+00:09:08,334 --> 00:09:15,808
+Basically, all these frameworks are going to do for you, which you'll see in a second, is just make sure that your server adheres to the MCP protocol, right?
+
+116
+00:09:15,968 --> 00:09:17,444
+The model context protocol.
+
+117
+00:09:17,742 --> 00:09:34,596
+Because after all, really all we're doing is just building a normal API or simple server like we would in any programming language, and we're just having a kind of set response and request structure that allows it to behave like an MCP server, and that's effectively the entire protocol.
+
+118
+00:09:34,990 --> 00:09:38,208
+Now you can read the protocol from model contextprotocol.io.
+
+119
+00:09:38,528 --> 00:09:42,340
+I'm going to really quickly go through some high-level stuff and then I'm going to show it to you in code.
+
+120
+00:09:42,798 --> 00:09:51,044
+So basically, you can see that MCP provides a standardized way for an application to share information, expose tools, and build composable integrations.
+
+121
+00:09:51,502 --> 00:09:52,528
+Now there's some key details.
+
+122
+00:09:52,608 --> 00:09:58,448
+Okay, we're going to use JSON, here's some features that we have, and MCP actually goes a lot further than most people show you.
+
+123
+00:09:58,734 --> 00:10:00,228
+If you want to read through it, feel free.
+
+124
+00:10:00,622 --> 00:10:07,408
+If you go over to the architecture tab here, you can see there's some diagrams that explain host, clients, servers, design principles.
+
+125
+00:10:07,568 --> 00:10:08,448
+You get the idea.
+
+126
+00:10:08,686 --> 00:10:15,972
+And basically, this is what I want to show you right here, which is the sequence diagram of how an MCP server communicates with the different actors.
+
+127
+00:10:16,846 --> 00:10:18,244
+Now you can see that we have a client.
+
+128
+00:10:18,638 --> 00:10:24,208
+The client will be able to discover the server and then get back details about the server's info, right?
+
+129
+00:10:24,368 --> 00:10:31,620
+Then the user or model can initiate an action, it will send a request over to the server, and the server simply sends a response back.
+
+130
+00:10:31,918 --> 00:10:33,648
+We forward that to AI, right?
+
+131
+00:10:33,728 --> 00:10:36,708
+And then just go back and forth and you can view the sequence diagram.
+
+132
+00:10:37,038 --> 00:10:45,924
+Now, every single one of these requests and response has a set structure that the server needs to adhere to in order to work with anything that's MCP compatible.
+
+133
+00:10:46,158 --> 00:10:55,328
+Now, all of that is detailed if you go through the entire protocol here, like the message patterns, for example, how the request is sent, how the response is sent, multiple things, right?
+
+134
+00:10:55,408 --> 00:10:56,288
+You get the idea.
+
+135
+00:10:56,526 --> 00:10:59,300
+The point is that we don't need to build any of this ourself.
+
+136
+00:10:59,568 --> 00:11:03,088
+We can just use frameworks and tools that already handle it for us.
+
+137
+00:11:03,278 --> 00:11:11,044
+And really, all we're responsible for is setting up the authorization and then setting up the tools and kind of the identity providing stuff, which you'll see in a second.
+
+138
+00:11:11,470 --> 00:11:18,848
+So I just want you to kind of quickly understand that if you want to look through this and understand how the protocol works on a lower level, feel free to go to this page.
+
+139
+00:11:18,928 --> 00:11:20,768
+It outlines everything very detailed.
+
+140
+00:11:20,878 --> 00:11:22,288
+It's actually not that complicated.
+
+141
+00:11:22,478 --> 00:11:25,284
+But for now, let's go to code and let me show you a few demos.
+
+142
+00:11:25,582 --> 00:11:31,396
+So the first demo to look at is a local MCP server, which is only available to clients on this device.
+
+143
+00:11:31,808 --> 00:11:39,204
+Useful when we're building our own kind of quick thing to tinker with, but of course, it doesn't work for any other clients because it's just on our own machine.
+
+144
+00:11:39,758 --> 00:11:42,276
+Now, basically, this is how we set up an MCP server.
+
+145
+00:11:42,574 --> 00:11:45,248
+We can bring in a module like FastMCP.
+
+146
+00:11:45,454 --> 00:11:47,088
+You can just install this using pip.
+
+147
+00:11:47,248 --> 00:11:48,688
+For example, if I go to mypyproject.
+
+148
+00:11:53,294 --> 00:11:56,080
+And then we can bring in some tool providing codes.
+
+149
+00:11:56,208 --> 00:11:58,180
+for example, I have this notes database.
+
+150
+00:11:58,574 --> 00:12:07,588
+If we have a look here, you can see I just have some simple functions that just connect to a Postgres SQL database to add, delete, list a few notes, and then of course connect.
+
+151
+00:12:08,430 --> 00:12:16,580
+Okay, and then all I do is I literally just write some Python functions here and decorate them with this at MCP.dot tool.
+
+152
+00:12:16,974 --> 00:12:31,524
+Now, when I do that, what will happen is that FastMCP will automatically add these to the schema or the list of available tools, and it will communicate that these tools exist whenever I connect an MCP client to this MCP server.
+
+153
+00:12:32,078 --> 00:12:33,200
+So that's literally it, right?
+
+154
+00:12:33,280 --> 00:12:37,520
+You can just decorate a few different functions, and now we can run the MCP server.
+
+155
+00:12:37,838 --> 00:12:40,320
+I'll show you how we add the configuration in one second.
+
+156
+00:12:40,494 --> 00:12:47,908
+And all of a sudden, anything that we connect to this will start being able to use these different tools to create notes, set notes, you get the idea.
+
+157
+00:12:48,110 --> 00:12:51,200
+However, notice there's no authentication or authorization here.
+
+158
+00:12:51,470 --> 00:12:56,740
+So anyone who gets access to this server can call any of these tools and do anything without any checks.
+
+159
+00:12:57,166 --> 00:12:59,840
+In this instance, it's fine, but later we're going to want to fix that.
+
+160
+00:13:00,110 --> 00:13:01,920
+And of course, there's more things you can do here.
+
+161
+00:13:02,190 --> 00:13:08,160
+For example, with the MCP tool, you can add a description to it so that we can actually describe what the function is.
+
+162
+00:13:08,462 --> 00:13:12,400
+By default, it will actually take the description from the doc string in the function.
+
+163
+00:13:12,654 --> 00:13:18,640
+So you can see here we have doc string, and that's what will be used to tell the AI model what this tool actually does.
+
+164
+00:13:18,926 --> 00:13:20,880
+And then you'll see that we've also annotated this.
+
+165
+00:13:21,070 --> 00:13:23,076
+So we've added the type hints in Python.
+
+166
+00:13:23,310 --> 00:13:30,240
+This is super helpful because again, it will add more context when it's describing these functions to our AI client.
+
+167
+00:13:30,510 --> 00:13:32,800
+So it knows, hey, I should call this function with a string.
+
+168
+00:13:32,974 --> 00:13:34,244
+Okay, I'm going to get a dictionary back.
+
+169
+00:13:34,574 --> 00:13:37,316
+Okay, I should call this function with an int, I'm going to get a string back.
+
+170
+00:13:37,646 --> 00:13:48,708
+So specifically in Python, when you're using a framework like FastMCP, add doc strings and annotate the function parameters and return types because it will give you a higher quality response from your AI models.
+
+171
+00:13:49,230 --> 00:14:06,404
+Anyways, if we're inside of something like Cursor, which is something that's an AI client, right, that we can add an MCP server to, what we would need to do is go to the settings here, go to Tools and MCP, and then we just need to go to add custom mcp and we can add a configuration here to run our local server.
+
+172
+00:14:06,734 --> 00:14:17,284
+Now, because we're going to run this as standard input output or local st IO, what we need to do is give cursor the instructions to actually run this as a subprocess on our own computer.
+
+173
+00:14:17,614 --> 00:14:18,532
+Let me show you what that looks like.
+
+174
+00:14:18,800 --> 00:14:21,040
+Okay, so this is what the configuration will look like.
+
+175
+00:14:21,326 --> 00:14:23,172
+Notice what I have is mcp servers.
+
+176
+00:14:23,360 --> 00:14:26,308
+I have the name of my MCP server, which is notes local.
+
+177
+00:14:26,480 --> 00:14:31,360
+I have the command that I want to execute, which is uv, because I want to execute this using Python.
+
+178
+00:14:31,520 --> 00:14:34,000
+If this was in JavaScript, the command would be node, right?
+
+179
+00:14:34,080 --> 00:14:35,556
+If I'm running a node.js server.
+
+180
+00:14:35,950 --> 00:14:38,880
+I then have that the arguments that I want to pass to this command.
+
+181
+00:14:38,960 --> 00:14:46,308
+So it's like UV space run directory, the directory on my computer, and then the file that I want to run, which is v1 local.
+
+182
+00:14:46,574 --> 00:14:55,748
+Now again, because I'm running this locally, what will happen is cursor will just communicate with this using my terminal or standard input output, and there's no HTTP requests being sent.
+
+183
+00:14:56,046 --> 00:14:57,988
+This again is the first way to run the server.
+
+184
+00:14:58,414 --> 00:15:03,200
+So what I can do is I can simply just go here and check if notes local is connected.
+
+185
+00:15:03,342 --> 00:15:06,000
+So I go back to MCP, we can see three tools are enabled.
+
+186
+00:15:06,222 --> 00:15:08,480
+We have list, add a note, and then delete a note.
+
+187
+00:15:08,782 --> 00:15:17,360
+And if I go and make a new agent window, for example, I can say, hey, what can you do in my notes server?
+
+188
+00:15:17,678 --> 00:15:22,116
+And it should be able to actually pull up these different tools that are connected and start using it immediately.
+
+189
+00:15:22,542 --> 00:15:25,440
+So you can see it says list notes, add a note, and then delete a note.
+
+190
+00:15:25,600 --> 00:15:31,120
+And then we could say something like create a note that says my name five times.
+
+191
+00:15:31,982 --> 00:15:32,560
+Okay, let's see.
+
+192
+00:15:32,640 --> 00:15:33,920
+I don't even know if it knows my name.
+
+193
+00:15:34,240 --> 00:15:35,280
+Maybe it will ask for that.
+
+194
+00:15:35,470 --> 00:15:36,612
+And let's see if we can list it out.
+
+195
+00:15:36,814 --> 00:15:38,320
+Okay, so for some reason it does know my name.
+
+196
+00:15:38,480 --> 00:15:44,132
+You can see it made a call here and it's just adding the name, and then I'm going to say, okay, can you list all of the notes that are available?
+
+197
+00:15:45,198 --> 00:15:47,396
+And let's see what notes we have and if it's able to list that.
+
+198
+00:15:47,950 --> 00:15:50,928
+Again, I know it's super basic, but I'm just trying to show you how this is set up.
+
+199
+00:15:51,088 --> 00:15:52,928
+So you can see now it's running this command.
+
+200
+00:15:53,088 --> 00:15:57,008
+It says, hey, note two, boom, here are the options, and then it gives me those notes.
+
+201
+00:15:57,168 --> 00:15:58,916
+Then of course I could delete it if I want.
+
+202
+00:15:59,246 --> 00:16:03,168
+So literally all I did is I said, okay, here's the command to run the server.
+
+203
+00:16:03,342 --> 00:16:07,648
+Because I'm using this fast MCP, it handles everything else related to the protocol for me.
+
+204
+00:16:07,822 --> 00:16:16,196
+And now I just have three tools and I can make these anything that I want, doing anything at all that I've added to cursor and that I could add to pretty much any other AI agent.
+
+205
+00:16:16,528 --> 00:16:23,008
+Now let's have a look at how we can change this to remote so that we can actually access this over a URL anywhere on the internet.
+
+206
+00:16:23,406 --> 00:16:28,208
+Okay, so notice in my V1 local script here, I have this mcp.run.
+
+207
+00:16:28,366 --> 00:16:34,244
+And just by default, when I run the MCP server, it runs with stdio or standard input output.
+
+208
+00:16:34,574 --> 00:16:43,972
+And if I want to change this to running remotely, all I need to do is just change this line right here to say the following the transport, the host, and the port that I want to run this on.
+
+209
+00:16:44,206 --> 00:16:57,380
+Now this will change it to run over HTTP or streamable HTTP, which will allow me to actually send requests directly to a URL and just have HTTP rather than having to run this as a local subprocess.
+
+210
+00:16:57,870 --> 00:17:08,388
+Now in this case, I'm just running this on my local computer, but if I ran this on a VPS or some kind of server, all I would have to do is just give someone the URL and then they would be able to connect to this MCP server as well.
+
+211
+00:17:08,782 --> 00:17:10,368
+So what I'm going to do is just run this.
+
+212
+00:17:10,478 --> 00:17:18,048
+Now notice I'll have to run this myself and it has to stay running because this is going to be run on what do you call it, HTTP.
+
+213
+00:17:18,350 --> 00:17:22,180
+So I'm just going to say uv run and then v2 remote.py.
+
+214
+00:17:22,382 --> 00:17:25,888
+Notice that it's just running like a normal fast API server for me right here.
+
+215
+00:17:25,968 --> 00:17:28,420
+So you can see UVCord is running on this URL.
+
+216
+00:17:28,654 --> 00:17:30,884
+And now what I'm able to do is I can go to cursor.
+
+217
+00:17:31,630 --> 00:17:33,764
+Let's go over to our MCP.
+
+218
+00:17:34,510 --> 00:17:35,460
+Let's make this a little bit bigger.
+
+219
+00:17:35,694 --> 00:17:39,488
+And when we add the custom MCP server this time, all we have to do is give it a name.
+
+220
+00:17:39,694 --> 00:17:40,900
+So let's just call this notes.
+
+221
+00:17:41,488 --> 00:17:41,808
+Okay.
+
+222
+00:17:42,350 --> 00:17:51,328
+And then for the URL, we're just going to say like this URL colon, and then we're going to put the URL to our server, which is where is it?
+
+223
+00:17:51,488 --> 00:17:51,968
+Right here.
+
+224
+00:17:52,398 --> 00:17:55,488
+So this 000 or just localhost port 8000.
+
+225
+00:17:56,142 --> 00:18:00,836
+So we can just paste this, and I'll just change this to say localhost and then save.
+
+226
+00:18:01,006 --> 00:18:06,928
+And now all of a sudden you can see that a request gets sent to this MCP server, and we're effectively good to go.
+
+227
+00:18:07,086 --> 00:18:13,088
+And we do need to add this slash MCP to the end of this URL here because that's required for this URL.
+
+228
+00:18:13,262 --> 00:18:19,728
+And you can see now that the requests are going through, and we get okay, okay, okay, okay, okay, whatever, uh, rather than the errors that were popping up here before.
+
+229
+00:18:19,918 --> 00:18:23,044
+So effectively, all I did is say, hey, here's the name of my server, which is notes.
+
+230
+00:18:23,342 --> 00:18:24,288
+This is the URL.
+
+231
+00:18:24,526 --> 00:18:28,688
+And then I put the URL, which is localhost port 8000, slash MCP again.
+
+232
+00:18:28,848 --> 00:18:30,128
+Make sure you add that part.
+
+233
+00:18:30,318 --> 00:18:31,888
+And now we can start communicating with it.
+
+234
+00:18:31,968 --> 00:18:38,020
+And if I go over to my agent chat here, I'm gonna say, are you connected to any tools MCP servers?
+
+235
+00:18:38,798 --> 00:18:40,448
+And it should hopefully just show that to us.
+
+236
+00:18:40,782 --> 00:18:45,968
+And same thing if we go to the settings, you can see three tools are here, and we can list, add, and delete a note.
+
+237
+00:18:46,048 --> 00:18:49,568
+And this time, cursor's not running that subprocess for us.
+
+238
+00:18:49,742 --> 00:18:52,608
+It's running in the terminal, even though it's a little bit messed up right now.
+
+239
+00:18:52,718 --> 00:18:57,156
+And then any client that's able to access this URL will be able to access this server.
+
+240
+00:18:57,838 --> 00:19:09,348
+So I can access it from cloud Code, I can access it from ChatGPT, I can add it to anywhere that I want where it accepts an MCP server, and it's just good to go because we're running it remotely over HTTP.
+
+241
+00:19:09,678 --> 00:19:14,436
+Now, again, at this point, I want to call out, let me just shut down this server, then there's no access control here.
+
+242
+00:19:14,606 --> 00:19:15,728
+So now this is open.
+
+243
+00:19:15,950 --> 00:19:17,808
+Anyone who has this URL can access it.
+
+244
+00:19:17,966 --> 00:19:23,332
+They can delete the notes, they can add a note, they can list a note, and the notes aren't scoped to an individual user.
+
+245
+00:19:23,662 --> 00:19:37,328
+So if we did want to actually build this out and have it be used by multiple clients, we would want to identify each client, have different scopes or permissions for those clients, know who is who, and obviously only allow certain people to access our machine or access our server.
+
+246
+00:19:37,486 --> 00:19:46,128
+And if we wanted to just allow everyone, well, still we want them to have some identity so we know which notes are whose, and we have different clients that have different kinds of controls, right?
+
+247
+00:19:46,208 --> 00:19:51,408
+So maybe I could sign into my account from different clients and access all of my notes, or I can make a second account.
+
+248
+00:19:51,568 --> 00:19:52,368
+You get the idea.
+
+249
+00:19:52,622 --> 00:19:55,620
+Now, in order to do that, we're going to use a great tool called D scope.
+
+250
+00:19:55,854 --> 00:20:04,164
+Now, D Scope is the sponsor of today's video, and honestly, they're a perfect fit here because this is exactly what their agentic identity hub is built for.
+
+251
+00:20:04,590 --> 00:20:08,004
+Now it's an identity provider for AI agents and MCP servers.
+
+252
+00:20:08,526 --> 00:20:19,812
+So it acts as the authorization server that we just talked about before, and it handles the login screen, the consent screen, dynamic client registration, and all of the other pieces so that you don't need to build any of this yourself.
+
+253
+00:20:20,078 --> 00:20:32,996
+Now it also has this thing called connections, which is a vault that stores your users' Google, GitHub, Slack, whatever, all of their tokens, so your agent can call those on behalf of your users without you ever storing a long-lived key.
+
+254
+00:20:33,358 --> 00:20:36,560
+And I'll show you that at the end here, but they've got a free forever tier.
+
+255
+00:20:36,718 --> 00:20:37,840
+The link is in the description.
+
+256
+00:20:37,920 --> 00:20:42,000
+And if you want to talk to them about your specific use case, there's a booking link down there as well.
+
+257
+00:20:42,350 --> 00:20:43,760
+Anyways, I'm going to show you how to set it up.
+
+258
+00:20:44,014 --> 00:20:44,676
+Let's take a look.
+
+259
+00:20:45,326 --> 00:20:48,320
+So I'm on the D scope landing page here, and they do a lot of stuff.
+
+260
+00:20:48,558 --> 00:20:57,156
+Now, one of the main things that they provide is an agentic identity hub, which allows you to handle agentic identity between different clients and people signing it.
+
+261
+00:20:57,422 --> 00:21:04,996
+Now you can build MCP servers with them, you can build AI agents, there's all kinds of stuff that they provide, but of course, we care about the MCP components.
+
+262
+00:21:05,454 --> 00:21:07,120
+So what you can do is go to the link in the description.
+
+263
+00:21:07,200 --> 00:21:08,000
+It's completely free.
+
+264
+00:21:08,142 --> 00:21:09,360
+You don't need to pay for anything.
+
+265
+00:21:09,582 --> 00:21:13,764
+Just sign up for a new account, and then it should bring you into the D scope console.
+
+266
+00:21:14,222 --> 00:21:17,840
+From here, you can make a new project where it should just bring you right into one immediately.
+
+267
+00:21:18,000 --> 00:21:20,880
+So I'll just make a new one and just call this tutorial.
+
+268
+00:21:21,198 --> 00:21:24,800
+For now, it's going to be non-production, but of course you can put it in production later.
+
+269
+00:21:24,960 --> 00:21:26,980
+And we'll just go ahead and press on create.
+
+270
+00:21:27,374 --> 00:21:30,640
+Now, as soon as this project is created, we'll just give this a second here.
+
+271
+00:21:30,862 --> 00:21:33,764
+What we're going to do is find this agentic identity hub.
+
+272
+00:21:33,920 --> 00:21:34,240
+Okay.
+
+273
+00:21:34,542 --> 00:21:41,840
+Now, from the agentic identity hub, what we want to do is go over here to MCP servers because we're going to create a new MCP server.
+
+274
+00:21:41,966 --> 00:21:47,200
+And this is going to essentially provide the authorization server for that MCP server.
+
+275
+00:21:47,566 --> 00:21:52,484
+So we'll be able to sign in with Google, GitHub, whatever, and provide that identity to the MCP server.
+
+276
+00:21:52,942 --> 00:21:55,760
+So let's go here and press plus for MCP server.
+
+277
+00:21:55,918 --> 00:21:57,764
+For the name, we're just going to call this notes.
+
+278
+00:21:58,030 --> 00:21:59,440
+For the description, we can give it something.
+
+279
+00:21:59,600 --> 00:22:00,320
+We don't have to.
+
+280
+00:22:00,526 --> 00:22:06,960
+And for the MCP server URL, this is just going to be HTTP slash slash localhost port 8000.
+
+281
+00:22:07,280 --> 00:22:10,756
+Now make sure when you're filling this in that you actually include this slash MCP.
+
+282
+00:22:10,880 --> 00:22:12,292
+If you don't have this, this won't work.
+
+283
+00:22:12,718 --> 00:22:14,948
+Okay, then we can scroll down and we can add the scopes.
+
+284
+00:22:15,246 --> 00:22:20,772
+For the scopes, we're just going to add notes read and we're going to say allow the user to read notes.
+
+285
+00:22:21,422 --> 00:22:24,520
+And then we're going to add another scope, which is going to be notes right?
+
+286
+00:22:24,910 --> 00:22:28,196
+And then the same thing, allow the user to modify, edit, and create notes.
+
+287
+00:22:29,038 --> 00:22:30,320
+Okay, now these are custom scopes.
+
+288
+00:22:30,400 --> 00:22:31,760
+You can make any ones that you want.
+
+289
+00:22:31,950 --> 00:22:35,680
+And these are what we'll be able to read later to see what permissions the user actually has.
+
+290
+00:22:35,900 --> 00:22:38,180
+So then they can allow or disallow them when they're signing in.
+
+291
+00:22:38,702 --> 00:22:41,028
+Now from here, we're just going to enable CIMD.
+
+292
+00:22:41,120 --> 00:22:48,000
+And then we're going to just press on create and make a note of this URL right here, this well-known URL.
+
+293
+00:22:48,302 --> 00:22:53,360
+So for now, what I'm going to do is just copy that into an environment variable file, and I'll kind of show you what this code looks like.
+
+294
+00:22:53,582 --> 00:22:56,160
+But don't worry, you can download it all from the link in the description.
+
+295
+00:22:56,462 --> 00:23:08,000
+Okay, so what I've done is I've just created two environment variables here, one called D scope config URL, where I've just put this well-known URL, which appears right here, which is essentially the URL to our authorization server.
+
+296
+00:23:08,238 --> 00:23:15,428
+And if you scroll down, you can see that there's some code examples here with FastMCP, for example, like what we're using with Fersell, with SkyBridge.
+
+297
+00:23:15,566 --> 00:23:17,412
+So it shows you exactly how to connect it.
+
+298
+00:23:17,710 --> 00:23:24,740
+And then I've added this MCP server URL variable where I've just changed it to be the local MCP server URL.
+
+299
+00:23:25,134 --> 00:23:25,412
+Perfect.
+
+300
+00:23:25,870 --> 00:23:28,640
+So now what I'm going to do is go into my v3 auth.py.
+
+301
+00:23:28,720 --> 00:23:29,760
+I've already written all of the code.
+
+302
+00:23:29,840 --> 00:23:31,440
+Again, I'll link it in the description.
+
+303
+00:23:31,662 --> 00:23:35,332
+And you'll notice that I'm using the D scope MCP SDK.
+
+304
+00:23:35,598 --> 00:23:39,600
+If you want to import that or bring it in in Python, what you can do is just pip install it.
+
+305
+00:23:39,758 --> 00:23:42,692
+You can see just D scope MCP or install it with UV.
+
+306
+00:23:43,118 --> 00:23:45,440
+Now from here, I've imported a few things that I need.
+
+307
+00:23:45,646 --> 00:23:47,600
+I've loaded my environment variable file.
+
+308
+00:23:47,694 --> 00:23:49,600
+So I have access to these values right here.
+
+309
+00:23:49,838 --> 00:23:58,468
+And I'm just getting my config URL, my server URL, and then just removing this slash MCP to make sure that I get the base URL in case I accidentally added it.
+
+310
+00:23:59,054 --> 00:24:02,320
+From there, what I'm doing is connecting fastMCP.
+
+311
+00:24:02,542 --> 00:24:10,000
+So you can see I create an auth provider here with D scope, put my config URL, my base URL, and then the scopes that I'm going to support.
+
+312
+00:24:10,286 --> 00:24:11,440
+So these are custom scopes.
+
+313
+00:24:11,520 --> 00:24:13,680
+You can write them, modify them, adjust them how you want.
+
+314
+00:24:13,760 --> 00:24:15,684
+So I have notes read and notes write.
+
+315
+00:24:16,000 --> 00:24:20,720
+I then have MCP, fastMCP, give it a name, and then auth equals auth.
+
+316
+00:24:20,910 --> 00:24:23,120
+So I'm providing the D scope auth provider.
+
+317
+00:24:23,342 --> 00:24:29,732
+I'm then initializing D scope here with the well known URL just to make sure that it's inside of here and we've got it loaded and ready to go.
+
+318
+00:24:30,080 --> 00:24:36,708
+I then have the exact same MCP server I had before, just with a little bit more wiring here to handle the various scopes.
+
+319
+00:24:37,166 --> 00:24:39,492
+So you can see I have a function that gets the current user.
+
+320
+00:24:40,174 --> 00:24:43,632
+What this does is it gets the access token from D scope, right?
+
+321
+00:24:43,712 --> 00:24:53,232
+And we simply look through the claims and we're able to actually see if we have a sub or a user ID, and that's the current user that's signed in with D scope, right?
+
+322
+00:24:53,312 --> 00:24:55,204
+Or that's actually signed into our application.
+
+323
+00:24:55,502 --> 00:24:56,912
+Then we have an MCP tool.
+
+324
+00:24:57,072 --> 00:25:01,632
+All this does is literally just say who the current user is, just so we can test it and see it in the video.
+
+325
+00:25:01,934 --> 00:25:06,692
+We then have a list notes, add a note, and delete a note function, the exact same as before.
+
+326
+00:25:07,118 --> 00:25:16,420
+The only difference is that what we do this time is we actually look in the current user and we check if they have the current scope that's allowed to perform this operation.
+
+327
+00:25:16,782 --> 00:25:23,620
+So that way we can actually gate off certain tools and gate access and control which users are accessing which notes.
+
+328
+00:25:24,032 --> 00:25:24,352
+Right?
+
+329
+00:25:24,432 --> 00:25:28,100
+So basically, right, the owner of the note is the user ID.
+
+330
+00:25:28,334 --> 00:25:30,112
+And the node ID, of course, is the node ID.
+
+331
+00:25:30,192 --> 00:25:35,872
+Whereas previously, if we look back here, we were always using this kind of static local ID for our notes.
+
+332
+00:25:36,046 --> 00:25:37,988
+Now it's associated with the signed user.
+
+333
+00:25:38,350 --> 00:25:41,152
+So now just to show you how this works, what I can do is run this server.
+
+334
+00:25:41,232 --> 00:25:44,964
+So I can say uv run v3 auth.py.
+
+335
+00:25:45,198 --> 00:25:46,832
+It's gonna run the MCP server.
+
+336
+00:25:46,990 --> 00:25:52,432
+And if I go back to cursor, we can just check and see if we're connected here to the MCP.
+
+337
+00:25:52,840 --> 00:25:56,512
+Now what I'm gonna do here is just log out because it was cached and logged in from a previous run.
+
+338
+00:25:56,718 --> 00:26:00,992
+But you'll see that the notes MCP server has stayed the same because it's running on the same URL.
+
+339
+00:26:01,198 --> 00:26:07,712
+And you'll notice that what happened is cursor actually sent this request and said well known OAuth Protected Resource MCP.
+
+340
+00:26:07,918 --> 00:26:13,152
+What that actually does is it gives Cursor the authorization URL that we need to sign in.
+
+341
+00:26:13,422 --> 00:26:15,312
+And you'll see it says needs authentication.
+
+342
+00:26:15,534 --> 00:26:19,232
+So now if I press on connect, it should open in my browser.
+
+343
+00:26:19,470 --> 00:26:24,672
+And we can see that it actually brings open a consent screen, or sorry, not a consent screen, a login screen here.
+
+344
+00:26:24,942 --> 00:26:26,752
+I'm going to go ahead and sign in with Google.
+
+345
+00:26:26,862 --> 00:26:29,952
+Now you can change how you sign in here when you go into the build mode here.
+
+346
+00:26:30,032 --> 00:26:34,592
+You can set magic links, you know, embedded links, social logins, all of this kind of stuff.
+
+347
+00:26:34,672 --> 00:26:36,432
+You can do it all directly from the console.
+
+348
+00:26:36,686 --> 00:26:41,796
+I'm Not going to get into that right now, but point is we can go to this screen, let's sign in and let's see if it works.
+
+349
+00:26:42,062 --> 00:26:48,112
+Okay, so notice that when I sign in, it gives me the consent screen here, and I can either allow or disallow these different scopes, right?
+
+350
+00:26:48,206 --> 00:26:50,512
+And I just go ahead and press on authorize.
+
+351
+00:26:50,734 --> 00:26:52,272
+Of course, we don't have a logo right now.
+
+352
+00:26:52,558 --> 00:26:54,992
+And then if we go back to cursor, you can see I'm now signed in.
+
+353
+00:26:55,072 --> 00:27:01,124
+We have who am I, list notes, add a note, and delete a note, and I'm authenticated with this server with this specific client.
+
+354
+00:27:01,422 --> 00:27:06,272
+So now if I go over here, I can say, can you create a new note for me that says Tim is the best?
+
+355
+00:27:06,352 --> 00:27:09,380
+And then also tell me who I am by calling the notes MCP server.
+
+356
+00:27:09,952 --> 00:27:10,272
+Okay.
+
+357
+00:27:10,670 --> 00:27:13,312
+And it should be able to do that now and communicate with the server.
+
+358
+00:27:13,550 --> 00:27:16,836
+And if we give this a second, we can see that it's sending the requests.
+
+359
+00:27:17,390 --> 00:27:20,512
+And if we give this a second, we should see that it starts sending the requests here.
+
+360
+00:27:20,592 --> 00:27:24,912
+Let me just make this smaller so we can see this in the server right here.
+
+361
+00:27:25,134 --> 00:27:26,512
+So it says boom, it's done.
+
+362
+00:27:26,766 --> 00:27:28,592
+And it called MCP a bunch of times.
+
+363
+00:27:28,718 --> 00:27:30,692
+And if we go here, you can see Tim is the best.
+
+364
+00:27:31,072 --> 00:27:33,232
+And then if we look, it says who am I?
+
+365
+00:27:33,472 --> 00:27:38,272
+we get our user ID, client ID, and then the scopes, nodes read and nodes write.
+
+366
+00:27:38,510 --> 00:27:40,132
+And this is the expiry date right here.
+
+367
+00:27:40,686 --> 00:27:40,912
+Boom.
+
+368
+00:27:41,198 --> 00:27:52,272
+Now if we go back to D scope, if you want to see, we can now go over to users, and we should see we have my user with my email, signed in with Google when I signed in, and then I can delete the user, disable them.
+
+369
+00:27:52,352 --> 00:27:55,072
+You know, I have full control over them right from this console.
+
+370
+00:27:55,310 --> 00:28:00,672
+Again, you don't have to pay for this, and it handles all of that stuff for you, which is a massive pain to do yourself.
+
+371
+00:28:00,846 --> 00:28:04,192
+And now I can sign in with a different user and I would not have access to these notes.
+
+372
+00:28:04,352 --> 00:28:07,172
+Let me show you what notes do I currently have access to.
+
+373
+00:28:07,854 --> 00:28:08,836
+Let's see it right here.
+
+374
+00:28:09,166 --> 00:28:11,792
+It should tell us what there is.
+
+375
+00:28:12,238 --> 00:28:14,592
+So let's see, unlist your notes from the server.
+
+376
+00:28:14,926 --> 00:28:17,472
+And then what I want to do is sign out, sign in with a different user.
+
+377
+00:28:17,632 --> 00:28:20,068
+So you can see it says you have one note, Tim is the best.
+
+378
+00:28:20,462 --> 00:28:26,272
+And now if I go back over to my cursor settings, so let's go here to MCP.
+
+379
+00:28:26,542 --> 00:28:27,552
+Let's press logout.
+
+380
+00:28:27,950 --> 00:28:29,552
+Okay, so you can see I'm unauthenticated now.
+
+381
+00:28:29,632 --> 00:28:31,792
+And if I try to use the note server, it's not gonna work.
+
+382
+00:28:32,046 --> 00:28:36,164
+Let's connect now, brings me a new URL, and let's sign in with a different Google account.
+
+383
+00:28:36,590 --> 00:28:38,352
+Okay, so I'm signing in with a different account.
+
+384
+00:28:38,512 --> 00:28:39,472
+Let's authorize.
+
+385
+00:28:39,632 --> 00:28:44,192
+Okay, let's go back to cursor and now I'm gonna say, so actually, let me just make a new chat here so I don't get any issues.
+
+386
+00:28:44,366 --> 00:28:47,364
+Using the notes MCP server, tell me what notes I have available to me.
+
+387
+00:28:48,654 --> 00:28:51,428
+And it should be able to list those notes and let's see if we get the response.
+
+388
+00:28:51,982 --> 00:28:57,380
+So you can see it says your current user has no notes under your authenticated identity, and that's exactly what we were expecting.
+
+389
+00:28:57,998 --> 00:28:58,308
+Perfect.
+
+390
+00:28:58,670 --> 00:29:04,560
+Now, of course, we can go a lot further here, and with this, we can actually connect to connections as well, which is super useful.
+
+391
+00:29:04,910 --> 00:29:16,868
+So, for example, if we wanted to have an MCP server that can do something with other providers like your GitHub account or your Slack or your Notion, you can actually connect that by going over here to connections inside of this.
+
+392
+00:29:17,358 --> 00:29:22,880
+So here I can go connection, I can add Airtable, Asana, right, whatever, all the connections that they have here.
+
+393
+00:29:23,118 --> 00:29:27,680
+And then I can connect those connections to the scopes inside of my MCP server.
+
+394
+00:29:27,840 --> 00:29:32,100
+So for example, I can add a new connection and I can connect it to one of the scopes.
+
+395
+00:29:32,462 --> 00:29:40,132
+So then if I want someone to, for example, give me access to their GitHub, I can do that and have D scope handle all of that auth directly for me.
+
+396
+00:29:40,462 --> 00:29:42,480
+So I'm signing in with my Google, for example.
+
+397
+00:29:42,640 --> 00:29:50,180
+I'm then gonna allow the MCP server access to my GitHub, I'll authenticate with GitHub, and then Dscope will store all of that automatically for me.
+
+398
+00:29:50,734 --> 00:29:57,220
+Again, not going to go through the full demo, but you can set that up very easily by connecting the connection scopes and making the connection from this dashboard.
+
+399
+00:29:57,870 --> 00:30:00,080
+Anyways, guys, that's gonna wrap up this video.
+
+400
+00:30:00,302 --> 00:30:02,160
+I hope this taught you about MCP servers.
+
+401
+00:30:02,286 --> 00:30:05,956
+If you enjoyed, leave a like, subscribe, and I will see you in the next one.
+
