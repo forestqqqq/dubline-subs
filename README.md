@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [L8 Principal's Agentic Engineering Workflow](medias/KREXX/) | Kun Chen | 2026-11-23 |
 | [Better AI Agents Aren't Bigger: The Power of Dynamic Workflows - Claude Dynamic Workflows](medias/K8F55/) | AgenticEngineering | 2026-11-23 |
 | [How Does WebRTC Work? \| Crash Course](medias/H6N4T/) | Dennis Ivy | 2026-11-23 |
 | [EP-1 System Design Explained - HLD vs LLD, CAP, Scaling, Security \| System Design with AI](medias/F7VQH/) | Ankit Jain | 2026-11-23 |

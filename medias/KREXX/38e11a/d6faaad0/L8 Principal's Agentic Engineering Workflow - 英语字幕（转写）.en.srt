@@ -1,0 +1,2024 @@
+1
+00:00:00,174 --> 00:00:00,960
+Hi everyone!
+
+2
+00:00:01,230 --> 00:00:06,340
+Welcome to this video, and this will be a full walkthrough of my agentic engineering workflow.
+
+3
+00:00:06,766 --> 00:00:07,440
+My name is Kun.
+
+4
+00:00:07,840 --> 00:00:18,020
+I was previously an L8 principal engineer, worked at Meta, Microsoft, and Atlassian on many large-scale systems like the Bing Search Engine, Windows, and Facebook games.
+
+5
+00:00:18,382 --> 00:00:27,040
+In the recent couple of years, I have been building frontier coding agents at Atlassian and helped many engineering teams figure out how to use them effectively.
+
+6
+00:00:27,278 --> 00:00:33,924
+And I have been building heavily with agents myself and shipping 40 to 50 PRs almost every day, sometimes more.
+
+7
+00:00:34,414 --> 00:00:40,800
+And these are all well-tested and shipped production, not those Minecraft demos you see people vibecode on social media.
+
+8
+00:00:40,960 --> 00:00:45,156
+I have shaped my workflow to be both highly productive and enjoyable.
+
+9
+00:00:45,646 --> 00:00:47,920
+Many people recently asked me what it looks like.
+
+10
+00:00:48,080 --> 00:00:56,132
+To be honest, I did debate a lot with myself whether I should make this video a paid course because it does have that level of value.
+
+11
+00:00:56,462 --> 00:01:02,852
+But ultimately I decided to just share it here with everyone because I want to stay focused on building products as my main business.
+
+12
+00:01:03,182 --> 00:01:15,280
+You can see this is a bit of a long video because I'm going to walk through many fundamental concepts of agentic engineering that not only show you how I do it, but also the why and how things really work under the hood.
+
+13
+00:01:15,502 --> 00:01:19,524
+These are not gimmicks that look cool but can't actually be used for real work.
+
+14
+00:01:19,854 --> 00:01:25,188
+These are all real workflows that professionals like myself use to get real work done.
+
+15
+00:01:25,390 --> 00:01:35,760
+By the end of this video, I want you to feel like a captain that can sail a large ship with a crew of agents working for you, and do so in a stress-free and satisfying way.
+
+16
+00:01:36,078 --> 00:01:39,012
+Largely speaking, we will be walking through these chapters.
+
+17
+00:01:39,822 --> 00:01:44,676
+We'll start with assembling our ship, where I will introduce the core setup.
+
+18
+00:01:45,262 --> 00:01:51,972
+We will then talk through how we recruit and ramp up our crewmates with the right usage of memory and skills.
+
+19
+00:01:52,942 --> 00:01:56,996
+I will then demonstrate how we work with a single crewmate effectively.
+
+20
+00:01:57,390 --> 00:02:01,220
+Then we'll upgrade to working with multiple crewmates all at the same time.
+
+21
+00:02:01,870 --> 00:02:10,720
+And lastly, we will recruit a first mate that manages a lot of the overhead for us so we can stay focused on the big picture as a captain.
+
+22
+00:02:10,880 --> 00:02:14,880
+The very first level is to gather our gears and build our ship.
+
+23
+00:02:15,040 --> 00:02:22,404
+Now, as we get into my workflow, something that's going to be really hard to miss is that I do almost everything in my terminal.
+
+24
+00:02:22,990 --> 00:02:27,396
+I know there are a lot of people who will tell you that the graphical user interface is better.
+
+25
+00:02:27,662 --> 00:02:30,404
+It allows richer interactions and better visuals.
+
+26
+00:02:30,894 --> 00:02:37,252
+But I think by the end of this video, I might just be able to convince you that terminal is not quite dead yet.
+
+27
+00:02:38,094 --> 00:02:40,900
+I use the terminal mostly for two very real reasons.
+
+28
+00:02:41,422 --> 00:02:45,188
+One is to allow my hands to almost never have to leave the keyboard.
+
+29
+00:02:45,646 --> 00:02:52,900
+This is actually a much bigger deal than most people think, because when your hands stay on the keyboard, you stay in the flow.
+
+30
+00:02:53,358 --> 00:03:00,740
+But if you have to move your hand to the mouse every couple of seconds, it breaks the flow and forces your brain to contact switch.
+
+31
+00:03:01,102 --> 00:03:17,988
+I know there are some GUI apps that also have great keybinds that allow you to do most things with the keyboard as well, but that's just not the primary interaction paradigm for GUI apps, and it's hard to build the discipline of hands-on keyboards when every once in a while you still have to use the mouse.
+
+32
+00:03:18,766 --> 00:03:22,340
+Terminal apps, on the other hand, are all designed for the keyboard.
+
+33
+00:03:22,670 --> 00:03:25,732
+So there's no reason for your hands to move anywhere else.
+
+34
+00:03:26,000 --> 00:03:33,572
+The other very important factor that drives me to use the terminal is that I can keep the exact same workflow everywhere, even on my phone.
+
+35
+00:03:33,774 --> 00:03:36,932
+But if you really don't like the terminal, that's okay too.
+
+36
+00:03:37,230 --> 00:03:43,812
+I designed this video to be more about the fundamental concepts behind agentic engineering rather than the mechanics.
+
+37
+00:03:44,270 --> 00:03:49,572
+So most of the things that I talk about should be applicable to GUI-based workflows as well.
+
+38
+00:03:49,840 --> 00:03:54,468
+Now, since we are looking at a terminal here, let me share what it is I'm using.
+
+39
+00:03:54,958 --> 00:04:00,868
+This beautiful, clean, and elegant terminal emulator you are looking at here is called Westterm.
+
+40
+00:04:01,838 --> 00:04:06,084
+Westterm is a highly performance terminal emulator built by a guy named Wes.
+
+41
+00:04:06,414 --> 00:04:10,564
+It's got 26k GitHub stars and has existed for many years.
+
+42
+00:04:11,054 --> 00:04:12,804
+I like it mostly for two reasons.
+
+43
+00:04:13,262 --> 00:04:15,492
+One is that it's truly cross platform.
+
+44
+00:04:15,886 --> 00:04:22,820
+It's pretty much the only terminal emulator I can find that can work on Windows exactly the same way it works on Mac and Linux.
+
+45
+00:04:23,630 --> 00:04:31,300
+Right now I mostly only work on Mac, but it was a big lifesaver when I was working for Microsoft and was forced to use Windows for work.
+
+46
+00:04:32,142 --> 00:04:34,756
+The other reason is that it's highly customizable.
+
+47
+00:04:35,022 --> 00:04:38,128
+You can write Lua scripts to configure pretty much everything.
+
+48
+00:04:38,414 --> 00:04:40,708
+Here, let me show you my config in my files.
+
+49
+00:04:41,294 --> 00:04:44,164
+It's all in this file called Westterm.lua.
+
+50
+00:04:44,288 --> 00:04:47,172
+It's a Lua script, so it's not just static values.
+
+51
+00:04:47,408 --> 00:04:53,412
+You can actually set conditions and write various kinds of logic to make your config very dynamic and flexible.
+
+52
+00:04:54,062 --> 00:05:04,068
+If I change some settings here, let's say I change the color scheme to chalk, you will see that it does a hot reload instantly, which is super handy.
+
+53
+00:05:04,526 --> 00:05:07,492
+But I still like my Rosepine Moon, so let's come back to it.
+
+54
+00:05:07,854 --> 00:05:09,028
+I can't use anything else.
+
+55
+00:05:09,870 --> 00:05:13,060
+Inside of West Term, I run something called Tmux.
+
+56
+00:05:13,518 --> 00:05:15,652
+It's short for terminal multiplexer.
+
+57
+00:05:16,142 --> 00:05:20,208
+If you haven't come across this yet, it's probably easiest to just show you what this does.
+
+58
+00:05:20,462 --> 00:05:23,748
+So I'm typing this command here to start a tmux session.
+
+59
+00:05:24,366 --> 00:05:25,860
+Now I'm inside of Tmux.
+
+60
+00:05:26,382 --> 00:05:32,164
+You can see not much is different except for that there is a bar at the top showing some information.
+
+61
+00:05:32,750 --> 00:05:35,236
+And I still get a shell where I can type commands.
+
+62
+00:05:35,568 --> 00:05:40,772
+But now I can split my terminal into multiple panes, as many of them as I like.
+
+63
+00:05:41,198 --> 00:05:47,620
+This is super useful because I can spin up an agent in one pane and spin up an editor in another.
+
+64
+00:05:48,128 --> 00:05:52,132
+And still have a pane to myself so I can just run commands.
+
+65
+00:05:52,462 --> 00:05:57,124
+I can also spin up multiple tabs and they are also called windows in TMUX.
+
+66
+00:05:57,422 --> 00:06:00,708
+This is very useful for running multiple agent sessions in parallel.
+
+67
+00:06:01,326 --> 00:06:05,988
+The other cool thing is that TMUX sessions are persistent in the Tmux server.
+
+68
+00:06:06,414 --> 00:06:14,852
+So if I use a keyboard shortcut here to detach from Tmux, you can see I'm back in the normal shell without the Tmux status bar at the top.
+
+69
+00:06:15,278 --> 00:06:21,968
+But if I type the same command to launch Tmux again, I get back to the exact same state I was in before.
+
+70
+00:06:22,128 --> 00:06:23,748
+So I can continue my work here.
+
+71
+00:06:24,238 --> 00:06:30,564
+What's even more useful is that I can connect to this same session from another device, like my laptop or my phone.
+
+72
+00:06:30,958 --> 00:06:36,288
+That's a real game changer that's very hard to replicate without this terminal-centric workflow.
+
+73
+00:06:36,846 --> 00:06:43,940
+If you just install Tmux, by default it doesn't have the same experience we're showing here, like the tab bar and the metadata.
+
+74
+00:06:44,430 --> 00:06:47,972
+You'll probably need to do a bit of configuration and customize it.
+
+75
+00:06:48,334 --> 00:06:50,436
+Let me show you my tmux config.
+
+76
+00:06:52,750 --> 00:06:53,252
+Here it is.
+
+77
+00:06:53,710 --> 00:06:59,652
+Most of these settings are key binds that I have been using for many years and built into my muscle memory.
+
+78
+00:07:00,238 --> 00:07:03,568
+Some of these are for styling and various kinds of behaviors.
+
+79
+00:07:03,758 --> 00:07:10,500
+There are many YouTube videos that go into more details about TMUX configuration, so I'm not going to go down the rabbit hole here.
+
+80
+00:07:10,926 --> 00:07:18,688
+For now, you just need to know that you are likely want to spend some time configuring your TMUX for it to look good and work well for you.
+
+81
+00:07:18,862 --> 00:07:20,836
+This text editor here is Neo Vim.
+
+82
+00:07:21,358 --> 00:07:23,300
+It's basically the modern version of Vim.
+
+83
+00:07:23,728 --> 00:07:25,412
+It's my favorite text editor.
+
+84
+00:07:25,838 --> 00:07:31,620
+If you are not familiar with Vim yet, it's an editor whose main purpose is to keep your hands on the keyboard.
+
+85
+00:07:32,078 --> 00:07:38,148
+So if you watch my keystrokes here, I can move the cursor up and down, left and right with keys.
+
+86
+00:07:38,798 --> 00:07:41,508
+I can also scroll up or scroll down.
+
+87
+00:07:42,062 --> 00:07:47,236
+If I have to make edits, I can go into insert mode and start to type anything I like.
+
+88
+00:07:48,398 --> 00:07:51,488
+There are a ton of keyboard shortcuts for doing everything you need.
+
+89
+00:07:51,758 --> 00:07:56,612
+For example, let's say I want to delete the current line, I can just type DD and it's gone.
+
+90
+00:07:57,166 --> 00:07:58,928
+I can undo it by typing U.
+
+91
+00:07:59,118 --> 00:08:03,044
+Oh, and if you look at the left hand side, I have relative line numbers.
+
+92
+00:08:03,568 --> 00:08:07,556
+This line number 238 is the current line number.
+
+93
+00:08:07,982 --> 00:08:14,244
+And the line above shows 1, which means it's one line above the current line, and the lines below as well.
+
+94
+00:08:14,798 --> 00:08:18,724
+So let's say I want to jump to the line that says set environment.
+
+95
+00:08:19,406 --> 00:08:21,728
+That's 11 lines above the current line.
+
+96
+00:08:21,808 --> 00:08:24,644
+So I can just type 11k and I'm here.
+
+97
+00:08:25,326 --> 00:08:30,692
+So once you have enough muscle memory, you can just navigate around much more quickly than using a mouse.
+
+98
+00:08:31,278 --> 00:08:35,364
+I also have a bunch of plugins that help me get around in NeoVim as well.
+
+99
+00:08:35,888 --> 00:08:37,732
+And I have keybinds for all of them.
+
+100
+00:08:38,158 --> 00:08:41,860
+Like Space S allows me to search or grab for the codebase.
+
+101
+00:08:42,190 --> 00:08:47,588
+So I can just type rows and it'll find all the occurrences of rows in the current codebase.
+
+102
+00:08:48,206 --> 00:08:51,888
+I can type Space F to find files by their names.
+
+103
+00:08:51,968 --> 00:08:55,968
+Like if I type Flake, I'll get to the Flake file immediately.
+
+104
+00:08:56,430 --> 00:09:02,848
+Working with Vim has a learning curve for sure, but once you get used to it, it just feels really really good.
+
+105
+00:09:03,246 --> 00:09:07,168
+Whenever I'm in NeoVim, I'm just flying like a bird and it's awesome.
+
+106
+00:09:07,328 --> 00:09:10,596
+Okay, I have to stop here before this turns into a Vim tutorial.
+
+107
+00:09:10,926 --> 00:09:16,324
+You can find a lot of great YouTube videos that will help you get started on Vim and become a master.
+
+108
+00:09:16,878 --> 00:09:19,908
+Maybe one last tip from me is just how to exit.
+
+109
+00:09:20,208 --> 00:09:20,932
+Here you go.
+
+110
+00:09:21,838 --> 00:09:25,540
+Alright, our ship is ready to sail, but we have no crewmates yet.
+
+111
+00:09:26,126 --> 00:09:31,172
+We're the captain, we can't do everything by ourselves, we need to bring in agents as our crewmates.
+
+112
+00:09:31,918 --> 00:09:34,320
+I use four different agent harnesses regularly.
+
+113
+00:09:34,560 --> 00:09:41,892
+There is Claude, which is uh Claude Code, which is basically the only practical choice if you are using the subscription from Anthropic.
+
+114
+00:09:42,510 --> 00:09:44,960
+Generally speaking though, it's a pretty good harness.
+
+115
+00:09:45,326 --> 00:09:48,964
+I think it has the most sensible default experience out of the box.
+
+116
+00:09:49,550 --> 00:09:51,600
+It's also got a pretty rich feature set.
+
+117
+00:09:51,760 --> 00:09:58,340
+The downside is that sometimes it's a little bit buggy and it's not as customizable as some of the other options.
+
+118
+00:09:59,086 --> 00:10:01,828
+The next one I use a lot is Codex COI.
+
+119
+00:10:02,382 --> 00:10:07,332
+It's written in Rust, and you can feel it's a little bit smoother than Cloud Code when you use it.
+
+120
+00:10:07,982 --> 00:10:16,388
+It's also open source, so if you run into some problems, you can often just have Codex inspect its own source code and figure out a workaround by itself.
+
+121
+00:10:17,230 --> 00:10:21,988
+It's a bit lacking in terms of bells and whistles, and it's also not very customizable.
+
+122
+00:10:22,830 --> 00:10:25,092
+And then there is the Pi coding agent.
+
+123
+00:10:25,742 --> 00:10:29,600
+And its whole philosophy is to be minimal and highly extensible.
+
+124
+00:10:29,680 --> 00:10:35,268
+It's great if you don't want any bloat and you'd like to tinker around and kind of make it your own.
+
+125
+00:10:35,440 --> 00:10:37,636
+And lastly, there is open code.
+
+126
+00:10:38,958 --> 00:10:39,908
+I like it a lot.
+
+127
+00:10:40,174 --> 00:10:46,436
+It's got a buttery smooth TUI and it's got good integration with pretty much every model you can find.
+
+128
+00:10:46,990 --> 00:10:59,520
+It's also got a more complete out-of-the-box feature set than Pi, so if you want to use an agent harness that is model agnostic and one that you can just grab from the shelf and just go, open code is a pretty good choice.
+
+129
+00:10:59,758 --> 00:11:12,560
+For the rest of this video though, I'm going to use Cloud Code because I know many people are already familiar with it, but I have been very strict about making my workflow agent agnostic because the landscape is changing very very fast.
+
+130
+00:11:12,750 --> 00:11:16,640
+Who knows which model or agent will be the best performing one next month, right?
+
+131
+00:11:16,800 --> 00:11:24,228
+So everything I show here in the video is agent agnostic and should be applicable regardless of which model or harness you use.
+
+132
+00:11:24,720 --> 00:11:32,100
+Now, the problem with these crewmates is that they are fresh recruits and they have no idea how we run our ship or how we like to work.
+
+133
+00:11:32,622 --> 00:11:35,428
+We need a proper onboarding process to ramp them up.
+
+134
+00:11:36,046 --> 00:11:39,684
+We'll do this mostly through two ways memory files and skills.
+
+135
+00:11:40,430 --> 00:11:45,476
+There are a few types of memory files, global memory files and project level memory files.
+
+136
+00:11:46,062 --> 00:11:49,732
+The global memory file for clot code is at this location.
+
+137
+00:11:51,790 --> 00:11:55,940
+And every other agent uses the other standard location here.
+
+138
+00:11:57,102 --> 00:12:07,780
+So what I do is that I use this command, which made clot.md a symbolic link to agents.md, so they both exist, but under the hood they point to the same file.
+
+139
+00:12:08,526 --> 00:12:12,036
+Here's the content of my actual global memory file.
+
+140
+00:12:12,398 --> 00:12:23,172
+You can see it's pretty minimal, there's only 27 lines, because everything in this file gets loaded into the system prompt of every single agent session across all our projects.
+
+141
+00:12:23,854 --> 00:12:28,740
+If we have too much content in this file, it will silently use a lot of our tokens.
+
+142
+00:12:29,422 --> 00:12:33,430
+I mostly write down my personal preferences here, like never use m.-dash.
+
+143
+00:12:34,478 --> 00:12:39,332
+Somehow AI models are trained to use m dash by default instead of a plain dash.
+
+144
+00:12:39,694 --> 00:12:42,980
+So now whenever I see m dash, I just feel like it's robotic.
+
+145
+00:12:43,406 --> 00:12:47,908
+And I don't like that when I need the agent to write something for me, like PR descriptions.
+
+146
+00:12:48,142 --> 00:12:49,252
+Oh and this is a good one.
+
+147
+00:12:49,440 --> 00:12:54,052
+When making technical decisions, don't give too much weight to development cost.
+
+148
+00:12:54,350 --> 00:12:56,196
+Here's something interesting that you may not know.
+
+149
+00:12:56,400 --> 00:12:57,600
+Let me show you.
+
+150
+00:12:58,286 --> 00:13:12,036
+If we ask a frontier model to estimate the development cost of a project, let's say I want to build a 3D first person shooting game that I can play locally with AI enemies.
+
+151
+00:13:12,718 --> 00:13:15,268
+How long do you think that will take?
+
+152
+00:13:16,334 --> 00:13:17,924
+Let's see what Claude will say.
+
+153
+00:13:18,638 --> 00:13:19,492
+Okay, here it is.
+
+154
+00:13:20,110 --> 00:13:22,884
+See the estimate is in days and weeks and months.
+
+155
+00:13:23,662 --> 00:13:30,788
+But if we ask the agent to actually build it now, I can guarantee it will come back with a playable version in just a few minutes.
+
+156
+00:13:31,310 --> 00:13:33,060
+Because I have done this so many times.
+
+157
+00:13:33,646 --> 00:13:38,404
+This mismatch is happening because the models were trained from human data.
+
+158
+00:13:38,766 --> 00:13:42,724
+And that is what a typical human developer would give as the estimate.
+
+159
+00:13:43,438 --> 00:13:46,852
+AI doesn't seem to know it can code much faster than humans yet.
+
+160
+00:13:47,214 --> 00:13:56,580
+So when AI is making technical decisions, it's implicitly assuming the development cost for some of the options are much higher than they actually are.
+
+161
+00:13:57,134 --> 00:14:04,452
+This biases the model to choose cheap solutions that are often low quality, not scalable, or hard to maintain.
+
+162
+00:14:05,166 --> 00:14:07,972
+So I have this rule here to correct that bias.
+
+163
+00:14:09,326 --> 00:14:21,280
+I also said when doing bug fixes, always start with reproducing the bug in an end-to-end setting as closely aligned with how an end user would experience it as possible.
+
+164
+00:14:21,518 --> 00:14:29,956
+AI models today, by default, like to write unit tests, which are often not sufficient and not really covering the product behaviors we want to guard.
+
+165
+00:14:30,574 --> 00:14:34,160
+I found that leaning into end-to-end testing is a lot more reliable.
+
+166
+00:14:34,414 --> 00:14:40,740
+Besides these preferences, I also have some interesting stuff like opinions.md, which is super useful.
+
+167
+00:14:41,262 --> 00:14:44,708
+That's a slightly different topic though, so I won't go into too much detail here.
+
+168
+00:14:44,910 --> 00:14:49,732
+But I do have a blog post explaining how that works, which I'll link here in case you're interested.
+
+169
+00:14:50,030 --> 00:14:54,596
+Besides the global memory file, each project can also have a project level memory file.
+
+170
+00:14:54,958 --> 00:14:58,692
+Let me show you one example here by going into this project called HiBit.
+
+171
+00:14:59,150 --> 00:15:01,476
+This is an AI Twitter app I have been working on.
+
+172
+00:15:02,030 --> 00:15:08,880
+The project level memory file is typically stored as Cloud.md or agents.md, depending on which agent you use.
+
+173
+00:15:09,198 --> 00:15:14,820
+I did the same thing here with a symbolic link, so the same file is shared for both Cloud and other agents.
+
+174
+00:15:15,790 --> 00:15:18,852
+This one we're looking at here is a little bit verbose, I would say.
+
+175
+00:15:19,214 --> 00:15:24,292
+I'll probably clean this up after this, but let me show you on a high level what I put into this file.
+
+176
+00:15:24,846 --> 00:15:40,068
+It has some context on what this project is, how the repo is laid out, some terminology, how some of the most important components work, and how to do end-to-end testing, and some conventions at the bottom.
+
+177
+00:15:41,006 --> 00:15:48,804
+This file is a lot more verbose than the global memory file, because this is basically the collective learning of all the agent sessions in this project.
+
+178
+00:15:49,102 --> 00:16:03,108
+The way I built this file is not by writing everything by hand, but rather that every time I saw the agent doing something wrong, I would correct it and ask it to remember to not make the same mistake again by storing the learning into this memory file.
+
+179
+00:16:03,280 --> 00:16:07,652
+So over time, our crewmates working on this project get smarter and more experienced.
+
+180
+00:16:08,270 --> 00:16:10,560
+You don't need any fancy memory system to do that.
+
+181
+00:16:10,734 --> 00:16:12,388
+This markdown file is all it takes.
+
+182
+00:16:12,974 --> 00:16:16,356
+Over time, it does tend to get more and more bloated though.
+
+183
+00:16:16,720 --> 00:16:23,930
+One way I reduce the size of this file is by moving some conditional information that is not always needed into a skill.
+
+184
+00:16:24,686 --> 00:16:31,684
+For example, the end-to-end testing instruction here is only needed if the agent is making changes, right?
+
+185
+00:16:32,206 --> 00:16:38,468
+So if I just ask the agent a question, this whole section is totally useless and would be wasting tokens.
+
+186
+00:16:39,150 --> 00:16:46,756
+The way to improve efficiency here is by converting this kind of conditionally useful information from the memory file into skills.
+
+187
+00:16:47,310 --> 00:16:49,412
+I typically just ask the agent to do this.
+
+188
+00:16:49,760 --> 00:16:51,332
+here, let me do it live.
+
+189
+00:16:52,238 --> 00:17:05,280
+I would say let's extract the end to end testing instructions in our agents.md file into a project level skill.
+
+190
+00:17:07,502 --> 00:17:12,480
+Claude already knew how to do this, what skills mean and how to create them.
+
+191
+00:17:12,750 --> 00:17:17,200
+But other agent harnesses may not understand how to do that out of the box.
+
+192
+00:17:17,582 --> 00:17:25,636
+To teach your agent how to create skills, you can install a skill called Skill Creator, which was written by Anthropic.
+
+193
+00:17:26,080 --> 00:17:27,940
+You can do that by running this command.
+
+194
+00:17:28,942 --> 00:17:34,180
+This NPX skills thing is a COI from Vercel that is very handy.
+
+195
+00:17:34,720 --> 00:17:38,468
+It's basically my main tool for installing and managing skills.
+
+196
+00:17:38,880 --> 00:17:40,708
+It supports pretty much any agent.
+
+197
+00:17:41,360 --> 00:17:47,108
+Once this skill is installed, your agent will be able to follow the rules and create new skills for you moving forward.
+
+198
+00:17:47,600 --> 00:17:49,200
+All right, Cloud has done its work.
+
+199
+00:17:49,360 --> 00:17:51,908
+Let's look at what Cloud created for us.
+
+200
+00:17:53,230 --> 00:18:04,612
+It basically removed a large chunk of the content from our agents.md file and moved that into this skill file.
+
+201
+00:18:05,550 --> 00:18:18,564
+This is a good thing about skills is that it's designed for progressive disclosure, which means when your agent starts, it only loads this tiny description field from your skills into the system prompt to know what these skills do.
+
+202
+00:18:19,406 --> 00:18:25,572
+And only when it actually decides that it needs to use a certain skill, it will then read the rest of this file.
+
+203
+00:18:26,062 --> 00:18:39,876
+This allows you to store a lot of the knowledge about how to do various kinds of things without blowing up your system prompt and memory file with a ton of content that uses your tokens for every single request, whether the request actually needs those skills or not.
+
+204
+00:18:40,302 --> 00:18:49,988
+One thing I do want you to know about skills is that you should generally avoid installing random skills from the internet, even the ones that have a lot of GitHub stars.
+
+205
+00:18:50,830 --> 00:18:55,684
+First of all, these skills can instruct your agent to run pretty much anything on your machine.
+
+206
+00:18:56,110 --> 00:19:05,680
+This is a very risky thing to do, because the agent can leak your API keys or even credentials to your bank account to untrusted third parties without you knowing.
+
+207
+00:19:05,840 --> 00:19:11,844
+And even if we put aside the security problem, some of the skills actually degrade your agent's performance.
+
+208
+00:19:12,558 --> 00:19:19,844
+Look at this repo here called Andre Caparthy Skills, which has 177,000 GitHub stars.
+
+209
+00:19:20,110 --> 00:19:23,236
+That's like massive, so it must be really good, right?
+
+210
+00:19:23,854 --> 00:19:32,080
+I actually evaluated the skill in this repo with Programbench, which tests the agent's ability to build programs end-to-end.
+
+211
+00:19:32,686 --> 00:19:40,580
+And the result shows that by using this skill, the agent will use 5% more tokens while making the results worse.
+
+212
+00:19:41,486 --> 00:19:46,756
+And if you look closely, this skill is not even written by Andre Capati himself.
+
+213
+00:19:47,630 --> 00:19:55,396
+I'm not here to criticize the author of this repo though, I'm mainly saying that being popular is not the same as actually being good.
+
+214
+00:19:55,950 --> 00:20:08,640
+A lot of the skills being widely shared today have not been rigorously evaluated and are typically just some random guy who found something that worked for themselves anecdotally and somehow got it to go viral.
+
+215
+00:20:08,910 --> 00:20:14,372
+Their GitHub stars only tell you how popular they are and not whether they are actually helpful.
+
+216
+00:20:14,894 --> 00:20:27,460
+So as a general rule of thumb, I recommend that you do not install any skill from the internet that claims to magically make your agent perform better but hasn't published anything rigorous that proves its claim.
+
+217
+00:20:27,680 --> 00:20:36,516
+Alright, now that we have memory files and skills to help ramp up crewmates, it's finally time to actually start working with a crewmate and set sail.
+
+218
+00:20:36,750 --> 00:20:40,228
+The first thing about working with a crewmate is how you talk to them.
+
+219
+00:20:40,814 --> 00:20:43,844
+I have pretty much completely moved to voice input now.
+
+220
+00:20:44,046 --> 00:20:52,100
+So instead of typing, I would just say, explain this repo in a concise way and give me a recap of what the recent PRs have been working on.
+
+221
+00:20:53,390 --> 00:20:54,544
+This is just so easy.
+
+222
+00:20:54,704 --> 00:21:03,780
+There is an actual paper from Stanford that seriously compared the efficiency, and basically, talking is three times faster than typing.
+
+223
+00:21:04,334 --> 00:21:06,660
+So this is a very big boost in productivity.
+
+224
+00:21:07,406 --> 00:21:09,412
+I also want to show you something interesting here.
+
+225
+00:21:09,744 --> 00:21:14,532
+If we go to the references of this paper, look who's here.
+
+226
+00:21:15,086 --> 00:21:16,484
+It's our guy Dario.
+
+227
+00:21:17,102 --> 00:21:19,364
+What is the CEO of Anthropic doing here?
+
+228
+00:21:20,142 --> 00:21:27,780
+Apparently, if we follow this link, Dario was doing some speech recognition stuff back in 2016.
+
+229
+00:21:28,078 --> 00:21:33,504
+Now we're using speech recognition technology to talk to Claude, which is also created by Dario.
+
+230
+00:21:33,966 --> 00:21:35,076
+What a small world.
+
+231
+00:21:36,046 --> 00:21:42,564
+The voice input we just did was actually transcribed locally using this app called OpenSilper Whisper.
+
+232
+00:21:43,150 --> 00:21:47,492
+It's completely free and open source, which is what I think this type of software should be.
+
+233
+00:21:47,726 --> 00:21:51,684
+It runs the Whisper model locally on your machine and do the transcription.
+
+234
+00:21:52,206 --> 00:21:54,052
+And the quality is like really really good.
+
+235
+00:21:54,830 --> 00:21:57,060
+So this is how I do most of my prompts now.
+
+236
+00:21:57,518 --> 00:22:04,996
+The only case where I fall back to typing is when I need to give the agent a URL or a file path or something like that.
+
+237
+00:22:05,582 --> 00:22:12,068
+Trust me, you don't want to speak a URL out loud, whether it's by yourself or with other humans around.
+
+238
+00:22:12,782 --> 00:22:23,556
+Now, if we come back to this prompt and let the agent run, you will see that because we asked the agent to look at recent PRs, it will need to call GitHub to fetch the data.
+
+239
+00:22:24,206 --> 00:22:31,268
+This is an important thing to pay attention to, because agents rely on external tools like GitHub to do its tasks.
+
+240
+00:22:31,584 --> 00:22:35,504
+The design of these external tools can greatly affect your agent's performance.
+
+241
+00:22:35,726 --> 00:22:37,156
+Take GitHub as an example.
+
+242
+00:22:37,454 --> 00:22:40,804
+Many people use the GitHub MCP server for accessing GitHub.
+
+243
+00:22:41,390 --> 00:22:47,780
+However, I ran this benchmark here that measured various kind of ways to access GitHub.
+
+244
+00:22:48,046 --> 00:22:59,588
+For the exact same tasks, using GitHub MCP server will cost you to spend three times more on token cost and more than double the latency compared to using the COI.
+
+245
+00:23:00,174 --> 00:23:06,212
+If you're using the GitHub MCP, you are pretty much wasting both time and money for no clear benefit.
+
+246
+00:23:06,384 --> 00:23:12,548
+Now you can see there's this thing called Axie, which has the lowest cost but highest success rate.
+
+247
+00:23:13,038 --> 00:23:13,860
+So what is it?
+
+248
+00:23:14,670 --> 00:23:15,428
+Let me show you.
+
+249
+00:23:16,940 --> 00:23:29,764
+Axie is a set of design standards I authored after discovering the huge upside we can have by designing our tools to treat agents as a first-class citizen and optimize for agent ergonomics.
+
+250
+00:23:30,158 --> 00:23:35,428
+I created 10 principles for how to make a tool highly efficient for agents.
+
+251
+00:23:36,174 --> 00:23:42,436
+For example, using token efficient output format can save about 40% tokens compared to using JSON.
+
+252
+00:23:43,182 --> 00:23:45,184
+And then I built a few Axis with them.
+
+253
+00:23:45,422 --> 00:23:53,604
+Besides the GitHub Axie I showed earlier, I also built Chrome DevTools Axie and benchmarked it against other various browser tools.
+
+254
+00:23:55,278 --> 00:24:01,984
+Here you can see the agent taking less turns and using less tokens to get the same tasks done with the Axie.
+
+255
+00:24:02,224 --> 00:24:11,620
+The main point here is when you give tools to your agent, do some research on their efficiency because they can greatly affect how much mileage you get out of your agents.
+
+256
+00:24:12,814 --> 00:24:20,036
+If you want to use the Axies I mentioned earlier, you can just go to this site called axie.md and find them in this catalog.
+
+257
+00:24:20,686 --> 00:24:25,092
+You can just go to their repo and find the instructions for how to start using them.
+
+258
+00:24:26,158 --> 00:24:30,148
+Speaking of this catalog, there is something called lavish Axie here.
+
+259
+00:24:30,766 --> 00:24:33,156
+This is a very important tool in my setup.
+
+260
+00:24:33,550 --> 00:24:37,348
+I pretty much rely on this tool for planning any kind of complex work.
+
+261
+00:24:37,870 --> 00:24:40,420
+Let's do a real feature live and I'll show you how it works.
+
+262
+00:24:40,974 --> 00:24:44,676
+Let me first launch HiBit to show you what I'm trying to work on here.
+
+263
+00:24:45,326 --> 00:24:48,068
+HiBit is an AI tutor I'm building for kids.
+
+264
+00:24:49,024 --> 00:24:51,364
+I'll just create a test profile here.
+
+265
+00:24:53,102 --> 00:24:58,916
+You can see here at the top, I have these two buttons what I can do and my progress.
+
+266
+00:24:59,630 --> 00:25:03,652
+They are showing very similar content right now, which is a problem.
+
+267
+00:25:04,206 --> 00:25:08,164
+So um, and also the UI is not very exciting or fun.
+
+268
+00:25:08,718 --> 00:25:11,364
+So let me go back and talk to Claude.
+
+269
+00:25:14,094 --> 00:25:15,876
+I'll still use voice input here.
+
+270
+00:25:16,654 --> 00:25:25,888
+I'll just say I'd like to consolidate um the what I can do and my progress buttons because their functionality is very similar.
+
+271
+00:25:26,158 --> 00:25:33,508
+And I'd like to revamp the experience there to be something more fun and exciting, like an achievement system.
+
+272
+00:25:34,062 --> 00:25:36,036
+Come up with some options and let's discuss.
+
+273
+00:25:36,302 --> 00:25:37,412
+Don't use lavish.
+
+274
+00:25:39,088 --> 00:25:39,408
+Okay.
+
+275
+00:25:39,982 --> 00:25:49,988
+The reason I said don't use lavish is that I wanted to show you what the default workflow today looks like for many people, and then I'm going to show you the difference lavish makes.
+
+276
+00:25:50,368 --> 00:25:53,060
+Because I already have lavish skills installed.
+
+277
+00:25:53,326 --> 00:25:59,620
+My Cloud will automatically use Lavish for this type of question, which is why I had to tell it not to do that right now.
+
+278
+00:26:01,038 --> 00:26:02,660
+Okay, Cloud is doing its work.
+
+279
+00:26:02,958 --> 00:26:04,868
+Now cloud has come back with a response.
+
+280
+00:26:05,678 --> 00:26:12,772
+Sometimes it will use its plan mode, or sometimes I will ask it to write down the plan in the markdown file, but it's more or less the same.
+
+281
+00:26:13,166 --> 00:26:15,396
+It's a wall of text I now have to read through.
+
+282
+00:26:15,822 --> 00:26:21,796
+It's not very easy to understand what each option is actually gonna look like.
+
+283
+00:26:22,478 --> 00:26:28,548
+And if I'm not happy with some parts of it, I can't very easily tell Claude which parts I'm talking about.
+
+284
+00:26:29,038 --> 00:26:32,484
+I can select a piece of text in the plan and say this is wrong.
+
+285
+00:26:32,718 --> 00:26:35,328
+Now let's try the exact same prompt with lavish.
+
+286
+00:26:35,502 --> 00:26:36,368
+Here it goes again.
+
+287
+00:26:36,590 --> 00:26:45,408
+I actually don't have to say use lavish because the agent already has the lavish skill that tells the agent for this type of planning it should use lavish.
+
+288
+00:26:45,518 --> 00:26:48,004
+But for demo purpose, I just want it to be explicit.
+
+289
+00:26:48,910 --> 00:26:56,452
+Cloud would roughly do the same things to figure out the options, except at the end it would not print out that wall of text again.
+
+290
+00:26:56,718 --> 00:26:59,648
+It will launch the browser and show me this page.
+
+291
+00:26:59,918 --> 00:27:00,676
+Now look at this.
+
+292
+00:27:01,166 --> 00:27:02,628
+This is the Lavish Editor.
+
+293
+00:27:03,118 --> 00:27:07,332
+The reason I named it Lavish is that it's richer than a rich editor.
+
+294
+00:27:07,726 --> 00:27:12,420
+I almost named it Filthy Rich Editor, but that's just not the best sounding name.
+
+295
+00:27:13,006 --> 00:27:19,300
+Lavish Editor basically instructed the agent to create an HTML artifact to visualize what we need to discuss.
+
+296
+00:27:20,046 --> 00:27:27,844
+It always uses the same design system as the current project being worked on, so this is consistent with how the hybrids app actually looks.
+
+297
+00:27:28,558 --> 00:27:31,620
+This makes it very easy to review concepts and prototypes.
+
+298
+00:27:32,110 --> 00:27:33,636
+See the option is laid out here.
+
+299
+00:27:34,094 --> 00:27:39,748
+This is so much easier to understand than the huge wall of text we were looking at earlier in the terminal, right?
+
+300
+00:27:40,526 --> 00:27:46,692
+I can also annotate and make comments on specific parts of the artifact to give feedback to the agent.
+
+301
+00:27:47,310 --> 00:27:51,492
+This is something that's really hard to do with the wall of text or a markdown file.
+
+302
+00:27:52,750 --> 00:27:56,068
+And at the bottom, there are things for me to decide on.
+
+303
+00:27:56,878 --> 00:28:00,324
+And I can just click on these options to make the decisions.
+
+304
+00:28:00,782 --> 00:28:06,500
+And I just send this feedback back to the agents inside of Lavish without even having to go back to the terminal.
+
+305
+00:28:06,734 --> 00:28:10,116
+Honestly, I can never go back to reading text in the terminal anymore.
+
+306
+00:28:10,318 --> 00:28:12,292
+This is just like way too much more efficient.
+
+307
+00:28:12,654 --> 00:28:19,012
+Now the agent has made updates to the HTML and I feel happy about this, so I'll just tell the agent to start building.
+
+308
+00:28:20,048 --> 00:28:23,236
+start building and we'll end the session.
+
+309
+00:28:23,726 --> 00:28:29,968
+We can then go back to the terminal now and see the agent will start to work on the implementation.
+
+310
+00:28:30,222 --> 00:28:33,408
+Because we already clarified all the requirements in the planning phase.
+
+311
+00:28:33,488 --> 00:28:36,996
+I typically don't need to interfere at all during this implementation phase.
+
+312
+00:28:37,358 --> 00:28:39,716
+I only come back to this when the agent has done.
+
+313
+00:28:39,982 --> 00:28:44,740
+And when the agent says it's done, that's actually when things get really tricky.
+
+314
+00:28:45,262 --> 00:28:50,372
+This is where a lot of people will spin up their editor and start reviewing the diff.
+
+315
+00:28:51,374 --> 00:29:00,548
+The problem is, AI writes code so fast, and if every piece of code requires your review, then you are creating a big bottleneck on yourself.
+
+316
+00:29:00,974 --> 00:29:05,892
+Because you can only review so many diffs every day, your velocity will be hardcapped by it.
+
+317
+00:29:06,702 --> 00:29:10,564
+And even more importantly, reviewing diff is just not fun.
+
+318
+00:29:11,118 --> 00:29:15,364
+No one says I became an engineer because I love reviewing diffs all day.
+
+319
+00:29:15,982 --> 00:29:26,116
+My advice here is that in order to really scale ourselves with AI, we have to think of ourselves more as an engineering manager or engineering director.
+
+320
+00:29:26,670 --> 00:29:38,276
+Your directors most likely don't review any PRs, yet they can influence the quality of their team's software by creating good culture and processes and rely on the team to carry them out.
+
+321
+00:29:38,830 --> 00:29:40,356
+That's what we should do with AI.
+
+322
+00:29:40,974 --> 00:29:47,716
+What I do here when the agent says the work is done is not to start reviewing the diffs or start manually testing the changes.
+
+323
+00:29:48,270 --> 00:29:50,020
+That's too much overhead on myself.
+
+324
+00:29:50,542 --> 00:29:55,888
+I sent the change into a pipeline I built called No Mistakes.
+
+325
+00:29:57,486 --> 00:29:59,748
+No mistakes, is also free and open source.
+
+326
+00:30:00,174 --> 00:30:07,332
+It orchestrates your agent to execute a series of steps that takes this first passcode all the way through to a clean PR.
+
+327
+00:30:07,790 --> 00:30:19,632
+It would first create a branch if one doesn't exist yet, and then create a commit, and then take it through a pipeline in an isolated work tree so nothing during the validation would affect your current repo.
+
+328
+00:30:19,712 --> 00:30:36,356
+It would first understand your real intent behind the change by analyzing your agent session, then rebase the change on top of the latest main branch on remote origin and resolve merge conflicts up front, then start an adversarial review in its own fresh context window.
+
+329
+00:30:36,814 --> 00:30:38,820
+This is where most problems get caught.
+
+330
+00:30:39,374 --> 00:30:48,356
+And obvious problems will get self-corrected, but ambiguous ones that have product implications will be escalated to us humans for a decision.
+
+331
+00:30:48,592 --> 00:30:53,668
+After review, it also tries to test the change end-to-end against the original intent.
+
+332
+00:30:54,158 --> 00:31:01,636
+And this step will actually record evidence that proves the change is working that we can then later on look at to gain more confidence.
+
+333
+00:31:02,126 --> 00:31:14,692
+It will then do a documentation pass of updating all relevant documentation to reflect the latest change, and also finally make sure there's no linking problems before pushing the branch to remote and raise a PR.
+
+334
+00:31:15,694 --> 00:31:27,780
+The no mistakes pipeline will also keep babysitting the PR until it's merged, because during the PR phase, we can still have merge conflicts that come in or CI pipeline failures that are very annoying as well.
+
+335
+00:31:28,366 --> 00:31:32,352
+With no mistakes doing the babysitting, we don't have to waste our own time at all.
+
+336
+00:31:32,654 --> 00:31:35,620
+Another way to trigger no mistakes is as a skill.
+
+337
+00:31:36,046 --> 00:31:41,476
+I can just type no mistakes in the agent and it will do the same pipeline as well.
+
+338
+00:31:41,712 --> 00:31:45,828
+This may seem very slow, but in practice I never stare at this screen.
+
+339
+00:31:46,158 --> 00:31:47,620
+I would go spin up other tasks.
+
+340
+00:31:47,952 --> 00:31:54,404
+I come back only when no mistakes says all checks passed, and that's when I go to the PR and apply my judgment.
+
+341
+00:31:54,670 --> 00:31:56,836
+Here's the PR from the change we just did.
+
+342
+00:31:57,358 --> 00:32:06,340
+We can see here it summarized the original intent, what changed, how it's tested, and what happened during the no mistakes pipeline.
+
+343
+00:32:07,086 --> 00:32:13,988
+We can click to see the evidence from its testing to know whether it's really done what we asked for.
+
+344
+00:32:14,766 --> 00:32:21,700
+Depending on what the change is, the evidence could be a screenshot like this, a video demo, a log file, or something else.
+
+345
+00:32:22,190 --> 00:32:26,592
+It's designed to give you the most direct way to see the change working as you intended.
+
+346
+00:32:26,766 --> 00:32:31,748
+We can also see that the pipeline discovered some problems and fixed them before raising the PR.
+
+347
+00:32:32,462 --> 00:32:36,484
+This is a good time to audit whether these changes are actually what we need.
+
+348
+00:32:36,686 --> 00:32:41,988
+If anything doesn't look right, we can go back to the agent and ask for more changes before merging this PR.
+
+349
+00:32:42,272 --> 00:32:44,964
+This risk assessment here is also very useful.
+
+350
+00:32:45,358 --> 00:32:50,948
+I basically look at this to decide how much time I should spend on reviewing this change in more detail.
+
+351
+00:32:51,566 --> 00:32:54,832
+For low risk changes, I don't really look at the diff at all.
+
+352
+00:32:54,992 --> 00:33:03,140
+Because I have validated time and time again, for low risk changes, any problem I could catch is very likely already caught by the pipeline.
+
+353
+00:33:03,232 --> 00:33:05,392
+Only more risky changes are worth my time.
+
+354
+00:33:05,614 --> 00:33:12,740
+This is how I scale up the volume of code changes I do every day through a large crew of agents without losing control on quality.
+
+355
+00:33:13,006 --> 00:33:20,548
+One thing we are starting to see now is that the place where I spend time is towards the beginning and the end of the task.
+
+356
+00:33:20,782 --> 00:33:25,092
+At the beginning, I would spend time in lavish to plan the requirements more clearly.
+
+357
+00:33:25,582 --> 00:33:28,708
+At the end, I would come in and hold a bar on quality.
+
+358
+00:33:29,326 --> 00:33:34,788
+All these parts in the middle is done by AI, which frees me up to spin up other tasks.
+
+359
+00:33:35,406 --> 00:33:43,332
+This is a core aspect of how I work, and you can see the more time I can free up in the middle, the more work I can go do in parallel.
+
+360
+00:33:44,078 --> 00:33:50,052
+So an interesting question now is how do we get the agent to work for longer and longer in the middle?
+
+361
+00:33:50,670 --> 00:33:55,364
+That depends on us giving them more and more complex tasks that take longer to complete.
+
+362
+00:33:56,046 --> 00:34:01,380
+But more complex tasks are often not as easy for our agents to complete autonomously.
+
+363
+00:34:02,190 --> 00:34:04,832
+An extreme version of this is when I go to bed.
+
+364
+00:34:04,992 --> 00:34:07,204
+I sleep for 7 to 8 hours every night.
+
+365
+00:34:07,758 --> 00:34:09,988
+How do I keep the agents busy for 8 hours?
+
+366
+00:34:10,798 --> 00:34:13,604
+This is where I say goodnight, have fun.
+
+367
+00:34:13,792 --> 00:34:18,180
+It's another free and open source tool I built specifically for long running tasks.
+
+368
+00:34:18,432 --> 00:34:19,812
+It's becoming quite popular.
+
+369
+00:34:20,398 --> 00:34:21,828
+It's that simple to use.
+
+370
+00:34:22,158 --> 00:34:27,364
+Just give it an objective and it will keep going until it meets some stop condition you defined.
+
+371
+00:34:27,982 --> 00:34:30,192
+Let me show you a real example that I often do.
+
+372
+00:34:30,414 --> 00:34:32,260
+This is again in the hybrid repo.
+
+373
+00:34:32,558 --> 00:34:34,948
+I'll run goodnight have fun and give a prompt.
+
+374
+00:34:36,398 --> 00:34:41,028
+Pretend you are a 7-year-old kid and use the high-bit app end-to-end.
+
+375
+00:34:41,518 --> 00:34:44,708
+Don't mind the profile creation step which is designed for parents.
+
+376
+00:34:45,134 --> 00:34:54,404
+In the rest of the app, try to do different things and find the first usability problem that will confuse you as a kid or stop you from knowing how to proceed.
+
+377
+00:34:54,894 --> 00:34:57,220
+If you find a problem, stop and fix it.
+
+378
+00:34:57,582 --> 00:34:58,692
+Then rinse and repeat.
+
+379
+00:35:00,718 --> 00:35:01,284
+Here it goes.
+
+380
+00:35:01,806 --> 00:35:06,112
+Goodnight have fun is now running in a loop to execute on what I just asked for.
+
+381
+00:35:06,478 --> 00:35:10,512
+I can monitor token usage here, or how many iterations have been done.
+
+382
+00:35:10,702 --> 00:35:13,540
+The iterations will be showing up as the moons in this row.
+
+383
+00:35:14,030 --> 00:35:16,432
+And I can see how many commits have been made as well.
+
+384
+00:35:16,686 --> 00:35:21,444
+Or I can just go to bed, knowing the agents won't stop until there is no more problem to be found.
+
+385
+00:35:21,966 --> 00:35:27,780
+When I wake up, I can review a list of commits made on this new branch and decide which ones I want.
+
+386
+00:35:28,750 --> 00:35:39,140
+I typically use good night have fun for improving on some verifiable objectives, or objectives where I trust the agent to have the reasonable judgment over, like the one we just did.
+
+387
+00:35:39,822 --> 00:35:52,672
+Verifiable objectives are more like reducing page load time, improving end-to-end test coverage, or like Andre Kapati's auto research, keep experimenting different hypotheses to improve on a metric.
+
+388
+00:35:52,912 --> 00:35:55,652
+These are all well suited for a long-running loop to tackle.
+
+389
+00:35:56,398 --> 00:36:05,348
+The recently introduced slash /goal command in Codex and Cloud Code can also do something similar, but Goodnight Have Fun still gives me a better experience.
+
+390
+00:36:05,872 --> 00:36:11,792
+Because I can set a token cap or iteration cap or stop condition more precisely.
+
+391
+00:36:12,302 --> 00:36:20,192
+Whereas in Cloud Code and Codex, if I set a goal before I go to bed, I might wake up realizing my weekly quota is all gone.
+
+392
+00:36:20,494 --> 00:36:26,116
+Goodnight have fun solved a very important problem, which is to keep the agents running for a long time.
+
+393
+00:36:26,670 --> 00:36:29,796
+So when the agents are running, I'm freed up to do more things.
+
+394
+00:36:30,574 --> 00:36:34,752
+This is when we level up and start working with multiple crewmates in parallel.
+
+395
+00:36:35,022 --> 00:36:39,072
+So let's spin up another tab in Tmux and get more work started.
+
+396
+00:36:39,310 --> 00:36:40,420
+Now here's the problem.
+
+397
+00:36:40,878 --> 00:36:44,004
+In this directory, I already have Goodnight Have Fun running.
+
+398
+00:36:44,494 --> 00:36:50,720
+So if I spin up another agent working in the same directory, they will step on each other's toes and cause conflicts.
+
+399
+00:36:51,406 --> 00:36:53,828
+The default solution here is git work tree.
+
+400
+00:36:54,446 --> 00:37:00,432
+For those of you who aren't familiar with it, a git work tree is basically creating a clone of your repo directory.
+
+401
+00:37:00,592 --> 00:37:06,404
+I can create one by typing git worktree add and give a path here.
+
+402
+00:37:07,214 --> 00:37:09,220
+Now we have to think about a name.
+
+403
+00:37:09,518 --> 00:37:14,352
+This is when you waste five minutes and eventually give up and just say hi bit2.
+
+404
+00:37:15,534 --> 00:37:18,500
+Now we have a work tree and we can navigate to it.
+
+405
+00:37:18,894 --> 00:37:19,872
+So let's go find it.
+
+406
+00:37:19,982 --> 00:37:21,792
+It's in hybrid 2.
+
+407
+00:37:22,032 --> 00:37:31,652
+This is a separate directory on the file system, so we can have an agent doing anything here and it won't conflict with Goodnight Have Fun, which is running in the original repo directory.
+
+408
+00:37:31,872 --> 00:37:36,452
+The problem with work trees is that we now have something to maintain in our head.
+
+409
+00:37:37,038 --> 00:37:40,260
+I need to remember, oh, I have hybrid 2 here.
+
+410
+00:37:40,558 --> 00:37:46,692
+Next time I come into this hybrid 2 directory, I would wonder what was I doing in this work tree last time?
+
+411
+00:37:47,086 --> 00:37:49,712
+Is there still an agent running or is it free?
+
+412
+00:37:49,872 --> 00:37:52,068
+All of that has to exist in my head.
+
+413
+00:37:52,462 --> 00:37:54,788
+And there's no way I'm going to remember all that.
+
+414
+00:37:55,310 --> 00:37:57,540
+So this work tree basically becomes a debt.
+
+415
+00:37:57,712 --> 00:38:00,996
+To get rid of it, I need to run this remove command.
+
+416
+00:38:02,382 --> 00:38:02,884
+Remove.
+
+417
+00:38:05,998 --> 00:38:07,552
+This is just a lot of overhead.
+
+418
+00:38:07,712 --> 00:38:11,364
+My solution to that is another tool I built called Treehouse.
+
+419
+00:38:11,726 --> 00:38:12,672
+It's very simple.
+
+420
+00:38:13,006 --> 00:38:15,652
+I just come into this repo and I run tree house.
+
+421
+00:38:16,430 --> 00:38:20,868
+It would drop me into a fresh work tree where I can start doing whatever I want.
+
+422
+00:38:21,134 --> 00:38:26,084
+I can keep spinning up more and more of these work trees by running TreeHouse again.
+
+423
+00:38:28,014 --> 00:38:34,052
+And if I want, I can see a list of all the work trees by typing treehouse status.
+
+424
+00:38:34,446 --> 00:38:37,092
+So I can see which ones are being used versus not.
+
+425
+00:38:37,358 --> 00:38:39,588
+When I'm done, I can just close this tab.
+
+426
+00:38:40,078 --> 00:38:41,956
+And TreeHouse knows that I'm done.
+
+427
+00:38:42,350 --> 00:38:45,316
+So it will free up that work tree for future use.
+
+428
+00:38:46,094 --> 00:38:52,352
+Next time I ask for a work tree, it will try to reuse one of the idle work trees instead of creating a brand new one.
+
+429
+00:38:52,558 --> 00:38:54,084
+So let's start some real work.
+
+430
+00:38:54,574 --> 00:38:58,436
+I have a bunch of user feedback from my son's last round of playtesting.
+
+431
+00:38:58,862 --> 00:39:02,308
+So let me use this first work tree we created and launch Claude.
+
+432
+00:39:02,830 --> 00:39:09,636
+And I'll say, I remember it's hard for the kids to realize they can press and hold the voice input button to talk.
+
+433
+00:39:10,254 --> 00:39:13,380
+By default, they just click it and then they will see a popover.
+
+434
+00:39:13,870 --> 00:39:18,148
+Maybe in the popover we add a label that tells them they can also press and hold.
+
+435
+00:39:19,822 --> 00:39:20,900
+And I'll enter.
+
+436
+00:39:21,390 --> 00:39:35,428
+Then I'll spin up a new tab, Treehouse, Claude, and this time I'll say the image attachment drop-down menu should have an action that takes a screenshot of the current app and use that as the attachment.
+
+437
+00:39:37,166 --> 00:39:42,384
+All right, One more tab, treehouse, Claude.
+
+438
+00:39:44,526 --> 00:39:49,572
+Our agent status bar right above the chat input is not always showing bot activity.
+
+439
+00:39:50,062 --> 00:39:57,508
+Look into what happened there and make sure when any bots are in progress, it always displays something that reflects the latest activity.
+
+440
+00:39:59,246 --> 00:39:59,588
+Boom.
+
+441
+00:40:00,206 --> 00:40:02,532
+We now have three sessions running in parallel now.
+
+442
+00:40:02,798 --> 00:40:10,980
+I can keep going because none of these sessions will need my attention anytime soon, especially if I tell them to run no mistakes after implementation.
+
+443
+00:40:11,598 --> 00:40:19,012
+I know whether they need me by looking at the top status bar, and I can switch between the tabs using keyboard shortcuts like this.
+
+444
+00:40:19,534 --> 00:40:22,980
+That's very important for managing a lot of parallel sessions efficiently.
+
+445
+00:40:23,504 --> 00:40:30,724
+That said, after doing this for a while, you will discover that juggling between all these sessions is quite exhausting.
+
+446
+00:40:31,438 --> 00:40:39,588
+The constant context switch and having to remind yourself what each session was even doing just doesn't feel like an ideal endgame experience.
+
+447
+00:40:40,302 --> 00:40:45,764
+So I kept pushing the boundary on this, and I discovered that I needed a first mate.
+
+448
+00:40:46,574 --> 00:40:52,996
+Someone I can talk to as a captain that will carry out all my directions and manage all the crewmates for me.
+
+449
+00:40:53,422 --> 00:40:56,740
+So I can focus on the big picture stuff, like where should we go next?
+
+450
+00:40:56,944 --> 00:41:00,484
+Not playing whack-a-mole with this increasingly high number of crewmates.
+
+451
+00:41:01,038 --> 00:41:03,812
+This is how I level up and truly become a captain.
+
+452
+00:41:04,110 --> 00:41:08,464
+My first mate is another free and open source project, and it's very new.
+
+453
+00:41:08,624 --> 00:41:10,884
+The way to use it is by just cloning it.
+
+454
+00:41:14,606 --> 00:41:19,584
+And then I can run an agent in this repository.
+
+455
+00:41:20,046 --> 00:41:23,652
+Now I just talk to it and ask it to work on any projects I like.
+
+456
+00:41:24,206 --> 00:41:30,224
+Let's say I'd like to work on Lavish Axie, GitHub Axie, and Chrome DevTools Axie.
+
+457
+00:41:30,384 --> 00:41:31,908
+They are all GitHub projects I own.
+
+458
+00:41:32,590 --> 00:41:33,636
+First Mate is starting up.
+
+459
+00:41:34,030 --> 00:41:40,864
+And the first time we run it, it will do some setup and ask for some preferences, but it's all through just talking to it, which is pretty easy.
+
+460
+00:41:41,038 --> 00:41:44,784
+And you might wonder why is the transcription so good?
+
+461
+00:41:45,038 --> 00:41:46,948
+Because it's recognizing these project names.
+
+462
+00:41:47,424 --> 00:41:48,164
+Let me show you.
+
+463
+00:41:49,134 --> 00:41:55,716
+OpenSuper Whisper actually supports this customization through a system prompt.
+
+464
+00:41:56,430 --> 00:42:07,908
+So what we can do here is in this model menu, in the transcription menu, there is an initial prompt, and we can put in some common vocabulary that we use into this system prompt.
+
+465
+00:42:08,064 --> 00:42:10,704
+And this prompt is what makes the transcription really good.
+
+466
+00:42:11,054 --> 00:42:15,620
+First mate here is asking how strict I want to be with the code changes in this repos.
+
+467
+00:42:16,224 --> 00:42:19,108
+And I want to select full gate to PR.
+
+468
+00:42:19,598 --> 00:42:24,784
+this is basically gonna be using no mistakes as the pipeline to validate its change.
+
+469
+00:42:25,264 --> 00:42:28,068
+and first task, uh yeah, I'll describe it.
+
+470
+00:42:28,740 --> 00:42:39,172
+All right, Now a real thing I want to do is for all three projects, I'd like to add an update command on the COI that will update their version to the latest on npm.
+
+471
+00:42:41,454 --> 00:42:43,396
+And let's see what FirstMate does.
+
+472
+00:42:43,694 --> 00:42:47,652
+It realizes that this is not one task, but three parallel tasks.
+
+473
+00:42:48,206 --> 00:42:51,972
+And it's now spinning up these tabs in Tmux just like we would.
+
+474
+00:42:52,144 --> 00:42:59,300
+Behind the scenes, it would also call Treehouse to create work trees and then run an agent in that work tree to get the work done.
+
+475
+00:43:00,174 --> 00:43:04,704
+And then it will run no mistakes to validate the change and get the PRs ready for us to review.
+
+476
+00:43:04,878 --> 00:43:08,068
+Now you can see it's first mate that is doing the juggling.
+
+477
+00:43:08,304 --> 00:43:10,384
+I don't need to worry about any of this now.
+
+478
+00:43:10,606 --> 00:43:12,420
+I can just keep giving it more work.
+
+479
+00:43:13,710 --> 00:43:21,732
+Hey first mate, let's also look at the most recent three open issues in Lavish Axie repo and let's discuss which ones are actionable.
+
+480
+00:43:23,854 --> 00:43:24,224
+Boom.
+
+481
+00:43:24,590 --> 00:43:31,076
+First mate now is pulling the open issues from the repo while waiting for the three background agents working in parallel.
+
+482
+00:43:31,344 --> 00:43:35,268
+Alright, first mate said number 87 is cleanest.
+
+483
+00:43:35,744 --> 00:43:36,772
+it's very actionable.
+
+484
+00:43:37,184 --> 00:43:39,556
+And let me just see what is this.
+
+485
+00:43:40,224 --> 00:43:42,148
+don't toggle in annotation mode.
+
+486
+00:43:44,334 --> 00:43:45,636
+okay, that's a clear bug.
+
+487
+00:43:46,144 --> 00:43:46,500
+Alright.
+
+488
+00:43:47,534 --> 00:43:50,116
+First mate, let's address number 87.
+
+489
+00:43:52,366 --> 00:43:58,692
+Look, now Firstmate is juggling a lot of tasks for me that I otherwise would have to manage by myself.
+
+490
+00:43:59,214 --> 00:44:06,244
+Watching it context switch is actually an oddly satisfying experience because I know that's what I would have to do otherwise.
+
+491
+00:44:07,150 --> 00:44:13,444
+Firstmate is basically all my tools coming together as one cohesive workflow, and I have been really happy with it.
+
+492
+00:44:13,838 --> 00:44:17,956
+It's been a pretty significant improvement to my overall experience working with agents.
+
+493
+00:44:18,414 --> 00:44:23,684
+I highly recommend trying it out if you are still directly talking to every single agent session one by one.
+
+494
+00:44:23,950 --> 00:44:25,796
+It will be a pretty massive upgrade.
+
+495
+00:44:26,158 --> 00:44:35,716
+Something you'll start to notice after having a first mate is that because first mate took care of so many things for you, you start to run out of ideas for what to ask it to do.
+
+496
+00:44:36,270 --> 00:44:43,588
+This is a good thing because it indicates the bottleneck is shifting, but it also means you as the captain needs to keep up.
+
+497
+00:44:44,302 --> 00:44:59,620
+This requires a mindset shift of focusing more of your energy on understanding what matters by talking to your users, understanding the competitive landscape, and crafting a good treasure map that can lead your crew to a good direction.
+
+498
+00:45:00,398 --> 00:45:07,492
+Once you started doing that, congratulations, you have successfully transitioned from a sailor into a great captain.
+
+499
+00:45:07,854 --> 00:45:15,364
+Alright, we have gone from not having a ship to being a captain that has a first mate and a big crew that sail together.
+
+500
+00:45:15,854 --> 00:45:18,244
+This is a pretty good time to wrap up this video.
+
+501
+00:45:18,766 --> 00:45:23,172
+All my tools can be found on my GitHub and will be linked in the description below.
+
+502
+00:45:23,598 --> 00:45:25,060
+They are all free and open source.
+
+503
+00:45:25,454 --> 00:45:32,740
+I built them because I just want to see more people learning how to do agentic engineering effectively and doing it in an enjoyable way.
+
+504
+00:45:33,198 --> 00:45:35,524
+And that's what I hope you can get out of this video.
+
+505
+00:45:36,206 --> 00:45:43,300
+I will continue to share more of my workflow and things I find useful on my channel, so don't forget to subscribe if you don't want to miss anything.
+
+506
+00:45:43,758 --> 00:45:45,792
+Thank you for watching and see you next time.
+
