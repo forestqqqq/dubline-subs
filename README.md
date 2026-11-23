@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [Module 8  MLOps Lifecycle Explained \| RAPIDS, NeMo, TensorRT, Triton, DCGM \| NCA-AIIO](medias/8PKXZ/) | QuickTechie Official | 2026-11-22 |
 | [Design a smart grid control system (Part I) - A frequently asked system design question from OpenAI](medias/80P04/) | ShowOffer - Tech Interview Coaching Platform | 2026-11-22 |
 | [AI Agents Have the Microservices Tax, Only Worse \| Katyella Podcast Ep 08](medias/Y0YDB/) | Katyella | 2026-11-21 |
 | [Beyond Autocomplete: Building Elixir Apps with Tidewave and AI Agents \| Paulo Alves Pereira](medias/VJMY8/) | Elixir Madrid | 2026-11-21 |

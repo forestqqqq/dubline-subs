@@ -1,0 +1,1176 @@
+1
+00:00:00,174 --> 00:00:01,840
+1. Section Introduction.
+
+2
+00:00:02,094 --> 00:00:08,000
+Welcome to this module on the MLOps lifecycle and the NVIDIA end-to-end AI software stack.
+
+3
+00:00:08,240 --> 00:00:14,160
+Today, we will map how NVIDIA tools support the complete journey from raw data to production AI systems.
+
+4
+00:00:14,478 --> 00:00:16,880
+The focus is not only on individual tools.
+
+5
+00:00:17,166 --> 00:00:21,200
+The focus is on how those tools connect across the full AI lifecycle.
+
+6
+00:00:21,454 --> 00:00:24,240
+2. Core ideas and certification focus.
+
+7
+00:00:24,622 --> 00:00:28,400
+The central idea is that enterprise AI needs a complete operating model.
+
+8
+00:00:28,686 --> 00:00:29,892
+Data must be prepared.
+
+9
+00:00:30,126 --> 00:00:31,280
+Models must be trained.
+
+10
+00:00:31,598 --> 00:00:33,040
+Quality must be validated.
+
+11
+00:00:33,294 --> 00:00:34,720
+Models must be optimized.
+
+12
+00:00:35,022 --> 00:00:36,880
+Inference must be served reliably.
+
+13
+00:00:37,134 --> 00:00:39,920
+Production behavior must be monitored continuously.
+
+14
+00:00:40,174 --> 00:00:43,520
+Nvidia provides a stack of software components for these stages.
+
+15
+00:00:43,918 --> 00:00:45,600
+Rapids supports data preparation.
+
+16
+00:00:45,966 --> 00:00:50,640
+PyTorch, TensorFlow, JX, Nemo, and Megatron support training.
+
+17
+00:00:50,894 --> 00:00:53,280
+NCCL supports distributed communication.
+
+18
+00:00:53,860 --> 00:00:56,520
+MLflow and similar tools support experiment tracking.
+
+19
+00:00:56,878 --> 00:00:59,360
+TensorRT supports model optimization.
+
+20
+00:00:59,694 --> 00:01:00,932
+Triton supports serving.
+
+21
+00:01:01,134 --> 00:01:05,040
+DCGM and GPU operator support monitoring and automation.
+
+22
+00:01:05,358 --> 00:01:07,172
+3. Explain the diagram.
+
+23
+00:01:07,374 --> 00:01:12,640
+This title slide introduces the full journey that the rest of the module will explain in detail.
+
+24
+00:01:12,974 --> 00:01:15,520
+Think of the visual as a map of production AI.
+
+25
+00:01:15,694 --> 00:01:20,000
+It starts with data and ends with continuous feedback from real-world operations.
+
+26
+00:01:20,334 --> 00:01:24,320
+The important message is that no single tool solves ML ops alone.
+
+27
+00:01:24,558 --> 00:01:26,960
+Production AI requires a connected stack.
+
+28
+00:01:27,214 --> 00:01:28,560
+4. Explain the code.
+
+29
+00:01:28,846 --> 00:01:31,120
+There is no code example on this title slide.
+
+30
+00:01:31,342 --> 00:01:49,156
+The later slides will show operational examples, including checking GPUs with Nvidia SME, cleaning data with CUDF, launching training with SLURM and NCCL, tracking experiments with MLflow, compiling models with TensorRT, configuring Triton, and monitoring GPUs with DCGM.
+
+31
+00:01:49,390 --> 00:01:52,560
+5. NCAA AI Joe certification What to remember.
+
+32
+00:01:52,878 --> 00:01:56,000
+For the NCAA AI Joe exam, remember this big picture.
+
+33
+00:01:56,366 --> 00:02:00,800
+The NVIDIA AI Software Stack supports the full production AI lifecycle.
+
+34
+00:02:01,006 --> 00:02:03,120
+A strong exam ready summary is this.
+
+35
+00:02:03,470 --> 00:02:12,720
+MLOps connects data preparation, training, validation, optimization, serving, monitoring, and feedback into one repeatable production workflow.
+
+36
+00:02:13,070 --> 00:02:21,120
+Before we continue to the next slide, let us quickly look at the complete certification preparation package available exclusively at QuickTechie.com.
+
+37
+00:02:21,390 --> 00:02:23,280
+Get everything you need in one place.
+
+38
+00:02:23,598 --> 00:02:27,600
+Premium eBook, second edition covering all essential concepts.
+
+39
+00:02:27,854 --> 00:02:31,360
+Complete training course covering the full certification syllabus.
+
+40
+00:02:31,598 --> 00:02:35,520
+Practice questions and answers to help you prepare confidently for the exam.
+
+41
+00:02:35,822 --> 00:02:38,948
+Interview questions and answers to help you become job ready.
+
+42
+00:02:39,150 --> 00:02:39,920
+One platform.
+
+43
+00:02:40,174 --> 00:02:41,360
+One complete package.
+
+44
+00:02:41,582 --> 00:02:42,480
+Everything you need.
+
+45
+00:02:42,766 --> 00:02:45,476
+Available exclusively at quicktechie.com.
+
+46
+00:02:45,838 --> 00:02:47,520
+1. Section Introduction.
+
+47
+00:02:47,726 --> 00:02:51,040
+Let us begin with the production AI lifecycle framework.
+
+48
+00:02:51,246 --> 00:02:57,600
+In a real enterprise environment, building an AI solution is not just about creating a model in a notebook.
+
+49
+00:02:57,870 --> 00:03:07,840
+The model must move through a controlled pipeline that prepares data, trains the model, validates quality, serves predictions, monitors behavior, and improves over time.
+
+50
+00:03:08,110 --> 00:03:09,828
+This is why MLOps exists.
+
+51
+00:03:10,094 --> 00:03:14,320
+It creates a predictable and repeatable path from experimentation to production.
+
+52
+00:03:14,638 --> 00:03:17,440
+2. Core ideas and certification focus.
+
+53
+00:03:17,742 --> 00:03:24,000
+The five major lifecycle stages are data preparation, model training, validation, serving, and monitoring.
+
+54
+00:03:24,302 --> 00:03:28,160
+Data preparation converts raw information into model ready datasets.
+
+55
+00:03:28,622 --> 00:03:33,120
+Model training uses GPU accelerated frameworks to learn patterns from data.
+
+56
+00:03:33,390 --> 00:03:39,280
+Validation checks accuracy, loss, safety, bias, and business thresholds before deployment.
+
+57
+00:03:39,520 --> 00:03:43,280
+Serving exposes the model through low latency production endpoints.
+
+58
+00:03:43,616 --> 00:03:47,296
+Monitoring tracks both model behavior and infrastructure health.
+
+59
+00:03:47,566 --> 00:03:51,296
+For certification, remember that NVIDIA stack is modular.
+
+60
+00:03:51,534 --> 00:03:56,976
+Different tools handle different stages, but standardized APIs and containers help them work together.
+
+61
+00:03:57,294 --> 00:03:59,056
+3. Explain the diagram.
+
+62
+00:03:59,342 --> 00:04:02,896
+The diagram shows the life cycle as a loop rather than a straight line.
+
+63
+00:04:03,182 --> 00:04:05,216
+The pipeline starts with data preparation.
+
+64
+00:04:05,486 --> 00:04:07,536
+Clean data flows into model training.
+
+65
+00:04:07,758 --> 00:04:09,856
+The trained model moves into validation.
+
+66
+00:04:10,158 --> 00:04:13,536
+If the model passes quality gates, it is deployed for serving.
+
+67
+00:04:13,838 --> 00:04:19,216
+Once it is serving users, monitoring collects performance, drift, and infrastructure telemetry.
+
+68
+00:04:19,438 --> 00:04:23,776
+That monitoring feedback can trigger tuning, retraining, or redeployment.
+
+69
+00:04:24,078 --> 00:04:30,576
+So the workflow is data, training, validation, serving, monitoring, and feedback into the next iteration.
+
+70
+00:04:30,894 --> 00:04:32,256
+4. Explain the code.
+
+71
+00:04:32,494 --> 00:04:35,296
+The command shown on this slide is NVIDIA SME.
+
+72
+00:04:35,616 --> 00:04:39,936
+This is one of the most important operational commands for NVIDIA GPU systems.
+
+73
+00:04:40,238 --> 00:04:49,056
+It checks whether the GPU is visible, whether the driver is working, how much GPU memory is used, which processes are running, and whether the device is healthy.
+
+74
+00:04:49,262 --> 00:04:56,256
+Before running any AI pipeline stage, an administrator may use this command to confirm the hardware foundation is ready.
+
+75
+00:04:56,496 --> 00:04:59,536
+5. NCA AI Joe certification What to remember.
+
+76
+00:04:59,982 --> 00:05:02,896
+For the NCAA AI Joe exam, remember these points.
+
+77
+00:05:03,246 --> 00:05:06,576
+MLOps makes AI deployments repeatable and predictable.
+
+78
+00:05:06,830 --> 00:05:13,136
+The lifecycle has five core stages data preparation, training, validation, serving, and monitoring.
+
+79
+00:05:13,422 --> 00:05:17,924
+The NVIDIA software stack optimizes each stage for GPU acceleration.
+
+80
+00:05:18,126 --> 00:05:19,696
+Monitoring is not the end.
+
+81
+00:05:19,950 --> 00:05:24,096
+Monitoring creates feedback that drives retraining and continuous improvement.
+
+82
+00:05:24,398 --> 00:05:26,496
+A strong exam ready summary is this.
+
+83
+00:05:26,862 --> 00:05:34,576
+Production AI is a closed loop system where data, training, validation, serving, and monitoring work together through automation.
+
+84
+00:05:34,894 --> 00:05:36,576
+1. Section Introduction.
+
+85
+00:05:36,814 --> 00:05:40,336
+Now let us examine stage 1, data collection and preparation.
+
+86
+00:05:40,622 --> 00:05:45,856
+Every AI system begins with data, but raw data is rarely ready for model training.
+
+87
+00:05:46,094 --> 00:05:55,776
+It may contain missing values, duplicate records, incorrect formats, unbalanced classes, noisy images, inconsistent labels, or unstructured text.
+
+88
+00:05:56,046 --> 00:06:02,884
+If pre-processing is slow, expensive GPUs may sit idle while waiting for the CPU to finish data cleaning.
+
+89
+00:06:03,118 --> 00:06:04,896
+This creates a pipeline bottleneck.
+
+90
+00:06:05,166 --> 00:06:08,016
+2. Core ideas and certification focus.
+
+91
+00:06:08,302 --> 00:06:11,616
+The main problem in this stage is the CPU data bottleneck.
+
+92
+00:06:11,856 --> 00:06:17,776
+Traditional pre-processing often happens on the CPU using dataframe and machine learning libraries.
+
+93
+00:06:18,062 --> 00:06:22,896
+That can be acceptable for small datasets, but it becomes inefficient at AI scale.
+
+94
+00:06:23,182 --> 00:06:27,296
+Rapids addresses this by moving data science workloads onto the GPU.
+
+95
+00:06:27,536 --> 00:06:32,416
+CUDF provides a GPU accelerated data frame API similar to Pandas.
+
+96
+00:06:32,782 --> 00:06:38,176
+CUML provides GPU accelerated machine learning algorithms similar to ScikitLearn.
+
+97
+00:06:38,446 --> 00:06:47,536
+DOLI accelerates data loading and pre-processing for deep learning, especially image pipelines that need resizing, decoding, cropping, and augmentation.
+
+98
+00:06:47,790 --> 00:06:51,812
+The goal is to keep data close to GPU compute and reduce idle time.
+
+99
+00:06:52,046 --> 00:06:53,856
+3. Explain the diagram.
+
+100
+00:06:54,094 --> 00:06:58,244
+The diagram shows raw data moving from storage into GPU memory.
+
+101
+00:06:58,416 --> 00:07:06,496
+Instead of sending all pre-processing work through the CPU, Rapids loads and transforms the dataset directly in GPU memory.
+
+102
+00:07:06,798 --> 00:07:14,496
+Cleaning steps such as removing null values, deduplication, filtering, feature creation, and format conversion happen in parallel.
+
+103
+00:07:14,734 --> 00:07:22,852
+The prepared dataset can then flow into the training framework without unnecessary transfers back and forth between CPU memory and GPU memory.
+
+104
+00:07:23,086 --> 00:07:26,896
+This reduces the GPU bubble and improves end-to-end throughput.
+
+105
+00:07:27,182 --> 00:07:28,576
+4. Explain the code.
+
+106
+00:07:28,782 --> 00:07:33,924
+The code imports codf, which is the GPU dataframe library in the Rapids ecosystem.
+
+107
+00:07:34,126 --> 00:07:38,468
+It reads a CSV file called RAW sensor data into a GPU dataframe.
+
+108
+00:07:38,702 --> 00:07:41,456
+Then it removes missing values and duplicate rows.
+
+109
+00:07:41,710 --> 00:07:45,136
+Finally, it prints the first few rows of the clean data frame.
+
+110
+00:07:45,486 --> 00:07:47,856
+The important concept is not the syntax.
+
+111
+00:07:48,110 --> 00:07:56,868
+The important concept is that loading, cleaning, and deduplication are performed using GPU parallelism instead of relying only on CPU processing.
+
+112
+00:07:57,102 --> 00:08:00,176
+5. NCAAI Joe certification What to remember?
+
+113
+00:08:00,590 --> 00:08:03,536
+For the NCAA AI Joe exam, remember these points.
+
+114
+00:08:03,918 --> 00:08:08,496
+Data preparation can become the first major bottleneck in AI pipelines.
+
+115
+00:08:08,782 --> 00:08:12,816
+Rapids accelerates data science and pre-processing on GPUs.
+
+116
+00:08:13,102 --> 00:08:17,376
+CUDF is associated with GPU Accelerated DataFrame Processing.
+
+117
+00:08:17,616 --> 00:08:22,256
+CUML is associated with GPU Accelerated Machine Learning Algorithms.
+
+118
+00:08:22,574 --> 00:08:26,884
+DALLI is associated with fast data loading and pre processing for deep learning.
+
+119
+00:08:27,086 --> 00:08:29,296
+A strong exam ready summary is this.
+
+120
+00:08:29,550 --> 00:08:39,216
+Stage 1 uses GPU accelerated data preparation to clean and transform raw data quickly so that training GPUs stay busy instead of waiting for the CPU.
+
+121
+00:08:39,630 --> 00:08:41,280
+1. Section Introduction.
+
+122
+00:08:41,550 --> 00:08:45,840
+Next, let us look at stage 2, model training and distributed computing.
+
+123
+00:08:46,094 --> 00:08:53,360
+After data is prepared, the model learns from that data using a training framework such as PyTorch, TensorFlow, or JX.
+
+124
+00:08:53,646 --> 00:09:02,400
+For modern AI, especially large language models, and conversational AI, training can require many GPUs working together across many servers.
+
+125
+00:09:02,734 --> 00:09:05,520
+2. Core ideas and certification focus.
+
+126
+00:09:05,838 --> 00:09:11,520
+Training is compute intensive because models perform repeated matrix operations over large datasets.
+
+127
+00:09:11,982 --> 00:09:19,920
+For conversational AI and large language models, NVIDIA Nemo provides an end-to-end framework for training, tuning, and scaling models.
+
+128
+00:09:20,206 --> 00:09:25,636
+Megatron supports large-scale model parallelism and is used for very large transformer training.
+
+129
+00:09:25,870 --> 00:09:31,040
+When training is distributed, GPUs must exchange gradients and synchronize updates.
+
+130
+00:09:31,310 --> 00:09:33,760
+This communication must be extremely fast.
+
+131
+00:09:34,158 --> 00:09:37,920
+NCCL stands for NVIDIA Collective Communications Library.
+
+132
+00:09:38,158 --> 00:09:44,388
+It provides optimized communication operations such as all reduce, broadcast, reduce, and gather.
+
+133
+00:09:44,654 --> 00:09:51,680
+For certification, remember that NCCL helps multi-GPU and multi-node training avoid communication bottlenecks.
+
+134
+00:09:52,046 --> 00:09:53,828
+3. Explain the diagram.
+
+135
+00:09:54,062 --> 00:09:58,640
+The diagram shows multiple training nodes, each containing several GPUs.
+
+136
+00:09:58,926 --> 00:10:01,280
+Each GPU process is part of the workload.
+
+137
+00:10:01,550 --> 00:10:04,800
+During training, the GPUs compute gradients locally.
+
+138
+00:10:05,038 --> 00:10:08,720
+Then those gradients must be combined to update a shared global model.
+
+139
+00:10:09,070 --> 00:10:15,588
+NCCL handles this synchronization efficiently over fast interconnects such as NVLink and high-speed networking.
+
+140
+00:10:15,854 --> 00:10:20,320
+The big idea is that distributed training is not only about adding more GPUs.
+
+141
+00:10:20,558 --> 00:10:26,720
+It is also about coordinating those GPUs so communication does not cancel the benefit of parallel compute.
+
+142
+00:10:26,990 --> 00:10:28,320
+4. Explain the code.
+
+143
+00:10:28,622 --> 00:10:32,080
+The code is a Slurm script for launching a distributed training job.
+
+144
+00:10:32,302 --> 00:10:42,400
+It creates a training job name, requests four nodes, requests eight GPUs, sets a runtime, and then launches a Python training program using the NCCL backend.
+
+145
+00:10:42,798 --> 00:10:45,920
+The important operational concept is resource scheduling.
+
+146
+00:10:46,222 --> 00:10:53,280
+Slurm allocates the cluster resources, while NCCL manages efficient communication between GPUs during training.
+
+147
+00:10:53,518 --> 00:10:57,440
+Together, they allow a training workload to scale beyond a single machine.
+
+148
+00:10:57,710 --> 00:11:00,880
+5. NCAA certification What to remember.
+
+149
+00:11:01,198 --> 00:11:04,160
+For the NCAA AI Joe exam, remember these points.
+
+150
+00:11:04,526 --> 00:11:08,800
+PyTorch, TensorFlow, and JX are common model training frameworks.
+
+151
+00:11:09,134 --> 00:11:13,440
+Nemo is important for conversational AI and large language model workflows.
+
+152
+00:11:13,710 --> 00:11:17,280
+Megatron is associated with large-scale transformer training.
+
+153
+00:11:17,550 --> 00:11:21,440
+NCCL is used for optimized multi-GPU communication.
+
+154
+00:11:21,742 --> 00:11:26,400
+All reduce is a key operation for synchronizing gradients in distributed training.
+
+155
+00:11:26,670 --> 00:11:28,800
+A strong exam ready summary is this.
+
+156
+00:11:29,134 --> 00:11:38,160
+Stage 2 trains models using GPU accelerated frameworks and uses NCCL to synchronize work efficiently across many GPUs and nodes.
+
+157
+00:11:38,478 --> 00:11:40,080
+1. Section Introduction.
+
+158
+00:11:40,398 --> 00:11:44,388
+Now we move to stage 3, model validation and experiment tracking.
+
+159
+00:11:44,590 --> 00:11:47,440
+A trained model is not automatically ready for production.
+
+160
+00:11:47,726 --> 00:11:55,120
+It must be evaluated carefully to confirm that it performs well, behaves safely, and meets business and operational requirements.
+
+161
+00:11:55,406 --> 00:11:58,960
+Validation is the quality gate between training and deployment.
+
+162
+00:11:59,278 --> 00:12:02,080
+2. Core ideas and certification focus.
+
+163
+00:12:02,414 --> 00:12:09,680
+The goal of validation is to test model accuracy, loss, safety boundaries, bias, robustness, and generalization.
+
+164
+00:12:09,966 --> 00:12:13,360
+A model may perform well on training data, but fail on new data.
+
+165
+00:12:13,614 --> 00:12:16,000
+That is why validation datasets are essential.
+
+166
+00:12:16,270 --> 00:12:19,556
+Experiment tracking records the full history of each run.
+
+167
+00:12:19,760 --> 00:12:27,360
+This includes hyperparameters, dataset versions, code versions, model artifacts, metrics, and evaluation results.
+
+168
+00:12:27,694 --> 00:12:31,680
+Common experiment tracking tools include ML flow and weights and biases.
+
+169
+00:12:31,982 --> 00:12:35,920
+Verification gates automatically decide whether a model can move forward.
+
+170
+00:12:36,206 --> 00:12:40,320
+If accuracy is too low or safety checks fail, the pipeline should stop.
+
+171
+00:12:40,720 --> 00:12:42,480
+3. Explain the diagram.
+
+172
+00:12:42,734 --> 00:12:46,320
+The diagram shows a trained model entering the validation stage.
+
+173
+00:12:46,606 --> 00:12:49,440
+The model is evaluated against a validation dataset.
+
+174
+00:12:49,742 --> 00:12:52,480
+Metrics are recorded in an experiment tracking system.
+
+175
+00:12:52,782 --> 00:12:58,148
+If the model meets the required thresholds, it is promoted to the model registry or deployment path.
+
+176
+00:12:58,414 --> 00:13:03,268
+If it fails, the system sends it back for tuning, retraining, or data improvement.
+
+177
+00:13:03,534 --> 00:13:08,960
+This protects production environments from weak, unsafe, biased, or unverified models.
+
+178
+00:13:09,262 --> 00:13:10,640
+4. Explain the code.
+
+179
+00:13:10,894 --> 00:13:13,760
+The code uses MLflow to track a model experiment.
+
+180
+00:13:14,030 --> 00:13:22,372
+It starts an MLflow run, logs a learning rate parameter, records validation accuracy, and stores the model weight file as an artifact.
+
+181
+00:13:22,606 --> 00:13:27,440
+This means the experiment can be searched, compared, reproduced, and audited later.
+
+182
+00:13:27,758 --> 00:13:29,840
+The important idea is traceability.
+
+183
+00:13:30,126 --> 00:13:36,560
+In Enterprise AI, teams must know exactly which data, parameters, and model files produced a given result.
+
+184
+00:13:36,846 --> 00:13:39,920
+5. NCAA certification What to remember.
+
+185
+00:13:40,334 --> 00:13:43,360
+For the NCAA AI Joe exam, remember these points.
+
+186
+00:13:43,662 --> 00:13:46,720
+Validation checks whether a model is ready for production.
+
+187
+00:13:46,958 --> 00:13:52,160
+Experiment tracking records parameters, metrics, datasets, and model artifacts.
+
+188
+00:13:52,558 --> 00:13:56,480
+ML flow and weights and biases are common tools for tracking experiments.
+
+189
+00:13:56,782 --> 00:14:00,400
+Automated gates help prevent failed models from reaching production.
+
+190
+00:14:00,654 --> 00:14:02,800
+A strong exam ready summary is this.
+
+191
+00:14:03,120 --> 00:14:11,140
+Stage 3 validates model quality and records experiment evidence, so only approved and reproducible models move into deployment.
+
+192
+00:14:11,502 --> 00:14:13,188
+1. Section Introduction.
+
+193
+00:14:13,422 --> 00:14:17,440
+Next, let us discuss stage 4, deployment and model optimization.
+
+194
+00:14:17,774 --> 00:14:22,148
+Before a model is served in production, it should be optimized for the target hardware.
+
+195
+00:14:22,382 --> 00:14:27,840
+A raw training model may be too slow, too large, or too expensive to run at scale.
+
+196
+00:14:28,078 --> 00:14:30,960
+This is where NVIDIA TensorRT becomes important.
+
+197
+00:14:31,246 --> 00:14:34,000
+2. Core ideas and certification focus.
+
+198
+00:14:34,382 --> 00:14:38,880
+TensorRT is an inference optimizer and runtime for trained neural networks.
+
+199
+00:14:39,118 --> 00:14:44,388
+It converts a model into an optimized engine that can run efficiently on NVIDIA GPUs.
+
+200
+00:14:44,622 --> 00:14:50,800
+Optimization can include layer fusion, kernel selection, memory optimization, and precision conversion.
+
+201
+00:14:51,118 --> 00:15:03,920
+Quantization reduces model precision from formats such as FP32 into smaller formats such as FP16, INT8, FP8, or FP4, depending on hardware and model requirements.
+
+202
+00:15:04,238 --> 00:15:10,880
+Lower precision can reduce memory usage and improve throughput, but it must be validated to ensure acceptable accuracy.
+
+203
+00:15:11,278 --> 00:15:20,240
+TensorRT LLM extends optimization concepts for large language model inference with techniques such as continuous batching and key value cache optimization.
+
+204
+00:15:20,526 --> 00:15:22,320
+3. Explain the diagram.
+
+205
+00:15:22,542 --> 00:15:26,400
+The diagram shows a ROM model entering an optimization pipeline.
+
+206
+00:15:26,670 --> 00:15:30,240
+The model is exported into an exchange format such as ONNX.
+
+207
+00:15:30,510 --> 00:15:39,652
+TensorRT analyzes the network, fuses compatible layers, chooses efficient kernels, applies precision optimization, and produces a serialized engine.
+
+208
+00:15:39,886 --> 00:15:44,720
+That engine is then ready for high-performance serving, usually through Triton inference server.
+
+209
+00:15:44,942 --> 00:15:50,880
+The goal is to reduce latency, improve throughput, and lower memory usage without breaking model quality.
+
+210
+00:15:51,118 --> 00:15:52,480
+4. Explain the code.
+
+211
+00:15:52,750 --> 00:15:58,788
+The command uses TrueTechSec to compile a ResNet 50 ONNX model into a TensorRT engine file.
+
+212
+00:15:59,022 --> 00:16:03,760
+The FP16 option tells TensorRT to use half precision where possible.
+
+213
+00:16:04,014 --> 00:16:10,480
+The saved engine is optimized for NVIDIA GPU inference and can run faster than the original unoptimized model.
+
+214
+00:16:10,734 --> 00:16:17,600
+For operations teams, this command represents the conversion step between a trained model and a production ready inference artifact.
+
+215
+00:16:17,952 --> 00:16:20,992
+5. NCAAI Joe certification What to remember?
+
+216
+00:16:21,422 --> 00:16:24,432
+For the NCAA AI Joe exam, remember these points.
+
+217
+00:16:24,750 --> 00:16:28,272
+Do not think of deployment as simply copying a model to a server.
+
+218
+00:16:28,622 --> 00:16:33,072
+TensorRT optimizes trained models for inference on NVIDIA GPUs.
+
+219
+00:16:33,358 --> 00:16:39,312
+Common optimization ideas include layer fusion, kernel auto-tuning, memory planning, and quantization.
+
+220
+00:16:39,630 --> 00:16:44,512
+TensorRT LLM is associated with optimized large language model inference.
+
+221
+00:16:44,782 --> 00:16:46,912
+A strong exam ready summary is this.
+
+222
+00:16:47,246 --> 00:16:54,352
+Stage 4 prepares a validated model for production by compiling and optimizing it into a fast, efficient inference engine.
+
+223
+00:16:54,606 --> 00:16:56,272
+1. Section Introduction.
+
+224
+00:16:56,526 --> 00:17:01,312
+Now let us continue stage 4 by focusing on low-latency production inference serving.
+
+225
+00:17:01,550 --> 00:17:06,352
+Once a model has been optimized, users and applications need a reliable way to call it.
+
+226
+00:17:06,606 --> 00:17:15,072
+This requires a serving layer that can receive requests, batch them efficiently, run inference, and return results within service level expectations.
+
+227
+00:17:15,470 --> 00:17:19,472
+Nvidia Triton Inference Server is designed for this production serving role.
+
+228
+00:17:19,726 --> 00:17:22,512
+2. Core Ideas and Certification Focus.
+
+229
+00:17:22,862 --> 00:17:27,952
+Triton is a production inference server that supports multiple model frameworks and backends.
+
+230
+00:17:28,238 --> 00:17:35,792
+It can serve models from TensorRT, ONNX runtime, PyTorch, TensorFlow, Python, and other supported backends.
+
+231
+00:17:36,078 --> 00:17:39,072
+One of its most important features is dynamic batching.
+
+232
+00:17:39,278 --> 00:17:45,952
+Dynamic batching combines separate incoming requests into a single batch so the GPU can process them more efficiently.
+
+233
+00:17:46,318 --> 00:17:50,832
+Triton can improve GPU utilization while still respecting latency limits.
+
+234
+00:17:51,150 --> 00:17:59,872
+Nvidia NM provides pre-built inference microservices that package models, runtimes, APIs, and containers for easier production deployment.
+
+235
+00:18:00,110 --> 00:18:01,872
+3. Explain the diagram.
+
+236
+00:18:02,126 --> 00:18:05,952
+The diagram shows multiple client requests arriving independently.
+
+237
+00:18:06,222 --> 00:18:13,232
+Instead of sending each request to the GPU one by one, Triton briefly queues compatible requests and forms a batch.
+
+238
+00:18:13,550 --> 00:18:16,032
+That batch is processed together on the GPU.
+
+239
+00:18:16,238 --> 00:18:19,552
+The results are then separated and returned to the original clients.
+
+240
+00:18:19,886 --> 00:18:25,392
+This increases throughput because GPUs are strongest when they process larger parallel workloads.
+
+241
+00:18:25,678 --> 00:18:28,512
+The diagram also reinforces the serving path.
+
+242
+00:18:28,782 --> 00:18:33,952
+Client request, Triton queue, Dynamic Batch, GPU inference, response.
+
+243
+00:18:34,414 --> 00:18:35,792
+4. Explain the code.
+
+244
+00:18:36,046 --> 00:18:39,872
+The configuration file registers a model named ResNet 50 model.
+
+245
+00:18:40,302 --> 00:18:46,212
+The platform is set to a TensorRT plan, which means Triton will load an optimized TensorRT engine.
+
+246
+00:18:46,414 --> 00:18:48,992
+The maximum batch size is set to 16.
+
+247
+00:18:49,262 --> 00:18:53,472
+Dynamic batching is enabled with a maximum queue delay of 10 milliseconds.
+
+248
+00:18:53,774 --> 00:19:01,792
+This means Triton can wait briefly to form a better batch, but it will not wait too long because production inference must protect response time.
+
+249
+00:19:02,062 --> 00:19:05,072
+5. NCAA AI Joe certification What to remember?
+
+250
+00:19:05,550 --> 00:19:08,432
+For the NCAA AI Joe exam, remember these points.
+
+251
+00:19:08,846 --> 00:19:11,952
+Triton Inference Server is used for production model serving.
+
+252
+00:19:12,174 --> 00:19:15,072
+Triton supports multiple frameworks and backends.
+
+253
+00:19:15,374 --> 00:19:18,832
+Dynamic batching improves GPU utilization and throughput.
+
+254
+00:19:19,118 --> 00:19:22,912
+Latency limits still matter, so batching delay must be controlled.
+
+255
+00:19:23,278 --> 00:19:28,432
+NM packages optimized AI inference capabilities as deployable microservices.
+
+256
+00:19:28,750 --> 00:19:30,832
+A strong exam ready summary is this.
+
+257
+00:19:31,182 --> 00:19:41,392
+Triton turns optimized models into scalable production endpoints by managing requests, batching work, using GPUs efficiently, and serving responses with low latency.
+
+258
+00:19:41,710 --> 00:19:43,392
+1. Section Introduction.
+
+259
+00:19:43,632 --> 00:19:48,672
+Finally, let us examine stage 5 production monitoring and ML ops automation.
+
+260
+00:19:48,878 --> 00:19:51,552
+Once a model is deployed, the work is not finished.
+
+261
+00:19:51,952 --> 00:19:58,112
+Production systems must be watched continuously because both data behavior and infrastructure behavior can change.
+
+262
+00:19:58,414 --> 00:20:02,432
+Monitoring helps teams detect problems early and close the feedback loop.
+
+263
+00:20:02,670 --> 00:20:05,472
+2. Core ideas and certification focus.
+
+264
+00:20:05,774 --> 00:20:08,192
+Production monitoring has two major sides.
+
+265
+00:20:08,494 --> 00:20:10,724
+The first side is infrastructure monitoring.
+
+266
+00:20:10,990 --> 00:20:18,032
+This includes GPU utilization, memory usage, temperature, power draw, error counts, and health status.
+
+267
+00:20:18,286 --> 00:20:20,592
+The second side is model observability.
+
+268
+00:20:20,846 --> 00:20:27,152
+This includes data drift, prediction drift, accuracy degradation, latency changes, and unusual outputs.
+
+269
+00:20:27,502 --> 00:20:34,032
+Nvidia DCGM, or data center GPU manager, collects GPU telemetry for data center operations.
+
+270
+00:20:34,318 --> 00:20:42,340
+GPU operator automates deployment of NVIDIA drivers, container toolkit, device plugin, and monitoring components in Kubernetes.
+
+271
+00:20:42,574 --> 00:20:48,804
+When monitoring detects problems, automation can trigger alerts, rollback, scaling, or retraining.
+
+272
+00:20:49,038 --> 00:20:50,832
+3. Explain the diagram.
+
+273
+00:20:51,054 --> 00:20:54,032
+The diagram shows a self-healing MLOps loop.
+
+274
+00:20:54,318 --> 00:20:56,272
+Triton serves the model and production.
+
+275
+00:20:56,558 --> 00:20:59,152
+DCGM monitors the GPU infrastructure.
+
+276
+00:20:59,406 --> 00:21:02,912
+Application monitoring observes model quality and drift.
+
+277
+00:21:03,214 --> 00:21:08,672
+When an alert occurs, automation can trigger a slurm retraining job or a controlled redeployment.
+
+278
+00:21:08,910 --> 00:21:14,592
+After the improved model is validated and optimized, it can replace the older model with minimal downtime.
+
+279
+00:21:14,830 --> 00:21:16,992
+The key idea is continuous improvement.
+
+280
+00:21:17,262 --> 00:21:20,592
+Production AI systems must learn from real-world feedback.
+
+281
+00:21:20,942 --> 00:21:22,272
+4. Explain the code.
+
+282
+00:21:22,542 --> 00:21:26,992
+The command uses DEGMIDMON to monitor selected GPU telemetry fields.
+
+283
+00:21:27,278 --> 00:21:32,432
+It can show metrics such as GPU activity, memory copy activity, and power usage.
+
+284
+00:21:32,718 --> 00:21:41,072
+Operations teams use this type of command to understand whether GPUs are healthy, busy, underutilized, overloaded, or power constrained.
+
+285
+00:21:41,358 --> 00:21:45,872
+In production, the same kind of telemetry can feed dashboards and alerting systems.
+
+286
+00:21:46,190 --> 00:21:49,232
+5. NCA AI Joe certification What to remember?
+
+287
+00:21:49,710 --> 00:21:52,672
+For the NCAA AI Joe exam, remember these points.
+
+288
+00:21:53,006 --> 00:21:55,152
+Monitoring is required after deployment.
+
+289
+00:21:55,438 --> 00:22:00,032
+DCGM is associated with GPU data center telemetry and health monitoring.
+
+290
+00:22:00,272 --> 00:22:05,072
+GPU operator automates NVIDIA GPU software deployment on Kubernetes.
+
+291
+00:22:05,326 --> 00:22:10,192
+Model drift and infrastructure issues can trigger retraining or operational action.
+
+292
+00:22:10,414 --> 00:22:12,592
+A strong exam ready summary is this.
+
+293
+00:22:12,878 --> 00:22:22,112
+Stage 5 monitors both model behavior and GPU infrastructure, then uses automation to trigger alerts, retraining, scaling, or safe model updates.
+
+294
+00:22:22,382 --> 00:22:32,432
+To continue your certification preparation, visit quicktechie.com for updated practice questions, ebooks, audiobooks, full training, and interview preparation material.
+
