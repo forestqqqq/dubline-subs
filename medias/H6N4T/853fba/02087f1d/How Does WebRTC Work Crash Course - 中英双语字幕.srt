@@ -1,0 +1,5302 @@
+1
+00:00:00,366 --> 00:00:01,520
+嘿，大家好！
+Hey, what's going on everybody?
+
+2
+00:00:01,600 --> 00:00:04,240
+欢迎来到这个 WebRTC 速成课程。
+So, welcome to this Web RTC crash course.
+
+3
+00:00:04,320 --> 00:00:07,760
+在这段视频里，我们要拆解一下什么是 WebRTC。
+In this video, what we're gonna do is break down what WebRTC is.
+
+4
+00:00:07,950 --> 00:00:16,239
+我们将讨论它的功能以及背后的技术细节，然后利用所学知识来构建一个点对点视频聊天应用。
+We'll talk about how it functions and how all the details actually work here, and then
+we're gonna use what we learned to build out a peer-to-peer video chat application.
+
+5
+00:00:16,400 --> 00:00:18,560
+所以，这里其实是一个实况演示。
+So, this right here is actually a live demo.
+
+6
+00:00:18,720 --> 00:00:26,080
+我打开了两个不同的标签页，我们要构建类似这样的东西，但
+实际上我们会做得更进一步，让我们的应用比这更具功能性。
+I have two different tabs open, and we're gonna build out something like this, but we're actually gonna go a little bit beyond this
+and make our application a little bit more functional than this.
+
+7
+00:00:26,160 --> 00:00:29,760
+如果你想测试一下，链接会在视频描述中提供。
+But if you want to test this out, this will be linked in the video description.
+
+8
+00:00:29,920 --> 00:00:31,360
+那我们现在就开始吧。
+So let's go ahead and get started.
+
+9
+00:00:31,440 --> 00:00:36,804
+我会过一遍几张幻灯片，先做个介绍，然后开始写代码，并在过程中进行讲解。
+I'll run through a couple of slides, we'll do an introduction, and then we'll start coding this up and I'll explain as we go.
+
+10
+00:00:37,358 --> 00:00:46,560
+好了，在开始之前，我想告诉大家，这些幻灯片以及配套的详细文章都会在视频描述中提供链接。
+Okay, so before we get started, I just wanted to let you know that these slides right here will be linked in the video description if
+you want to access them, along with a detailed article to go with this.
+
+11
+00:00:46,640 --> 00:00:48,160
+所以这些都会链接好。
+So that'll be all linked up.
+
+12
+00:00:48,240 --> 00:00:50,756
+视频发布后，你可以去查看。
+You can go ahead and check that out once the video is posted.
+
+13
+00:00:50,990 --> 00:00:52,560
+那我们开始吧。
+And let's go ahead and get started.
+
+14
+00:00:52,720 --> 00:00:55,440
+首先，什么是 WebRTC？
+So, first of all, what is WebRTC?
+
+15
+00:00:55,520 --> 00:01:08,160
+根据这里的定义，WebRTC 是一组 JavaScript APIs，允许我们在两个浏览器之间建立点对点连接，
+从而实现音频和视频等数据的实时传输。
+So, as I have it in the definition here, WebRTC is a set of JavaScript APIs that allows us to establish a peer-to-peer connection
+between two browsers to exchange data such as audio and video, all in real time.
+
+16
+00:01:08,302 --> 00:01:10,084
+这就是实时通信。
+So, this is real-time communication.
+
+17
+00:01:10,574 --> 00:01:19,600
+WebRTC 如此特别的原因在于，连接是两个浏览器之间的，
+而且在浏览器之间传输的数据实际上永远不会到达服务器。
+So the thing that makes WebRTC so special is the fact that the connection is between two browsers and the data that transmits between
+the browsers never actually reaches a server.
+
+18
+00:01:19,680 --> 00:01:22,084
+但这并不意味着我们完全不需要服务器的参与。
+So it doesn't mean that we don't need a server involved at all.
+
+19
+00:01:22,446 --> 00:01:30,560
+但正如这张图所示，假设我们有两个客户端，一旦建
+立连接，数据就会直接传输，而不需要经过服务器。
+But as this picture shows right here, let's say we have two clients, that data is
+transmitted directly once a connection is made and never has to reach that server.
+
+20
+00:01:30,640 --> 00:01:40,132
+这使得 WebRTC 非常适合交换音频和视频，因为如果必须先经过服务器，
+产生的任何延迟都会导致轻微的滞后。
+So this makes WebRTC ideal for exchanging audio and video because any latency that
+would be added by having to hit the server first would actually cause a slight delay.
+
+21
+00:01:40,878 --> 00:01:45,700
+我知道有些人可能会想，既然是实时通信，这听起来很像 WebSockets。
+So I know some of you are thinking if it's real-time communication, this sounds a lot like WebSockets.
+
+22
+00:01:46,094 --> 00:01:49,040
+WebSockets 和 WebRTC 在很多方面是相似的。
+So WebSockets and WebRTC are similar in a lot of aspects.
+
+23
+00:01:49,120 --> 00:01:55,920
+所以我想拆解一下什么是 WebSockets 以及它是如何运作的，
+然后我们会对比一下在什么情况下该用哪一个。
+So I want to break down what WebSockets are and how that functions, and then
+we'll make some comparisons on when you might want to use one over the other.
+
+24
+00:01:56,080 --> 00:01:59,600
+在 WebSockets 中，连接是点对服务器。
+So WebSockets, the connection is peer-to-server right here.
+
+25
+00:01:59,680 --> 00:02:05,360
+所以我们有浏览器到服务器的连接，而 WebRTC 的连接是浏览器到浏览器。
+So we have a browser-to-server connection versus WebRTC where the connection is browser to browser.
+
+26
+00:02:05,440 --> 00:02:07,920
+一个是点对点，一个是点对服务器。
+So one is peer-to-peer, one is peer-to-server.
+
+27
+00:02:08,000 --> 00:02:10,400
+它们都允许我们进行实时通信。
+So they both allow us to communicate in real time.
+
+28
+00:02:10,764 --> 00:02:16,320
+但在 WebSockets 中，假设这里的对等节点 1 想给对
+等节点 2 发送一条聊天消息，他们会发送这条消息。
+But with WebSockets, let's say peer one right here wanted to send a chat message to peer two, they would send the message.
+
+29
+00:02:16,480 --> 00:02:19,040
+这条消息会先传到服务器，然后再传给对等节点 2。
+That message would go to the server and then out to peer two.
+
+30
+00:02:19,200 --> 00:02:24,772
+现在，如果对等节点 2 想回复，他们会把消息发给服务器，然后再传给对等节点 1。
+Now, if peer two wants to respond, they would send that message to the server and then out to peer one.
+
+31
+00:02:25,262 --> 00:02:33,070
+所以 WebSockets 会有一点延迟，而且必须先经过服务器，但它发生得非常快，
+对于聊天消息或通知来说，半秒或一秒的延迟其实没多大影响。
+So there's a little bit of latency with WebSockets and having to first go to the server,
+but it happens so fast that half a second or maybe a second wouldn't really
+
+32
+00:02:33,070 --> 00:02:36,900
+所以 WebSockets 会有一点延迟，而且必须先经过服务器，但它发生得非常快，
+对于聊天消息或通知来说，半秒或一秒的延迟其实没多大影响。
+make much of a difference for something like a chat message or a notification.
+
+33
+00:02:37,120 --> 00:02:43,040
+但如果我们想通过 WebSockets 发送音频和视频数据，那延迟就会非常明显。
+But if we wanted to send audio and video data through WebSockets, that latency would be very noticeable.
+
+34
+00:02:43,200 --> 00:02:49,604
+我敢肯定我们都参加过通话或者看过视频，其中两
+个人说话时，因为有一点延迟，导致他们互相插嘴。
+I'm sure we've all been on a call or seen a video where the two people are talking,
+there's a little bit of latency and they're talking over each other.
+
+35
+00:02:49,902 --> 00:02:52,320
+所以这就产生了一个相当大的问题。
+So that creates a pretty big issue right there.
+
+36
+00:02:52,400 --> 00:02:54,000
+这就是 WebRTC 发挥优势的地方。
+So this is where WebRTC thrives.
+
+37
+00:02:54,160 --> 00:03:03,492
+因为不需要先联系服务器，连接是直接在两个浏览器之间建立的，
+这样视频数据或音频数据就能交换得快得多。
+So by not having to reach the server first, the connection is directly between the two
+browsers and that video data can be exchanged or audio data can be exchanged much faster.
+
+38
+00:03:03,918 --> 00:03:12,740
+现在，WebRTC 使用 UDP 作为传输数据的协议，UDP 非常快，稍后我会详细介绍这一点。
+Now, with that, WebRTC uses UDP as its protocol to transport the data, and UDP is very fast, and more on that in a second.
+
+39
+00:03:13,614 --> 00:03:21,680
+既然 WebRTC 这么快，如果两者都能提供实时通信，而且其中一个传输速度更快，
+那我们为什么还需要 WebSockets 呢？
+So if WebRTC is so fast, why would we need WebSockets if they both give
+us real-time communication and one can transfer data faster for us?
+
+40
+00:03:21,760 --> 00:03:24,720
+看起来 WebRTC 在这里是最优路径。
+It seems like WebRTC is the optimal path here.
+
+41
+00:03:25,006 --> 00:03:28,160
+在我们的应用中，速度越快似乎总是越好。
+Any more speed in our application always seems like a better thing here.
+
+42
+00:03:28,320 --> 00:03:30,560
+不过 WebRTC 也有一些局限性。
+So there's some limitations to WebRTC.
+
+43
+00:03:30,640 --> 00:03:34,240
+所以让我们来聊聊这些，以及在什么情况下你会选择用其中一个而不是另一个。
+So let's talk about this and then when you might want to use one over the other.
+
+44
+00:03:34,350 --> 00:03:41,540
+首先，WebRTC 使用 UDP，而 UDP 不是传输重要数据的可靠协议。
+So first of all, WebRTC uses UDP, and UDP is not a reliable protocol for transferring important data.
+
+45
+00:03:41,998 --> 00:03:48,160
+UDP 的工作原理是它发送数据非常快，但它从不验证数据是否被接收。
+So the way UDP works is that it sends data really fast, but it never validates if the data was received.
+
+46
+00:03:48,320 --> 00:03:56,240
+因此，如果我们发送的是音频或视频数据，如果丢失了几个视频帧，那没关系，它会自动追赶。
+So because of that, if we're sending something like an audio or video data, if
+we lose a couple of frames from our video, that's no big deal, it'll catch up.
+
+47
+00:03:56,320 --> 00:04:01,252
+你的视频可能会在某一秒看起来有点奇怪，但最终一切都会正常，这不是个大问题。
+Your video might look a little bit funny for a second, but everything will turn out and it's not a big issue.
+
+48
+00:04:01,742 --> 00:04:08,480
+如果我们给别人发送文件，如果那个文件丢失了几个字节的数据，整个文件就可能损坏。
+If we're sending something like a file to someone, if we lose a couple
+of bytes of data from that file, that entire file can be corrupted.
+
+49
+00:04:08,640 --> 00:04:11,120
+所以，UDP 是不可靠的。
+So because of that, UDP is not reliable.
+
+50
+00:04:11,200 --> 00:04:13,444
+你不会想用它来发送重要数据。
+You would not want to use it for sending important data.
+
+51
+00:04:13,870 --> 00:04:17,200
+另外，WebRTC 本身没有内置的信令。
+Now, also with WebRTC, there is no built-in signaling.
+
+52
+00:04:17,279 --> 00:04:21,120
+这意味着你不能直接使用 WebRTC 就建立连接。
+So this means that you can't just use WebRTC and make a connection.
+
+53
+00:04:25,390 --> 00:04:28,640
+一旦连接建立，WebRTC 就会接管。
+And then once a connection is made, then WebRTC takes over.
+
+54
+00:04:28,800 --> 00:04:33,040
+这就是 WebSockets 和 WebRTC 能够很好配合的地方。
+So this is where WebSockets and WebRTC actually go good together.
+
+55
+00:04:33,326 --> 00:04:36,356
+我们会使用 WebSockets 来进行所谓的信令过程。
+We would use a process called signaling with WebSockets.
+
+56
+00:04:36,686 --> 00:04:41,680
+我们会发送信息到两个对等节点之间，建立连接，然后 WebRTC 就接管了。
+We would send the information between the two peers, the connections made, and then WebRTC takes over.
+
+57
+00:04:41,760 --> 00:04:44,080
+所以 WebRTC 在这方面确实有局限性。
+So WebRTC has its limitations in that way.
+
+58
+00:04:45,198 --> 00:04:46,464
+那么，这一切是怎么运作的呢？
+So, how does all of this work?
+
+59
+00:04:46,638 --> 00:04:50,784
+我先给你们一个简单的例子，然后我们再开始拆解细节。
+So, I'm gonna give you a quick example first, and then we'll actually start breaking down the details of this.
+
+60
+00:04:50,864 --> 00:04:58,944
+从高层级的概览来看，我们有两个对等节点，如果他们想通信，
+其中一个对等节点会发起连接，他们会说：嘿，你想聊天吗？
+But at a high-level overview, we have two peers, and if they want to communicate,
+we would have one peer initiate a connection and they would say, Hey, you want to chat?
+
+61
+00:04:59,104 --> 00:05:01,264
+他们必须把这条消息发给第二个对等节点。
+And they would have to send this message out to peer two.
+
+62
+00:05:01,710 --> 00:05:05,732
+所以他们会发送一条消息，无论用什么方式，这可以通过信令来完成。
+So they would send out a message, it doesn't matter how it's done, this can be done through signaling.
+
+63
+00:05:05,934 --> 00:05:09,636
+他们可以通过电子邮件或推文发送这条消息，方式并不重要。
+They can send that message through an email, a tweet, it's irrelevant.
+
+64
+00:05:09,806 --> 00:05:13,184
+但这条消息会包含关于这个对等节点的一些信息。
+But that message would contain some information about this peer right here.
+
+65
+00:05:13,326 --> 00:05:15,748
+所以他们必须把自己的网络信息发送给对等节点二。
+So they would have to send their network information to peer two.
+
+66
+00:05:16,430 --> 00:05:21,824
+现在，如果对等节点二接受这个提议，他们就会把一些信息发回给对等节点一。
+Now, if peer two accepts this offer, they would go ahead and send some information back to peer one.
+
+67
+00:05:22,126 --> 00:05:33,184
+目前的通信手段并不重要，但一旦信息交换完成，数据就可以开始流动，
+而且现在两个对等节点不需要服务器参与，他们就可以开始传输数据了。
+The means of communication right now is not relevant, but the second that information is exchanged, data can begin to flow,
+and now the two peers do not need a server involved, they can start transmitting data.
+
+68
+00:05:33,294 --> 00:05:37,264
+所以这些可以是音频和视频数据，而且连接已经建立了。
+So this can be audio and video data, and that connection is made.
+
+69
+00:05:37,934 --> 00:05:42,464
+那么，我们究竟在两个对等节点之间发送什么，又是如何发送这些数据的呢？
+So what exactly are we sending between the two peers and how are we sending this data?
+
+70
+00:05:42,624 --> 00:05:47,424
+正如我之前提到的，最初的通信手段实际上并不重要。
+So, as I mentioned earlier, that means of communication in the beginning is actually irrelevant.
+
+71
+00:05:47,504 --> 00:05:52,464
+那可能是一条推文或一封电子邮件，但通常这是通过一个叫做信令的过程来完成的。
+That could be a tweet or an email, but usually this is through a process called signaling.
+
+72
+00:05:52,544 --> 00:05:59,824
+这是将此放入应用程序中更实际的方法，它可以通过 WebSockets 或某种第三方信令服务来实现。
+That's a more practical way of putting this into an application, and that
+can be through WebSockets or some kind of third-party signaling service.
+
+73
+00:05:59,904 --> 00:06:00,784
+这其实并不重要。
+It doesn't really matter.
+
+74
+00:06:00,944 --> 00:06:06,944
+所以你会把两个对等节点放在某个房间里，让他们至少能互相知道，然后他们就会传输初始数据。
+So you'd get the two peers in some kind of room so they can at least know about each other, then they would transmit the initial data.
+
+75
+00:06:07,104 --> 00:06:14,624
+现在，在这些数据中，有两个主要组成部分：一个是
+会话描述协议，也就是 SDP，还有一些 ICE候选者。
+Now, in that data, there are two main components: there's a session description protocol, an SDP, and some ICE candidates.
+
+76
+00:06:14,864 --> 00:06:22,464
+首先，两个对等节点都需要交换会话描述协议，一个以提议的形式，一个以响应的形式。
+So, first of all, both peers will need to exchange a session description
+protocol, one in the form of an offer, one in the form of an answer.
+
+77
+00:06:22,734 --> 00:06:31,264
+而会话描述协议就是一个包含关于两个对等节点某些信息的
+对象，通常包括编解码器、地址、媒体类型、音频和视频等。
+And a session description protocol is simply an object containing some kind of information
+about both peers, usually like the codec, address, media type, audio, and video.
+
+78
+00:06:31,344 --> 00:06:34,544
+所以就是关于你的网络以及如何连接到你的各种信息。
+So just a bunch of information about your network and how to connect to you.
+
+79
+00:06:34,624 --> 00:06:37,540
+所以两个对等节点都需要了解对方的网络。
+So both peers will need to know about each other's network.
+
+80
+00:06:37,870 --> 00:06:45,424
+现在，除了在两个对等节点之间交换会话描述协议，两个对等节点还会交换一系列 ICE候选者。
+Now, along with exchanging session description protocols between the
+two peers, both peers will also exchange a series of ICE candidates.
+
+81
+00:06:45,504 --> 00:06:52,224
+而 ICE候选者就是一个公共 IP 地址和端口，可能被用作接收数据的地址。
+And an ICE candidate is simply a public IP address and port that could be potentially used as an address to receive data.
+
+82
+00:06:52,384 --> 00:07:01,156
+所以每个对等节点通常会有多个 ICE候选者，这些候选者是通过向 STUN 服务器发送一系列请求
+获取的，并在两个对等节点之间进行交换。
+So each peer will typically have multiple ICE candidates that are gathered by making a series of requests to a stun server,
+and they are exchanged between the two peers.
+
+83
+00:07:01,518 --> 00:07:06,052
+所以我们实际上会进入这个交换过程，并更详细地讲解正在发生的事情。
+So we'll actually get into this exchange process and we'll go more into detail about what's happening.
+
+84
+00:07:06,304 --> 00:07:10,212
+也就是交换会话描述协议和 ICE候选者。
+So exchanging session description protocols and ICE candidates.
+
+85
+00:07:10,702 --> 00:07:16,624
+就在这里，我们有两个对等节点，还有一个服务器，还有我们要连接的 STUN服务器。
+So right here, we have two peers right here, and we have a server, and then we also have stun servers that we're going to connect to.
+
+86
+00:07:16,784 --> 00:07:20,996
+所以我们要再次走一遍那个过程，就是我们在高层概述中走过的那个过程。
+So we'll go through that process again, the one that we went through in that high-level overview.
+
+87
+00:07:21,358 --> 00:07:23,984
+第一个对等节点会说：嘿，让我们连接一下。
+And the first peer will say, Hey, let's connect.
+
+88
+00:07:24,064 --> 00:07:25,744
+这是我的会话描述协议。
+Here's my session description protocol.
+
+89
+00:07:25,838 --> 00:07:30,864
+它将通过信令过程发送到服务器，并发送给对等节点二。
+So it'll be sent to the server through a signaling process and sent to peer two.
+
+90
+00:07:31,278 --> 00:07:37,024
+现在对等节点二会收到那个 SDP，他们可以接受它并说：嘿，没问题，这是我的 SDP。
+Now peer two will receive that SDP and they can accept it and they'll say, Hey, sure, here's my SDP.
+
+91
+00:07:37,198 --> 00:07:37,572
+让我们连接吧。
+Let's connect.
+
+92
+00:07:38,062 --> 00:07:42,864
+交换完第二个信息后，两个对等节点就连接上了，但数据还不能开始传输。
+The second that's exchanged, the two peers are connected, but data can't start flowing yet.
+
+93
+00:07:42,944 --> 00:07:44,388
+它们只是建立了连接。
+They've simply made that connection.
+
+94
+00:07:45,550 --> 00:07:51,584
+所以在两个对等节点之间开始传输数据之前，我们还需要协调发现我们的公网 IP 地址。
+So before data can start flowing between the two peers, we still need to coordinate the discovery of our public IP addresses.
+
+95
+00:07:51,744 --> 00:07:56,356
+这是因为现在大多数设备都处于防火墙和 NAT 设备之后。
+So that's because most devices nowadays sit behind firewalls and NAT devices.
+
+96
+00:07:56,686 --> 00:07:59,184
+为了做到这一点，我们将使用一种叫做 ICE 的方法。
+So to do this, we're going to use a method called ICE.
+
+97
+00:07:59,344 --> 00:08:05,700
+这意味着我们将向 STUN 服务器发送一系列请求，获取我们的 ICE候选者，
+然后将它们在两个对等节点之间传输。
+So this means we're going to make a series of requests to a stun server, get our ICE candidates,
+and then transfer them between the two peers.
+
+98
+00:08:06,030 --> 00:08:11,492
+而且你不需要担心设置 STUN 服务器，它的维护成本非常低且简单。
+And a stun server is not something that you're going to have to worry about setting up, it's really cheap and easy to maintain.
+
+99
+00:08:11,790 --> 00:08:16,164
+有很多公共的 STUN服务器，在我们的例子中，我们将使用 Google 的 STUN服务器。
+So there's a lot of public stun servers, and in our example, we'll use a Google stun server.
+
+100
+00:08:16,558 --> 00:08:18,596
+那么让我们继续这个过程。
+So let's go ahead and continue with this process.
+
+101
+00:08:19,086 --> 00:08:27,876
+接下来会发生的情况是，一旦交换了 SDP提议和响应，这个对等
+节点就会去询问 STUN服务器：嘿，我的公网 IP 地址是什么？
+So what's going to happen here is once the SDP offer and answer are exchanged, this
+peer right here will go ahead and ask the stun server, hey, what's my public IP address?
+
+102
+00:08:28,366 --> 00:08:36,063
+现在 STUN服务器会做出响应，并向这个对等节点发送一系列 ICE候选者，
+然后这个对等节点会将这些 ICE候选者发送给对等节点二。
+Now the stun server will reply and they'll send over a series of ICE candidates to this peer,
+and this peer will send over the ICE candidates to peer two.
+
+103
+00:08:36,462 --> 00:08:37,823
+现在，对等节点二也会做同样的操作。
+Now, peer two will do the same.
+
+104
+00:08:38,094 --> 00:08:44,304
+他们将向 STUN服务器发起请求，说：嘿，我的 IP 地址或者公网 IP 是什么？
+They're going to go ahead and request make a request to the stun server and say, Hey, what's my IP address or public IP?
+
+105
+00:08:44,686 --> 00:08:48,516
+STUN服务器会做出响应，然后 ICE候选者就会被交换。
+Stun server will respond and the ICE candidates are exchanged.
+
+106
+00:08:48,782 --> 00:08:59,108
+现在，一旦网络通过这些 ICE候选者找到了通信的最优路径，
+数据就可以在两个对等节点之间开始传输，整个连接就完成了。
+Now, once we find or the network finds an optimal path to communicate through with these ICE candidates,
+data can start flowing between the two peers, and that entire connection is complete.
+
+107
+00:09:00,142 --> 00:09:03,588
+现在，我还想谈一点别的东西，那就是 Trickle ICE。
+Now, I wanted to talk about one more thing, and that is trickling ice candidates.
+
+108
+00:09:03,744 --> 00:09:08,260
+所以，你如何发送 ICE候选者由你自己决定，但你可以通过几种方式来实现。
+So, how you send over ice candidates is up to you, but there's a few ways you can go about doing this.
+
+109
+00:09:08,590 --> 00:09:12,224
+让我们再来看看一遍这个过程，我试着把它拆解一下。
+And let's go ahead and take a look at this process all over again, and I'll try to break this down.
+
+110
+00:09:12,464 --> 00:09:18,820
+所以，当我们第一次创建 SDP提议时，我们也会向
+STUN服务器发送一系列请求来生成我们的 ICE候选者。
+So, when we first create our STP offer, we also make a series of requests to a stun server to generate our ICE candidates.
+
+111
+00:09:19,310 --> 00:09:28,324
+现在，我们可以这样做：创建 SDP提议，等到所有的 ICE候选者都生成出来，
+然后把 SDP提议和 ICE候选者一起发送过去。
+Now, what we could do is create our STP offer, wait till all our ICE candidates are generated,
+and then send over the STP offer and the ICE candidates all together.
+
+112
+00:09:28,624 --> 00:09:32,868
+现在，更传统的做法是，你不需要等待这个过程完成。
+Now, more traditionally, what you want to do is not have to wait for this process to complete.
+
+113
+00:09:33,134 --> 00:09:38,544
+你想发送你的 SDP提议，然后随着 ICE候选者的生成，逐个传回它们。
+You want to send over your STP offer and then trickle in your ICE candidates as they're created.
+
+114
+00:09:38,958 --> 00:09:45,744
+你会注意到我们发送了 SDP提议，然后我们不是成批获取 ICE候选者，而是它们被逐个发送。
+So you'll notice that we sent over the STP offer, and then we don't
+get back our ICE candidates in a batch, they're sent over individually.
+
+115
+00:09:45,824 --> 00:09:50,304
+所以，随着每个 ICE候选者的生成，我们就会把它们通过信令发送给对等节点。
+So we would signal over each ice candidate over to our peer as they are generated.
+
+116
+00:09:50,446 --> 00:09:55,824
+所以我们会发送提议，发送一个 ICE候选者，再发一个，再发一个，这个过程会一直持续下去。
+So we would send over the offer, send over an ICE candidate and another and another, and then that process would continue.
+
+117
+00:09:56,014 --> 00:09:57,476
+这就是所谓的 Trickle ICE。
+So that is called trickling ice.
+
+118
+00:09:57,806 --> 00:09:59,428
+我们实际上将要运行一遍这个过程。
+And we're actually going to run through this.
+
+119
+00:09:59,824 --> 00:10:02,544
+这将帮助我们解决这里的一点延迟问题。
+So it's going to help us fix a little bit of a delay here.
+
+120
+00:10:02,624 --> 00:10:04,740
+那么让我们跳到下一页。
+So let's go ahead and jump to the next slide.
+
+121
+00:10:04,974 --> 00:10:07,824
+在开始写代码之前，我想让你们看看实际的操作效果。
+And I want to show you this in action before we start coding.
+
+122
+00:10:07,918 --> 00:10:09,104
+我这里有一个实时演示。
+So I have a live demo here.
+
+123
+00:10:09,184 --> 00:10:11,396
+这个实时演示实际上是一个 GIF。
+So this is actually a GIF in that live demo.
+
+124
+00:10:11,726 --> 00:10:17,636
+让我们点开这个，看看 STP 提议和响应之间的交换过程是怎么运作的。
+And let's go ahead and click on this and go over how this exchange works between the STP offer and answer.
+
+125
+00:10:18,382 --> 00:10:20,864
+那我们把它打开，确保我的摄像头是开着的。
+So let's go ahead and open this up, make sure my camera's on.
+
+126
+00:10:20,944 --> 00:10:23,268
+这个 GIF 就在链接的最上方。
+So the GIF is actually at the top of the link right here.
+
+127
+00:10:24,206 --> 00:10:25,184
+这就是我现在的样子。
+So here I am.
+
+128
+00:10:25,344 --> 00:10:26,384
+现在全都是实时的。
+This is all live right now.
+
+129
+00:10:26,624 --> 00:10:27,748
+源代码都在这里。
+Source code is all here.
+
+130
+00:10:28,654 --> 00:10:32,580
+我要做的就是把两个标签页并排打开。
+And what I'm going to do here is open up two tabs side by side.
+
+131
+00:10:33,230 --> 00:10:35,108
+我想在两个对等节点之间建立连接。
+So I want to make a connection between two peers.
+
+132
+00:10:35,726 --> 00:10:39,104
+好了，我们有 Peer 1 和 Peer 2。
+Okay, so we have peer one and peer two.
+
+133
+00:10:39,344 --> 00:10:42,624
+如果我们按照这些指令操作，我们要做的第一步是创建一个提议。
+So if we go through these instructions, what we're going to do is first create an offer.
+
+134
+00:10:42,766 --> 00:10:44,228
+这就是提议长什么样的。
+So this is what an offer looks like.
+
+135
+00:10:44,782 --> 00:10:49,316
+我要创建一个提议，你们可以看到这个对象里就是一堆关于我们网络的乱码。
+So I'm going to create an offer, and you see this object right here is just a bunch of gibberish about our network.
+
+136
+00:10:49,678 --> 00:10:52,932
+我们直接把整个提议复制下来。
+We're just going to go ahead and copy the entire offer.
+
+137
+00:10:53,904 --> 00:10:56,144
+然后我把它粘贴到 Peer 2 上。
+And I'm going to paste this over to peer two.
+
+138
+00:10:56,384 --> 00:10:58,784
+所以我们是从 Peer 1 创建了一个提议。
+So we're creating an offer from peer one.
+
+139
+00:10:59,024 --> 00:11:02,144
+Peer 1 将发起这个提议，并把它传递给 Peer 2。
+Pier 1 will initiate that offer, pass it over to peer two.
+
+140
+00:11:02,304 --> 00:11:04,624
+这是比较手动的操作方式。
+And this is the more manual way of doing this.
+
+141
+00:11:04,704 --> 00:11:06,704
+在真实的应用程序中，你不会这样做。
+You wouldn't actually do this in a real application.
+
+142
+00:11:07,022 --> 00:11:10,276
+我只是为了让你们看到这个交换过程，所以才做了这个演示。
+I'm just trying to, or I built the demo so you can see that exchange process.
+
+143
+00:11:10,766 --> 00:11:13,984
+Peer 2 收到这个提议后，我们要创建一个响应。
+So peer two will get this offer, and then we're going to create an answer.
+
+144
+00:11:14,064 --> 00:11:19,104
+所以每当我们从 Peer 1 添加一个提议时，我们就从 Peer 2 创建一个响应。
+So whenever we added an offer here from peer 1, let's go ahead and create an answer from peer two.
+
+145
+00:11:19,264 --> 00:11:21,744
+现在我们有了响应，你们可以看到这个对象。
+So now we have an answer and you can see the object.
+
+146
+00:11:21,904 --> 00:11:23,556
+一个是提议，一个是响应。
+One's an offer, one's an answer.
+
+147
+00:11:23,982 --> 00:11:28,132
+让我们把整个响应复制下来，发送给 Peer 2。
+Let's go ahead and copy this entire answer and send it to peer two.
+
+148
+00:11:28,814 --> 00:11:30,372
+好了，我们完成了交换。
+Okay, so we've exchanged those.
+
+149
+00:11:30,784 --> 00:11:34,944
+一旦我们交换了提议和响应，我就把响应添加到 Peer 2 上。
+And once we've exchanged the offer and answer, I'm going to go ahead and add the answer to peer two.
+
+150
+00:11:35,278 --> 00:11:36,864
+现在我们看到连接建立了。
+And now we see a connection.
+
+151
+00:11:37,134 --> 00:11:38,704
+两个对等节点都连接上了。
+Both peers are connected.
+
+152
+00:11:38,784 --> 00:11:42,784
+所以我们有对等节点1和对等节点2，然后这里还有对等节点2和对等节点1。
+So we have peer one and peer two, and then peer two and peer one right here.
+
+153
+00:11:42,864 --> 00:11:43,108
+好的。
+Okay.
+
+154
+00:11:43,502 --> 00:11:47,184
+你会注意到的一点是，到目前为止还没有进行ICE候选者交换。
+So one thing you'll notice is there was no ICE candidates exchange at this at this point.
+
+155
+00:11:47,264 --> 00:11:49,744
+那是由于我们没有使用信令。
+And that's because we're not using signaling.
+
+156
+00:11:49,824 --> 00:11:54,384
+所以在ICE候选者生成时，它们实际上已经被添加到提议里了。
+So by the time the ICE candidates were generated, they were actually added to the offer.
+
+157
+00:11:54,464 --> 00:11:56,864
+所以我不需要自己去生成那些内容。
+So I didn't need to actually generate those on my own.
+
+158
+00:11:57,134 --> 00:12:00,864
+那些已经被创建好了，所以我不需要实际发送它们，因为我们没用信令。
+Those were created, so I didn't have to actually send those over because we're not using signaling.
+
+159
+00:12:01,024 --> 00:12:02,224
+这就是演示内容。
+So that's the demo.
+
+160
+00:12:02,544 --> 00:12:04,064
+在开始之前，先看一下这个。
+Check this out before you get started.
+
+161
+00:12:04,144 --> 00:12:05,796
+那我们现在就开始写代码吧。
+And let's go ahead and get right into coding this.
+
+162
+00:12:06,862 --> 00:12:09,184
+我们要从零开始构建这个项目。
+We're gonna start this project completely from scratch.
+
+163
+00:12:09,264 --> 00:12:13,664
+所以到目前为止，除了桌面上的这个空文件夹，我还没设置任何东西。
+So at this point, I have nothing set up other than an empty folder right here on my desktop.
+
+164
+00:12:13,824 --> 00:12:17,904
+所以去创建这个文件夹，并在你的文本编辑器里打开它。
+So go ahead and create this folder and open it up in your text editor.
+
+165
+00:12:17,984 --> 00:12:22,304
+我已经有了文件夹，打开了VS Code，并打开了项目文件。
+So I have the folder and I have VS Code open and I opened up the project file.
+
+166
+00:12:22,414 --> 00:12:25,744
+我们要为这个创建样板代码，然后继续往下做。
+So we're gonna create the boilerplate code for this and then we'll continue from there.
+
+167
+00:12:25,824 --> 00:12:28,292
+如果你愿意的话，可以去下载GitHub仓库。
+So if you want to, go ahead and download the GitHub repo.
+
+168
+00:12:28,464 --> 00:12:38,500
+HTML和CSS部分可以很简单，但如果你不想复制或者不想把这些全部写出来，就直接复制粘贴进去，
+然后从我们开始写JavaScript代码的地方继续。
+The HTML and CSS parts can be minimal, but if you don't want to copy or if you don't want to write all of this out,
+just copy and paste that in and then just continue from where we start writing the JavaScript code.
+
+169
+00:12:38,990 --> 00:12:41,424
+所以在那个文件夹里，我们将有三个文件。
+So in that folder, we're going to have three files.
+
+170
+00:12:41,742 --> 00:12:44,100
+我们将有一个index.html文件。
+So we'll have an index.html file.
+
+171
+00:12:44,686 --> 00:12:50,704
+我们将有一个main CSS文件，也就是最基础的CSS，然后是main.js。
+We're going to have a main CSS file, so minimal CSS, and then main.js.
+
+172
+00:12:51,438 --> 00:12:53,344
+那我们进入HTML部分。
+So let's go into the HTML folder.
+
+173
+00:12:53,486 --> 00:12:55,652
+我在这里创建一些HTML样板代码。
+I'll create some HTML boilerplate here.
+
+174
+00:12:55,824 --> 00:12:58,144
+那我就直接用自动补全。
+So I'll just go ahead and autocomplete that.
+
+175
+00:12:58,478 --> 00:13:00,544
+如果那不起作用，你就直接把这些打出来。
+If that doesn't work for you, just go ahead and type this out.
+
+176
+00:13:00,624 --> 00:13:01,584
+我们要加一个标题。
+We'll add in a title.
+
+177
+00:13:01,744 --> 00:13:03,300
+就是WebRTC。
+So WebRTC.
+
+178
+00:13:03,824 --> 00:13:07,104
+确保你的JavaScript和CSS已经链接好了。
+And make sure you have your JavaScript and CSS linked up.
+
+179
+00:13:07,214 --> 00:13:10,084
+在我的情况下，我想把JavaScript放在body标签下面。
+So in my case, I want to put the JavaScript underneath the body tag.
+
+180
+00:13:10,734 --> 00:13:11,652
+那我们把它挪过去。
+Let's go ahead and move that.
+
+181
+00:13:12,046 --> 00:13:13,824
+CSS已经链接好了。
+And the CSS is already linked up.
+
+182
+00:13:13,904 --> 00:13:16,464
+所以是 main.css 和 main.js。
+So main.css and main.js.
+
+183
+00:13:17,230 --> 00:13:22,144
+所以在我们的模板里，我们先用一个 div 来放视频。
+So inside of our template here, we're going to start with a div for our videos here.
+
+184
+00:13:22,224 --> 00:13:25,984
+所以我们要创建一个 div，这里的 ID 就叫 videos。
+So we'll create a div and the ID here will just be videos.
+
+185
+00:13:26,254 --> 00:13:28,784
+这个 div 将包含用户的两个视频。
+And this is going to contain the two videos for our users.
+
+186
+00:13:28,864 --> 00:13:30,244
+所以我们把它命名为 videos。
+So we'll just call this videos.
+
+187
+00:13:30,574 --> 00:13:33,424
+然后在里面，我们要使用视频标签。
+And then inside here, we're going to use the video tag.
+
+188
+00:13:33,904 --> 00:13:38,064
+这个视频标签的 class 将是 video-player。
+And this video tag is going to have the class of video dash player.
+
+189
+00:13:38,144 --> 00:13:39,264
+这是为了样式设计。
+This is for styling.
+
+190
+00:13:40,750 --> 00:13:44,612
+所以我们要创建一个视频播放器，然后给它设置 ID 为 user-one。
+So we'll create a video player and then we're going to give it the ID of user one.
+
+191
+00:13:45,166 --> 00:13:49,744
+所以我们这里会有两个视频标签，一个是 user-one，另一个是 user-two。
+So we're going to have two video tags here, and one will be user one and one will be user two.
+
+192
+00:13:49,904 --> 00:13:51,664
+好，我们就在这里把它闭合掉。
+Let's go ahead and close that up right there.
+
+193
+00:13:52,014 --> 00:13:53,664
+所以我们也要加上闭合标签。
+So we'll have the closing tag also.
+
+194
+00:13:54,126 --> 00:13:58,852
+然后在标签内部，我们加上 autoplay。
+And then inside of this, or inside of the tag, let's just go ahead and do auto play.
+
+195
+00:13:59,374 --> 00:14:02,212
+然后我们再加上 playsinline。
+And then we'll just do plays in line.
+
+196
+00:14:02,798 --> 00:14:06,116
+好了，这个标签设置好后，我们把它复制粘贴一下。
+Okay, so once this tag is set up, let's go ahead and copy and paste this.
+
+197
+00:14:06,254 --> 00:14:07,584
+这些就是我们的两个视频标签。
+These will be our two video tags.
+
+198
+00:14:07,664 --> 00:14:08,864
+这个是 user-two。
+This will be user two.
+
+199
+00:14:09,390 --> 00:14:11,780
+确保你的内容跟我的一模一样。
+Make sure you have everything exactly how I have it.
+
+200
+00:14:12,302 --> 00:14:14,544
+现在让我们给它加点样式，这样我们就能看到它了。
+And now let's go ahead and style this so we can see it.
+
+201
+00:14:14,638 --> 00:14:17,124
+所以我们要进入 main.css 文件。
+So we'll go into the main.css file.
+
+202
+00:14:17,486 --> 00:14:20,544
+我首先要做的是去 body 标签。
+And the first thing I'm gonna do is go ahead and go to the body tag.
+
+203
+00:14:20,704 --> 00:14:24,164
+显然我们现在不追求最完美的 CSS 和 HTML 规范。
+So we're obviously not focused on best CSS and HTML practices.
+
+204
+00:14:24,558 --> 00:14:28,784
+所以我们直接给 body 设置 800 像素的宽度。
+And let's just go ahead and give the body a width of 800 pixels.
+
+205
+00:14:29,984 --> 00:14:31,184
+然后我们把它居中。
+And then we'll center that.
+
+206
+00:14:31,264 --> 00:14:33,828
+所以我们直接写 margin: 0 auto。
+So we'll just do margin zero auto.
+
+207
+00:14:36,142 --> 00:14:37,584
+好了，这就是 body 部分。
+Okay, so that's the body.
+
+208
+00:14:37,934 --> 00:14:41,184
+到这一步，我想确保它是响应式的。
+At this point, what I want to do is go ahead and make sure it's responsive.
+
+209
+00:14:41,264 --> 00:14:45,668
+所以我们写 @media screen，然后我们要写，哎呀。
+So we'll just do at media screen, and then we're gonna do whoops.
+
+210
+00:14:46,702 --> 00:14:49,984
+写 @media screen 和 max-width。
+At media screen and max width.
+
+211
+00:14:51,758 --> 00:14:54,084
+这个值将是 800 像素。
+And this is gonna be 800 pixels.
+
+212
+00:14:54,384 --> 00:14:57,636
+所以在 800 像素处，我们要确保 body 宽度是 100%。
+So at 800 pixels, we just want to make sure that the body goes to 100%.
+
+213
+00:14:58,414 --> 00:15:02,384
+所以我们直接复制，然后设为 100%。
+So we'll just copy that and we'll just do 100%.
+
+214
+00:15:02,704 --> 00:15:07,584
+我想这代码不算多，我本来可以直接写出来，但我得确保它是响应式的。
+I guess that wasn't too much code, I could have just written that out, but I want to make sure it's responsive.
+
+215
+00:15:07,664 --> 00:15:11,984
+好了，接下来我要确保能看到视频标签。
+Okay, so after that, I want to go ahead and make sure that I can see the video tag.
+
+216
+00:15:12,144 --> 00:15:14,340
+那我们先把视频标签拿出来。
+So let's go ahead and grab the video tag.
+
+217
+00:15:15,310 --> 00:15:16,784
+我们直接写 video。
+So we'll just do video.
+
+218
+00:15:18,286 --> 00:15:20,420
+好久没做教程了，我感觉有点生疏。
+Haven't done a tutorial in a while, so I'm a little bit rusty.
+
+219
+00:15:20,846 --> 00:15:29,424
+那我们把视频标签的宽度设为 100%，这样在真正加入视频之前，我们就能看到它了。
+So let's set the width to the video tag, and we're gonna set this to 100%,
+and then we want to be able to see that before we actually add a video into it.
+
+220
+00:15:29,504 --> 00:15:31,012
+那我们直接加个边框。
+So let's just go ahead and do a border.
+
+221
+00:15:31,374 --> 00:15:37,984
+边框我们设为 2px 实线，颜色用黄绿色。
+For the border, we'll do 2px solid, and we're going to use green yellow.
+
+222
+00:15:38,254 --> 00:15:41,828
+我想让它明显一点，然后设个背景颜色，方便我们看到。
+So I want to make it obvious, and then we'll just set some kind of background color so we can see it.
+
+223
+00:15:42,158 --> 00:15:50,948
+这个我们用 RGB，我想用的数值是 63、62 和 62。
+And for this, we'll just do RGB, and then the values I wanted to use were 63, 62, and 62.
+
+224
+00:15:51,662 --> 00:16:01,424
+好了，视频标签样式搞定了，接下来我要去处理视频
+本身，也就是那个容器，我要确保这两个是行内的。
+Okay, so we have the video tag styled, and what I'm going to do next is go ahead and go to the videos themselves, so that wrapper,
+and I want to make sure these two are in line.
+
+225
+00:16:01,582 --> 00:16:05,156
+那我们直接写 videos，这就是一个 ID。
+So we'll just do videos, and that is an ID.
+
+226
+00:16:06,798 --> 00:16:18,224
+好了，这个我们设为网格布局，然后宽度用网格列模板，或者说每个列的宽度，
+我们设为 1 fraction 和 1 fraction。
+Okay, so for this, let's go ahead and do display grid, and then for the width, we'll just do grid template columns,
+or for the width of each column, we'll just set that to one fraction and one fraction.
+
+227
+00:16:18,304 --> 00:16:25,024
+这样它们就会占据那个网格的全部宽度，然后我们设个列间距，确保它们之间有点空间。
+So we'll take up the full width of that grid right there, and then
+we'll just do a column gap, make sure there's some space between them.
+
+228
+00:16:25,104 --> 00:16:35,140
+我们设为 1 em，然后宽度也设为 100%，再加 10 像素的内边距。
+We'll just do one em and then the width, will also set that to 100%, and then padding 10 pixels.
+
+229
+00:16:35,982 --> 00:16:38,384
+好了，样式就快搞定了。
+Okay, so that's almost it for the styling.
+
+230
+00:16:38,464 --> 00:16:39,584
+剩下的不多了。
+We're not going to have too much more.
+
+231
+00:16:39,664 --> 00:16:43,904
+我想接下来只给文本域做样式，但我们先在实时服务器里打开它。
+I think we're only going to style the text areas next, but let's go ahead and open this up in live server.
+
+232
+00:16:44,064 --> 00:16:47,904
+在这里打开，这就好了。
+So open this up here, and here we go.
+
+233
+00:16:47,984 --> 00:16:50,212
+奇怪，我没看到那个边框。
+So for some reason, I'm not seeing that border.
+
+234
+00:16:51,534 --> 00:16:53,504
+让我看看，我应该能看到 2px 的边框。
+Let's see, I'm supposed to see border 2px.
+
+235
+00:16:53,744 --> 00:16:54,784
+好了，我看到我刚才弄错哪了。
+Okay, I see what I did there.
+
+236
+00:16:55,502 --> 00:17:01,344
+这个应该是 2px 实线或者 2 像素，它应该会自动刷新。
+So this should be 2px solid or 2 pixels, and that should auto-refresh.
+
+237
+00:17:01,424 --> 00:17:02,624
+好了，这就是我们目前所有的内容。
+Okay, so that's all we have.
+
+238
+00:17:02,784 --> 00:17:03,824
+我们有了两个视频帧。
+We have the two video frames.
+
+239
+00:17:03,950 --> 00:17:06,050
+现在，我要做的是添加一些文本域。
+Now, what I'm going to do here is add in some text areas.
+
+240
+00:17:06,414 --> 00:17:13,904
+所以在我们要做的第一个演示中，我们实际上会像我在
+那个演示里展示的那样，手动传输 SDP 提议和响应。
+So in the first demo that we're going to work on, we're actually going to
+manually transfer the SDP offer and answer the way that I showed you in that demo.
+
+241
+00:17:14,252 --> 00:17:15,824
+所以我们要在下面放上这些文本域。
+So we're going to have those text areas down here.
+
+242
+00:17:15,904 --> 00:17:18,304
+所以我们要复制、粘贴、复制、再粘贴一下。
+So we're going to copy, paste, copy, and paste it.
+
+243
+00:17:18,384 --> 00:17:20,384
+那我们就来创建这些元素。
+So let's create them for that.
+
+244
+00:17:20,877 --> 00:17:23,140
+我们进入 HTML 文件。
+So we'll go into our HTML file.
+
+245
+00:17:23,534 --> 00:17:27,780
+在 HTML 文件里，我首先要做的是添加一个创建提议的按钮。
+And inside of the HTML file, the first thing I want to do is add in a button to create an offer.
+
+246
+00:17:28,334 --> 00:17:30,244
+那我们就直接用 button 标签。
+So we'll just go ahead and use the button tag.
+
+247
+00:17:31,344 --> 00:17:34,980
+对于这个，我们给它设置 ID 为 创建提议。
+And for this, we'll just give it the ID of create offer.
+
+248
+00:17:37,422 --> 00:17:41,412
+好，那我们就把按钮上的文字写成 创建提议。
+Okay, so we'll just write create offer for the actual button text.
+
+249
+00:17:43,534 --> 00:17:53,664
+然后在下面，我们加一个 label 标签，这里就写 offer SDP，这样我们就能知道是哪一个，
+然后我们就可以复制粘贴这两个了。
+And then underneath that, let's go ahead and just add in a label tag, and this will just be stp offer,
+so we just know which one it is, and then we can copy and paste these two.
+
+250
+00:17:53,744 --> 00:17:55,264
+实际上，我们先添加文本域。
+Actually, let's add in the text area first.
+
+251
+00:17:55,374 --> 00:17:57,636
+那我们就用 文本域。
+So we'll just do text area.
+
+252
+00:17:58,958 --> 00:18:02,944
+对于这个，我们加上 ID 为 offer SDP。
+And for this, let's just go ahead and add in the ID of offer stp.
+
+253
+00:18:03,024 --> 00:18:04,224
+这就是实际的数值。
+So this will be the actual value.
+
+254
+00:18:04,304 --> 00:18:06,784
+这就是我们用 JavaScript 查询它的方式。
+This will this will be how we query it with JavaScript.
+
+255
+00:18:06,894 --> 00:18:08,772
+所以是 提议-stp。
+So offer dash stp.
+
+256
+00:18:09,584 --> 00:18:12,864
+至于占位符，我想这里不需要写任何东西。
+And for the placeholder, I guess we don't need anything there.
+
+257
+00:18:12,944 --> 00:18:14,304
+我们就保持现状。
+Let's just leave it like that.
+
+258
+00:18:14,670 --> 00:18:16,068
+我不需要其他数值了。
+I don't need any other values.
+
+259
+00:18:17,198 --> 00:18:25,412
+那我们就把这些全部复制下来，放到这里，然后这个就是 响应 或者创建响应。
+So let's go ahead and just copy all of this, bring this down here, and then this will be answer or create answer.
+
+260
+00:18:29,038 --> 00:18:31,072
+那我们就更新这里的这个值。
+And we'll just update this value right here.
+
+261
+00:18:31,854 --> 00:18:33,392
+然后是 STP 响应。
+Then STP answer.
+
+262
+00:18:34,446 --> 00:18:38,980
+对于这个文本域，我们把它更新为 响应。
+And for this text area, let's just go ahead and update this to answer.
+
+263
+00:18:39,534 --> 00:18:41,552
+我们还要在这里再加一个按钮。
+And we're going to add in one more button here.
+
+264
+00:18:41,774 --> 00:18:43,712
+这个按钮是用来实际添加响应的。
+And this will be to actually add the answer.
+
+265
+00:18:43,792 --> 00:18:47,952
+所以一旦我们从 Peer 2 收到响应，我们就想把它添加进去。
+So once we receive the answer from the from Pier 2, we want to go ahead and add it.
+
+266
+00:18:48,078 --> 00:18:49,444
+那我们就把这个改一下。
+So we'll just change this.
+
+267
+00:18:53,006 --> 00:18:56,432
+挺有意思的，我好久没做教程了，感觉手生了。
+It's funny how I'm really rusty after not doing a tutorial for a while.
+
+268
+00:18:56,512 --> 00:18:58,432
+所以打字速度可能会有点慢。
+So typing is going to be a little bit slow.
+
+269
+00:18:58,512 --> 00:18:58,788
+好的。
+Okay.
+
+270
+00:18:59,470 --> 00:19:08,432
+所以我们有一个创建提议的按钮，一个文本域，一个创建响应的按钮，一个区域，
+一个响应的文本域，然后是添加响应。
+So we have a button, create an offer, the text area, button for create
+answer, the area, text area for the answer, and then the add answer.
+
+271
+00:19:09,038 --> 00:19:10,272
+好，那我们来加点 CSS。
+Okay, so let's add some CSS.
+
+272
+00:19:10,512 --> 00:19:12,004
+我想确保它是可见的。
+I want to make sure that it's visible.
+
+273
+00:19:12,430 --> 00:19:16,192
+那我们来添加一个文本域。
+So let's go ahead and add in text area.
+
+274
+00:19:16,272 --> 00:19:23,312
+这就是我之前提到的，如果你不想把这些全部打出来，可以
+直接跳过，直接复制粘贴就行，因为这跟 WebRTC 没关系。
+And this is why I mentioned earlier you can skip ahead if you don't want to type all this out,
+just copy and paste it because this has nothing to do with WebRTC.
+
+275
+00:19:23,392 --> 00:19:25,392
+我只是想确保提供足够的上下文。
+I just wanted to make sure to give context.
+
+276
+00:19:25,472 --> 00:19:30,032
+我知道有些人如果看不到这些是怎么组合在一起的，可能会感到困惑。
+I know some people get thrown off if they can't see the context of how all this was put together.
+
+277
+00:19:30,382 --> 00:19:32,432
+好了，现在我们有了文本域。
+Okay, so we have the text area.
+
+278
+00:19:32,750 --> 00:19:34,432
+让我们把它打开。
+Let's go ahead and open this up.
+
+279
+00:19:34,798 --> 00:19:35,152
+就是这里。
+Here we go.
+
+280
+00:19:35,232 --> 00:19:35,792
+看起来不错。
+That looks good.
+
+281
+00:19:35,872 --> 00:19:41,392
+好了，两个按钮区域都有 ID，样板代码就到这里。
+Okay, so two areas of buttons all have IDs, and that's it for the boilerplate code.
+
+282
+00:19:41,472 --> 00:19:43,844
+那我们继续下一步。
+So let's go ahead and move on to the next step here.
+
+283
+00:19:44,334 --> 00:19:47,152
+我们要进入 main.js 文件。
+So we want to jump into our main.js file.
+
+284
+00:19:47,232 --> 00:19:49,712
+确保它已经链接好了，然后进入这里。
+So make sure it's linked up and go in here.
+
+285
+00:19:49,792 --> 00:19:54,752
+我首先要做的是为本地流创建两个未定义的变量。
+And the first thing I'm gonna do is create two undefined variables for a local stream.
+
+286
+00:19:54,958 --> 00:20:00,432
+本地流我们用驼峰命名法，然后再为远程流也创建一个。
+So local stream we'll camel case that and then we'll also do one for remote streams.
+
+287
+00:20:07,694 --> 00:20:12,112
+设置好这些后，我要做的是创建一个函数来初始化所有这些内容。
+So we have those set up, and what I'm gonna do here is create a function to actually initialize all of this.
+
+288
+00:20:12,430 --> 00:20:13,956
+我们将使用一个箭头函数。
+So we'll use an arrow function.
+
+289
+00:20:14,672 --> 00:20:18,192
+我们把它命名为 init 箭头函数。
+So we'll just call this init arrow function.
+
+290
+00:20:18,446 --> 00:20:20,512
+实际上我们要把它做成一个异步函数。
+We'll actually make this an async function.
+
+291
+00:20:20,974 --> 00:20:22,112
+那我们开始写吧。
+So let's get that going.
+
+292
+00:20:22,574 --> 00:20:24,672
+然后我们直接调用这个函数。
+And then let's actually call the function right away.
+
+293
+00:20:24,974 --> 00:20:28,004
+这个函数将在用户加载页面时立即触发。
+So this function will trigger the second a user loads the page.
+
+294
+00:20:28,206 --> 00:20:37,312
+好了，我们有了 init 函数，初始化时首先要做的
+是获取用户的音频和视频，并将其显示到 DOM 中。
+Okay, so we have our init function, and the first thing we want to do when we initialize
+it is go ahead and grab the user's audio and video and actually display it to the DOM.
+
+295
+00:20:37,472 --> 00:20:42,592
+那我们拿那个本地流变量，然后调用 等待。
+So let's go ahead and take that local stream variable right there, and we're gonna go ahead and call await.
+
+296
+00:20:42,734 --> 00:20:53,348
+确保你使用了 异步 和 等待，然后我们在这里使
+用 navigator.mediaDevices.getUserMedia 方法。
+So make sure you have async and await, and we're gonna go ahead and
+use the navigator.media devices dot get usermedia method right here.
+
+297
+00:20:53,806 --> 00:20:58,192
+我们要调用这个方法，这里有一堆我们可以使用的约束条件。
+So we're gonna call this method, and in here we have a bunch of constraints that we can use.
+
+298
+00:20:58,352 --> 00:21:01,312
+首先，我们只需把 video 设置为 true。
+And to start here, we're just gonna go ahead and set video to true.
+
+299
+00:21:01,392 --> 00:21:03,012
+这意味着视频将会播放。
+That means that video will play.
+
+300
+00:21:03,312 --> 00:21:08,832
+至于音频，我们可以把它设为 true，但我想确保它是静音的，这样就不会产生回声。
+And for the audio, we could set it to true, but I want to make sure that it's muted just so we don't have some kind of echo.
+
+301
+00:21:09,134 --> 00:21:10,468
+所以我们把它设为 false。
+And we'll set that to false.
+
+302
+00:21:10,894 --> 00:21:15,364
+这样就会把我们的视频和音频流添加到本地流中。
+So this will go ahead and add in our video and audio stream to local stream.
+
+303
+00:21:15,790 --> 00:21:21,640
+现在，就在操作完之后，我们来执行 获取元素方法。
+Now, right after we do that, let's go ahead and do document dot get element by ID.
+
+304
+00:21:23,214 --> 00:21:24,832
+然后我们来获取 user one。
+And let's go ahead and grab user one.
+
+305
+00:21:24,992 --> 00:21:28,272
+这就是我们的流，我们只需要加上 .sourceObject。
+So this will be our stream, and we'll just do dot source object.
+
+306
+00:21:28,432 --> 00:21:35,972
+我们有一个视频标签，它有 sourceObject 属性，我们把它设置为本地流。
+So we have a video tag, it has the property of source object, and let's go ahead and set that to local stream.
+
+307
+00:21:36,334 --> 00:21:45,732
+我们要保存一下，另外快速提醒一下，如果你对这些
+方法有任何疑问并想做点研究，我强烈建议查阅文档。
+So we're gonna save this, and really quick, if you want to have or if you have any questions about these methods and you want to do
+some research on them, I'd highly recommend looking up the documentation.
+
+308
+00:21:46,192 --> 00:21:48,672
+那我们现在就查一下。
+So let's go ahead and look this up.
+
+309
+00:21:48,752 --> 00:21:55,140
+我们直接搜 WebRTC，我会在视频描述里放上链接。
+Let's just do web RTC, and I'm going to link this up inside of the video description here.
+
+310
+00:21:55,566 --> 00:22:03,552
+就在这里，你会看到很多关于我们正在使用的函数的信息，特别是 RTCPeerConnection 函数。
+So, right here, you're going to see a lot of information about the functions that we're using,
+specifically the RTC peer function or peer connection function.
+
+311
+00:22:03,632 --> 00:22:06,112
+我们要用到这个，它会告诉你所有的细节。
+We're going to use this, so this will tell you about all the details.
+
+312
+00:22:06,382 --> 00:22:09,072
+我不会像文档那样去解释它们。
+I'm not going to explain them like the documentation would.
+
+313
+00:22:09,152 --> 00:22:13,604
+我会解释发生了什么，但不会深入到那种细节，所以我建议你去查阅一下。
+I will explain what's happening, but I won't go into that detail, so I'd recommend looking those up.
+
+314
+00:22:14,126 --> 00:22:19,872
+哦，这个函数其实写错了，它应该是 getUserMedia。
+So this is actually the wrong function, it's supposed to be get user media.
+
+315
+00:22:20,526 --> 00:22:22,592
+那我们保存一下，看看输出结果。
+And let's save that and let's go ahead and see the output.
+
+316
+00:22:22,672 --> 00:22:25,060
+我开启了实时服务器，不需要刷新。
+So I have live server on, I don't need to refresh.
+
+317
+00:22:25,486 --> 00:22:27,312
+那我们来看看。
+So let's go ahead and check this out.
+
+318
+00:22:27,472 --> 00:22:34,272
+好了，我们成功把本地画面显示到 DOM 里了，而且我们确实能打开摄像头。
+Okay, so we've successfully displayed our local screen to our DOM here, and we're actually able to turn our camera on.
+
+319
+00:22:34,432 --> 00:22:41,712
+如果这不起作用，显然要确保摄像头是开着的，无论
+你用的是笔记本还是外接摄像头，确保它准备就绪。
+So if this isn't working, obviously make sure the camera's on, whether you're on
+a laptop or you have some kind of external camera, make sure that's ready to go.
+
+320
+00:22:41,952 --> 00:22:44,832
+如果一切顺利，这就是你的输出结果。
+But this should be your output if everything went successfully.
+
+321
+00:22:44,992 --> 00:22:53,072
+接下来，我们还要获取远程流，对于这个，我们只需调用 new MediaStream。
+So with that, we're also gonna grab the remote stream, and for this, we're just gonna go ahead and call new media stream.
+
+322
+00:22:53,152 --> 00:22:57,232
+我们只是设置一个媒体流，但我们现在还不设置它的值。
+So we're just gonna set some kind of media stream, but we're actually not gonna set the value yet.
+
+323
+00:22:57,312 --> 00:23:02,752
+所以它现在是空的，这就是远程用户将会看到的。
+So it's going to be empty, and this is what's going to be what the this is going to be what the remote user will have.
+
+324
+00:23:02,912 --> 00:23:05,072
+那我们把它设置为远程流。
+So let's go ahead and set that to remote stream.
+
+325
+00:23:05,152 --> 00:23:07,780
+我们现在还看不到任何东西，但我们可以立即设置它的值。
+We're not going to see anything, but we can set the value right away.
+
+326
+00:23:08,206 --> 00:23:12,272
+把这个改为远程流，然后把这个改为 user two。
+So change this to to remote stream, and then change this to user two.
+
+327
+00:23:12,462 --> 00:23:15,812
+我们正在获取 DOM 中的这些元素并替换它们。
+So we're grabbing these elements in the DOM and we're replacing them.
+
+328
+00:23:16,654 --> 00:23:19,492
+好了，这一部分就到这里。
+Okay, so that's it for this part.
+
+329
+00:23:19,950 --> 00:23:21,312
+这里不应该有任何变化。
+It shouldn't change anything in here.
+
+330
+00:23:21,392 --> 00:23:22,752
+所以我们看不到 user two 的任何内容。
+So we don't see anything for user two.
+
+331
+00:23:22,992 --> 00:23:27,364
+我们只是在那里放了一个媒体流，但你什么也看不见，因为那里还没有实际内容。
+We just have a media stream in there, but you're not going to see anything because there's no actual content there.
+
+332
+00:23:27,758 --> 00:23:30,724
+那我们现在开始实际建立对等连接。
+So let's go ahead and jump to actually making a peer connection.
+
+333
+00:23:31,278 --> 00:23:35,072
+在第二步，我们来实际创建一个 SDP 提议。
+So in step two, let's go ahead and actually create an SDP offer.
+
+334
+00:23:35,232 --> 00:23:40,432
+在我们的本地流和远程流上方，我们来创建一个连接对象。
+So above our local stream and remote stream, let's go ahead and create a peer connection object.
+
+335
+00:23:40,526 --> 00:23:42,752
+我们将这个连接对象命名为 peerConnection。
+So we'll call this peer connection.
+
+336
+00:23:42,912 --> 00:23:46,752
+它基本上就是任何连接的单一事实来源。
+And this will be like the source of truth for basically any connection.
+
+337
+00:23:46,832 --> 00:23:52,352
+所以当我们连接到另一个对等节点时，会有一个对象来代表这个连接的所有信息。
+So when we're connecting to another peer, there's going to be one object
+that's going to represent all the information about this connection.
+
+338
+00:23:52,512 --> 00:23:58,084
+我们的本地流，所有这些信息都会添加到这里，这就是让我们能够建立连接的关键。
+So our local streams, all this information will be added here, and this is what's going to allow us to connect.
+
+339
+00:23:58,606 --> 00:24:05,872
+我们将创建这个连接对象，然后在下面再创建一个函数，我们把它命名为 createOffer。
+So we'll create this peer connection object and let's go ahead and create
+another function down here, and we're going to call this createOffer.
+
+340
+00:24:06,222 --> 00:24:09,152
+记住，这个过程的第一步就是创建一个提议。
+So remember the first part in this process is to create an offer.
+
+341
+00:24:09,454 --> 00:24:10,352
+那我们就来做这一步。
+So let's go ahead and do that.
+
+342
+00:24:10,510 --> 00:24:11,952
+让我们把它写成一个异步函数。
+Let's make it an async function.
+
+343
+00:24:12,032 --> 00:24:13,924
+我们也会把它写成一个箭头函数。
+We'll make it an arrow function too.
+
+344
+00:24:14,222 --> 00:24:16,512
+所以我添加 异步 的地方，请始终加上它。
+So always add in the async where I'm adding it.
+
+345
+00:24:16,672 --> 00:24:18,468
+我这样做通常是有原因的。
+There's usually a reason for why I'm doing that.
+
+346
+00:24:19,022 --> 00:24:25,392
+好了，我们创建了函数，现在我想做的是实际创建连接对象。
+Okay, so we create the function, and what I want to do now is go ahead and actually create the peer connection object.
+
+347
+00:24:25,486 --> 00:24:35,620
+我们将获取这个未定义的值，然后直接写 peerConnection，这就是新的 RTC peerConnection。
+So we'll go ahead and grab this undefined value, and we'll just do peer connection, and this will be new RTC peer connection.
+
+348
+00:24:36,654 --> 00:24:37,232
+搞定。
+And there we go.
+
+349
+00:24:37,582 --> 00:24:39,632
+这就是创建连接对象。
+So that's going to create the peer connection object.
+
+350
+00:24:39,712 --> 00:24:42,020
+它将成为那个连接的单一事实来源。
+This is going to be the source of truth for that connection.
+
+351
+00:24:42,446 --> 00:24:45,872
+现在，我要做的是设置我的 STUN 服务器。
+Now, what I'm going to do here is go ahead and set up my stun servers.
+
+352
+00:24:45,952 --> 00:24:49,472
+我告诉过你们，在大多数情况下，STUN 服务器是免费使用的。
+I told you that stun servers are free to use in most cases.
+
+353
+00:24:49,552 --> 00:24:52,420
+有很多我们可以使用的公共服务器，所以我们不需要自己搭建。
+There's a lot of public ones that we can use, so we don't need to set up our own.
+
+354
+00:24:52,782 --> 00:24:54,564
+在这种情况下，我们将使用 Google 的。
+In this case, we're going to use Google's.
+
+355
+00:24:54,926 --> 00:24:59,312
+所以我们直接在这里设置服务器，让我们创建一个对象。
+So we're just going to go ahead and set up our servers here, and let's go ahead and create an object.
+
+356
+00:24:59,392 --> 00:25:02,752
+直接复制粘贴我这里的操作，或者完全照抄我这里的操作。
+So just copy and paste what I'm doing here, or just copy exactly what I'm doing here.
+
+357
+00:25:02,832 --> 00:25:04,868
+我不会详细说明我从哪里获取这些服务器的。
+I won't go into the details of where I got these servers.
+
+358
+00:25:05,198 --> 00:25:09,712
+你可以去谷歌搜索一下，会有很多 URL 指向这些信息。
+You can go ahead and Google that up, and there's going to be a lot of URLs that will point you to this.
+
+359
+00:25:09,966 --> 00:25:18,272
+所以这里我们要写 iceServers，它是一个列表，所以我们可以在这里添加多个 URL。
+So for this, we're going to go ahead and do ice servers, and this is going to be a list, so we can add in multiple URLs here.
+
+360
+00:25:18,478 --> 00:25:28,484
+到目前为止，我们只需要把它写成一个列表，然后是一个对象，我们要设置 URLs 的值。
+At this point, we're just going to go ahead and actually I think that was supposed
+to be so it's a a list and then an object, and we're going to set the URLs value.
+
+361
+00:25:28,750 --> 00:25:31,472
+这就是我们可以直接使用的 Google STUN 服务器。
+So this is some Google stun servers that we can use right here.
+
+362
+00:25:31,552 --> 00:25:47,160
+所以我们要写 stun，然后写冒号 stun1.l.google.com，接着是端口，我想应该是 19302。
+So we're going to do stun and then we'll do colon stun one dot one dot
+google dot com, and then the actual, I think this is the port, so 19.302.
+
+363
+00:25:48,334 --> 00:25:52,356
+好，我们就这样写，然后现在我们要设置两个 URL。
+Okay, so we're going to do that, and then we're actually going to set up two URLs at this point.
+
+364
+00:25:53,902 --> 00:25:58,752
+那我们就在这里加个逗号，然后这个就是 stun2。
+So let's go ahead and add the comma there, and then this will be stun two.
+
+365
+00:26:00,592 --> 00:26:06,980
+stun2，然后这个就写成 stun2.l.google.com 19302。
+Stun two, and then this will be left at one right there.google.com 19302.
+
+366
+00:26:07,310 --> 00:26:11,152
+好，这就是我们要用的 STUN 服务器，这些就是这里的 URL。
+Okay, so this is the stun server that we're going to use, and these are the URLs right here.
+
+367
+00:26:11,312 --> 00:26:15,552
+那我们把服务器复制过去，放进我们的对等连接里。
+So let's go ahead and copy servers and let's throw this into our peer connection.
+
+368
+00:26:15,632 --> 00:26:17,764
+我们要让它知道该使用哪些 STUN 服务器。
+So we want to let it know which stun servers to use.
+
+369
+00:26:18,062 --> 00:26:20,192
+这就是我们要生成 ICE候选者的方法。
+This is how we're going to generate our ice candidates.
+
+370
+00:26:20,272 --> 00:26:25,988
+就是那个我们之前获取多个 ICE候选者的过程，我们就是从这里获取那些候选者的。
+So that process and where we went back and got multiple ice candidates, this is where we're going to get those from.
+
+371
+00:26:26,766 --> 00:26:36,900
+好，我们在这里设置好，接下来我要做的就是把这个远程流的值放进创建提议里。
+Okay, so we set that up here, and what I'm going to do at this point is I'm actually going to take this remote stream value and I'm
+going to put this inside of the create offer.
+
+372
+00:26:37,262 --> 00:26:40,832
+我不希望在真正创建新提议之前就设置远程流。
+So I don't want to set the remote stream until we actually create a new offer.
+
+373
+00:26:41,134 --> 00:26:43,712
+这样它就会创建一个新的对等连接。
+So it's going to create a new peer connection that way.
+
+374
+00:26:44,110 --> 00:26:48,752
+这里有一个点，如果你想有多个用户，你可以添加多个对等连接。
+So we there's a point where you can actually add multiple peer connections if you want to have multiple users.
+
+375
+00:26:49,038 --> 00:26:53,668
+我们这个视频里不深入讲那个，但这就是为什么我们要在这里的提议上创建它。
+We won't get into that in this video, but this is why we're going to create it on the offer here.
+
+376
+00:26:54,158 --> 00:26:56,032
+好，我们设置好了。
+Okay, so we have that set up.
+
+377
+00:26:56,366 --> 00:26:58,512
+接下来我想做的是创建提议。
+The next thing I want to do is go ahead and actually create the offer.
+
+378
+00:26:58,592 --> 00:27:03,076
+那我们就用 let 提议，这里用 等待。
+So we'll just do let offer and let's just use await here.
+
+379
+00:27:03,952 --> 00:27:06,592
+对于这个，我们要用对等连接。
+And for this, we're going to do peer connection.
+
+380
+00:27:06,672 --> 00:27:12,592
+我们要访问刚刚创建的对等连接，也就是对等连接对象，然后用点 createOffer。
+So we're going to access the peer connection that we just created, the peer connection object, and we'll just do dot create offer.
+
+381
+00:27:12,686 --> 00:27:14,592
+它有一个叫 createOffer 的方法。
+So it has a method called createOffer.
+
+382
+00:27:14,926 --> 00:27:16,964
+这将为我们生成一个提议。
+This will generate an offer for us.
+
+383
+00:27:17,454 --> 00:27:22,592
+现在，一旦我们创建了提议，我们就把它添加到对等连接里。
+Now, once we create an offer, let's go ahead and actually add this to the peer connection.
+
+384
+00:27:22,672 --> 00:27:26,916
+所以我们创建了提议，然后我们要设置本地描述。
+So we create an offer, then we're gonna go ahead and set the local description.
+
+385
+00:27:27,694 --> 00:27:31,072
+每个对等连接都有本地描述和远程描述。
+So we have a local and a remote description for every peer connection.
+
+386
+00:27:31,152 --> 00:27:38,032
+这里始终有两个描述，现在我们要把这个会话描述协议传进去。
+There's always two descriptions here, and at this point, we're gonna
+take this session description protocol and we're gonna pass that in here.
+
+387
+00:27:38,112 --> 00:27:39,364
+所以它将是一个提议。
+So it's gonna be an offer.
+
+388
+00:27:39,790 --> 00:27:41,828
+我们把它设为我们的本地描述。
+We set that to our local description.
+
+389
+00:27:42,894 --> 00:27:47,568
+好，我们设置了本地描述，现在我想做的是查看这个提议。
+Okay, so we set the local description, and what I want to do at this point is go ahead and actually see this offer.
+
+390
+00:27:47,648 --> 00:27:54,212
+我们要用 获取元素方法，然后把提议 SDP 拿出来。
+So we're going to do a document.getElementByID, and we're just going to grab the offer SDP.
+
+391
+00:27:54,894 --> 00:28:04,004
+就是 DOM 里的这个值，提议 SDP，这个文本域，然后我们用点 value。
+So that's this value right here in the DOM offer SDP, this text area, and let's just go ahead and do dot value.
+
+392
+00:28:04,430 --> 00:28:11,168
+这部分需要是字符串，所以我们要把它设为 JSON.stringify，然后把提议放进去。
+And this needs to be a string, so we're going to set this to json dot stringify, and we're gonna throw in the offer.
+
+393
+00:28:11,248 --> 00:28:15,012
+它原本是个对象，但我们要把它序列化，放进去，稍后再去解析它。
+So it will be an object, but we're going to stringify it, throw it in, and then later we're going to parse it.
+
+394
+00:28:15,822 --> 00:28:18,848
+好了，我们把它保存下来，来看看效果。
+Okay, so let's go ahead and save that and let's check this out.
+
+395
+00:28:19,008 --> 00:28:24,772
+如果我点击创建提议，噢，我完全忘了添加事件处理器了。
+So if I click create offer, oh okay, I completely forgot to add an event handler.
+
+396
+00:28:25,198 --> 00:28:26,052
+那我们回到这里。
+So let's go back here.
+
+397
+00:28:26,542 --> 00:28:31,648
+我们有了创建提议的方法，我只想加个事件处理器，好让我们能真正创建它。
+So we have the create offer method, and I just want to add an event handler so we can actually create that.
+
+398
+00:28:31,728 --> 00:28:36,048
+就在 init 函数上方，我想我们可以把它放在后面。
+So just above the init function, I guess we can do this after it.
+
+399
+00:28:36,398 --> 00:28:42,116
+那我们就用 获取元素方法。
+So let's just do document dot get element by ID.
+
+400
+00:28:42,446 --> 00:28:43,648
+调用这个创建提议。
+Call this create offer.
+
+401
+00:28:43,888 --> 00:28:48,516
+这个创建提议按钮，确保它的名字就是这个。
+So the create offer button, make sure it's called that.
+
+402
+00:28:48,910 --> 00:28:50,528
+就在这里的创建提议。
+Create offer right here.
+
+403
+00:28:50,926 --> 00:29:00,768
+当我们点击这个按钮时，我们要添加一个事件监听器来监听点击事件，然后调用创建提议函数。
+So when we click this button, what we're going to do is add an event listener and we're going to listen for the click event,
+and we're gonna call the create offer function.
+
+404
+00:29:01,294 --> 00:29:02,564
+好了，我们来看看。
+Okay, so let's check this out.
+
+405
+00:29:03,246 --> 00:29:03,968
+创建一个提议。
+Create an offer.
+
+406
+00:29:04,078 --> 00:29:04,608
+搞定。
+Here we go.
+
+407
+00:29:04,718 --> 00:29:07,168
+这就是那里的 offer SDP。
+So that's the offer STP right there.
+
+408
+00:29:07,248 --> 00:29:09,348
+我们把它序列化了，然后放进去了。
+So we stringified it and we threw it in.
+
+409
+00:29:09,486 --> 00:29:11,888
+目前这里其实还没有任何 ICE候选者。
+There's actually no ice candidates there at this moment.
+
+410
+00:29:11,968 --> 00:29:16,128
+你会注意到，一旦我们开始添加 ICE候选者，这个提议就会变大。
+So you're going to notice this offer is actually going to get bigger once we start adding ice candidates.
+
+411
+00:29:16,208 --> 00:29:17,220
+那我们继续往下看。
+So let's continue here.
+
+412
+00:29:17,648 --> 00:29:19,728
+我们已经把第一部分设置好了。
+And we got that first part set up here.
+
+413
+00:29:19,822 --> 00:29:22,084
+我们的提议就在那，但它非常简略。
+So our offer is there, but it's very minimal.
+
+414
+00:29:22,542 --> 00:29:29,604
+接下来，我们要添加一系列事件监听器，用来监听当我们把本地流添加到对等连接时的情况。
+So, what we want to do next is add in a series of event listeners that listen for when we add our local stream to our peer connection.
+
+415
+00:29:29,774 --> 00:29:43,556
+以及当对等节点把他们的流添加到那个连接时，这样我们就能响应这些事件，
+获取音频和视频流并传回去，同时生成 ICE候选者，并更新我们的 SDP 提议和响应。
+and when our peer adds in their stream to that connection, so we can actually respond to these events and get our audio and video feed
+and actually share it back, and also generate ice candidates and update our SDP offers and answers.
+
+416
+00:29:44,174 --> 00:29:48,324
+就在这个部分下面，我们在提议上方留点空间。
+So underneath this section right here, let's go ahead and create some space just above our offer.
+
+417
+00:29:48,590 --> 00:29:51,088
+让我们把本地流加进去。
+Let's go ahead and add in our local stream.
+
+418
+00:29:51,438 --> 00:29:56,484
+这个本地流，一旦我们拿到这个信息，除了把它添加到 DOM 之外，我们还没对它做任何处理。
+So this local stream, once we got that information, we haven't done anything with it other than add it to the DOM.
+
+419
+00:29:56,942 --> 00:29:59,808
+那我们就把它获取出来，添加到我们的对等连接里。
+So let's go ahead and get that and add it to our peer connection.
+
+420
+00:29:59,968 --> 00:30:02,564
+记住，对等连接是连接两个对等节点的对象。
+Remember, a peer connection is the object that connects two peers.
+
+421
+00:30:02,958 --> 00:30:06,020
+这里永远会有一个远程节点和一个本地节点。
+There's always going to be a remote and a local peer.
+
+422
+00:30:06,382 --> 00:30:13,968
+首先，我要去操作本地流，从这个流中获取所有的音视频轨道。
+So the first thing I'm going to do is go ahead and go to the local stream,
+and we're going to get all the audio and video tracks from this stream.
+
+423
+00:30:14,048 --> 00:30:18,048
+我们要调用 获取轨道，我想这应该是一个数组。
+So we're going to call get tracks, and this is going to be an array, I believe.
+
+424
+00:30:18,190 --> 00:30:20,448
+所以我们直接调用 forEach。
+So we're just going to go ahead and call for each.
+
+425
+00:30:20,608 --> 00:30:25,028
+我们要遍历每一个轨道，并将它们添加到我们的对等连接中。
+We're going to loop through each track and we're going to add them to our peer connection.
+
+426
+00:30:25,678 --> 00:30:31,716
+让我们继续这里的函数，进入我们的对等连接对象。
+So let's go ahead and continue on with the function here, and we'll go to our peer connection object.
+
+427
+00:30:32,014 --> 00:30:42,148
+也就是对等连接，我们调用 .addTrack，把当前循环到的轨道和本地流加进去。
+So peer connection, and we're just gonna call dot add track, and we'll add
+in the track that we're currently looping through, and then the local stream.
+
+428
+00:30:42,542 --> 00:30:47,812
+这样就把本地流中的这个轨道或所有轨道添加到对等连接对象里了。
+So this adds this track or all the tracks from local stream to the peer connection object.
+
+429
+00:30:48,368 --> 00:30:57,636
+现在，在另一端，每当我们的对等节点调用这个相同的方法时，他们也会调用本地流的 获取轨道，
+因为对他们来说那是本地流，对我们来说那是远程流。
+Now, on the other end, whenever our peer calls this same method right here, they're also gonna call local stream get tracks because to
+them it's a local stream for us, they're remote.
+
+430
+00:30:58,158 --> 00:31:00,848
+我们要做的就是监听这个事件。
+What we want to do is we want to listen for this event.
+
+431
+00:31:00,942 --> 00:31:07,748
+所以每当我们的对等节点向这个对象添加轨道时，我们都要做出响应。
+So anytime a track is added by our peer to this object right here, we want to respond to this.
+
+432
+00:31:08,078 --> 00:31:12,528
+我们要做的就是调用 对等连接.onTrack。
+So what we're gonna do is we're gonna call peer connection.onTrack.
+
+433
+00:31:12,768 --> 00:31:16,448
+这是一个事件监听器，我们要把它做成一个异步函数。
+So this is an event listener, and we're gonna make this an async function.
+
+434
+00:31:16,814 --> 00:31:17,956
+接着调用事件。
+Go ahead and call the event.
+
+435
+00:31:18,446 --> 00:31:30,368
+我们要做的就是响应这个，调用 event.streams，获取第一个索引，然后调用 获取轨道。
+So what we're gonna do is go ahead and respond to this, and we're just going to call event dot streams,
+and we're going to get the first index of this, and we're going to call get tracks.
+
+436
+00:31:31,470 --> 00:31:32,960
+接着调用 forEach。
+dot for each.
+
+437
+00:31:33,326 --> 00:31:35,360
+我们要循环遍历并做同样的操作。
+So we're going to loop through and do the same exact thing.
+
+438
+00:31:35,534 --> 00:31:38,320
+在这种情况下，我们只需要获取远程对等节点的轨道。
+So in this case we're just going to get the track of our remote peer.
+
+439
+00:31:38,400 --> 00:31:39,600
+他们刚刚添加了它。
+So they just added it.
+
+440
+00:31:39,790 --> 00:31:43,360
+我们要获取那个轨道，并把它添加到远程流中。
+We want to get that track and we want to add this to remote stream.
+
+441
+00:31:43,440 --> 00:31:45,764
+记得我们在这里设置远程流的时候。
+So remember when we set up remote stream right here.
+
+442
+00:31:46,574 --> 00:31:49,028
+让我把这里的空格删掉。
+So let me actually remove some space here.
+
+443
+00:31:49,454 --> 00:31:53,040
+我们设置了一个远程流，但流里还没有添加任何轨道。
+So we set up a remote stream but there are no tracks added to the stream.
+
+444
+00:31:53,120 --> 00:31:56,080
+所以它就在那里，在视频播放器里，但没有轨道。
+So it's there it's in the video player but there are no tracks.
+
+445
+00:31:56,270 --> 00:32:04,640
+每当我们的对等节点添加这些轨道时，我们要调用远程流并添加轨道，
+这样它才能在那个视频标签里开始播放。
+So whenever our peer adds those tracks we want to go ahead and call remote stream and
+we want to add the track so it can actually begin playing inside of that video tag.
+
+446
+00:32:04,846 --> 00:32:10,052
+我们只需调用 addTrack，把轨道加到这里。
+So we'll just call add track and we just want to add a track here.
+
+447
+00:32:10,382 --> 00:32:13,440
+在这里我们也会添加本地流，但我们不想在这里这样做。
+So here we'll also add in local stream but we don't want to do that here.
+
+448
+00:32:13,520 --> 00:32:20,260
+我们只想添加轨道本身，这样我们现在就在那个流
+里有了视频和音频轨道，或者用户添加的任何内容。
+We just want to add the track itself so now we actually have a video and audio track in that stream or whatever the user added.
+
+449
+00:32:20,686 --> 00:32:32,080
+完成这些后，我们还需要 ICE候选者，所以我们要做的就是在创建提议或我们的提议创建时，
+立即向 STUN服务器发送一系列请求。
+So once that's done we still need ice candidates so what we're going to do is immediately when create offer is made or when our offer
+is created we're going to make a series of requests to a stunt server.
+
+450
+00:32:32,174 --> 00:32:40,132
+这会自动发生，就在这里完成，因为我们设置了想要
+使用的 STUN服务器，并把它加到了那个对等连接里。
+So this is going to happen automatically that's done right here because we set up which
+stunt servers we want to use and we added that in right here to that peer connection.
+
+451
+00:32:40,240 --> 00:32:52,320
+所以 ICE候选者会立即生成，我们要调用 对等连接.on ice candidate，
+这个事件会在每次从 STUN服务器生成并返回 ICE候选者时被调用。
+So right away the ice candidates will be generated so we're going to call peer connection dot on ice candidate so this event will be
+called each time an ice candidate is generated and returned to us from the stunt server.
+
+452
+00:32:52,400 --> 00:33:05,476
+这个事件会被多次调用，我们将把它变成异步函数，其实大部分情况下我甚至不需要把它写成异
+步函数，只是因为我以前漏掉过，所以现在成了习惯。
+So this event will be called multiple times we'll call this we'll make this async and at this point half the time I probably don't
+even need to make it an async function it's just habit to do that because I've left that out before and it's kind of bitten me there.
+
+453
+00:33:05,680 --> 00:33:19,812
+所以我们要做的第一步是检查是否有候选者，也就是执行 event.candidate，
+然后一旦有了候选者，我们就获取提议，也就是把这里的这个值拿过来，然后粘贴到这里。
+So what we're gonna do is first check that we have a candidate so we're gonna do event dot candidate and then once this is a candidate
+let's go ahead and grab our offer so we're going to take this value right here and we're going to paste this in right here.
+
+454
+00:33:20,334 --> 00:33:30,480
+所以每当我们获取到一个新候选者时，提议都会更新，但在 DOM 中我们也需要确保它被更新，
+因为我们只设置了一次，不会从这里更新。
+So every single time we get a new candidate the offer will be updated but in the DOM we also want to make sure this is updated because
+we are we set it once and we don't update it from here.
+
+455
+00:33:30,560 --> 00:33:34,276
+所以我们希望每当生成一个新的 ICE候选者时，就更新一次提议。
+So we want to update the offer every single time a new ICE candidate is generated.
+
+456
+00:33:34,830 --> 00:33:49,380
+现在这里不能使用 提议 变量，所以我们直接用 对等连接 点……让我看看这是什么，
+这是 本地描述，不是 set 本地描述，是 本地描述 之类的。
+Now here you can't use the offer variable so we're just going to do peer connection dot let's see what was this this was local
+description not set local description but local description like that.
+
+457
+00:33:50,958 --> 00:33:52,708
+好吧，自动补全对我不起作用。
+Okay autocomplete's not working for me.
+
+458
+00:33:53,326 --> 00:34:00,868
+所以基本上的情况是，一旦我们设置了本地描述，我
+们就可以通过调用 对等连接 本地描述 来获取描述。
+So basically what happened is once we set our local description we can access
+the description by calling peer connection local description like that.
+
+459
+00:34:01,198 --> 00:34:03,652
+所以每当它更新时，我们只需更新 DOM。
+So every time it's updated, we simply update the DOM.
+
+460
+00:34:03,840 --> 00:34:08,480
+现在，如果我们回到这个 对等连接，看起来我们出了点问题。
+Now, if we go back and look at this peer connection, looks like we have an issue.
+
+461
+00:34:08,560 --> 00:34:10,080
+让我们检查一下。
+Let's go ahead and check that.
+
+462
+00:34:10,239 --> 00:34:12,320
+Local stream get track 不是一个函数。
+Local stream get track is not a function.
+
+463
+00:34:12,400 --> 00:34:13,891
+我想它应该是 获取轨道，
+I think it was supposed to be get tracks,
+
+464
+00:34:17,101 --> 00:34:18,275
+那个需要用复数。
+that needs to be plural.
+
+465
+00:34:20,174 --> 00:34:22,179
+好的，现在搞定了。
+Okay, so here we go.
+
+466
+00:34:22,510 --> 00:34:26,800
+好，现在当我点击创建提议时，看看这个提议变得有多大。
+Okay, so now when I click create offer, look at how much bigger the offer is.
+
+467
+00:34:26,926 --> 00:34:33,219
+所有的 ICE候选者都已添加到提议中，所以现在我们确实
+可以把它发送给另一个对等节点了，它已经准备好发送了。
+So all the ice candidates were added to the offer, so now we can actually send this over to another peer, so it's ready to be sent.
+
+468
+00:34:33,646 --> 00:34:38,340
+现在我们没用我提到的那种 trickle ice 方法，所以所有的内容都是在这里一次性生成并添加的。
+Now we're not using that trickle ice method that I talked about so it's all generated at once right here and added.
+
+469
+00:34:38,766 --> 00:34:46,659
+现在我需要做的是在这里打开另一个标签页，然后创建一个响应，
+并将 ICE候选者也添加到那个响应的 SDP 中。
+Now what I need to do is be able to open up another tab right here and
+then create an answer and also add in ice candidates to that answer SDP.
+
+470
+00:34:47,181 --> 00:34:49,828
+所以针对这个，让我们创建一个新函数。
+So for this, let's go ahead and create a new function.
+
+471
+00:34:50,126 --> 00:35:07,200
+我们会在 创建提议 下面创建这个函数，所以我们就写 创建响应，把它变成一个异步函数，
+用箭头函数，这个函数看起来会和 创建提议 非常相似。
+We'll create this function underneath create offer, so let's just do create answer and let's just go ahead and make this an async
+function, make it an arrow function, and this function is going to look a lot like create offer.
+
+472
+00:35:07,374 --> 00:35:12,132
+所以我们要做的是先复制粘贴一些信息。
+So what we want to do here is start with copying and pasting some information.
+
+473
+00:35:12,640 --> 00:35:19,120
+我们的对等节点也必须创建一个 对等连接 对象，他们也需要一个远程流，就像我们一样。
+So our peer will also have to create a peer connection object they will also need a remote stream just like we do.
+
+474
+00:35:19,280 --> 00:35:32,190
+对我们来说，那是远程流，但对他们来说那是本地流，所以我们现在是远程流，
+我猜对等节点 1 是这样。让我们复制到 on ice candidate 事件监听器之前的所有内容，
+So to us there are they're a remote stream but to them it's local so we're the remote stream now I guess peer one is so let's copy
+everything up to the on ice candidates event listener copy that and bring that down to create answer so we want all of this
+
+475
+00:35:32,190 --> 00:35:34,850
+复制下来放到 创建响应 里，我们希望在 创建响应 函数里包含所有这些信息。
+So to us there are they're a remote stream but to them it's local so we're the remote stream now I guess peer one is so let's copy
+everything up to the on ice candidates event listener copy that and bring that down to create answer so we want all of this
+
+476
+00:35:34,850 --> 00:35:38,148
+复制下来放到 创建响应 里，我们希望在 创建响应 函数里包含所有这些信息。
+information inside of our create answer function.
+
+477
+00:35:38,542 --> 00:35:45,092
+现在我们要在那个 创建响应 里面做点不同的操作，也就是关于如何设置本地和远程描述的部分。
+Now we're going to do something a little bit different inside of that
+create answer as far as how we set the local and remote description.
+
+478
+00:35:45,710 --> 00:35:57,120
+所以在 创建响应 函数的底部，让我们去获取提议，我们直接写 let 提议，
+然后从这里的 DOM 中获取这个提议。
+So at the bottom of the create answer function let's go ahead and actually get the
+offer so we'll just do let offer and we're going to get this offer from the DOM here.
+
+479
+00:35:57,200 --> 00:36:07,710
+所以我们直接写 提议 等于 获取元素方法，然后是 提议 sdp。
+记住我们要把它粘贴到那个文本域里，所以我们要查
+So we'll just do offer is going to be document.getElement by id and we're gonna do offer sdp so remember we're going to paste it into
+that text area so we're gonna query that offer and let's go ahead and do dot value and we're gonna get the value of that offer.
+
+480
+00:36:07,710 --> 00:36:12,708
+询那个提议，然后执行 .value，获取那个提议的值。
+So we'll just do offer is going to be document.getElement by id and we're gonna do offer sdp so remember we're going to paste it into
+that text area so we're gonna query that offer and let's go ahead and do dot value and we're gonna get the value of that offer.
+
+481
+00:36:12,960 --> 00:36:19,440
+在继续之前，我还想确保确实有一个提议，我不希望在没有提议的情况下生成响应。
+So before we continue I also want to make sure that there is an offer so I don't want an answer generated if we don't have an offer.
+
+482
+00:36:19,520 --> 00:36:31,952
+所以我们要写：如果没拿到 提议，就直接返回，并加一个警告提示说「先从对等节点获取提议」。
+So we're gonna say if not offer let's go ahead and return and let's just
+add in some kind of alert and we'll just say Retrieve offer from peer first.
+
+483
+00:36:34,912 --> 00:36:35,152
+好的。
+Okay.
+
+484
+00:36:35,438 --> 00:36:36,992
+这样就会在那个地方停止所有操作。
+So that'll just stop everything right there.
+
+485
+00:36:37,152 --> 00:36:40,992
+但如果我们有了提议，接下来要做的就是解析这个提议。
+But if we do have an offer, the next thing we want to do is go ahead and parse the offer.
+
+486
+00:36:41,072 --> 00:36:43,952
+所以我们直接写 提议 等于 JSON.parse。
+So we'll just do offer is equal to json.parse.
+
+487
+00:36:44,032 --> 00:36:47,632
+我们想要获取那个对象，因为现在它只是一个长字符串。
+So we want to get back that object because right now it's all a big string.
+
+488
+00:36:47,982 --> 00:36:49,604
+所以我们直接把提议传进去。
+So we'll just go ahead and throw an offer.
+
+489
+00:36:49,966 --> 00:36:50,884
+然后我们解析它。
+We'll parse it.
+
+490
+00:36:51,502 --> 00:36:58,884
+接着我们要做的就是调用等待 对等连接.set 远程描述。
+And then what we want to do is go ahead and call wait peer connection dot set remote description.
+
+491
+00:36:59,406 --> 00:37:03,652
+好的，我们在创建提议时原本就设置了一个本地描述。
+Okay, so we set a local description originally when we created the offer.
+
+492
+00:37:04,622 --> 00:37:08,032
+所以我们现在有一个本地描述和一个远程描述。
+So we have a local description and we have a remote description.
+
+493
+00:37:08,112 --> 00:37:11,268
+每个对等连接都会有一个本地描述和一个远程描述。
+So each peer connection will have a local and remote description.
+
+494
+00:37:11,726 --> 00:37:17,700
+在这种情况下，这个提议现在将成为远程描述，因为我们是接收方，也就是接收端的对等节点。
+So in this case, the offer is now going to be the remote description
+because we're the recipient or we're the peer on the receiving end.
+
+495
+00:37:18,192 --> 00:37:21,232
+接下来我们要做的就是创建响应。
+Now what we want to do next is actually go ahead and create an answer.
+
+496
+00:37:21,312 --> 00:37:22,832
+所以我们直接写 响应。
+So we'll just do answer.
+
+497
+00:37:23,534 --> 00:37:26,992
+对于响应，我们直接写等待 对等连接。
+And for the answer, we're just going to do await peer connection.
+
+498
+00:37:27,278 --> 00:37:32,836
+对等连接还有一个叫 创建响应 的方法。
+And peer connection also has a method called create answer.
+
+499
+00:37:33,166 --> 00:37:34,852
+好的，我们要创建一个响应。
+Okay, so we're going to create an answer.
+
+500
+00:37:35,086 --> 00:37:39,588
+一旦我们创建了响应，我们就调用等待 对等连接。
+And once we create the answer, let's go ahead and call await peer connection.
+
+501
+00:37:40,750 --> 00:37:42,592
+哇，我的自动补全今天好像不太好用。
+Wow, my autocomplete is not really working today.
+
+502
+00:37:42,702 --> 00:37:45,952
+所以是 对等连接.set 本地描述。
+So peer connection dot set local description.
+
+503
+00:37:46,032 --> 00:37:48,672
+这样本地描述就是对等节点 2 的响应。
+So the local description will be the answer for peer two.
+
+504
+00:37:49,198 --> 00:37:50,432
+所以我们把这个放进去。
+So we'll go ahead and throw that in.
+
+505
+00:37:50,670 --> 00:37:51,792
+我们设置了本地描述。
+We set the local description.
+
+506
+00:37:51,820 --> 00:37:59,300
+它会触发并切换和第一个本地描述值在刚才这里调用时执行的相同函数。
+It's going to fire off and toggle the same functions that the first
+the first local description value did when we called it right here.
+
+507
+00:37:59,886 --> 00:38:04,324
+所以，当我们设置本地描述时，它会调用 ICE候选者等等，然后继续执行。
+So, when we set local description, it's going to call ice candidates and so on and continue there.
+
+508
+00:38:04,814 --> 00:38:09,580
+好的，我们设置了本地描述，也设置了远程描述。
+Okay, so we set our local description and we set a remote description.
+
+509
+00:38:10,158 --> 00:38:13,072
+现在，我想把它添加到 DOM 中。
+Now, what I want to do is go ahead and add this to the DOM.
+
+510
+00:38:13,232 --> 00:38:17,392
+所以我们直接写 获取元素方法。
+So let's go ahead and do document dot get element by id.
+
+511
+00:38:17,966 --> 00:38:23,060
+然后我们直接调用或者获取 响应 sdp。
+And we'll just call this or we'll get the answer sdp.
+
+512
+00:38:23,950 --> 00:38:25,712
+然后我们直接设置它的值。
+And we'll just set the value.
+
+513
+00:38:25,792 --> 00:38:29,668
+所以我们写 value，那将是 JSON.stringify。
+So we'll do value and that's going to be json.stringify.
+
+514
+00:38:30,432 --> 00:38:32,388
+然后把响应放进去。
+And we'll throw in the answer.
+
+515
+00:38:32,912 --> 00:38:33,232
+好的。
+Okay.
+
+516
+00:38:33,872 --> 00:38:35,872
+那我们来添加一个事件监听器。
+So let's go ahead and add an event listener.
+
+517
+00:38:35,952 --> 00:38:38,112
+我们把这个 创建提议 事件复制过来。
+So let's copy this create offer event.
+
+518
+00:38:38,254 --> 00:38:40,836
+把它改成 创建响应。
+Let's change this to create answer.
+
+519
+00:38:42,766 --> 00:38:45,636
+然后调用 创建响应 方法。
+And then call the create answer method.
+
+520
+00:38:46,574 --> 00:38:47,460
+把这段代码挪到下面。
+Bring this down here.
+
+521
+00:38:47,632 --> 00:38:48,420
+搞定。
+And there we go.
+
+522
+00:38:48,814 --> 00:38:50,512
+好了，我们来测试一下。
+Okay, so let's go ahead and test this out.
+
+523
+00:38:50,734 --> 00:38:55,872
+通常的做法是，我们把这两个标签页并排打开。
+So what we would normally do, let's go ahead and open up these two tabs side by side.
+
+524
+00:38:55,952 --> 00:38:57,444
+把文档页面关掉。
+Let's close out the documentation.
+
+525
+00:38:59,152 --> 00:39:00,432
+把这个放这里。
+Bring this in right here.
+
+526
+00:39:00,782 --> 00:39:01,872
+所以这里我们有两个对等节点。
+So here we have two peers.
+
+527
+00:39:01,952 --> 00:39:05,632
+其中一个对等节点始终负责发送提议，另一个始终负责发送响应。
+So one peer will always be the one sending the offer, one will always send the answer.
+
+528
+00:39:05,712 --> 00:39:06,788
+所以我们要创建一个提议。
+So we'll create an offer.
+
+529
+00:39:07,310 --> 00:39:10,272
+复制这个，然后我们试着立即创建一个响应。
+Let's copy this and let's try to create an answer right away.
+
+530
+00:39:10,414 --> 00:39:12,992
+如果我们这样做，就先从对等节点获取提议。
+So if we do that, retrieve an offer from the peer first.
+
+531
+00:39:13,072 --> 00:39:15,236
+为了确保一切正常运行，我们刷新一下。
+So just to make sure everything's working good, let's refresh it.
+
+532
+00:39:15,726 --> 00:39:16,804
+把提议粘贴进去。
+Paste in the offer.
+
+533
+00:39:17,230 --> 00:39:19,236
+所以我们看到这里的类型是 提议。
+So here we see the type is offer.
+
+534
+00:39:19,662 --> 00:39:24,708
+现在我们应该能创建响应了，但就像所有教程一样，总会出点错误。
+Now we should be able to create an answer, but like always in a tutorial, there's always going to be errors.
+
+535
+00:39:25,134 --> 00:39:27,632
+执行 set 远程描述 失败。
+Fail to execute set remote description.
+
+536
+00:39:27,726 --> 00:39:28,836
+让我看看，我刚才哪弄错了？
+Let's see, what did I do here?
+
+537
+00:39:29,614 --> 00:39:37,232
+好的，我们创建了一个响应，但由于某种原因，PeerConnection 不允许我们设置响应。
+Okay, so we create an answer, and for some reason, pure connection is not allowing us to set an answer.
+
+538
+00:39:37,552 --> 00:39:39,552
+设置本地描述。
+Set local description.
+
+539
+00:39:39,982 --> 00:39:41,152
+好了，问题就在这里。
+Okay, so here's the issue.
+
+540
+00:39:41,312 --> 00:39:44,352
+我从来没把提议加到设置远程描述里。
+I never added in the offer to set the remote description.
+
+541
+00:39:44,512 --> 00:39:46,112
+现在我们有了远程描述。
+So now we have a remote description.
+
+542
+00:39:46,192 --> 00:39:46,912
+那就是提议。
+That's the offer.
+
+543
+00:39:47,072 --> 00:39:48,512
+本地描述就是响应。
+Local description is the answer.
+
+544
+00:39:48,782 --> 00:39:51,140
+好了，我们再测试一次。
+Okay, let's go ahead and give that a test one more time.
+
+545
+00:39:51,662 --> 00:39:54,500
+让我们在这里打开这个，把这个也并排打开。
+Let's open this up right here, open this one up side by side.
+
+546
+00:39:56,078 --> 00:39:58,112
+现在让我们来创建一个提议。
+And now let's go ahead and create an offer.
+
+547
+00:39:58,318 --> 00:40:00,432
+复制那个，把它拿过来，创建一个响应。
+Copy that, bring that in, create an answer.
+
+548
+00:40:00,654 --> 00:40:03,428
+现在我们还有一个包含所有 ICE候选者的 SDP。
+Now we also have another SDP with all the ice candidates.
+
+549
+00:40:03,552 --> 00:40:04,868
+这个类型就是响应。
+This type is the answer.
+
+550
+00:40:05,312 --> 00:40:07,792
+我们还有最后一部分需要完成。
+And we have one more part of this to complete.
+
+551
+00:40:08,014 --> 00:40:12,352
+所以我们要复制整个响应，把它拿过来，然后我们需要添加这个响应。
+So we want to copy the entire answer, bring that in right here, and then we need to add the answer.
+
+552
+00:40:12,432 --> 00:40:14,212
+但我们还没有处理这个的函数。
+But we don't have a function to handle that yet.
+
+553
+00:40:14,606 --> 00:40:18,432
+所以基本上，我们要做的是为这个对等节点设置远程描述。
+So basically, what we want to do is set the remote description for this peer.
+
+554
+00:40:18,574 --> 00:40:20,112
+所以我们这里只有本地描述。
+So we only have a local description here.
+
+555
+00:40:20,238 --> 00:40:22,052
+这里我们有了本地和远程描述。
+Here we have a local and remote description.
+
+556
+00:40:22,734 --> 00:40:29,312
+好的，所以我们要回到这里，我们要在这里添加一个叫 addanswer 的函数。
+Okay, so we'll go back here and what we're going to do is add in a function called addanswer here.
+
+557
+00:40:29,838 --> 00:40:31,236
+所以让我们看看，这就是我接下来想让它做的吗？
+So let's see, is that what I want it to do next?
+
+558
+00:40:32,238 --> 00:40:33,952
+是的，那是正确的做法。
+Yeah, so that was the right thing.
+
+559
+00:40:34,032 --> 00:40:38,500
+所以让我们来写 let，这个将是 addanswer。
+So let's go ahead and do let, and this will be add answer.
+
+560
+00:40:40,078 --> 00:40:42,304
+让我们把它变成一个异步函数。
+And let's make this an async function.
+
+561
+00:40:43,904 --> 00:40:44,624
+然后完成这个。
+and complete this.
+
+562
+00:40:44,910 --> 00:40:48,704
+所以我们正在缓慢地走这个过程，这样你就能看到所有那些数据是如何传输的。
+So we're going through this process slow so you can actually see how all of that data transfers.
+
+563
+00:40:48,784 --> 00:40:53,184
+所以我希望到目前为止，你已经明白我想要达成的目标了。
+So I hope I hope you get the point by now and what I'm trying to accomplish, at least at this point.
+
+564
+00:40:53,454 --> 00:40:55,780
+然后我们再继续把它变得更自动化。
+And then we'll just move on to making this more automatic.
+
+565
+00:40:55,984 --> 00:41:00,144
+所以在 addanswer 方法中，让我们从 DOM 中获取响应。
+So in the addanswer method, let's go ahead and get the answer from the DOM.
+
+566
+00:41:00,384 --> 00:41:01,904
+所以我们把它粘贴到这里。
+So we paste it over here.
+
+567
+00:41:02,286 --> 00:41:03,344
+所以响应被粘贴过来了。
+So the answer is pasted over.
+
+568
+00:41:03,424 --> 00:41:08,164
+所以我们要从 DOM 获取这个区域，或者从 DOM 获取响应，然后设置远程描述。
+So we want to get this area from the DOM or get the answer from the DOM and then set the remote description.
+
+569
+00:41:08,654 --> 00:41:12,490
+所以我们直接用 获取元素方法。
+So we'll just go ahead and do document dot get element by ID.
+
+570
+00:41:13,134 --> 00:41:15,620
+在这种情况下，我们直接复制全部内容。
+In this case, let's just copy all of that.
+
+571
+00:41:17,134 --> 00:41:22,384
+所以我们要获取响应，然后直接抓取它的值。
+So we'll get the answer and we'll just go ahead and grab the value.
+
+572
+00:41:22,464 --> 00:41:23,984
+所以我们要获取它的值。
+So we want to get the value of it.
+
+573
+00:41:24,302 --> 00:41:25,924
+所以如果它在那里，我们就抓取它的值。
+So if it's there, we'll grab the value.
+
+574
+00:41:26,144 --> 00:41:31,972
+而且我们确实需要添加一个变量，因为我们要检查这个响应是否存在。
+And we actually do have to add in a variable because we want to check if this answer even exists.
+
+575
+00:41:32,398 --> 00:41:35,184
+那我们把这一段复制到这里。
+So let's copy this right here.
+
+576
+00:41:35,406 --> 00:41:37,504
+如果 提议 存在，就把它拿过来。
+If offer exists, bring that down here.
+
+577
+00:41:37,584 --> 00:41:40,708
+在这种情况下，我们要确保 DOM 里有响应。
+And in this case, we want to make sure there's an answer in the DOM.
+
+578
+00:41:41,134 --> 00:41:44,036
+然后我们就说从对等节点获取响应。
+And then we'll just say retrieve answer from peer.
+
+579
+00:41:44,366 --> 00:41:47,584
+如果一切正常，我们就去解析响应。
+Then if everything checks out, let's go ahead and parse the answer.
+
+580
+00:41:47,664 --> 00:41:54,180
+所以我们会写 响应 等于这个，也就是 JSON.parse。
+So we'll do answer is equal to this will be json.parse.
+
+581
+00:41:55,214 --> 00:41:56,464
+解析响应。
+Parse the answer.
+
+582
+00:41:57,838 --> 00:42:00,384
+在这之后，我们还有一件事要做。
+And after this, we have one more thing to do.
+
+583
+00:42:00,464 --> 00:42:04,784
+最后我们要做的就是检查我们是否没有对等连接。
+So the last thing we need to do is simply check if we don't have a peer connection.
+
+584
+00:42:04,944 --> 00:42:06,944
+我们不想添加多个对等连接。
+We don't want to add in multiple peer connections.
+
+585
+00:42:07,278 --> 00:42:09,664
+所以我们会写 if not 对等连接。
+So if we'll we'll just do if not peer connection.
+
+586
+00:42:09,744 --> 00:42:11,492
+所以我们就在这里使用取反操作符。
+So we'll use the not operator right here.
+
+587
+00:42:11,886 --> 00:42:19,844
+所以如果我们没有对等连接，或者我们没有当前的远程描述，也就是当前的远程描述。
+So if we don't have a peer connection or we don't have a current remote description, so current remote description.
+
+588
+00:42:22,062 --> 00:42:23,584
+然后我们就继续。
+Then let's go ahead and continue.
+
+589
+00:42:23,664 --> 00:42:25,584
+当前的远程描述。
+So current remote description.
+
+590
+00:42:25,824 --> 00:42:26,464
+为什么这看起来怪怪的？
+Why does that look weird?
+
+591
+00:42:26,544 --> 00:42:27,460
+噢，那里有三个 R。
+Oh, three R's there.
+
+592
+00:42:27,854 --> 00:42:33,984
+好，所以如果我们没有当前的远程描述，我们就执行 对等连接.set 远程描述。
+Okay, so if we don't have a current remote description, let's go ahead and do peer connection.set remote description.
+
+593
+00:42:34,144 --> 00:42:35,364
+那将是响应。
+That's going to be the answer.
+
+594
+00:42:35,744 --> 00:42:37,824
+这应该就完成了整个过程。
+And that should complete the process.
+
+595
+00:42:37,998 --> 00:42:41,904
+最后我需要做的是添加一个事件监听器。
+So last thing I need to do here is go ahead and add an event listener.
+
+596
+00:42:42,254 --> 00:42:44,944
+我们要执行 add 响应。
+And we're gonna do add answer.
+
+597
+00:42:45,742 --> 00:42:47,428
+就是这个按钮。
+That's this button right here.
+
+598
+00:42:48,110 --> 00:42:50,404
+然后我们就调用 add 响应 函数。
+And then we're gonna call the add answer function.
+
+599
+00:42:53,326 --> 00:42:54,544
+好了，我们来测试一下。
+Okay, let's go ahead and test this.
+
+600
+00:42:54,638 --> 00:43:01,984
+所以我们会把这个拿进来，创建一个提议，复制它，把它拿过来，创建一个响应。
+So we'll bring this in, create an offer, copy it, bring it in here, create an answer.
+
+601
+00:43:02,446 --> 00:43:04,036
+看起来它们有点重叠了。
+Looks like they're overlapping a little bit.
+
+602
+00:43:05,262 --> 00:43:10,864
+好，那我们就拿到这个响应，把它放入对等节点 1，执行 add 响应，搞定。
+Okay, so we'll grab this answer, bring it into peer one, add answer, there we go.
+
+603
+00:43:11,024 --> 00:43:13,732
+这就是整个交易过程。
+So that was the entire transaction process.
+
+604
+00:43:13,966 --> 00:43:19,684
+我们刚刚完成了整个循环，即我们如何能在两个对等节点之间传输数据并建立连接。
+We just completed the entire cycle to how we can transfer data between two peers and make a connection.
+
+605
+00:43:20,014 --> 00:43:23,584
+那我们来稍微清理一下这个函数。
+So let's go ahead and clean up this function a little bit.
+
+606
+00:43:23,664 --> 00:43:24,624
+把这里的一些内容清理掉。
+Let's clean some of this up.
+
+607
+00:43:24,704 --> 00:43:26,116
+这里面的信息太多了。
+We have a lot of information here.
+
+608
+00:43:26,542 --> 00:43:30,436
+所以我现在想做的是创建一个叫 create 对等连接 的新函数。
+So what I want to do here is actually create a new function called create peer connection.
+
+609
+00:43:30,862 --> 00:43:33,504
+那我们就把它放在 init 函数下面。
+So let's go ahead and make this underneath the init function.
+
+610
+00:43:33,584 --> 00:43:39,396
+那我们就写 create 对等连接，把它做成一个异步函数。
+So we'll do create peer connection, make this an async function.
+
+611
+00:43:39,918 --> 00:43:46,052
+因为我们在 创建提议 和 响应 函数里的很多逻辑其实是完全一样的。
+So a lot of the logic that we have in the create offer and answer function are actually is exactly the same.
+
+612
+00:43:46,574 --> 00:43:52,516
+所以我现在要做的是把所有内容复制过来，让我看看……
+So what I'm gonna do here is go ahead and copy everything from let's see.
+
+613
+00:43:53,038 --> 00:43:58,704
+那我们就把从 对等连接 到 提议 的所有内容都拿过来。
+So we'll grab everything from peer connection down to offer.
+
+614
+00:43:59,374 --> 00:44:02,064
+所以这两个函数内部的内容都是一样的。
+So this is all the same inside of both of these functions.
+
+615
+00:44:02,190 --> 00:44:03,104
+那我们就复制这个。
+So we'll copy this.
+
+616
+00:44:03,374 --> 00:44:07,460
+现在我们把它删掉，然后把它放到 PeerConnection 里。
+Let's actually remove it now, and let's throw this into pure connection.
+
+617
+00:44:08,334 --> 00:44:15,584
+然后我们把 PeerConnection 函数先简化一下，把这些内容放到 创建提议 里。
+And then let's take the pure connection function, let's minimize it for now, and let's throw this into create offer.
+
+618
+00:44:16,238 --> 00:44:19,620
+那我们只需要调用 PeerConnection。
+So we're just going to go ahead and call pure connection.
+
+619
+00:44:20,366 --> 00:44:22,544
+这样它就会去运行所有的那些流程。
+So it's going to go ahead and run through all of that.
+
+620
+00:44:22,958 --> 00:44:26,144
+然后我想做的就是在这里调用 PeerConnection 函数。
+Then what I want to do is go ahead and call the pure connection function right here.
+
+621
+00:44:26,224 --> 00:44:33,344
+那我们就把到获取 提议 为止的所有内容都删了，然后把它们粘贴到这里。
+So let's actually delete all of this down to getting the offer, and we'll paste that in right here.
+
+622
+00:44:33,582 --> 00:44:35,504
+这里会出现几个问题。
+So there's going to be a few issues that occur here.
+
+623
+00:44:35,584 --> 00:44:42,852
+首先，在 PeerConnection 函数里，让我看看，这里
+我们在更新 offer SDP，那它也需要更新 响应 SDP。
+So first of all, inside of the peer connection function, let's see, down here
+we're updating the offer SDP, and then it also needs to be the answer SDP.
+
+624
+00:44:43,024 --> 00:44:51,268
+那我们就传入 SDP 类型，让它能动态变化，然后把这里改成 SDP 类型。
+So let's pass in the SDP type so it can be dynamic, and let's change this to SDP type.
+
+625
+00:44:51,982 --> 00:44:54,704
+这样 提议 就会更新 提议，响应 就会更新 响应。
+So the offer will update the offer, the answer will update the answer.
+
+626
+00:44:54,784 --> 00:44:57,380
+那就在这里把 SDP 类型放进去。
+So right here, we'll just go ahead and throw in the SDP type.
+
+627
+00:44:57,838 --> 00:45:09,904
+那我们就……让我看看，这里是 offer SDP，然后在 创建响应 里，这里就是 响应 SDP。
+So we'll do let's see, this was offer SDP like that, and then down in the create answer, this will be answer SDP.
+
+628
+00:45:09,984 --> 00:45:11,396
+我只是想确保我调用得没错。
+I just want to make sure I'm calling that right.
+
+629
+00:45:11,758 --> 00:45:15,344
+好的，没错，我们只是在改变值，而且这个需要是动态的。
+Okay, yeah, so we're just changing the value, and that needs to be dynamic.
+
+630
+00:45:15,438 --> 00:45:17,904
+这就是处理这些问题时会遇到的情况。
+So that's just some of the issues that come up with that.
+
+631
+00:45:18,382 --> 00:45:20,864
+这个将是 响应-SDP。
+This will be answer dash SDP.
+
+632
+00:45:22,190 --> 00:45:23,424
+好的，这样看起来整洁多了。
+Okay, so that looks a lot cleaner.
+
+633
+00:45:23,504 --> 00:45:25,744
+现在 创建提议 函数变得很简洁。
+The create offer function is nice and short now.
+
+634
+00:45:25,824 --> 00:45:29,540
+我们把所有重复的逻辑都放在了 create 对等连接 函数里。
+We have all the logic that's repeated inside of the create peer connection function.
+
+635
+00:45:29,902 --> 00:45:32,484
+我们对创建响应也做了同样的处理。
+And we did the same for create answer.
+
+636
+00:45:32,942 --> 00:45:34,944
+现在让我们确认一下这一切是否还能正常运行。
+So let's go ahead and make sure all of this is still working.
+
+637
+00:45:35,246 --> 00:45:37,124
+我们要把两个标签页并排打开。
+So we'll open up two tabs side by side.
+
+638
+00:45:37,646 --> 00:45:45,024
+让我们创建提议，把它拿过来，创建响应，复制它，拿过来，添加进去，看看一切是否正常。
+Let's create the offer, bring it over, create the answer, copy that, bring it over, add it, and everything's still working.
+
+639
+00:45:45,104 --> 00:45:47,172
+所以我们只是稍微清理了一下，现在看起来没问题。
+So we just cleaned up a little bit and it looks fine.
+
+640
+00:45:47,344 --> 00:45:49,344
+那么让我们继续下一步。
+So let's go ahead and move on to the next step.
+
+641
+00:45:49,424 --> 00:45:52,144
+我们要做的就是传输这些信令数据。
+And what we're going to do is work on signaling this data over.
+
+642
+00:45:52,224 --> 00:45:56,784
+我们不希望用户真的需要复制并粘贴他们的提议和响应，手动传递这些信息。
+So we don't want to actually have users have to copy and paste their offer and answer, pass this over.
+
+643
+00:45:56,864 --> 00:45:58,704
+这并不是一个实际的应用场景。
+It's not really a practical application.
+
+644
+00:45:59,022 --> 00:46:07,236
+我们希望每当用户发送某种邀请，并且他们恰好加入了同一个房间时，
+这些信息就能自动通过信令传输，这样他们才能真正进行交流。
+So we want this information automatically signaled over whenever a user sends some kind
+of invite and they happen to both join that same room so they can actually communicate.
+
+645
+00:46:07,726 --> 00:46:16,260
+所以在之前的幻灯片里，我提到了使用像 WebSockets 这样的
+工具来发送这些信息并进行信令传输，或者使用第三方服务。
+So in the slides earlier, I talked about using something like WebSockets
+to send this information over and signal it, or use a third-party service.
+
+646
+00:46:16,558 --> 00:46:21,476
+在这种情况下，我们将使用第三方服务，这样我们就不用自己构建信令服务器了。
+And in this case, we're going to use a third-party service so we don't have to build out our own signaling server.
+
+647
+00:46:21,870 --> 00:46:28,068
+所以为此，我们将使用一个叫 Agora 的工具，Agora 有一套完整的工具用于实时互动和通信。
+So for this, we're going to use something called Agora, and Agora has
+a whole suite of tools for real-time engagement and communication.
+
+648
+00:46:28,366 --> 00:46:31,664
+具体来说，他们有一个用于实时消息的 SDK。
+And specifically, they have an SDK for real-time messaging.
+
+649
+00:46:31,744 --> 00:46:33,184
+这就是 Agora RTM。
+So it's Agora RTM.
+
+650
+00:46:33,454 --> 00:46:42,624
+我们要做的就是去 Agora.io，创建一个账户，下载他们的
+SDK，然后配置一些东西，接着就可以传输这些信息了。
+What we're going to do is go to Agora.io, create an account, download their SDK, and then just go ahead and configure a few things,
+and then we'll just go ahead and signal this information over.
+
+651
+00:46:42,990 --> 00:46:46,144
+使用 Agora 时，你不需要绑定信用卡。
+So with Agora, you don't need a card on file.
+
+652
+00:46:46,224 --> 00:46:47,684
+你实际上可以用那个来注册。
+You can actually register with that one.
+
+653
+00:46:47,904 --> 00:46:53,664
+他们有一个相当不错的免费层级，在超出免费分钟数之前，你可以使用相当长的一段时间。
+And they have a pretty good free tier where you get to use it for quite a bit before you run out of those use minutes.
+
+654
+00:46:53,824 --> 00:46:58,020
+他们实际上是按使用分钟数和活跃用户数来计算的。
+They actually calculate things by usage minutes and by active users.
+
+655
+00:46:58,318 --> 00:47:02,944
+所以对于这个教程，不用担心超出限制，而且你实际上也可以在超出限制后继续使用。
+So I wouldn't worry about going over that for this tutorial, and you can actually use it beyond that too.
+
+656
+00:47:03,104 --> 00:47:07,904
+那么让我们去这个网站，然后创建一个账户。
+So let's go ahead and go to this website and then go ahead and create an account.
+
+657
+00:47:07,984 --> 00:47:09,732
+我已经有一个 Agora 账户了。
+So I already have an account with Agora.
+
+658
+00:47:09,998 --> 00:47:11,584
+我要登录到我的控制台。
+I'm gonna go ahead and log into my console.
+
+659
+00:47:11,664 --> 00:47:17,380
+一旦你创建了账户，你就会进入控制台，你特别需要去这个项目部分。
+So once you create an account, you'll be in your console, and you're specifically gonna want to go to this project section.
+
+660
+00:47:17,806 --> 00:47:22,852
+创建账户后，你需要创建一个项目或某种应用，我想他们是这么称呼它的。
+So once you create an account, you're going to need to create a project or some kind of app, I believe they call it.
+
+661
+00:47:23,214 --> 00:47:29,424
+我们要创建一个应用，然后那个应用将拥有某种 app ID，这就是我们要把 SDK 连接到的东西。
+We're going to create an app, and then that app is going to have some kind of app ID,
+and then that's what we're going to connect our SDK to.
+
+662
+00:47:29,504 --> 00:47:31,236
+我之前在其他视频里用过它。
+So I've used it before in other videos.
+
+663
+00:47:31,758 --> 00:47:33,904
+那么让我们去点击创建。
+So let's go ahead and go to create.
+
+664
+00:47:33,984 --> 00:47:39,264
+你想创建一个新项目，给它起个名字，比如 WebRTC，或者任何你想给这个用例起的名字。
+You want to create a new project, give it some kind of name like WebRTC, whatever you want to call it for the use case.
+
+665
+00:47:39,344 --> 00:47:44,292
+我们就选社交，我想选聊天室就行，现在这没什么关系了。
+Let's just do social and I guess we can just do chat room, it's kind of irrelevant at this point.
+
+666
+00:47:44,624 --> 00:47:48,464
+至于身份验证，选择测试模式 app ID。
+And for the authentication, select testing mode app ID.
+
+667
+00:47:48,544 --> 00:47:51,620
+这意味着我们不需要使用令牌来验证用户身份。
+This means that we don't have to use a token to actually authenticate our users.
+
+668
+00:47:52,014 --> 00:47:56,036
+专门针对这个教程，就把它留在这里，这样我们就不用真的去用令牌了。
+Specifically for this tutorial, leave it here so we don't have to actually use a token.
+
+669
+00:47:56,270 --> 00:48:00,224
+我现在已经有一个准备要用的应用了，所以我的情况是，我不会创建一个新应用。
+Now I already have an app that I'm about to use, so in my case, I'm not gonna create a new app.
+
+670
+00:48:00,304 --> 00:48:01,344
+我要点取消。
+I'm gonna hit cancel.
+
+671
+00:48:01,518 --> 00:48:03,424
+如果你还没有应用，就去提交一个。
+If you don't have an app, go ahead and submit it.
+
+672
+00:48:03,504 --> 00:48:05,380
+确保你的设置像这样。
+Make sure your settings are set like this.
+
+673
+00:48:05,678 --> 00:48:08,544
+一旦你创建了应用，你应该能在控制面板里看到它。
+And once you create an app, you should see it in your dashboard.
+
+674
+00:48:08,718 --> 00:48:12,068
+我已经在这里创建了几个应用，所以我就用我现有的其中一个。
+So I've already created a few apps here, so I'm just gonna use one that I already have.
+
+675
+00:48:12,398 --> 00:48:15,104
+所以现在，你就把 Agora 控制台开着就行。
+So for now, just go ahead and leave your Agora console open.
+
+676
+00:48:15,184 --> 00:48:22,372
+我们要回到主控制台去下载我们的 SDK，然后我们再回来获取我们的 app ID。
+We're going to go back to the main console and just go ahead and download our SDK, and then we'll get back to getting our app ID.
+
+677
+00:48:22,624 --> 00:48:29,904
+所以在资源中心，你应该可以去下载页面，我们要专门找 Web SDK。
+So in the resources center, you should be able to go ahead and go to downloads, and we are going to specifically look for the web SDK.
+
+678
+00:48:29,984 --> 00:48:38,464
+你应该从所有平台开始，找到 Web，他们有语音 SDK、视频和实时消息。
+So you should probably start at all platforms, go ahead and find web, and they have a voice SDK, video, real-time messaging.
+
+679
+00:48:38,544 --> 00:48:39,824
+我们要的就是这里的这个。
+This is the one that we want right here.
+
+680
+00:48:39,904 --> 00:48:43,184
+点击这个，它应该会为你下载一个 zip 文件。
+So go ahead and click this, it should download a zip file for you.
+
+681
+00:48:43,264 --> 00:48:44,548
+把它拿出来。
+Let's go ahead and bring that out.
+
+682
+00:48:45,102 --> 00:48:51,652
+打开 zip 文件，进入 libs，然后把这个拿出来放到我们的桌面上。
+Open up the zip file, go into libs, and let's just go ahead and grab this and bring it into our desktop.
+
+683
+00:48:51,854 --> 00:48:52,704
+我要把这个关掉。
+So I'm going to close this out.
+
+684
+00:48:52,784 --> 00:48:54,372
+这就是我们要提取的文件。
+That's the file that we want to extract.
+
+685
+00:48:54,830 --> 00:48:59,824
+我把这些全部移到这里，然后把这个拿走。
+I'll just move all of this over here, and let's just grab this.
+
+686
+00:49:00,974 --> 00:49:03,152
+把这个文件放到我们的项目文件夹里。
+file right here and bring this into our project folder.
+
+687
+00:49:03,342 --> 00:49:05,156
+这就是我们开始时的项目文件夹。
+So this is the project folder that we started with.
+
+688
+00:49:05,614 --> 00:49:06,352
+把它放进来。
+We'll bring that in here.
+
+689
+00:49:06,432 --> 00:49:11,232
+现在如果我打开文本编辑器，我就能看到这个项目文件了。
+So now if I open up my text editor, I should see that project file right here.
+
+690
+00:49:11,312 --> 00:49:14,436
+就是 Agora RTM SDK 然后是版本号。
+So Agora RTM SDK and then the version number.
+
+691
+00:49:14,862 --> 00:49:17,152
+那我们把那个文件路径复制过来。
+So let's go ahead and copy that file path.
+
+692
+00:49:17,232 --> 00:49:27,204
+我刚刚复制了它，我们要把它放到 index.html 里，就在这里的脚本标签上方，
+为了主 JavaScript 文件，我们加一个新的。
+So I just went ahead and copied that and we'll bring this into index.html and above our
+script tag right here for the main JavaScript file let's go ahead and add a new one.
+
+693
+00:49:27,694 --> 00:49:35,172
+我们就写 script 闭上它，我不知道为什么我现在看起来这么奇怪。
+Let's just do script close this out and I don't know why it looks so funny for me right now.
+
+694
+00:49:36,142 --> 00:49:40,992
+然后对于 source，我们就写 source 等于，然后把那个名字粘贴进去。
+And then for the source let's just do source equals and then we'll just paste in that name.
+
+695
+00:49:41,072 --> 00:49:45,220
+所以是 agora RTM SDK，然后如果你是在不同时间做的，就是版本号。
+So agora RTM SDK and then the version number if you're doing this at a different point.
+
+696
+00:49:45,486 --> 00:49:51,524
+这个版本号可能看起来不一样，所以确保你抓取的是这里面的内容，并且文件路径设置正确。
+This version number might look different so make sure you're grabbing exactly
+what's in here and that the file path is set up the way it's supposed to.
+
+697
+00:49:51,982 --> 00:49:55,332
+好，我们保存一下，现在我们有了 Agora SDK。
+So we'll go ahead and save that and now we have our Agora SDK.
+
+698
+00:49:55,758 --> 00:49:59,232
+现在让我们回到控制台。
+So at this point let's go ahead and go back into our console.
+
+699
+00:49:59,758 --> 00:50:02,512
+我把这个重新打开，我现在开的标签页太多了。
+We'll open this back up have way too many tabs open right now.
+
+700
+00:50:02,862 --> 00:50:11,392
+我可以把这里的下载关闭，你可以回到主控制台，回到项目里，然后把你的项目拿出来。
+So I can close out this downloads here and you can go back into the main
+console and let's go back to projects and go ahead and grab your project here.
+
+701
+00:50:11,472 --> 00:50:14,180
+到这一步，我们只需要一个 app ID。
+So at this point the only thing we need is an app ID.
+
+702
+00:50:14,510 --> 00:50:19,232
+它现在是隐藏的，我得确保把它模糊掉，这样我以后还能重用，我们把它复制出来。
+So it's hidden right now I'm going to make sure this is blurred out so I can reuse this later let's go ahead and copy that.
+
+703
+00:50:19,312 --> 00:50:24,592
+它应该已经复制到剪贴板了，我们把这个 app ID 放入我们的项目中。
+So it should copy it to clipboard and we're just going to go ahead and bring in this app ID into our project.
+
+704
+00:50:24,672 --> 00:50:29,632
+在我们的 main.js 文件里，我做的第一件事就是设置我的 app ID。
+So inside of our main.js file the first thing I'm going to do is go ahead and set my app ID.
+
+705
+00:50:29,934 --> 00:50:34,832
+我把它放在最上面，我们把它命名为 app_ID。
+So I'll bring this at the top we'll just say app underscore ID.
+
+706
+00:50:35,182 --> 00:50:42,512
+我们把它放进去，我得确保它是个字符串，然后把它粘贴进去，
+接下来我们要做的就是在这里配置我们的应用。
+So we'll bring that in I'll go ahead and make sure it's a string and I'll paste
+that in here and the next thing we want to do is actually configure our app here.
+
+707
+00:50:42,592 --> 00:50:51,632
+我们有了 app ID，也下载了 SDK，所以让我们进入下一步，
+那就是确保每个登录的用户都有一个唯一的 ID。
+So we have our app ID we have the SDK downloaded so let's go ahead and move on to the
+next part and that is to make sure each user that logs in has some kind of unique ID.
+
+708
+00:50:51,712 --> 00:51:00,992
+我们将创建一个 UID，到目前为止你可以用多种方法来实现，
+我打算做的是生成一个随机数，并确保这个 UID 是字符串。
+So we'll create a UID and you can do this in multiple ways at this point what I'm going to do is just make sure we generate a random
+number and that we make sure this UID is a string.
+
+709
+00:51:01,166 --> 00:51:15,330
+所以我们直接生成那个数字并将其序列化，我们会用 math.floor，然后在里面用 math.random，
+我们会创建一个随机数，并确保它是一个很大的数字，这样这些 ID 重复的概率就小一点。
+So we'll just go ahead and generate that number stringify it so we'll do math dot floor and then in here we'll just do math dot random
+so we'll create a random number and we'll make sure it's a large number
+
+710
+00:51:15,330 --> 00:51:20,032
+所以我们直接生成那个数字并将其序列化，我们会用 math.floor，然后在里面用 math.random，
+我们会创建一个随机数，并确保它是一个很大的数字，这样这些 ID 重复的概率就小一点。
+so that way we have a smaller chance of these IDs being duplicated.
+
+711
+00:51:20,142 --> 00:51:25,828
+显然还有更好的方法来确保两个用户不会拥有相同的 ID，但目前这样做就可以了。
+So there's obviously better ways of doing this to ensure that two users don't have the same ID but for now this is going to do.
+
+712
+00:51:26,192 --> 00:51:36,032
+之后我们还需要一个 token，通常这是用于身份验证的，因为我们把身份验证机制设置为仅限
+app ID，所以 app ID 是我们唯一需要的。
+So after that we also need a token so usually this is for authentication at this point because we set our authentication mechanism to
+app ID only the app ID is the only thing we'll need.
+
+713
+00:51:36,206 --> 00:51:43,460
+我们仍然要设置那个 token 变量，但它将是 null，如果你以后
+想把它改为用 token 进行身份验证，你可以直接在这里更新。
+So we still want to set that token variable but that's going to be null so later on if you want to change this to actually
+authenticate with a token you can just update it here.
+
+714
+00:51:43,982 --> 00:51:51,952
+之后我们需要一个客户端对象，这将是客户端连接的整个接口，
+它有点像这里的 PeerConnection 对象。
+So after that we'll need a client object so this will be like the entire interface
+for a client connection it's kind of like the pure connection object right here.
+
+715
+00:51:52,302 --> 00:51:54,112
+我们将通过客户端来访问所有内容。
+So we're going to access everything through the client.
+
+716
+00:51:54,192 --> 00:51:59,300
+这就是客户端，现在它是未定义的，但我们将去初始化所有这些内容。
+So this will be the client right now it's undefined but we're going to go ahead and initialize all of this.
+
+717
+00:51:59,758 --> 00:52:08,912
+在 init 函数内部，让我们创建这个客户端，我们会
+写 client，然后它等于 等待，接着写 agora RTM。
+So inside of the init function let's go ahead and create this client so we'll
+do client and this is going to be equal to await and then we'll do agora RTM.
+
+718
+00:52:09,230 --> 00:52:19,072
+因为我们下载了 SDK，所以我们可以访问 agora RTM 和所有的方法，
+我们只需调用 createInstance，这就是我们将要使用的函数。
+So we have access to agora RTM and all the methods because of the SDK that we downloaded
+so we'll just do create instance and that's gonna be the function that we'll use.
+
+719
+00:52:19,152 --> 00:52:23,392
+因为 SDK 就在这里，所以我们才能访问所有这些内容。
+So because of the SDK make sure it's in here that's why we have access to all of this.
+
+720
+00:52:23,502 --> 00:52:28,352
+现在我们可以访问这些方法了，在实例内部，我们想传入 app ID。
+So now we have access to the methods and inside of the instance we want to pass in the app ID.
+
+721
+00:52:28,462 --> 00:52:29,732
+把它放进去。
+So go ahead and throw that in.
+
+722
+00:52:30,062 --> 00:52:31,072
+我们把它作为字符串。
+We have that as a string.
+
+723
+00:52:31,152 --> 00:52:35,300
+如果你愿意的话，你可以把字符串传到这里，所以把它加上，现在我们有了客户端。
+You can pass in the string right here if you wanted, so go ahead and add it, and we now have our client.
+
+724
+00:52:35,886 --> 00:52:39,552
+一旦我们获得了客户端，我们就要登录这个特定的客户端。
+So once we get our client, we want to log in this specific client.
+
+725
+00:52:39,632 --> 00:52:49,136
+这将是这个用户的接口，所以我们只需写 等待，然后可
+以写 client.login，在这里，我们要传入我们的 UID。
+So this will be that interface for this user, so we'll just do await, and
+then we can do client dot login And in here, we want to pass in our UID.
+
+726
+00:52:49,216 --> 00:52:50,736
+所以我们要以我们的客户端身份登录。
+So we want to log in as our client.
+
+727
+00:52:50,976 --> 00:52:53,732
+我们还要传入 token，目前这个值是 null。
+We also want to throw in the token, which at this point is going to be null.
+
+728
+00:52:54,094 --> 00:52:56,656
+所以我们把这个传进去，然后就可以进入下一步了。
+So we'll throw that in, and then we can move on to the next step here.
+
+729
+00:52:56,736 --> 00:53:01,936
+客户端登录后，接下来我们要做的就是在这里创建或加入频道。
+So once a client is logged in, what we'll want to do next is create or join a channel here.
+
+730
+00:53:02,016 --> 00:53:06,176
+我们可以访问客户端对象并调用 create channel 方法。
+So we can go to the client object and call create channel.
+
+731
+00:53:06,446 --> 00:53:10,016
+这个方法的作用是，如果频道不存在，它会创建一个新频道。
+So what this method will do is it'll create a new channel if one doesn't exist.
+
+732
+00:53:10,176 --> 00:53:13,764
+如果频道已经存在，它就会直接加入那个频道。
+And if one does exist, it'll just go ahead and join that channel.
+
+733
+00:53:14,158 --> 00:53:15,936
+所以这里可以有多个频道。
+So there can be multiple channels.
+
+734
+00:53:16,110 --> 00:53:19,844
+这就是如何拥有多个聊天室，让多个对等节点互相交流的方法。
+So this is how you can have multiple chat rooms, multiple peers talking to each other.
+
+735
+00:53:20,256 --> 00:53:23,136
+到这一步，这个 ID 将被命名为 main。
+And at this point, this ID is going to be called main.
+
+736
+00:53:23,376 --> 00:53:24,816
+所以我们目前只允许一个频道。
+So we're only going to allow one channel.
+
+737
+00:53:24,942 --> 00:53:29,376
+但稍后如果你想让它动态化，你可以从 URL 中获取某个值。
+But later on, if you wanted to make this dynamic, you can grab some kind of value from the URL.
+
+738
+00:53:29,456 --> 00:53:31,204
+这样用户就可以创建聊天室了。
+So a user can create a chat room.
+
+739
+00:53:31,438 --> 00:53:35,536
+URL 中会生成某种 ID，那就是频道名称。
+Some kind of ID would be generated in that URL, and that would be the channel name.
+
+740
+00:53:35,630 --> 00:53:40,132
+这样，一群人可以在同一个网站上，但各自处于自己的房间里。
+So this is how you can have a bunch of people on the same website, but inside of their own rooms.
+
+741
+00:53:40,590 --> 00:53:45,796
+为了这个教程的方便，我们只把它叫作 main，但这个值应该是动态的。
+So for this tutorial's sake, we're only going to call this main, but this value would be dynamic.
+
+742
+00:53:46,158 --> 00:53:48,096
+所以我们要创建或加入那个频道。
+So we're going to create or join that channel.
+
+743
+00:53:48,270 --> 00:53:51,456
+一旦确认有了那个频道，我们就调用 join。
+Once we establish that we have that channel, we're just going to call join.
+
+744
+00:53:51,536 --> 00:53:54,468
+现在我们实际上需要以客户端身份加入它。
+So now we actually need to join it as the client here.
+
+745
+00:53:54,862 --> 00:53:59,716
+所以我们创建客户端，登录，创建或查找频道，然后加入那个频道。
+So we create the client, log in, create or find the channel, and then join that channel.
+
+746
+00:54:00,174 --> 00:54:08,016
+接下来我想做的是监听其他对等节点加入该频道的情况，我们把它打印到控制台，
+以便查看实时消息是如何运作的。
+So the next thing I want to do here is actually listen for when other peers join that channel,
+and we're going to console this out just so we can see how the real-time messaging works here.
+
+747
+00:54:08,366 --> 00:54:12,452
+所以我们要创建一个名为 handle 对等节点 joined 的函数。
+So we're going to create a function called handle peer joined.
+
+748
+00:54:13,262 --> 00:54:16,256
+每当另一个对等节点加入时，我们要创建一个异步函数。
+So anytime another peer joins, we're going to make an async function.
+
+749
+00:54:16,336 --> 00:54:18,176
+我们要传入 member ID。
+We're going to pass in member ID.
+
+750
+00:54:18,256 --> 00:54:19,856
+所以我们要知道是哪个对等节点加入了。
+So we want to know which peer joined.
+
+751
+00:54:19,982 --> 00:54:21,476
+所以我们要获取他们的 UID。
+So we're going to get their UID.
+
+752
+00:54:21,774 --> 00:54:24,324
+每个对等节点都会有一个唯一的 ID。
+So each peer will have their own unique ID.
+
+753
+00:54:24,782 --> 00:54:27,696
+所以我们要有一个函数来让我们知道有人加入了。
+So we're going to have a function that lets us know when someone joins.
+
+754
+00:54:28,016 --> 00:54:30,096
+我们要做 控制台 log。
+we'll do console log.
+
+755
+00:54:30,736 --> 00:54:31,696
+现在还没法拼写出来。
+Can't spell right now.
+
+756
+00:54:31,776 --> 00:54:37,508
+然后我们就显示「一个新对等节点加入了这个房间」。
+And we'll just say a new peer has joined this room.
+
+757
+00:54:37,870 --> 00:54:39,696
+接着我们就把他们的 ID 输出到控制台。
+And then we'll just console out their ID.
+
+758
+00:54:39,776 --> 00:54:41,700
+所以我们要用 member ID。
+So we'll do member ID.
+
+759
+00:54:42,350 --> 00:54:43,428
+所以我们只需要获取那个就行。
+So we're just going to get that.
+
+760
+00:54:44,654 --> 00:54:45,056
+哎呀。
+Whoops.
+
+761
+00:54:45,454 --> 00:54:46,896
+放错地方了。
+Put that in the wrong area.
+
+762
+00:54:47,246 --> 00:54:47,456
+好的。
+Okay.
+
+763
+00:54:47,950 --> 00:54:49,536
+所以它应该在这里的参数里。
+So that's going to be in the parameter right here.
+
+764
+00:54:49,710 --> 00:54:53,696
+这是处理该事件的函数，但我们仍需要监听这个事件。
+So this is going to be the function that handles the event, but we still need to listen for this event.
+
+765
+00:54:53,776 --> 00:54:58,016
+所以就在这里，在 channel join 下方，我们添加一个事件监听器。
+So right here, just below channel join, let's go ahead and add in event listener.
+
+766
+00:54:58,096 --> 00:55:00,096
+我们写 channel.on。
+So we'll do channel dot on.
+
+767
+00:55:00,336 --> 00:55:03,696
+我们有了这些事件监听器，我们要监听 member。
+So we have these event listeners and we're going to listen for member.
+
+768
+00:55:04,366 --> 00:55:05,216
+它是一个字符串。
+It's a string.
+
+769
+00:55:05,616 --> 00:55:06,736
+Member join。
+Member join.
+
+770
+00:55:06,816 --> 00:55:09,056
+所以每当一个成员加入时，我们想做什么？
+So whenever a member joins, what do we want to do?
+
+771
+00:55:09,326 --> 00:55:11,536
+我们要调用 handle 对等节点 joined。
+So we're going to call handle peer joined.
+
+772
+00:55:11,662 --> 00:55:13,696
+我们要调用这个函数，它就会做出响应。
+So we're going to call this function and this will respond.
+
+773
+00:55:14,126 --> 00:55:16,736
+好，我们保存一下，确保一切正常运行。
+So let's go ahead and save this and let's make sure everything's working.
+
+774
+00:55:16,816 --> 00:55:18,148
+现在打开网站。
+So let's open up the website.
+
+775
+00:55:19,502 --> 00:55:22,496
+把这些都关掉。
+Let's go ahead and close these out.
+
+776
+00:55:22,830 --> 00:55:32,100
+顺便说一下，如果你想查看 Agora 文档来理解我在这里做的所有操作，可以回到控制台，
+去这里的文档或者 API 参考页面。
+So by the way, if you want to look up the Agora documentation and understand everything that I'm doing here,
+go back into your console and go to the documentation right here or the API reference.
+
+777
+00:55:32,430 --> 00:55:34,416
+这里会解释每一个函数。
+And this will explain every single function here.
+
+778
+00:55:34,496 --> 00:55:36,096
+所以你需要选择你的平台。
+So you'll want to select your platform.
+
+779
+00:55:36,270 --> 00:55:37,636
+在这种情况下，我们是在 web 端。
+In this case, we are on web.
+
+780
+00:55:37,998 --> 00:55:40,004
+你会看到实时消息。
+You'll find real-time messaging.
+
+781
+00:55:40,302 --> 00:55:46,416
+如果你在使用 Agora，我建议你也研究一下这个，试着理解细节，并阅读我们正在做的操作。
+And I'd recommend studying this also if you're using Agora and just try to understand the details and read up on what we're doing.
+
+782
+00:55:46,576 --> 00:55:48,676
+这里的每个函数都会被解释。
+So each function here is going to be explained.
+
+783
+00:55:49,294 --> 00:55:53,296
+好，我们进去，首先打开控制台，检查一下。
+So let's go in here and first of all, let's open up the console, inspect.
+
+784
+00:55:53,646 --> 00:55:56,896
+如果你看到这里显示的内容，就意味着一切正常。
+And if you're seeing this right here, it means that everything is working.
+
+785
+00:55:57,136 --> 00:55:58,896
+Agora 实际上已经连接上了。
+Agora is actually connected.
+
+786
+00:55:59,214 --> 00:56:03,140
+所以我们要做的就是刷新一下，然后在这里打开一个新标签页。
+So what we'll want to do is actually refresh that and open up a new tab here.
+
+787
+00:56:03,566 --> 00:56:08,496
+当一个新的对等节点加入这个频道时，我们想在控制台输出“新对等节点已加入”。
+So when a new peer joins this channel, we want to console out a new peer has joined.
+
+788
+00:56:08,590 --> 00:56:10,564
+那我们把这个粘贴到 URL 里。
+So let's go ahead and paste that into the URL.
+
+789
+00:56:11,342 --> 00:56:12,176
+好了，这就行了。
+And here we go.
+
+790
+00:56:12,256 --> 00:56:14,016
+我们可以在这里的控制台看到这个。
+We can see this console dot right here.
+
+791
+00:56:14,126 --> 00:56:15,108
+我试着放大一下。
+So I'll try to zoom in.
+
+792
+00:56:15,342 --> 00:56:20,676
+但在实时情况下，发生的情况是，我们刚刚收到了来自这个对等节点的加入消息。
+But in real time, what happened is we just got a message from this peer right here that they just joined.
+
+793
+00:56:21,102 --> 00:56:23,108
+这就是我们响应这些事件的方法。
+So this is how we can respond to these events.
+
+794
+00:56:23,534 --> 00:56:25,536
+所以当这个对等节点加入时，我们想做什么？
+So when this peer joins, what do we want to do?
+
+795
+00:56:25,616 --> 00:56:30,724
+我们想在这里创建一个提议，然后把它发送给这个对等节点，最终这个对等节点会发回一条消息。
+So we want to create an offer here and then send it over to this peer, and then eventually this peer will send a message back.
+
+796
+00:56:31,598 --> 00:56:33,028
+那我们回到代码里。
+So let's go back into our code.
+
+797
+00:56:33,454 --> 00:56:37,904
+我们要做的就是向刚刚加入频道的对等节点发送一条消息。
+And what we'll want to do from here is send out a message to the peer that just joined the channel.
+
+798
+00:56:37,984 --> 00:56:44,224
+当他们加入时，我们会收到一个警报，我们有了他们的 member ID，
+我们想给他们发送一条带有我们 SDP 提议的消息。
+So when they join, we get an alert, we have their member ID, and we want to send them a message with our SDP offer.
+
+799
+00:56:44,304 --> 00:56:51,504
+但在发送那个 SDP 提议之前，我们先发个欢迎消息，看看流程是怎么走的，
+然后再把我们要发送的数据加进去。
+But before we send out that SDP offer, let's just send a welcome message just to see how things flow,
+and then we can actually add in the data that we want to send.
+
+800
+00:56:51,822 --> 00:56:57,540
+所以我们访问客户端对象，并使用发送消息到对等节点的方法。
+So let's access the client object and let's use the send message to peer method.
+
+801
+00:56:57,902 --> 00:57:00,064
+这就是发送点对点消息的一种方式。
+So this is a way to send a peer-to-peer message.
+
+802
+00:57:00,144 --> 00:57:06,436
+我们要做的就是在这里放一个对象，放进文本值，然后就是实际的消息，内容是“嘿”。
+So what we'll want to do is throw in an object here, throw in the text value, and then the actual message, and that's going to be hey.
+
+803
+00:57:06,958 --> 00:57:08,944
+这就是一条点对点消息。
+So this is a peer-to-peer message.
+
+804
+00:57:09,024 --> 00:57:10,464
+那我们怎么知道该发给谁呢？
+So how do we know where to send this?
+
+805
+00:57:10,624 --> 00:57:13,924
+嗯，我们需要把对等节点 ID 作为下一个参数放进去。
+Well, we need to throw in the peer ID as the next parameter.
+
+806
+00:57:14,254 --> 00:57:18,020
+这里我们有 member ID，因为我们知道是谁刚刚加入频道。
+And here we have the member ID because we know who just joined the channel.
+
+807
+00:57:18,286 --> 00:57:21,476
+所以这条消息将发送给这个对等节点。
+So this message right here is going to this peer.
+
+808
+00:57:21,966 --> 00:57:26,660
+当他们加入时，他们会收到一条消息，现在我们需要添加一个事件处理器来监听这个。
+So as they join, they get a message, and now we need to add an event handler to listen to this.
+
+809
+00:57:27,310 --> 00:57:32,804
+那我们来创建一个名为 handle message from 对等节点 的方法。
+So let's go ahead and create a method called handle message from peer.
+
+810
+00:57:33,550 --> 00:57:35,424
+我们将把它做成一个异步函数。
+And we'll make this an async function.
+
+811
+00:57:35,758 --> 00:57:39,184
+这里我们将传入发送的消息，然后是 member ID。
+And here we're going to pass in the message that was sent and then the member ID.
+
+812
+00:57:39,264 --> 00:57:41,584
+这样我们也能知道这条消息是从哪里发来的。
+So we also know where this message was sent from.
+
+813
+00:57:41,870 --> 00:57:43,940
+这样我们就可以来回发送消息了。
+So that way we can send a message back and forth.
+
+814
+00:57:44,622 --> 00:57:45,504
+好了，这就搞定了。
+So here we go.
+
+815
+00:57:45,664 --> 00:57:46,784
+我们有了处理器。
+We have the handler.
+
+816
+00:57:46,864 --> 00:57:48,544
+我们先在控制台打印出这条消息。
+Let's go ahead and just console out the message.
+
+817
+00:57:48,624 --> 00:57:55,780
+我们会用 控制台打印，直接打印 message，也就是 message.text。
+We'll do console.log and we'll just say message, and that'll be message.text.
+
+818
+00:57:56,206 --> 00:57:58,084
+所以我们要发送实际的文本值。
+So we want to send the actual text value.
+
+819
+00:57:58,638 --> 00:58:03,908
+好了，我们有了处理事件的函数，现在我们要把事件处理器加进去。
+Okay, so we have the function that handles the event, but now we want to actually add in the event handler.
+
+820
+00:58:04,270 --> 00:58:15,184
+所以这里我们要访问客户端对象，然后使用 on 方法，调用
+来自 对等节点 的 message from 对等节点 事件处理器。
+So here we're going to access the client object and then use the on method,
+and we're going to use the message from peer event handler from peer.
+
+821
+00:58:15,502 --> 00:58:18,148
+然后我们直接传入 handle message from 对等节点。
+And then we'll just pass in handle message from peer.
+
+822
+00:58:18,638 --> 00:58:19,984
+所以我们要监听这个事件。
+So we listen for this event.
+
+823
+00:58:20,142 --> 00:58:22,784
+当这条消息被发送时，它就会在这里触发。
+So when this message is sent, it'll fire this off right here.
+
+824
+00:58:22,864 --> 00:58:24,356
+这将是处理它的函数。
+This will be the function that handles it.
+
+825
+00:58:24,686 --> 00:58:26,624
+然后我们的对等节点就应该能看到这条消息了。
+And then our peer should see the message.
+
+826
+00:58:27,054 --> 00:58:28,324
+那我们来测试一下。
+So let's go ahead and test this out.
+
+827
+00:58:29,198 --> 00:58:31,184
+我们要把两个标签页并排打开。
+So we'll open up two tabs side by side.
+
+828
+00:58:31,534 --> 00:58:33,984
+我们要关掉一个，然后重新启动它们。
+We'll close one out and we'll actually start them fresh, actually.
+
+829
+00:58:34,064 --> 00:58:36,224
+那我们复制这个，在新标签页里打开。
+So let's copy this, open this in a new tab.
+
+830
+00:58:36,654 --> 00:58:40,100
+我需要打开检查元素，这样我才能看到实时发生的一切。
+I'm going to need to do inspect element so I can see everything as it happens.
+
+831
+00:58:40,526 --> 00:58:43,984
+我们应该能看到这里有一条消息，显示有一个新的对等节点加入了。
+And what we should see is a message here that says a new peer has joined.
+
+832
+00:58:44,078 --> 00:58:45,892
+所以这是房间里的第一个对等节点。
+So this is the first peer in the room right here.
+
+833
+00:58:46,254 --> 00:58:49,264
+当这个对等节点加入时，我们会看到一个提示，显示有一个对等节点加入了。
+So when this peer joins, we'll see the alert that a peer has joined.
+
+834
+00:58:49,344 --> 00:58:51,744
+然后这里我们应该能看到来自这个对等节点的这条消息。
+And here we should see a message from this peer.
+
+835
+00:58:51,904 --> 00:58:54,020
+那我们直接复制粘贴一下。
+So let's go ahead and just copy and paste that.
+
+836
+00:58:54,830 --> 00:58:55,584
+这就好了。
+And here we go.
+
+837
+00:58:55,664 --> 00:58:57,316
+所以有一个新的对等节点加入了房间。
+So a new peer has joined a room.
+
+838
+00:58:57,454 --> 00:59:01,744
+这里有一条消息说，嘿，这个对等节点把消息发给了那个对等节点。
+And here we have a message that says, Hey, so this peer sent the message to this peer.
+
+839
+00:59:01,838 --> 00:59:04,144
+现在我们实际上想发送某种提议。
+So now we actually want to send some kind of offer.
+
+840
+00:59:04,224 --> 00:59:07,108
+我们想发送一些真实的数据，至少看看这个过程是怎么运作的。
+We want to send some real data so we can at least see how that process works.
+
+841
+00:59:07,726 --> 00:59:10,144
+那我们回到这里继续。
+So we'll go back here and let's continue.
+
+842
+00:59:10,304 --> 00:59:15,760
+所以在 handle 对等节点 joined 里，让我们在第二个对等节点加入时创建一个提议。
+So in handle peer joined, let's go ahead and actually create an offer, the second appear join.
+
+843
+00:59:15,824 --> 00:59:17,504
+所以我们要创建一个提议然后把它发送出去。
+So we want to create an offer and then send it.
+
+844
+00:59:17,774 --> 00:59:18,864
+所以我先把这段注释掉。
+So I'll comment this out for now.
+
+845
+00:59:18,944 --> 00:59:21,732
+我们等会儿会用到它，并更新数据。
+We're going to use this in a second and update the data.
+
+846
+00:59:22,062 --> 00:59:24,464
+但我们先拿这个 创建提议 函数。
+But let's just grab the create offer function.
+
+847
+00:59:24,750 --> 00:59:27,504
+所以现在只有在我们点击这些按钮时才会创建提议。
+So right now we only create the offer when we click on these buttons.
+
+848
+00:59:27,584 --> 00:59:28,864
+我们干脆把那部分注释掉。
+Let's actually just comment that out.
+
+849
+00:59:28,944 --> 00:59:30,052
+我们不再需要它了。
+We don't need that anymore.
+
+850
+00:59:30,542 --> 00:59:31,812
+让我们回到上面这里。
+And let's go back up here.
+
+851
+00:59:32,366 --> 00:59:37,344
+所以当一个对等节点加入时，我们直接调用 创建提议。
+So when a peer joins, we'll just call create offer.
+
+852
+00:59:39,278 --> 00:59:41,984
+我们要从 创建提议 函数里发送消息。
+And we're going to send the message from the create offer function.
+
+853
+00:59:42,064 --> 00:59:45,504
+这意味着我们仍然需要 member ID，因为我们要再次调用它。
+So that means that we still need the member ID because we're going to call this again.
+
+854
+00:59:45,806 --> 00:59:49,264
+所以我们把 member ID 粘贴到 创建提议 里。
+So let's just paste in member ID into create offer.
+
+855
+00:59:49,424 --> 00:59:52,704
+把这个复制到这里，然后删掉它。
+Let's copy this right here and remove it.
+
+856
+00:59:52,784 --> 00:59:54,980
+然后我们向下滚动到 对等节点 提议。
+And let's scroll down to the peer offer.
+
+857
+00:59:55,694 --> 00:59:59,140
+是 创建提议 或者说 创建提议 函数，不是 对等节点 提议。
+So create offer or the create offer function, not peer offer.
+
+858
+00:59:59,664 --> 01:00:03,104
+所以当我们创建一个提议时，我们会立即把它添加到 DOM 中。
+So when we create an offer, we're going to add it to the DOM right away.
+
+859
+01:00:03,184 --> 01:00:04,900
+这样你就能在那个文本域里看到它了。
+So you're going to see it in that text area.
+
+860
+01:00:05,262 --> 01:00:07,424
+然后我们会立即发送一条消息。
+And then we're going to send out a message right away.
+
+861
+01:00:07,504 --> 01:00:09,744
+所以我们要调用 send message to 对等节点。
+So we're going to call send message to peer.
+
+862
+01:00:09,838 --> 01:00:13,316
+它确实需要一个 member ID，也就是我们要发送给的那个对等节点。
+It does require a member ID or the peer that we're sending it to.
+
+863
+01:00:13,550 --> 01:00:17,104
+当我们调用 创建提议 函数时，我们传入了 member ID。
+And when we call the create offer function, we passed in the member ID.
+
+864
+01:00:17,184 --> 01:00:20,544
+所以我们要确保把那个作为参数传进来。
+So we need to make sure to throw in that as a parameter here.
+
+865
+01:00:20,718 --> 01:00:22,144
+这条消息将会被发送。
+And this message will be sent.
+
+866
+01:00:22,414 --> 01:00:25,664
+现在我们不想只是说“嘿”，我们想实际发送这个对象。
+Now we don't want to just say hey, we want to actually send the object here.
+
+867
+01:00:25,744 --> 01:00:27,812
+就是我们刚才在这里创建的 SDP offer。
+So the SCP offer that we created right here.
+
+868
+01:00:28,334 --> 01:00:29,824
+现在我们需要在这里发送一个字符串。
+Now we need to send a string here.
+
+869
+01:00:29,904 --> 01:00:33,284
+所以我们要做的就是把我们要发送的对象进行序列化。
+So what we're going to do is go ahead and stringify the object that we're going to send.
+
+870
+01:00:33,678 --> 01:00:35,652
+所以我们要调用 JSON.stringify。
+So we'll call json.stringify.
+
+871
+01:00:35,918 --> 01:00:40,064
+而且我们不只是发送提议，稍后我们最终会发送多种类型的消息。
+And instead of just sending the offer, we're going to end up sending multiple types of messages later.
+
+872
+01:00:40,366 --> 01:00:42,384
+所以我们想指定消息类型。
+So we want to specify the message type.
+
+873
+01:00:42,478 --> 01:00:44,836
+所以我们接着创建一些键值对。
+So we'll go ahead and create some key value pairs.
+
+874
+01:00:45,230 --> 01:00:46,756
+我们直接写 type。
+And we'll just say type.
+
+875
+01:00:47,278 --> 01:00:49,024
+这将会是一个 提议。
+This is going to be an offer.
+
+876
+01:00:49,998 --> 01:00:52,592
+所以我们直接写 提议，然后是实际的 提议 值。
+So we'll just do offer and then the actual offer value.
+
+877
+01:00:52,672 --> 01:00:56,228
+所以我们在这里调用 提议，然后把 提议 放进去。
+So we'll just call offer here and then throw in the offer.
+
+878
+01:00:56,878 --> 01:00:58,672
+好了，我们要发送这个对象。
+Okay, so we're gonna send this object here.
+
+879
+01:00:58,752 --> 01:01:00,548
+所以在另一端，我们需要解析这个。
+So on the other end, we need to parse this.
+
+880
+01:01:00,974 --> 01:01:04,036
+那我们回到 handle message from 对等节点 这一步。
+So let's go ahead and go back to handle message from peer.
+
+881
+01:01:04,334 --> 01:01:11,126
+拿原始消息，然后调用 JSON.parse 来解析消息。
+Let's take the original message and then just call json.parse and we're gonna parse message.
+
+882
+01:01:11,438 --> 01:01:14,432
+点 text，我们直接获取那个值。
+dot text So we're just getting that value right away.
+
+883
+01:01:14,606 --> 01:01:19,012
+那我们把它改成 message，看看发过来的 提议。
+So let's change this to message and let's just see the offer being sent over.
+
+884
+01:01:19,758 --> 01:01:21,444
+那我们把这两个都打开。
+So let's go ahead and open both of these up.
+
+885
+01:01:22,112 --> 01:01:26,180
+现在看起来好像出错了，我刷新一下。
+And right now it looks like there was an error, so let me just try to refresh this.
+
+886
+01:01:26,766 --> 01:01:27,312
+好了，出来了。
+And here we go.
+
+887
+01:01:27,392 --> 01:01:32,992
+所以我们看到一个新的对等节点加入了房间，这里是消息，这就是这里的 提议。
+So we see a new peer has joined a room, and here we see the message, and that is the offer right here.
+
+888
+01:01:33,134 --> 01:01:35,232
+所以这个对等节点已经收到了 提议。
+So this peer has gotten the offer.
+
+889
+01:01:35,534 --> 01:01:43,392
+我想做的是，因为 提议 是立即创建的，如果我刷新这个，
+它会变成对等节点 2，再刷新一下，它现在就是对等节点 2。
+So what I want to do here, because the offer gets created right away, so if I refresh this, this will be peer two,
+and then if I refresh this, this will now be peer two.
+
+890
+01:01:43,552 --> 01:01:47,556
+所以每当 handle 方法或 handle 对等节点 方法被调用时，它就会一直变。
+So it keeps changing when that handle method is actually called or handle peer method is called.
+
+891
+01:01:47,982 --> 01:01:52,272
+所以我要确保这个 提议 确实被添加到了这里。
+So I want to make sure that this offer is actually added right here.
+
+892
+01:01:52,526 --> 01:01:54,180
+那我们继续往下走。
+So let's go ahead and continue here.
+
+893
+01:01:54,592 --> 01:02:00,032
+在 handle message from 对等节点 方法内部，我们来检查消息的类型。
+And inside of the handle message from peer method, let's go ahead and check the type of message.
+
+894
+01:02:00,430 --> 01:02:11,712
+那我们直接调用 if，然后说如果 message.type 等于 提议，我们就把 提议 添加到 DOM 中。
+So we'll just go ahead and call if, and then we'll say if the message dot
+type, if this is equal to offer, let's go ahead and add the offer to the DOM.
+
+895
+01:02:11,822 --> 01:02:15,364
+那我们调用 获取元素方法。
+So we'll call document.getElement by ID.
+
+896
+01:02:16,334 --> 01:02:20,644
+我们只需要获取 offer SDP 的值。
+And we're just going to get the offer SDP dot value.
+
+897
+01:02:21,038 --> 01:02:22,912
+那我们直接把它序列化。
+And let's just go ahead and stringify this.
+
+898
+01:02:22,992 --> 01:02:28,388
+我们需要把 提议 序列化，以便把它粘贴到 DOM.序列化 或者到那个文本域里。
+So we need to stringify the offer to actually paste it into the DOM dot stringify or into that text area.
+
+899
+01:02:28,782 --> 01:02:30,948
+那我们直接获取 message。
+And let's just go ahead and get message.
+
+900
+01:02:36,334 --> 01:02:39,072
+所以我们只是获取那个 提议，然后把它添加到 DOM 中。
+So we're just getting that offer and we're just going to add it to the DOM.
+
+901
+01:02:39,152 --> 01:02:42,272
+那我们来看看这里所有的效果。
+So let's go ahead and just see how all of this looks here.
+
+902
+01:02:42,352 --> 01:02:44,192
+那我们在这里打开多个标签页。
+So let's open up bold tabs here.
+
+903
+01:02:44,462 --> 01:02:46,788
+我实际上会创建一个新标签页，复制那个。
+I'll actually create a new tab, copy that.
+
+904
+01:02:47,310 --> 01:02:52,420
+现在，如果我刷新它，我们没有 提议，因为每当新对等节点加入时，提议 才会被创建。
+And right now, if I refresh it, we have no offer because the offer gets created whenever a new peer joins.
+
+905
+01:02:52,974 --> 01:03:00,740
+所以如果我把它加到这里，当这个对等节点加入时，提议 就会被创建，
+然后消息就会被发送并传递到这里。
+So if I go ahead and add this in here, when this peer joins, the offer gets created,
+and then the message gets sent and passed in right here.
+
+906
+01:03:01,102 --> 01:03:06,512
+所以我们传进去了提议，但在继续处理响应之前，我们还需要把 ICE候选者传过去。
+So we've passed in the offer, but before we continue with the answer, we still need to send over the ice candidates.
+
+907
+01:03:06,592 --> 01:03:13,072
+这里的情况是，提议在创建后会立即发送，但 ICE候选者需要一点时间才能逐个传回。
+So what's happening here is the offer is sent over immediately once it's created, but the ice candidates take a minute to trickle in.
+
+908
+01:03:13,152 --> 01:03:21,552
+所以之前我们不需要单独把那些 ICE候选者传过去，因为在我们复制粘贴的时候，
+它们已经添加到那个提议里并随之发送了。
+So before we didn't have to actually send over those ice candidates on their own, because by the time we copied and pasted it,
+they were already added to that offer and sent over with it.
+
+909
+01:03:21,902 --> 01:03:22,992
+所以我们不用担心那个问题。
+So we didn't have to worry about that.
+
+910
+01:03:23,072 --> 01:03:24,512
+但现在发送得太快了。
+But now it's being sent so fast.
+
+911
+01:03:24,592 --> 01:03:28,708
+所以我们需要做的是回到这个 on ice candidate事件。
+So what we need to do is go back to this on ice candidate event.
+
+912
+01:03:29,422 --> 01:03:37,472
+所以创建对等连接，这个会被调用，然后每当我们创建一个 ICE候选者时，
+我们通常会更新 DOM 中的那个描述。
+So create peer connection, this gets called, and then every single time we create an ICE candidate,
+we usually update that description in the DOM.
+
+913
+01:03:37,712 --> 01:03:39,012
+就是这个文本域里。
+So in that text area right here.
+
+914
+01:03:39,472 --> 01:03:47,620
+所以在同一个区域，我想要做的也是发送一条消息，到这一步，它将是提议候选者或 ICE候选者。
+So in this same area, what I want to do is also send a message, and at this point,
+it's going to be the offer candidate or the ice candidate.
+
+915
+01:03:48,462 --> 01:03:50,788
+所以我们去这里的创建提议。
+So we'll go to create offer here.
+
+916
+01:03:51,246 --> 01:03:52,752
+把整个方法拿过来。
+Let's grab this entire method.
+
+917
+01:03:53,006 --> 01:04:04,868
+所以这是在创建提议里面，我们把这个复制过来，带到创建
+ICE候选者里，粘贴进去，到这一步，类型将是 candidate。
+So this is inside of create offer, and let's just copy this, bring this into create
+ice candidate, paste it in, and at this point, the type is going to be candidate.
+
+918
+01:04:05,902 --> 01:04:09,636
+所以不管是提议候选者还是响应候选者都没关系。
+So it doesn't matter if it's a offer candidate or an answer candidate.
+
+919
+01:04:10,126 --> 01:04:13,632
+所以我们直接把候选者本身传进去。
+So we're just going to go ahead and pass in the candidate itself.
+
+920
+01:04:13,902 --> 01:04:14,832
+我们要修改这个值。
+We'll change this value.
+
+921
+01:04:14,912 --> 01:04:20,324
+所以类型是 candidate，然后是实际的候选者，候选者将是 event.candidate。
+So the type is candidate and then the actual candidate, and the candidate will be event.dot candidate.
+
+922
+01:04:20,846 --> 01:04:23,108
+所以会发送多个候选者。
+So there'll be multiple candidates sent over.
+
+923
+01:04:23,552 --> 01:04:27,232
+所以每次它创建一个，它就会传进去，就这样。
+So each time it creates one, it'll pass it in, and there we go.
+
+924
+01:04:27,438 --> 01:04:39,632
+所以和提议一起，我们还要发送一个 ICE候选者，现在到这一端，当我们收到消息时，实际上，
+我刚意识到对于对等连接，我们需要知道要把这条消息发给谁。
+So with the offer, we're also going to send over an ice candidate, and now on this end, when we receive the message, actually,
+I just realized for peer connection, we need to know where to send this message.
+
+925
+01:04:39,792 --> 01:04:41,060
+所以我们有 member ID。
+So we have the member ID.
+
+926
+01:04:41,550 --> 01:04:46,820
+这意味着对于对等连接，我们还需要传进去 member ID。
+That means for peer connection, we need to also pass in member ID.
+
+927
+01:04:47,214 --> 01:04:52,484
+那我们把 member ID 传进去，在所有调用对等连接的地方都传 member ID。
+And let's go ahead and pass in the member ID, the member ID everywhere we call peer connection.
+
+928
+01:04:53,166 --> 01:04:59,140
+所以创建提议，我们把那个 member ID 传进去，然后在其他任何有它的地方。
+So create offer, let's go ahead and pass in that member ID, and then anywhere else where we have it.
+
+929
+01:04:59,726 --> 01:05:02,180
+实际上，我们现在先不管它，稍后再用。
+Actually, we'll leave it alone for now, we'll just use that later.
+
+930
+01:05:03,022 --> 01:05:10,832
+好的，所以我们把 ICE候选者传过去了，但现在在处理消息方法里面，
+让我们检查一下这是否是一个候选者。
+Okay, so we send over the ICE candidates, but now inside of the handle message method,
+let's go ahead and check if this is a candidate.
+
+931
+01:05:10,912 --> 01:05:14,756
+所以如果消息类型是 candidate，我们就去处理它。
+So if the message type is a candidate, let's go ahead and process it.
+
+932
+01:05:15,022 --> 01:05:17,892
+所以我们会做 if message.type
+So we'll do if message.type.
+
+933
+01:05:19,502 --> 01:05:20,580
+等于 candidate。
+Is equal to candidate.
+
+934
+01:05:21,614 --> 01:05:23,392
+让我们把这个候选者加进去。
+Let's go ahead and actually add this candidate.
+
+935
+01:05:23,472 --> 01:05:28,192
+所以我们还没用过这个方法，但有一个方法可以用来添加每一个单独的候选者。
+So we haven't used this method yet, but there's a method to add to actually add each individual candidate.
+
+936
+01:05:28,302 --> 01:05:32,032
+所以我们先检查一下是否有对等连接，以防出现任何延迟。
+So we're just going to first check if we have a peer connection just in case there's any kind of delay.
+
+937
+01:05:32,366 --> 01:05:34,212
+所以我们要检查是否有对等连接。
+So we'll do if we have a peer connection.
+
+938
+01:05:34,894 --> 01:05:36,432
+然后我们继续往下走。
+Then let's go ahead and continue.
+
+939
+01:05:36,782 --> 01:05:42,372
+然后我们调用 对等连接.add ice candidate。
+And we'll just get the pure connection dot add ice candidate.
+
+940
+01:05:44,654 --> 01:05:48,260
+然后这里就是 message.candidate。
+And then this will just be the message dot candidate.
+
+941
+01:05:49,486 --> 01:05:52,992
+好了，我们正在发送 ICE候选者并把它们传进去。
+Okay, so we're sending over the ice candidates and we're passing them in.
+
+942
+01:05:53,102 --> 01:05:55,952
+所以我们来检查一下这里的消息类型。
+So let's just go ahead and check the message type here.
+
+943
+01:05:56,174 --> 01:05:57,348
+我想看看这是怎么运作的。
+So I just want to see how this works.
+
+944
+01:05:58,606 --> 01:05:59,472
+所以我们有了消息类型。
+So we have the message type.
+
+945
+01:05:59,552 --> 01:06:01,828
+我们应该能看到一个提议和这里的一系列候选者。
+We should see an offer and then multiple candidates here.
+
+946
+01:06:02,032 --> 01:06:05,792
+所以我们来检查一下控制台。
+So let's go ahead and inspect console.
+
+947
+01:06:05,872 --> 01:06:06,788
+让我们刷新一下。
+Let's refresh it.
+
+948
+01:06:07,854 --> 01:06:09,792
+好了，这里我们应该能看到一个候选者。
+Okay, so here we should see a candidate.
+
+949
+01:06:09,872 --> 01:06:10,724
+这里有一条消息。
+There's one message.
+
+950
+01:06:10,992 --> 01:06:14,032
+我们有另一个候选者，然后是原始的提议。
+We have another candidate, and then we have the original offer.
+
+951
+01:06:14,112 --> 01:06:16,676
+看起来我们发送了两个 ICE候选者。
+So it looks like there was two ice candidates that we sent over.
+
+952
+01:06:17,230 --> 01:06:21,952
+所以我们把候选者传进去，然后把它们添加到实际的对等连接中，看起来没问题。
+So we pass in the candidates and then we add them to the actual peer connection, and that looks good.
+
+953
+01:06:22,032 --> 01:06:24,200
+所以我们传进了提议和候选者。
+So we passed in the offer and the candidate.
+
+954
+01:06:24,512 --> 01:06:27,332
+所以现在我们来实际创建一个响应。
+So let's go ahead and actually create an answer now.
+
+955
+01:06:27,792 --> 01:06:32,112
+所以当提议发送过去时，实际上会触发 创建响应。
+So create answer will actually be triggered when the offer is sent over.
+
+956
+01:06:32,398 --> 01:06:34,180
+所以我们直接调用 创建响应。
+So we'll just call create answer.
+
+957
+01:06:35,470 --> 01:06:39,312
+让我们看看在实际的 创建响应 中我们需要做什么。
+And let's go ahead and let's see what we need to do with the actual create answer.
+
+958
+01:06:39,472 --> 01:06:42,500
+所以我们还会在 创建响应 方法中发送一条消息。
+So we're also gonna send a message from the create answer method.
+
+959
+01:06:42,798 --> 01:06:49,952
+所以我们把 member ID 传进去，然后去 创建响应 里响应这个，并把响应发回给我们的对等节点。
+So let's pass in the member ID and then let's go down to create answer, respond to this, and send an answer back to our peers.
+
+960
+01:06:50,032 --> 01:06:51,952
+所以我们把 member ID 传进去。
+So let's go ahead and pass in member ID.
+
+961
+01:06:52,174 --> 01:06:56,752
+我们还需要在 create 对等连接 里面，以及在响应里面也包含这个 member ID。
+And we're also gonna need this member ID inside of create peer connection, also inside of the answer.
+
+962
+01:06:56,846 --> 01:07:00,132
+所以我们要把那个放进去，因为我们要从这里发出去一条消息。
+So we'll throw that in because we are sending a message out from here.
+
+963
+01:07:00,430 --> 01:07:05,700
+当我们创建响应时，我们首先要做的事情就是把那个响应 SDP 发出去。
+And when we create our answer, the first thing we want to do from here is actually send out that answer SDP.
+
+964
+01:07:05,792 --> 01:07:14,912
+所以我们把这个从 创建提议 复制过来，放到这里，然后
+在把响应添加到 DOM 之后，把它发回给 对等节点 one。
+So let's copy this from create offer, bring this down here, and after we
+add the answer to the DOM, let's go ahead and send it back to peer one.
+
+965
+01:07:15,470 --> 01:07:17,412
+所以是 client.sendMessageToPeer。
+So client dot send message to peer.
+
+966
+01:07:18,030 --> 01:07:20,036
+这将是响应的类型。
+This will be the type of answer.
+
+967
+01:07:20,622 --> 01:07:21,956
+所以我们得能识别出这个。
+So we want to be able to identify this.
+
+968
+01:07:22,446 --> 01:07:27,232
+然后我们实际拿到响应，接着就把这里的响应发出去。
+Then we'll actually get the answer, and then we're going to send over this answer right here.
+
+969
+01:07:27,662 --> 01:07:29,316
+然后我们就把它发送给那个 member ID。
+And then we're sending that to that member ID.
+
+970
+01:07:30,030 --> 01:07:33,604
+好，所以我们创建一个响应，把它添加到 DOM，然后发出去。
+Okay, so we create an answer, add it to the DOM, send it over.
+
+971
+01:07:33,998 --> 01:07:40,432
+现在如果我们看一下，应该能看到响应已经被创建并发送出去了。
+And right now, if we go ahead and just take a look, we should see the answer actually be created and sent over.
+
+972
+01:07:40,512 --> 01:07:41,828
+那我们把这个关掉吧。
+So let's go ahead and close this out.
+
+973
+01:07:43,598 --> 01:07:47,232
+刷新一下，开个新标签页，然后加入进来。
+We'll refresh it, open up a new tab, and let's go ahead and join.
+
+974
+01:07:47,342 --> 01:07:49,540
+所以当我们加入时，我们应该能看到提议被创建。
+So when we join, we should see the offer get created.
+
+975
+01:07:49,774 --> 01:07:54,192
+它被发送出去了，响应被创建了，而且响应需要在这里发送出去。
+It's sent over, the answer is created, and the answer needs to be sent over here.
+
+976
+01:07:54,574 --> 01:07:55,792
+那我们就来处理一下这个。
+So let's go ahead and handle that.
+
+977
+01:07:55,952 --> 01:07:59,872
+所以在我们的 message from 对等节点 里面，我们要把消息发回给 对等节点 one。
+So inside of our message from peer, so we're sending a message back to peer one.
+
+978
+01:08:00,206 --> 01:08:04,432
+把这里的这段代码复制过来。
+Let's go ahead and copy this question right here.
+
+979
+01:08:04,592 --> 01:08:10,752
+所以如果消息类型是响应，我们就把这里的响应 SDP 拿出来。
+So if message type is answer, let's go ahead and get the answer SDP right here.
+
+980
+01:08:10,832 --> 01:08:14,432
+那我们就修改一下，然后获取 message.响应。
+So we'll change that, and then we'll get the message dot answer.
+
+981
+01:08:14,766 --> 01:08:20,352
+所以我们获取它，把它添加到 DOM，这一部分就搞定了。
+So we're getting that, adding that to the DOM, and that should be it for this section.
+
+982
+01:08:20,432 --> 01:08:21,631
+我们不想在这里创建响应。
+We don't want to create an answer.
+
+983
+01:08:21,712 --> 01:08:24,964
+我要做的就是直接调用 add 响应。
+What I'm gonna do is go ahead and just call add answer.
+
+984
+01:08:26,510 --> 01:08:27,470
+所以我们就添加响应。
+So we'll add the answer.
+
+985
+01:08:27,822 --> 01:08:33,952
+这样应该就能让我们连接了，它会把响应添加到 DOM，而且 ICE候选者会自动发送出去。
+So that should allow us to connect, it should add in the answer to the DOM, and the ICE candidates will send out automatically.
+
+986
+01:08:34,032 --> 01:08:40,272
+所以我们调用 create 对等连接，我们有一个 SDP 类型，而且它会自动作为候选者发送出去。
+So we call create peer connection, so we have an SDP type, and automatically this will be sent out as a candidate.
+
+987
+01:08:40,352 --> 01:08:41,392
+所以这部分已经处理好了。
+So that's already taken care of.
+
+988
+01:08:41,518 --> 01:08:44,452
+这意味着 对等节点 two 也应该发送出 ICE候选者。
+So that means the peer two should also send out the ICE candidates.
+
+989
+01:08:45,294 --> 01:08:48,196
+那我们就来看看这一切是怎么运作的。
+So let's go ahead and just see how all of this is working.
+
+990
+01:08:49,102 --> 01:08:51,203
+看起来它已经基本可以运行了。
+Looks like it's already sort of functioning.
+
+991
+01:08:52,270 --> 01:08:53,156
+我们试着刷新一下。
+Let's try to refresh this.
+
+992
+01:08:54,126 --> 01:08:54,944
+好了，搞定。
+Alright, there we go.
+
+993
+01:08:55,054 --> 01:08:56,944
+那我们再开个新标签页。
+So let's open up a new tab again.
+
+994
+01:08:57,134 --> 01:08:58,544
+这些全部都是自动完成的。
+This is all done automatically.
+
+995
+01:08:58,670 --> 01:09:00,064
+所以现在我们还没有提议。
+So right now we have no offer.
+
+996
+01:09:00,398 --> 01:09:03,011
+我知道我有点啰嗦，但我只是想把流程讲清楚。
+I know I'm being a little bit repetitive, but I'm trying to just go through it.
+
+997
+01:09:03,533 --> 01:09:08,783
+所以我们发送了提议，创建了响应，然后提议的 ICE候选者也发送过去了。
+So we send over the offer, we create the answer, and then the offer ice candidates were also sent over.
+
+998
+01:09:08,863 --> 01:09:10,224
+我们创建了一个响应并发送出去。
+We create an answer, send it over.
+
+999
+01:09:10,381 --> 01:09:11,555
+它被添加到 DOM 中。
+It gets added to the DOM.
+
+1000
+01:09:11,758 --> 01:09:14,863
+我们发送了响应的 ICE候选者，连接就建立了。
+We sent over the answer ice candidates, and a connection was made.
+
+1001
+01:09:14,957 --> 01:09:16,304
+所以这个过程就完成了。
+So we've completed this process.
+
+1002
+01:09:16,398 --> 01:09:21,475
+现在有一件事我想处理一下，就是有时候如果我刷新得太快……
+Now there's one thing that I wanted to take care of here, and that is sometimes if I refresh this too fast.
+
+1003
+01:09:22,094 --> 01:09:29,475
+我知道你们可能应该完全禁止用户这样做，但是有时候对等连接对象，抱歉，我的意思是本地流……
+I know you probably should just stop users from doing that completely,
+but sometimes the peer connection object, I'm sorry, I mean local stream.
+
+1004
+01:09:29,902 --> 01:09:33,184
+有时候这里的本地流创建得不够快。
+Sometimes this local stream right here is not created fast enough.
+
+1005
+01:09:33,264 --> 01:09:44,863
+所以发生的情况是，当对等节点收到消息时，有时我们尝试在本地流实际创建之前就去创建响应
+并走完这个流程，然后我们就在一个实际上不存在的对象上调用函数。
+So what happens is when the peer gets the message, sometimes we try to create the answer and go through this process before that local
+stream was actually created, and then we're calling functions on an object that doesn't actually exist.
+
+1006
+01:09:45,294 --> 01:09:48,703
+所以我们要做的第一步是先检查那个本地流是否存在。
+So what we're gonna do is we're first gonna go ahead and check if that local stream exists.
+
+1007
+01:09:48,863 --> 01:09:56,464
+出于某种原因，如果它延迟了，我们就简单地判断：如果没有本地流，那就直接创建本地流。
+For some reason, if it was delayed, we're just going to say if not local stream, then let's go ahead and just paste in local stream.
+
+1008
+01:09:56,544 --> 01:09:59,024
+我们要创建它，然后把它添加到 DOM 中。
+We're going to create it and then just add it to the DOM.
+
+1009
+01:09:59,104 --> 01:10:00,964
+所以我们只是要确保它被创建了。
+So we're just going to ensure that this is created.
+
+1010
+01:10:01,550 --> 01:10:02,144
+就这样。
+So that's it.
+
+1011
+01:10:02,318 --> 01:10:04,144
+你现在可能看不到问题。
+You probably won't see the issue right now.
+
+1012
+01:10:04,224 --> 01:10:08,900
+嗯，这有点随机发生，但现在如果我按 Ctrl+Shift+R，我就刷新一下。
+Um it kind of happens randomly, but now if I do control shift R, I'm just going to refresh it.
+
+1013
+01:10:09,294 --> 01:10:13,796
+然后如果我刷新很多次，它就应该能正常工作，然后切换一下对等节点，一切看起来都很正常。
+And then if I refresh it a bunch of times, it should work, and then switch between the peers and everything looks good.
+
+1014
+01:10:14,158 --> 01:10:15,424
+这就是本视频的全部内容。
+So that's it for this video.
+
+1015
+01:10:15,504 --> 01:10:16,836
+希望你们学到了很多东西。
+I hope you learned a bunch.
+
+1016
+01:10:17,104 --> 01:10:24,544
+实际上我正在为 Traversy Media 的频道制作一个视频，在那个视频里，
+我们真的会用 WebRTC 创建一个真正的项目。
+I'm actually doing a video for Traversy Media on his channel, and in there we're actually going to create a real project with WebRTC.
+
+1017
+01:10:24,686 --> 01:10:25,584
+所以它看起来会非常酷。
+So it's going to look really cool.
+
+1018
+01:10:25,664 --> 01:10:32,624
+我们会有控制功能，比如静音音频、开启或关闭摄像头，以及加入自定义房间并与对等节点交谈。
+We're going to have controls, things like muting your audio, turning your camera on and off,
+and actually joining custom rooms and talking to peers.
+
+1019
+01:10:32,704 --> 01:10:33,744
+所以它看起来会非常酷。
+So it's gonna look really cool.
+
+1020
+01:10:34,126 --> 01:10:34,944
+那会是一个很有趣的项目。
+It's gonna be a fun project.
+
+1021
+01:10:35,024 --> 01:10:37,584
+那个视频做完后，我会在视频描述里放上链接。
+I'll link that up in the video description once that video is done.
+
+1022
+01:10:37,904 --> 01:10:41,412
+所以大概还要一两周我才会发布那个视频。
+So it should be maybe another week or two before I post that.
+

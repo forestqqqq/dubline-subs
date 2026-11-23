@@ -1,0 +1,4068 @@
+1
+00:00:00,366 --> 00:00:01,520
+Hey, what's going on everybody?
+
+2
+00:00:01,600 --> 00:00:04,240
+So, welcome to this Web RTC crash course.
+
+3
+00:00:04,320 --> 00:00:07,760
+In this video, what we're gonna do is break down what WebRTC is.
+
+4
+00:00:07,950 --> 00:00:16,240
+We'll talk about how it functions and how all the details actually work here, and then we're gonna use what we learned to build out a peer-to-peer video chat application.
+
+5
+00:00:16,400 --> 00:00:18,560
+So, this right here is actually a live demo.
+
+6
+00:00:18,720 --> 00:00:26,080
+I have two different tabs open, and we're gonna build out something like this, but we're actually gonna go a little bit beyond this and make our application a little bit more functional than this.
+
+7
+00:00:26,160 --> 00:00:29,760
+But if you want to test this out, this will be linked in the video description.
+
+8
+00:00:29,920 --> 00:00:31,360
+So let's go ahead and get started.
+
+9
+00:00:31,440 --> 00:00:36,804
+I'll run through a couple of slides, we'll do an introduction, and then we'll start coding this up and I'll explain as we go.
+
+10
+00:00:37,358 --> 00:00:46,560
+Okay, so before we get started, I just wanted to let you know that these slides right here will be linked in the video description if you want to access them, along with a detailed article to go with this.
+
+11
+00:00:46,640 --> 00:00:48,160
+So that'll be all linked up.
+
+12
+00:00:48,240 --> 00:00:50,756
+You can go ahead and check that out once the video is posted.
+
+13
+00:00:50,990 --> 00:00:52,560
+And let's go ahead and get started.
+
+14
+00:00:52,720 --> 00:00:55,440
+So, first of all, what is WebRTC?
+
+15
+00:00:55,520 --> 00:01:08,160
+So, as I have it in the definition here, WebRTC is a set of JavaScript APIs that allows us to establish a peer-to-peer connection between two browsers to exchange data such as audio and video, all in real time.
+
+16
+00:01:08,302 --> 00:01:10,084
+So, this is real-time communication.
+
+17
+00:01:10,574 --> 00:01:19,600
+So the thing that makes WebRTC so special is the fact that the connection is between two browsers and the data that transmits between the browsers never actually reaches a server.
+
+18
+00:01:19,680 --> 00:01:22,084
+So it doesn't mean that we don't need a server involved at all.
+
+19
+00:01:22,446 --> 00:01:30,560
+But as this picture shows right here, let's say we have two clients, that data is transmitted directly once a connection is made and never has to reach that server.
+
+20
+00:01:30,640 --> 00:01:40,132
+So this makes WebRTC ideal for exchanging audio and video because any latency that would be added by having to hit the server first would actually cause a slight delay.
+
+21
+00:01:40,878 --> 00:01:45,700
+So I know some of you are thinking if it's real-time communication, this sounds a lot like WebSockets.
+
+22
+00:01:46,094 --> 00:01:49,040
+So WebSockets and WebRTC are similar in a lot of aspects.
+
+23
+00:01:49,120 --> 00:01:55,920
+So I want to break down what WebSockets are and how that functions, and then we'll make some comparisons on when you might want to use one over the other.
+
+24
+00:01:56,080 --> 00:01:59,600
+So WebSockets, the connection is peer-to-server right here.
+
+25
+00:01:59,680 --> 00:02:05,360
+So we have a browser-to-server connection versus WebRTC where the connection is browser to browser.
+
+26
+00:02:05,440 --> 00:02:07,920
+So one is peer-to-peer, one is peer-to-server.
+
+27
+00:02:08,000 --> 00:02:10,400
+So they both allow us to communicate in real time.
+
+28
+00:02:10,766 --> 00:02:16,320
+But with WebSockets, let's say peer one right here wanted to send a chat message to peer two, they would send the message.
+
+29
+00:02:16,480 --> 00:02:19,040
+That message would go to the server and then out to peer two.
+
+30
+00:02:19,200 --> 00:02:24,772
+Now, if peer two wants to respond, they would send that message to the server and then out to peer one.
+
+31
+00:02:25,262 --> 00:02:36,900
+So there's a little bit of latency with WebSockets and having to first go to the server, but it happens so fast that half a second or maybe a second wouldn't really make much of a difference for something like a chat message or a notification.
+
+32
+00:02:37,120 --> 00:02:43,040
+But if we wanted to send audio and video data through WebSockets, that latency would be very noticeable.
+
+33
+00:02:43,200 --> 00:02:49,604
+I'm sure we've all been on a call or seen a video where the two people are talking, there's a little bit of latency and they're talking over each other.
+
+34
+00:02:49,902 --> 00:02:52,320
+So that creates a pretty big issue right there.
+
+35
+00:02:52,400 --> 00:02:54,000
+So this is where WebRTC thrives.
+
+36
+00:02:54,160 --> 00:03:03,492
+So by not having to reach the server first, the connection is directly between the two browsers and that video data can be exchanged or audio data can be exchanged much faster.
+
+37
+00:03:03,918 --> 00:03:12,740
+Now, with that, WebRTC uses UDP as its protocol to transport the data, and UDP is very fast, and more on that in a second.
+
+38
+00:03:13,614 --> 00:03:21,680
+So if WebRTC is so fast, why would we need WebSockets if they both give us real-time communication and one can transfer data faster for us?
+
+39
+00:03:21,760 --> 00:03:24,720
+It seems like WebRTC is the optimal path here.
+
+40
+00:03:25,006 --> 00:03:28,160
+Any more speed in our application always seems like a better thing here.
+
+41
+00:03:28,320 --> 00:03:30,560
+So there's some limitations to WebRTC.
+
+42
+00:03:30,640 --> 00:03:34,240
+So let's talk about this and then when you might want to use one over the other.
+
+43
+00:03:34,350 --> 00:03:41,540
+So first of all, WebRTC uses UDP, and UDP is not a reliable protocol for transferring important data.
+
+44
+00:03:41,998 --> 00:03:48,160
+So the way UDP works is that it sends data really fast, but it never validates if the data was received.
+
+45
+00:03:48,320 --> 00:03:56,240
+So because of that, if we're sending something like an audio or video data, if we lose a couple of frames from our video, that's no big deal, it'll catch up.
+
+46
+00:03:56,320 --> 00:04:01,252
+Your video might look a little bit funny for a second, but everything will turn out and it's not a big issue.
+
+47
+00:04:01,742 --> 00:04:08,480
+If we're sending something like a file to someone, if we lose a couple of bytes of data from that file, that entire file can be corrupted.
+
+48
+00:04:08,640 --> 00:04:11,120
+So because of that, UDP is not reliable.
+
+49
+00:04:11,200 --> 00:04:13,444
+You would not want to use it for sending important data.
+
+50
+00:04:13,870 --> 00:04:17,200
+Now, also with WebRTC, there is no built-in signaling.
+
+51
+00:04:17,280 --> 00:04:21,120
+So this means that you can't just use WebRTC and make a connection.
+
+52
+00:04:25,390 --> 00:04:28,640
+And then once a connection is made, then WebRTC takes over.
+
+53
+00:04:28,800 --> 00:04:33,040
+So this is where WebSockets and WebRTC actually go good together.
+
+54
+00:04:33,326 --> 00:04:36,356
+We would use a process called signaling with WebSockets.
+
+55
+00:04:36,686 --> 00:04:41,680
+We would send the information between the two peers, the connections made, and then WebRTC takes over.
+
+56
+00:04:41,760 --> 00:04:44,080
+So WebRTC has its limitations in that way.
+
+57
+00:04:45,198 --> 00:04:46,464
+So, how does all of this work?
+
+58
+00:04:46,638 --> 00:04:50,784
+So, I'm gonna give you a quick example first, and then we'll actually start breaking down the details of this.
+
+59
+00:04:50,864 --> 00:04:58,944
+But at a high-level overview, we have two peers, and if they want to communicate, we would have one peer initiate a connection and they would say, Hey, you want to chat?
+
+60
+00:04:59,104 --> 00:05:01,264
+And they would have to send this message out to peer two.
+
+61
+00:05:01,710 --> 00:05:05,732
+So they would send out a message, it doesn't matter how it's done, this can be done through signaling.
+
+62
+00:05:05,934 --> 00:05:09,636
+They can send that message through an email, a tweet, it's irrelevant.
+
+63
+00:05:09,806 --> 00:05:13,184
+But that message would contain some information about this peer right here.
+
+64
+00:05:13,326 --> 00:05:15,748
+So they would have to send their network information to peer two.
+
+65
+00:05:16,430 --> 00:05:21,824
+Now, if peer two accepts this offer, they would go ahead and send some information back to peer one.
+
+66
+00:05:22,126 --> 00:05:33,184
+The means of communication right now is not relevant, but the second that information is exchanged, data can begin to flow, and now the two peers do not need a server involved, they can start transmitting data.
+
+67
+00:05:33,294 --> 00:05:37,264
+So this can be audio and video data, and that connection is made.
+
+68
+00:05:37,934 --> 00:05:42,464
+So what exactly are we sending between the two peers and how are we sending this data?
+
+69
+00:05:42,624 --> 00:05:47,424
+So, as I mentioned earlier, that means of communication in the beginning is actually irrelevant.
+
+70
+00:05:47,504 --> 00:05:52,464
+That could be a tweet or an email, but usually this is through a process called signaling.
+
+71
+00:05:52,544 --> 00:05:59,824
+That's a more practical way of putting this into an application, and that can be through WebSockets or some kind of third-party signaling service.
+
+72
+00:05:59,904 --> 00:06:00,784
+It doesn't really matter.
+
+73
+00:06:00,944 --> 00:06:06,944
+So you'd get the two peers in some kind of room so they can at least know about each other, then they would transmit the initial data.
+
+74
+00:06:07,104 --> 00:06:14,624
+Now, in that data, there are two main components: there's a session description protocol, an SDP, and some ICE candidates.
+
+75
+00:06:14,864 --> 00:06:22,464
+So, first of all, both peers will need to exchange a session description protocol, one in the form of an offer, one in the form of an answer.
+
+76
+00:06:22,734 --> 00:06:31,264
+And a session description protocol is simply an object containing some kind of information about both peers, usually like the codec, address, media type, audio, and video.
+
+77
+00:06:31,344 --> 00:06:34,544
+So just a bunch of information about your network and how to connect to you.
+
+78
+00:06:34,624 --> 00:06:37,540
+So both peers will need to know about each other's network.
+
+79
+00:06:37,870 --> 00:06:45,424
+Now, along with exchanging session description protocols between the two peers, both peers will also exchange a series of ICE candidates.
+
+80
+00:06:45,504 --> 00:06:52,224
+And an ICE candidate is simply a public IP address and port that could be potentially used as an address to receive data.
+
+81
+00:06:52,384 --> 00:07:01,156
+So each peer will typically have multiple ICE candidates that are gathered by making a series of requests to a stun server, and they are exchanged between the two peers.
+
+82
+00:07:01,518 --> 00:07:06,052
+So we'll actually get into this exchange process and we'll go more into detail about what's happening.
+
+83
+00:07:06,304 --> 00:07:10,212
+So exchanging session description protocols and ICE candidates.
+
+84
+00:07:10,702 --> 00:07:16,624
+So right here, we have two peers right here, and we have a server, and then we also have stun servers that we're going to connect to.
+
+85
+00:07:16,784 --> 00:07:20,996
+So we'll go through that process again, the one that we went through in that high-level overview.
+
+86
+00:07:21,358 --> 00:07:23,984
+And the first peer will say, Hey, let's connect.
+
+87
+00:07:24,064 --> 00:07:25,744
+Here's my session description protocol.
+
+88
+00:07:25,838 --> 00:07:30,864
+So it'll be sent to the server through a signaling process and sent to peer two.
+
+89
+00:07:31,278 --> 00:07:37,024
+Now peer two will receive that SDP and they can accept it and they'll say, Hey, sure, here's my SDP.
+
+90
+00:07:37,198 --> 00:07:37,572
+Let's connect.
+
+91
+00:07:38,062 --> 00:07:42,864
+The second that's exchanged, the two peers are connected, but data can't start flowing yet.
+
+92
+00:07:42,944 --> 00:07:44,388
+They've simply made that connection.
+
+93
+00:07:45,550 --> 00:07:51,584
+So before data can start flowing between the two peers, we still need to coordinate the discovery of our public IP addresses.
+
+94
+00:07:51,744 --> 00:07:56,356
+So that's because most devices nowadays sit behind firewalls and NAT devices.
+
+95
+00:07:56,686 --> 00:07:59,184
+So to do this, we're going to use a method called ICE.
+
+96
+00:07:59,344 --> 00:08:05,700
+So this means we're going to make a series of requests to a stun server, get our ICE candidates, and then transfer them between the two peers.
+
+97
+00:08:06,030 --> 00:08:11,492
+And a stun server is not something that you're going to have to worry about setting up, it's really cheap and easy to maintain.
+
+98
+00:08:11,790 --> 00:08:16,164
+So there's a lot of public stun servers, and in our example, we'll use a Google stun server.
+
+99
+00:08:16,558 --> 00:08:18,596
+So let's go ahead and continue with this process.
+
+100
+00:08:19,086 --> 00:08:27,876
+So what's going to happen here is once the SDP offer and answer are exchanged, this peer right here will go ahead and ask the stun server, hey, what's my public IP address?
+
+101
+00:08:28,366 --> 00:08:36,064
+Now the stun server will reply and they'll send over a series of ICE candidates to this peer, and this peer will send over the ICE candidates to peer two.
+
+102
+00:08:36,462 --> 00:08:37,824
+Now, peer two will do the same.
+
+103
+00:08:38,094 --> 00:08:44,304
+They're going to go ahead and request make a request to the stun server and say, Hey, what's my IP address or public IP?
+
+104
+00:08:44,686 --> 00:08:48,516
+Stun server will respond and the ICE candidates are exchanged.
+
+105
+00:08:48,782 --> 00:08:59,108
+Now, once we find or the network finds an optimal path to communicate through with these ICE candidates, data can start flowing between the two peers, and that entire connection is complete.
+
+106
+00:09:00,142 --> 00:09:03,588
+Now, I wanted to talk about one more thing, and that is trickling ice candidates.
+
+107
+00:09:03,744 --> 00:09:08,260
+So, how you send over ice candidates is up to you, but there's a few ways you can go about doing this.
+
+108
+00:09:08,590 --> 00:09:12,224
+And let's go ahead and take a look at this process all over again, and I'll try to break this down.
+
+109
+00:09:12,464 --> 00:09:18,820
+So, when we first create our STP offer, we also make a series of requests to a stun server to generate our ICE candidates.
+
+110
+00:09:19,310 --> 00:09:28,324
+Now, what we could do is create our STP offer, wait till all our ICE candidates are generated, and then send over the STP offer and the ICE candidates all together.
+
+111
+00:09:28,624 --> 00:09:32,868
+Now, more traditionally, what you want to do is not have to wait for this process to complete.
+
+112
+00:09:33,134 --> 00:09:38,544
+You want to send over your STP offer and then trickle in your ICE candidates as they're created.
+
+113
+00:09:38,958 --> 00:09:45,744
+So you'll notice that we sent over the STP offer, and then we don't get back our ICE candidates in a batch, they're sent over individually.
+
+114
+00:09:45,824 --> 00:09:50,304
+So we would signal over each ice candidate over to our peer as they are generated.
+
+115
+00:09:50,446 --> 00:09:55,824
+So we would send over the offer, send over an ICE candidate and another and another, and then that process would continue.
+
+116
+00:09:56,014 --> 00:09:57,476
+So that is called trickling ice.
+
+117
+00:09:57,806 --> 00:09:59,428
+And we're actually going to run through this.
+
+118
+00:09:59,824 --> 00:10:02,544
+So it's going to help us fix a little bit of a delay here.
+
+119
+00:10:02,624 --> 00:10:04,740
+So let's go ahead and jump to the next slide.
+
+120
+00:10:04,974 --> 00:10:07,824
+And I want to show you this in action before we start coding.
+
+121
+00:10:07,918 --> 00:10:09,104
+So I have a live demo here.
+
+122
+00:10:09,184 --> 00:10:11,396
+So this is actually a GIF in that live demo.
+
+123
+00:10:11,726 --> 00:10:17,636
+And let's go ahead and click on this and go over how this exchange works between the STP offer and answer.
+
+124
+00:10:18,382 --> 00:10:20,864
+So let's go ahead and open this up, make sure my camera's on.
+
+125
+00:10:20,944 --> 00:10:23,268
+So the GIF is actually at the top of the link right here.
+
+126
+00:10:24,206 --> 00:10:25,184
+So here I am.
+
+127
+00:10:25,344 --> 00:10:26,384
+This is all live right now.
+
+128
+00:10:26,624 --> 00:10:27,748
+Source code is all here.
+
+129
+00:10:28,654 --> 00:10:32,580
+And what I'm going to do here is open up two tabs side by side.
+
+130
+00:10:33,230 --> 00:10:35,108
+So I want to make a connection between two peers.
+
+131
+00:10:35,726 --> 00:10:39,104
+Okay, so we have peer one and peer two.
+
+132
+00:10:39,344 --> 00:10:42,624
+So if we go through these instructions, what we're going to do is first create an offer.
+
+133
+00:10:42,766 --> 00:10:44,228
+So this is what an offer looks like.
+
+134
+00:10:44,782 --> 00:10:49,316
+So I'm going to create an offer, and you see this object right here is just a bunch of gibberish about our network.
+
+135
+00:10:49,678 --> 00:10:52,932
+We're just going to go ahead and copy the entire offer.
+
+136
+00:10:53,904 --> 00:10:56,144
+And I'm going to paste this over to peer two.
+
+137
+00:10:56,384 --> 00:10:58,784
+So we're creating an offer from peer one.
+
+138
+00:10:59,024 --> 00:11:02,144
+Pier 1 will initiate that offer, pass it over to peer two.
+
+139
+00:11:02,304 --> 00:11:04,624
+And this is the more manual way of doing this.
+
+140
+00:11:04,704 --> 00:11:06,704
+You wouldn't actually do this in a real application.
+
+141
+00:11:07,022 --> 00:11:10,276
+I'm just trying to, or I built the demo so you can see that exchange process.
+
+142
+00:11:10,766 --> 00:11:13,984
+So peer two will get this offer, and then we're going to create an answer.
+
+143
+00:11:14,064 --> 00:11:19,104
+So whenever we added an offer here from peer 1, let's go ahead and create an answer from peer two.
+
+144
+00:11:19,264 --> 00:11:21,744
+So now we have an answer and you can see the object.
+
+145
+00:11:21,904 --> 00:11:23,556
+One's an offer, one's an answer.
+
+146
+00:11:23,982 --> 00:11:28,132
+Let's go ahead and copy this entire answer and send it to peer two.
+
+147
+00:11:28,814 --> 00:11:30,372
+Okay, so we've exchanged those.
+
+148
+00:11:30,784 --> 00:11:34,944
+And once we've exchanged the offer and answer, I'm going to go ahead and add the answer to peer two.
+
+149
+00:11:35,278 --> 00:11:36,864
+And now we see a connection.
+
+150
+00:11:37,134 --> 00:11:38,704
+Both peers are connected.
+
+151
+00:11:38,784 --> 00:11:42,784
+So we have peer one and peer two, and then peer two and peer one right here.
+
+152
+00:11:42,864 --> 00:11:43,108
+Okay.
+
+153
+00:11:43,502 --> 00:11:47,184
+So one thing you'll notice is there was no ICE candidates exchange at this at this point.
+
+154
+00:11:47,264 --> 00:11:49,744
+And that's because we're not using signaling.
+
+155
+00:11:49,824 --> 00:11:54,384
+So by the time the ICE candidates were generated, they were actually added to the offer.
+
+156
+00:11:54,464 --> 00:11:56,864
+So I didn't need to actually generate those on my own.
+
+157
+00:11:57,134 --> 00:12:00,864
+Those were created, so I didn't have to actually send those over because we're not using signaling.
+
+158
+00:12:01,024 --> 00:12:02,224
+So that's the demo.
+
+159
+00:12:02,544 --> 00:12:04,064
+Check this out before you get started.
+
+160
+00:12:04,144 --> 00:12:05,796
+And let's go ahead and get right into coding this.
+
+161
+00:12:06,862 --> 00:12:09,184
+We're gonna start this project completely from scratch.
+
+162
+00:12:09,264 --> 00:12:13,664
+So at this point, I have nothing set up other than an empty folder right here on my desktop.
+
+163
+00:12:13,824 --> 00:12:17,904
+So go ahead and create this folder and open it up in your text editor.
+
+164
+00:12:17,984 --> 00:12:22,304
+So I have the folder and I have VS Code open and I opened up the project file.
+
+165
+00:12:22,414 --> 00:12:25,744
+So we're gonna create the boilerplate code for this and then we'll continue from there.
+
+166
+00:12:25,824 --> 00:12:28,292
+So if you want to, go ahead and download the GitHub repo.
+
+167
+00:12:28,464 --> 00:12:38,500
+The HTML and CSS parts can be minimal, but if you don't want to copy or if you don't want to write all of this out, just copy and paste that in and then just continue from where we start writing the JavaScript code.
+
+168
+00:12:38,990 --> 00:12:41,424
+So in that folder, we're going to have three files.
+
+169
+00:12:41,742 --> 00:12:44,100
+So we'll have an index.html file.
+
+170
+00:12:44,686 --> 00:12:50,704
+We're going to have a main CSS file, so minimal CSS, and then main.js.
+
+171
+00:12:51,438 --> 00:12:53,344
+So let's go into the HTML folder.
+
+172
+00:12:53,486 --> 00:12:55,652
+I'll create some HTML boilerplate here.
+
+173
+00:12:55,824 --> 00:12:58,144
+So I'll just go ahead and autocomplete that.
+
+174
+00:12:58,478 --> 00:13:00,544
+If that doesn't work for you, just go ahead and type this out.
+
+175
+00:13:00,624 --> 00:13:01,584
+We'll add in a title.
+
+176
+00:13:01,744 --> 00:13:03,300
+So WebRTC.
+
+177
+00:13:03,824 --> 00:13:07,104
+And make sure you have your JavaScript and CSS linked up.
+
+178
+00:13:07,214 --> 00:13:10,084
+So in my case, I want to put the JavaScript underneath the body tag.
+
+179
+00:13:10,734 --> 00:13:11,652
+Let's go ahead and move that.
+
+180
+00:13:12,046 --> 00:13:13,824
+And the CSS is already linked up.
+
+181
+00:13:13,904 --> 00:13:16,464
+So main.css and main.js.
+
+182
+00:13:17,230 --> 00:13:22,144
+So inside of our template here, we're going to start with a div for our videos here.
+
+183
+00:13:22,224 --> 00:13:25,984
+So we'll create a div and the ID here will just be videos.
+
+184
+00:13:26,254 --> 00:13:28,784
+And this is going to contain the two videos for our users.
+
+185
+00:13:28,864 --> 00:13:30,244
+So we'll just call this videos.
+
+186
+00:13:30,574 --> 00:13:33,424
+And then inside here, we're going to use the video tag.
+
+187
+00:13:33,904 --> 00:13:38,064
+And this video tag is going to have the class of video dash player.
+
+188
+00:13:38,144 --> 00:13:39,264
+This is for styling.
+
+189
+00:13:40,750 --> 00:13:44,612
+So we'll create a video player and then we're going to give it the ID of user one.
+
+190
+00:13:45,166 --> 00:13:49,744
+So we're going to have two video tags here, and one will be user one and one will be user two.
+
+191
+00:13:49,904 --> 00:13:51,664
+Let's go ahead and close that up right there.
+
+192
+00:13:52,014 --> 00:13:53,664
+So we'll have the closing tag also.
+
+193
+00:13:54,126 --> 00:13:58,852
+And then inside of this, or inside of the tag, let's just go ahead and do auto play.
+
+194
+00:13:59,374 --> 00:14:02,212
+And then we'll just do plays in line.
+
+195
+00:14:02,798 --> 00:14:06,116
+Okay, so once this tag is set up, let's go ahead and copy and paste this.
+
+196
+00:14:06,254 --> 00:14:07,584
+These will be our two video tags.
+
+197
+00:14:07,664 --> 00:14:08,864
+This will be user two.
+
+198
+00:14:09,390 --> 00:14:11,780
+Make sure you have everything exactly how I have it.
+
+199
+00:14:12,302 --> 00:14:14,544
+And now let's go ahead and style this so we can see it.
+
+200
+00:14:14,638 --> 00:14:17,124
+So we'll go into the main.css file.
+
+201
+00:14:17,486 --> 00:14:20,544
+And the first thing I'm gonna do is go ahead and go to the body tag.
+
+202
+00:14:20,704 --> 00:14:24,164
+So we're obviously not focused on best CSS and HTML practices.
+
+203
+00:14:24,558 --> 00:14:28,784
+And let's just go ahead and give the body a width of 800 pixels.
+
+204
+00:14:29,984 --> 00:14:31,184
+And then we'll center that.
+
+205
+00:14:31,264 --> 00:14:33,828
+So we'll just do margin zero auto.
+
+206
+00:14:36,142 --> 00:14:37,584
+Okay, so that's the body.
+
+207
+00:14:37,934 --> 00:14:41,184
+At this point, what I want to do is go ahead and make sure it's responsive.
+
+208
+00:14:41,264 --> 00:14:45,668
+So we'll just do at media screen, and then we're gonna do whoops.
+
+209
+00:14:46,702 --> 00:14:49,984
+At media screen and max width.
+
+210
+00:14:51,758 --> 00:14:54,084
+And this is gonna be 800 pixels.
+
+211
+00:14:54,384 --> 00:14:57,636
+So at 800 pixels, we just want to make sure that the body goes to 100%.
+
+212
+00:14:58,414 --> 00:15:02,384
+So we'll just copy that and we'll just do 100%.
+
+213
+00:15:02,704 --> 00:15:07,584
+I guess that wasn't too much code, I could have just written that out, but I want to make sure it's responsive.
+
+214
+00:15:07,664 --> 00:15:11,984
+Okay, so after that, I want to go ahead and make sure that I can see the video tag.
+
+215
+00:15:12,144 --> 00:15:14,340
+So let's go ahead and grab the video tag.
+
+216
+00:15:15,310 --> 00:15:16,784
+So we'll just do video.
+
+217
+00:15:18,286 --> 00:15:20,420
+Haven't done a tutorial in a while, so I'm a little bit rusty.
+
+218
+00:15:20,846 --> 00:15:29,424
+So let's set the width to the video tag, and we're gonna set this to 100%, and then we want to be able to see that before we actually add a video into it.
+
+219
+00:15:29,504 --> 00:15:31,012
+So let's just go ahead and do a border.
+
+220
+00:15:31,374 --> 00:15:37,984
+For the border, we'll do 2px solid, and we're going to use green yellow.
+
+221
+00:15:38,254 --> 00:15:41,828
+So I want to make it obvious, and then we'll just set some kind of background color so we can see it.
+
+222
+00:15:42,158 --> 00:15:50,948
+And for this, we'll just do RGB, and then the values I wanted to use were 63, 62, and 62.
+
+223
+00:15:51,662 --> 00:16:01,424
+Okay, so we have the video tag styled, and what I'm going to do next is go ahead and go to the videos themselves, so that wrapper, and I want to make sure these two are in line.
+
+224
+00:16:01,582 --> 00:16:05,156
+So we'll just do videos, and that is an ID.
+
+225
+00:16:06,798 --> 00:16:18,224
+Okay, so for this, let's go ahead and do display grid, and then for the width, we'll just do grid template columns, or for the width of each column, we'll just set that to one fraction and one fraction.
+
+226
+00:16:18,304 --> 00:16:25,024
+So we'll take up the full width of that grid right there, and then we'll just do a column gap, make sure there's some space between them.
+
+227
+00:16:25,104 --> 00:16:35,140
+We'll just do one em and then the width, will also set that to 100%, and then padding 10 pixels.
+
+228
+00:16:35,982 --> 00:16:38,384
+Okay, so that's almost it for the styling.
+
+229
+00:16:38,464 --> 00:16:39,584
+We're not going to have too much more.
+
+230
+00:16:39,664 --> 00:16:43,904
+I think we're only going to style the text areas next, but let's go ahead and open this up in live server.
+
+231
+00:16:44,064 --> 00:16:47,904
+So open this up here, and here we go.
+
+232
+00:16:47,984 --> 00:16:50,212
+So for some reason, I'm not seeing that border.
+
+233
+00:16:51,534 --> 00:16:53,504
+Let's see, I'm supposed to see border 2px.
+
+234
+00:16:53,744 --> 00:16:54,784
+Okay, I see what I did there.
+
+235
+00:16:55,502 --> 00:17:01,344
+So this should be 2px solid or 2 pixels, and that should auto-refresh.
+
+236
+00:17:01,424 --> 00:17:02,624
+Okay, so that's all we have.
+
+237
+00:17:02,784 --> 00:17:03,824
+We have the two video frames.
+
+238
+00:17:03,950 --> 00:17:06,052
+Now, what I'm going to do here is add in some text areas.
+
+239
+00:17:06,414 --> 00:17:13,904
+So in the first demo that we're going to work on, we're actually going to manually transfer the SDP offer and answer the way that I showed you in that demo.
+
+240
+00:17:14,254 --> 00:17:15,824
+So we're going to have those text areas down here.
+
+241
+00:17:15,904 --> 00:17:18,304
+So we're going to copy, paste, copy, and paste it.
+
+242
+00:17:18,384 --> 00:17:20,384
+So let's create them for that.
+
+243
+00:17:20,878 --> 00:17:23,140
+So we'll go into our HTML file.
+
+244
+00:17:23,534 --> 00:17:27,780
+And inside of the HTML file, the first thing I want to do is add in a button to create an offer.
+
+245
+00:17:28,334 --> 00:17:30,244
+So we'll just go ahead and use the button tag.
+
+246
+00:17:31,344 --> 00:17:34,980
+And for this, we'll just give it the ID of create offer.
+
+247
+00:17:37,422 --> 00:17:41,412
+Okay, so we'll just write create offer for the actual button text.
+
+248
+00:17:43,534 --> 00:17:53,664
+And then underneath that, let's go ahead and just add in a label tag, and this will just be stp offer, so we just know which one it is, and then we can copy and paste these two.
+
+249
+00:17:53,744 --> 00:17:55,264
+Actually, let's add in the text area first.
+
+250
+00:17:55,374 --> 00:17:57,636
+So we'll just do text area.
+
+251
+00:17:58,958 --> 00:18:02,944
+And for this, let's just go ahead and add in the ID of offer stp.
+
+252
+00:18:03,024 --> 00:18:04,224
+So this will be the actual value.
+
+253
+00:18:04,304 --> 00:18:06,784
+This will this will be how we query it with JavaScript.
+
+254
+00:18:06,894 --> 00:18:08,772
+So offer dash stp.
+
+255
+00:18:09,584 --> 00:18:12,864
+And for the placeholder, I guess we don't need anything there.
+
+256
+00:18:12,944 --> 00:18:14,304
+Let's just leave it like that.
+
+257
+00:18:14,670 --> 00:18:16,068
+I don't need any other values.
+
+258
+00:18:17,198 --> 00:18:25,412
+So let's go ahead and just copy all of this, bring this down here, and then this will be answer or create answer.
+
+259
+00:18:29,038 --> 00:18:31,072
+And we'll just update this value right here.
+
+260
+00:18:31,854 --> 00:18:33,392
+Then STP answer.
+
+261
+00:18:34,446 --> 00:18:38,980
+And for this text area, let's just go ahead and update this to answer.
+
+262
+00:18:39,534 --> 00:18:41,552
+And we're going to add in one more button here.
+
+263
+00:18:41,774 --> 00:18:43,712
+And this will be to actually add the answer.
+
+264
+00:18:43,792 --> 00:18:47,952
+So once we receive the answer from the from Pier 2, we want to go ahead and add it.
+
+265
+00:18:48,078 --> 00:18:49,444
+So we'll just change this.
+
+266
+00:18:53,006 --> 00:18:56,432
+It's funny how I'm really rusty after not doing a tutorial for a while.
+
+267
+00:18:56,512 --> 00:18:58,432
+So typing is going to be a little bit slow.
+
+268
+00:18:58,512 --> 00:18:58,788
+Okay.
+
+269
+00:18:59,470 --> 00:19:08,432
+So we have a button, create an offer, the text area, button for create answer, the area, text area for the answer, and then the add answer.
+
+270
+00:19:09,038 --> 00:19:10,272
+Okay, so let's add some CSS.
+
+271
+00:19:10,512 --> 00:19:12,004
+I want to make sure that it's visible.
+
+272
+00:19:12,430 --> 00:19:16,192
+So let's go ahead and add in text area.
+
+273
+00:19:16,272 --> 00:19:23,312
+And this is why I mentioned earlier you can skip ahead if you don't want to type all this out, just copy and paste it because this has nothing to do with WebRTC.
+
+274
+00:19:23,392 --> 00:19:25,392
+I just wanted to make sure to give context.
+
+275
+00:19:25,472 --> 00:19:30,032
+I know some people get thrown off if they can't see the context of how all this was put together.
+
+276
+00:19:30,382 --> 00:19:32,432
+Okay, so we have the text area.
+
+277
+00:19:32,750 --> 00:19:34,432
+Let's go ahead and open this up.
+
+278
+00:19:34,798 --> 00:19:35,152
+Here we go.
+
+279
+00:19:35,232 --> 00:19:35,792
+That looks good.
+
+280
+00:19:35,872 --> 00:19:41,392
+Okay, so two areas of buttons all have IDs, and that's it for the boilerplate code.
+
+281
+00:19:41,472 --> 00:19:43,844
+So let's go ahead and move on to the next step here.
+
+282
+00:19:44,334 --> 00:19:47,152
+So we want to jump into our main.js file.
+
+283
+00:19:47,232 --> 00:19:49,712
+So make sure it's linked up and go in here.
+
+284
+00:19:49,792 --> 00:19:54,752
+And the first thing I'm gonna do is create two undefined variables for a local stream.
+
+285
+00:19:54,958 --> 00:20:00,432
+So local stream we'll camel case that and then we'll also do one for remote streams.
+
+286
+00:20:07,694 --> 00:20:12,112
+So we have those set up, and what I'm gonna do here is create a function to actually initialize all of this.
+
+287
+00:20:12,430 --> 00:20:13,956
+So we'll use an arrow function.
+
+288
+00:20:14,672 --> 00:20:18,192
+So we'll just call this init arrow function.
+
+289
+00:20:18,446 --> 00:20:20,512
+We'll actually make this an async function.
+
+290
+00:20:20,974 --> 00:20:22,112
+So let's get that going.
+
+291
+00:20:22,574 --> 00:20:24,672
+And then let's actually call the function right away.
+
+292
+00:20:24,974 --> 00:20:28,004
+So this function will trigger the second a user loads the page.
+
+293
+00:20:28,206 --> 00:20:37,312
+Okay, so we have our init function, and the first thing we want to do when we initialize it is go ahead and grab the user's audio and video and actually display it to the DOM.
+
+294
+00:20:37,472 --> 00:20:42,592
+So let's go ahead and take that local stream variable right there, and we're gonna go ahead and call await.
+
+295
+00:20:42,734 --> 00:20:53,348
+So make sure you have async and await, and we're gonna go ahead and use the navigator.media devices dot get usermedia method right here.
+
+296
+00:20:53,806 --> 00:20:58,192
+So we're gonna call this method, and in here we have a bunch of constraints that we can use.
+
+297
+00:20:58,352 --> 00:21:01,312
+And to start here, we're just gonna go ahead and set video to true.
+
+298
+00:21:01,392 --> 00:21:03,012
+That means that video will play.
+
+299
+00:21:03,312 --> 00:21:08,832
+And for the audio, we could set it to true, but I want to make sure that it's muted just so we don't have some kind of echo.
+
+300
+00:21:09,134 --> 00:21:10,468
+And we'll set that to false.
+
+301
+00:21:10,894 --> 00:21:15,364
+So this will go ahead and add in our video and audio stream to local stream.
+
+302
+00:21:15,790 --> 00:21:21,640
+Now, right after we do that, let's go ahead and do document dot get element by ID.
+
+303
+00:21:23,214 --> 00:21:24,832
+And let's go ahead and grab user one.
+
+304
+00:21:24,992 --> 00:21:28,272
+So this will be our stream, and we'll just do dot source object.
+
+305
+00:21:28,432 --> 00:21:35,972
+So we have a video tag, it has the property of source object, and let's go ahead and set that to local stream.
+
+306
+00:21:36,334 --> 00:21:45,732
+So we're gonna save this, and really quick, if you want to have or if you have any questions about these methods and you want to do some research on them, I'd highly recommend looking up the documentation.
+
+307
+00:21:46,192 --> 00:21:48,672
+So let's go ahead and look this up.
+
+308
+00:21:48,752 --> 00:21:55,140
+Let's just do web RTC, and I'm going to link this up inside of the video description here.
+
+309
+00:21:55,566 --> 00:22:03,552
+So, right here, you're going to see a lot of information about the functions that we're using, specifically the RTC peer function or peer connection function.
+
+310
+00:22:03,632 --> 00:22:06,112
+We're going to use this, so this will tell you about all the details.
+
+311
+00:22:06,382 --> 00:22:09,072
+I'm not going to explain them like the documentation would.
+
+312
+00:22:09,152 --> 00:22:13,604
+I will explain what's happening, but I won't go into that detail, so I'd recommend looking those up.
+
+313
+00:22:14,126 --> 00:22:19,872
+So this is actually the wrong function, it's supposed to be get user media.
+
+314
+00:22:20,526 --> 00:22:22,592
+And let's save that and let's go ahead and see the output.
+
+315
+00:22:22,672 --> 00:22:25,060
+So I have live server on, I don't need to refresh.
+
+316
+00:22:25,486 --> 00:22:27,312
+So let's go ahead and check this out.
+
+317
+00:22:27,472 --> 00:22:34,272
+Okay, so we've successfully displayed our local screen to our DOM here, and we're actually able to turn our camera on.
+
+318
+00:22:34,432 --> 00:22:41,712
+So if this isn't working, obviously make sure the camera's on, whether you're on a laptop or you have some kind of external camera, make sure that's ready to go.
+
+319
+00:22:41,952 --> 00:22:44,832
+But this should be your output if everything went successfully.
+
+320
+00:22:44,992 --> 00:22:53,072
+So with that, we're also gonna grab the remote stream, and for this, we're just gonna go ahead and call new media stream.
+
+321
+00:22:53,152 --> 00:22:57,232
+So we're just gonna set some kind of media stream, but we're actually not gonna set the value yet.
+
+322
+00:22:57,312 --> 00:23:02,752
+So it's going to be empty, and this is what's going to be what the this is going to be what the remote user will have.
+
+323
+00:23:02,912 --> 00:23:05,072
+So let's go ahead and set that to remote stream.
+
+324
+00:23:05,152 --> 00:23:07,780
+We're not going to see anything, but we can set the value right away.
+
+325
+00:23:08,206 --> 00:23:12,272
+So change this to to remote stream, and then change this to user two.
+
+326
+00:23:12,462 --> 00:23:15,812
+So we're grabbing these elements in the DOM and we're replacing them.
+
+327
+00:23:16,654 --> 00:23:19,492
+Okay, so that's it for this part.
+
+328
+00:23:19,950 --> 00:23:21,312
+It shouldn't change anything in here.
+
+329
+00:23:21,392 --> 00:23:22,752
+So we don't see anything for user two.
+
+330
+00:23:22,992 --> 00:23:27,364
+We just have a media stream in there, but you're not going to see anything because there's no actual content there.
+
+331
+00:23:27,758 --> 00:23:30,724
+So let's go ahead and jump to actually making a peer connection.
+
+332
+00:23:31,278 --> 00:23:35,072
+So in step two, let's go ahead and actually create an SDP offer.
+
+333
+00:23:35,232 --> 00:23:40,432
+So above our local stream and remote stream, let's go ahead and create a peer connection object.
+
+334
+00:23:40,526 --> 00:23:42,752
+So we'll call this peer connection.
+
+335
+00:23:42,912 --> 00:23:46,752
+And this will be like the source of truth for basically any connection.
+
+336
+00:23:46,832 --> 00:23:52,352
+So when we're connecting to another peer, there's going to be one object that's going to represent all the information about this connection.
+
+337
+00:23:52,512 --> 00:23:58,084
+So our local streams, all this information will be added here, and this is what's going to allow us to connect.
+
+338
+00:23:58,606 --> 00:24:05,872
+So we'll create this peer connection object and let's go ahead and create another function down here, and we're going to call this createOffer.
+
+339
+00:24:06,222 --> 00:24:09,152
+So remember the first part in this process is to create an offer.
+
+340
+00:24:09,454 --> 00:24:10,352
+So let's go ahead and do that.
+
+341
+00:24:10,510 --> 00:24:11,952
+Let's make it an async function.
+
+342
+00:24:12,032 --> 00:24:13,924
+We'll make it an arrow function too.
+
+343
+00:24:14,222 --> 00:24:16,512
+So always add in the async where I'm adding it.
+
+344
+00:24:16,672 --> 00:24:18,468
+There's usually a reason for why I'm doing that.
+
+345
+00:24:19,022 --> 00:24:25,392
+Okay, so we create the function, and what I want to do now is go ahead and actually create the peer connection object.
+
+346
+00:24:25,486 --> 00:24:35,620
+So we'll go ahead and grab this undefined value, and we'll just do peer connection, and this will be new RTC peer connection.
+
+347
+00:24:36,654 --> 00:24:37,232
+And there we go.
+
+348
+00:24:37,582 --> 00:24:39,632
+So that's going to create the peer connection object.
+
+349
+00:24:39,712 --> 00:24:42,020
+This is going to be the source of truth for that connection.
+
+350
+00:24:42,446 --> 00:24:45,872
+Now, what I'm going to do here is go ahead and set up my stun servers.
+
+351
+00:24:45,952 --> 00:24:49,472
+I told you that stun servers are free to use in most cases.
+
+352
+00:24:49,552 --> 00:24:52,420
+There's a lot of public ones that we can use, so we don't need to set up our own.
+
+353
+00:24:52,782 --> 00:24:54,564
+In this case, we're going to use Google's.
+
+354
+00:24:54,926 --> 00:24:59,312
+So we're just going to go ahead and set up our servers here, and let's go ahead and create an object.
+
+355
+00:24:59,392 --> 00:25:02,752
+So just copy and paste what I'm doing here, or just copy exactly what I'm doing here.
+
+356
+00:25:02,832 --> 00:25:04,868
+I won't go into the details of where I got these servers.
+
+357
+00:25:05,198 --> 00:25:09,712
+You can go ahead and Google that up, and there's going to be a lot of URLs that will point you to this.
+
+358
+00:25:09,966 --> 00:25:18,272
+So for this, we're going to go ahead and do ice servers, and this is going to be a list, so we can add in multiple URLs here.
+
+359
+00:25:18,478 --> 00:25:28,484
+At this point, we're just going to go ahead and actually I think that was supposed to be so it's a a list and then an object, and we're going to set the URLs value.
+
+360
+00:25:28,750 --> 00:25:31,472
+So this is some Google stun servers that we can use right here.
+
+361
+00:25:31,552 --> 00:25:47,160
+So we're going to do stun and then we'll do colon stun one dot one dot google dot com, and then the actual, I think this is the port, so 19.302.
+
+362
+00:25:48,334 --> 00:25:52,356
+Okay, so we're going to do that, and then we're actually going to set up two URLs at this point.
+
+363
+00:25:53,902 --> 00:25:58,752
+So let's go ahead and add the comma there, and then this will be stun two.
+
+364
+00:26:00,592 --> 00:26:06,980
+Stun two, and then this will be left at one right there.google.com 19302.
+
+365
+00:26:07,310 --> 00:26:11,152
+Okay, so this is the stun server that we're going to use, and these are the URLs right here.
+
+366
+00:26:11,312 --> 00:26:15,552
+So let's go ahead and copy servers and let's throw this into our peer connection.
+
+367
+00:26:15,632 --> 00:26:17,764
+So we want to let it know which stun servers to use.
+
+368
+00:26:18,062 --> 00:26:20,192
+This is how we're going to generate our ice candidates.
+
+369
+00:26:20,272 --> 00:26:25,988
+So that process and where we went back and got multiple ice candidates, this is where we're going to get those from.
+
+370
+00:26:26,766 --> 00:26:36,900
+Okay, so we set that up here, and what I'm going to do at this point is I'm actually going to take this remote stream value and I'm going to put this inside of the create offer.
+
+371
+00:26:37,262 --> 00:26:40,832
+So I don't want to set the remote stream until we actually create a new offer.
+
+372
+00:26:41,134 --> 00:26:43,712
+So it's going to create a new peer connection that way.
+
+373
+00:26:44,110 --> 00:26:48,752
+So we there's a point where you can actually add multiple peer connections if you want to have multiple users.
+
+374
+00:26:49,038 --> 00:26:53,668
+We won't get into that in this video, but this is why we're going to create it on the offer here.
+
+375
+00:26:54,158 --> 00:26:56,032
+Okay, so we have that set up.
+
+376
+00:26:56,366 --> 00:26:58,512
+The next thing I want to do is go ahead and actually create the offer.
+
+377
+00:26:58,592 --> 00:27:03,076
+So we'll just do let offer and let's just use await here.
+
+378
+00:27:03,952 --> 00:27:06,592
+And for this, we're going to do peer connection.
+
+379
+00:27:06,672 --> 00:27:12,592
+So we're going to access the peer connection that we just created, the peer connection object, and we'll just do dot create offer.
+
+380
+00:27:12,686 --> 00:27:14,592
+So it has a method called createOffer.
+
+381
+00:27:14,926 --> 00:27:16,964
+This will generate an offer for us.
+
+382
+00:27:17,454 --> 00:27:22,592
+Now, once we create an offer, let's go ahead and actually add this to the peer connection.
+
+383
+00:27:22,672 --> 00:27:26,916
+So we create an offer, then we're gonna go ahead and set the local description.
+
+384
+00:27:27,694 --> 00:27:31,072
+So we have a local and a remote description for every peer connection.
+
+385
+00:27:31,152 --> 00:27:38,032
+There's always two descriptions here, and at this point, we're gonna take this session description protocol and we're gonna pass that in here.
+
+386
+00:27:38,112 --> 00:27:39,364
+So it's gonna be an offer.
+
+387
+00:27:39,790 --> 00:27:41,828
+We set that to our local description.
+
+388
+00:27:42,894 --> 00:27:47,568
+Okay, so we set the local description, and what I want to do at this point is go ahead and actually see this offer.
+
+389
+00:27:47,648 --> 00:27:54,212
+So we're going to do a document.getElementByID, and we're just going to grab the offer SDP.
+
+390
+00:27:54,894 --> 00:28:04,004
+So that's this value right here in the DOM offer SDP, this text area, and let's just go ahead and do dot value.
+
+391
+00:28:04,430 --> 00:28:11,168
+And this needs to be a string, so we're going to set this to json dot stringify, and we're gonna throw in the offer.
+
+392
+00:28:11,248 --> 00:28:15,012
+So it will be an object, but we're going to stringify it, throw it in, and then later we're going to parse it.
+
+393
+00:28:15,822 --> 00:28:18,848
+Okay, so let's go ahead and save that and let's check this out.
+
+394
+00:28:19,008 --> 00:28:24,772
+So if I click create offer, oh okay, I completely forgot to add an event handler.
+
+395
+00:28:25,198 --> 00:28:26,052
+So let's go back here.
+
+396
+00:28:26,542 --> 00:28:31,648
+So we have the create offer method, and I just want to add an event handler so we can actually create that.
+
+397
+00:28:31,728 --> 00:28:36,048
+So just above the init function, I guess we can do this after it.
+
+398
+00:28:36,398 --> 00:28:42,116
+So let's just do document dot get element by ID.
+
+399
+00:28:42,446 --> 00:28:43,648
+Call this create offer.
+
+400
+00:28:43,888 --> 00:28:48,516
+So the create offer button, make sure it's called that.
+
+401
+00:28:48,910 --> 00:28:50,528
+Create offer right here.
+
+402
+00:28:50,926 --> 00:29:00,768
+So when we click this button, what we're going to do is add an event listener and we're going to listen for the click event, and we're gonna call the create offer function.
+
+403
+00:29:01,294 --> 00:29:02,564
+Okay, so let's check this out.
+
+404
+00:29:03,246 --> 00:29:03,968
+Create an offer.
+
+405
+00:29:04,078 --> 00:29:04,608
+Here we go.
+
+406
+00:29:04,718 --> 00:29:07,168
+So that's the offer STP right there.
+
+407
+00:29:07,248 --> 00:29:09,348
+So we stringified it and we threw it in.
+
+408
+00:29:09,486 --> 00:29:11,888
+There's actually no ice candidates there at this moment.
+
+409
+00:29:11,968 --> 00:29:16,128
+So you're going to notice this offer is actually going to get bigger once we start adding ice candidates.
+
+410
+00:29:16,208 --> 00:29:17,220
+So let's continue here.
+
+411
+00:29:17,648 --> 00:29:19,728
+And we got that first part set up here.
+
+412
+00:29:19,822 --> 00:29:22,084
+So our offer is there, but it's very minimal.
+
+413
+00:29:22,542 --> 00:29:29,604
+So, what we want to do next is add in a series of event listeners that listen for when we add our local stream to our peer connection.
+
+414
+00:29:29,774 --> 00:29:43,556
+and when our peer adds in their stream to that connection, so we can actually respond to these events and get our audio and video feed and actually share it back, and also generate ice candidates and update our SDP offers and answers.
+
+415
+00:29:44,174 --> 00:29:48,324
+So underneath this section right here, let's go ahead and create some space just above our offer.
+
+416
+00:29:48,590 --> 00:29:51,088
+Let's go ahead and add in our local stream.
+
+417
+00:29:51,438 --> 00:29:56,484
+So this local stream, once we got that information, we haven't done anything with it other than add it to the DOM.
+
+418
+00:29:56,942 --> 00:29:59,808
+So let's go ahead and get that and add it to our peer connection.
+
+419
+00:29:59,968 --> 00:30:02,564
+Remember, a peer connection is the object that connects two peers.
+
+420
+00:30:02,958 --> 00:30:06,020
+There's always going to be a remote and a local peer.
+
+421
+00:30:06,382 --> 00:30:13,968
+So the first thing I'm going to do is go ahead and go to the local stream, and we're going to get all the audio and video tracks from this stream.
+
+422
+00:30:14,048 --> 00:30:18,048
+So we're going to call get tracks, and this is going to be an array, I believe.
+
+423
+00:30:18,190 --> 00:30:20,448
+So we're just going to go ahead and call for each.
+
+424
+00:30:20,608 --> 00:30:25,028
+We're going to loop through each track and we're going to add them to our peer connection.
+
+425
+00:30:25,678 --> 00:30:31,716
+So let's go ahead and continue on with the function here, and we'll go to our peer connection object.
+
+426
+00:30:32,014 --> 00:30:42,148
+So peer connection, and we're just gonna call dot add track, and we'll add in the track that we're currently looping through, and then the local stream.
+
+427
+00:30:42,542 --> 00:30:47,812
+So this adds this track or all the tracks from local stream to the peer connection object.
+
+428
+00:30:48,368 --> 00:30:57,636
+Now, on the other end, whenever our peer calls this same method right here, they're also gonna call local stream get tracks because to them it's a local stream for us, they're remote.
+
+429
+00:30:58,158 --> 00:31:00,848
+What we want to do is we want to listen for this event.
+
+430
+00:31:00,942 --> 00:31:07,748
+So anytime a track is added by our peer to this object right here, we want to respond to this.
+
+431
+00:31:08,078 --> 00:31:12,528
+So what we're gonna do is we're gonna call peer connection.onTrack.
+
+432
+00:31:12,768 --> 00:31:16,448
+So this is an event listener, and we're gonna make this an async function.
+
+433
+00:31:16,814 --> 00:31:17,956
+Go ahead and call the event.
+
+434
+00:31:18,446 --> 00:31:30,368
+So what we're gonna do is go ahead and respond to this, and we're just going to call event dot streams, and we're going to get the first index of this, and we're going to call get tracks.
+
+435
+00:31:31,470 --> 00:31:32,960
+dot for each.
+
+436
+00:31:33,326 --> 00:31:35,360
+So we're going to loop through and do the same exact thing.
+
+437
+00:31:35,534 --> 00:31:38,320
+So in this case we're just going to get the track of our remote peer.
+
+438
+00:31:38,400 --> 00:31:39,600
+So they just added it.
+
+439
+00:31:39,790 --> 00:31:43,360
+We want to get that track and we want to add this to remote stream.
+
+440
+00:31:43,440 --> 00:31:45,764
+So remember when we set up remote stream right here.
+
+441
+00:31:46,574 --> 00:31:49,028
+So let me actually remove some space here.
+
+442
+00:31:49,454 --> 00:31:53,040
+So we set up a remote stream but there are no tracks added to the stream.
+
+443
+00:31:53,120 --> 00:31:56,080
+So it's there it's in the video player but there are no tracks.
+
+444
+00:31:56,270 --> 00:32:04,640
+So whenever our peer adds those tracks we want to go ahead and call remote stream and we want to add the track so it can actually begin playing inside of that video tag.
+
+445
+00:32:04,846 --> 00:32:10,052
+So we'll just call add track and we just want to add a track here.
+
+446
+00:32:10,382 --> 00:32:13,440
+So here we'll also add in local stream but we don't want to do that here.
+
+447
+00:32:13,520 --> 00:32:20,260
+We just want to add the track itself so now we actually have a video and audio track in that stream or whatever the user added.
+
+448
+00:32:20,686 --> 00:32:32,080
+So once that's done we still need ice candidates so what we're going to do is immediately when create offer is made or when our offer is created we're going to make a series of requests to a stunt server.
+
+449
+00:32:32,174 --> 00:32:40,132
+So this is going to happen automatically that's done right here because we set up which stunt servers we want to use and we added that in right here to that peer connection.
+
+450
+00:32:40,240 --> 00:32:52,320
+So right away the ice candidates will be generated so we're going to call peer connection dot on ice candidate so this event will be called each time an ice candidate is generated and returned to us from the stunt server.
+
+451
+00:32:52,400 --> 00:33:05,476
+So this event will be called multiple times we'll call this we'll make this async and at this point half the time I probably don't even need to make it an async function it's just habit to do that because I've left that out before and it's kind of bitten me there.
+
+452
+00:33:05,680 --> 00:33:19,812
+So what we're gonna do is first check that we have a candidate so we're gonna do event dot candidate and then once this is a candidate let's go ahead and grab our offer so we're going to take this value right here and we're going to paste this in right here.
+
+453
+00:33:20,334 --> 00:33:30,480
+So every single time we get a new candidate the offer will be updated but in the DOM we also want to make sure this is updated because we are we set it once and we don't update it from here.
+
+454
+00:33:30,560 --> 00:33:34,276
+So we want to update the offer every single time a new ICE candidate is generated.
+
+455
+00:33:34,830 --> 00:33:49,380
+Now here you can't use the offer variable so we're just going to do peer connection dot let's see what was this this was local description not set local description but local description like that.
+
+456
+00:33:50,958 --> 00:33:52,708
+Okay autocomplete's not working for me.
+
+457
+00:33:53,326 --> 00:34:00,868
+So basically what happened is once we set our local description we can access the description by calling peer connection local description like that.
+
+458
+00:34:01,198 --> 00:34:03,652
+So every time it's updated, we simply update the DOM.
+
+459
+00:34:03,840 --> 00:34:08,480
+Now, if we go back and look at this peer connection, looks like we have an issue.
+
+460
+00:34:08,560 --> 00:34:10,080
+Let's go ahead and check that.
+
+461
+00:34:10,240 --> 00:34:12,320
+Local stream get track is not a function.
+
+462
+00:34:12,400 --> 00:34:13,892
+I think it was supposed to be get tracks,
+
+463
+00:34:17,102 --> 00:34:18,276
+that needs to be plural.
+
+464
+00:34:20,174 --> 00:34:22,180
+Okay, so here we go.
+
+465
+00:34:22,510 --> 00:34:26,800
+Okay, so now when I click create offer, look at how much bigger the offer is.
+
+466
+00:34:26,926 --> 00:34:33,220
+So all the ice candidates were added to the offer, so now we can actually send this over to another peer, so it's ready to be sent.
+
+467
+00:34:33,646 --> 00:34:38,340
+Now we're not using that trickle ice method that I talked about so it's all generated at once right here and added.
+
+468
+00:34:38,766 --> 00:34:46,660
+Now what I need to do is be able to open up another tab right here and then create an answer and also add in ice candidates to that answer SDP.
+
+469
+00:34:47,182 --> 00:34:49,828
+So for this, let's go ahead and create a new function.
+
+470
+00:34:50,126 --> 00:35:07,200
+We'll create this function underneath create offer, so let's just do create answer and let's just go ahead and make this an async function, make it an arrow function, and this function is going to look a lot like create offer.
+
+471
+00:35:07,374 --> 00:35:12,132
+So what we want to do here is start with copying and pasting some information.
+
+472
+00:35:12,640 --> 00:35:19,120
+So our peer will also have to create a peer connection object they will also need a remote stream just like we do.
+
+473
+00:35:19,280 --> 00:35:38,148
+So to us there are they're a remote stream but to them it's local so we're the remote stream now I guess peer one is so let's copy everything up to the on ice candidates event listener copy that and bring that down to create answer so we want all of this information inside of our create answer function.
+
+474
+00:35:38,542 --> 00:35:45,092
+Now we're going to do something a little bit different inside of that create answer as far as how we set the local and remote description.
+
+475
+00:35:45,710 --> 00:35:57,120
+So at the bottom of the create answer function let's go ahead and actually get the offer so we'll just do let offer and we're going to get this offer from the DOM here.
+
+476
+00:35:57,200 --> 00:36:12,708
+So we'll just do offer is going to be document.getElement by id and we're gonna do offer sdp so remember we're going to paste it into that text area so we're gonna query that offer and let's go ahead and do dot value and we're gonna get the value of that offer.
+
+477
+00:36:12,960 --> 00:36:19,440
+So before we continue I also want to make sure that there is an offer so I don't want an answer generated if we don't have an offer.
+
+478
+00:36:19,520 --> 00:36:31,952
+So we're gonna say if not offer let's go ahead and return and let's just add in some kind of alert and we'll just say Retrieve offer from peer first.
+
+479
+00:36:34,912 --> 00:36:35,152
+Okay.
+
+480
+00:36:35,438 --> 00:36:36,992
+So that'll just stop everything right there.
+
+481
+00:36:37,152 --> 00:36:40,992
+But if we do have an offer, the next thing we want to do is go ahead and parse the offer.
+
+482
+00:36:41,072 --> 00:36:43,952
+So we'll just do offer is equal to json.parse.
+
+483
+00:36:44,032 --> 00:36:47,632
+So we want to get back that object because right now it's all a big string.
+
+484
+00:36:47,982 --> 00:36:49,604
+So we'll just go ahead and throw an offer.
+
+485
+00:36:49,966 --> 00:36:50,884
+We'll parse it.
+
+486
+00:36:51,502 --> 00:36:58,884
+And then what we want to do is go ahead and call wait peer connection dot set remote description.
+
+487
+00:36:59,406 --> 00:37:03,652
+Okay, so we set a local description originally when we created the offer.
+
+488
+00:37:04,622 --> 00:37:08,032
+So we have a local description and we have a remote description.
+
+489
+00:37:08,112 --> 00:37:11,268
+So each peer connection will have a local and remote description.
+
+490
+00:37:11,726 --> 00:37:17,700
+So in this case, the offer is now going to be the remote description because we're the recipient or we're the peer on the receiving end.
+
+491
+00:37:18,192 --> 00:37:21,232
+Now what we want to do next is actually go ahead and create an answer.
+
+492
+00:37:21,312 --> 00:37:22,832
+So we'll just do answer.
+
+493
+00:37:23,534 --> 00:37:26,992
+And for the answer, we're just going to do await peer connection.
+
+494
+00:37:27,278 --> 00:37:32,836
+And peer connection also has a method called create answer.
+
+495
+00:37:33,166 --> 00:37:34,852
+Okay, so we're going to create an answer.
+
+496
+00:37:35,086 --> 00:37:39,588
+And once we create the answer, let's go ahead and call await peer connection.
+
+497
+00:37:40,750 --> 00:37:42,592
+Wow, my autocomplete is not really working today.
+
+498
+00:37:42,702 --> 00:37:45,952
+So peer connection dot set local description.
+
+499
+00:37:46,032 --> 00:37:48,672
+So the local description will be the answer for peer two.
+
+500
+00:37:49,198 --> 00:37:50,432
+So we'll go ahead and throw that in.
+
+501
+00:37:50,670 --> 00:37:51,792
+We set the local description.
+
+502
+00:37:51,820 --> 00:37:59,300
+It's going to fire off and toggle the same functions that the first the first local description value did when we called it right here.
+
+503
+00:37:59,886 --> 00:38:04,324
+So, when we set local description, it's going to call ice candidates and so on and continue there.
+
+504
+00:38:04,814 --> 00:38:09,580
+Okay, so we set our local description and we set a remote description.
+
+505
+00:38:10,158 --> 00:38:13,072
+Now, what I want to do is go ahead and add this to the DOM.
+
+506
+00:38:13,232 --> 00:38:17,392
+So let's go ahead and do document dot get element by id.
+
+507
+00:38:17,966 --> 00:38:23,060
+And we'll just call this or we'll get the answer sdp.
+
+508
+00:38:23,950 --> 00:38:25,712
+And we'll just set the value.
+
+509
+00:38:25,792 --> 00:38:29,668
+So we'll do value and that's going to be json.stringify.
+
+510
+00:38:30,432 --> 00:38:32,388
+And we'll throw in the answer.
+
+511
+00:38:32,912 --> 00:38:33,232
+Okay.
+
+512
+00:38:33,872 --> 00:38:35,872
+So let's go ahead and add an event listener.
+
+513
+00:38:35,952 --> 00:38:38,112
+So let's copy this create offer event.
+
+514
+00:38:38,254 --> 00:38:40,836
+Let's change this to create answer.
+
+515
+00:38:42,766 --> 00:38:45,636
+And then call the create answer method.
+
+516
+00:38:46,574 --> 00:38:47,460
+Bring this down here.
+
+517
+00:38:47,632 --> 00:38:48,420
+And there we go.
+
+518
+00:38:48,814 --> 00:38:50,512
+Okay, so let's go ahead and test this out.
+
+519
+00:38:50,734 --> 00:38:55,872
+So what we would normally do, let's go ahead and open up these two tabs side by side.
+
+520
+00:38:55,952 --> 00:38:57,444
+Let's close out the documentation.
+
+521
+00:38:59,152 --> 00:39:00,432
+Bring this in right here.
+
+522
+00:39:00,782 --> 00:39:01,872
+So here we have two peers.
+
+523
+00:39:01,952 --> 00:39:05,632
+So one peer will always be the one sending the offer, one will always send the answer.
+
+524
+00:39:05,712 --> 00:39:06,788
+So we'll create an offer.
+
+525
+00:39:07,310 --> 00:39:10,272
+Let's copy this and let's try to create an answer right away.
+
+526
+00:39:10,414 --> 00:39:12,992
+So if we do that, retrieve an offer from the peer first.
+
+527
+00:39:13,072 --> 00:39:15,236
+So just to make sure everything's working good, let's refresh it.
+
+528
+00:39:15,726 --> 00:39:16,804
+Paste in the offer.
+
+529
+00:39:17,230 --> 00:39:19,236
+So here we see the type is offer.
+
+530
+00:39:19,662 --> 00:39:24,708
+Now we should be able to create an answer, but like always in a tutorial, there's always going to be errors.
+
+531
+00:39:25,134 --> 00:39:27,632
+Fail to execute set remote description.
+
+532
+00:39:27,726 --> 00:39:28,836
+Let's see, what did I do here?
+
+533
+00:39:29,614 --> 00:39:37,232
+Okay, so we create an answer, and for some reason, pure connection is not allowing us to set an answer.
+
+534
+00:39:37,552 --> 00:39:39,552
+Set local description.
+
+535
+00:39:39,982 --> 00:39:41,152
+Okay, so here's the issue.
+
+536
+00:39:41,312 --> 00:39:44,352
+I never added in the offer to set the remote description.
+
+537
+00:39:44,512 --> 00:39:46,112
+So now we have a remote description.
+
+538
+00:39:46,192 --> 00:39:46,912
+That's the offer.
+
+539
+00:39:47,072 --> 00:39:48,512
+Local description is the answer.
+
+540
+00:39:48,782 --> 00:39:51,140
+Okay, let's go ahead and give that a test one more time.
+
+541
+00:39:51,662 --> 00:39:54,500
+Let's open this up right here, open this one up side by side.
+
+542
+00:39:56,078 --> 00:39:58,112
+And now let's go ahead and create an offer.
+
+543
+00:39:58,318 --> 00:40:00,432
+Copy that, bring that in, create an answer.
+
+544
+00:40:00,654 --> 00:40:03,428
+Now we also have another SDP with all the ice candidates.
+
+545
+00:40:03,552 --> 00:40:04,868
+This type is the answer.
+
+546
+00:40:05,312 --> 00:40:07,792
+And we have one more part of this to complete.
+
+547
+00:40:08,014 --> 00:40:12,352
+So we want to copy the entire answer, bring that in right here, and then we need to add the answer.
+
+548
+00:40:12,432 --> 00:40:14,212
+But we don't have a function to handle that yet.
+
+549
+00:40:14,606 --> 00:40:18,432
+So basically, what we want to do is set the remote description for this peer.
+
+550
+00:40:18,574 --> 00:40:20,112
+So we only have a local description here.
+
+551
+00:40:20,238 --> 00:40:22,052
+Here we have a local and remote description.
+
+552
+00:40:22,734 --> 00:40:29,312
+Okay, so we'll go back here and what we're going to do is add in a function called addanswer here.
+
+553
+00:40:29,838 --> 00:40:31,236
+So let's see, is that what I want it to do next?
+
+554
+00:40:32,238 --> 00:40:33,952
+Yeah, so that was the right thing.
+
+555
+00:40:34,032 --> 00:40:38,500
+So let's go ahead and do let, and this will be add answer.
+
+556
+00:40:40,078 --> 00:40:42,304
+And let's make this an async function.
+
+557
+00:40:43,904 --> 00:40:44,624
+and complete this.
+
+558
+00:40:44,910 --> 00:40:48,704
+So we're going through this process slow so you can actually see how all of that data transfers.
+
+559
+00:40:48,784 --> 00:40:53,184
+So I hope I hope you get the point by now and what I'm trying to accomplish, at least at this point.
+
+560
+00:40:53,454 --> 00:40:55,780
+And then we'll just move on to making this more automatic.
+
+561
+00:40:55,984 --> 00:41:00,144
+So in the addanswer method, let's go ahead and get the answer from the DOM.
+
+562
+00:41:00,384 --> 00:41:01,904
+So we paste it over here.
+
+563
+00:41:02,286 --> 00:41:03,344
+So the answer is pasted over.
+
+564
+00:41:03,424 --> 00:41:08,164
+So we want to get this area from the DOM or get the answer from the DOM and then set the remote description.
+
+565
+00:41:08,654 --> 00:41:12,490
+So we'll just go ahead and do document dot get element by ID.
+
+566
+00:41:13,134 --> 00:41:15,620
+In this case, let's just copy all of that.
+
+567
+00:41:17,134 --> 00:41:22,384
+So we'll get the answer and we'll just go ahead and grab the value.
+
+568
+00:41:22,464 --> 00:41:23,984
+So we want to get the value of it.
+
+569
+00:41:24,302 --> 00:41:25,924
+So if it's there, we'll grab the value.
+
+570
+00:41:26,144 --> 00:41:31,972
+And we actually do have to add in a variable because we want to check if this answer even exists.
+
+571
+00:41:32,398 --> 00:41:35,184
+So let's copy this right here.
+
+572
+00:41:35,406 --> 00:41:37,504
+If offer exists, bring that down here.
+
+573
+00:41:37,584 --> 00:41:40,708
+And in this case, we want to make sure there's an answer in the DOM.
+
+574
+00:41:41,134 --> 00:41:44,036
+And then we'll just say retrieve answer from peer.
+
+575
+00:41:44,366 --> 00:41:47,584
+Then if everything checks out, let's go ahead and parse the answer.
+
+576
+00:41:47,664 --> 00:41:54,180
+So we'll do answer is equal to this will be json.parse.
+
+577
+00:41:55,214 --> 00:41:56,464
+Parse the answer.
+
+578
+00:41:57,838 --> 00:42:00,384
+And after this, we have one more thing to do.
+
+579
+00:42:00,464 --> 00:42:04,784
+So the last thing we need to do is simply check if we don't have a peer connection.
+
+580
+00:42:04,944 --> 00:42:06,944
+We don't want to add in multiple peer connections.
+
+581
+00:42:07,278 --> 00:42:09,664
+So if we'll we'll just do if not peer connection.
+
+582
+00:42:09,744 --> 00:42:11,492
+So we'll use the not operator right here.
+
+583
+00:42:11,886 --> 00:42:19,844
+So if we don't have a peer connection or we don't have a current remote description, so current remote description.
+
+584
+00:42:22,062 --> 00:42:23,584
+Then let's go ahead and continue.
+
+585
+00:42:23,664 --> 00:42:25,584
+So current remote description.
+
+586
+00:42:25,824 --> 00:42:26,464
+Why does that look weird?
+
+587
+00:42:26,544 --> 00:42:27,460
+Oh, three R's there.
+
+588
+00:42:27,854 --> 00:42:33,984
+Okay, so if we don't have a current remote description, let's go ahead and do peer connection.set remote description.
+
+589
+00:42:34,144 --> 00:42:35,364
+That's going to be the answer.
+
+590
+00:42:35,744 --> 00:42:37,824
+And that should complete the process.
+
+591
+00:42:37,998 --> 00:42:41,904
+So last thing I need to do here is go ahead and add an event listener.
+
+592
+00:42:42,254 --> 00:42:44,944
+And we're gonna do add answer.
+
+593
+00:42:45,742 --> 00:42:47,428
+That's this button right here.
+
+594
+00:42:48,110 --> 00:42:50,404
+And then we're gonna call the add answer function.
+
+595
+00:42:53,326 --> 00:42:54,544
+Okay, let's go ahead and test this.
+
+596
+00:42:54,638 --> 00:43:01,984
+So we'll bring this in, create an offer, copy it, bring it in here, create an answer.
+
+597
+00:43:02,446 --> 00:43:04,036
+Looks like they're overlapping a little bit.
+
+598
+00:43:05,262 --> 00:43:10,864
+Okay, so we'll grab this answer, bring it into peer one, add answer, there we go.
+
+599
+00:43:11,024 --> 00:43:13,732
+So that was the entire transaction process.
+
+600
+00:43:13,966 --> 00:43:19,684
+We just completed the entire cycle to how we can transfer data between two peers and make a connection.
+
+601
+00:43:20,014 --> 00:43:23,584
+So let's go ahead and clean up this function a little bit.
+
+602
+00:43:23,664 --> 00:43:24,624
+Let's clean some of this up.
+
+603
+00:43:24,704 --> 00:43:26,116
+We have a lot of information here.
+
+604
+00:43:26,542 --> 00:43:30,436
+So what I want to do here is actually create a new function called create peer connection.
+
+605
+00:43:30,862 --> 00:43:33,504
+So let's go ahead and make this underneath the init function.
+
+606
+00:43:33,584 --> 00:43:39,396
+So we'll do create peer connection, make this an async function.
+
+607
+00:43:39,918 --> 00:43:46,052
+So a lot of the logic that we have in the create offer and answer function are actually is exactly the same.
+
+608
+00:43:46,574 --> 00:43:52,516
+So what I'm gonna do here is go ahead and copy everything from let's see.
+
+609
+00:43:53,038 --> 00:43:58,704
+So we'll grab everything from peer connection down to offer.
+
+610
+00:43:59,374 --> 00:44:02,064
+So this is all the same inside of both of these functions.
+
+611
+00:44:02,190 --> 00:44:03,104
+So we'll copy this.
+
+612
+00:44:03,374 --> 00:44:07,460
+Let's actually remove it now, and let's throw this into pure connection.
+
+613
+00:44:08,334 --> 00:44:15,584
+And then let's take the pure connection function, let's minimize it for now, and let's throw this into create offer.
+
+614
+00:44:16,238 --> 00:44:19,620
+So we're just going to go ahead and call pure connection.
+
+615
+00:44:20,366 --> 00:44:22,544
+So it's going to go ahead and run through all of that.
+
+616
+00:44:22,958 --> 00:44:26,144
+Then what I want to do is go ahead and call the pure connection function right here.
+
+617
+00:44:26,224 --> 00:44:33,344
+So let's actually delete all of this down to getting the offer, and we'll paste that in right here.
+
+618
+00:44:33,582 --> 00:44:35,504
+So there's going to be a few issues that occur here.
+
+619
+00:44:35,584 --> 00:44:42,852
+So first of all, inside of the peer connection function, let's see, down here we're updating the offer SDP, and then it also needs to be the answer SDP.
+
+620
+00:44:43,024 --> 00:44:51,268
+So let's pass in the SDP type so it can be dynamic, and let's change this to SDP type.
+
+621
+00:44:51,982 --> 00:44:54,704
+So the offer will update the offer, the answer will update the answer.
+
+622
+00:44:54,784 --> 00:44:57,380
+So right here, we'll just go ahead and throw in the SDP type.
+
+623
+00:44:57,838 --> 00:45:09,904
+So we'll do let's see, this was offer SDP like that, and then down in the create answer, this will be answer SDP.
+
+624
+00:45:09,984 --> 00:45:11,396
+I just want to make sure I'm calling that right.
+
+625
+00:45:11,758 --> 00:45:15,344
+Okay, yeah, so we're just changing the value, and that needs to be dynamic.
+
+626
+00:45:15,438 --> 00:45:17,904
+So that's just some of the issues that come up with that.
+
+627
+00:45:18,382 --> 00:45:20,864
+This will be answer dash SDP.
+
+628
+00:45:22,190 --> 00:45:23,424
+Okay, so that looks a lot cleaner.
+
+629
+00:45:23,504 --> 00:45:25,744
+The create offer function is nice and short now.
+
+630
+00:45:25,824 --> 00:45:29,540
+We have all the logic that's repeated inside of the create peer connection function.
+
+631
+00:45:29,902 --> 00:45:32,484
+And we did the same for create answer.
+
+632
+00:45:32,942 --> 00:45:34,944
+So let's go ahead and make sure all of this is still working.
+
+633
+00:45:35,246 --> 00:45:37,124
+So we'll open up two tabs side by side.
+
+634
+00:45:37,646 --> 00:45:45,024
+Let's create the offer, bring it over, create the answer, copy that, bring it over, add it, and everything's still working.
+
+635
+00:45:45,104 --> 00:45:47,172
+So we just cleaned up a little bit and it looks fine.
+
+636
+00:45:47,344 --> 00:45:49,344
+So let's go ahead and move on to the next step.
+
+637
+00:45:49,424 --> 00:45:52,144
+And what we're going to do is work on signaling this data over.
+
+638
+00:45:52,224 --> 00:45:56,784
+So we don't want to actually have users have to copy and paste their offer and answer, pass this over.
+
+639
+00:45:56,864 --> 00:45:58,704
+It's not really a practical application.
+
+640
+00:45:59,022 --> 00:46:07,236
+So we want this information automatically signaled over whenever a user sends some kind of invite and they happen to both join that same room so they can actually communicate.
+
+641
+00:46:07,726 --> 00:46:16,260
+So in the slides earlier, I talked about using something like WebSockets to send this information over and signal it, or use a third-party service.
+
+642
+00:46:16,558 --> 00:46:21,476
+And in this case, we're going to use a third-party service so we don't have to build out our own signaling server.
+
+643
+00:46:21,870 --> 00:46:28,068
+So for this, we're going to use something called Agora, and Agora has a whole suite of tools for real-time engagement and communication.
+
+644
+00:46:28,366 --> 00:46:31,664
+And specifically, they have an SDK for real-time messaging.
+
+645
+00:46:31,744 --> 00:46:33,184
+So it's Agora RTM.
+
+646
+00:46:33,454 --> 00:46:42,624
+What we're going to do is go to Agora.io, create an account, download their SDK, and then just go ahead and configure a few things, and then we'll just go ahead and signal this information over.
+
+647
+00:46:42,990 --> 00:46:46,144
+So with Agora, you don't need a card on file.
+
+648
+00:46:46,224 --> 00:46:47,684
+You can actually register with that one.
+
+649
+00:46:47,904 --> 00:46:53,664
+And they have a pretty good free tier where you get to use it for quite a bit before you run out of those use minutes.
+
+650
+00:46:53,824 --> 00:46:58,020
+They actually calculate things by usage minutes and by active users.
+
+651
+00:46:58,318 --> 00:47:02,944
+So I wouldn't worry about going over that for this tutorial, and you can actually use it beyond that too.
+
+652
+00:47:03,104 --> 00:47:07,904
+So let's go ahead and go to this website and then go ahead and create an account.
+
+653
+00:47:07,984 --> 00:47:09,732
+So I already have an account with Agora.
+
+654
+00:47:09,998 --> 00:47:11,584
+I'm gonna go ahead and log into my console.
+
+655
+00:47:11,664 --> 00:47:17,380
+So once you create an account, you'll be in your console, and you're specifically gonna want to go to this project section.
+
+656
+00:47:17,806 --> 00:47:22,852
+So once you create an account, you're going to need to create a project or some kind of app, I believe they call it.
+
+657
+00:47:23,214 --> 00:47:29,424
+We're going to create an app, and then that app is going to have some kind of app ID, and then that's what we're going to connect our SDK to.
+
+658
+00:47:29,504 --> 00:47:31,236
+So I've used it before in other videos.
+
+659
+00:47:31,758 --> 00:47:33,904
+So let's go ahead and go to create.
+
+660
+00:47:33,984 --> 00:47:39,264
+You want to create a new project, give it some kind of name like WebRTC, whatever you want to call it for the use case.
+
+661
+00:47:39,344 --> 00:47:44,292
+Let's just do social and I guess we can just do chat room, it's kind of irrelevant at this point.
+
+662
+00:47:44,624 --> 00:47:48,464
+And for the authentication, select testing mode app ID.
+
+663
+00:47:48,544 --> 00:47:51,620
+This means that we don't have to use a token to actually authenticate our users.
+
+664
+00:47:52,014 --> 00:47:56,036
+Specifically for this tutorial, leave it here so we don't have to actually use a token.
+
+665
+00:47:56,270 --> 00:48:00,224
+Now I already have an app that I'm about to use, so in my case, I'm not gonna create a new app.
+
+666
+00:48:00,304 --> 00:48:01,344
+I'm gonna hit cancel.
+
+667
+00:48:01,518 --> 00:48:03,424
+If you don't have an app, go ahead and submit it.
+
+668
+00:48:03,504 --> 00:48:05,380
+Make sure your settings are set like this.
+
+669
+00:48:05,678 --> 00:48:08,544
+And once you create an app, you should see it in your dashboard.
+
+670
+00:48:08,718 --> 00:48:12,068
+So I've already created a few apps here, so I'm just gonna use one that I already have.
+
+671
+00:48:12,398 --> 00:48:15,104
+So for now, just go ahead and leave your Agora console open.
+
+672
+00:48:15,184 --> 00:48:22,372
+We're going to go back to the main console and just go ahead and download our SDK, and then we'll get back to getting our app ID.
+
+673
+00:48:22,624 --> 00:48:29,904
+So in the resources center, you should be able to go ahead and go to downloads, and we are going to specifically look for the web SDK.
+
+674
+00:48:29,984 --> 00:48:38,464
+So you should probably start at all platforms, go ahead and find web, and they have a voice SDK, video, real-time messaging.
+
+675
+00:48:38,544 --> 00:48:39,824
+This is the one that we want right here.
+
+676
+00:48:39,904 --> 00:48:43,184
+So go ahead and click this, it should download a zip file for you.
+
+677
+00:48:43,264 --> 00:48:44,548
+Let's go ahead and bring that out.
+
+678
+00:48:45,102 --> 00:48:51,652
+Open up the zip file, go into libs, and let's just go ahead and grab this and bring it into our desktop.
+
+679
+00:48:51,854 --> 00:48:52,704
+So I'm going to close this out.
+
+680
+00:48:52,784 --> 00:48:54,372
+That's the file that we want to extract.
+
+681
+00:48:54,830 --> 00:48:59,824
+I'll just move all of this over here, and let's just grab this.
+
+682
+00:49:00,974 --> 00:49:03,152
+file right here and bring this into our project folder.
+
+683
+00:49:03,342 --> 00:49:05,156
+So this is the project folder that we started with.
+
+684
+00:49:05,614 --> 00:49:06,352
+We'll bring that in here.
+
+685
+00:49:06,432 --> 00:49:11,232
+So now if I open up my text editor, I should see that project file right here.
+
+686
+00:49:11,312 --> 00:49:14,436
+So Agora RTM SDK and then the version number.
+
+687
+00:49:14,862 --> 00:49:17,152
+So let's go ahead and copy that file path.
+
+688
+00:49:17,232 --> 00:49:27,204
+So I just went ahead and copied that and we'll bring this into index.html and above our script tag right here for the main JavaScript file let's go ahead and add a new one.
+
+689
+00:49:27,694 --> 00:49:35,172
+Let's just do script close this out and I don't know why it looks so funny for me right now.
+
+690
+00:49:36,142 --> 00:49:40,992
+And then for the source let's just do source equals and then we'll just paste in that name.
+
+691
+00:49:41,072 --> 00:49:45,220
+So agora RTM SDK and then the version number if you're doing this at a different point.
+
+692
+00:49:45,486 --> 00:49:51,524
+This version number might look different so make sure you're grabbing exactly what's in here and that the file path is set up the way it's supposed to.
+
+693
+00:49:51,982 --> 00:49:55,332
+So we'll go ahead and save that and now we have our Agora SDK.
+
+694
+00:49:55,758 --> 00:49:59,232
+So at this point let's go ahead and go back into our console.
+
+695
+00:49:59,758 --> 00:50:02,512
+We'll open this back up have way too many tabs open right now.
+
+696
+00:50:02,862 --> 00:50:11,392
+So I can close out this downloads here and you can go back into the main console and let's go back to projects and go ahead and grab your project here.
+
+697
+00:50:11,472 --> 00:50:14,180
+So at this point the only thing we need is an app ID.
+
+698
+00:50:14,510 --> 00:50:19,232
+So it's hidden right now I'm going to make sure this is blurred out so I can reuse this later let's go ahead and copy that.
+
+699
+00:50:19,312 --> 00:50:24,592
+So it should copy it to clipboard and we're just going to go ahead and bring in this app ID into our project.
+
+700
+00:50:24,672 --> 00:50:29,632
+So inside of our main.js file the first thing I'm going to do is go ahead and set my app ID.
+
+701
+00:50:29,934 --> 00:50:34,832
+So I'll bring this at the top we'll just say app underscore ID.
+
+702
+00:50:35,182 --> 00:50:42,512
+So we'll bring that in I'll go ahead and make sure it's a string and I'll paste that in here and the next thing we want to do is actually configure our app here.
+
+703
+00:50:42,592 --> 00:50:51,632
+So we have our app ID we have the SDK downloaded so let's go ahead and move on to the next part and that is to make sure each user that logs in has some kind of unique ID.
+
+704
+00:50:51,712 --> 00:51:00,992
+So we'll create a UID and you can do this in multiple ways at this point what I'm going to do is just make sure we generate a random number and that we make sure this UID is a string.
+
+705
+00:51:01,166 --> 00:51:20,032
+So we'll just go ahead and generate that number stringify it so we'll do math dot floor and then in here we'll just do math dot random so we'll create a random number and we'll make sure it's a large number so that way we have a smaller chance of these IDs being duplicated.
+
+706
+00:51:20,142 --> 00:51:25,828
+So there's obviously better ways of doing this to ensure that two users don't have the same ID but for now this is going to do.
+
+707
+00:51:26,192 --> 00:51:36,032
+So after that we also need a token so usually this is for authentication at this point because we set our authentication mechanism to app ID only the app ID is the only thing we'll need.
+
+708
+00:51:36,206 --> 00:51:43,460
+So we still want to set that token variable but that's going to be null so later on if you want to change this to actually authenticate with a token you can just update it here.
+
+709
+00:51:43,982 --> 00:51:51,952
+So after that we'll need a client object so this will be like the entire interface for a client connection it's kind of like the pure connection object right here.
+
+710
+00:51:52,302 --> 00:51:54,112
+So we're going to access everything through the client.
+
+711
+00:51:54,192 --> 00:51:59,300
+So this will be the client right now it's undefined but we're going to go ahead and initialize all of this.
+
+712
+00:51:59,758 --> 00:52:08,912
+So inside of the init function let's go ahead and create this client so we'll do client and this is going to be equal to await and then we'll do agora RTM.
+
+713
+00:52:09,230 --> 00:52:19,072
+So we have access to agora RTM and all the methods because of the SDK that we downloaded so we'll just do create instance and that's gonna be the function that we'll use.
+
+714
+00:52:19,152 --> 00:52:23,392
+So because of the SDK make sure it's in here that's why we have access to all of this.
+
+715
+00:52:23,502 --> 00:52:28,352
+So now we have access to the methods and inside of the instance we want to pass in the app ID.
+
+716
+00:52:28,462 --> 00:52:29,732
+So go ahead and throw that in.
+
+717
+00:52:30,062 --> 00:52:31,072
+We have that as a string.
+
+718
+00:52:31,152 --> 00:52:35,300
+You can pass in the string right here if you wanted, so go ahead and add it, and we now have our client.
+
+719
+00:52:35,886 --> 00:52:39,552
+So once we get our client, we want to log in this specific client.
+
+720
+00:52:39,632 --> 00:52:49,136
+So this will be that interface for this user, so we'll just do await, and then we can do client dot login And in here, we want to pass in our UID.
+
+721
+00:52:49,216 --> 00:52:50,736
+So we want to log in as our client.
+
+722
+00:52:50,976 --> 00:52:53,732
+We also want to throw in the token, which at this point is going to be null.
+
+723
+00:52:54,094 --> 00:52:56,656
+So we'll throw that in, and then we can move on to the next step here.
+
+724
+00:52:56,736 --> 00:53:01,936
+So once a client is logged in, what we'll want to do next is create or join a channel here.
+
+725
+00:53:02,016 --> 00:53:06,176
+So we can go to the client object and call create channel.
+
+726
+00:53:06,446 --> 00:53:10,016
+So what this method will do is it'll create a new channel if one doesn't exist.
+
+727
+00:53:10,176 --> 00:53:13,764
+And if one does exist, it'll just go ahead and join that channel.
+
+728
+00:53:14,158 --> 00:53:15,936
+So there can be multiple channels.
+
+729
+00:53:16,110 --> 00:53:19,844
+So this is how you can have multiple chat rooms, multiple peers talking to each other.
+
+730
+00:53:20,256 --> 00:53:23,136
+And at this point, this ID is going to be called main.
+
+731
+00:53:23,376 --> 00:53:24,816
+So we're only going to allow one channel.
+
+732
+00:53:24,942 --> 00:53:29,376
+But later on, if you wanted to make this dynamic, you can grab some kind of value from the URL.
+
+733
+00:53:29,456 --> 00:53:31,204
+So a user can create a chat room.
+
+734
+00:53:31,438 --> 00:53:35,536
+Some kind of ID would be generated in that URL, and that would be the channel name.
+
+735
+00:53:35,630 --> 00:53:40,132
+So this is how you can have a bunch of people on the same website, but inside of their own rooms.
+
+736
+00:53:40,590 --> 00:53:45,796
+So for this tutorial's sake, we're only going to call this main, but this value would be dynamic.
+
+737
+00:53:46,158 --> 00:53:48,096
+So we're going to create or join that channel.
+
+738
+00:53:48,270 --> 00:53:51,456
+Once we establish that we have that channel, we're just going to call join.
+
+739
+00:53:51,536 --> 00:53:54,468
+So now we actually need to join it as the client here.
+
+740
+00:53:54,862 --> 00:53:59,716
+So we create the client, log in, create or find the channel, and then join that channel.
+
+741
+00:54:00,174 --> 00:54:08,016
+So the next thing I want to do here is actually listen for when other peers join that channel, and we're going to console this out just so we can see how the real-time messaging works here.
+
+742
+00:54:08,366 --> 00:54:12,452
+So we're going to create a function called handle peer joined.
+
+743
+00:54:13,262 --> 00:54:16,256
+So anytime another peer joins, we're going to make an async function.
+
+744
+00:54:16,336 --> 00:54:18,176
+We're going to pass in member ID.
+
+745
+00:54:18,256 --> 00:54:19,856
+So we want to know which peer joined.
+
+746
+00:54:19,982 --> 00:54:21,476
+So we're going to get their UID.
+
+747
+00:54:21,774 --> 00:54:24,324
+So each peer will have their own unique ID.
+
+748
+00:54:24,782 --> 00:54:27,696
+So we're going to have a function that lets us know when someone joins.
+
+749
+00:54:28,016 --> 00:54:30,096
+we'll do console log.
+
+750
+00:54:30,736 --> 00:54:31,696
+Can't spell right now.
+
+751
+00:54:31,776 --> 00:54:37,508
+And we'll just say a new peer has joined this room.
+
+752
+00:54:37,870 --> 00:54:39,696
+And then we'll just console out their ID.
+
+753
+00:54:39,776 --> 00:54:41,700
+So we'll do member ID.
+
+754
+00:54:42,350 --> 00:54:43,428
+So we're just going to get that.
+
+755
+00:54:44,654 --> 00:54:45,056
+Whoops.
+
+756
+00:54:45,454 --> 00:54:46,896
+Put that in the wrong area.
+
+757
+00:54:47,246 --> 00:54:47,456
+Okay.
+
+758
+00:54:47,950 --> 00:54:49,536
+So that's going to be in the parameter right here.
+
+759
+00:54:49,710 --> 00:54:53,696
+So this is going to be the function that handles the event, but we still need to listen for this event.
+
+760
+00:54:53,776 --> 00:54:58,016
+So right here, just below channel join, let's go ahead and add in event listener.
+
+761
+00:54:58,096 --> 00:55:00,096
+So we'll do channel dot on.
+
+762
+00:55:00,336 --> 00:55:03,696
+So we have these event listeners and we're going to listen for member.
+
+763
+00:55:04,366 --> 00:55:05,216
+It's a string.
+
+764
+00:55:05,616 --> 00:55:06,736
+Member join.
+
+765
+00:55:06,816 --> 00:55:09,056
+So whenever a member joins, what do we want to do?
+
+766
+00:55:09,326 --> 00:55:11,536
+So we're going to call handle peer joined.
+
+767
+00:55:11,662 --> 00:55:13,696
+So we're going to call this function and this will respond.
+
+768
+00:55:14,126 --> 00:55:16,736
+So let's go ahead and save this and let's make sure everything's working.
+
+769
+00:55:16,816 --> 00:55:18,148
+So let's open up the website.
+
+770
+00:55:19,502 --> 00:55:22,496
+Let's go ahead and close these out.
+
+771
+00:55:22,830 --> 00:55:32,100
+So by the way, if you want to look up the Agora documentation and understand everything that I'm doing here, go back into your console and go to the documentation right here or the API reference.
+
+772
+00:55:32,430 --> 00:55:34,416
+And this will explain every single function here.
+
+773
+00:55:34,496 --> 00:55:36,096
+So you'll want to select your platform.
+
+774
+00:55:36,270 --> 00:55:37,636
+In this case, we are on web.
+
+775
+00:55:37,998 --> 00:55:40,004
+You'll find real-time messaging.
+
+776
+00:55:40,302 --> 00:55:46,416
+And I'd recommend studying this also if you're using Agora and just try to understand the details and read up on what we're doing.
+
+777
+00:55:46,576 --> 00:55:48,676
+So each function here is going to be explained.
+
+778
+00:55:49,294 --> 00:55:53,296
+So let's go in here and first of all, let's open up the console, inspect.
+
+779
+00:55:53,646 --> 00:55:56,896
+And if you're seeing this right here, it means that everything is working.
+
+780
+00:55:57,136 --> 00:55:58,896
+Agora is actually connected.
+
+781
+00:55:59,214 --> 00:56:03,140
+So what we'll want to do is actually refresh that and open up a new tab here.
+
+782
+00:56:03,566 --> 00:56:08,496
+So when a new peer joins this channel, we want to console out a new peer has joined.
+
+783
+00:56:08,590 --> 00:56:10,564
+So let's go ahead and paste that into the URL.
+
+784
+00:56:11,342 --> 00:56:12,176
+And here we go.
+
+785
+00:56:12,256 --> 00:56:14,016
+We can see this console dot right here.
+
+786
+00:56:14,126 --> 00:56:15,108
+So I'll try to zoom in.
+
+787
+00:56:15,342 --> 00:56:20,676
+But in real time, what happened is we just got a message from this peer right here that they just joined.
+
+788
+00:56:21,102 --> 00:56:23,108
+So this is how we can respond to these events.
+
+789
+00:56:23,534 --> 00:56:25,536
+So when this peer joins, what do we want to do?
+
+790
+00:56:25,616 --> 00:56:30,724
+So we want to create an offer here and then send it over to this peer, and then eventually this peer will send a message back.
+
+791
+00:56:31,598 --> 00:56:33,028
+So let's go back into our code.
+
+792
+00:56:33,454 --> 00:56:37,904
+And what we'll want to do from here is send out a message to the peer that just joined the channel.
+
+793
+00:56:37,984 --> 00:56:44,224
+So when they join, we get an alert, we have their member ID, and we want to send them a message with our SDP offer.
+
+794
+00:56:44,304 --> 00:56:51,504
+But before we send out that SDP offer, let's just send a welcome message just to see how things flow, and then we can actually add in the data that we want to send.
+
+795
+00:56:51,822 --> 00:56:57,540
+So let's access the client object and let's use the send message to peer method.
+
+796
+00:56:57,902 --> 00:57:00,064
+So this is a way to send a peer-to-peer message.
+
+797
+00:57:00,144 --> 00:57:06,436
+So what we'll want to do is throw in an object here, throw in the text value, and then the actual message, and that's going to be hey.
+
+798
+00:57:06,958 --> 00:57:08,944
+So this is a peer-to-peer message.
+
+799
+00:57:09,024 --> 00:57:10,464
+So how do we know where to send this?
+
+800
+00:57:10,624 --> 00:57:13,924
+Well, we need to throw in the peer ID as the next parameter.
+
+801
+00:57:14,254 --> 00:57:18,020
+And here we have the member ID because we know who just joined the channel.
+
+802
+00:57:18,286 --> 00:57:21,476
+So this message right here is going to this peer.
+
+803
+00:57:21,966 --> 00:57:26,660
+So as they join, they get a message, and now we need to add an event handler to listen to this.
+
+804
+00:57:27,310 --> 00:57:32,804
+So let's go ahead and create a method called handle message from peer.
+
+805
+00:57:33,550 --> 00:57:35,424
+And we'll make this an async function.
+
+806
+00:57:35,758 --> 00:57:39,184
+And here we're going to pass in the message that was sent and then the member ID.
+
+807
+00:57:39,264 --> 00:57:41,584
+So we also know where this message was sent from.
+
+808
+00:57:41,870 --> 00:57:43,940
+So that way we can send a message back and forth.
+
+809
+00:57:44,622 --> 00:57:45,504
+So here we go.
+
+810
+00:57:45,664 --> 00:57:46,784
+We have the handler.
+
+811
+00:57:46,864 --> 00:57:48,544
+Let's go ahead and just console out the message.
+
+812
+00:57:48,624 --> 00:57:55,780
+We'll do console.log and we'll just say message, and that'll be message.text.
+
+813
+00:57:56,206 --> 00:57:58,084
+So we want to send the actual text value.
+
+814
+00:57:58,638 --> 00:58:03,908
+Okay, so we have the function that handles the event, but now we want to actually add in the event handler.
+
+815
+00:58:04,270 --> 00:58:15,184
+So here we're going to access the client object and then use the on method, and we're going to use the message from peer event handler from peer.
+
+816
+00:58:15,502 --> 00:58:18,148
+And then we'll just pass in handle message from peer.
+
+817
+00:58:18,638 --> 00:58:19,984
+So we listen for this event.
+
+818
+00:58:20,142 --> 00:58:22,784
+So when this message is sent, it'll fire this off right here.
+
+819
+00:58:22,864 --> 00:58:24,356
+This will be the function that handles it.
+
+820
+00:58:24,686 --> 00:58:26,624
+And then our peer should see the message.
+
+821
+00:58:27,054 --> 00:58:28,324
+So let's go ahead and test this out.
+
+822
+00:58:29,198 --> 00:58:31,184
+So we'll open up two tabs side by side.
+
+823
+00:58:31,534 --> 00:58:33,984
+We'll close one out and we'll actually start them fresh, actually.
+
+824
+00:58:34,064 --> 00:58:36,224
+So let's copy this, open this in a new tab.
+
+825
+00:58:36,654 --> 00:58:40,100
+I'm going to need to do inspect element so I can see everything as it happens.
+
+826
+00:58:40,526 --> 00:58:43,984
+And what we should see is a message here that says a new peer has joined.
+
+827
+00:58:44,078 --> 00:58:45,892
+So this is the first peer in the room right here.
+
+828
+00:58:46,254 --> 00:58:49,264
+So when this peer joins, we'll see the alert that a peer has joined.
+
+829
+00:58:49,344 --> 00:58:51,744
+And here we should see a message from this peer.
+
+830
+00:58:51,904 --> 00:58:54,020
+So let's go ahead and just copy and paste that.
+
+831
+00:58:54,830 --> 00:58:55,584
+And here we go.
+
+832
+00:58:55,664 --> 00:58:57,316
+So a new peer has joined a room.
+
+833
+00:58:57,454 --> 00:59:01,744
+And here we have a message that says, Hey, so this peer sent the message to this peer.
+
+834
+00:59:01,838 --> 00:59:04,144
+So now we actually want to send some kind of offer.
+
+835
+00:59:04,224 --> 00:59:07,108
+We want to send some real data so we can at least see how that process works.
+
+836
+00:59:07,726 --> 00:59:10,144
+So we'll go back here and let's continue.
+
+837
+00:59:10,304 --> 00:59:15,760
+So in handle peer joined, let's go ahead and actually create an offer, the second appear join.
+
+838
+00:59:15,824 --> 00:59:17,504
+So we want to create an offer and then send it.
+
+839
+00:59:17,774 --> 00:59:18,864
+So I'll comment this out for now.
+
+840
+00:59:18,944 --> 00:59:21,732
+We're going to use this in a second and update the data.
+
+841
+00:59:22,062 --> 00:59:24,464
+But let's just grab the create offer function.
+
+842
+00:59:24,750 --> 00:59:27,504
+So right now we only create the offer when we click on these buttons.
+
+843
+00:59:27,584 --> 00:59:28,864
+Let's actually just comment that out.
+
+844
+00:59:28,944 --> 00:59:30,052
+We don't need that anymore.
+
+845
+00:59:30,542 --> 00:59:31,812
+And let's go back up here.
+
+846
+00:59:32,366 --> 00:59:37,344
+So when a peer joins, we'll just call create offer.
+
+847
+00:59:39,278 --> 00:59:41,984
+And we're going to send the message from the create offer function.
+
+848
+00:59:42,064 --> 00:59:45,504
+So that means that we still need the member ID because we're going to call this again.
+
+849
+00:59:45,806 --> 00:59:49,264
+So let's just paste in member ID into create offer.
+
+850
+00:59:49,424 --> 00:59:52,704
+Let's copy this right here and remove it.
+
+851
+00:59:52,784 --> 00:59:54,980
+And let's scroll down to the peer offer.
+
+852
+00:59:55,694 --> 00:59:59,140
+So create offer or the create offer function, not peer offer.
+
+853
+00:59:59,664 --> 01:00:03,104
+So when we create an offer, we're going to add it to the DOM right away.
+
+854
+01:00:03,184 --> 01:00:04,900
+So you're going to see it in that text area.
+
+855
+01:00:05,262 --> 01:00:07,424
+And then we're going to send out a message right away.
+
+856
+01:00:07,504 --> 01:00:09,744
+So we're going to call send message to peer.
+
+857
+01:00:09,838 --> 01:00:13,316
+It does require a member ID or the peer that we're sending it to.
+
+858
+01:00:13,550 --> 01:00:17,104
+And when we call the create offer function, we passed in the member ID.
+
+859
+01:00:17,184 --> 01:00:20,544
+So we need to make sure to throw in that as a parameter here.
+
+860
+01:00:20,718 --> 01:00:22,144
+And this message will be sent.
+
+861
+01:00:22,414 --> 01:00:25,664
+Now we don't want to just say hey, we want to actually send the object here.
+
+862
+01:00:25,744 --> 01:00:27,812
+So the SCP offer that we created right here.
+
+863
+01:00:28,334 --> 01:00:29,824
+Now we need to send a string here.
+
+864
+01:00:29,904 --> 01:00:33,284
+So what we're going to do is go ahead and stringify the object that we're going to send.
+
+865
+01:00:33,678 --> 01:00:35,652
+So we'll call json.stringify.
+
+866
+01:00:35,918 --> 01:00:40,064
+And instead of just sending the offer, we're going to end up sending multiple types of messages later.
+
+867
+01:00:40,366 --> 01:00:42,384
+So we want to specify the message type.
+
+868
+01:00:42,478 --> 01:00:44,836
+So we'll go ahead and create some key value pairs.
+
+869
+01:00:45,230 --> 01:00:46,756
+And we'll just say type.
+
+870
+01:00:47,278 --> 01:00:49,024
+This is going to be an offer.
+
+871
+01:00:49,998 --> 01:00:52,592
+So we'll just do offer and then the actual offer value.
+
+872
+01:00:52,672 --> 01:00:56,228
+So we'll just call offer here and then throw in the offer.
+
+873
+01:00:56,878 --> 01:00:58,672
+Okay, so we're gonna send this object here.
+
+874
+01:00:58,752 --> 01:01:00,548
+So on the other end, we need to parse this.
+
+875
+01:01:00,974 --> 01:01:04,036
+So let's go ahead and go back to handle message from peer.
+
+876
+01:01:04,334 --> 01:01:11,126
+Let's take the original message and then just call json.parse and we're gonna parse message.
+
+877
+01:01:11,438 --> 01:01:14,432
+dot text So we're just getting that value right away.
+
+878
+01:01:14,606 --> 01:01:19,012
+So let's change this to message and let's just see the offer being sent over.
+
+879
+01:01:19,758 --> 01:01:21,444
+So let's go ahead and open both of these up.
+
+880
+01:01:22,112 --> 01:01:26,180
+And right now it looks like there was an error, so let me just try to refresh this.
+
+881
+01:01:26,766 --> 01:01:27,312
+And here we go.
+
+882
+01:01:27,392 --> 01:01:32,992
+So we see a new peer has joined a room, and here we see the message, and that is the offer right here.
+
+883
+01:01:33,134 --> 01:01:35,232
+So this peer has gotten the offer.
+
+884
+01:01:35,534 --> 01:01:43,392
+So what I want to do here, because the offer gets created right away, so if I refresh this, this will be peer two, and then if I refresh this, this will now be peer two.
+
+885
+01:01:43,552 --> 01:01:47,556
+So it keeps changing when that handle method is actually called or handle peer method is called.
+
+886
+01:01:47,982 --> 01:01:52,272
+So I want to make sure that this offer is actually added right here.
+
+887
+01:01:52,526 --> 01:01:54,180
+So let's go ahead and continue here.
+
+888
+01:01:54,592 --> 01:02:00,032
+And inside of the handle message from peer method, let's go ahead and check the type of message.
+
+889
+01:02:00,430 --> 01:02:11,712
+So we'll just go ahead and call if, and then we'll say if the message dot type, if this is equal to offer, let's go ahead and add the offer to the DOM.
+
+890
+01:02:11,822 --> 01:02:15,364
+So we'll call document.getElement by ID.
+
+891
+01:02:16,334 --> 01:02:20,644
+And we're just going to get the offer SDP dot value.
+
+892
+01:02:21,038 --> 01:02:22,912
+And let's just go ahead and stringify this.
+
+893
+01:02:22,992 --> 01:02:28,388
+So we need to stringify the offer to actually paste it into the DOM dot stringify or into that text area.
+
+894
+01:02:28,782 --> 01:02:30,948
+And let's just go ahead and get message.
+
+895
+01:02:36,334 --> 01:02:39,072
+So we're just getting that offer and we're just going to add it to the DOM.
+
+896
+01:02:39,152 --> 01:02:42,272
+So let's go ahead and just see how all of this looks here.
+
+897
+01:02:42,352 --> 01:02:44,192
+So let's open up bold tabs here.
+
+898
+01:02:44,462 --> 01:02:46,788
+I'll actually create a new tab, copy that.
+
+899
+01:02:47,310 --> 01:02:52,420
+And right now, if I refresh it, we have no offer because the offer gets created whenever a new peer joins.
+
+900
+01:02:52,974 --> 01:03:00,740
+So if I go ahead and add this in here, when this peer joins, the offer gets created, and then the message gets sent and passed in right here.
+
+901
+01:03:01,102 --> 01:03:06,512
+So we've passed in the offer, but before we continue with the answer, we still need to send over the ice candidates.
+
+902
+01:03:06,592 --> 01:03:13,072
+So what's happening here is the offer is sent over immediately once it's created, but the ice candidates take a minute to trickle in.
+
+903
+01:03:13,152 --> 01:03:21,552
+So before we didn't have to actually send over those ice candidates on their own, because by the time we copied and pasted it, they were already added to that offer and sent over with it.
+
+904
+01:03:21,902 --> 01:03:22,992
+So we didn't have to worry about that.
+
+905
+01:03:23,072 --> 01:03:24,512
+But now it's being sent so fast.
+
+906
+01:03:24,592 --> 01:03:28,708
+So what we need to do is go back to this on ice candidate event.
+
+907
+01:03:29,422 --> 01:03:37,472
+So create peer connection, this gets called, and then every single time we create an ICE candidate, we usually update that description in the DOM.
+
+908
+01:03:37,712 --> 01:03:39,012
+So in that text area right here.
+
+909
+01:03:39,472 --> 01:03:47,620
+So in this same area, what I want to do is also send a message, and at this point, it's going to be the offer candidate or the ice candidate.
+
+910
+01:03:48,462 --> 01:03:50,788
+So we'll go to create offer here.
+
+911
+01:03:51,246 --> 01:03:52,752
+Let's grab this entire method.
+
+912
+01:03:53,006 --> 01:04:04,868
+So this is inside of create offer, and let's just copy this, bring this into create ice candidate, paste it in, and at this point, the type is going to be candidate.
+
+913
+01:04:05,902 --> 01:04:09,636
+So it doesn't matter if it's a offer candidate or an answer candidate.
+
+914
+01:04:10,126 --> 01:04:13,632
+So we're just going to go ahead and pass in the candidate itself.
+
+915
+01:04:13,902 --> 01:04:14,832
+We'll change this value.
+
+916
+01:04:14,912 --> 01:04:20,324
+So the type is candidate and then the actual candidate, and the candidate will be event.dot candidate.
+
+917
+01:04:20,846 --> 01:04:23,108
+So there'll be multiple candidates sent over.
+
+918
+01:04:23,552 --> 01:04:27,232
+So each time it creates one, it'll pass it in, and there we go.
+
+919
+01:04:27,438 --> 01:04:39,632
+So with the offer, we're also going to send over an ice candidate, and now on this end, when we receive the message, actually, I just realized for peer connection, we need to know where to send this message.
+
+920
+01:04:39,792 --> 01:04:41,060
+So we have the member ID.
+
+921
+01:04:41,550 --> 01:04:46,820
+That means for peer connection, we need to also pass in member ID.
+
+922
+01:04:47,214 --> 01:04:52,484
+And let's go ahead and pass in the member ID, the member ID everywhere we call peer connection.
+
+923
+01:04:53,166 --> 01:04:59,140
+So create offer, let's go ahead and pass in that member ID, and then anywhere else where we have it.
+
+924
+01:04:59,726 --> 01:05:02,180
+Actually, we'll leave it alone for now, we'll just use that later.
+
+925
+01:05:03,022 --> 01:05:10,832
+Okay, so we send over the ICE candidates, but now inside of the handle message method, let's go ahead and check if this is a candidate.
+
+926
+01:05:10,912 --> 01:05:14,756
+So if the message type is a candidate, let's go ahead and process it.
+
+927
+01:05:15,022 --> 01:05:17,892
+So we'll do if message.type.
+
+928
+01:05:19,502 --> 01:05:20,580
+Is equal to candidate.
+
+929
+01:05:21,614 --> 01:05:23,392
+Let's go ahead and actually add this candidate.
+
+930
+01:05:23,472 --> 01:05:28,192
+So we haven't used this method yet, but there's a method to add to actually add each individual candidate.
+
+931
+01:05:28,302 --> 01:05:32,032
+So we're just going to first check if we have a peer connection just in case there's any kind of delay.
+
+932
+01:05:32,366 --> 01:05:34,212
+So we'll do if we have a peer connection.
+
+933
+01:05:34,894 --> 01:05:36,432
+Then let's go ahead and continue.
+
+934
+01:05:36,782 --> 01:05:42,372
+And we'll just get the pure connection dot add ice candidate.
+
+935
+01:05:44,654 --> 01:05:48,260
+And then this will just be the message dot candidate.
+
+936
+01:05:49,486 --> 01:05:52,992
+Okay, so we're sending over the ice candidates and we're passing them in.
+
+937
+01:05:53,102 --> 01:05:55,952
+So let's just go ahead and check the message type here.
+
+938
+01:05:56,174 --> 01:05:57,348
+So I just want to see how this works.
+
+939
+01:05:58,606 --> 01:05:59,472
+So we have the message type.
+
+940
+01:05:59,552 --> 01:06:01,828
+We should see an offer and then multiple candidates here.
+
+941
+01:06:02,032 --> 01:06:05,792
+So let's go ahead and inspect console.
+
+942
+01:06:05,872 --> 01:06:06,788
+Let's refresh it.
+
+943
+01:06:07,854 --> 01:06:09,792
+Okay, so here we should see a candidate.
+
+944
+01:06:09,872 --> 01:06:10,724
+There's one message.
+
+945
+01:06:10,992 --> 01:06:14,032
+We have another candidate, and then we have the original offer.
+
+946
+01:06:14,112 --> 01:06:16,676
+So it looks like there was two ice candidates that we sent over.
+
+947
+01:06:17,230 --> 01:06:21,952
+So we pass in the candidates and then we add them to the actual peer connection, and that looks good.
+
+948
+01:06:22,032 --> 01:06:24,200
+So we passed in the offer and the candidate.
+
+949
+01:06:24,512 --> 01:06:27,332
+So let's go ahead and actually create an answer now.
+
+950
+01:06:27,792 --> 01:06:32,112
+So create answer will actually be triggered when the offer is sent over.
+
+951
+01:06:32,398 --> 01:06:34,180
+So we'll just call create answer.
+
+952
+01:06:35,470 --> 01:06:39,312
+And let's go ahead and let's see what we need to do with the actual create answer.
+
+953
+01:06:39,472 --> 01:06:42,500
+So we're also gonna send a message from the create answer method.
+
+954
+01:06:42,798 --> 01:06:49,952
+So let's pass in the member ID and then let's go down to create answer, respond to this, and send an answer back to our peers.
+
+955
+01:06:50,032 --> 01:06:51,952
+So let's go ahead and pass in member ID.
+
+956
+01:06:52,174 --> 01:06:56,752
+And we're also gonna need this member ID inside of create peer connection, also inside of the answer.
+
+957
+01:06:56,846 --> 01:07:00,132
+So we'll throw that in because we are sending a message out from here.
+
+958
+01:07:00,430 --> 01:07:05,700
+And when we create our answer, the first thing we want to do from here is actually send out that answer SDP.
+
+959
+01:07:05,792 --> 01:07:14,912
+So let's copy this from create offer, bring this down here, and after we add the answer to the DOM, let's go ahead and send it back to peer one.
+
+960
+01:07:15,470 --> 01:07:17,412
+So client dot send message to peer.
+
+961
+01:07:18,030 --> 01:07:20,036
+This will be the type of answer.
+
+962
+01:07:20,622 --> 01:07:21,956
+So we want to be able to identify this.
+
+963
+01:07:22,446 --> 01:07:27,232
+Then we'll actually get the answer, and then we're going to send over this answer right here.
+
+964
+01:07:27,662 --> 01:07:29,316
+And then we're sending that to that member ID.
+
+965
+01:07:30,030 --> 01:07:33,604
+Okay, so we create an answer, add it to the DOM, send it over.
+
+966
+01:07:33,998 --> 01:07:40,432
+And right now, if we go ahead and just take a look, we should see the answer actually be created and sent over.
+
+967
+01:07:40,512 --> 01:07:41,828
+So let's go ahead and close this out.
+
+968
+01:07:43,598 --> 01:07:47,232
+We'll refresh it, open up a new tab, and let's go ahead and join.
+
+969
+01:07:47,342 --> 01:07:49,540
+So when we join, we should see the offer get created.
+
+970
+01:07:49,774 --> 01:07:54,192
+It's sent over, the answer is created, and the answer needs to be sent over here.
+
+971
+01:07:54,574 --> 01:07:55,792
+So let's go ahead and handle that.
+
+972
+01:07:55,952 --> 01:07:59,872
+So inside of our message from peer, so we're sending a message back to peer one.
+
+973
+01:08:00,206 --> 01:08:04,432
+Let's go ahead and copy this question right here.
+
+974
+01:08:04,592 --> 01:08:10,752
+So if message type is answer, let's go ahead and get the answer SDP right here.
+
+975
+01:08:10,832 --> 01:08:14,432
+So we'll change that, and then we'll get the message dot answer.
+
+976
+01:08:14,766 --> 01:08:20,352
+So we're getting that, adding that to the DOM, and that should be it for this section.
+
+977
+01:08:20,432 --> 01:08:21,632
+We don't want to create an answer.
+
+978
+01:08:21,712 --> 01:08:24,964
+What I'm gonna do is go ahead and just call add answer.
+
+979
+01:08:26,510 --> 01:08:27,472
+So we'll add the answer.
+
+980
+01:08:27,822 --> 01:08:33,952
+So that should allow us to connect, it should add in the answer to the DOM, and the ICE candidates will send out automatically.
+
+981
+01:08:34,032 --> 01:08:40,272
+So we call create peer connection, so we have an SDP type, and automatically this will be sent out as a candidate.
+
+982
+01:08:40,352 --> 01:08:41,392
+So that's already taken care of.
+
+983
+01:08:41,518 --> 01:08:44,452
+So that means the peer two should also send out the ICE candidates.
+
+984
+01:08:45,294 --> 01:08:48,196
+So let's go ahead and just see how all of this is working.
+
+985
+01:08:49,102 --> 01:08:51,204
+Looks like it's already sort of functioning.
+
+986
+01:08:52,270 --> 01:08:53,156
+Let's try to refresh this.
+
+987
+01:08:54,126 --> 01:08:54,944
+Alright, there we go.
+
+988
+01:08:55,054 --> 01:08:56,944
+So let's open up a new tab again.
+
+989
+01:08:57,134 --> 01:08:58,544
+This is all done automatically.
+
+990
+01:08:58,670 --> 01:09:00,064
+So right now we have no offer.
+
+991
+01:09:00,398 --> 01:09:03,012
+I know I'm being a little bit repetitive, but I'm trying to just go through it.
+
+992
+01:09:03,534 --> 01:09:08,784
+So we send over the offer, we create the answer, and then the offer ice candidates were also sent over.
+
+993
+01:09:08,864 --> 01:09:10,224
+We create an answer, send it over.
+
+994
+01:09:10,382 --> 01:09:11,556
+It gets added to the DOM.
+
+995
+01:09:11,758 --> 01:09:14,864
+We sent over the answer ice candidates, and a connection was made.
+
+996
+01:09:14,958 --> 01:09:16,304
+So we've completed this process.
+
+997
+01:09:16,398 --> 01:09:21,476
+Now there's one thing that I wanted to take care of here, and that is sometimes if I refresh this too fast.
+
+998
+01:09:22,094 --> 01:09:29,476
+I know you probably should just stop users from doing that completely, but sometimes the peer connection object, I'm sorry, I mean local stream.
+
+999
+01:09:29,902 --> 01:09:33,184
+Sometimes this local stream right here is not created fast enough.
+
+1000
+01:09:33,264 --> 01:09:44,864
+So what happens is when the peer gets the message, sometimes we try to create the answer and go through this process before that local stream was actually created, and then we're calling functions on an object that doesn't actually exist.
+
+1001
+01:09:45,294 --> 01:09:48,704
+So what we're gonna do is we're first gonna go ahead and check if that local stream exists.
+
+1002
+01:09:48,864 --> 01:09:56,464
+For some reason, if it was delayed, we're just going to say if not local stream, then let's go ahead and just paste in local stream.
+
+1003
+01:09:56,544 --> 01:09:59,024
+We're going to create it and then just add it to the DOM.
+
+1004
+01:09:59,104 --> 01:10:00,964
+So we're just going to ensure that this is created.
+
+1005
+01:10:01,550 --> 01:10:02,144
+So that's it.
+
+1006
+01:10:02,318 --> 01:10:04,144
+You probably won't see the issue right now.
+
+1007
+01:10:04,224 --> 01:10:08,900
+Um it kind of happens randomly, but now if I do control shift R, I'm just going to refresh it.
+
+1008
+01:10:09,294 --> 01:10:13,796
+And then if I refresh it a bunch of times, it should work, and then switch between the peers and everything looks good.
+
+1009
+01:10:14,158 --> 01:10:15,424
+So that's it for this video.
+
+1010
+01:10:15,504 --> 01:10:16,836
+I hope you learned a bunch.
+
+1011
+01:10:17,104 --> 01:10:24,544
+I'm actually doing a video for Traversy Media on his channel, and in there we're actually going to create a real project with WebRTC.
+
+1012
+01:10:24,686 --> 01:10:25,584
+So it's going to look really cool.
+
+1013
+01:10:25,664 --> 01:10:32,624
+We're going to have controls, things like muting your audio, turning your camera on and off, and actually joining custom rooms and talking to peers.
+
+1014
+01:10:32,704 --> 01:10:33,744
+So it's gonna look really cool.
+
+1015
+01:10:34,126 --> 01:10:34,944
+It's gonna be a fun project.
+
+1016
+01:10:35,024 --> 01:10:37,584
+I'll link that up in the video description once that video is done.
+
+1017
+01:10:37,904 --> 01:10:41,412
+So it should be maybe another week or two before I post that.
+
