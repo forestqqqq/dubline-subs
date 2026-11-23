@@ -1,0 +1,1260 @@
+1
+00:00:04,014 --> 00:00:05,600
+Good morning, ladies and gentlemen.
+
+2
+00:00:05,760 --> 00:00:07,920
+As I've been introduced, my name is Liz Bins.
+
+3
+00:00:08,240 --> 00:00:22,720
+I'll be talking about the deploying of modern software architecture in a really high value and also high utilization in stool base.
+
+4
+00:00:23,438 --> 00:00:26,080
+So I'll be talking about our lithography systems.
+
+5
+00:00:26,400 --> 00:00:44,388
+And I'd start by just saying that as well as myself and my co-authors, Milan and Darko, who unfortunately were not able to also come along, this really represents the work of a very large team of people over quite a large amount of time.
+
+6
+00:00:44,880 --> 00:00:56,100
+Too many people to list on the slides, so unfortunately I didn't put them all there, but certainly they're not forgotten in this.
+
+7
+00:00:58,800 --> 00:01:06,212
+to give an overview of what I'll be talking about today, I'll start with an introduction to the context.
+
+8
+00:01:07,000 --> 00:01:12,880
+So I'll say a little bit about our machine and the surroundings, the environment in which it's being deployed.
+
+9
+00:01:13,200 --> 00:01:28,560
+Then I'll look at the architectural motivation, you know, what drove us to actually make a change to our systems, and a little bit of the history as to things we did in the past, things that didn't work out too well.
+
+10
+00:01:30,286 --> 00:01:39,492
+then I'll look a bit at some of the key challenges when we actually tried moving from one architecture to another in the field.
+
+11
+00:01:40,320 --> 00:01:54,532
+And I'll also say a bit there about the sorts of approaches we've taken to get around these challenges, and then I'll finish up with some key takeaways.
+
+12
+00:01:58,720 --> 00:01:59,748
+So, oops.
+
+13
+00:02:03,694 --> 00:02:05,520
+That looks more responsive than I thought.
+
+14
+00:02:05,680 --> 00:02:13,040
+Um so I'll start with a little bit of talking about the system and its surroundings.
+
+15
+00:02:13,390 --> 00:02:27,680
+As mentioned, I'll be talking about our lithography systems, and the role that they play is in the manufacture of semiconductor chips.
+
+16
+00:02:28,240 --> 00:02:30,400
+and every chip that you see.
+
+17
+00:02:30,560 --> 00:02:35,040
+so everything that's in your laptop, in your mobile phone.
+
+18
+00:02:35,280 --> 00:02:44,388
+in um, this microphone, pretty much everything, winds up, starting off as a flat bare piece of silicon.
+
+19
+00:02:44,800 --> 00:03:05,668
+And what happens in the production is that we build up the chip in layers, one layer at a time, and we use the um what we call the lithography machines to etch a pattern on the wafer surface.
+
+20
+00:03:05,840 --> 00:03:24,260
+and then we use other tools that are made by other people to deposit material on these wafers, to etch material off, to change the surface, to add small amounts of impurities to the surface, and so on.
+
+21
+00:03:25,440 --> 00:03:32,068
+And this requires hundreds, if not thousands, of individual steps for every single chip.
+
+22
+00:03:33,504 --> 00:03:37,424
+Now, our role in this is that we make these lithography machines.
+
+23
+00:03:38,064 --> 00:03:41,444
+When you see them by themselves, everything looks simple.
+
+24
+00:03:41,664 --> 00:03:46,864
+There's this big white featureless box.
+
+25
+00:03:47,664 --> 00:03:55,744
+Wafers are fed in, already coated with a chemical that is reactive to light.
+
+26
+00:03:56,304 --> 00:04:03,812
+Something happens inside the machine, and exposed wafers come out ready for the next step of processing.
+
+27
+00:04:05,134 --> 00:04:18,224
+Now, inside that machine, what happens is that the wafers are loaded in, they're initially measured, so we're looking at just tiny distortions in the surface of the wafer.
+
+28
+00:04:18,464 --> 00:04:23,984
+So they might be slightly stretched, they might be slightly compressed, or so on in the machine.
+
+29
+00:04:24,464 --> 00:04:27,264
+You know, thermal variations and so on.
+
+30
+00:04:27,424 --> 00:04:32,064
+They might also be not perfectly flat, and I'll say a little bit in a moment about that.
+
+31
+00:04:34,318 --> 00:04:37,984
+And we also take measurements of the system itself.
+
+32
+00:04:38,064 --> 00:04:46,820
+So we measure some fiducials in the system, and we use this to actually track the changes in the machine itself over time.
+
+33
+00:04:47,246 --> 00:04:51,344
+So the machine can warm up, can cool down, and so on.
+
+34
+00:04:52,304 --> 00:05:00,304
+Then the business end of the machine is the actual exposure using a radical.
+
+35
+00:05:00,384 --> 00:05:08,624
+so think of it a bit like exposing a photograph from a negative.
+
+36
+00:05:08,784 --> 00:05:16,900
+so you have a pattern and you expose light through it, and the surface of the wafer then chemically reacts to that.
+
+37
+00:05:17,294 --> 00:05:19,172
+And then the wafers are loaded out.
+
+38
+00:05:21,038 --> 00:05:25,264
+Now I said something about the vertical.
+
+39
+00:05:25,584 --> 00:05:30,148
+Um this is just an example map that comes out of our system.
+
+40
+00:05:31,726 --> 00:05:34,180
+when the wafer goes in, it looks beautifully flat.
+
+41
+00:05:34,574 --> 00:05:36,772
+It looks like an amazingly flat mirror.
+
+42
+00:05:37,744 --> 00:05:47,744
+but what we actually see is that the surface of the um uh of the wafer has, in this case, a shape that's a sort of saddle shape.
+
+43
+00:05:48,144 --> 00:05:51,024
+people might think of Pringles.
+
+44
+00:05:52,930 --> 00:06:01,252
+And the magnitude of this shape, in this case, is a few nanometers, maybe uh, sorry, a few microns.
+
+45
+00:06:02,064 --> 00:06:15,300
+so that's like a few thousandths of a millimeter, which means it's sort of in the order of one hundredth of a human hair, different from being perfectly flat.
+
+46
+00:06:15,904 --> 00:06:22,628
+but that's also a thousand times bigger than the size of the features that we're trying to print.
+
+47
+00:06:23,214 --> 00:06:25,636
+So that's why we have to measure these.
+
+48
+00:06:28,334 --> 00:06:30,384
+All of that's so simple so far.
+
+49
+00:06:30,958 --> 00:06:38,224
+You'd wonder why do we even need a complicated architecture or new architectures or so on for this?
+
+50
+00:06:38,542 --> 00:06:41,904
+And it's all simple until you get to the reality.
+
+51
+00:06:41,984 --> 00:06:47,364
+And the reality is that this is what one of these machines look like when you take the box off.
+
+52
+00:06:49,024 --> 00:06:52,932
+so you know, it's over 100 tons of hardware.
+
+53
+00:06:53,184 --> 00:06:56,144
+I think the latest EUV system is like 180 tons.
+
+54
+00:06:56,224 --> 00:07:00,624
+That's three battle tanks worth of metal here.
+
+55
+00:07:01,264 --> 00:07:04,304
+it has over 200,000 parts in it.
+
+56
+00:07:04,544 --> 00:07:12,064
+Um, it's continuously sort of calibrating itself to maintain that sort of nanometer precision.
+
+57
+00:07:12,384 --> 00:07:23,824
+And so it's looking at things like thermal effects, you know, just a tiny amount of expansion anywhere in the system, any sort of environmental changes, earthquakes.
+
+58
+00:07:23,984 --> 00:07:29,824
+Our systems make wonderful seismographs, kind of expensive, but they work very well at that.
+
+59
+00:07:30,064 --> 00:07:43,396
+And what I mentioned about measurement, well, somewhere in here, that's where we live, and that little box roughly is about the extent of where all the measurement that my team were working on fits.
+
+60
+00:07:44,366 --> 00:07:47,364
+So suddenly it's like, oh, but we're actually part of this machine.
+
+61
+00:07:48,110 --> 00:07:54,500
+Well, that would be okay, but the real machine is this one.
+
+62
+00:07:56,224 --> 00:08:07,264
+so in this case, this is the Intel D1X lab added in Hillsborough, and this is a $20 billion machine.
+
+63
+00:08:07,662 --> 00:08:18,948
+Yeah, it's one big machine, effectively, where blank wafers go into this machine and chips actually sort of come out at the end of it.
+
+64
+00:08:20,590 --> 00:08:29,344
+And if you look inside the machine, you really see that it's a fully automated system.
+
+65
+00:08:29,664 --> 00:08:43,972
+We have these overhead track systems up there that really like a very rich man's toy railway set that actually pick up and lift and move wafers around.
+
+66
+00:08:45,904 --> 00:08:53,924
+we have a lot of machines, not just our lithography machines, but all the other machines by other manufacturers.
+
+67
+00:08:54,766 --> 00:08:56,304
+The entire system is automated.
+
+68
+00:08:56,544 --> 00:08:58,628
+We don't want people in the environment.
+
+69
+00:08:59,470 --> 00:09:08,864
+despite what someone said about smoking cigars and eating cheeseburgers, really we do not want that in a clean room.
+
+70
+00:09:09,504 --> 00:09:09,824
+And
+
+71
+00:09:13,504 --> 00:09:19,744
+all of these different systems are wired into a network that covers that fab.
+
+72
+00:09:20,142 --> 00:09:29,504
+Often it's isolated from the outside world, and there are established protocols by which everything communicates.
+
+73
+00:09:29,904 --> 00:09:46,820
+so there's the uh uh Sex Stat's um semiconductor equipment communication standard, which is an open standard that basically all of the semiconductor capital equipment manufacturers follow these days.
+
+74
+00:09:48,304 --> 00:09:57,184
+there are others like one called E84, which is about the sort of handoff of materials, so it contains sort of ready flags.
+
+75
+00:09:57,264 --> 00:10:05,584
+Okay, I'm ready to pick up a foob, um, I've unlocked the doors, I've picked it up, I'm ready to receive a new one, and so on.
+
+76
+00:10:06,144 --> 00:10:09,828
+EDA, which is a mechanism for getting reports, and so on.
+
+77
+00:10:11,264 --> 00:10:14,064
+And so as you can imagine, this complicated machine.
+
+78
+00:10:14,304 --> 00:10:17,024
+This machine has to run 24-7.
+
+79
+00:10:17,934 --> 00:10:23,204
+You know, in order to make people money, you know, this thing has to be printing wafers.
+
+80
+00:10:25,550 --> 00:10:39,504
+So going back to us and looking at what we changed and why, it's a little bit of a story, but it starts off with our idea of a measurement sequence.
+
+81
+00:10:39,664 --> 00:10:41,504
+And initially this was really, really simple.
+
+82
+00:10:41,584 --> 00:10:51,952
+It was okay, just measure the height of the wafer, measure the horizontal positions, measure some fiducials, done next wafer light it up.
+
+83
+00:10:51,952 --> 00:10:58,384
+And for a while, you know, our first systems had a very simple way of executing the measurements.
+
+84
+00:10:58,734 --> 00:11:02,064
+But over time, we started to get more and more complicated.
+
+85
+00:11:02,384 --> 00:11:07,652
+So our drivers for this were really speed and concatenation of actions.
+
+86
+00:11:07,886 --> 00:11:16,292
+So we started doing things in parallel, we started trying to squeeze all of our communications to fit into the shadow of the hardware moves.
+
+87
+00:11:16,864 --> 00:11:30,820
+Um we we started really tweaking things to just try and get the last bit of time out of our system in order to get basically, the more wafers it prints, the more money the customer makes.
+
+88
+00:11:32,462 --> 00:11:35,824
+Then we also started looking more at our robustness.
+
+89
+00:11:36,144 --> 00:11:41,184
+So, as you can imagine, measurements can fail, things can go wrong, things can be out of spec.
+
+90
+00:11:41,984 --> 00:11:44,704
+And this really sort of falls into three buckets.
+
+91
+00:11:45,264 --> 00:11:57,824
+firstly, there's just trying to successfully measure the um the current wafer as quickly as possible to keep production running as fast as we can.
+
+92
+00:11:58,544 --> 00:12:08,356
+And if that fails, then we still try and see, okay, is there a way of getting enough measurement that we can still continue with this wafer?
+
+93
+00:12:09,038 --> 00:12:13,764
+You know, because this wafer it's an expensive piece of material, we don't want to throw it away.
+
+94
+00:12:14,318 --> 00:12:17,104
+And then the final part of it is, okay.
+
+95
+00:12:17,984 --> 00:12:35,588
+if we really cannot expose the current wafer, you know, if there's something critically wrong with it, then, uh, you know, can we quickly clear it out of our system, get the next wafer into the system, and carry on production?
+
+96
+00:12:37,998 --> 00:12:45,956
+And then finally, our third drive of this was you know we started adding new features, new ways of doing modeling.
+
+97
+00:12:46,350 --> 00:12:51,268
+Some of these new ways are commercial options, some of them are customer switchable.
+
+98
+00:12:52,896 --> 00:13:02,496
+some of them require more calculation time, which feeds back to the original concerns about speed in the system.
+
+99
+00:13:03,054 --> 00:13:08,292
+Some of them may have um you know um differences in terms of their robustness.
+
+100
+00:13:08,656 --> 00:13:22,896
+So basically, all of these things wound up making what started as a really, really simple shopping list into something that became this sort of monstrous monolithic function with a huge fan out.
+
+101
+00:13:24,014 --> 00:13:27,856
+You don't need to see the details of this, but you, you can just see there that.
+
+102
+00:13:27,936 --> 00:13:28,176
+okay.
+
+103
+00:13:28,256 --> 00:13:30,416
+this thing calls lots and lots and lots of things.
+
+104
+00:13:30,574 --> 00:13:33,376
+and there are lots and lots and lots of branches inside it.
+
+105
+00:13:33,616 --> 00:13:37,376
+and the cyclomatic complexity of that then explodes.
+
+106
+00:13:37,456 --> 00:13:45,296
+and it explodes to the point where the cyclomatic complexity is almost meaningless in this universe.
+
+107
+00:13:45,776 --> 00:13:49,696
+you know, you wind up with so many branches, you say so many paths through here.
+
+108
+00:13:50,766 --> 00:13:56,416
+it's not meaningful to the number of scanners and the number of wafers we produce.
+
+109
+00:13:56,656 --> 00:13:58,980
+It's not even meaningful on this scale.
+
+110
+00:14:00,590 --> 00:14:05,536
+So, and this is still sort of maybe 15, 20 years ago.
+
+111
+00:14:05,696 --> 00:14:07,376
+Um, how are we dealing with this?
+
+112
+00:14:07,536 --> 00:14:22,896
+Well, we then said, well, okay, we've got to a point where complexity is so high that we can't really secure the regression of making yet more changes and adding more complexity to the system.
+
+113
+00:14:23,456 --> 00:14:34,816
+And so, as an example say, well, we started with the NXT1 measure sequence, so this was just a particular machine type, it doesn't really matter which one.
+
+114
+00:14:35,790 --> 00:14:52,976
+and then when we introduced the next major variant, we added some new features, we made the wafer Z map significantly faster, we added some fallback mechanisms, basically we created a new sequence.
+
+115
+00:14:53,376 --> 00:14:56,736
+And so maybe you can tell where this is going.
+
+116
+00:14:59,470 --> 00:15:00,576
+and that sort of worked.
+
+117
+00:15:00,656 --> 00:15:04,096
+It meant that we didn't have new regression on the systems in the field.
+
+118
+00:15:05,296 --> 00:15:23,296
+Then we introduced NXT3, which added completely new sensor types, and we wanted an even faster sequence, so we built the NXT3 sequence, which is our fastest ever sequence, the one that's sort of running at over 300 wafers an hour these days.
+
+119
+00:15:23,616 --> 00:15:34,416
+And we also thought, okay, but we want to really try and improve our most robust saved the wafer at any cost sequence, so we extended that.
+
+120
+00:15:34,976 --> 00:15:49,216
+And yeah, you you you you get the idea that basically we had replaced one complexity rabbit hole, gotten out of it, and then fallen straight into the next one.
+
+121
+00:15:49,536 --> 00:15:58,336
+And then EUV came along, and the EUV we said, oh well, this system runs in vacuum, which means that it's got completely different thermal characteristics.
+
+122
+00:15:58,496 --> 00:16:04,576
+We want to change the order of executing all our measurements around the uh the thermal expansion of the system.
+
+123
+00:16:05,056 --> 00:16:06,896
+And stop.
+
+124
+00:16:08,910 --> 00:16:14,628
+There was a point where we just said, well, wait a minute, this is just too much to continue doing this.
+
+125
+00:16:15,910 --> 00:16:23,204
+And it was at that point we made the decision to do something that was kind of expensive and scary, but to start over.
+
+126
+00:16:24,270 --> 00:16:31,296
+So at that point we um we we really thought, okay, let's think about a new decomposition of our software.
+
+127
+00:16:31,616 --> 00:16:50,496
+And some of my colleagues, like uh Sven Weber or uh uh Eva Horst have given external presentations on the sort of guts of this, but basically what we did was we separated our software into three types of components.
+
+128
+00:16:50,670 --> 00:17:01,296
+So it's similar to what was at that point um uh being discussed in domain-driven or model-driven engineering.
+
+129
+00:17:01,696 --> 00:17:04,176
+And start at the top with the control.
+
+130
+00:17:04,910 --> 00:17:12,016
+Previously, we had this sort of monolithic sort of control structure that really had a sort of list like flow through it.
+
+131
+00:17:13,006 --> 00:17:31,232
+We've replaced that with an event -based architecture using finite state machines, and there, um, you know, the, um, the core of this control code was that it is always responsive.
+
+132
+00:17:31,406 --> 00:17:35,392
+It didn't have sort of internal guts of durative actions;
+
+133
+00:17:35,632 --> 00:17:40,964
+it didn't have, uh, you know, any awareness of the data going through the system.
+
+134
+00:17:41,518 --> 00:18:15,716
+And so there we, uh, initially we started with ASD, later, we moved towards Coco, and we find that doing that meant that we could do formal verification of a lot of this control logic, which really meant that a lot of things, a lot of the bugs that we had in our older code were just not really possible anymore because the tooling would detect and throw an error before generating the C code that we'd compile as our binaries.
+
+135
+00:18:16,592 --> 00:18:19,312
+One thing you cannot waver is the compiler.
+
+136
+00:18:21,422 --> 00:18:44,512
+With respect to our algorithms there, we were pretty religious on keeping these stateless, very sort of self-contained atomic actions, which then meant that we could really test these, build them and so on, completely in isolation of everything else.
+
+137
+00:18:44,832 --> 00:18:49,152
+So almost all of this is tested through unit level testing.
+
+138
+00:18:49,312 --> 00:18:54,660
+We don't need to sort of higher level testing apart from sort of a few integration tests.
+
+139
+00:18:55,214 --> 00:19:12,352
+And then finally, the data, we actually wound up building a tool ourselves to generate the C code from models of our data structures and the relationships between them, and then.
+
+140
+00:19:12,590 --> 00:19:19,552
+you know, it contains the sort of usual things like the, uh, crowd operators, navigation, and so on.
+
+141
+00:19:19,918 --> 00:19:27,552
+That's the one bit of architecture I'm still not happy with, but that would be a subject for an entirely different presentation.
+
+142
+00:19:29,552 --> 00:19:38,032
+but yeah, we we we we we decomposed this and over the next few years we built something
+
+143
+00:19:41,872 --> 00:19:45,952
+and I've sort of deliberately covered over some of the details on here.
+
+144
+00:19:46,286 --> 00:19:55,140
+The key point of it was that we broke it into those those different components as mentioned.
+
+145
+00:19:56,912 --> 00:20:01,152
+so we have at the top the control logic, which is implemented in COCO.
+
+146
+00:20:01,614 --> 00:20:09,924
+In the middle in blue, we have all of our algorithms, which in many senses are crown jewels, if you will.
+
+147
+00:20:10,752 --> 00:20:15,108
+that's where we really are doing the calculations that get us the nanometers.
+
+148
+00:20:15,792 --> 00:20:29,668
+we have all of the data which was implemented using this internal tool, and then we have some common facilities, so things like test facilities, decorators that provide some sort of helpers and so on.
+
+149
+00:20:30,446 --> 00:20:33,252
+And initially we only brought this out for one system.
+
+150
+00:20:34,272 --> 00:20:43,396
+so we picked what was at the time our um our sort of workhorse DUV immersion system.
+
+151
+00:20:44,912 --> 00:21:19,876
+But eventually, once we'd got that working, we started extending this architecture towards our other platforms, to the point where more than 90% of this measure side software is now common to all of our scanner types, which includes stuff that we made back in about 2000, 2001, right through to the high NA EUV platforms that we are just in the process of rolling out.
+
+152
+00:21:21,710 --> 00:21:37,508
+Now All of that, I'd say, oh yeah, it's a great, it's a success story, but then comes the um the key challenges and polite way of saying, okay, what went wrong with this?
+
+153
+00:21:38,224 --> 00:21:49,744
+you know, after we'd built the architecture, which itself was a huge amount of work, actually rolling it into the field gave us a little bit more surprise than we were expecting.
+
+154
+00:21:50,064 --> 00:21:55,140
+And maybe paradoxically, I'll start with the statement of what went right.
+
+155
+00:21:55,904 --> 00:22:04,064
+And this is a press release from last year about our past 5500 systems.
+
+156
+00:22:05,006 --> 00:22:08,384
+These are the systems we made before the current generation of scanners.
+
+157
+00:22:08,494 --> 00:22:16,944
+These were the things that were used in the 1990s, maybe to print like 486s or Pentium chips or the like.
+
+158
+00:22:18,766 --> 00:22:24,068
+Over 90% of those systems are running today in daily use.
+
+159
+00:22:25,344 --> 00:22:31,504
+because somebody still finds a way of making money from running them.
+
+160
+00:22:32,864 --> 00:22:34,784
+And, you know, okay.
+
+161
+00:22:34,944 --> 00:22:37,824
+they're not making high-end processes anymore.
+
+162
+00:22:38,144 --> 00:22:53,220
+but the same process that could be used in the past to make those processes is usable now to make things like the power control circuits in electric vehicles.
+
+163
+00:22:53,518 --> 00:22:57,184
+And as everyone knows, now that's a big business at the moment.
+
+164
+00:22:57,454 --> 00:23:05,892
+So then everyone starts saying, okay, well, we want to keep these systems running, and so we committed now to keep these things running till 2035.
+
+165
+00:23:06,830 --> 00:23:21,476
+I know that in 2035 there will be another press announcement saying maybe 89% of them are still running in production, and we're going to keep them running until 2045 or 2055.
+
+166
+00:23:21,904 --> 00:23:31,428
+Um, you know, these things will be running long after I'm on the golf course retired, they will still be um, you know, they'll still be producing wafers.
+
+167
+00:23:32,494 --> 00:23:38,724
+And the same is true of our twin scan systems, the more modern scanner type of system.
+
+168
+00:23:39,214 --> 00:23:52,196
+And if I drew a timescale that went from you know about the year 2000 when we started making twin scans to about now, we started off making these things, uh we call them eye line.
+
+169
+00:23:52,384 --> 00:24:07,972
+Um all of our systems tend to be referred to by the wavelength of light that they use, which basically says what the um, you know, you know, through the Rayleigh equation, what the minimum size of features that they can print.
+
+170
+00:24:08,494 --> 00:24:11,876
+So we've been going to shorter and shorter wavelengths over the years.
+
+171
+00:24:12,784 --> 00:24:18,522
+the system we made back then, you know, they were doing the critical features on the latest nodes.
+
+172
+00:24:18,522 --> 00:24:23,744
+So This might have been sort of Pentium II, probably Pentium 3 sort of era.
+
+173
+00:24:24,384 --> 00:24:31,172
+And they were the most sort of critical machines, unfortunately the most expensive.
+
+174
+00:24:31,504 --> 00:24:35,664
+And they would have been used for that back then.
+
+175
+00:24:36,064 --> 00:24:46,884
+These days, those same machines are being used for less critical, nodes on current devices.
+
+176
+00:24:47,534 --> 00:24:55,780
+So you will still find eyeline used in the latest AI chips, or they're used for less critical devices.
+
+177
+00:24:56,238 --> 00:25:03,460
+So sort of really low cost chips, maybe even things like MP3 greeting cards or something.
+
+178
+00:25:05,486 --> 00:25:12,576
+Then later we introduced KRF, so cripom chloride uses an eczema laser as its light source.
+
+179
+00:25:12,816 --> 00:25:18,564
+Uh as we ramped up production of those, we still kept on making these eyeline systems.
+
+180
+00:25:18,736 --> 00:25:25,856
+Uh, so you know, over time, this, uh, you know, we wound up with a fleet of two types of systems.
+
+181
+00:25:26,016 --> 00:25:43,700
+and then the same happened with the introduction of argon fluoride immersion, which was a crazy moment when someone thought, "Oh, we can improve the resolution we can get by pouring water over everything while making microchamps.
+
+182
+00:25:44,654 --> 00:25:53,136
+This sounds a bit crazy, but it works and gave an increase of numerical aperture effectively.
+
+183
+00:25:55,054 --> 00:26:05,296
+and so this was sort of I'd say maybe about 15-ish years ago that we were really working with immersion.
+
+184
+00:26:05,646 --> 00:26:16,096
+Then, of course, the introduction of EUV, where we have this insane light source that blows up particles of tin.
+
+185
+00:26:18,016 --> 00:26:27,776
+and even now we're just starting that ramping up of high NA EUV, so the very latest systems.
+
+186
+00:26:27,936 --> 00:26:30,244
+There are only a handful of these in the world at the moment.
+
+187
+00:26:31,216 --> 00:26:39,972
+And what we see is that, uh customers' cadence, here we have a bit of a problem.
+
+188
+00:26:41,230 --> 00:26:50,564
+some of our customers are still working on entire processes that only use eyeline or maybe use krypton fluoride.
+
+189
+00:26:51,376 --> 00:27:02,756
+but some of our customers who are making things like the AI chips or the latest mobile phone chips or so on, they're using a mixture of all of these systems.
+
+190
+00:27:03,310 --> 00:27:11,876
+And they used a mixture because basically the tools at the bottom they cannot do the fine-grained patterning, but they are cheap.
+
+191
+00:27:13,550 --> 00:27:22,340
+whereas the systems up at the top, the latest high-AEV system is over $300 million for a single tool.
+
+192
+00:27:23,296 --> 00:27:31,428
+so you know, you can imagine someone with um, you could say, well, you could do everything with this really fancy new tool.
+
+193
+00:27:32,496 --> 00:27:44,176
+but it would be like if a woodworker were to use a scalpel for everything, yes, it will work, but when it comes to cutting down a tree, it really isn't the right tool for the job.
+
+194
+00:27:44,256 --> 00:27:48,576
+It would work, and you could sit there slightly scraping away at the tree with it.
+
+195
+00:27:50,350 --> 00:28:00,496
+and so where the customer is using all of these systems, then they really want all of these systems to behave in the same way.
+
+196
+00:28:00,656 --> 00:28:06,976
+They want the same software interfaces to it, they want the same sort of overall behaviors of the system.
+
+197
+00:28:09,136 --> 00:28:20,576
+because otherwise the complexity of their factual automation system gets bigger, and they wind up with the headache about the complexity rather than us.
+
+198
+00:28:21,536 --> 00:28:23,136
+Maybe that'd be a good idea.
+
+199
+00:28:24,558 --> 00:28:34,416
+but on the other hand, you've got these guys who've been running these older processes, and they want everything to just keep running as it does run.
+
+200
+00:28:34,576 --> 00:28:43,936
+They don't want to have new APIs, new reports, new recipe information, and dot dot.
+
+201
+00:28:44,974 --> 00:28:50,628
+You know, and they're really sort of Pulling in a completely different direction.
+
+202
+00:28:51,584 --> 00:29:06,144
+This leads to what I tend to refer to as a conservation of misery problem, in the sense that either we make those guys unhappy by not providing the new interfaces to our older systems.
+
+203
+00:29:06,304 --> 00:29:22,464
+or we make these guys unhappy, in which case, we're saying, "Well, you have to change your working automation system, Or you make everyone happy by picking something in the middle, or we absorb the complexity ourselves, in which case we're unhappy.
+
+204
+00:29:22,734 --> 00:29:23,984
+but at least the customers are happy.
+
+205
+00:29:24,064 --> 00:29:25,188
+and the other guys paying.
+
+206
+00:29:27,504 --> 00:29:39,428
+Now the next thing to sort of bear in mind, and yeah, I sort of go back to what I said about the fab, the factory, you know, this $20 billion machine.
+
+207
+00:29:40,704 --> 00:29:59,664
+previously I showed, okay, how big a part is measure-side of the scanner, but if you look on the scale of things, um, you know, this latest EUV scanner is kind of like this tiny little bit of this overall system.
+
+208
+00:30:00,704 --> 00:30:06,724
+And this is probably the sort of critical message that came across.
+
+209
+00:30:08,430 --> 00:30:16,932
+at the end of the day, the customer is interested in the performance of the total system, not your part of the system.
+
+210
+00:30:18,064 --> 00:30:25,024
+it doesn't matter if we make our scanner a little bit better, a little bit more precise, a little bit more accurate, and so on.
+
+211
+00:30:25,390 --> 00:30:34,532
+What matters is whether the wafers that come out of this sanctuary actually work and then can be sold to their customers.
+
+212
+00:30:36,064 --> 00:30:50,944
+And so um, you you know, there's very much a slight difference of view there because you just say, oh well, yes, our system, we make it better, we make it faster, we'll make it a little bit more, and more, more.
+
+213
+00:30:51,584 --> 00:31:00,132
+Um but if we change our behavior, then they potentially have to adapt around this.
+
+214
+00:31:01,104 --> 00:31:07,584
+And you know, we live in a very hardware-centric world, but the same is true in other situations.
+
+215
+00:31:08,206 --> 00:31:14,304
+You know, I would take the example of when uh ChatGPT-5 was released.
+
+216
+00:31:14,384 --> 00:31:22,596
+When they initially released it, they did it without warning, and just one morning it's like, oh, you were running with four something, now you've got five.
+
+217
+00:31:23,502 --> 00:31:25,988
+And some people, and it's better, it's better, it's better.
+
+218
+00:31:27,534 --> 00:31:31,664
+Some people said, well, wait a minute, it's better, but it's different.
+
+219
+00:31:31,744 --> 00:31:37,184
+And so some of my workflows either don't work or don't flow.
+
+220
+00:31:38,140 --> 00:31:39,364
+And now I have a problem.
+
+221
+00:31:40,464 --> 00:31:49,252
+and similarly for us, if we correct for something in our machine that we didn't correct for before, it could be that our customer was already correcting for it somewhere else.
+
+222
+00:31:53,024 --> 00:32:00,388
+and as I mentioned, any production time loss is money that they are not making.
+
+223
+00:32:00,878 --> 00:32:13,744
+Yeah, this is they they have a huge amount of cash tied up in this this lab, um, they have a huge amount of running costs, huge numbers of people, huge electricity bills.
+
+224
+00:32:15,184 --> 00:32:22,820
+and so if for some reason we disrupt that production because suddenly they say, oh.
+
+225
+00:32:25,870 --> 00:32:37,200
+yes, you've made this better in some sense, but to us you've just made it different, then they start losing out.
+
+226
+00:32:39,280 --> 00:32:47,680
+so an analogy I'd use is to say, you know, if I offered you, okay, tomorrow morning I can give you 20% more horsepower in your car for free.
+
+227
+00:32:47,840 --> 00:32:49,280
+I will go and do it overnight.
+
+228
+00:32:49,360 --> 00:32:50,980
+You don't have to worry about it.
+
+229
+00:32:51,520 --> 00:32:56,240
+the next morning you get in your car, you try starting the engine, clunk, nothing happens instead.
+
+230
+00:32:56,400 --> 00:33:01,220
+Uh because, yes, I've upgraded your engine, but it doesn't work with your gearbox anymore.
+
+231
+00:33:02,000 --> 00:33:03,876
+you'd be kind of annoyed at me.
+
+232
+00:33:04,080 --> 00:33:08,800
+Um, you know, what does your car cost, you know, 30,000, 40,000 euros?
+
+233
+00:33:09,102 --> 00:33:16,932
+If it's 100 million euros, then you are going to be a little bit past being just angry.
+
+234
+00:33:18,510 --> 00:33:36,400
+Now, the sort of things that can go wrong with this, and this is something that's maybe specific to machines that are as long-lived as ours, So there are machines that are in the field that have been running since before I started my career.
+
+235
+00:33:38,606 --> 00:33:44,484
+everything that the customer can observe can become a requirement.
+
+236
+00:33:44,974 --> 00:33:53,188
+Not one that you captured, not one that you wrote down, not one that you promised, but the customer, their aim is to get everything they can out of the machine.
+
+237
+00:33:53,902 --> 00:34:02,080
+An analogy I use there is it's like we build Formula One cars of the lithography business and TSMC and Samsung and Intel and so on.
+
+238
+00:34:02,160 --> 00:34:05,920
+They're the Leon Verstappen's and Lewis Hamilton's of the world.
+
+239
+00:34:06,160 --> 00:34:08,560
+They really know how to drive these machines.
+
+240
+00:34:08,782 --> 00:34:11,680
+They know more about how these systems drive than we do.
+
+241
+00:34:12,000 --> 00:34:18,080
+And so they're constantly looking to try and scrape a little bit more out of it.
+
+242
+00:34:18,254 --> 00:34:18,880
+Just a little bit.
+
+243
+00:34:19,200 --> 00:34:23,396
+One more chip perway is worth millions of Euros.
+
+244
+00:34:23,840 --> 00:34:42,160
+And so, they will sort of monitor the system, they will data mine all of the information that comes out of the system, and correlating that to yield, they will do experiments, they will do anything with any information that they can get their hands on.
+
+245
+00:34:42,720 --> 00:34:44,080
+this one really burned us.
+
+246
+00:34:44,160 --> 00:34:56,560
+It included things like diagnostic logs that we built for our own use, for looking at how the system is operating and really diagnosing the system.
+
+247
+00:34:56,720 --> 00:35:02,400
+And then the customer started finding, ah, but there's stuff in here that correlates to yield, so we will start using this information.
+
+248
+00:35:02,766 --> 00:35:18,400
+Later, we change our software architecture, and we say, Oh, well, we want to change some of that diagnostic information, because it's like intermediate results, things that now are calculated differently, and the customer says no.
+
+249
+00:35:20,560 --> 00:35:34,372
+and if you want to, whether it's block it, encrypt it, change it, whatever, they're the guys who say, no, I already have a fab that is working, I'm using this data.
+
+250
+00:35:35,758 --> 00:35:42,404
+My old systems are producing this data, your new system, yes, it costs 100 million euros.
+
+251
+00:35:43,086 --> 00:35:46,640
+I'm not paying for it unless I have this information.
+
+252
+00:35:46,800 --> 00:35:48,100
+I need this to run.
+
+253
+00:35:48,960 --> 00:35:52,196
+I need this particular view, I need this dial on my dashboard.
+
+254
+00:35:53,710 --> 00:36:06,884
+and so that actually was probably one of the individual most painful realizations was that okay, we really had to work a lot with our customers to to get around this.
+
+255
+00:36:09,006 --> 00:36:10,628
+also it can include your bugs.
+
+256
+00:36:11,600 --> 00:36:13,540
+and this is kind of a surprising one.
+
+257
+00:36:14,800 --> 00:36:21,280
+so if you have some behavior and the customer is observing this behavior, and they're saying this is how the system runs.
+
+258
+00:36:21,840 --> 00:36:23,280
+I have an example.
+
+259
+00:36:23,440 --> 00:36:26,852
+The DDOs are not so important, but it gives a flavor of it.
+
+260
+00:36:28,974 --> 00:36:34,960
+looking at one of our wafer maps, there was a particular combination of options.
+
+261
+00:36:35,374 --> 00:36:50,340
+We didn't think it was that important, but it meant that some of the areas around the edge of the wafer would be exposed using extrapolated data rather than measured data.
+
+262
+00:36:51,648 --> 00:36:56,420
+And at the point when this bug was introduced, it was a bug.
+
+263
+00:36:58,862 --> 00:37:10,116
+It wasn't seen as particularly high priority because the difference between that extrapolation and the measured data was absolutely tiny.
+
+264
+00:37:10,608 --> 00:37:15,008
+So, you know, we we had some more urgent things to deal with.
+
+265
+00:37:15,088 --> 00:37:17,028
+So, okay, fine, we'll deal with it later.
+
+266
+00:37:17,838 --> 00:37:19,728
+When we refactored our code, we dealt with it.
+
+267
+00:37:19,808 --> 00:37:23,568
+We said, ah, all these little bugs, we're not going to replicate any of those.
+
+268
+00:37:23,888 --> 00:37:25,636
+We're going to fix all of this.
+
+269
+00:37:27,726 --> 00:37:35,328
+And then we found that some of our customers were actually using the fact that we weren't measuring those bits of the wafer.
+
+270
+00:37:35,662 --> 00:37:39,876
+And they were using those areas to do some unusual processing.
+
+271
+00:37:40,334 --> 00:37:43,488
+They never tell us exactly what it is, but it's something.
+
+272
+00:37:43,648 --> 00:37:54,276
+And then basically they come back and they say, well, um, you know, yes, we're relying on you not measuring this part of the wafer.
+
+273
+00:37:54,928 --> 00:37:58,596
+now our Fab defense system starts throwing up false positives.
+
+274
+00:37:59,808 --> 00:38:05,796
+we need you to actually return back to that buggy behavior.
+
+275
+00:38:06,928 --> 00:38:11,408
+And we went around with this customer for quite a few cycles.
+
+276
+00:38:11,488 --> 00:38:23,972
+and eventually we actually put a switch into our system to enable the buggy behavior, because otherwise they would have to re-qualify their entire process.
+
+277
+00:38:24,494 --> 00:38:28,288
+and that included not just re-qualifying it with respect to our machines.
+
+278
+00:38:28,494 --> 00:38:29,808
+but all the other machines in the fab.
+
+279
+00:38:29,968 --> 00:38:31,328
+So this would be a huge cost to them.
+
+280
+00:38:31,408 --> 00:38:37,988
+And they just say, oh no, no, no, no, we're not accepting your new software while it doesn't have this bug in it.
+
+281
+00:38:41,488 --> 00:38:44,048
+really, really, really upset me at the time.
+
+282
+00:38:44,208 --> 00:38:45,648
+These days I understand it.
+
+283
+00:38:46,528 --> 00:38:48,528
+Okay, okay, okay.
+
+284
+00:38:49,008 --> 00:38:59,248
+Um so the sorts of things we started doing in terms of okay, how do we get our customers to accept this?
+
+285
+00:38:59,790 --> 00:39:17,316
+The most important one, and you know, I gave the example of the AI model, rather, as an example of someone else who's got this wrong, is giving the customer a lot more advanced warning about any changes that we make.
+
+286
+00:39:18,894 --> 00:39:28,004
+Although we like to try and develop our software in a more agile fashion, we still have to sort of stop at a certain point and start telling them, "Okay.
+
+287
+00:39:28,288 --> 00:39:32,448
+this is how the new system is going to work .". And we have to make that promise.
+
+288
+00:39:32,528 --> 00:39:53,668
+and it has to be, something of the order of six months, maybe even a year in advance, to give them time to actually start making changes that they will need to make to their automation system, so that when you finally deliver, they can actually use the system in its new state.
+
+289
+00:39:57,248 --> 00:40:08,368
+we found that we also had to really tie these improvements to tangible improvements in the system behavior.
+
+290
+00:40:08,928 --> 00:40:10,288
+I need to speed up.
+
+291
+00:40:12,688 --> 00:40:22,404
+and it's not just about the money, it's also about the fact that at their end they have to request resources to improve the automation system behind it.
+
+292
+00:40:23,088 --> 00:40:28,900
+So they have to make a sort of internal sales pitch to get the changes done.
+
+293
+00:40:31,910 --> 00:40:33,936
+We started using a lot more simulation.
+
+294
+00:40:34,016 --> 00:40:52,416
+We have this what we call digital twin scan now that enables us to run the actual production measurements through a virtual machine running new software or with new options on so that the customer can see before and after what the differences are.
+
+295
+00:40:52,576 --> 00:40:58,884
+They can do that over an extended period, they can really evaluate without turning it on in production yet.
+
+296
+00:41:01,856 --> 00:41:14,976
+And where it's not possible, where we really, really are stuck, then we go back to okay, we will use configurations and switches, we will take the extra pain on the complexity.
+
+297
+00:41:15,246 --> 00:41:17,380
+There is a point where you just have to say, okay, hands up.
+
+298
+00:41:18,976 --> 00:41:21,796
+So last slide, key takeaways.
+
+299
+00:41:22,016 --> 00:41:24,256
+Good judgment comes from experience.
+
+300
+00:41:24,782 --> 00:41:27,696
+Experience does come from some bad judgments.
+
+301
+00:41:27,936 --> 00:41:30,416
+That is, yes, it is.
+
+302
+00:41:30,656 --> 00:41:38,372
+Um but first key takeaway is do not stop your customer operation.
+
+303
+00:41:39,056 --> 00:41:41,456
+that is the thing that all of this is about.
+
+304
+00:41:41,646 --> 00:41:44,164
+That is the thing that's making somebody some money.
+
+305
+00:41:44,416 --> 00:41:51,936
+Um and you know, that's the thing that when they pay hundreds of millions of euros, they demand it still works.
+
+306
+00:41:52,526 --> 00:41:58,496
+the second most important message is do not stop the customer operation.
+
+307
+00:41:58,816 --> 00:42:01,616
+I could not stress it enough, so I stressed it twice.
+
+308
+00:42:01,856 --> 00:42:13,856
+Um, and that means really sort of, uh, things like giving them as much warning as they can so that they can adapt, using simulation, allowing them time to adapt.
+
+309
+00:42:13,936 --> 00:42:22,576
+So even when you've introduced the new software, you make the old software available for quite an extended time, knowing that it will take them some time;
+
+310
+00:42:22,736 --> 00:42:24,708
+maybe they will have bugs and problems.
+
+311
+00:42:27,086 --> 00:42:27,940
+be careful.
+
+312
+00:42:28,910 --> 00:42:38,052
+Everything that your system does can wind up becoming an unrecognized and unrecorded requirement.
+
+313
+00:42:38,816 --> 00:42:51,620
+And if you only take away one thing from this, do not take for granted that making your system in isolation better makes the entire ecosystem better that it sits in.
+
+314
+00:42:52,462 --> 00:43:00,496
+And with that, I would like to say thank you very much for your time this morning and thank you for the chat.
+
+315
+00:43:01,056 --> 00:43:01,856
+Thank you.
+
