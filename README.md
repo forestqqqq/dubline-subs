@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [Research Paper Review: Cyber-Physical Systems in the Built Environment \| Dr. Jake R. Pomperada, PhD](medias/F6R10/) | Jake Pomperada | 2026-11-23 |
 | [How I Code With AI Agents (Spec-Driven Development)](medias/EY4FX/) | Owain Lewis | 2026-11-23 |
 | [How to Actually Build Mobile Apps with AI in 2026 \| A Complete Beginner's Tutorial](medias/DZADD/) | JavaScript Mastery | 2026-11-23 |
 | [AI Engineer Full Course in 3 Hours [FREE]](medias/CWQR1/) | Cloud X Berry | 2026-11-22 |
