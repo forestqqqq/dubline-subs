@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [How to Actually Build Mobile Apps with AI in 2026 \| A Complete Beginner's Tutorial](medias/DZADD/) | JavaScript Mastery | 2026-11-23 |
 | [AI Engineer Full Course in 3 Hours [FREE]](medias/CWQR1/) | Cloud X Berry | 2026-11-22 |
 | [MCP Servers Explained & Built](medias/9H9YD/) | Tech With Tim | 2026-11-22 |
 | [Deploying modern software architecture - the ASML case study (keynote at ICSA 2026)](medias/99WPB/) | International Conference on Software Architecture | 2026-11-22 |
