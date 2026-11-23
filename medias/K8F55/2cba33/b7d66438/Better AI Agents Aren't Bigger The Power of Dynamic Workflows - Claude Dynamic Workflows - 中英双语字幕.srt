@@ -1,0 +1,881 @@
+1
+00:00:00,110 --> 00:00:09,188
+在过去的两年里，关于软件工程中人工智能的讨论一直被一个指标所主导：上下文窗口大小。
+For the past two years, the conversation around artificial intelligence in
+software engineering has been dominated by a single metric: context window size.
+
+2
+00:00:09,360 --> 00:00:16,932
+当模型能够吞入整个代码库时，我们为此欢呼，希望更大的内存能转化为自主执行能力。
+We celebrated when models could ingest entire code bases, hoping a larger memory would translate to autonomous execution.
+
+3
+00:00:17,806 --> 00:00:25,924
+但作为开发者，我们很快就意识到，仅仅把一百万
+行代码喂给单个模型并不能解决复杂的工程挑战。
+But as developers, we quickly realized that simply feeding a million lines
+of code to a single model doesn't solve complex engineering challenges.
+
+4
+00:00:26,734 --> 00:00:33,700
+大型任务会被拆分，单个智能体会感到力不从心，而上下文窗口变成了噪声的瓶颈。
+Large tasks break down, single agents become overwhelmed, and the context window turns into a bottleneck of noise.
+
+5
+00:00:34,382 --> 00:00:36,708
+今天我们要探讨的是一种范式转变。
+Today we are exploring a paradigm shift.
+
+6
+00:00:37,710 --> 00:00:42,500
+AI 编程系统的下一次重大飞跃不在于构建更大的模型。
+The next major leap in AI coding systems isn't about building larger models.
+
+7
+00:00:43,054 --> 00:00:44,560
+而在于更好的编排。
+It's about better orchestration.
+
+8
+00:00:44,782 --> 00:00:52,240
+欢迎来到 Claude 动态工作流，这是一种运行时生成的多智能体编排模式，
+它改变了我们扩展智能体工程的方式。
+Welcome to Claude Dynamic Workflows, a runtime-generated multi-agent
+orchestration pattern that changes how we scale agentic engineering.
+
+9
+00:00:52,462 --> 00:00:56,996
+让我们来聊聊为什么传统的单智能体系统在面对真实的企业级代码库时会失败。
+Let's talk about why traditional single-agent systems fail when they meet real-world enterprise codebases.
+
+10
+00:00:57,422 --> 00:01:06,052
+在简单的设置中，开发者发送一个请求，单个智能体处理它，
+调用几个本地工具比如 grep 或 write，然后返回一个补丁。
+In a simple setup, a developer sends a request, a single agent processes
+it, calls a few local tools like grep or write, and returns a patch.
+
+11
+00:01:06,606 --> 00:01:11,396
+这在处理孤立的 Bug、基础文档和小型功能时效果非常好。
+This works beautifully for isolated bugs, basic documentation, and small features.
+
+12
+00:01:11,950 --> 00:01:15,620
+但如果你把同一个智能体指向一个巨大的仓库，会发生什么？
+But what happens when you point that same agent at a massive repository?
+
+13
+00:01:16,270 --> 00:01:23,172
+想象一个拥有 50 万行代码、200 个微服务、50 个包和数千个单元测试的系统。
+Picture a system with half a million lines of code, 200 microservices, 50 packages, and thousands of unit tests.
+
+14
+00:01:23,726 --> 00:01:27,908
+当单个智能体试图管理这一切时，它的上下文窗口就会溢出。
+When a single agent tries to manage all of that, its context window overflows.
+
+15
+00:01:28,366 --> 00:01:34,116
+智能体变得迟缓，失去对原始目标的追踪，并开始产生幻觉般的假设。
+The agent becomes sluggish, loses track of the original goal, and begins making hallucinated assumptions.
+
+16
+00:01:34,670 --> 00:01:38,340
+在这个规模上，智能本身不再是瓶颈。
+At this scale, intelligence itself is no longer the bottleneck.
+
+17
+00:01:38,702 --> 00:01:40,932
+瓶颈是协调。
+The bottleneck is coordination.
+
+18
+00:01:41,422 --> 00:01:43,492
+我们该如何解决协调瓶颈？
+How do we solve the coordination bottleneck?
+
+19
+00:01:43,680 --> 00:01:45,700
+传统的方法是硬编码。
+The traditional approach is hard coding.
+
+20
+00:01:46,286 --> 00:01:54,820
+我们编写复杂的 Python 框架来定义严格的流水线，告诉智能体确切的搜索、写入和测试时机。
+We write complex Python frameworks to define strict pipelines, telling
+the agent exactly when to search, when to write, and when to test.
+
+21
+00:01:55,278 --> 00:01:58,880
+人类设计工作流，智能体仅仅是执行它。
+The human designs the workflow, and the agent merely executes it.
+
+22
+00:01:59,150 --> 00:02:04,516
+但软件工程是不可预测的，一次迁移可能需要为每个模块采取不同的步骤。
+But software engineering is unpredictable, a migration might require different steps for each module.
+
+23
+00:02:05,102 --> 00:02:07,236
+这就是为什么我们让 Claude 来设计工作流。
+That is why we let Claude design the workflow.
+
+24
+00:02:07,918 --> 00:02:15,268
+在动态工作流系统中，人类只提供高层目标，比如迁移一个框架或运行安全审计。
+In a dynamic workflow system, the human provides only the high-level goal, such as migrating a framework or running a security audit.
+
+25
+00:02:15,854 --> 00:02:27,920
+Claude 随后分析代码库，在运行时合成自定义的任务依赖图，
+即时启动专门的工人智能体，并从头到尾动态执行整个计划。
+Claude then analyzes the code base, synthesizes a custom task dependency graph at runtime,
+spins up specialized worker agents on the fly, and executes the entire plan dynamically from start to finish.
+
+26
+00:02:28,206 --> 00:02:31,940
+让我们来看看动态工作流的概念架构。
+Let's look under the hood at the conceptual architecture of a dynamic workflow.
+
+27
+00:02:32,160 --> 00:02:35,876
+当一个目标进入系统时，它会经过七个不同的阶段。
+When a goal enters the system, it passes through seven distinct stages.
+
+28
+00:02:36,590 --> 00:02:41,412
+首先是分解阶段，将主要目标分解为更小的子任务。
+First, the decomposition phase breaks the main objective into smaller subtasks.
+
+29
+00:02:41,680 --> 00:02:49,520
+其次，系统分析依赖关系并生成有向无环图，也就是 DAG，代表执行顺序。
+Second, the system analyzes dependencies and generates a directed acyclic graph or DIG, representing the execution order.
+
+30
+00:02:49,774 --> 00:02:57,092
+第三，系统实例化专门的工人智能体，为每个智能体分配狭窄的问题范围和一组受限的工具。
+Third, the system instantiates specialized worker agents, assigning each a narrow problem scope and a restricted set of tools.
+
+31
+00:02:57,934 --> 00:03:01,156
+第四，这些工作节点并行执行任务。
+Fourth, these workers execute their tasks in parallel.
+
+32
+00:03:01,646 --> 00:03:08,228
+第五，验证节点根据严格的单元测试或静态分析来校验每个工作节点的输出。
+Fifth, verification agents validate each worker's output against strict unit tests or static analysis.
+
+33
+00:03:09,166 --> 00:03:12,548
+第六，协调节点收集所有经过验证的结果。
+Sixth, The coordinator gathers all verified results.
+
+34
+00:03:13,102 --> 00:03:19,204
+最后，综合阶段将这些变更合并成一个连贯且无冲突的拉取请求。
+Finally, the synthesis phase merges the changes into a cohesive, conflicts-free pull request.
+
+35
+00:03:19,918 --> 00:03:24,800
+这是一个临时的、按需生成的软件工程组织。
+It is a temporary, on-demand, software engineering organization.
+
+36
+00:03:25,518 --> 00:03:33,280
+为了理解这个临时组织如何在没有混乱的情况下进行协调，让我们剖析一下动态工作节点的结构。
+To understand how this temporary organization coordinates without chaos, let's dissect the anatomy of a dynamic worker.
+
+37
+00:03:33,582 --> 00:03:38,724
+每个工作节点都不是主节点的副本，而是高度专业化的实例。
+Each worker agent is not a copy of the main agent, it is a highly specialized instance.
+
+38
+00:03:39,278 --> 00:03:43,172
+当协调节点创建一个工作节点时，它会为其配备四个关键边界。
+When the coordinator creates a worker, it equips it with four key boundaries.
+
+39
+00:03:43,790 --> 00:03:48,560
+首先是问题范围，即它被允许操作的特定文件或目录。
+First, a problem scope, the specific files or directories it is allowed to touch.
+
+40
+00:03:48,814 --> 00:03:56,320
+其次是工具集，仅包含完成其工作所需的工具，比如只读编译器或特定的测试运行器。
+Second, a tool set, only the tools necessary for its job, like a read only compiler or a specific test runner.
+
+41
+00:03:56,494 --> 00:03:58,340
+第三是上下文切片。
+Third, a context slice.
+
+42
+00:03:59,022 --> 00:04:02,596
+即最少相关的代码库文档和类型定义。
+The minimum relevant code base documentation and type definitions.
+
+43
+00:04:03,214 --> 00:04:05,280
+第四是输出契约。
+Fourth, an output contract.
+
+44
+00:04:06,062 --> 00:04:09,088
+这是一个定义工作节点必须返回内容的严格架构。
+A strict schema defining what the worker must return.
+
+45
+00:04:09,358 --> 00:04:16,928
+通过强制执行这些边界，我们能保持工作节点的上下文精简且干净，防止干扰并确保极高的精度。
+By enforcing these boundaries, we keep the worker's context small and clean, preventing noise and ensuring extremely high precision.
+
+46
+00:04:17,197 --> 00:04:23,008
+让我们来看看 Claude 在运行时可以生成的拓扑结构，首先从经理到工作节点的模式开始。
+Let's explore the topologies that Claude can generate at runtime, starting with the manager-to-worker's pattern.
+
+47
+00:04:23,168 --> 00:04:27,012
+这是最常见的结构，反映了传统的工程团队。
+This is the most common structure and mirrors a traditional engineering team.
+
+48
+00:04:27,502 --> 00:04:31,716
+在这里，一个中央经理节点协调几个专业的工作节点。
+Here, a central manager agent coordinates several specialized worker agents.
+
+49
+00:04:32,128 --> 00:04:43,870
+例如，如果目标是实现一个新功能，经理可能会派出一个前端节点来构建 UI 组件，
+一个后端节点来编写 API 端点，一个数据库节点来处理架构迁移，
+For instance, if the goal is to implement a new feature, the manager might spawn a front-end agent to build UI components,
+a back-end agent to write API endpoints, a database agent to handle schema migrations, and a testing agent to write unit tests.
+
+50
+00:04:43,870 --> 00:04:46,788
+还有一个测试节点来编写单元测试。
+For instance, if the goal is to implement a new feature, the manager might spawn a front-end agent to build UI components,
+a back-end agent to write API endpoints, a database agent to handle schema migrations, and a testing agent to write unit tests.
+
+51
+00:04:47,118 --> 00:04:54,404
+经理负责分配子任务、监控进度、解决工作节点之间的沟通问题，并合并他们的代码。
+The manager distributes the subtasks, monitors progress, resolves communication issues between workers, and merges their code.
+
+52
+00:04:54,702 --> 00:05:00,452
+这种模式非常适合通用的功能开发、复杂的重构和全面的代码审查。
+This pattern is ideal for general feature development, complex refactoring, and comprehensive code reviews.
+
+53
+00:05:00,942 --> 00:05:06,048
+第二种常见的拓扑结构是由规划者、执行者和审查者组成的线性流水线。
+A second common topology is the linear pipeline of planner, executors, and reviewer.
+
+54
+00:05:06,368 --> 00:05:14,308
+这种模式旨在处理那些必须严格隔离规划、执行和验证的任务，以防止偏差和错误。
+This pattern is designed for tasks where planning, execution, and validation must be strictly isolated to prevent biases and errors.
+
+55
+00:05:14,894 --> 00:05:19,684
+规划者节点首先研究代码库，并编写详细的实施计划。
+The planner agent starts by studying the code base and writing a detailed implementation plan.
+
+56
+00:05:20,174 --> 00:05:23,088
+关键点在于，规划者不编写任何代码。
+Crucially, the planner does not write any code.
+
+57
+00:05:23,438 --> 00:05:29,700
+这个计划被交给一个或多个执行者节点，他们完全专注于根据规范编写代码。
+This plan is handed to one or more executor agents, who focus entirely on writing the code according to the spec.
+
+58
+00:05:30,318 --> 00:05:38,688
+最后，代码被传递给审查者节点，它根据原始计划审计实施情况，运行静态分析并触发测试。
+Finally, the code is passed to a reviewer agent who audits the implementation
+against the original plan, runs static analysis, and triggers tests.
+
+59
+00:05:39,086 --> 00:05:43,488
+如果审查者发现问题，它会带着详细的反馈将其发回给执行者。
+If the reviewer finds an issue, it sends it back to the executor with detailed feedback.
+
+60
+00:05:43,758 --> 00:05:48,688
+这种结构强制执行质量控制，并防止执行者给自己打分。
+This structure enforces quality control and prevents the executors from grading their own homework.
+
+61
+00:05:48,928 --> 00:05:55,728
+当处理包含数千个文件的海量代码库时，树状层级结构仍可能遇到扩展性限制。
+When dealing with massive code bases containing thousands of files, tree hierarchies can still hit scalability limits.
+
+62
+00:05:55,982 --> 00:05:58,288
+这就是 MapReduce 拓扑结构派上用场的地方。
+That is where the MapReduce topology comes in.
+
+63
+00:05:58,448 --> 00:06:03,588
+这种模式是为全仓库审计、迁移和日志分析而设计的。
+This pattern is designed for repository-wide audits, migrations, and log analysis.
+
+64
+00:06:04,142 --> 00:06:10,208
+系统获取整个仓库，并将其划分为数十个独立的目录切片。
+The system takes the entire repository and partitions it into dozens of independent directory slices.
+
+65
+00:06:10,670 --> 00:06:17,248
+然后它并行生成一群相同的工人智能体，分配给每个工人审计一个切片。
+It then spawns a swarm of identical worker agents in parallel, assigning each worker to audit a single slice.
+
+66
+00:06:17,582 --> 00:06:22,756
+每个工人处理自己的切片，并生成发现结果或重构文件的本地摘要。
+Each worker processes its slice and produces a local summary of findings or refactored files.
+
+67
+00:06:23,374 --> 00:06:32,356
+所有工人完成后，一个聚合智能体收集所有独立的摘
+要，并将它们整合成一份统一的系统报告或拉取请求。
+Once all workers finish, an aggregator agent collects all the individual
+summaries and compiles them into a single, unified system report or pull request.
+
+68
+00:06:32,814 --> 00:06:40,848
+这种模式的扩展能力几乎与代码库规模成线性比例，
+将数小时的手动审查转化为几分钟的并行处理。
+This pattern scales almost linearly with the size of the code base,
+turning hours of manual review into minutes of parallel processing.
+
+69
+00:06:41,102 --> 00:06:47,620
+智能工程中最大的挑战之一是确保正确性并减少大模型的幻觉。
+One of the greatest challenges in agentic engineering is ensuring correctness and reducing LLM hallucinations.
+
+70
+00:06:47,982 --> 00:06:56,288
+对于关键决策，比如系统架构设计或安全漏洞，Claude 可以生成辩论和验证拓扑。
+For critical decisions, such as system architecture designs or security vulnerabilities,
+Claude can generate a debate and verification topology.
+
+71
+00:06:56,846 --> 00:07:05,284
+系统不再依赖单个智能体的推理，而是生成两个独立的智
+能体，智能体 A 和智能体 B，并给它们呈现同样的问题。
+Instead of relying on a single agent's reasoning, the system spawns two
+independent agents, agent A and agent B, and presents them with the same problem.
+
+72
+00:07:05,742 --> 00:07:09,028
+它们分别进行分析并生成相互竞争的解决方案。
+They analyze it separately and generate competing solutions.
+
+73
+00:07:09,678 --> 00:07:14,564
+接着它们进入辩论阶段，陈述自己的论点并批评对方的假设。
+They then enter a debate phase, presenting their arguments and critiquing each other's assumptions.
+
+74
+00:07:15,182 --> 00:07:21,604
+最后，一个裁判智能体审查辩论记录，权衡证据，并决定最佳路径。
+Finally, a judge agent reviews the transcript of the debate, weighs the evidence, and decides on the optimal path.
+
+75
+00:07:22,158 --> 00:07:29,124
+这种多智能体辩论迫使模型揭示隐藏的假设，并提供更强的正确性保证。
+This multi-agent debate forces the models to uncover hidden assumptions and provides far stronger correctness guarantees.
+
+76
+00:07:29,774 --> 00:07:33,476
+你认为多智能体辩论是防止幻觉的最佳方法吗？
+Do you think multi-agent debate is the best way to prevent hallucinations?
+
+77
+00:07:33,710 --> 00:07:34,916
+请在评论区告诉我们。
+Let us know in the comments.
+
+78
+00:07:35,182 --> 00:07:46,788
+对于大规模、多方面的项目，比如从零开始构建整个应用程序或进行全公司范围的库迁移，
+Claude 可以将组织扩展到层级结构。
+For massive, multifaceted projects, such as building an entire application from scratch or performing a company-wide library
+migration, Claude can scale the organization up to a hierarchical structure.
+
+79
+00:07:47,088 --> 00:07:52,644
+在这种拓扑结构中，管理者协调其他管理者，而不是直接协调单个工人。
+In this topology, managers coordinate other managers, rather than individual workers.
+
+80
+00:07:53,134 --> 00:07:56,688
+在顶端是执行智能体，它掌握最终目标。
+At the top sits the executive agent, who holds the ultimate goal.
+
+81
+00:07:56,942 --> 00:08:00,516
+执行智能体生成一个后端管理器和一个前端管理器。
+The executive spawns a back end manager and a front end manager.
+
+82
+00:08:01,038 --> 00:08:08,528
+后端管理器随后启动专门的工人智能体，负责 API 设计、数据库架构和集成测试。
+The back end manager then spins up specialized worker agents for API design, database schema, and integration tests.
+
+83
+00:08:09,198 --> 00:08:14,116
+与此同时，前端管理器启动 UI、UX 和状态管理的工人。
+Meanwhile, the front-end manager spins up UI, UX, and state management workers.
+
+84
+00:08:14,416 --> 00:08:20,576
+信息流经这些结构化的管理层，确保信息得到过滤和聚合。
+Communication flows through these structured management layers, ensuring that information is filtered and aggregated.
+
+85
+00:08:20,782 --> 00:08:26,016
+这防止了任何单个智能体被海量的代码细节淹没。
+This prevents any single agent from being overwhelmed by the sheer volume of code-based details.
+
+86
+00:08:26,286 --> 00:08:33,316
+虽然树状拓扑非常适合类人的委派，但软件工程工作流很少是简单的层级结构。
+While tree topologies are excellent for human-like delegation, software engineering workflows are rarely simple hierarchies.
+
+87
+00:08:33,614 --> 00:08:35,010
+它们是依赖图。
+They are dependency graphs.
+
+88
+00:08:35,246 --> 00:08:43,936
+在现实任务中，在包更新之前你无法运行集成测试，而在分析代码依赖之前你无法更新包。
+In a real-world task, you cannot run integration tests until the packages are updated,
+and you cannot update the packages until you analyze code dependencies.
+
+89
+00:08:44,270 --> 00:08:49,776
+这就是为什么 Claude 超越静态树，去生成有向无环图，也就是 DAG。
+That is why Claude goes beyond static trees to generate directed acyclic graphs, or DAGs.
+
+90
+00:08:50,222 --> 00:08:56,388
+在运行时，Claude 检查文件，计算依赖约束，并绘制自定义图。
+At runtime, Claude inspects files, calculates dependency constraints, and draws a custom graph.
+
+91
+00:08:56,718 --> 00:09:03,696
+独立的任务并行运行，而依赖其他任务的任务则等待其父任务完成。
+Tasks that are independent run in parallel, while tasks that depend on others wait until their parents finish.
+
+92
+00:09:04,014 --> 00:09:10,756
+如果单元测试失败，系统会执行调试任务来解决问题，然后重新运行测试。
+If a unit test fails, the system executes a debugger task to resolve the issue and then reruns the tests.
+
+93
+00:09:11,214 --> 00:09:14,404
+验证通过后，流程将进入集成测试。
+Once verified, the flow proceeds to integration tests.
+
+94
+00:09:15,022 --> 00:09:20,452
+这种依赖驱动的结构允许灵活且具备自愈能力的执行路径。
+This dependency-driven structure allows for flexible, self-healing execution paths.
+
+95
+00:09:21,198 --> 00:09:25,616
+为了帮助技术架构师理解这个概念，我们用个类比。
+To help technical architects understand this concept, let's use an analogy.
+
+96
+00:09:26,222 --> 00:09:30,692
+如果你构建过数据流水线，你可能很熟悉 Apache Airflow。
+If you have built data pipelines, you are probably familiar with Apache Airflow.
+
+97
+00:09:31,502 --> 00:09:40,496
+在传统的 Airflow 中，开发人员编写静态的 Python 脚本来定义 DAG，
+声明任务 A 在任务 B 之前运行，任务 B 在任务 C 之前运行。
+In traditional Airflow, developers write static Python scripts to define
+a DAG, declaring that task A runs before task B, which runs before task C.
+
+98
+00:09:40,750 --> 00:09:43,172
+这种编排是硬编码且固定的。
+The orchestration is hard-coded and fixed.
+
+99
+00:09:43,790 --> 00:09:48,816
+在 Claude 动态工作流中，DAG 的概念相同，但作者不同。
+In cloud dynamic workflows, the concept of a DAG is the same, but the author is different.
+
+100
+00:09:49,102 --> 00:09:56,676
+不再是开发人员编写脚本来定义任务，而是 AI 模型根据目标实时生成任务图。
+Instead of a developer writing a script to define the tasks, the AI model generates the task graph on the fly based on the goal.
+
+101
+00:09:57,166 --> 00:10:00,356
+工作流不再硬编码在 Python 文件中。
+The workflow is no longer hard-coded into Python files.
+
+102
+00:10:00,814 --> 00:10:02,532
+它是运行时合成的。
+It is synthesized at runtime.
+
+103
+00:10:02,926 --> 00:10:06,976
+这把静态自动化变成了自适应的、目标驱动的执行。
+This turns static automation into adaptive, goal-driven execution.
+
+104
+00:10:07,150 --> 00:10:12,816
+另一个对比是 LangGraph，这是一个构建有状态多智能体系统的流行框架。
+Another comparison is Langgraph, a popular framework for building stateful multi-agent systems.
+
+105
+00:10:13,230 --> 00:10:22,176
+在 LangGraph 中，开发人员定义状态图，手动为每个智能体创建节点，
+并绘制代表转换和条件路由的边。
+In Langgraph, developers define a state graph, manually creating nodes for
+each agent and drawing edges to represent transitions and conditional routing.
+
+106
+00:10:22,478 --> 00:10:29,444
+虽然 LangGraph 对于可预测、结构化的智能体流水线非常强大，但它需要大量的前期工程投入。
+While Langgraph is incredibly powerful for predictable, structured agent pipelines, it requires significant upfront engineering.
+
+107
+00:10:30,126 --> 00:10:32,336
+每一个决策路径都必须预先考虑到。
+Every decision path must be anticipated.
+
+108
+00:10:32,750 --> 00:10:35,140
+Claude 动态工作流采取了不同的方法。
+Claude dynamic workflows take a different approach.
+
+109
+00:10:35,694 --> 00:10:39,536
+Claude 不是在预定义的图中运行，而是由 Claude 自己编写这个图。
+Instead of running within a predefined graph, Claude writes the graph itself.
+
+110
+00:10:39,822 --> 00:10:46,176
+它评估工作区状态，确定需要哪些智能体，并动态创建节点和边。
+It evaluates the workspace state, determines what agents are needed, and creates the nodes and edges dynamically.
+
+111
+00:10:46,414 --> 00:10:53,056
+这就像是在预设轨道上驾驶火车，与在行驶的火车前动态铺设轨道之间的区别。
+It is the difference between driving a train along pre-installed
+tracks and building the tracks dynamically in front of a moving train.
+
+112
+00:10:53,326 --> 00:11:01,776
+让我们看看实际应用案例，首先是仓库级别的框架迁移，比如从 React 18 迁移到 React 19。
+Let's look at real-world use cases, starting with a repository scale framework migration, like moving from React 18 to React 19.
+
+113
+00:11:01,936 --> 00:11:05,696
+在大型代码库中手动完成这些工作既乏味又容易出错。
+Doing this manually in a large code base is tedious and error-prone.
+
+114
+00:11:06,190 --> 00:11:11,588
+在动态工作流中，协调者首先分析依赖关系，以识别破坏性变更。
+In a dynamic workflow, the coordinator begins by analyzing dependencies to identify breaking changes.
+
+115
+00:11:12,270 --> 00:11:13,956
+然后它生成任务图。
+It then generates a task graph.
+
+116
+00:11:14,382 --> 00:11:29,732
+它启动包升级工人来更新依赖，类型修正工人来修复数百个组件中的 TypeScript 编译错误，
+文档更新工人来更新文档和指南，以及测试工人来运行测试套件并修复损坏的测试。
+It spawns package upgrade workers to update dependencies, type correction workers to fix TypeScript compiler errors across hundreds of
+components, documentation update workers to update docs and guides, and testing workers to run the suite and fix broken tests.
+
+117
+00:11:30,096 --> 00:11:40,896
+因为这些文件是独立的，子文件夹的迁移可以并行运行，
+将迁移时间从数天的手动劳动缩短到几分钟的自动执行。
+Because these files are independent, the migration of subfolders runs in parallel,
+reducing migration times from days of manual labor to minutes of automated execution.
+
+118
+00:11:41,294 --> 00:11:45,764
+另一个强大的应用案例是对仓库进行全面的安全审计。
+Another powerful use case is a comprehensive security audit of a repository.
+
+119
+00:11:46,190 --> 00:11:53,376
+动态工作流不再只是运行一个吐出误报的静态扫描器，而是像一家活跃的红队咨询公司。
+Instead of just running a static scanner that spits out false positives,
+a dynamic workflow acts like an active Red Team consulting firm.
+
+120
+00:11:53,646 --> 00:11:57,732
+安全主管协调者会启动一支专门的安全智能体团队。
+The security lead coordinator spins up a team of specialized security agents.
+
+121
+00:11:58,094 --> 00:12:03,696
+一个智能体审查身份验证流程，另一个审计控制器端点的授权检查。
+One agent reviews authentication flows, another audits authorization checks at controller endpoints.
+
+122
+00:12:03,950 --> 00:12:07,044
+第三个智能体运行正则扫描，查找泄露的密钥和凭证。
+A third runs a regex scan for exposed secrets and keys.
+
+123
+00:12:07,502 --> 00:12:14,416
+第四个智能体分析依赖树中的已知漏洞，第五个智能体审计是否符合 SOC2 等标准。
+A fourth analyzes dependency trees for known vulnerabilities, and a fifth audits compliance against standards like SOC2.
+
+124
+00:12:14,736 --> 00:12:20,772
+这些智能体并行开展调查，交换发现结果，并互相核对报告。
+These agents run parallel investigations, exchange findings, and double check each other's reports.
+
+125
+00:12:21,070 --> 00:12:27,620
+结果不是一堆嘈杂的警告，而是一份经过验证的威胁报告，还包含自动化的补丁建议。
+The result is not a noisy list of warnings, but a verified threat report complete with automated patch recommendations.
+
+126
+00:12:28,078 --> 00:12:35,696
+遗留代码现代化，比如将大型企业系统从 Java 8 升级到 Java 21，是一项巨大的工程。
+Legacy code modernization, such as upgrading a large enterprise system from Java 8 to Java 21, is a massive undertaking.
+
+127
+00:12:36,270 --> 00:12:46,308
+这涉及重写废弃的 API 调用、更新构建文件、将同
+步代码重构为现代虚拟线程，并更新旧的测试套件。
+It involves rewriting deprecated API calls, updating build files, refactoring
+synchronous code to modern virtual threads, and updating old testing suites.
+
+128
+00:12:46,576 --> 00:12:51,296
+动态工作流在这里表现出色，因为它们利用了结构化的并行处理。
+Dynamic workflows excel here because they exploit to structural parallelism.
+
+129
+00:12:51,598 --> 00:13:02,740
+协调者创建专门的团队：一个依赖团队负责迁移 Maven 配置，
+一个重构团队利用静态分析方案更新语法，一个测试团队负责迁移 JUnit 测试，
+The coordinator creates specialized teams, a dependency team to migrate Maven configurations,
+a refactoring team to update syntax using static analysis recipes, a testing team to migrate J-Unit tests,
+
+130
+00:13:02,740 --> 00:13:03,160
+还有一个验证团队负责编译和基准测试升级后的系统。
+The coordinator creates specialized teams, a dependency team to migrate Maven configurations,
+a refactoring team to update syntax using static analysis recipes, a testing team to migrate J-Unit tests,
+
+131
+00:13:03,160 --> 00:13:07,136
+还有一个验证团队负责编译和基准测试升级后的系统。
+and a verification team to compile and benchmark the upgraded system.
+
+132
+00:13:07,406 --> 00:13:15,696
+通过划分代码库并将模块分配给并行的重构工作节点，
+系统能以人类团队无法企及的速度完成代码现代化。
+By segmenting the codebase and distributing modules to parallel refactoring workers,
+the system modernizes code at a pace no human team could match.
+
+133
+00:13:16,046 --> 00:13:22,148
+想象一下，你指着你的代码库问 AI 助手：我们的扩展瓶颈在哪里？
+Imagine pointing an AI assistant at your codebase and asking, where are our scaling bottlenecks?
+
+134
+00:13:22,734 --> 00:13:29,252
+单个智能体很难回答，因为架构瓶颈横跨多个基础设施层。
+A single agent would struggle to answer because architectural bottlenecks span across multiple infrastructure layers.
+
+135
+00:13:29,710 --> 00:13:33,956
+动态工作流通过生成一个架构分析团队来解决这个问题。
+A dynamic workflow resolves this by spawning an architecture analysis team.
+
+136
+00:13:34,414 --> 00:13:47,220
+协调者创建数据库智能体来审计慢查询和索引，API 层智能体来检查序列化和路由开销，
+队列智能体来调查消息代理配置，基础设施智能体来审查
+The coordinator creates database agents to audit slow queries and indexing, API layer agents to check serialization and routing
+overhead, queue agents to investigate message broker configurations, infrastructure
+
+137
+00:13:47,220 --> 00:13:47,250
+协调者创建数据库智能体来审计慢查询和索引，API 层智能体来检查序列化和路由开销，
+队列智能体来调查消息代理配置，基础设施智能体来审查
+agents to review Docker and Kubernetes resources, and cost agents to analyze cloud spend.
+
+138
+00:13:47,250 --> 00:13:52,516
+Docker 和 Kubernetes 资源，以及成本智能体来分析云支出。
+agents to review Docker and Kubernetes resources, and cost agents to analyze cloud spend.
+
+139
+00:13:52,910 --> 00:13:55,524
+每个智能体都会撰写自己的局部分析报告。
+Each agent writes its own localized analysis.
+
+140
+00:13:55,918 --> 00:14:04,736
+协调者随后将这些报告综合成一份全面的架构审计报告，准确识别出系统在负载下会崩溃的地点。
+The coordinator then synthesizes these reports into a single, comprehensive architectural audit,
+identifying exactly where the system will fail under load.
+
+141
+00:14:04,942 --> 00:14:15,536
+对于从零开始开发新功能，比如构建基于角色的访问控制（RBAC），
+动态工作流就像一个完整的软件团队。
+For green field feature development, like building role-based access control or RBAC from scratch,
+a dynamic workflow mimics a full-cycle software team.
+
+142
+00:14:15,758 --> 00:14:17,988
+开发人员输入功能规范。
+The developer inputs the feature spec.
+
+143
+00:14:18,478 --> 00:14:22,340
+协调者随后规划一个线性的、循序渐进的工作流。
+The coordinator then plans a linear, step-by-step workflow.
+
+144
+00:14:22,926 --> 00:14:27,396
+首先，它生成一个架构智能体来设计数据库表。
+First, it spawns an architecture agent to design the database tables.
+
+145
+00:14:28,110 --> 00:14:31,332
+其次，架构智能体编写迁移文件。
+Second, a schema agent writes the migration files.
+
+146
+00:14:31,790 --> 00:14:37,444
+第三，后端智能体实现身份验证中间件和 API 控制器。
+Third, a back-end agent implements the authentication middleware and API controllers.
+
+147
+00:14:38,318 --> 00:14:41,956
+第四，前端智能体构建用户管理控制台。
+Fourth, a front-end agent builds the user management console.
+
+148
+00:14:42,478 --> 00:14:52,484
+最后，测试智能体运行集成测试来验证整个流程，每个
+智能体将工作移交给下一个，并在每个阶段验证兼容性。
+Finally, a testing agent runs integration tests to verify the entire flow, each
+agent hands off its work to the next, verifying compatibility at every stage.
+
+149
+00:14:53,038 --> 00:14:58,496
+这确保了实现过程整洁且连贯，前端和后端完美对齐。
+This ensures a clean, cohesive implementation, where front-end and back-end are perfectly aligned.
+
+150
+00:14:58,736 --> 00:15:02,176
+这种架构转变有哪些战略意义？
+What are the strategic implications of this architectural shift?
+
+151
+00:15:02,336 --> 00:15:08,708
+在 AI 社区，长期以来一直有一种观点，认为获得更好结果的关键只是构建更好、更大的模型。
+In the AI community, there has been a long-standing belief that the key to better results is simply building better, larger models.
+
+152
+00:15:09,038 --> 00:15:13,924
+我们假设只要扩大参数规模和上下文窗口，智能就能解决一切问题。
+We assumed that if we scaled parameters and context windows, intelligence would solve everything.
+
+153
+00:15:14,318 --> 00:15:16,292
+但新出现的现实却并非如此。
+But the emerging reality is different.
+
+154
+00:15:16,686 --> 00:15:19,876
+更好的协调胜过单一巨大的大脑。
+Better coordination beats a single massive brain.
+
+155
+00:15:20,270 --> 00:15:32,096
+通过组织更小的、专门的智能体节点并有效地协调它们，我们可以解决那些远超任何单一模型能
+力的任务，无论那个模型有多大。
+By organizing smaller, specialized agent nodes and coordinating them effectively,
+we can solve tasks that are far beyond the capabilities of any single model, no matter how large.
+
+156
+00:15:32,430 --> 00:15:39,216
+许多复杂的软件工程问题，实际上是伪装成智能问题的协调问题。
+Many complex software engineering problems are actually coordination problems disguised as intelligence problems.
+
+157
+00:15:39,536 --> 00:15:44,580
+更好的组织架构，而非仅仅是更大的模型，才是软件自动化扩展的未来。
+Better organization, not just bigger models, is the future of scaling software automation.
+
+158
+00:15:45,102 --> 00:15:50,336
+简而言之，Claude 动态工作流代表了软件自动化的根本演变。
+In summary, cloud dynamic workflows represent a fundamental evolution in software automation.
+
+159
+00:15:50,670 --> 00:15:57,508
+它们是运行时生成的、目标驱动的、多智能体、自我组织的，并且高度注重验证。
+They are runtime-generated, goal-driven, multi-agent, self-organizing, and heavily verification-oriented.
+
+160
+00:15:57,870 --> 00:16:00,772
+它们不是硬编码的智能体树或固定的工作流。
+They are not hard-coded agent trees or fixed workflows.
+
+161
+00:16:01,262 --> 00:16:13,456
+核心洞察是，智能体工程的未来将不再是单一的超智能聊天界面，
+而更像是一个为了实现特定目标而按需生成的、弹性的数字员工组织。
+The ultimate insight is that the future of agentic engineering will look less like a single superintelligent chat interface,
+and more like an elastic organization of digital workers generated on demand to achieve a specific goal.
+
+162
+00:16:13,678 --> 00:16:17,616
+工作流不再是编程出来的，而是生成出来的。
+The workflow is no longer programmed, the workflow is generated.
+
+163
+00:16:17,998 --> 00:16:25,092
+在这个新世界里，开发者的角色从编写详细的编排代码，转变为定义高层目标和验证输出。
+In this new world, the developer's role shifts from writing detailed
+orchestration code to defining high level goals and verifying outputs.
+
+164
+00:16:25,710 --> 00:16:26,660
+感谢观看。
+Thank you for watching.
+
+165
+00:16:27,086 --> 00:16:34,148
+如果你想了解更多关于动态工作流的内容，请订阅频
+道，查看下方的资源，并在评论区告诉我们你的想法。
+If you want to learn more about dynamic workflows, subscribe to the channel, check out the resources below,
+and let us know your thoughts in the comments.
+
