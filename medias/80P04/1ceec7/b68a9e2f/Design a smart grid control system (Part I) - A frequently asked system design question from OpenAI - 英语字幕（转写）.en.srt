@@ -1,0 +1,2076 @@
+1
+00:00:07,438 --> 00:00:09,860
+Hey everyone, welcome back to showoffer.io.
+
+2
+00:00:10,670 --> 00:00:13,900
+Today we are going to design a smart grid device control system.
+
+3
+00:00:14,734 --> 00:00:19,540
+The subtitle on this page is actually the best one-line description of this problem.
+
+4
+00:00:20,240 --> 00:00:25,580
+This is a distributed, closed-loop control system over an unreliable edge.
+
+5
+00:00:26,830 --> 00:00:32,140
+The loop is simple to say, plan, command, observe, adjust.
+
+6
+00:00:32,140 --> 00:00:37,200
+But the hard part is that the devices live out on the public Internet.
+
+7
+00:00:38,158 --> 00:00:46,460
+They disappear, reconnect, duplicate messages, delay telemetry, and sometimes simply refuse the command.
+
+8
+00:00:47,630 --> 00:00:56,840
+So instead of jumping straight into a giant architecture diagram, I want to build this way I would like to do in Unreal-InnerReal.
+
+9
+00:00:57,294 --> 00:01:06,480
+We'll start with the product loop, identify where the simple version breaks, and let each failure case force one mechanism into the design.
+
+10
+00:01:07,918 --> 00:01:19,240
+So the key thing to keep in mind for this entire video is the platform never has the perfect information, but it still has to make safe, explainable decisions.
+
+11
+00:01:22,280 --> 00:01:25,280
+So now let's make the product, or say the system, concrete.
+
+12
+00:01:26,478 --> 00:01:31,120
+Imagine a grid operator managed a million of the connected devices.
+
+13
+00:01:31,758 --> 00:01:40,100
+It could be the EV chargers, HVAC system, refrigerators, industrial equipment, and even the entire buildings.
+
+14
+00:01:41,358 --> 00:01:48,660
+The operator creates a campaign like NorthEast HVAC cut power by 20% for two hours.
+
+15
+00:01:49,614 --> 00:01:52,640
+Observe the result and adjust if necessary.
+
+16
+00:01:53,760 --> 00:02:01,460
+There are roughly 10 million devices in our zoomed fleet and all communication happens over the public internet.
+
+17
+00:02:02,702 --> 00:02:05,080
+That immediately gives us several problems.
+
+18
+00:02:06,158 --> 00:02:08,920
+A device can be offline when the command is issued.
+
+19
+00:02:09,620 --> 00:02:12,760
+A command can be delayed or duplicated.
+
+20
+00:02:14,126 --> 00:02:15,880
+The device owner may refuse.
+
+21
+00:02:17,006 --> 00:02:24,560
+The device can acknowledge the command but still does not approve the electrical load actually dropped.
+
+22
+00:02:25,646 --> 00:02:36,548
+Telemetry can arrive late, duplicated, or out of order, and after original outage, a million devices might reconnect at nearly the same time.
+
+23
+00:02:38,382 --> 00:02:43,580
+So I would explicitly tell the interviewer, hey, I'm now designing a monitoring of this dashboard.
+
+24
+00:02:44,302 --> 00:02:47,000
+The monitoring is the only evidence channel.
+
+25
+00:02:47,790 --> 00:02:55,060
+The actual product or system is a control loop that tries to change the fleet behavior and learns what happened.
+
+26
+00:02:56,622 --> 00:03:01,660
+So useful clarification here is whether the next adjustment is a manual or automated.
+
+27
+00:03:02,800 --> 00:03:04,180
+Either is fine for this design.
+
+28
+00:03:04,782 --> 00:03:10,840
+We can't let a human operator create the next campaign, or a policy engine can do it.
+
+29
+00:03:11,822 --> 00:03:14,520
+The distributed system requirements are mostly the same.
+
+30
+00:03:15,020 --> 00:03:18,860
+The next action needs transparency, versioned evidence.
+
+31
+00:03:18,860 --> 00:03:20,020
+Now
+
+32
+00:03:23,160 --> 00:03:28,280
+before drawing the boxes, I would surface our four questions on this page.
+
+33
+00:03:29,262 --> 00:03:35,100
+So they're really the four stress tests for the entire system before we're talking about any framing of the system.
+
+34
+00:03:36,206 --> 00:03:43,800
+Number one, what does an ACK prove or acknowledge prove and what does it not prove?
+
+35
+00:03:44,654 --> 00:03:47,340
+So if a device says ACK acknowledgement.
+
+36
+00:03:48,078 --> 00:03:57,100
+Does that mean the message arrived, the command was accepted, the setpoint changed, or the physical load actually dropped?
+
+37
+00:03:57,646 --> 00:03:58,820
+So those things are different.
+
+38
+00:04:00,180 --> 00:04:08,480
+And number two, what if a device reconnects after a newer command has already replaced the one it missed?
+
+39
+00:04:09,998 --> 00:04:17,960
+If an old reduced command arrives after a restore, we can create the exact opposite of the intended physical behavior.
+
+40
+00:04:19,918 --> 00:04:26,700
+Number three, what if a million devices replay two hours of telemetry at once?
+
+41
+00:04:27,790 --> 00:04:29,740
+This is not just a throughput question.
+
+42
+00:04:30,542 --> 00:04:37,800
+The historical backlog can blind the live control exactly when the operator needs the current stat most.
+
+43
+00:04:39,320 --> 00:04:45,680
+4. What if the late data proves that an early escalation was unnecessary?
+
+44
+00:04:46,600 --> 00:04:49,920
+Do we override the history or we want to keep both versions?
+
+45
+00:04:51,438 --> 00:04:57,580
+I like asking this before architecture because each answer forces a concrete mechanism later.
+
+46
+00:04:58,190 --> 00:05:10,724
+The command identity, ordering and expiration, separate live and catch-up paths, event time processing, version roll-ups, and separate transport versus the physical assessment.
+
+47
+00:05:12,640 --> 00:05:17,780
+So here's one interview tip don't present this as a trivia questions.
+
+48
+00:05:18,600 --> 00:05:23,060
+Present them as the design constraints you want to validate with the interviewer.
+
+49
+00:05:23,758 --> 00:05:29,820
+If the interviewer says, for example, commands never expire, then your command semantics change.
+
+50
+00:05:30,574 --> 00:05:34,680
+So clarifying the assumptions is part of the design interview system.
+
+51
+00:05:38,350 --> 00:05:43,170
+In recent interviews, more and more companies are introducing AI coding rounds into their hiring process.
+
+52
+00:05:43,822 --> 00:05:47,110
+But AI coding isn't just about asking AI to write code for you.
+
+53
+00:05:47,790 --> 00:05:57,350
+Have you ever fallen into common red flags like using AI-generated code without verification or blindly following the AI solution without understanding or challenging it?
+
+54
+00:05:57,350 --> 00:06:06,730
+Whether you've already faced an AI coding interview or have no idea what to expect, ShowOffer has a new AI coding interview guide to help you prepare.
+
+55
+00:06:07,438 --> 00:06:17,170
+You will learn the common types of AI coding rounds, how interviewers evaluate your performance, the key dimensions they look for, and most importantly, how to practice effectively.
+
+56
+00:06:18,158 --> 00:06:24,630
+And if you want hands-on experience, ShowOffer has also launched a dedicated AI coding mock interview and coaching sessions.
+
+57
+00:06:25,370 --> 00:06:33,190
+Practice with experienced coaches in a realistic AI coding environment, identify your weakness, and level up your performance before the real interview.
+
+58
+00:06:33,934 --> 00:06:38,490
+Don't walk into your first AI coding round unprepared, get ready with show offer.
+
+59
+00:06:41,294 --> 00:06:45,930
+Now let's come to the requirements part and formalize the problem.
+
+60
+00:06:46,638 --> 00:06:49,890
+I'm going to keep the requirements intentionally tight.
+
+61
+00:06:50,730 --> 00:06:59,250
+Four functional requirements, four non-functional requirements, one scale estimate, and then four follow-up questions we just introduced.
+
+62
+00:07:00,750 --> 00:07:03,090
+The goal is not to list every possible feature.
+
+63
+00:07:03,694 --> 00:07:08,750
+It is to define the minimum contract that makes the later architecture logically necessary.
+
+64
+00:07:12,350 --> 00:07:16,630
+So there are four functional requirements, and each maps directly to one flow.
+
+65
+00:07:18,070 --> 00:07:21,090
+Functional requirement number one is campaign planning.
+
+66
+00:07:22,126 --> 00:07:28,910
+A user defines the target group, the action, function, the reduction amount, the time window, and expiration.
+
+67
+00:07:29,902 --> 00:07:34,010
+We process that intent first, then find out asynchronously.
+
+68
+00:07:35,370 --> 00:07:38,470
+Function requirement number two is sending the commands.
+
+69
+00:07:39,438 --> 00:07:41,710
+Online devices should get a command quickly.
+
+70
+00:07:42,450 --> 00:07:46,910
+Offline devices should get it later only if the command is still valid.
+
+71
+00:07:47,970 --> 00:07:49,450
+Retries must be safe.
+
+72
+00:07:49,450 --> 00:07:55,310
+still commands must never take effect and the device must explicitly refused.
+
+73
+00:07:57,440 --> 00:08:00,800
+Functional requirement number three is the feedback loop.
+
+74
+00:08:02,040 --> 00:08:03,960
+So devices report telemetry.
+
+75
+00:08:05,038 --> 00:08:09,860
+The platform used this one to answer the more important question, what actually happened.
+
+76
+00:08:10,540 --> 00:08:18,060
+From that evidence, we can hold the current plan, escalate, relax, or restore.
+
+77
+00:08:19,790 --> 00:08:22,280
+Functional requirement number four is reconciliation.
+
+78
+00:08:23,900 --> 00:08:29,940
+A late sample belongs to the time when it was measured, not when it happened to arrive.
+
+79
+00:08:30,830 --> 00:08:38,220
+So the late data can reopen an old assessment window, change the result, and publish a corrected version.
+
+80
+00:08:39,440 --> 00:08:46,660
+Notice how the loop closes the plan, command, observe, reconcile, and plan again.
+
+81
+00:08:48,000 --> 00:08:55,280
+So one interview habit I recommend to say the requirements in this flow instead of grouping them randomly.
+
+82
+00:08:55,740 --> 00:09:05,040
+So this makes the high-level design much easier later because you can literally talk with the functional requirement number one, number two, number three, and then number four.
+
+83
+00:09:09,486 --> 00:09:16,100
+And now let's come to this page which has three distinctions that prevent a lot of bad designs.
+
+84
+00:09:17,200 --> 00:09:20,940
+So first, command delivered is not command executed.
+
+85
+00:09:21,780 --> 00:09:27,600
+Delivery is a transport effect and execution is a device side effect.
+
+86
+00:09:28,814 --> 00:09:33,540
+Number two, ACK, acknowledgement, is not physical verification.
+
+87
+00:09:34,766 --> 00:09:38,420
+A device may say yes, but the power curve may not move.
+
+88
+00:09:38,420 --> 00:09:48,020
+Maybe the owner overrides it, maybe a local safety constraints wins, maybe the command was applied, but the physical system reacts slowly.
+
+89
+00:09:49,582 --> 00:09:56,700
+And number three, and this is the one is extremely important, no telemetry equals unknown.
+
+90
+00:09:57,620 --> 00:10:01,840
+Silence is not success and it's not failure, it is uncertainty.
+
+91
+00:10:03,086 --> 00:10:10,580
+So why do I care so much about these distinctions, because if you collapse them, your next control action will be wrong.
+
+92
+00:10:11,214 --> 00:10:15,940
+If you treat missing telemetry as success, you may stop shedding load too early.
+
+93
+00:10:16,718 --> 00:10:23,660
+And if you treat missing telemetry as failure, you may over correct and send unnecessary commands to more devices.
+
+94
+00:10:25,102 --> 00:10:29,280
+So I would also state out of the scope those items quickly.
+
+95
+00:10:30,126 --> 00:10:38,724
+We are now solving the grid physics, demand forecasting, billing, device firmware internals, or malicious telemetry.
+
+96
+00:10:38,960 --> 00:10:45,060
+So those are legitimate problems, but they would pull the interview away from the distributed system core.
+
+97
+00:10:48,270 --> 00:10:54,010
+All right, after talking about functional requirements, let's come to the non-functional ones.
+
+98
+00:10:54,798 --> 00:11:06,050
+So I would prioritize exactly another four, the reliability, the latency, scalability, and the correctness and the uncertainty.
+
+99
+00:11:07,758 --> 00:11:09,550
+So let's come to the reliability first.
+
+100
+00:11:10,638 --> 00:11:15,550
+Once we accept the campaign, a service crash cannot make it disappear.
+
+101
+00:11:16,270 --> 00:11:24,110
+We will use at least once delivery and unimportant device behavior instead of pretending the edge network can give us exact ones.
+
+102
+00:11:25,230 --> 00:11:29,060
+For telemetry, we only acknowledge after a durable write.
+
+103
+00:11:31,246 --> 00:11:42,130
+As for the latency, let's assume p95 command delivery under 10 seconds for online devices and the provisional campaign result wins the minutes.
+
+104
+00:11:43,342 --> 00:11:47,130
+This is a physical control system, so milliseconds are not at point.
+
+105
+00:11:48,110 --> 00:11:51,350
+Being fast enough to influence the next control interval is.
+
+106
+00:11:53,550 --> 00:11:57,870
+As for the scalability, our study state is already large.
+
+107
+00:11:58,894 --> 00:12:06,170
+We talked about about 10 million registered devices and roughly 700,000 telemetry samples per second.
+
+108
+00:12:06,542 --> 00:12:10,430
+So the real challenge is burst headroom after the outages.
+
+109
+00:12:12,622 --> 00:12:16,610
+And in terms of the correctness, it is where a lot of interview depth lives.
+
+110
+00:12:17,350 --> 00:12:26,110
+Duplicate retries, preserve the event time, represent unknown explicitly, and revise history when the late data arrives.
+
+111
+00:12:29,582 --> 00:12:32,140
+And now, let's come to the skill parts.
+
+112
+00:12:33,518 --> 00:12:36,320
+Let's do just enough math to drive the architecture.
+
+113
+00:12:37,760 --> 00:12:42,620
+So assume there are 10 million registered devices and 7 million online on average.
+
+114
+00:12:43,502 --> 00:12:47,720
+Each online device emits one telemetry sample every 10 seconds.
+
+115
+00:12:47,720 --> 00:12:51,980
+that gives us roughly like 700,000 samples per second.
+
+116
+00:12:53,540 --> 00:13:07,620
+So at around 200 compressed bytes per sample, for example, that's about 140 megabytes per second, or roughly 12 terabytes per day before replication and other overhead.
+
+117
+00:13:09,262 --> 00:13:12,100
+Now an interesting number, a reconnect storm.
+
+118
+00:13:12,110 --> 00:13:20,080
+Suppose 1 million devices were offline for 2 hours, and 1 sample every 10 seconds.
+
+119
+00:13:20,686 --> 00:13:23,820
+Each device buffered 720 samples.
+
+120
+00:13:24,558 --> 00:13:30,360
+That's 720 million historical samples, arriving over a short period of time.
+
+121
+00:13:31,460 --> 00:13:40,660
+At a normal 700,000 per second rate, that backlog represents about 17 millionths of the steady-state traffic.
+
+122
+00:13:40,660 --> 00:13:46,600
+but now it may arrive in just a few minutes, not top of the current telemetry.
+
+123
+00:13:48,020 --> 00:13:51,580
+That tells us three things before we draw the architecture.
+
+124
+00:13:52,398 --> 00:13:53,840
+Processing must be asynchronous.
+
+125
+00:13:54,734 --> 00:14:04,420
+We need a partitioned durable lock between the edge and the compute, and a live telemetry should not be forced to wait behind historical catch-up.
+
+126
+00:14:05,240 --> 00:14:08,240
+The exact number can change in an interview.
+
+127
+00:14:08,240 --> 00:14:12,900
+what matters here is using the estimation to discover what system shape.
+
+128
+00:14:17,360 --> 00:14:19,340
+And now this is a follow-up question part.
+
+129
+00:14:19,854 --> 00:14:28,020
+Usually this falls into the deep dives but these four questions come up earlier here to give you some of the prelude.
+
+130
+00:14:29,340 --> 00:14:34,540
+So maybe the challenge number one or say the deep dive topic number one we can have is the still commands.
+
+131
+00:14:34,900 --> 00:14:38,520
+For example, if an old reduce use arrives after restore.
+
+132
+00:14:39,118 --> 00:14:41,680
+That mostly tests the reliability semantics.
+
+133
+00:14:42,958 --> 00:14:45,880
+The second challenge is going to be to reconnect the storm.
+
+134
+00:14:46,478 --> 00:14:53,880
+If a million devices upload two hours of history, that has to burst the handling and also your latency isolations.
+
+135
+00:14:55,420 --> 00:14:57,980
+A third challenge is delayed data changing history.
+
+136
+00:14:58,990 --> 00:15:00,780
+We escalated based on the missing data.
+
+137
+00:15:01,280 --> 00:15:10,360
+And later, Timing Tree approves many devices had already complied and that case test the correctness and their incomplete information.
+
+138
+00:15:11,854 --> 00:15:15,200
+And then before is the ACK without physical effect.
+
+139
+00:15:16,060 --> 00:15:19,480
+So transport succeeded but the power curve didn't move.
+
+140
+00:15:20,014 --> 00:15:26,820
+That actually tested whether you are separate information or separate messaging state from the real-world evidence.
+
+141
+00:15:27,982 --> 00:15:34,040
+So when an interviewer asks one of these questions, don't jump straight to a technology.
+
+142
+00:15:34,560 --> 00:15:38,520
+Start with the failure and ask what guarantee do I actually need?
+
+143
+00:15:40,654 --> 00:15:42,030
+So there's a quick show-off note.
+
+144
+00:15:42,350 --> 00:15:45,570
+This is exactly why live mock interviews are useful.
+
+145
+00:15:46,170 --> 00:15:49,430
+Memorizing use Kafka or use MQTT is easy.
+
+146
+00:15:50,010 --> 00:16:01,890
+The hard part is having someone interrupt you with what if the ACK is lost or what if the device reconnects after the restore and still reasoning clearly.
+
+147
+00:16:03,010 --> 00:16:13,950
+Our coaches from ShowOffer have worked with hundreds of candidates over the past years, including people preparing for the open AI and anthropic style interview system design questions.
+
+148
+00:16:14,530 --> 00:16:17,490
+And the practice is really about this back and forth.
+
+149
+00:16:21,774 --> 00:16:24,990
+Now let's come to the section number two, core thinking.
+
+150
+00:16:25,710 --> 00:16:29,670
+We found this is a real new part of the whole video structure.
+
+151
+00:16:30,286 --> 00:16:35,410
+The reason is before the infrastructure, I want three mental model discussed in place.
+
+152
+00:16:36,238 --> 00:16:39,130
+Number one, this is a closed loop, it's not a pipeline.
+
+153
+00:16:39,870 --> 00:16:45,970
+Number two, this is about the transport state and the physical outcome, there are two separate dimensions.
+
+154
+00:16:46,890 --> 00:16:52,570
+And number three, the system has to remain correct, even when the information is incomplete.
+
+155
+00:16:53,582 --> 00:16:58,370
+So once those are clear, the later design decisions become much easier to justify.
+
+156
+00:17:02,222 --> 00:17:03,204
+Let's go to the first one.
+
+157
+00:17:03,850 --> 00:17:14,170
+So the tempting picture here is devices writing into a message lock, a stream processor, a time series database, and a dashboard.
+
+158
+00:17:15,246 --> 00:17:21,190
+That is a perfectly fine monitoring system, but it's not the system we want to design.
+
+159
+00:17:22,090 --> 00:17:30,550
+Here, telemetry is not the final part, or the final product, telemetry is evidence that closes the loop.
+
+160
+00:17:31,530 --> 00:17:35,570
+So the real flow starts with a user planning a campaign.
+
+161
+00:17:36,526 --> 00:17:40,950
+The platform sends the commands, the devices react, or don't.
+
+162
+00:17:41,830 --> 00:17:51,810
+They produce the telemetry, the platform evaluates the results and decides whether to adjust the plan, then the late telemetry may revise an earlier conclusion.
+
+163
+00:17:52,878 --> 00:18:02,090
+So the loop is not just the data flowing from left to right, it is action to the observation to the decision to the action again.
+
+164
+00:18:03,110 --> 00:18:06,130
+That distinction changes what we need to persist.
+
+165
+00:18:07,130 --> 00:18:17,510
+A monitoring pipeline might not care which campaign targeted which device, whether the command expired, or which evidence version caused a later decision.
+
+166
+00:18:18,478 --> 00:18:20,490
+But a control system absolutely does.
+
+167
+00:18:21,582 --> 00:18:27,550
+So if the interviewer says the next plan is manual, that is fine, the loop closes through a human.
+
+168
+00:18:28,238 --> 00:18:32,650
+If it's automated, a policy engine can consume the same rollup.
+
+169
+00:18:33,614 --> 00:18:37,710
+I will keep the policy logic separate from the distributed system guarantees.
+
+170
+00:18:38,542 --> 00:18:42,390
+Our job is to provide trustworthy, versioned evidence.
+
+171
+00:18:43,090 --> 00:18:46,890
+The exact escalation formula is configurable business logic.
+
+172
+00:18:46,890 --> 00:18:47,850
+And
+
+173
+00:18:52,080 --> 00:18:55,480
+now let's come to the transport state and the physical outcomes.
+
+174
+00:18:55,980 --> 00:18:57,240
+So these are the two dimensions.
+
+175
+00:18:57,934 --> 00:19:01,400
+And this page is one of the most important in the stack.
+
+176
+00:19:02,360 --> 00:19:06,800
+On the left, transport answers what happened to the message.
+
+177
+00:19:07,502 --> 00:19:08,644
+Did we deliver it?
+
+178
+00:19:09,060 --> 00:19:11,440
+Did the device acknowledge?
+
+179
+00:19:12,460 --> 00:19:13,840
+Did it refuse?
+
+180
+00:19:14,080 --> 00:19:14,880
+Did it expire?
+
+181
+00:19:15,982 --> 00:19:18,140
+And on the top, assessment answers.
+
+182
+00:19:18,958 --> 00:19:21,240
+What did the device physically do?
+
+183
+00:19:21,998 --> 00:19:26,420
+Was the requested result verified, not verified, or unknown?
+
+184
+00:19:27,342 --> 00:19:29,540
+So these dimensions are orthogonal.
+
+185
+00:19:30,660 --> 00:19:33,380
+A device can be acknowledged plus verified.
+
+186
+00:19:34,260 --> 00:19:36,040
+This is the easy case.
+
+187
+00:19:36,942 --> 00:19:44,260
+But it can also be acknowledged but not verified, which means transport succeeded but the power didn't drop.
+
+188
+00:19:45,454 --> 00:19:48,140
+It can also be acknowledged plus unknown.
+
+189
+00:19:48,980 --> 00:19:52,860
+So the device acknowledged but then the telemetry disappeared.
+
+190
+00:19:54,574 --> 00:20:00,700
+And even a refused command could coincide with a load drop for unrelated reasons.
+
+191
+00:20:01,486 --> 00:20:04,440
+That doesn't mean the command causes the reduction.
+
+192
+00:20:04,942 --> 00:20:10,180
+It just shows why transport state and observed physics are different kinds of the truth.
+
+193
+00:20:11,598 --> 00:20:19,260
+So the common mistake is one giant life cycle like pending, sent, acknowledgement, success.
+
+194
+00:20:19,950 --> 00:20:23,460
+That word success fuses the communication with the behavioral.
+
+195
+00:20:24,480 --> 00:20:29,240
+So the memorable sentence here is ACK proves a communication.
+
+196
+00:20:29,998 --> 00:20:33,260
+The telemetry provides the evidence of the physical behavioral.
+
+197
+00:20:36,420 --> 00:20:42,320
+And method number three, the correctness must survive in complete information.
+
+198
+00:20:43,590 --> 00:20:48,640
+Now we add the reality that the platform acts before all telemetry is available.
+
+199
+00:20:49,646 --> 00:20:50,560
+There are three principles.
+
+200
+00:20:51,438 --> 00:20:54,340
+Number one, make uncertainty explicit.
+
+201
+00:20:55,320 --> 00:20:57,220
+Unknown is a legitimate result.
+
+202
+00:20:58,020 --> 00:21:01,520
+Report confirmed reduction and uncertain reduction separately.
+
+203
+00:21:02,222 --> 00:21:06,212
+Let the policy decide how conversative it could be.
+
+204
+00:21:07,340 --> 00:21:10,080
+And number two, process by the event time.
+
+205
+00:21:10,990 --> 00:21:18,760
+If a sample was measured, for example, 10, 0, 2, and received at 10, 10, it belongs to the 10, 0, 2 window.
+
+206
+00:21:19,540 --> 00:21:22,640
+Arrival time tells us when the backend learned something.
+
+207
+00:21:23,320 --> 00:21:25,720
+Event time tells us when reality happened.
+
+208
+00:21:27,214 --> 00:21:30,980
+And number three, version every conclusion, that can change.
+
+209
+00:21:32,100 --> 00:21:45,100
+If the system creates a follow-up campaign using the rollup version 3, and the late data later produces version 4, keep both, otherwise we lose the ability to explain why the earlier decision was made.
+
+210
+00:21:46,200 --> 00:21:49,060
+So this gives us a nice mental model for the whole system.
+
+211
+00:21:50,030 --> 00:21:54,900
+Commands are at least once, but protected by the entity, order, and expiry.
+
+212
+00:21:55,880 --> 00:22:00,240
+Telemetry is durable, it is partitioned, and processed by the event time.
+
+213
+00:22:01,358 --> 00:22:03,960
+And the whole results are versioned.
+
+214
+00:22:04,686 --> 00:22:10,160
+The past can be interpreted as new evidence arrives, but the future only moves forward.
+
+215
+00:22:12,046 --> 00:22:14,000
+So the last sentence is worth remembering.
+
+216
+00:22:14,000 --> 00:22:20,040
+reconciliation changes our belief about the past, and the next control action changes the future.
+
+217
+00:22:23,420 --> 00:22:26,160
+So let's come to the design decisions and the reason for each of them.
+
+218
+00:22:27,246 --> 00:22:31,220
+And this page is basically the architecture in decision form.
+
+219
+00:22:32,014 --> 00:22:38,692
+So we want to persist the command first and use something like device command as a materialize the target set.
+
+220
+00:22:39,726 --> 00:22:40,080
+Why?
+
+221
+00:22:40,878 --> 00:22:44,520
+The API returns quickly and find out it can resume after a crash.
+
+222
+00:22:44,520 --> 00:22:54,660
+So use at least once delivery plus the command ID, the sequence of the device, and the expiration date.
+
+223
+00:22:55,406 --> 00:22:55,680
+Why?
+
+224
+00:22:56,558 --> 00:23:00,240
+We don't need any magical exact once networking.
+
+225
+00:23:00,680 --> 00:23:03,440
+We need effectively once physical behavioral.
+
+226
+00:23:05,102 --> 00:23:14,360
+And we do split the live telemetry and the catch-up telemetry at the edge, then converge them on one durable lock.
+
+227
+00:23:15,310 --> 00:23:15,620
+Why?
+
+228
+00:23:16,654 --> 00:23:22,404
+A reconnect storm should become the lag not the loss and it should not blind the live loop.
+
+229
+00:23:23,700 --> 00:23:26,900
+We use the event time plus the visible watermark.
+
+230
+00:23:27,620 --> 00:23:27,800
+Why?
+
+231
+00:23:28,600 --> 00:23:35,940
+The late samples must land where reality happens and consumers need to know how fresh the current view is.
+
+232
+00:23:37,614 --> 00:23:43,040
+The version rollups and record such as the based on the rollup version on the follow-up campaigns.
+
+233
+00:23:43,950 --> 00:23:44,300
+Why?
+
+234
+00:23:44,974 --> 00:23:48,460
+We need both the latest choose and decision time choose.
+
+235
+00:23:49,774 --> 00:23:52,280
+And make the control self-expiring.
+
+236
+00:23:53,134 --> 00:23:54,300
+This is the safety property.
+
+237
+00:23:54,894 --> 00:24:04,000
+If the control plane disappears, a device should not remain in a temporary reduce state forever waiting for a restore that may never come.
+
+238
+00:24:05,102 --> 00:24:08,580
+So notice that none of these choices start with a vendor product.
+
+239
+00:24:08,980 --> 00:24:12,180
+They start with a failure mode and required behavior.
+
+240
+00:24:12,780 --> 00:24:19,380
+So that is the level of reasoning I would aim for into the whole design system.
+
+241
+00:24:21,774 --> 00:24:26,810
+So now let's come to the section number three which is entities and API designs.
+
+242
+00:24:27,918 --> 00:24:32,430
+Now we will define the smallest data model that can express our four flows.
+
+243
+00:24:33,518 --> 00:24:43,310
+We only need five durable domain models as of now, device, campaign, device command, telemetry sample, and the campaign rollup.
+
+244
+00:24:44,270 --> 00:24:46,450
+Then we will add three API shapes.
+
+245
+00:24:47,170 --> 00:24:50,910
+Most of the interesting work stays asynchronized behind those APIs.
+
+246
+00:24:54,380 --> 00:24:55,720
+So now let's come to the core entities.
+
+247
+00:24:56,080 --> 00:24:58,200
+Let's keep the model intentionally small.
+
+248
+00:24:59,342 --> 00:25:02,540
+Let's walk the relationship map here.
+
+249
+00:25:03,118 --> 00:25:04,820
+So device.
+
+250
+00:25:05,440 --> 00:25:13,860
+It is the identity and the targeting metadata, the device ID, region, device class, priority tier, and opt-out.
+
+251
+00:25:14,862 --> 00:25:20,960
+One device emits many telemetry samples and can receive many commands over time.
+
+252
+00:25:22,600 --> 00:25:24,940
+Campaign is the user's durable intent.
+
+253
+00:25:25,720 --> 00:25:38,800
+It has the target selector, action, parameters, target reduction, effective skip time, expiry, and optional links to a parent campaign and the roll-up version that cost it.
+
+254
+00:25:40,654 --> 00:25:44,720
+Device command is the join between a campaign and device.
+
+255
+00:25:45,800 --> 00:25:51,660
+Its composite primary key is the campaign ID plus the device ID.
+
+256
+00:25:52,720 --> 00:25:59,040
+That role means the device, or this device, was actually part of the campaign's target set.
+
+257
+00:26:01,070 --> 00:26:01,910
+Telemetry sample.
+
+258
+00:26:02,350 --> 00:26:06,570
+It uses the device ID plus the sample sequence as the composite key.
+
+259
+00:26:07,374 --> 00:26:10,596
+The sequence gives the deterministic deduplication.
+
+260
+00:26:11,214 --> 00:26:19,530
+It stores both the event time and ingest time, power, and optionally the campaign that the device believes it is applying.
+
+261
+00:26:20,970 --> 00:26:22,990
+The last one is the campaign roll-up.
+
+262
+00:26:23,470 --> 00:26:29,770
+It uses the campaign ID plus the version as its key because the result can change when late the evidence arrives.
+
+263
+00:26:31,530 --> 00:26:34,150
+So here's a couple of storage notes.
+
+264
+00:26:34,990 --> 00:26:38,970
+User identity can stay in the authoritative system.
+
+265
+00:26:39,910 --> 00:26:43,630
+Campaign only needs to create it by the user ID for audit.
+
+266
+00:26:44,510 --> 00:26:47,670
+Presents is hot, informal state.
+
+267
+00:26:48,110 --> 00:26:53,250
+So I would keep it in a TTL cache rather than turning it into another durable domain table.
+
+268
+00:26:54,446 --> 00:27:01,070
+The model stays very small because each table has a direct role in one of our four flows.
+
+269
+00:27:05,870 --> 00:27:09,670
+So let's talk about the campaign and the device command.
+
+270
+00:27:10,070 --> 00:27:12,964
+One is intent and then is the target set.
+
+271
+00:27:14,478 --> 00:27:16,590
+So campaign is the durable business intent.
+
+272
+00:27:17,870 --> 00:27:21,370
+It must exist before we contact the devices.
+
+273
+00:27:22,702 --> 00:27:37,390
+The target selector might stay, for example, Northeast, HVC, Priority Tier 2, or above, the action may be reduced percent, the cap bots, or restore.
+
+274
+00:27:38,550 --> 00:27:44,490
+Expire set is especially important because the instruction must not remain valid forever.
+
+275
+00:27:45,998 --> 00:27:58,010
+And for the follow-up campaigns, parent campaign ID tells us what we're reacting to, and based on roll-up version tells us which evidence version causes this decision.
+
+276
+00:27:59,250 --> 00:28:02,550
+Then the device command materializes the target set.
+
+277
+00:28:03,662 --> 00:28:10,230
+The composite key, campaign ID plus the device ID freezes who was actually targeted at the final time.
+
+278
+00:28:10,990 --> 00:28:14,770
+This matters because the fleet membership can change later.
+
+279
+00:28:16,398 --> 00:28:18,850
+So the state machine is intentionally very small.
+
+280
+00:28:19,690 --> 00:28:25,030
+Pending, then delivered, and then either acknowledged or refused.
+
+281
+00:28:25,902 --> 00:28:29,970
+If the validity window closes first, the command expires.
+
+282
+00:28:31,430 --> 00:28:33,190
+And notice the callout on the page.
+
+283
+00:28:33,590 --> 00:28:39,010
+There's no verified here because verification comes from the telemetry.
+
+284
+00:28:40,238 --> 00:28:53,970
+So in a production schema, you might even separate the responses state from the validity, so an acknowledged account can later become a no longer active without erasing the fact that it was acknowledged previously.
+
+285
+00:28:53,970 --> 00:29:01,330
+And for this interview, the simplified state machine is enough as long as you explain the semantics earlier.
+
+286
+00:29:02,638 --> 00:29:09,050
+So the key lesson to avoid stuffing the transport, physical outcome, and the policy into one enum.
+
+287
+00:29:12,430 --> 00:29:17,892
+Let's talk about the telemetry sample and campaign rollout, sorry campaign rollup.
+
+288
+00:29:17,900 --> 00:29:22,560
+So telemetry sample is the replayable evidence.
+
+289
+00:29:23,566 --> 00:29:27,900
+So the two fields to emphasize are event time and ingest time.
+
+290
+00:29:28,590 --> 00:29:30,580
+Event time drives the business window.
+
+291
+00:29:31,120 --> 00:29:35,500
+Ingest time helps us understand the lateness and the operational lag.
+
+292
+00:29:37,070 --> 00:29:39,660
+Sample sequence gives us the dedupe key.
+
+293
+00:29:40,366 --> 00:29:49,480
+If a device retraces the same sample because an ACK was lost, we can accept at least once ingestion without double counting.
+
+294
+00:29:50,900 --> 00:29:55,960
+An applied campaign ID is useful supporting the evidence if the device can report it.
+
+295
+00:29:56,718 --> 00:29:58,900
+But I would not treat as a proof.
+
+296
+00:29:59,960 --> 00:30:05,440
+A device can claim it applied a campaign while the measured power still shows no reduction.
+
+297
+00:30:07,930 --> 00:30:10,830
+And campaign rollup is a derived version view.
+
+298
+00:30:10,830 --> 00:30:25,030
+It carries count like targeted, verified, refused, and unknown, achieved reduction, a certain potential reduction, and also a watermark.
+
+299
+00:30:26,150 --> 00:30:29,348
+So the simple example on this page is an important one.
+
+300
+00:30:30,450 --> 00:30:34,190
+Let's say version 3 says 30 megawatts confirmed.
+
+301
+00:30:35,054 --> 00:30:36,750
+Late telemetry arrives.
+
+302
+00:30:37,294 --> 00:30:41,070
+Version 4 says 37 megabytes confirmed.
+
+303
+00:30:41,934 --> 00:30:42,590
+So both stay.
+
+304
+00:30:43,406 --> 00:30:43,870
+Why?
+
+305
+00:30:44,430 --> 00:30:47,870
+Because a follow-up campaign may have been created using the version 3.
+
+306
+00:30:48,210 --> 00:30:53,350
+If you override version 3, the historical decision suddenly looks irrational.
+
+307
+00:30:54,350 --> 00:30:58,050
+So I would state the storage hierarchy explicitly here.
+
+308
+00:30:58,450 --> 00:31:06,050
+The raw telemetry is the replayable source of truth, but the rollup is a materialized view optimized for the fast decisions.
+
+309
+00:31:10,478 --> 00:31:15,830
+After the core entities and data models, let's come to the simplified API design.
+
+310
+00:31:16,430 --> 00:31:17,150
+There are three calls.
+
+311
+00:31:18,170 --> 00:31:25,210
+The API interface can stay very small because most complexity is asynchronous.
+
+312
+00:31:26,606 --> 00:31:33,690
+For functional requirement number one, we have the post v1 slash campaigns with the item potency key.
+
+313
+00:31:33,690 --> 00:31:41,650
+The body includes a target selector, action, parameters, target reduction, effective time, and expiry.
+
+314
+00:31:42,950 --> 00:31:45,390
+The response is 202 accepted.
+
+315
+00:31:45,830 --> 00:31:51,130
+Once the campaign is durably stored, we do not wait for half a million devices.
+
+316
+00:31:53,070 --> 00:31:59,550
+And for functional requirement number three and number four, the user reads the latest result with a get request.
+
+317
+00:31:59,950 --> 00:32:06,970
+For example, get v1 slash campaign slash campaign ID slash rollup version number equals to the latest.
+
+318
+00:32:08,366 --> 00:32:14,590
+So notice that the version, watermark, and the unknown reduction watts are part of the contract.
+
+319
+00:32:15,566 --> 00:32:19,590
+We are exposing uncertainty and the freshness rather than hiding them.
+
+320
+00:32:21,230 --> 00:32:25,450
+For reconnecting the devices, we have a compressed catch-up batch in point.
+
+321
+00:32:25,450 --> 00:32:31,550
+the device uploads many telemetry samples, we acknowledge only after durable append.
+
+322
+00:32:32,270 --> 00:32:39,450
+If the response is lost, the device safely retries and the device ID plus sample sequence remove the duplicates.
+
+323
+00:32:42,030 --> 00:32:45,430
+So the pattern is consistent across all the three APIs.
+
+324
+00:32:45,830 --> 00:32:52,970
+We want a fast, idempotent writes at the edge, we want expensive or final work behind the durable boundaries.
+
+325
+00:32:53,710 --> 00:32:58,610
+So that principle now show up directly in the next part, the high-level design.
+
+326
+00:33:03,086 --> 00:33:05,260
+Now we build the architecture here.
+
+327
+00:33:06,030 --> 00:33:11,540
+For this section of the high-level design, I want to make the reasoning especially easy to follow.
+
+328
+00:33:12,206 --> 00:33:14,920
+We are not going to show the completed system first.
+
+329
+00:33:15,598 --> 00:33:19,020
+But instead, we will start from the simple business loop.
+
+330
+00:33:19,502 --> 00:33:23,460
+Then we build the functional requirement number one to number four, one by one.
+
+331
+00:33:23,460 --> 00:33:31,820
+Only after every flow has earned its components, we will zoom out and look at the full architecture as the conclusion.
+
+332
+00:33:32,660 --> 00:33:37,780
+And that way every box has a reason to exist before you see the final diagram.
+
+333
+00:33:41,294 --> 00:33:44,540
+Now let's start with the smallest possible product flow.
+
+334
+00:33:46,382 --> 00:33:55,000
+So here we can see from the user to the campaign to the device to telemetry, the feedback, and then back to the user or policy.
+
+335
+00:33:55,680 --> 00:34:05,520
+At this point, I deliberately don't want Kafka, MQTT, multiple databases, or 20 different devices on the screen.
+
+336
+00:34:06,140 --> 00:34:09,500
+I want to ask what breaks in this simple flow.
+
+337
+00:34:10,600 --> 00:34:15,440
+First, what if the device crashes right after accepting the campaign?
+
+338
+00:34:16,270 --> 00:34:21,480
+Then the user's intent needs a durable home and find out it needs to be resumable.
+
+339
+00:34:22,190 --> 00:34:24,480
+That will become functional requirement number one.
+
+340
+00:34:25,838 --> 00:34:28,560
+And next, what if the device is offline?
+
+341
+00:34:29,262 --> 00:34:34,740
+Then the acknowledgement is lost, and an old command arrives after a newer one.
+
+342
+00:34:35,630 --> 00:34:39,720
+That forces us to make command delivery durable and retry safe.
+
+343
+00:34:40,462 --> 00:34:42,680
+That becomes our functional requirement number two.
+
+344
+00:34:44,270 --> 00:34:49,920
+Then, once the commands are reaching devices, how do we know they actually worked?
+
+345
+00:34:50,862 --> 00:34:55,480
+We need a telemetry path, durable ingestion and assessment loop.
+
+346
+00:34:56,110 --> 00:34:58,180
+That becomes our functional requirement number three.
+
+347
+00:34:59,342 --> 00:35:04,060
+And finally, what if the telemetry for that assessment arrives 10 minutes late?
+
+348
+00:35:04,910 --> 00:35:10,160
+Then we need event timing, sorry, event time processing and historical reconciliation.
+
+349
+00:35:11,118 --> 00:35:13,040
+That becomes functional requirement number four.
+
+350
+00:35:14,020 --> 00:35:23,400
+So rather than drawing the final answer and explain it backwards, we are going to grow the architecture in the same order as of these requirements.
+
+351
+00:35:24,440 --> 00:35:27,120
+And this is a very useful interview technique.
+
+352
+00:35:27,660 --> 00:35:34,160
+The interviewer can see exactly which failure or requirement caused each new component to appear.
+
+353
+00:35:37,120 --> 00:35:40,900
+All right, let's start with the function requirement number one, the campaign planning.
+
+354
+00:35:41,902 --> 00:35:44,180
+Our users create a campaign.
+
+355
+00:35:44,600 --> 00:35:49,920
+Maybe NorthEastHVAC reduced 20% starting now, expiring in 2 hours.
+
+356
+00:35:51,040 --> 00:36:02,600
+The naive implementation would receive the post slash campaigns, query all matching devices, contact hundreds of thousands of them, and only return when the find-out is finished.
+
+357
+00:36:03,662 --> 00:36:06,120
+That creates two problems immediately.
+
+358
+00:36:07,086 --> 00:36:08,080
+The first one is latency.
+
+359
+00:36:08,910 --> 00:36:12,200
+User-facing request time now depends on the size of the fleet.
+
+360
+00:36:13,240 --> 00:36:17,200
+The second problem is much worse, the ambiguous failures.
+
+361
+00:36:18,254 --> 00:36:23,800
+Suppose we contact 200,000 devices and then the device crashes.
+
+362
+00:36:24,800 --> 00:36:26,080
+Did the campaign get accepted?
+
+363
+00:36:26,798 --> 00:36:27,920
+Should the client retry?
+
+364
+00:36:28,462 --> 00:36:35,060
+If it retries, do we create a second campaign or double target it on the same devices.
+
+365
+00:36:37,166 --> 00:36:41,200
+So I want a very small, clear durability boundary here.
+
+366
+00:36:41,780 --> 00:36:45,480
+First, validate the request and API idempotency key.
+
+367
+00:36:46,280 --> 00:36:49,080
+Second, write a campaign into a durable store.
+
+368
+00:36:49,820 --> 00:36:54,940
+And third, once the write commits, return 202 accepted with the campaign ID.
+
+369
+00:36:56,014 --> 00:37:00,260
+Only after that do we resolve the target devices asynchronously.
+
+370
+00:37:01,230 --> 00:37:17,420
+The target resolver queries the device registry, for example, region equals to NorthEast, class equals to HVAC, eligible priority tiers, excluding the opted-out devices.
+
+371
+00:37:18,414 --> 00:37:26,120
+Then, find out the workers, create one device command, one device command row per selected device.
+
+372
+00:37:27,000 --> 00:37:28,800
+That table is doing something important.
+
+373
+00:37:28,800 --> 00:37:31,100
+it materialized the target set.
+
+374
+00:37:32,366 --> 00:37:42,140
+For example, if campaign, let's say C1 and the device D7 exists, then D7 was part of C1 when the campaign was launched.
+
+375
+00:37:42,860 --> 00:37:48,640
+If D7 changes region tomorrow, the history of C1 does not change.
+
+376
+00:37:49,580 --> 00:37:54,980
+That also gives us accurate targeted counts and a natural unit of the data work.
+
+377
+00:37:54,980 --> 00:38:01,520
+And because the key is campaign ID plus the device ID, find out it's retry safe.
+
+378
+00:38:02,300 --> 00:38:08,160
+If a worker crashes halfway through, it restarts and duplicate inserts are harmless.
+
+379
+00:38:09,720 --> 00:38:16,800
+So at the end of the functional requirement number one, we have transformed a user request into a durable per-device command intent.
+
+380
+00:38:17,646 --> 00:38:19,780
+We have not delivered anything yet.
+
+381
+00:38:20,302 --> 00:38:21,260
+That is the next flow.
+
+382
+00:38:21,260 --> 00:38:22,080
+So
+
+383
+00:38:25,920 --> 00:38:28,580
+now comes to the function requirement number two, the command delivery.
+
+384
+00:38:29,454 --> 00:38:34,660
+Now, function requirement number one has given us the durable device command work.
+
+385
+00:38:35,360 --> 00:38:40,580
+Function requirement two asks, how do we get a command to an unreliable device safely?
+
+386
+00:38:41,806 --> 00:38:47,100
+I would publish the delivery work into a durable command log keyed by the device ID.
+
+387
+00:38:47,920 --> 00:38:55,080
+So keying by device is useful because commands for one physical device now share a stable ordering domain.
+
+388
+00:38:56,174 --> 00:39:03,900
+A device gateway or an MQTT broker, if that's the edge protocol we choose, consumes those messages.
+
+389
+00:39:05,166 --> 00:39:08,040
+If the device is online, push the command immediately.
+
+390
+00:39:08,654 --> 00:39:14,240
+If the device is offline, the command cannot just live in one gateway process memory.
+
+391
+00:39:14,240 --> 00:39:27,000
+it needs a durable outbox or a broker-managed persistent session and it stays there until either the device reconnects or the command is no longer valid.
+
+392
+00:39:27,980 --> 00:39:36,640
+So the exact edge protocol could be MQTT, could be WebSocket, could be any bi-directional gRPC.
+
+393
+00:39:37,680 --> 00:39:41,920
+So during the interview I won't over focus on the names.
+
+394
+00:39:42,478 --> 00:39:45,180
+The semantics are what really matters.
+
+395
+00:39:46,860 --> 00:39:52,820
+So every command carries three specifically important views in addition to the action.
+
+396
+00:39:54,000 --> 00:39:58,740
+The command ID gives the logical command a stable identity.
+
+397
+00:39:59,480 --> 00:40:04,780
+The device sequence gives the commands for one device a monotonic business ordering.
+
+398
+00:40:05,780 --> 00:40:10,000
+Expires at tells the device when this instruction is no longer valid.
+
+399
+00:40:11,086 --> 00:40:12,420
+So why do we need this 3?
+
+400
+00:40:13,966 --> 00:40:15,700
+Imagine the device receive a command.
+
+401
+00:40:16,430 --> 00:40:19,640
+It executes it and sends an acknowledgment.
+
+402
+00:40:20,334 --> 00:40:21,760
+But the acknowledgment is lost.
+
+403
+00:40:22,542 --> 00:40:28,600
+The platform cannot tell that case apart from the command itself was lost, so it has to retry.
+
+404
+00:40:29,614 --> 00:40:31,800
+That means duplicates are normal.
+
+405
+00:40:32,620 --> 00:40:38,180
+If the device has already processed the command ID, it should not apply the fact again.
+
+406
+00:40:38,702 --> 00:40:40,660
+It simply returns the previous response.
+
+407
+00:40:41,934 --> 00:40:49,140
+If a command has the device sequence older than the latest one already accepted, it is still and should be rejected.
+
+408
+00:40:50,510 --> 00:41:00,440
+If the command has the past experience site, it should not execute even if the messaging system successfully delivers it.
+
+409
+00:41:01,260 --> 00:41:07,580
+So otherwise, apply it or refuse it if the owner or local device rules say no.
+
+410
+00:41:08,560 --> 00:41:22,680
+So our contract is not exactly one's networking, it is at least one's transport, plus idempotency, plus ordering, plus aspiring, which equals to the retry-safe physical behavior.
+
+411
+00:41:23,566 --> 00:41:27,200
+And at this point, we can reliably ask the flea to do something.
+
+412
+00:41:27,200 --> 00:41:31,740
+But we still don't know whether the physical result actually happened.
+
+413
+00:41:32,526 --> 00:41:35,260
+And that takes us to functional requirement number three.
+
+414
+00:41:39,342 --> 00:41:43,940
+So now let's come to the functional requirement number three, which has the observation side of the loop.
+
+415
+00:41:44,750 --> 00:41:48,390
+So the device continuously measures the power usage.
+
+416
+00:41:49,390 --> 00:41:54,270
+While connected, it sends live samples through the telemetry gateway.
+
+417
+00:41:55,118 --> 00:41:59,150
+While online, it writes those samples to a local durable buffer.
+
+418
+00:41:59,150 --> 00:42:06,430
+When it reconnects, it can upload the buffered history through a catch-up batch API, for example.
+
+419
+00:42:07,278 --> 00:42:09,270
+So those are different traffic shapes.
+
+420
+00:42:09,790 --> 00:42:13,910
+Both eventually append into the same durable telemetry lock.
+
+421
+00:42:14,730 --> 00:42:17,450
+That lock gives us a clean durability boundary.
+
+422
+00:42:18,382 --> 00:42:22,310
+We acknowledge telemetry only after it's been safely appended.
+
+423
+00:42:23,470 --> 00:42:25,690
+And from there, we have multiple consumers.
+
+424
+00:42:25,690 --> 00:42:34,230
+One consumer writes raw telemetry sample data into a longer-term storage so we can replay and backfill later.
+
+425
+00:42:35,118 --> 00:42:37,510
+Another consumer is the feedback processor.
+
+426
+00:42:39,054 --> 00:42:43,570
+Now we can finally answer the question that an ACK could not answer.
+
+427
+00:42:44,210 --> 00:42:46,930
+What did the device physically do?
+
+428
+00:42:48,334 --> 00:42:51,310
+So for this interview, I will keep the assessment deliberately simple.
+
+429
+00:42:51,950 --> 00:42:55,450
+Take a representative power baseline before the campaign.
+
+430
+00:42:55,982 --> 00:43:08,630
+If the campaign requests a, for example, 20% reduction, derive an expected power level, then calculate observed power from the telemetry in the assessment window.
+
+431
+00:43:09,326 --> 00:43:13,990
+If the device explicitly refused, the outcome is refused.
+
+432
+00:43:15,118 --> 00:43:18,710
+If there is not enough telemetry coverage, it is unknown.
+
+433
+00:43:18,710 --> 00:43:27,630
+If the observed usage meets expected reduction within some tolerance, it is verified.
+
+434
+00:43:28,398 --> 00:43:30,370
+Otherwise, it is not verified.
+
+435
+00:43:31,630 --> 00:43:35,070
+So the exact baseline algorithm is replaceable domain logic.
+
+436
+00:43:35,886 --> 00:43:43,524
+It could be a recent median, historical same-hour baseline, or a device-reported set point.
+
+437
+00:43:44,878 --> 00:43:47,570
+The distributed system point is more important.
+
+438
+00:43:48,462 --> 00:43:53,060
+The assessment is based on the telemetry evidence and is re-computable.
+
+439
+00:43:54,450 --> 00:43:58,660
+And we aggregate those assessments into a campaign roll-up.
+
+440
+00:43:59,270 --> 00:44:06,130
+Achieve the reduction, unknown potential reduction, and it counts by the outcome.
+
+441
+00:44:07,310 --> 00:44:13,550
+Now the user or policy layer has feedback it can use to decide what to do next.
+
+442
+00:44:13,550 --> 00:44:20,910
+If all of that telemetry arrived promptly, we would already have a reusable closed loop.
+
+443
+00:44:21,838 --> 00:44:25,650
+But, devices don't always report promptly.
+
+444
+00:44:26,610 --> 00:44:31,830
+So, the Function Requirement No. 4 asks what happens when the evidence comes late.
+
+445
+00:44:36,270 --> 00:44:42,450
+And now I'll take the classic delayed data case, which is our Function Requirement No. 4, the reconciliation part.
+
+446
+00:44:43,330 --> 00:44:55,090
+Let's see, device measures a power sample at 10.02, and because it's offline, the backend does not receive that sample until 10.10.
+
+447
+00:44:56,050 --> 00:45:03,490
+The first thing we do is deduplicate is using the device ID plus the sample sequence and append it durably.
+
+448
+00:45:04,350 --> 00:45:11,070
+Then we have to answer the key question, which assessment window does this record belong to.
+
+449
+00:45:12,430 --> 00:45:17,230
+It belongs to 10.0.2, because that is when the physical measurement happened.
+
+450
+00:45:18,510 --> 00:45:29,130
+So, for the feedback processor uses the event time, not the ingest time, to find the original 10.0.0 to 10.0.5 window.
+
+451
+00:45:29,902 --> 00:45:36,170
+If that window has already produced the result, we reopen it and re-compute affected evidence.
+
+452
+00:45:37,326 --> 00:45:53,570
+Suppose Campaign C1 previously had rollup version 3 with 30 MW confirmed and 8 MW unknown, the late data proves that 7 more MW has actually been reduced.
+
+453
+00:45:54,798 --> 00:46:01,170
+Now we publish rollup version 4 with 37 MW confirmed that only 1 MW unknown.
+
+454
+00:46:01,170 --> 00:46:03,870
+Crucially, we keep version 3.
+
+455
+00:46:04,718 --> 00:46:05,050
+Why?
+
+456
+00:46:05,742 --> 00:46:10,230
+Because maybe the system already created campaign C2 based on the version 3.
+
+457
+00:46:10,830 --> 00:46:17,810
+So C2 can store the parent campaign ID equals to C1 and based on the rollup version number 3.
+
+458
+00:46:18,830 --> 00:46:22,330
+So after late data arrives, we preserve two truths.
+
+459
+00:46:23,310 --> 00:46:32,630
+What we now believe actually happened, represented by the latest rollup, and what the system knew when it made the earlier decision.
+
+460
+00:46:33,774 --> 00:46:36,390
+So watermark makes the current completeness visible.
+
+461
+00:46:37,454 --> 00:46:47,510
+If we say a wall clock is 1012 but watermark is 1006, consumers know newer windows are still more provisional.
+
+462
+00:46:48,494 --> 00:46:52,790
+And the core principle here is the raw telemetry is a can only evidence.
+
+463
+00:46:53,550 --> 00:46:57,490
+The campaign rollup is a version belief derived from the evidence.
+
+464
+00:46:58,550 --> 00:47:03,330
+And at this point, we have now built all four functional requirements individually.
+
+465
+00:47:04,398 --> 00:47:12,310
+So now, and only now, it is useful to zoom out and see how those pieces form one complete system.
+
+466
+00:47:16,890 --> 00:47:23,790
+All right, now that we've built each functional requirement one by one, let's put everything together into the final architecture.
+
+467
+00:47:23,790 --> 00:47:31,890
+The easiest way to read the diagram is actually by the caller, following the same order we used throughout the design.
+
+468
+00:47:32,782 --> 00:47:37,010
+Let's start from the functional requirement number one in orange, the campaign planning.
+
+469
+00:47:38,030 --> 00:47:45,230
+The user, or the policy layer, creates a campaign through the post API call, v1 slash campaigns.
+
+470
+00:47:46,094 --> 00:47:52,070
+The first important decision is that we persist the campaign before doing any large find out.
+
+471
+00:47:52,078 --> 00:47:59,870
+Once that intent is durable, the API can return quickly instead of waiting for hundreds of thousands of devices.
+
+472
+00:48:01,486 --> 00:48:09,730
+From there, the target resolver reads the device registry and figures out exactly which devices belong to this campaign.
+
+473
+00:48:10,650 --> 00:48:15,050
+We then materialize that result into the device command records.
+
+474
+00:48:16,334 --> 00:48:19,990
+This is important because the target set is now stable.
+
+475
+00:48:19,990 --> 00:48:29,290
+Even if a device changes the region or eligibility later, we still know exactly which devices were targeted by this campaign.
+
+476
+00:48:30,638 --> 00:48:40,090
+So the function requirement number one essentially converts the user intent to the durable campaign and then the concrete per-device work.
+
+477
+00:48:42,830 --> 00:48:48,100
+Next, follow the blue path for the function requirement number two, which is the command delivery.
+
+478
+00:48:49,240 --> 00:49:00,680
+So those device command records are published into the command log, and the device gateway or the MQTT layer delivers them to the smart devices.
+
+479
+00:49:01,998 --> 00:49:09,020
+So, practically, some devices are online, some are offline, and retries are unavoidable.
+
+480
+00:49:09,020 --> 00:49:20,020
+So, rather than trying to guarantee exactly once delivery across an unreliable network, every command carries the semantics we need for the safe retry.
+
+481
+00:49:20,686 --> 00:49:29,700
+The command ID for the deduplication, the device sequence for the ordering, and expires at two so that the stale commands cannot execute later.
+
+482
+00:49:30,830 --> 00:49:38,620
+So in this way, the function requirement number two gives us the durable, at least once delivery with effectively one's physical behavior.
+
+483
+00:49:40,790 --> 00:49:45,444
+And now come to the green pad, which is functional requirement number three, the feedback loop.
+
+484
+00:49:46,638 --> 00:49:53,710
+Once devices receive the commands, we still cannot assume the requested physical behavior happened.
+
+485
+00:49:54,790 --> 00:49:57,510
+Devices continuously produce the telemetry.
+
+486
+00:49:58,766 --> 00:50:09,090
+So current data goes through the live telemetry paths while devices recovering from an outage can upload a buffer history through the catch-up batch API.
+
+487
+00:50:10,094 --> 00:50:13,670
+So both paths converge on the telemetry log.
+
+488
+00:50:15,086 --> 00:50:22,290
+And from there, we keep raw telemetry for replay and the feedback processor evaluates what actually happened.
+
+489
+00:50:23,502 --> 00:50:29,550
+That processor may classify the results as verified, not verified, or unknown.
+
+490
+00:50:30,542 --> 00:50:34,830
+And this is where the distinction we discussed earlier becomes the critical parts.
+
+491
+00:50:34,830 --> 00:50:39,108
+The acknowledgement tells us that communication happened.
+
+492
+00:50:40,238 --> 00:50:43,230
+The telemetry gives us the evidence of the physical behavior.
+
+493
+00:50:44,270 --> 00:50:48,030
+And the result is aggregated into the campaign roll-up.
+
+494
+00:50:50,180 --> 00:50:55,020
+And finally, the purple annotation represents the function requirement number 4, which is the reconciliation.
+
+495
+00:50:56,700 --> 00:50:59,300
+Telemetry does not always arrive on time.
+
+496
+00:51:00,334 --> 00:51:07,140
+If a sample arrives late, we use the event time to reopen the historical window where that measurement actually belongs to.
+
+497
+00:51:08,302 --> 00:51:09,760
+This may change the campaign result.
+
+498
+00:51:10,480 --> 00:51:16,340
+So instead of overriding the previous answer, we publish version N to version N plus one.
+
+499
+00:51:17,582 --> 00:51:23,660
+And we also expose a watermark so consumers understand how complete the current result is.
+
+500
+00:51:24,814 --> 00:51:29,640
+And this is why I like to think about the system as the raw telemetry is evidence.
+
+501
+00:51:30,126 --> 00:51:33,360
+The rollup is our current belief based on that evidence.
+
+502
+00:51:34,574 --> 00:51:37,700
+And as more evidence arrives, our belief can change.
+
+503
+00:51:40,270 --> 00:51:45,060
+So if we now zoom out, the complete system is one closed loop as we mentioned.
+
+504
+00:51:45,560 --> 00:51:50,300
+Plan, command, observe, reconcile, adjust the next plan.
+
+505
+00:51:51,470 --> 00:51:55,960
+The user creates a campaign, we persist it, and resolve the device set.
+
+506
+00:51:56,814 --> 00:51:59,204
+And those commands are delivered safely to the fleet.
+
+507
+00:52:00,206 --> 00:52:13,700
+The telemetry comes back from the devices, we evaluate the physical results, the late data can revise that result, and finally the user or the policy engine reads the latest rollup and decides what to do next as a loop.
+
+508
+00:52:14,798 --> 00:52:20,560
+So that completes the high-level design and it also wraps up our part one of this video.
+
+509
+00:52:21,742 --> 00:52:33,460
+So far we mostly focused on how to build a normal system flow, but the architecture becomes much more interesting when we start trying to break it.
+
+510
+00:52:34,382 --> 00:52:37,620
+And that's exactly what we'll do or we will cover in the part two.
+
+511
+00:52:38,670 --> 00:52:41,740
+So we'll go through our four deeper failure scenarios.
+
+512
+00:52:42,320 --> 00:52:51,340
+First, what happens if a device is offline and an old reduce command arrives after a newer restore command?
+
+513
+00:52:52,718 --> 00:53:01,340
+Second, what happens when a million devices reconnect at the same time and start playing hours of the buffer telemetry?
+
+514
+00:53:02,702 --> 00:53:13,680
+And third, what happens when missing telemetry causes us to issue another campaign, but the late data later proves that the original devices had already complied?
+
+515
+00:53:15,118 --> 00:53:22,680
+And finally, what happens when a device says acknowledgement, but the actual power usage never drops?
+
+516
+00:53:24,014 --> 00:53:38,500
+So those four cases will force us to go much deeper into idempotency, ordering, expiration, backpressure, event time and watermarks, the version state, and the physical verification.
+
+517
+00:53:39,982 --> 00:53:42,916
+So this final architecture is just the starting point.
+
+518
+00:53:43,918 --> 00:53:49,320
+And in the next episode, we will stress test every important assumption behind it.
+
+519
+00:53:50,158 --> 00:53:51,940
+Stay tuned for part 2.
+
