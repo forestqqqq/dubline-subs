@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [MobiSys 2019 - SpecEye: Towards Pervasive and Privacy-Preserving Screen Exposure Detection in Daily](medias/Q01S3/) | ACM SIGMOBILE ONLINE | 2026-11-23 |
 | [WebRTC Tutorial - How does WebRTC work?](medias/PN5V1/) | Piyush Garg | 2026-11-23 |
 | [Week8 part1: Multi-Agent Systems](medias/NW4FY/) | Learn with Dr. Fakhreldeen | 2026-11-23 |
 | [AI Coding Interview w/ Meta Staff Engineer](medias/KRHMT/) | Hello Interview | 2026-11-23 |
