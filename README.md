@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [Week8 part1: Multi-Agent Systems](medias/NW4FY/) | Learn with Dr. Fakhreldeen | 2026-11-23 |
 | [AI Coding Interview w/ Meta Staff Engineer](medias/KRHMT/) | Hello Interview | 2026-11-23 |
 | [L8 Principal's Agentic Engineering Workflow](medias/KREXX/) | Kun Chen | 2026-11-23 |
 | [APIs for Beginners - How to use an API (Full Course / Tutorial)](medias/KJPM0/) | freeCodeCamp.org | 2026-11-23 |
