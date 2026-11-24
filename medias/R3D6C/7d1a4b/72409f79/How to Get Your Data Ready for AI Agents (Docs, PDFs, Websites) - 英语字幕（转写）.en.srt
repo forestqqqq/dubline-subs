@@ -1,0 +1,1016 @@
+1
+00:00:00,110 --> 00:00:05,120
+One of the first things that you want to do when you're building AI agents is giving them access to your own data.
+
+2
+00:00:05,280 --> 00:00:13,840
+These could be things like documents, PDFs, websites, anything to give your AI agents specific knowledge about your company or the problem that you're trying to solve.
+
+3
+00:00:14,190 --> 00:00:27,200
+And now there are a lot of tools online that can help you to do this, but most of them come at a cost mainly that they are closed source, meaning you have to get an API key and then you can send data to their platform where they do the parsing and you get the data back.
+
+4
+00:00:27,438 --> 00:00:33,440
+But what if I told you that there are also open source alternatives available that work just as well?
+
+5
+00:00:33,710 --> 00:00:42,480
+So in this video, I want to show you how you can build a fully open source document extraction pipeline in Python using a library called Dockling.
+
+6
+00:00:42,640 --> 00:00:46,320
+So in this video, I will walk you through this GitHub repository, link in the description.
+
+7
+00:00:46,560 --> 00:01:04,880
+Of course, we'll dive into some code examples to show you how you can parse PDF documents like this and websites to eventually make them available in a chat application where we can browse through our vector database, search for relevant context, and then answer questions about that, retrieving sources as citations.
+
+8
+00:01:05,070 --> 00:01:16,000
+Now throughout this video, we will cover some fundamental techniques like extraction, parsing, chunking, embedding, and retrieval to show you how you can create a knowledge system for your AI agents end-to-end.
+
+9
+00:01:16,398 --> 00:01:22,148
+I'm going to show you some specific examples with a specific set of tools, vector databases, and AI models.
+
+10
+00:01:22,320 --> 00:01:26,160
+But all of these concepts can be applied to all kinds of situations.
+
+11
+00:01:26,382 --> 00:01:31,876
+So it doesn't matter which vector database you're using, which embedding model you're using, or which AI model you're using.
+
+12
+00:01:32,080 --> 00:01:36,080
+It will really form the foundation of building a knowledge system for your application.
+
+13
+00:01:36,420 --> 00:01:38,080
+All right, now let's get things started.
+
+14
+00:01:38,160 --> 00:01:44,480
+Now within the readme file in the repository, which I have here in front of me, there is more information if you want to dive a little bit deeper.
+
+15
+00:01:44,560 --> 00:01:54,960
+But in order to follow along, you need to create an environment and then install the requirements.txt, so they are available here in the project, and you need an OpenAI API key.
+
+16
+00:01:55,040 --> 00:02:02,148
+Now, the document extraction part is going to be fully open source, but I'm still going to use OpenAI to create embeddings and chat with it.
+
+17
+00:02:02,400 --> 00:02:03,520
+Now, this is optional.
+
+18
+00:02:03,600 --> 00:02:08,708
+You can just as well use an open source model for this as well, just so you know that.
+
+19
+00:02:09,198 --> 00:02:16,240
+Now, in order to go through this entire example on your own, which I will do in this video, we are going to execute five files.
+
+20
+00:02:16,400 --> 00:02:32,292
+So, first we're going to extract document content, then we're going to perform chunking, then we're going to create embeddings and put them into a vector database, then we're going to test the search functionality, and then we're going to bring this all together in the chat application that I demoed in the beginning.
+
+21
+00:02:32,560 --> 00:02:36,560
+So let's dive in, starting with the extraction.
+
+22
+00:02:36,814 --> 00:02:42,340
+So I have this Python file over here, which I'm going to boot up and run in the interactive session.
+
+23
+00:02:42,800 --> 00:02:50,000
+And we have a PDF over here from the library that we're using to perform this.
+
+24
+00:02:50,286 --> 00:02:51,760
+And the library is called Dockling.
+
+25
+00:02:52,000 --> 00:02:53,604
+Here is the technical report.
+
+26
+00:02:53,920 --> 00:02:56,996
+So this is a project from IBM.
+
+27
+00:02:57,280 --> 00:03:02,480
+So a really great company building great tools, and they are making this fully open source.
+
+28
+00:03:02,560 --> 00:03:13,600
+And based on my experiments and what I've heard from other AI engineers in the scene working with great companies, this is by far, right now, the open source document extraction library of choice.
+
+29
+00:03:13,710 --> 00:03:21,200
+It's already amazing as is, and they still have a roadmap of items that are coming soon to make this library even more awesome.
+
+30
+00:03:21,486 --> 00:03:23,920
+So it's really straightforward to get started with it.
+
+31
+00:03:24,160 --> 00:03:28,452
+And this simple file over here is going to show you exactly how to do that.
+
+32
+00:03:28,814 --> 00:03:34,720
+So we are going to start with the document converter that we import from the library.
+
+33
+00:03:35,022 --> 00:03:39,600
+So this we can do this after a simple pip install doc link, which is in the requirements.
+
+34
+00:03:40,032 --> 00:03:44,580
+So when we have that up and running, we can then convert a PDF.
+
+35
+00:03:44,878 --> 00:03:52,672
+So we can run this, and this will take some time, especially if you do it for the first time, because it will download some local extraction models to perform this.
+
+36
+00:03:52,878 --> 00:04:05,472
+But right now, in the background, it's going through the PDF and it's going to analyze and look at all the blocks and components, perform OCR to get a data model back that we will use in the next steps.
+
+37
+00:04:05,742 --> 00:04:11,748
+So here you can see that it is now finished, and we can now call the document attribute and have a look at what's inside there.
+
+38
+00:04:12,032 --> 00:04:14,820
+So we now have a Dockling document file.
+
+39
+00:04:14,912 --> 00:04:19,972
+So we took the whole PDF, we ran it through the system, and now we have this object.
+
+40
+00:04:20,352 --> 00:04:25,540
+And why this is so awesome, coming also to the image that they have over here.
+
+41
+00:04:25,902 --> 00:04:44,804
+So what's so nice about this library is that you can throw all kinds of data files at it, whether that's PDF, PowerPoints, DockX, or websites, and it will turn it into this specific data model, this specific data object that they have created called the Dockling document that you can see over here.
+
+42
+00:04:45,166 --> 00:04:56,452
+And why that is so nice is that we can now unify all kinds of data and create a pipeline or system where it doesn't really matter if you throw a PDF or a web page at it, and we can work with it.
+
+43
+00:04:56,942 --> 00:04:58,948
+So let's see what that looks like.
+
+44
+00:04:59,232 --> 00:05:02,832
+So once we now have that document, we can do various things with it.
+
+45
+00:05:02,990 --> 00:05:15,632
+So for example, we can export to Markdown or we can export to JSON, and we can have a look at what that looks like, and also for the JSON, and you can see if you go all the way over here, you can see what's inside.
+
+46
+00:05:15,792 --> 00:05:20,352
+But maybe to give a better visual view, we can print the markdown output.
+
+47
+00:05:20,558 --> 00:05:26,340
+And here you can browse through the document over here where you see, hey, this is the Dark Lane Technical Report.
+
+48
+00:05:26,446 --> 00:05:34,788
+So you can see Dark Lane Technical Report, the version, and here you can see it did a very good job of extracting all of this information from it.
+
+49
+00:05:35,246 --> 00:05:38,912
+But hey, okay, so far there are plenty of other libraries that can do this as well.
+
+50
+00:05:39,072 --> 00:05:44,804
+But where this really excels is also in, let me scroll down, table extraction.
+
+51
+00:05:45,232 --> 00:05:50,592
+So a lot of Python, a lot of open source Python libraries that parse PDFs struggle with this.
+
+52
+00:05:50,672 --> 00:05:53,412
+So for example, if I come down over here, you see this table.
+
+53
+00:05:53,806 --> 00:05:59,044
+Here you can see we can uh we have a perfect, perfectly formatted markdown table.
+
+54
+00:05:59,502 --> 00:06:06,180
+And everything just looks super clean, no weird characters, all the headings are in correct markdown format.
+
+55
+00:06:06,542 --> 00:06:09,712
+So overall, out of the box, really great result.
+
+56
+00:06:10,030 --> 00:06:13,232
+So that was a very simple example of parsing a PDF.
+
+57
+00:06:13,552 --> 00:06:16,900
+Now let me clear this up and continue with HTML extraction.
+
+58
+00:06:17,550 --> 00:06:28,272
+Because what we can also do is within that same converter, we can call the convert method, but then instead of throwing a PDF at it, we just throw a website at it.
+
+59
+00:06:28,432 --> 00:06:36,432
+So if I go over here to the doc laying docs, you can see this page over here and run this result to see what we get.
+
+60
+00:06:36,592 --> 00:06:40,580
+This is really fast because it essentially just looks at the HTML and parses it.
+
+61
+00:06:40,846 --> 00:06:45,028
+So we can get the document and then the markdown, and let's see what that looks like.
+
+62
+00:06:45,326 --> 00:06:55,952
+So now we have an exact replica of this web page, correctly parsing all of the HTML in here and now having a markdown object that we can use.
+
+63
+00:06:56,174 --> 00:06:57,472
+So that was just one page.
+
+64
+00:06:57,632 --> 00:07:01,668
+What if we want an entire website, for example, and get all the pages on there?
+
+65
+00:07:01,952 --> 00:07:09,444
+Well, to do that, we can use a trick by leveraging the what is called the sitemap.xml, which most websites have.
+
+66
+00:07:09,646 --> 00:07:16,548
+So for any given website, we can also test this by coming to the browser and then put sitemap.xml behind the URL.
+
+67
+00:07:16,846 --> 00:07:24,992
+And we can look at this, and this is an XML file that contains all of the information, pages, and also URLs from that website.
+
+68
+00:07:25,198 --> 00:07:38,404
+And I created a simple helper function called getSitemap URLs that goes through this, tries to fetch that sitemap.xml, and then returns all of the URLs that were found on that specific page.
+
+69
+00:07:38,766 --> 00:07:49,152
+So if we then come over here and plug in that same URL right now, instead of getting all the information from just a single page, we can first get the sitemap URLs.
+
+70
+00:07:49,232 --> 00:07:53,712
+And here you can see all of the URLs that are found in the sitemap.
+
+71
+00:07:54,030 --> 00:07:59,952
+And now, as you can imagine, we can loop over this and extract all of the pages one by one.
+
+72
+00:08:00,142 --> 00:08:03,300
+And the DockLink library also has a nice method for that.
+
+73
+00:08:03,632 --> 00:08:14,112
+So instead of calling convert, we can now call it convertAll, which creates an iter object where we can loop over and extract all of that information.
+
+74
+00:08:14,286 --> 00:08:16,356
+So I can simply create that over here.
+
+75
+00:08:16,910 --> 00:08:20,688
+And now I create a new variable with an empty list called docs.
+
+76
+00:08:21,008 --> 00:08:29,540
+And for all of the results in this iter item that we just created, I'm going to get the result.document and append it to the list.
+
+77
+00:08:29,998 --> 00:08:31,808
+So let's run over that.
+
+78
+00:08:32,014 --> 00:08:35,808
+And now we can see all of the Dockling documents for all of these specific pages.
+
+79
+00:08:36,014 --> 00:08:37,728
+So this is already quite cool, right?
+
+80
+00:08:37,870 --> 00:08:44,768
+We can throw PDFs at it, single web page, or an entire website, and get an exact data object back.
+
+81
+00:08:45,006 --> 00:08:46,608
+And now these were just the basic examples.
+
+82
+00:08:46,688 --> 00:08:54,020
+The Dockling library also allows you to specify custom extraction parameters for situations where your data is a little bit more tricky.
+
+83
+00:08:54,288 --> 00:09:10,608
+But this really forms the foundation and first step of your knowledge extraction system, being able to throw different kinds of documents at it, website PDFs, docics, whatever, and get it into a structured format that we can use in the next step within our system.
+
+84
+00:09:10,958 --> 00:09:16,768
+Hey, and then real quick, if you want to learn how we help developers like you beyond these videos, then you can check out the links in the description.
+
+85
+00:09:17,038 --> 00:09:28,516
+We have a lot of resources available, starting from how you can learn Python for AI in a free community, a free course, all the way to our production framework that we use to build and deploy generative AI applications for our client.
+
+86
+00:09:28,750 --> 00:09:35,488
+And if you're already at the level where you consider freelancing, maybe taking on side projects, we can also help you to land that first client.
+
+87
+00:09:35,694 --> 00:09:38,528
+So if you're interested in that, make sure to check out all of the links there.
+
+88
+00:09:38,820 --> 00:09:40,528
+All right, so now we know how to extract data.
+
+89
+00:09:40,688 --> 00:09:42,128
+The next step is chunking.
+
+90
+00:09:42,286 --> 00:09:44,708
+And the Dock Link library can also help us with this.
+
+91
+00:09:45,006 --> 00:09:55,556
+And what chunking is really is we're taking all of the data and instead of taking the entire document and putting it into a single record within our database, we split it up in what we call chunks.
+
+92
+00:09:55,888 --> 00:10:12,288
+And we do this in order to hopefully create logical splits and components that fit well together so that when we query our AI system, we don't get the entire document or the entire book back, but just the specific parts that are relevant to our question.
+
+93
+00:10:12,494 --> 00:10:17,168
+But that is not as simple as just splitting the text by every X words or characters.
+
+94
+00:10:17,454 --> 00:10:25,156
+But luckily, out of the box, Dockling can also help us with chunking through two different methods, and you can also combine them in the hybrid chunker.
+
+95
+00:10:25,488 --> 00:10:38,128
+So they first have the hierarchical chunker, which essentially looks at the document and it's going to split up the document based on logical components or groups that fit together well.
+
+96
+00:10:38,208 --> 00:10:45,728
+So these could be lists or paragraphs, and it's going to create those groups with children that we can already use.
+
+97
+00:10:45,808 --> 00:10:50,448
+So this is already a great starting point for chunking, and this is performed automatically.
+
+98
+00:10:50,542 --> 00:10:54,564
+But we can take that one step further and also apply the hybrid chunker.
+
+99
+00:10:54,928 --> 00:10:58,116
+And how that works essentially is explained over here what it does.
+
+100
+00:10:58,574 --> 00:11:01,956
+You can split chunks that are too large for your embedding model.
+
+101
+00:11:02,288 --> 00:11:13,988
+So remember this we get the data, we extract it, then we create the chunks, and then in the next step, we're going to send that to an embedding model to create the embedding, which we're going to store in the vector database.
+
+102
+00:11:14,288 --> 00:11:19,088
+But all embedding models have a specific max input that we can use.
+
+103
+00:11:19,310 --> 00:11:30,928
+So for example, if we go to the OpenAI embeddings, let me just pull this up over here, we can see that the text embedding small, large, and other models have a max input of the following.
+
+104
+00:11:31,182 --> 00:11:34,448
+So that is a total amount of input that you can send to that model.
+
+105
+00:11:34,574 --> 00:11:40,612
+So you want to keep your chunks below that specific number of the embedding model that you are using.
+
+106
+00:11:41,102 --> 00:11:47,648
+Now, what Dock Link Dang does is it is first going to split chunks that are too large for the embedding model.
+
+107
+00:11:47,728 --> 00:11:50,208
+So say it exceeds this input.
+
+108
+00:11:50,894 --> 00:11:52,324
+It's going to create a split.
+
+109
+00:11:52,910 --> 00:11:56,576
+Then also it's going to stitch together chunks that are too small.
+
+110
+00:11:56,656 --> 00:12:02,916
+So you might have a chunk which is just one header or a short paragraph, and it can fit that together.
+
+111
+00:12:03,246 --> 00:12:05,856
+And it works with your specific tokenizer.
+
+112
+00:12:05,936 --> 00:12:10,660
+So the chunks will perfectly fit the chosen model that you are working with.
+
+113
+00:12:10,926 --> 00:12:14,596
+So that out of the box is just a great way to work with this.
+
+114
+00:12:14,976 --> 00:12:27,844
+So within the code example here, we're going to use OpenAI and we're going to use the embedding large model where we set the max tokens to the number that we see over here in the documentation.
+
+115
+00:12:28,336 --> 00:12:33,056
+And in order to do this, I created a simple OpenAI tokenizer wrapper.
+
+116
+00:12:33,136 --> 00:12:40,656
+Because if you look at it into the documentation within Dockling, they use an open source model that is available via Hacking Face.
+
+117
+00:12:40,896 --> 00:12:47,172
+So I created this simple tokenizer over here that follows the exact API specifications that you need to work with this.
+
+118
+00:12:47,502 --> 00:12:50,628
+So let's fire this up and see what this looks like.
+
+119
+00:12:50,896 --> 00:12:53,856
+So I'm going to get the same PDF again.
+
+120
+00:12:53,936 --> 00:12:57,700
+And for the sake of simplicity, I'm just going to run this one more time in this file.
+
+121
+00:12:57,966 --> 00:13:04,568
+So this will take a couple of seconds over here, but this is the same action that we did in the previous step, getting the PDF.
+
+122
+00:13:04,568 --> 00:13:06,256
+All right, so we have our result again.
+
+123
+00:13:06,336 --> 00:13:08,004
+So this is our parsed PDF.
+
+124
+00:13:08,366 --> 00:13:11,056
+Now we are going to apply the hybrid chunker.
+
+125
+00:13:11,136 --> 00:13:15,364
+So what we can do, we can import the hybrid chunker from the Duckling library.
+
+126
+00:13:15,536 --> 00:13:20,036
+We can specify the tokenizer, we can set it to the OpenAI tokenizer wrapper that I created.
+
+127
+00:13:20,302 --> 00:13:27,536
+Then for max tokens, we can use the max input tokens, and we can set the merge pairs to true, which is the default option.
+
+128
+00:13:27,726 --> 00:13:31,776
+So this is going to allow to put smaller chunks together as well.
+
+129
+00:13:31,856 --> 00:13:33,028
+So this is optional.
+
+130
+00:13:33,326 --> 00:13:38,276
+So what we can then do is once I put this into memory and run over this.
+
+131
+00:13:38,574 --> 00:13:43,296
+So this is all syntax that is specific from the DockLink documentation.
+
+132
+00:13:43,662 --> 00:13:47,428
+So I just followed the example and now created the chunks.
+
+133
+00:13:47,630 --> 00:13:59,524
+So if I look at this list, I can now see that I took the entire document, took it through the hybrid chunker, and I now have a list of 36 chunks.
+
+134
+00:13:59,790 --> 00:14:12,868
+So entire PDF now condensed to 36 chunks where we know exactly that all of these text blobs over here will fit into the context of the embedding model that we are using.
+
+135
+00:14:13,136 --> 00:14:14,532
+So that is amazing, right?
+
+136
+00:14:14,736 --> 00:14:19,936
+That is already a lot of steps covered that normally takes a lot of work to do well.
+
+137
+00:14:20,260 --> 00:14:26,896
+All right, so we now have the chunks that we can send to an embedding model to get the vectors which we can store in a vector database.
+
+138
+00:14:27,118 --> 00:14:30,180
+Now in the next example, I'm going to use LandsDB.
+
+139
+00:14:30,416 --> 00:14:34,816
+And the specific implementation of the vector database that you're using doesn't really matter.
+
+140
+00:14:35,086 --> 00:14:46,096
+Typically within our projects, I use Postgres SQL and the PG factor extension, but LandsdB is really easy to work with because the database is stored in a persistent storage, just like a SQLite database.
+
+141
+00:14:46,176 --> 00:14:48,896
+So the file will literally just show up in your file system.
+
+142
+00:14:49,070 --> 00:14:50,336
+And that's just easier to work with.
+
+143
+00:14:50,496 --> 00:14:56,656
+They also have a really nice API, but just so you know that I'm not going to dive really deep into how to work with LandsDB.
+
+144
+00:14:56,736 --> 00:15:01,604
+So if you want to know more about that, you can look into the specific documentation from their website.
+
+145
+00:15:01,960 --> 00:15:12,260
+All right, so now moving to the 3 embedding.py file, and the beginning is just the same that we already did, but just adding steps on top of it to now work with the Factor database.
+
+146
+00:15:12,576 --> 00:15:16,896
+So let me run all of this code one more time so we get all of the chunks back.
+
+147
+00:15:17,038 --> 00:15:22,256
+So I'm creating the database over here, which is going to live in the data folder over here.
+
+148
+00:15:22,798 --> 00:15:25,456
+Now, next, I'm going to specify a function.
+
+149
+00:15:25,536 --> 00:15:28,176
+And this is really specific to LanceDB.
+
+150
+00:15:28,270 --> 00:15:30,816
+So if you want to learn more about that, you can reference the docs.
+
+151
+00:15:31,118 --> 00:15:35,296
+But what's nice about their API is that we can specify an embedding model.
+
+152
+00:15:35,534 --> 00:15:39,268
+So in this case, we're using OpenAI and we want text embedding 3 large.
+
+153
+00:15:39,534 --> 00:15:41,860
+And we can specify that as a function.
+
+154
+00:15:42,158 --> 00:15:51,296
+And then in the next step, what we can do, we can use a Pydentic model that we inherit from the LANs model to specify what our table should look like.
+
+155
+00:15:51,630 --> 00:15:55,940
+So we use Pydentic to specify the structure of our vector database.
+
+156
+00:15:56,176 --> 00:16:10,660
+And we can use that function that we created to specify, okay, what is the text source, what is the source field that we need to send to the embedding model, and also what is going to be the vector column that we need to vectorize.
+
+157
+00:16:10,896 --> 00:16:18,736
+And by doing it like this, within this clean API, we don't have to bother with manually doing sending and retrieving embeddings.
+
+158
+00:16:18,816 --> 00:16:21,696
+Everything is managed from within the table.
+
+159
+00:16:22,030 --> 00:16:24,260
+So that's just a nice thing about Landsdb.
+
+160
+00:16:24,496 --> 00:16:29,124
+But let's look at the data model that we're using over here.
+
+161
+00:16:29,614 --> 00:16:32,736
+So this is the main schema that we're using.
+
+162
+00:16:32,896 --> 00:16:45,296
+So from all of the documents that I extracted, I want a text field, I want the vector field that we're going to use to perform the search, and I want another field called metadata where we plug in the following.
+
+163
+00:16:45,456 --> 00:16:52,016
+So I want to put in the file name over there, the page numbers that the chunks were on, and also the title.
+
+164
+00:16:52,270 --> 00:16:59,216
+So this should give us next to the text also some important metadata from the documents that we can then use.
+
+165
+00:16:59,616 --> 00:17:07,216
+So to look at this, we can dive a little bit deeper into the chunks to see what that looks like.
+
+166
+00:17:07,376 --> 00:17:10,496
+So here in the last step we had the 36 chunks, remember?
+
+167
+00:17:10,736 --> 00:17:19,044
+So let's take the first object in here and let's do a model dump on there to see the exact content.
+
+168
+00:17:19,406 --> 00:17:23,216
+So here we can see we have the text, and then there is a meta key in there as well.
+
+169
+00:17:23,296 --> 00:17:24,452
+And there's a lot of information.
+
+170
+00:17:24,846 --> 00:17:36,016
+But we are just going to extract the file name, we're going to extract the page numbers, and we're also going to look at the headers that are potentially available in here.
+
+171
+00:17:36,302 --> 00:17:38,896
+So that is the chunk model that we are getting back.
+
+172
+00:17:39,056 --> 00:17:44,292
+And we are simply defining piedantic models around that in order to work with that.
+
+173
+00:17:44,656 --> 00:17:47,044
+So let me put that in memory.
+
+174
+00:17:47,456 --> 00:17:53,296
+And here you can see how we can create a table within our LensDB database.
+
+175
+00:17:53,456 --> 00:18:07,652
+So we take the dB that we initiated over here, we do create table, we call it doclink, we specify the schema, which is this chunk schema over here, and we set the mode to override, meaning that if it's already there, we just override it.
+
+176
+00:18:08,096 --> 00:18:11,056
+So I forgot to put the db here in memory.
+
+177
+00:18:11,136 --> 00:18:14,896
+Let me make sure we run everything, and now we should be good to go.
+
+178
+00:18:15,160 --> 00:18:15,780
+All right, perfect.
+
+179
+00:18:16,174 --> 00:18:21,124
+So now we have a fresh new table in here within our project.
+
+180
+00:18:21,998 --> 00:18:24,576
+Now next we can process the chunks.
+
+181
+00:18:24,656 --> 00:18:30,852
+So here's a simple piece of code that is going to loop over all of the chunks and get it ready for our table.
+
+182
+00:18:31,214 --> 00:18:35,696
+So let me just run that and show you what it looks like because that is probably easier.
+
+183
+00:18:35,982 --> 00:18:41,284
+So here we can see now for the 36 chunks that we had, it's going to loop over all of them.
+
+184
+00:18:41,616 --> 00:18:46,896
+It's going to extract the text, and then it's going to set the metadata to the file name, page numbers, and title.
+
+185
+00:18:46,976 --> 00:18:48,324
+It's going to skip everything else.
+
+186
+00:18:48,750 --> 00:18:50,976
+And here on the right you can see the result.
+
+187
+00:18:51,406 --> 00:18:54,736
+So this is going to exactly match our chunk model.
+
+188
+00:18:54,816 --> 00:18:57,216
+So we can now send the data to our table.
+
+189
+00:18:57,422 --> 00:19:08,816
+One quick note if you are using this approach using Pydentic, if you have a submodel in your document, you must order them in alphabetical order, otherwise, you will get some weird errors.
+
+190
+00:19:08,976 --> 00:19:16,932
+This is probably still a bug within the code over here, but I run into that and it took me probably like an hour or so to figure out what was wrong.
+
+191
+00:19:17,616 --> 00:19:21,124
+So with the chunks out of the way, we can now take our table.
+
+192
+00:19:21,550 --> 00:19:25,764
+Remember, this is our LandsdB table that we created, and we can add the chunks.
+
+193
+00:19:26,318 --> 00:19:28,736
+So let's send them to our database.
+
+194
+00:19:28,896 --> 00:19:34,176
+And the cool thing here, with this add function in the background, it performed the embeddings as well.
+
+195
+00:19:34,256 --> 00:19:36,804
+And that's really cool about the LandsdB API.
+
+196
+00:19:37,216 --> 00:19:38,496
+It can save you a lot of work.
+
+197
+00:19:38,656 --> 00:19:41,700
+All of this is pretty straightforward to implement yourself.
+
+198
+00:19:42,096 --> 00:19:51,620
+But because we have that function really stored at the table level, we can just send this chunk over here and we don't have to worry about the embeddings.
+
+199
+00:19:52,142 --> 00:19:54,500
+So what we can now do is we can have a look at a table.
+
+200
+00:19:55,406 --> 00:19:58,980
+And see our text, we can see our factor, and we can see the metadata.
+
+201
+00:19:59,278 --> 00:20:11,184
+So the two pandas method over here just returns the first 10 results, but we can also count the rows to check that we have the exact number, 36 records in total.
+
+202
+00:20:11,406 --> 00:20:15,556
+All right, so now we have the parse data with the embeddings in a vector database.
+
+203
+00:20:15,918 --> 00:20:22,304
+And again, I showed you how to do this with Landsdb, but you can just as well follow the same principles with any vector database out there.
+
+204
+00:20:22,574 --> 00:20:32,304
+If you want to use PostgreSQL for example, you can watch the other videos on my channel for that and just swap out the logic in order to create the embeddings and put it into the table.
+
+205
+00:20:32,494 --> 00:20:36,064
+Our data is now ready for our AI system or agent to use.
+
+206
+00:20:36,270 --> 00:20:41,584
+So let's first look at a very simple example to show you what that looks like and how we can use that information.
+
+207
+00:20:41,774 --> 00:20:45,060
+And then in the last step, we're going to bring this together in the application.
+
+208
+00:20:45,358 --> 00:20:56,516
+So within this fourth file over here called search, I'm going to fire up the interactive session again, connect to the vector database by simply specifying the local path to our database.
+
+209
+00:20:56,846 --> 00:21:00,164
+I'm going to load the Dockling table that we created.
+
+210
+00:21:00,464 --> 00:21:09,904
+And now through the LandsDB API, I can use the simple search method over here with a query in here, which is essentially the user question.
+
+211
+00:21:09,984 --> 00:21:15,344
+So what do we want with what query, what question or word do we want to search the factor database?
+
+212
+00:21:15,630 --> 00:21:21,504
+I'm going to set the query type to Factor, which is going to perform a similarity search using the embeddings.
+
+213
+00:21:21,838 --> 00:21:26,308
+LandsDB also supports a keyword search and also a hybrid method.
+
+214
+00:21:26,766 --> 00:21:32,900
+Then I'm going to set the limit to five, which is going to limit the amount of results that I'm going to get back from the table.
+
+215
+00:21:33,326 --> 00:21:40,544
+So I'm going to run this and then check out the results, which I can again convert to a pandas data frame.
+
+216
+00:21:40,944 --> 00:21:50,564
+So here you can see the text, the factor, the metadata, and the distance, and we can have a look at the specific text chunks that are retrieved when we search for PDF.
+
+217
+00:21:50,990 --> 00:21:54,624
+Now again, I can set this to three and it will run three.
+
+218
+00:21:54,704 --> 00:22:00,708
+And I can also, for example, put in here what's dockling and then run that result.
+
+219
+00:22:01,184 --> 00:22:04,944
+And you can get the different results over here based on that.
+
+220
+00:22:05,360 --> 00:22:16,940
+All right, so we now covered the parsing, the chunking, the embedding, and the retrieval, all the key components that we need in order to create a knowledge system for our AI system or agents.
+
+221
+00:22:17,264 --> 00:22:23,264
+Now let's see what that looks like if we put it together in an application that we can interact with.
+
+222
+00:22:23,580 --> 00:22:31,044
+All right, so what I have in front of me over here in the fifth file called chat is a simple setup to create a Streamlit application.
+
+223
+00:22:31,504 --> 00:22:35,104
+You can use this by pip installing the Streamlit library.
+
+224
+00:22:35,184 --> 00:22:38,340
+And in this video, I'm not going to dive into specifically how to set this up.
+
+225
+00:22:38,606 --> 00:22:39,744
+You can check out the documents.
+
+226
+00:22:39,904 --> 00:22:48,784
+We're going to use the chat elements, which make it really easy to create a simple interactive chat application that we can spin up locally in pure Python.
+
+227
+00:22:49,006 --> 00:22:51,104
+So this is great for demos and examples.
+
+228
+00:22:51,374 --> 00:22:58,304
+So what we're doing in this file high level without getting into all the details is we create a connection with the database.
+
+229
+00:22:58,478 --> 00:23:02,884
+Then we have a function to search the database and get the relevant context.
+
+230
+00:23:03,278 --> 00:23:10,532
+And then we have some specific streamlit components to work with the chat messages and stream it to the user.
+
+231
+00:23:10,864 --> 00:23:13,744
+So in order to boot this up, you can walk through this code.
+
+232
+00:23:13,824 --> 00:23:19,744
+But what we can do right now within this specific file, make sure you are in the Dockling folder.
+
+233
+00:23:19,904 --> 00:23:23,012
+So in the folder where the chat.py file is in.
+
+234
+00:23:23,424 --> 00:23:30,372
+And then make sure you have the environment activated where you have Streamlit installed and all of the other requirements in here.
+
+235
+00:23:30,574 --> 00:23:33,264
+And then you can run streamlit run over there.
+
+236
+00:23:33,424 --> 00:23:36,464
+Then you can put the command streamlit run and then the name of the file.
+
+237
+00:23:36,544 --> 00:23:37,984
+So this should be the exact one.
+
+238
+00:23:38,064 --> 00:23:40,260
+So five-chat.py.
+
+239
+00:23:40,878 --> 00:23:45,024
+And when I run this, this is going to boot up the document QA.
+
+240
+00:23:45,104 --> 00:23:48,384
+And in here, I can ask questions like what's Dockling?
+
+241
+00:23:48,784 --> 00:23:51,824
+Similar to what I showed you in the beginning in the demo.
+
+242
+00:23:51,984 --> 00:24:02,224
+So it's going to first search all of the documents, it's going to show you what we retrieved, and it's going to provide us with a section name, name of the file, and also the page.
+
+243
+00:24:02,304 --> 00:24:03,984
+So this is already really cool, right?
+
+244
+00:24:04,064 --> 00:24:11,104
+We now essentially have an agent system, we have an AI system that we can ask questions and it can pull up the right information.
+
+245
+00:24:11,470 --> 00:24:14,864
+And even though right now this is just one document, it's just one PDF.
+
+246
+00:24:15,104 --> 00:24:17,744
+But you can just expand this by adding more and more data.
+
+247
+00:24:18,094 --> 00:24:19,744
+So it's very dynamic and easy to work with.
+
+248
+00:24:19,854 --> 00:24:23,824
+So what we can do, for example, if we come in here and just make a live change.
+
+249
+00:24:23,904 --> 00:24:26,544
+So for example, let's set the number of results to five.
+
+250
+00:24:26,624 --> 00:24:32,304
+We can just do that, save it, and we can run this one more time and say, what's Dockling?
+
+251
+00:24:32,430 --> 00:24:35,904
+So it now has five chunks that is going to base the information on.
+
+252
+00:24:36,174 --> 00:24:48,064
+So now you know how to build a knowledge extraction pipeline that can extract various types of documents, convert them, extract them, chunk them, put them into a vector database, and then make them available in your AI application.
+
+253
+00:24:48,366 --> 00:24:52,464
+So if you found this video helpful, please leave a like and also consider subscribing.
+
+254
+00:24:52,544 --> 00:24:59,172
+And if you want to learn more about how to build effective AI agents, make sure to check out this video next.
+

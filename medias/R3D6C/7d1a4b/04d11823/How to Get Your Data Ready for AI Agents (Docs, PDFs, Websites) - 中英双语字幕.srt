@@ -1,0 +1,1438 @@
+1
+00:00:00,110 --> 00:00:05,120
+构建 AI 智能体时，首先要做的事情之一就是让它们能够访问你自己的数据。
+One of the first things that you want to do when you're building AI agents is giving them access to your own data.
+
+2
+00:00:05,280 --> 00:00:13,840
+这些数据可以是文档、PDF、网站，任何能让你的 AI 智能
+体获取关于公司或你试图解决的问题的特定知识的内容。
+These could be things like documents, PDFs, websites, anything to give your AI agents
+specific knowledge about your company or the problem that you're trying to solve.
+
+3
+00:00:14,190 --> 00:00:23,710
+现在网上有很多工具可以帮助你完成这项工作，但大多数都是收费的，主要是因为它们是闭源的，
+这意味着你必须获取 API 密钥，然后将数据发送到他们的平台，
+And now there are a lot of tools online that can help you to do this, but most of them come at a cost mainly that they are closed
+source, meaning you have to get an API key and then you can send data
+
+4
+00:00:23,710 --> 00:00:24,790
+现在网上有很多工具可以帮助你完成这项工作，但大多数都是收费的，主要是因为它们是闭源的，
+这意味着你必须获取 API 密钥，然后将数据发送到他们的平台，
+to their platform where they do the parsing and you get the data back.
+
+5
+00:00:24,790 --> 00:00:27,200
+由他们进行解析并把数据返回给你。
+to their platform where they do the parsing and you get the data back.
+
+6
+00:00:27,438 --> 00:00:33,440
+但如果我告诉你，也有同样好用的开源替代方案呢？
+But what if I told you that there are also open source alternatives available that work just as well?
+
+7
+00:00:33,710 --> 00:00:42,480
+所以在本视频中，我想向大家展示如何使用名为 Docling 的库，
+在 Python 中构建一个全开源的文档提取流水线。
+So in this video, I want to show you how you can build a fully open source
+document extraction pipeline in Python using a library called Dockling.
+
+8
+00:00:42,640 --> 00:00:46,320
+在本视频中，我将带大家浏览这个 GitHub 仓库，链接就在描述栏里。
+So in this video, I will walk you through this GitHub repository, link in the description.
+
+9
+00:00:46,560 --> 00:01:00,620
+当然，我们将深入研究一些代码示例，展示如何解析像这样的 PDF 文档和网站，
+最终让它们能在聊天应用中可用，我们可以浏览向量数据库，搜索相关上下文，
+Of course, we'll dive into some code examples to show you how you can parse PDF documents like this and websites to eventually make
+them available in a chat application where we can browse through our vector database, search for relevant context,
+
+10
+00:01:00,620 --> 00:01:00,670
+然后回答相关问题，并检索出作为引用的来源。
+Of course, we'll dive into some code examples to show you how you can parse PDF documents like this and websites to eventually make
+them available in a chat application where we can browse through our vector database, search for relevant context,
+
+11
+00:01:00,670 --> 00:01:04,879
+然后回答相关问题，并检索出作为引用的来源。
+and then answer questions about that, retrieving sources as citations.
+
+12
+00:01:05,069 --> 00:01:16,000
+在整个视频中，我们将涵盖一些基础技术，如提取、解析、分块、嵌入和检索，
+向你展示如何从头到尾为你的 AI 智能体创建一个知识系统。
+Now throughout this video, we will cover some fundamental techniques like extraction, parsing, chunking, embedding,
+and retrieval to show you how you can create a knowledge system for your AI agents end-to-end.
+
+13
+00:01:16,398 --> 00:01:22,148
+我将展示一些具体的例子，使用特定的工具集、向量数据库和 AI 模型。
+I'm going to show you some specific examples with a specific set of tools, vector databases, and AI models.
+
+14
+00:01:22,320 --> 00:01:26,160
+但所有这些概念都可以应用于各种情况。
+But all of these concepts can be applied to all kinds of situations.
+
+15
+00:01:26,382 --> 00:01:31,876
+所以无论你使用哪种向量数据库、哪种嵌入模型，或者哪种 AI 模型都不重要。
+So it doesn't matter which vector database you're using, which embedding model you're using, or which AI model you're using.
+
+16
+00:01:32,080 --> 00:01:36,080
+它将真正构成为你的应用构建知识系统的基础。
+It will really form the foundation of building a knowledge system for your application.
+
+17
+00:01:36,420 --> 00:01:38,080
+好了，现在让我们开始吧。
+All right, now let's get things started.
+
+18
+00:01:38,160 --> 00:01:44,480
+现在，在仓库的 readme 文件中（就在我面前），如果你想深入了解一点，那里有更多信息。
+Now within the readme file in the repository, which I have here in front
+of me, there is more information if you want to dive a little bit deeper.
+
+19
+00:01:44,560 --> 00:01:54,960
+但为了跟着操作，你需要创建一个环境并安装 requirements.txt，它们就在项目里，
+而且你还需要一个 OpenAI API 密钥。
+But in order to follow along, you need to create an environment and then install the requirements.txt,
+so they are available here in the project, and you need an OpenAI API key.
+
+20
+00:01:55,040 --> 00:02:02,148
+现在，文档提取部分将是全开源的，但我仍将使用 OpenAI 来创建嵌入并与其进行对话。
+Now, the document extraction part is going to be fully open source,
+but I'm still going to use OpenAI to create embeddings and chat with it.
+
+21
+00:02:02,400 --> 00:02:03,520
+现在，这是可选的。
+Now, this is optional.
+
+22
+00:02:03,600 --> 00:02:08,708
+你也可以同样使用开源模型，这一点供你参考。
+You can just as well use an open source model for this as well, just so you know that.
+
+23
+00:02:09,198 --> 00:02:16,240
+现在，为了让你自己走通这个完整的示例（我将在视频中演示），我们将执行五个文件。
+Now, in order to go through this entire example on your own, which I will do in this video, we are going to execute five files.
+
+24
+00:02:16,400 --> 00:02:27,190
+首先，我们将提取文档内容，然后进行分块，接着创建嵌入并存入向量数据库，
+然后测试检索功能，最后将这一切整合到我在开头演示的聊天应用中。
+So, first we're going to extract document content, then we're going to perform chunking,
+then we're going to create embeddings and put them into a vector database, then we're going to test the search functionality,
+
+25
+00:02:27,190 --> 00:02:32,292
+首先，我们将提取文档内容，然后进行分块，接着创建嵌入并存入向量数据库，
+然后测试检索功能，最后将这一切整合到我在开头演示的聊天应用中。
+and then we're going to bring this all together in the chat application that I demoed in the beginning.
+
+26
+00:02:32,560 --> 00:02:36,560
+那么让我们开始吧，从提取开始。
+So let's dive in, starting with the extraction.
+
+27
+00:02:36,814 --> 00:02:42,340
+我这里有一个 Python 文件，我将启动它并在交互式会话中运行。
+So I have this Python file over here, which I'm going to boot up and run in the interactive session.
+
+28
+00:02:42,800 --> 00:02:50,000
+我们这里有一个来自我们用来执行此操作的库的 PDF 文件。
+And we have a PDF over here from the library that we're using to perform this.
+
+29
+00:02:50,286 --> 00:02:51,760
+这个库叫 Docling。
+And the library is called Dockling.
+
+30
+00:02:52,000 --> 00:02:53,604
+这是技术报告。
+Here is the technical report.
+
+31
+00:02:53,920 --> 00:02:56,996
+这是 IBM 的一个项目。
+So this is a project from IBM.
+
+32
+00:02:57,280 --> 00:03:02,480
+他们是一家非常棒的公司，在制造非常棒的工具，而且他们正将其做成全开源。
+So a really great company building great tools, and they are making this fully open source.
+
+33
+00:03:02,560 --> 00:03:13,600
+根据我的实验以及我从在大型公司工作的其他 AI 工程师那
+里听到的消息，到目前为止，这是首选的开源文档提取库。
+And based on my experiments and what I've heard from other AI engineers in the scene working with great companies, this is by far,
+right now, the open source document extraction library of choice.
+
+34
+00:03:13,710 --> 00:03:21,200
+它本身就已经很出色了，而且他们还有一个即将推出的路线图，让这个库变得更加出色。
+It's already amazing as is, and they still have a roadmap of items that are coming soon to make this library even more awesome.
+
+35
+00:03:21,486 --> 00:03:23,920
+所以开始使用它非常简单。
+So it's really straightforward to get started with it.
+
+36
+00:03:24,160 --> 00:03:28,452
+这个简单的文件将向你展示具体的操作步骤。
+And this simple file over here is going to show you exactly how to do that.
+
+37
+00:03:28,814 --> 00:03:34,720
+我们将从从库中导入的文档转换器开始。
+So we are going to start with the document converter that we import from the library.
+
+38
+00:03:35,022 --> 00:03:39,600
+在 requirements 文件中执行简单的 pip install doclink 后，我们就可以这样做。
+So this we can do this after a simple pip install doc link, which is in the requirements.
+
+39
+00:03:40,032 --> 00:03:44,580
+当环境准备就绪后，我们就可以转换 PDF 了。
+So when we have that up and running, we can then convert a PDF.
+
+40
+00:03:44,878 --> 00:03:52,672
+我们可以运行这段代码，这可能需要一点时间，尤其是第一次运行，
+因为它会下载一些本地提取模型来执行此操作。
+So we can run this, and this will take some time, especially if you do it for the first time,
+because it will download some local extraction models to perform this.
+
+41
+00:03:52,878 --> 00:04:05,472
+但现在，它正在后台处理 PDF，分析并查看所有的区块和组件，
+执行 OCR 以获取我们将用于后续步骤的数据模型。
+But right now, in the background, it's going through the PDF and it's going to analyze and look at all the blocks and components,
+perform OCR to get a data model back that we will use in the next steps.
+
+42
+00:04:05,742 --> 00:04:11,748
+到这里你可以看到它已经完成了，我们现在可以调用文档属性，看看里面是什么。
+So here you can see that it is now finished, and we can now call the document attribute and have a look at what's inside there.
+
+43
+00:04:12,032 --> 00:04:14,820
+现在我们得到了一个 Docling 文档文件。
+So we now have a Dockling document file.
+
+44
+00:04:14,912 --> 00:04:19,971
+我们把整个 PDF 放入系统中运行，现在我们得到了这个对象。
+So we took the whole PDF, we ran it through the system, and now we have this object.
+
+45
+00:04:20,351 --> 00:04:25,540
+之所以这么厉害，看看他们在这里提供的这张图片就知道了。
+And why this is so awesome, coming also to the image that they have over here.
+
+46
+00:04:25,902 --> 00:04:39,270
+这个库的优点是你可以把各种数据文件丢给它，无论是 PDF、PowerPoint、DockX 还是网站，
+它都会将其转换为特定的数据模型，也就是他们创建的这个叫
+So what's so nice about this library is that you can throw all kinds of data files at it, whether that's PDF, PowerPoints, DockX,
+or websites, and it will turn it into this specific data model, this specific data
+
+47
+00:04:39,270 --> 00:04:39,590
+这个库的优点是你可以把各种数据文件丢给它，无论是 PDF、PowerPoint、DockX 还是网站，
+它都会将其转换为特定的数据模型，也就是他们创建的这个叫
+object that they have created called the Dockling document that you can see over here.
+
+48
+00:04:39,590 --> 00:04:44,804
+作 Docling 文档的特定数据对象，你可以看到它就在这里。
+object that they have created called the Dockling document that you can see over here.
+
+49
+00:04:45,166 --> 00:04:56,452
+之所以这么好是因为我们现在可以统一所有类型的数据，并创建一个流水线或系统，
+无论你丢给它的是 PDF 还是网页，我们都能处理它。
+And why that is so nice is that we can now unify all kinds of data and create a pipeline or system where it doesn't really matter if
+you throw a PDF or a web page at it, and we can work with it.
+
+50
+00:04:56,942 --> 00:04:58,948
+让我们看看效果如何。
+So let's see what that looks like.
+
+51
+00:04:59,232 --> 00:05:02,832
+一旦我们有了这个文档，我们就可以对它进行各种操作。
+So once we now have that document, we can do various things with it.
+
+52
+00:05:02,990 --> 00:05:15,632
+例如，我们可以导出为 Markdown 或 JSON，我们可以看看它们长什么样，对于 JSON，
+如果你一直往这边看，你可以看到里面包含的内容。
+So for example, we can export to Markdown or we can export to JSON, and we can have a look at what that looks like,
+and also for the JSON, and you can see if you go all the way over here, you can see what's inside.
+
+53
+00:05:15,792 --> 00:05:20,352
+但为了更好的视觉效果，我们可以打印出 Markdown 输出。
+But maybe to give a better visual view, we can print the markdown output.
+
+54
+00:05:20,558 --> 00:05:26,340
+在这里你可以浏览这个文档，你会看到，嘿，这是 Dark Lane 技术报告。
+And here you can browse through the document over here where you see, hey, this is the Dark Lane Technical Report.
+
+55
+00:05:26,446 --> 00:05:34,788
+你可以看到 Dark Lane 技术报告的版本，你可以看
+到它在从里面提取所有这些信息方面做得非常好。
+So you can see Dark Lane Technical Report, the version, and here you can
+see it did a very good job of extracting all of this information from it.
+
+56
+00:05:35,246 --> 00:05:38,912
+不过，目前还有很多其他库也能做到这一点。
+But hey, okay, so far there are plenty of other libraries that can do this as well.
+
+57
+00:05:39,072 --> 00:05:44,804
+但它真正出色的地方还在于，让我往下滚动，表格提取。
+But where this really excels is also in, let me scroll down, table extraction.
+
+58
+00:05:45,232 --> 00:05:50,592
+很多 Python 开源库在解析 PDF 时在处理这个问题上很吃力。
+So a lot of Python, a lot of open source Python libraries that parse PDFs struggle with this.
+
+59
+00:05:50,672 --> 00:05:53,412
+例如，如果我往这边看，你可以看到这个表格。
+So for example, if I come down over here, you see this table.
+
+60
+00:05:53,806 --> 00:05:59,044
+在这里你可以看到，我们得到了一个格式完美的 Markdown 表格。
+Here you can see we can uh we have a perfect, perfectly formatted markdown table.
+
+61
+00:05:59,502 --> 00:06:06,180
+而且一切看起来都非常整洁，没有奇怪的字符，所有的标题都在正确的 Markdown 格式中。
+And everything just looks super clean, no weird characters, all the headings are in correct markdown format.
+
+62
+00:06:06,542 --> 00:06:09,712
+总的来说，开箱即用的效果非常好。
+So overall, out of the box, really great result.
+
+63
+00:06:10,030 --> 00:06:13,232
+这就是解析 PDF 的一个非常简单的例子。
+So that was a very simple example of parsing a PDF.
+
+64
+00:06:13,552 --> 00:06:16,900
+现在让我清理一下，继续进行 HTML 提取。
+Now let me clear this up and continue with HTML extraction.
+
+65
+00:06:17,550 --> 00:06:28,272
+因为我们还可以使用同一个转换器调用 convert 方法，但不是丢给它 PDF，而是丢给它一个网站。
+Because what we can also do is within that same converter, we can call the convert
+method, but then instead of throwing a PDF at it, we just throw a website at it.
+
+66
+00:06:28,432 --> 00:06:36,432
+如果我到 Docling docs 这里，你可以看到这个页面，运行这个结果看看我们得到了什么。
+So if I go over here to the doc laying docs, you can see this page over here and run this result to see what we get.
+
+67
+00:06:36,592 --> 00:06:40,580
+这非常快，因为它本质上只是查看 HTML 并对其进行解析。
+This is really fast because it essentially just looks at the HTML and parses it.
+
+68
+00:06:40,846 --> 00:06:45,028
+所以我们可以获取文档，然后得到 Markdown，让我们看看效果。
+So we can get the document and then the markdown, and let's see what that looks like.
+
+69
+00:06:45,326 --> 00:06:55,952
+现在我们有了这个网页的精确副本，它正确解析了这里的 HTML，
+并且现在我们拥有了一个可以使用的 Markdown 对象。
+So now we have an exact replica of this web page, correctly parsing all
+of the HTML in here and now having a markdown object that we can use.
+
+70
+00:06:56,174 --> 00:06:57,472
+刚才那只是一个页面。
+So that was just one page.
+
+71
+00:06:57,632 --> 00:07:01,668
+如果我们想要整个网站，比如获取上面的所有页面呢？
+What if we want an entire website, for example, and get all the pages on there?
+
+72
+00:07:01,952 --> 00:07:09,444
+嗯，为了做到这一点，我们可以利用大多数网站都有的 sitemap.xml 来玩个花招。
+Well, to do that, we can use a trick by leveraging the what is called the sitemap.xml, which most websites have.
+
+73
+00:07:09,646 --> 00:07:16,548
+所以对于任何给定的网站，我们也可以通过在浏览
+器中输入 URL 并加上 sitemap.xml 来测试一下。
+So for any given website, we can also test this by coming to the browser and then put sitemap.xml behind the URL.
+
+74
+00:07:16,846 --> 00:07:24,992
+我们可以看看这个，这是一个 XML 文件，包含了该网站所有的信息、页面以及 URL。
+And we can look at this, and this is an XML file that contains all of the information, pages, and also URLs from that website.
+
+75
+00:07:25,198 --> 00:07:38,404
+我创建了一个简单的辅助函数叫 getSitemapURLs，它会遍历这个文件，尝试获取 sitemap.xml，
+然后返回在该特定页面上找到的所有 URL。
+And I created a simple helper function called getSitemap URLs that goes through this, tries to fetch that sitemap.xml,
+and then returns all of the URLs that were found on that specific page.
+
+76
+00:07:38,766 --> 00:07:49,152
+所以如果我们现在到这里，插进同样的 URL，我们就不
+只是获取单个页面的信息，而是先获取 sitemap URL。
+So if we then come over here and plug in that same URL right now, instead of getting
+all the information from just a single page, we can first get the sitemap URLs.
+
+77
+00:07:49,232 --> 00:07:53,712
+在这里你可以看到在 sitemap 中找到的所有 URL。
+And here you can see all of the URLs that are found in the sitemap.
+
+78
+00:07:54,030 --> 00:07:59,952
+现在，正如你所料，我们可以遍历这些 URL，并逐个提取所有页面。
+And now, as you can imagine, we can loop over this and extract all of the pages one by one.
+
+79
+00:08:00,142 --> 00:08:03,300
+而且 Docling 库也有一个很好的方法来处理这个。
+And the DockLink library also has a nice method for that.
+
+80
+00:08:03,632 --> 00:08:14,112
+所以我们不再调用 convert，而是调用 convertAll，它会创建一个迭代对象，
+我们可以遍历它并提取所有信息。
+So instead of calling convert, we can now call it convertAll, which creates
+an iter object where we can loop over and extract all of that information.
+
+81
+00:08:14,286 --> 00:08:16,356
+所以我可以直接在这里创建它。
+So I can simply create that over here.
+
+82
+00:08:16,910 --> 00:08:20,688
+现在我创建一个名为 docs 的新变量，里面是一个空列表。
+And now I create a new variable with an empty list called docs.
+
+83
+00:08:21,008 --> 00:08:29,540
+对于我们刚刚创建的这个迭代对象中的所有结果，
+我将获取 result.document 并将其添加到列表中。
+And for all of the results in this iter item that we just created, I'm going to get the result.document and append it to the list.
+
+84
+00:08:29,998 --> 00:08:31,808
+让我们运行一下看看。
+So let's run over that.
+
+85
+00:08:32,014 --> 00:08:35,808
+现在我们可以看到所有这些特定页面的 Docling 文档了。
+And now we can see all of the Dockling documents for all of these specific pages.
+
+86
+00:08:36,014 --> 00:08:37,727
+这已经相当酷了，对吧？
+So this is already quite cool, right?
+
+87
+00:08:37,870 --> 00:08:44,768
+我们可以把 PDF、单个网页或整个网站丢给它，然后得到一个精确的数据对象。
+We can throw PDFs at it, single web page, or an entire website, and get an exact data object back.
+
+88
+00:08:45,006 --> 00:08:46,608
+现在这些只是基础示例。
+And now these were just the basic examples.
+
+89
+00:08:46,688 --> 00:08:54,020
+Docling 库还允许你指定自定义的提取参数，用于处理那些数据稍微复杂一点的情况。
+The Dockling library also allows you to specify custom extraction
+parameters for situations where your data is a little bit more tricky.
+
+90
+00:08:54,288 --> 00:09:05,390
+但这确实构成了你知识提取系统的基础和第一步，即能够把不同类型的文档——网站、PDF、Docx，
+随便什么——丢给它，并将其转换为我们可以用于系统中下一步的结构化格式。
+But this really forms the foundation and first step of your knowledge extraction system,
+being able to throw different kinds of documents at it, website PDFs, docics, whatever,
+
+91
+00:09:05,390 --> 00:09:10,608
+但这确实构成了你知识提取系统的基础和第一步，即能够把不同类型的文档——网站、PDF、Docx，
+随便什么——丢给它，并将其转换为我们可以用于系统中下一步的结构化格式。
+and get it into a structured format that we can use in the next step within our system.
+
+92
+00:09:10,958 --> 00:09:16,768
+嘿，另外快速提一下，如果你想了解除了这些视频之外，我们
+还能如何帮助像你这样的开发者，你可以查看描述中的链接。
+Hey, and then real quick, if you want to learn how we help developers like you beyond these videos,
+then you can check out the links in the description.
+
+93
+00:09:17,038 --> 00:09:28,516
+我们提供很多资源，从在免费社区学习 Python 用于 AI 的免费课程，
+一直到我们为客户构建和部署生成式 AI 应用所使用的生产框架。
+We have a lot of resources available, starting from how you can learn Python for AI in a free community, a free course,
+all the way to our production framework that we use to build and deploy generative AI applications for our client.
+
+94
+00:09:28,750 --> 00:09:35,488
+如果你已经到了考虑做自由职业、接一些兼职项目的水平，我们也可以帮助你拿下第一个客户。
+And if you're already at the level where you consider freelancing, maybe taking on side projects,
+we can also help you to land that first client.
+
+95
+00:09:35,694 --> 00:09:38,528
+所以如果你对此感兴趣，一定要去看看那里的所有链接。
+So if you're interested in that, make sure to check out all of the links there.
+
+96
+00:09:38,820 --> 00:09:40,528
+好了，现在我们知道如何提取数据了。
+All right, so now we know how to extract data.
+
+97
+00:09:40,688 --> 00:09:42,128
+下一步是分块。
+The next step is chunking.
+
+98
+00:09:42,286 --> 00:09:44,708
+而且 Docling 库也可以帮助我们完成这一步。
+And the Dock Link library can also help us with this.
+
+99
+00:09:45,006 --> 00:09:55,556
+所谓分块，其实就是我们把所有数据拿出来，而不是把整个文档放进数据库的一个记录里，
+而是把它拆分成我们所谓的“分块”。
+And what chunking is really is we're taking all of the data and instead of taking the entire document and putting it into a single
+record within our database, we split it up in what we call chunks.
+
+100
+00:09:55,888 --> 00:10:08,730
+我们这样做是为了尽可能创建逻辑上的拆分和组件，让它们能够很好地结合在一起，
+这样当我们查询 AI 系统时，它不会把整个文档或整本书都返回，
+And we do this in order to hopefully create logical splits and components that fit well together so that when we query our AI system,
+we don't get the entire document or the entire book back, but just the specific parts that are relevant to our question.
+
+101
+00:10:08,730 --> 00:10:12,288
+而只是返回与我们问题相关的特定部分。
+And we do this in order to hopefully create logical splits and components that fit well together so that when we query our AI system,
+we don't get the entire document or the entire book back, but just the specific parts that are relevant to our question.
+
+102
+00:10:12,494 --> 00:10:17,168
+但这并不像简单地按每 X 个单词或字符来拆分文本那么简单。
+But that is not as simple as just splitting the text by every X words or characters.
+
+103
+00:10:17,454 --> 00:10:25,156
+但幸运的是，Docling 开箱即用就能通过两种不同的方法帮助我们进行分块，
+你还可以把它们结合到混合分块器中。
+But luckily, out of the box, Dockling can also help us with chunking through two different methods,
+and you can also combine them in the hybrid chunker.
+
+104
+00:10:25,488 --> 00:10:38,128
+首先是层级分块器，它基本上是查看文档，并根据逻辑组件或能够很好结合的组来拆分文档。
+So they first have the hierarchical chunker, which essentially looks at the document and it's going to split up the document based on
+logical components or groups that fit together well.
+
+105
+00:10:38,208 --> 00:10:45,728
+这些可以是列表或段落，它会创建这些带有子节点的组，我们可以直接使用。
+So these could be lists or paragraphs, and it's going to create those groups with children that we can already use.
+
+106
+00:10:45,808 --> 00:10:50,448
+所以这已经是分块的一个很好的起点，而且这是自动完成的。
+So this is already a great starting point for chunking, and this is performed automatically.
+
+107
+00:10:50,542 --> 00:10:54,564
+但我们可以再进一步，应用混合分块器。
+But we can take that one step further and also apply the hybrid chunker.
+
+108
+00:10:54,928 --> 00:10:58,116
+它的工作原理基本上就在这里解释了，看看它是怎么做的。
+And how that works essentially is explained over here what it does.
+
+109
+00:10:58,574 --> 00:11:01,956
+你可以拆分那些对于你的嵌入模型来说太大的分块。
+You can split chunks that are too large for your embedding model.
+
+110
+00:11:02,288 --> 00:11:13,988
+记住这一点：我们获取数据，提取数据，然后创建分块，接着在下一步，
+我们将这些分块发送到嵌入模型来创建嵌入，然后我们将这些嵌入存储到向量数据库中。
+So remember this we get the data, we extract it, then we create the chunks, and then in the next step,
+we're going to send that to an embedding model to create the embedding, which we're going to store in the vector database.
+
+111
+00:11:14,288 --> 00:11:19,088
+但是所有的嵌入模型都有特定的最大输入限制。
+But all embedding models have a specific max input that we can use.
+
+112
+00:11:19,310 --> 00:11:30,928
+例如，如果我们看 OpenAI 的嵌入，让我把这个调出来，我们可以看到 text-嵌入-3-small、
+large 以及其他模型都有如下的最大输入。
+So for example, if we go to the OpenAI embeddings, let me just pull this up over here, we can see that the text embedding small,
+large, and other models have a max input of the following.
+
+113
+00:11:31,182 --> 00:11:34,448
+这就是你可以发送给该模型的总输入量。
+So that is a total amount of input that you can send to that model.
+
+114
+00:11:34,574 --> 00:11:40,612
+所以，你要确保你的分块保持在所使用的嵌入模型的特定数值以下。
+So you want to keep your chunks below that specific number of the embedding model that you are using.
+
+115
+00:11:41,102 --> 00:11:47,648
+现在，Docling 做的事情是，它首先会拆分那些对于嵌入模型来说太大的分块。
+Now, what Dock Link Dang does is it is first going to split chunks that are too large for the embedding model.
+
+116
+00:11:47,728 --> 00:11:50,208
+假设它超过了这个输入限制。
+So say it exceeds this input.
+
+117
+00:11:50,894 --> 00:11:52,324
+它就会创建一个拆分。
+It's going to create a split.
+
+118
+00:11:52,910 --> 00:11:56,576
+然后，它还会把那些太小的分块拼接在一起。
+Then also it's going to stitch together chunks that are too small.
+
+119
+00:11:56,656 --> 00:12:02,916
+比如你可能有一个分块只是一个标题或一个短段落，它可以把这些结合在一起。
+So you might have a chunk which is just one header or a short paragraph, and it can fit that together.
+
+120
+00:12:03,246 --> 00:12:05,856
+而且它还能配合你特定的分词器工作。
+And it works with your specific tokenizer.
+
+121
+00:12:05,936 --> 00:12:10,660
+这样分块就能完美适配你正在使用的模型。
+So the chunks will perfectly fit the chosen model that you are working with.
+
+122
+00:12:10,926 --> 00:12:14,596
+所以开箱即用就是处理这个问题的绝佳方式。
+So that out of the box is just a great way to work with this.
+
+123
+00:12:14,976 --> 00:12:27,844
+在这里的代码示例中，我们将使用 OpenAI，并使用 嵌入-large 模型，
+我们将最大标记数设置为我们在文档中看到的那个数值。
+So within the code example here, we're going to use OpenAI and we're going to use the embedding large model where we set the max
+tokens to the number that we see over here in the documentation.
+
+124
+00:12:28,336 --> 00:12:33,056
+为了做到这一点，我创建了一个简单的 OpenAI 分词器封装。
+And in order to do this, I created a simple OpenAI tokenizer wrapper.
+
+125
+00:12:33,136 --> 00:12:40,656
+因为如果你看 Docling 的文档，他们使用的是可以通过 Hugging Face 获取的开源模型。
+Because if you look at it into the documentation within Dockling, they use an open source model that is available via Hacking Face.
+
+126
+00:12:40,896 --> 00:12:47,172
+所以我在这里创建了这个简单的分词器，它遵循了你操作时所需的精确 API 规范。
+So I created this simple tokenizer over here that follows the exact API specifications that you need to work with this.
+
+127
+00:12:47,502 --> 00:12:50,628
+那我们运行一下，看看效果如何。
+So let's fire this up and see what this looks like.
+
+128
+00:12:50,896 --> 00:12:53,856
+我将再次获取同一个 PDF。
+So I'm going to get the same PDF again.
+
+129
+00:12:53,936 --> 00:12:57,700
+为了简单起见，我只是在这个文件里再运行一次。
+And for the sake of simplicity, I'm just going to run this one more time in this file.
+
+130
+00:12:57,966 --> 00:13:04,568
+这里需要几秒钟，但这和我们上一步做的操作一样，就是获取 PDF。
+So this will take a couple of seconds over here, but this is the same action that we did in the previous step, getting the PDF.
+
+131
+00:13:04,568 --> 00:13:06,256
+好了，我们又拿到了结果。
+All right, so we have our result again.
+
+132
+00:13:06,336 --> 00:13:08,004
+这就是我们解析出来的 PDF。
+So this is our parsed PDF.
+
+133
+00:13:08,366 --> 00:13:11,056
+现在我们要应用混合分块器。
+Now we are going to apply the hybrid chunker.
+
+134
+00:13:11,136 --> 00:13:15,364
+我们可以从 Docling 库中导入混合分块器。
+So what we can do, we can import the hybrid chunker from the Duckling library.
+
+135
+00:13:15,536 --> 00:13:20,036
+我们可以指定分词器，把它设置为我创建的 OpenAI 分词器包装器。
+We can specify the tokenizer, we can set it to the OpenAI tokenizer wrapper that I created.
+
+136
+00:13:20,302 --> 00:13:27,536
+然后对于最大标记数，我们可以使用最大输入标记数，并将合并对设置为 true，这是默认选项。
+Then for max tokens, we can use the max input tokens, and we can set the merge pairs to true, which is the default option.
+
+137
+00:13:27,726 --> 00:13:31,776
+这样也可以把较小的分块组合在一起。
+So this is going to allow to put smaller chunks together as well.
+
+138
+00:13:31,856 --> 00:13:33,028
+这是可选的。
+So this is optional.
+
+139
+00:13:33,326 --> 00:13:38,276
+接下来，我把它放入内存并运行处理。
+So what we can then do is once I put this into memory and run over this.
+
+140
+00:13:38,574 --> 00:13:43,296
+这些语法都是 Docling 文档中特定的。
+So this is all syntax that is specific from the DockLink documentation.
+
+141
+00:13:43,662 --> 00:13:47,428
+我只是按照示例操作，现在已经创建了分块。
+So I just followed the example and now created the chunks.
+
+142
+00:13:47,630 --> 00:13:59,524
+如果我看看这个列表，现在可以看到我把整个文档通过混合分块器处理后，
+得到了一个包含 36 个分块的列表。
+So if I look at this list, I can now see that I took the entire document,
+took it through the hybrid chunker, and I now have a list of 36 chunks.
+
+143
+00:13:59,790 --> 00:14:12,868
+整个 PDF 现在被浓缩成了 36 个分块，我们确切知道这里的
+这些文本块都能放入我们正在使用的嵌入模型的上下文中。
+So entire PDF now condensed to 36 chunks where we know exactly that all of these text
+blobs over here will fit into the context of the embedding model that we are using.
+
+144
+00:14:13,136 --> 00:14:14,532
+这太棒了，对吧？
+So that is amazing, right?
+
+145
+00:14:14,736 --> 00:14:19,936
+这已经涵盖了很多步骤，而这些步骤通常需要花费大量精力才能做好。
+That is already a lot of steps covered that normally takes a lot of work to do well.
+
+146
+00:14:20,260 --> 00:14:26,896
+好了，现在我们有了这些分块，可以把它们发送到嵌
+入模型来获取向量，然后把向量存到向量数据库中。
+All right, so we now have the chunks that we can send to an embedding
+model to get the vectors which we can store in a vector database.
+
+147
+00:14:27,118 --> 00:14:30,180
+在下一个例子中，我将使用 LanceDB。
+Now in the next example, I'm going to use LandsDB.
+
+148
+00:14:30,416 --> 00:14:34,816
+你使用的向量数据库的具体实现其实并不重要。
+And the specific implementation of the vector database that you're using doesn't really matter.
+
+149
+00:14:35,086 --> 00:14:46,096
+通常在我们的项目中，我使用 Postgres SQL 和 PGVector 扩展，但 LanceDB 非常容易操作，
+因为数据库存储在持久化存储中，就像 SQLite 数据库一样。
+Typically within our projects, I use Postgres SQL and the PG factor extension, but LandsdB is really easy to work with because the
+database is stored in a persistent storage, just like a SQLite database.
+
+150
+00:14:46,176 --> 00:14:48,896
+所以文件会直接出现在你的文件系统中。
+So the file will literally just show up in your file system.
+
+151
+00:14:49,070 --> 00:14:50,336
+这让操作变得更简单。
+And that's just easier to work with.
+
+152
+00:14:50,496 --> 00:14:56,656
+他们也有非常棒的 API，但先说明一下，我不会深入讲解如何操作 LanceDB。
+They also have a really nice API, but just so you know that I'm not going to dive really deep into how to work with LandsDB.
+
+153
+00:14:56,736 --> 00:15:01,604
+如果你想了解更多，可以查看他们网站上的具体文档。
+So if you want to know more about that, you can look into the specific documentation from their website.
+
+154
+00:15:01,960 --> 00:15:12,260
+好了，现在进入 3 嵌入.py 文件，开头和我们之前做的一样，
+只是在上面增加了操作向量数据库的步骤。
+All right, so now moving to the 3 embedding.py file, and the beginning is just the same that we already did,
+but just adding steps on top of it to now work with the Factor database.
+
+155
+00:15:12,576 --> 00:15:16,896
+让我再运行一遍所有代码，把所有分块拿回来。
+So let me run all of this code one more time so we get all of the chunks back.
+
+156
+00:15:17,038 --> 00:15:22,256
+我在这里创建数据库，它将存放在这里的 data 文件夹中。
+So I'm creating the database over here, which is going to live in the data folder over here.
+
+157
+00:15:22,798 --> 00:15:25,456
+接下来，我要指定一个函数。
+Now, next, I'm going to specify a function.
+
+158
+00:15:25,536 --> 00:15:28,176
+这是 LanceDB 特有的。
+And this is really specific to LanceDB.
+
+159
+00:15:28,270 --> 00:15:30,816
+如果你想了解更多，可以参考文档。
+So if you want to learn more about that, you can reference the docs.
+
+160
+00:15:31,118 --> 00:15:35,296
+但他们 API 的好处是我们可以指定嵌入模型。
+But what's nice about their API is that we can specify an embedding model.
+
+161
+00:15:35,534 --> 00:15:39,268
+所以在这种情况下，我们使用的是 OpenAI，并且想要 text 嵌入 3 large。
+So in this case, we're using OpenAI and we want text embedding 3 large.
+
+162
+00:15:39,534 --> 00:15:41,860
+我们可以把它作为一个函数来指定。
+And we can specify that as a function.
+
+163
+00:15:42,158 --> 00:15:51,296
+然后在下一步，我们可以使用继承自 LanceDB 模型的
+Pydantic 模型来指定我们的表格应该是什么样子的。
+And then in the next step, what we can do, we can use a Pydentic model that
+we inherit from the LANs model to specify what our table should look like.
+
+164
+00:15:51,630 --> 00:15:55,940
+所以我们使用 Pydantic 来指定向量数据库的结构。
+So we use Pydentic to specify the structure of our vector database.
+
+165
+00:15:56,176 --> 00:16:06,060
+我们可以使用我们创建的那个函数来指定，好，什么是文本源，
+我们需要发送给嵌入模型的源字段是什么，以及我们需要向量化的向量列是什么。
+And we can use that function that we created to specify, okay, what is the text source,
+what is the source field that we need to send to the embedding model,
+
+166
+00:16:06,060 --> 00:16:10,660
+我们可以使用我们创建的那个函数来指定，好，什么是文本源，
+我们需要发送给嵌入模型的源字段是什么，以及我们需要向量化的向量列是什么。
+and also what is going to be the vector column that we need to vectorize.
+
+167
+00:16:10,896 --> 00:16:18,736
+通过这种方式，在这个简洁的 API 中，我们不需要费心去手动发送和检索嵌入。
+And by doing it like this, within this clean API, we don't have to bother with manually doing sending and retrieving embeddings.
+
+168
+00:16:18,816 --> 00:16:21,696
+所有内容都在表格内部管理。
+Everything is managed from within the table.
+
+169
+00:16:22,030 --> 00:16:24,260
+这就是 Landsdb 的一个优点。
+So that's just a nice thing about Landsdb.
+
+170
+00:16:24,496 --> 00:16:29,124
+但让我们看看我们在这里使用的数据模型。
+But let's look at the data model that we're using over here.
+
+171
+00:16:29,614 --> 00:16:32,736
+这是我们使用的主要模式。
+So this is the main schema that we're using.
+
+172
+00:16:32,896 --> 00:16:45,296
+从我提取的所有文档中，我想要一个文本字段，我想要一个用于执行搜索的向量字段，
+还要另一个叫元数据的字段，用来放入以下内容。
+So from all of the documents that I extracted, I want a text field, I want the vector field that we're going to use to perform the
+search, and I want another field called metadata where we plug in the following.
+
+173
+00:16:45,456 --> 00:16:52,016
+所以我想把文件名放进去，放进去分块所在的页码，还有标题。
+So I want to put in the file name over there, the page numbers that the chunks were on, and also the title.
+
+174
+00:16:52,270 --> 00:16:59,216
+这样除了文本，我们还能获得一些重要的文档元数据供后续使用。
+So this should give us next to the text also some important metadata from the documents that we can then use.
+
+175
+00:16:59,616 --> 00:17:07,214
+为了查看这一点，我们可以深入研究一下分块，看看它们长什么样。
+So to look at this, we can dive a little bit deeper into the chunks to see what that looks like.
+
+176
+00:17:07,376 --> 00:17:10,496
+所以最后一步我们有 36 个分块，还记得吗？
+So here in the last step we had the 36 chunks, remember?
+
+177
+00:17:10,736 --> 00:17:19,044
+那我们拿这里面的第一个对象，做一个模型转储，看看具体内容。
+So let's take the first object in here and let's do a model dump on there to see the exact content.
+
+178
+00:17:19,406 --> 00:17:23,214
+所以在这里我们可以看到文本，里面还有一个 meta 键。
+So here we can see we have the text, and then there is a meta key in there as well.
+
+179
+00:17:23,296 --> 00:17:24,452
+这里有很多信息。
+And there's a lot of information.
+
+180
+00:17:24,846 --> 00:17:36,016
+但我们只需要提取文件名，提取页码，还要看看这里可能存在的标题。
+But we are just going to extract the file name, we're going to extract the page numbers,
+and we're also going to look at the headers that are potentially available in here.
+
+181
+00:17:36,302 --> 00:17:38,896
+这就是我们获取到的分块模型。
+So that is the chunk model that we are getting back.
+
+182
+00:17:39,056 --> 00:17:44,292
+我们只是在这些模型周围定义 Pydantic 模型，以便进行操作。
+And we are simply defining piedantic models around that in order to work with that.
+
+183
+00:17:44,656 --> 00:17:47,044
+让我把它放入内存。
+So let me put that in memory.
+
+184
+00:17:47,456 --> 00:17:53,296
+在这里你可以看到我们如何在 LanceDB 数据库中创建一个表格。
+And here you can see how we can create a table within our LensDB database.
+
+185
+00:17:53,456 --> 00:18:04,080
+我们使用这里初始化的 db，执行 create_table，把它命名为 doclink，指定模式，
+也就是这里的这个分块模式，并将模式设为 override，
+So we take the dB that we initiated over here, we do create table, we call it doclink, we specify the schema,
+which is this chunk schema over here, and we set the mode to override, meaning that if it's already there, we just override it.
+
+186
+00:18:04,080 --> 00:18:07,652
+意思是如果它已经存在，我们就直接覆盖它。
+So we take the dB that we initiated over here, we do create table, we call it doclink, we specify the schema,
+which is this chunk schema over here, and we set the mode to override, meaning that if it's already there, we just override it.
+
+187
+00:18:08,096 --> 00:18:11,056
+我忘了把 db 放入内存了。
+So I forgot to put the db here in memory.
+
+188
+00:18:11,136 --> 00:18:14,896
+让我确保运行所有内容，现在应该可以开始了。
+Let me make sure we run everything, and now we should be good to go.
+
+189
+00:18:15,160 --> 00:18:15,780
+好的，完美。
+All right, perfect.
+
+190
+00:18:16,174 --> 00:18:21,124
+现在我们在项目中有一个全新的表格。
+So now we have a fresh new table in here within our project.
+
+191
+00:18:21,998 --> 00:18:24,576
+接下来我们可以处理这些分块了。
+Now next we can process the chunks.
+
+192
+00:18:24,656 --> 00:18:30,852
+这就是一段简单的代码，它会遍历所有的分块，并为我们的表做好准备。
+So here's a simple piece of code that is going to loop over all of the chunks and get it ready for our table.
+
+193
+00:18:31,214 --> 00:18:35,696
+让我运行一下，给你们看看效果，这样可能更容易理解。
+So let me just run that and show you what it looks like because that is probably easier.
+
+194
+00:18:35,982 --> 00:18:41,284
+现在我们可以看到，对于我们拥有的 36 个分块，它会遍历所有的分块。
+So here we can see now for the 36 chunks that we had, it's going to loop over all of them.
+
+195
+00:18:41,616 --> 00:18:46,896
+它会提取文本，然后将元数据设置为文件名、页码和标题。
+It's going to extract the text, and then it's going to set the metadata to the file name, page numbers, and title.
+
+196
+00:18:46,976 --> 00:18:48,324
+它会跳过其他所有内容。
+It's going to skip everything else.
+
+197
+00:18:48,750 --> 00:18:50,976
+在右边你可以看到结果。
+And here on the right you can see the result.
+
+198
+00:18:51,406 --> 00:18:54,736
+这与我们的分块模型完全匹配。
+So this is going to exactly match our chunk model.
+
+199
+00:18:54,816 --> 00:18:57,216
+现在我们可以把数据发送到我们的表中。
+So we can now send the data to our table.
+
+200
+00:18:57,422 --> 00:19:08,816
+提个醒，如果你使用 Pydantic 这个方法，如果你的文档里有子模型，
+你必须按字母顺序排列它们，否则你会遇到一些奇怪的错误。
+One quick note if you are using this approach using Pydentic, if you have a submodel in your document,
+you must order them in alphabetical order, otherwise, you will get some weird errors.
+
+201
+00:19:08,976 --> 00:19:16,932
+这可能是代码里的一个 bug，但我遇到了这个问题，花了一个多小时才搞清楚哪里出了问题。
+This is probably still a bug within the code over here, but I run into that
+and it took me probably like an hour or so to figure out what was wrong.
+
+202
+00:19:17,616 --> 00:19:21,124
+既然分块处理好了，我们现在可以处理我们的表了。
+So with the chunks out of the way, we can now take our table.
+
+203
+00:19:21,550 --> 00:19:25,764
+记住，这是我们创建的 Landsdb 表，我们可以把分块加进去。
+Remember, this is our LandsdB table that we created, and we can add the chunks.
+
+204
+00:19:26,318 --> 00:19:28,736
+那我们就把它们发送到数据库。
+So let's send them to our database.
+
+205
+00:19:28,896 --> 00:19:34,176
+很酷的一点是，有了这个后台的 add 函数，它还同时完成了嵌入。
+And the cool thing here, with this add function in the background, it performed the embeddings as well.
+
+206
+00:19:34,256 --> 00:19:36,804
+这就是 Landsdb API 非常棒的地方。
+And that's really cool about the LandsdB API.
+
+207
+00:19:37,216 --> 00:19:38,496
+它可以帮你省去很多工作。
+It can save you a lot of work.
+
+208
+00:19:38,656 --> 00:19:41,700
+这些内容你自己实现起来都很直观。
+All of this is pretty straightforward to implement yourself.
+
+209
+00:19:42,096 --> 00:19:51,620
+但因为我们把那个函数存储在表级别，我们只需要
+把这个分块发过去就行了，不用担心嵌入的问题。
+But because we have that function really stored at the table level, we can
+just send this chunk over here and we don't have to worry about the embeddings.
+
+210
+00:19:52,142 --> 00:19:54,500
+现在我们可以看一下这个表。
+So what we can now do is we can have a look at a table.
+
+211
+00:19:55,406 --> 00:19:58,980
+我们可以看到文本、向量，还有元数据。
+And see our text, we can see our factor, and we can see the metadata.
+
+212
+00:19:59,278 --> 00:20:11,184
+这里的两个 pandas 方法只返回前 10 条结果，但我们也可以统计行数，
+确认我们确实拥有准确的 36 条记录。
+So the two pandas method over here just returns the first 10 results, but we can
+also count the rows to check that we have the exact number, 36 records in total.
+
+213
+00:20:11,406 --> 00:20:15,556
+好了，现在我们有了包含嵌入的解析数据，并存放在向量数据库中。
+All right, so now we have the parse data with the embeddings in a vector database.
+
+214
+00:20:15,918 --> 00:20:22,304
+我刚才展示了如何用 Landsdb 来做这件事，但你也
+可以遵循同样的原则，配合任何其他的向量数据库。
+And again, I showed you how to do this with Landsdb, but you can just
+as well follow the same principles with any vector database out there.
+
+215
+00:20:22,574 --> 00:20:32,304
+比如你想用 PostgreSQL，你可以看我频道上的其他
+视频，只需替换掉创建嵌入并存入表的逻辑即可。
+If you want to use PostgreSQL for example, you can watch the other videos on my channel for that and just swap out the logic in order
+to create the embeddings and put it into the table.
+
+216
+00:20:32,494 --> 00:20:36,064
+我们的数据现在已经准备好供我们的 AI 系统或智能体使用了。
+Our data is now ready for our AI system or agent to use.
+
+217
+00:20:36,270 --> 00:20:41,584
+首先让我们看一个非常简单的例子，看看它是长什么样的，以及我们如何使用这些信息。
+So let's first look at a very simple example to show you what that looks like and how we can use that information.
+
+218
+00:20:41,774 --> 00:20:45,060
+然后在最后一步，我们将在应用程序中把这些整合在一起。
+And then in the last step, we're going to bring this together in the application.
+
+219
+00:20:45,358 --> 00:20:56,516
+在名为 search 的第四个文件中，我将再次启动交互式会话，
+只需指定数据库的本地路径即可连接到向量数据库。
+So within this fourth file over here called search, I'm going to fire up the interactive session again,
+connect to the vector database by simply specifying the local path to our database.
+
+220
+00:20:56,846 --> 00:21:00,164
+我将加载我们创建的 Docling 表。
+I'm going to load the Dockling table that we created.
+
+221
+00:21:00,464 --> 00:21:09,904
+现在通过 LandsDB API，我可以使用这里的简单搜索
+方法，配合这里的查询，这本质上就是用户的问题。
+And now through the LandsDB API, I can use the simple search method
+over here with a query in here, which is essentially the user question.
+
+222
+00:21:09,984 --> 00:21:15,344
+那么我们想用什么查询，想用什么问题或词来搜索向量数据库？
+So what do we want with what query, what question or word do we want to search the factor database?
+
+223
+00:21:15,630 --> 00:21:21,504
+我将查询类型设置为 Vector，这将使用嵌入进行相似性搜索。
+I'm going to set the query type to Factor, which is going to perform a similarity search using the embeddings.
+
+224
+00:21:21,838 --> 00:21:26,308
+Landsdb 也支持关键词搜索和混合检索。
+LandsDB also supports a keyword search and also a hybrid method.
+
+225
+00:21:26,766 --> 00:21:32,900
+然后我将限制设置为 5，这将限制我从表中获取的结果数量。
+Then I'm going to set the limit to five, which is going to limit the amount of results that I'm going to get back from the table.
+
+226
+00:21:33,326 --> 00:21:40,544
+现在我运行这个，然后查看结果，我再次可以将其转换为 pandas 数据框。
+So I'm going to run this and then check out the results, which I can again convert to a pandas data frame.
+
+227
+00:21:40,944 --> 00:21:50,564
+所以在这里你可以看到文本、向量、元数据和距离，
+我们可以查看搜索 PDF 时检索到的特定文本分块。
+So here you can see the text, the factor, the metadata, and the distance, and we can
+have a look at the specific text chunks that are retrieved when we search for PDF.
+
+228
+00:21:50,990 --> 00:21:54,624
+现在我再次将其设置为 3，它将运行 3 条。
+Now again, I can set this to three and it will run three.
+
+229
+00:21:54,704 --> 00:22:00,708
+我还可以，例如，在这里输入什么是 Docling，然后运行那个结果。
+And I can also, for example, put in here what's dockling and then run that result.
+
+230
+00:22:01,184 --> 00:22:04,944
+你可以根据这个在这里获得不同的结果。
+And you can get the different results over here based on that.
+
+231
+00:22:05,360 --> 00:22:16,940
+好了，现在我们涵盖了解析、分块、嵌入和检索，这些都是为了
+给我们的 AI 系统或智能体创建知识系统所需的所有关键组件。
+All right, so we now covered the parsing, the chunking, the embedding, and the retrieval,
+all the key components that we need in order to create a knowledge system for our AI system or agents.
+
+232
+00:22:17,264 --> 00:22:23,264
+现在让我们看看如果把它们整合到一个我们可以交互的应用中，效果会是什么样。
+Now let's see what that looks like if we put it together in an application that we can interact with.
+
+233
+00:22:23,580 --> 00:22:31,044
+好了，我面前这个叫 chat 的第五个文件是一个创建 Streamlit 应用的简单设置。
+All right, so what I have in front of me over here in the fifth file called chat is a simple setup to create a Streamlit application.
+
+234
+00:22:31,504 --> 00:22:35,104
+你可以通过 pip 安装 Streamlit 库来使用它。
+You can use this by pip installing the Streamlit library.
+
+235
+00:22:35,184 --> 00:22:38,340
+在视频中，我不会深入讲解具体如何设置这个。
+And in this video, I'm not going to dive into specifically how to set this up.
+
+236
+00:22:38,606 --> 00:22:39,744
+你可以查看文档。
+You can check out the documents.
+
+237
+00:22:39,904 --> 00:22:48,784
+我们将使用 chat 元素，这让创建简单的交互式聊天应用变得非常容易，
+我们可以在纯 Python 环境下本地启动它。
+We're going to use the chat elements, which make it really easy to create a
+simple interactive chat application that we can spin up locally in pure Python.
+
+238
+00:22:49,006 --> 00:22:51,104
+所以这非常适合演示和示例。
+So this is great for demos and examples.
+
+239
+00:22:51,374 --> 00:22:58,304
+所以我们在这个文件里做的，在不深入细节的情况下，是建立与数据库的连接。
+So what we're doing in this file high level without getting into all the details is we create a connection with the database.
+
+240
+00:22:58,478 --> 00:23:02,884
+然后我们有一个函数来搜索数据库并获取相关上下文。
+Then we have a function to search the database and get the relevant context.
+
+241
+00:23:03,278 --> 00:23:10,532
+然后我们有一些特定的 Streamlit 组件来处理聊天消息并将其流式传输给用户。
+And then we have some specific streamlit components to work with the chat messages and stream it to the user.
+
+242
+00:23:10,864 --> 00:23:13,744
+为了启动这个，你可以浏览一下这段代码。
+So in order to boot this up, you can walk through this code.
+
+243
+00:23:13,824 --> 00:23:19,744
+但我们现在可以在这个特定文件中做的，确保你在 Docling 文件夹里。
+But what we can do right now within this specific file, make sure you are in the Dockling folder.
+
+244
+00:23:19,904 --> 00:23:23,012
+也就是 chat.py 文件所在的文件夹。
+So in the folder where the chat.py file is in.
+
+245
+00:23:23,424 --> 00:23:30,372
+然后确保你激活了安装了 Streamlit 以及所有其他要求的环境。
+And then make sure you have the environment activated where you have Streamlit installed and all of the other requirements in here.
+
+246
+00:23:30,574 --> 00:23:33,264
+然后你可以运行 streamlit run。
+And then you can run streamlit run over there.
+
+247
+00:23:33,424 --> 00:23:36,464
+然后你可以输入命令 streamlit run 加上文件名。
+Then you can put the command streamlit run and then the name of the file.
+
+248
+00:23:36,544 --> 00:23:37,984
+所以应该是这个。
+So this should be the exact one.
+
+249
+00:23:38,064 --> 00:23:40,260
+就是 chat.py。
+So five-chat.py.
+
+250
+00:23:40,878 --> 00:23:45,024
+当我运行这个时，它将启动文档问答系统。
+And when I run this, this is going to boot up the document QA.
+
+251
+00:23:45,104 --> 00:23:48,384
+在这里，我可以问类似什么是 Docling 这样的问题。
+And in here, I can ask questions like what's Dockling?
+
+252
+00:23:48,784 --> 00:23:51,824
+就像我一开始在演示中给你们展示的那样。
+Similar to what I showed you in the beginning in the demo.
+
+253
+00:23:51,984 --> 00:24:02,224
+所以它首先会搜索所有文档，展示我们检索到的内容，并提供章节名称、文件名以及页码。
+So it's going to first search all of the documents, it's going to show you what we retrieved,
+and it's going to provide us with a section name, name of the file, and also the page.
+
+254
+00:24:02,304 --> 00:24:03,984
+这已经非常酷了，对吧？
+So this is already really cool, right?
+
+255
+00:24:04,064 --> 00:24:11,104
+我们现在基本上拥有了一个智能体系统，一个我们可以提问并能调取正确信息的 AI 系统。
+We now essentially have an agent system, we have an AI system that we can ask questions and it can pull up the right information.
+
+256
+00:24:11,470 --> 00:24:14,864
+虽然现在这只是一个文档，只是一个 PDF。
+And even though right now this is just one document, it's just one PDF.
+
+257
+00:24:15,104 --> 00:24:17,744
+但你可以通过添加更多的数据来扩展它。
+But you can just expand this by adding more and more data.
+
+258
+00:24:18,094 --> 00:24:19,744
+所以它是非常动态且易于操作的。
+So it's very dynamic and easy to work with.
+
+259
+00:24:19,854 --> 00:24:23,824
+比如，我们可以进来做一个实时修改。
+So what we can do, for example, if we come in here and just make a live change.
+
+260
+00:24:23,904 --> 00:24:26,544
+例如，让我们把结果数量设置为五个。
+So for example, let's set the number of results to five.
+
+261
+00:24:26,624 --> 00:24:32,304
+我们只需这样做，保存一下，然后再运行一次，问问「什么是 Docling？」。
+We can just do that, save it, and we can run this one more time and say, what's Dockling?
+
+262
+00:24:32,430 --> 00:24:35,904
+现在它将基于五个分块来提供信息。
+So it now has five chunks that is going to base the information on.
+
+263
+00:24:36,174 --> 00:24:48,064
+现在你知道如何构建一个知识提取流水线了，它可以提取各种类型的文档，转换它们，提取内容，
+进行分块，放入向量数据库，然后在你的 AI 应用中调用它们。
+So now you know how to build a knowledge extraction pipeline that can extract various types of documents, convert them, extract them,
+chunk them, put them into a vector database, and then make them available in your AI application.
+
+264
+00:24:48,366 --> 00:24:52,464
+如果你觉得这个视频有帮助，请点个赞，并考虑订阅。
+So if you found this video helpful, please leave a like and also consider subscribing.
+
+265
+00:24:52,544 --> 00:24:59,172
+如果你想了解更多关于如何构建高效 AI 智能体的知识，请务必观看下一个视频。
+And if you want to learn more about how to build effective AI agents, make sure to check out this video next.
+

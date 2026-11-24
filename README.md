@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [How to Get Your Data Ready for AI Agents (Docs, PDFs, Websites)](medias/R3D6C/) | Dave Ebbelaar | 2026-11-23 |
 | [MobiSys 2019 - SpecEye: Towards Pervasive and Privacy-Preserving Screen Exposure Detection in Daily](medias/Q01S3/) | ACM SIGMOBILE ONLINE | 2026-11-23 |
 | [WebRTC Tutorial - How does WebRTC work?](medias/PN5V1/) | Piyush Garg | 2026-11-23 |
 | [Week8 part1: Multi-Agent Systems](medias/NW4FY/) | Learn with Dr. Fakhreldeen | 2026-11-23 |
