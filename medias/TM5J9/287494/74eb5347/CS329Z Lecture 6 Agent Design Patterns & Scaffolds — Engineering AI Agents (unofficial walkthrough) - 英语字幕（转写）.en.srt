@@ -1,0 +1,2968 @@
+1
+00:00:00,160 --> 00:00:00,900
+Welcome back.
+
+2
+00:00:01,422 --> 00:00:04,452
+Today is Agent Design Patterns and Scaffolds.
+
+3
+00:00:04,878 --> 00:00:14,372
+A scaffold, sometimes called a harness, is all the code around the model, the loop, the tools, and the logic that decides what goes into the prompt.
+
+4
+00:00:14,862 --> 00:00:16,548
+Last week we looked at the parts.
+
+5
+00:00:17,390 --> 00:00:22,660
+Today is about how people put those parts together and which arrangements tend to work.
+
+6
+00:00:23,694 --> 00:00:25,060
+A few logistics first.
+
+7
+00:00:25,742 --> 00:00:27,760
+Get your Google credit request in today.
+
+8
+00:00:27,840 --> 00:00:31,680
+If you haven't, follow the ICLR format for your reports.
+
+9
+00:00:32,014 --> 00:00:38,532
+Homework 1 is due Friday, October 30th, and the midpoint demo is November 4th with the report on the 6th.
+
+10
+00:00:39,680 --> 00:00:41,220
+So, design patterns.
+
+11
+00:00:42,190 --> 00:00:43,820
+Some of you will know this book.
+
+12
+00:00:44,494 --> 00:00:51,492
+It's the Gang of 4 book from 1994, and it gave programmers shared names for recurring solutions.
+
+13
+00:00:52,014 --> 00:00:59,200
+On the right is one of them, the singleton, which is a class that only ever allows one copy of itself to exist.
+
+14
+00:00:59,662 --> 00:01:02,596
+The point of a name like that isn't the code.
+
+15
+00:01:03,118 --> 00:01:09,956
+It's that when someone says make it a singleton, everyone in the room knows the shape of the solution and its trade-offs.
+
+16
+00:01:10,480 --> 00:01:12,548
+That's what we want for agents today.
+
+17
+00:01:13,134 --> 00:01:21,220
+A shared set of names, so you can look at a system and say, oh, that's an orchestrator with workers, plus an evaluator loop.
+
+18
+00:01:22,318 --> 00:01:28,484
+And here's the honest caveat from Martin Bowler, who wrote a well-known book on enterprise software patterns.
+
+19
+00:01:29,120 --> 00:01:33,284
+Patents are half-baked, you always have to finish them yourself.
+
+20
+00:01:34,030 --> 00:01:37,636
+So don't treat anything today as a recipe, you copy exactly.
+
+21
+00:01:38,702 --> 00:01:43,524
+When you build an agent, you make lots of small design decisions, often without noticing.
+
+22
+00:01:43,918 --> 00:01:45,988
+Today we'll name the common ones.
+
+23
+00:01:46,766 --> 00:01:49,840
+In practice, you will adjust each one to fit your problem.
+
+24
+00:01:50,894 --> 00:02:04,548
+By the end, you should be able to name the common patterns for workflows and agents, compare the different ways agents manage their context, and look at a real production harness, one called Pi, and point out the design decisions it makes.
+
+25
+00:02:05,678 --> 00:02:06,660
+Here's the plan.
+
+26
+00:02:07,278 --> 00:02:21,284
+A quick review of workflows versus agents, then the workflow patterns, then patterns for how an agent reasons and acts, then patterns for managing context, which is where a lot of the real engineering happens.
+
+27
+00:02:21,902 --> 00:02:23,908
+And we'll finish with the case study.
+
+28
+00:02:25,134 --> 00:02:26,820
+Let's start with a review.
+
+29
+00:02:27,982 --> 00:02:30,080
+Here's the question that sorts everything.
+
+30
+00:02:30,382 --> 00:02:32,160
+Where does the control flow live?
+
+31
+00:02:32,526 --> 00:02:35,844
+Control flow just means who decides what happens next.
+
+32
+00:02:36,238 --> 00:02:38,160
+On the left is a bare model.
+
+33
+00:02:38,766 --> 00:02:41,520
+It answers one prompt, and that's it.
+
+34
+00:02:41,902 --> 00:02:45,188
+It's a component, a small part of some larger system.
+
+35
+00:02:45,614 --> 00:02:50,020
+In the middle is a workflow which people also call a compound AI system.
+
+36
+00:02:50,414 --> 00:02:54,400
+The model gets called several times, but your program decides the order.
+
+37
+00:02:54,734 --> 00:02:57,796
+An email categorizer is a good example.
+
+38
+00:02:58,190 --> 00:03:01,920
+Read the email, call the model to label it, file it.
+
+39
+00:03:02,286 --> 00:03:06,564
+At the right end is an agent, where the model itself decides the next step.
+
+40
+00:03:06,990 --> 00:03:10,180
+A customer service agent or a coding agent works this way.
+
+41
+00:03:10,542 --> 00:03:13,200
+Let me introduce today's running example.
+
+42
+00:03:13,614 --> 00:03:18,720
+Say the City Transit Office asks you to build an assistant that writes a one-page briefing.
+
+43
+00:03:18,926 --> 00:03:21,796
+Should our city switch its bus fleet to electric?
+
+44
+00:03:22,158 --> 00:03:25,956
+Keep that in mind because we'll build it several different ways today.
+
+45
+00:03:27,022 --> 00:03:30,596
+This picture from a Lenching blog post shows the trade-off.
+
+46
+00:03:31,022 --> 00:03:37,156
+As you give the system more agency, meaning more freedom to choose its own steps, it becomes less predictable.
+
+47
+00:03:37,710 --> 00:03:40,996
+Workflows are predictable because the steps are written in code.
+
+48
+00:03:41,390 --> 00:03:43,876
+You can read the code and know what will happen.
+
+49
+00:03:44,238 --> 00:03:50,436
+Agents are flexible because the model chooses the steps so they can handle situations you didn't plan for.
+
+50
+00:03:50,862 --> 00:03:55,204
+But the same freedom means two runs on the same input can go very differently.
+
+51
+00:03:55,694 --> 00:03:58,052
+Notice the curve isn't a straight line.
+
+52
+00:03:58,478 --> 00:04:03,044
+A little agency costs you little predictability, but past some point it drops fast.
+
+53
+00:04:03,630 --> 00:04:07,940
+So the design question is never a workflow or agent in the abstract.
+
+54
+00:04:08,622 --> 00:04:11,780
+It's how much freedom does this particular step need?
+
+55
+00:04:12,846 --> 00:04:15,332
+Here's what that looks like as actual graphs.
+
+56
+00:04:15,822 --> 00:04:17,408
+On the left is a workflow.
+
+57
+00:04:17,648 --> 00:04:22,768
+Extract the event from a message, pick an emoji, add it to the calendar.
+
+58
+00:04:23,008 --> 00:04:23,396
+Done.
+
+59
+00:04:23,822 --> 00:04:25,924
+Every path is drawn in advance.
+
+60
+00:04:26,638 --> 00:04:29,008
+On the right is an agent.
+
+61
+00:04:29,582 --> 00:04:33,328
+There's a model, there are tools, and there's a loop between them.
+
+62
+00:04:33,710 --> 00:04:37,092
+The model keeps choosing tools until it decides to stop.
+
+63
+00:04:37,614 --> 00:04:42,788
+The whole agent is that one small loop, and every decision happens inside it.
+
+64
+00:04:43,758 --> 00:04:47,248
+This table sums it up, and I just want to point at the bottom line.
+
+65
+00:04:47,662 --> 00:04:50,596
+Real systems often combine workflows and agents.
+
+66
+00:04:51,150 --> 00:04:53,860
+Take the support ticket example on the slide.
+
+67
+00:04:54,254 --> 00:04:58,788
+The workflow version is classify the ticket, look up the policy, and draft a reply.
+
+68
+00:04:59,214 --> 00:05:04,516
+The agent version is go investigate and fix the problem using whatever tools you need.
+
+69
+00:05:04,910 --> 00:05:14,020
+For our bus briefing, a sensible design might be a workflow on the outside, with fixed sections the city always wants, like cost, emissions, and risks.
+
+70
+00:05:14,478 --> 00:05:17,924
+Then inside one section say, What will charging cost?
+
+71
+00:05:18,128 --> 00:05:19,648
+You let an agent go dig.
+
+72
+00:05:20,206 --> 00:05:24,260
+You get predictability where you need it and flexibility where you need it.
+
+73
+00:05:34,734 --> 00:05:40,932
+It defines workflows as systems where the model and tools are put together through predefined code paths.
+
+74
+00:05:41,518 --> 00:05:44,772
+Agents are systems where the model directs its own process.
+
+75
+00:05:45,326 --> 00:05:48,356
+The same post gives advice I tape to your monitor.
+
+76
+00:05:48,942 --> 00:05:55,204
+Start with the simplest thing that works and call the model API directly before reaching for a framework.
+
+77
+00:05:55,598 --> 00:05:58,468
+Many of these patterns are a few lines of code.
+
+78
+00:05:58,926 --> 00:06:02,628
+Only add steps when you can show the simpler version falls short.
+
+79
+00:06:03,086 --> 00:06:09,252
+Frameworks are handy, but they can hide the actual prompts and responses, and that makes debugging harder.
+
+80
+00:06:10,510 --> 00:06:18,500
+There are five patterns Prompt chaining, routing, parallelization, orchestrator workers, and evaluator optimizer.
+
+81
+00:06:18,830 --> 00:06:23,088
+Let's take them one at a time quickly, because each one is simple.
+
+82
+00:06:23,438 --> 00:06:25,668
+The interesting part is combining them.
+
+83
+00:06:26,798 --> 00:06:27,876
+Prompt chaining.
+
+84
+00:06:28,366 --> 00:06:33,572
+You break a task into steps and each model call works on the output of the previous one.
+
+85
+00:06:34,158 --> 00:06:36,964
+The purple box in the middle is called a gate.
+
+86
+00:06:37,358 --> 00:06:39,556
+It's a plain code check between steps.
+
+87
+00:06:39,982 --> 00:06:45,892
+If step one's output fails the check, you stop early instead of passing garbage down the line.
+
+88
+00:06:46,318 --> 00:06:48,768
+For our briefing, step one writes an outline.
+
+89
+00:06:48,928 --> 00:06:52,516
+A gate checks that the outline has all the sections the city requires.
+
+90
+00:06:52,910 --> 00:06:56,420
+Step 2 drafts each section, and step 3 edits for length.
+
+91
+00:06:56,910 --> 00:06:58,928
+The trade-off is on the slide.
+
+92
+00:06:59,246 --> 00:07:06,436
+You pay in latency, because there are more calls, and you get accuracy, because each call has an easier job.
+
+93
+00:07:07,566 --> 00:07:08,260
+Routing.
+
+94
+00:07:08,814 --> 00:07:12,772
+First you classify the input, and then you send it to the right handler.
+
+95
+00:07:13,168 --> 00:07:16,164
+That could be a different prompt or a different model.
+
+96
+00:07:16,590 --> 00:07:18,340
+There are two reasons to do this.
+
+97
+00:07:19,182 --> 00:07:20,448
+One is quality.
+
+98
+00:07:20,878 --> 00:07:30,148
+A question about bus battery chemistry and a question about union contracts need different instructions, and one prompt that tries to cover both does both badly.
+
+99
+00:07:30,542 --> 00:07:32,004
+The other reason is money.
+
+100
+00:07:32,494 --> 00:07:37,540
+Send the easy questions to a small cheap model and save the expensive model for the hard ones.
+
+101
+00:07:38,158 --> 00:07:41,568
+The catch is that the whole thing is only as good as the classifier.
+
+102
+00:07:41,902 --> 00:07:47,332
+If it sends a hard question to the cheap model, nothing later in the pipeline catches that.
+
+103
+00:07:48,430 --> 00:07:49,540
+Parallelization.
+
+104
+00:07:50,030 --> 00:07:53,444
+Run several model calls at the same time and combine the results.
+
+105
+00:07:53,998 --> 00:07:55,332
+There are two versions.
+
+106
+00:07:56,110 --> 00:07:58,564
+Sectioning means splitting into independent pieces.
+
+107
+00:07:59,022 --> 00:08:01,060
+The example on the slide is a good one.
+
+108
+00:08:01,742 --> 00:08:07,808
+While one call answers the user's question, a separate call checks whether the question is safe to answer.
+
+109
+00:08:08,270 --> 00:08:15,968
+Anthropics post notes This tends to work better than asking one call to do both, because each call can focus on one thing.
+
+110
+00:08:16,334 --> 00:08:20,644
+Voting means running the same task several times and combining the answers.
+
+111
+00:08:21,166 --> 00:08:28,772
+That's a form of what people call inference timescaling, where you spend more compute when the model runs instead of training a bigger model.
+
+112
+00:08:29,198 --> 00:08:36,388
+For the briefing, you could ask three separate calls whether a cost estimate looks plausible and only flag it if two of them say no.
+
+113
+00:08:37,646 --> 00:08:38,948
+Orchestrator workers.
+
+114
+00:08:39,598 --> 00:08:47,076
+One model, the orchestrator, looks at the task, decides what subtasks are needed, and hands each one to a worker.
+
+115
+00:08:47,470 --> 00:08:49,060
+Then it combines the results.
+
+116
+00:08:49,646 --> 00:08:52,272
+How is this different from parallelization?
+
+117
+00:08:52,622 --> 00:08:56,324
+In parallelization, you wrote the split in code ahead of time.
+
+118
+00:08:56,750 --> 00:09:02,020
+Here the orchestrator decides the split at runtime, because you can't know it in advance.
+
+119
+00:09:02,702 --> 00:09:15,492
+If the city asks, compare electric buses to what we have now, the orchestrator might decide it needs one worker per bus maker, plus one for the electricity utility, plus one for the maintenance budget.
+
+120
+00:09:15,886 --> 00:09:18,916
+A different question would get a different set of workers.
+
+121
+00:09:19,406 --> 00:09:22,052
+Anthropics Research feature works this way.
+
+122
+00:09:22,542 --> 00:09:27,460
+A lead agent plans the research and starts several sub-agents that search at the same time.
+
+123
+00:09:27,822 --> 00:09:33,412
+In the write-up, this setup beat a single agent by about 90% on their internal research tests.
+
+124
+00:09:33,966 --> 00:09:35,204
+But look at the price.
+
+125
+00:09:36,014 --> 00:09:42,884
+They report that agents use about four times the tokens of a normal chat, and multi-agent systems about 15 times.
+
+126
+00:09:43,502 --> 00:09:48,192
+So orchestrator workers is worth it when the task is valuable and splits keenly.
+
+127
+00:09:48,686 --> 00:09:51,108
+For a two-line answer, it's a waste.
+
+128
+00:09:52,206 --> 00:09:54,340
+Evaluator Optimizer.
+
+129
+00:09:54,670 --> 00:09:59,556
+One call writes, another call critiques, and you loop until the critic is satisfied.
+
+130
+00:10:00,046 --> 00:10:03,428
+The slide lists the conditions and they're worth taking seriously.
+
+131
+00:10:03,886 --> 00:10:11,012
+You need feedback that can actually be put into words, like the cost section never mentions charging infrastructure.
+
+132
+00:10:11,534 --> 00:10:18,404
+You need a model that can reliably give that feedback, and the writer has to be able to improve when it gets it.
+
+133
+00:10:18,734 --> 00:10:22,116
+If any of those is missing, the loop just goes around in circles.
+
+134
+00:10:22,574 --> 00:10:25,632
+Hold a reporting once about twice minutes.
+
+135
+00:10:25,806 --> 00:10:29,796
+We'll see a paper showing what happens when the critic has no real information.
+
+136
+00:10:30,286 --> 00:10:35,108
+For our briefing, the aviator could be a model given the city's checklist.
+
+137
+00:10:35,438 --> 00:10:38,244
+Does every cost number have a source and a year?
+
+138
+00:10:38,542 --> 00:10:41,232
+Does the summary actually answer yes or no?
+
+139
+00:10:41,518 --> 00:10:42,948
+Is it under one page?
+
+140
+00:10:43,342 --> 00:10:46,724
+Those are things a model can check and a writer can fix.
+
+141
+00:10:47,310 --> 00:10:50,052
+Compare that with make it more persuasive.
+
+142
+00:10:50,574 --> 00:10:51,312
+That's vague.
+
+143
+00:10:51,472 --> 00:10:56,196
+The critic's opinion will change from run to run, and the loop never settles.
+
+144
+00:10:57,326 --> 00:10:59,748
+Now, real systems are rarely one pattern.
+
+145
+00:11:00,206 --> 00:11:02,244
+They're combinations of these patterns.
+
+146
+00:11:03,502 --> 00:11:09,072
+Here's a real one storm from a Stanford group published at NA Sekle 2024.
+
+147
+00:11:09,454 --> 00:11:19,152
+You give it a topic, here the 2024 Hualian City earthquake in Taiwan, and it writes a full Wikipedia-style article with a table of contents and citations.
+
+148
+00:11:19,694 --> 00:11:22,660
+On the right, you can see the output several pages long.
+
+149
+00:11:23,022 --> 00:11:26,148
+That's very close to our briefing problem, just longer.
+
+150
+00:11:27,310 --> 00:11:28,740
+Here's how it works.
+
+151
+00:11:29,262 --> 00:11:36,356
+The name stands for Synthesis of Topic Outlines through retrieval and multi-perspective question asking.
+
+152
+00:11:36,752 --> 00:11:38,020
+Follow the numbers.
+
+153
+00:11:38,574 --> 00:11:42,692
+First, it surveys related articles to see what topics like this usually cover.
+
+154
+00:11:43,054 --> 00:11:47,872
+Then it comes up with several perspectives, different kinds of people who'd care about this topic.
+
+155
+00:11:48,238 --> 00:11:52,836
+For the earthquake, maybe a seismologist, an emergency planter, and a resident.
+
+156
+00:11:53,166 --> 00:11:56,484
+Then for each perspective, it simulates a conversation.
+
+157
+00:11:56,878 --> 00:12:04,420
+A writer bot with that perspective asks questions, and an expert bot answers them by searching the web and reading trusted sources.
+
+158
+00:12:04,814 --> 00:12:08,836
+Finally, it gathers all those conversations and uses them to refine an outline.
+
+159
+00:12:09,422 --> 00:12:10,532
+Why the role play?
+
+160
+00:12:11,182 --> 00:12:17,412
+Because if you just ask a model what should an article about this cover, you get the obvious topics.
+
+161
+00:12:17,934 --> 00:12:22,788
+Asking questions from different viewpoints turns up the things a single viewpoint would miss.
+
+162
+00:12:24,046 --> 00:12:27,204
+And here's the same diagram with our patterns drawn on top.
+
+163
+00:12:27,598 --> 00:12:30,628
+The survey and draft outline steps are a prompt chain.
+
+164
+00:12:31,086 --> 00:12:36,132
+The conversations from different perspectives run side by side, which is parallelization.
+
+165
+00:12:36,526 --> 00:12:49,796
+Generating perspectives and handing each one to a conversation is roughly orchestrator workers, though as the footnote says, here it's close to plain parallelization because the number of perspectives is fixed.
+
+166
+00:12:50,254 --> 00:12:55,588
+And the back and forth between writer and expert is roughly an evaluator-optimizer loop.
+
+167
+00:12:55,920 --> 00:13:00,324
+So a system that looks complicated is really four simple patterns put together.
+
+168
+00:13:00,750 --> 00:13:02,640
+That's the skill I want you to build.
+
+169
+00:13:02,926 --> 00:13:05,476
+Look at a diagram like this and see the pieces.
+
+170
+00:13:06,702 --> 00:13:07,556
+How does it work?
+
+171
+00:13:08,078 --> 00:13:10,880
+Don't worry about every number in the table.
+
+172
+00:13:11,246 --> 00:13:17,028
+The comparison that matters is the bottom two rows, Storm, and Storm without the outline stage.
+
+173
+00:13:17,390 --> 00:13:22,340
+Take out the outline step and the scores dropped back toward the plain baselines.
+
+174
+00:13:22,958 --> 00:13:25,828
+So the planning step is doing a lot of the work.
+
+175
+00:13:26,190 --> 00:13:28,772
+The paper also had human evaluation.
+
+176
+00:13:29,230 --> 00:13:37,028
+Experienced Wikipedia editors rated Storm's articles as better organized and broader in coverage than a retrieval baseline.
+
+177
+00:13:37,454 --> 00:13:44,228
+They also pointed out problems like the system picking up bias from its sources or connecting facts that weren't really related.
+
+178
+00:13:45,230 --> 00:13:46,788
+Here's a different question.
+
+179
+00:13:47,342 --> 00:13:51,620
+If systems are combinations of patents, which combination should you use?
+
+180
+00:13:52,174 --> 00:13:56,100
+Arcon from a team at Stanford turns that into a search problem.
+
+181
+00:13:56,430 --> 00:14:07,140
+Look at the inputs on the left, a benchmark you care about, a budget for how many model calls you can afford, a set of available models, and a menu of techniques.
+
+182
+00:14:07,566 --> 00:14:15,760
+The optimizer in the middle tries a combination, tests it on sample problems, and uses the result to pick the next combination to try.
+
+183
+00:14:16,078 --> 00:14:24,900
+The method is called Bayesian optimization, which just means a search that uses past results to guess which untried option is most promising.
+
+184
+00:14:26,126 --> 00:14:28,068
+Here's the menu of building blocks.
+
+185
+00:14:28,686 --> 00:14:31,440
+Generator writes a candidate answer.
+
+186
+00:14:31,920 --> 00:14:34,660
+Fuser merges several candidates into one.
+
+187
+00:14:35,182 --> 00:14:37,520
+Critic lists strengths and weaknesses.
+
+188
+00:14:38,000 --> 00:14:39,840
+Ranker picks the best few.
+
+189
+00:14:40,622 --> 00:14:46,320
+Verifier checks the reasoning, plus a pair that writes unit tests and runs them.
+
+190
+00:14:46,734 --> 00:14:48,036
+Look at the cost column.
+
+191
+00:14:48,462 --> 00:14:51,200
+Every one of these is one or two model calls.
+
+192
+00:14:51,694 --> 00:14:54,980
+They're simple pieces and you get the power from stacking them.
+
+193
+00:14:56,142 --> 00:14:58,820
+Here's what the search found for math problems.
+
+194
+00:14:59,278 --> 00:15:04,004
+Four different generators, each from a different model, each sampled five times.
+
+195
+00:15:04,494 --> 00:15:06,372
+Then a critic and a ranker.
+
+196
+00:15:06,862 --> 00:15:08,452
+Then four fusers.
+
+197
+00:15:09,198 --> 00:15:11,652
+Then a verifier and a final fuser.
+
+198
+00:15:12,110 --> 00:15:14,640
+No person would have designed exactly this.
+
+199
+00:15:15,022 --> 00:15:23,844
+It's worth noticing that it mixes models from several companies because different models make different mistakes, and a fuser can combine their strengths.
+
+200
+00:15:24,974 --> 00:15:26,240
+And here's the result.
+
+201
+00:15:26,734 --> 00:15:32,000
+The x-axis is how many tokens you're allowed to spend, and a blue line is ARCON.
+
+202
+00:15:32,366 --> 00:15:40,356
+As the budget grows, ARCON keeps improving and passes the purple dotted line, which is OpenAI's O1, a reasoning model.
+
+203
+00:15:40,814 --> 00:15:51,204
+The paper reports about a 15% average improvement over 01, GPT-4.0, and Clot 3.5 Sonnet across its benchmarks when given extra budget.
+
+204
+00:15:51,630 --> 00:15:54,180
+The catch is in the X-axis label.
+
+205
+00:15:54,510 --> 00:15:57,444
+This costs a lot of tokens per question.
+
+206
+00:15:57,838 --> 00:16:04,836
+Combining many calls this way makes sense when correctness matters more than cost, and it's overkill for a chatbot.
+
+207
+00:16:05,326 --> 00:16:08,068
+The other lines on the chat are worth a sentence.
+
+208
+00:16:08,718 --> 00:16:22,596
+ADAS and a flow are two other research systems that also search automatically for good agent designs, and MOA, short for mixture of agents, is a fixed recipe where several models answer and later layers combine their answers.
+
+209
+00:16:23,150 --> 00:16:26,852
+So automatic search over designs is now its own research area.
+
+210
+00:16:27,246 --> 00:16:34,756
+You saw a close cousin of this idea last week with ASP, which automatically tunes the prompts inside a pipeline.
+
+211
+00:16:35,918 --> 00:16:40,868
+To recap workflows, they're easier to reproduce and debug than agents.
+
+212
+00:16:41,390 --> 00:16:47,236
+There are five basic patterns, and real systems are usually larger combinations of them.
+
+213
+00:16:48,334 --> 00:16:52,228
+Now let's move to agents, starting with how they reason and act.
+
+214
+00:16:53,326 --> 00:16:55,040
+Here's the agents loop again.
+
+215
+00:16:55,200 --> 00:17:00,196
+The model calls an action on the environment, gets feedback, and repeats until it stops.
+
+216
+00:17:00,750 --> 00:17:03,268
+The reg text makes the point for this section.
+
+217
+00:17:03,662 --> 00:17:06,180
+Giving the agent tools isn't enough.
+
+218
+00:17:06,734 --> 00:17:10,720
+You also have to design how it reasons and how it interacts with the world.
+
+219
+00:17:11,086 --> 00:17:14,372
+Each paper in this section changes one piece of that loop.
+
+220
+00:17:15,456 --> 00:17:18,148
+First up is React, the reading for today.
+
+221
+00:17:18,766 --> 00:17:21,924
+Its key idea is to reason before acting.
+
+222
+00:17:22,976 --> 00:17:24,548
+You've seen this slide before.
+
+223
+00:17:25,198 --> 00:17:28,132
+It's the Apple Remote Example from Lecture 1.
+
+224
+00:17:28,576 --> 00:17:29,572
+Quick Reminder.
+
+225
+00:17:30,062 --> 00:17:35,140
+Reasoning alone, the chain of thought box confidently builds on a false first step.
+
+226
+00:17:35,470 --> 00:17:42,576
+Acting alone, the middle box searches but never stops to think about what it found, so it gives a nonsense answer.
+
+227
+00:17:42,926 --> 00:17:44,804
+React does both in turn.
+
+228
+00:17:45,006 --> 00:17:48,068
+Think, search, read the result, think again.
+
+229
+00:17:48,398 --> 00:17:52,484
+And when a search fails, it reads the error and searches more precisely.
+
+230
+00:17:53,102 --> 00:17:57,444
+Remember also from Lecture 1 that React swaps one kind of failure for another.
+
+231
+00:17:57,806 --> 00:18:03,140
+It rarely makes things up, but it can get stuck in loops or be thrown off by bad search results.
+
+232
+00:18:03,662 --> 00:18:09,284
+Every pattern for the rest of this section is, in part, a fix for one of those failures.
+
+233
+00:18:10,446 --> 00:18:13,572
+Here's a part of the paper people often skip.
+
+234
+00:18:13,998 --> 00:18:17,636
+Look at the left chart where they just prompt the model with examples.
+
+235
+00:18:18,096 --> 00:18:26,180
+React, the red bar, is actually worse for the small 8 billion parameter model, and it isn't the best, even at 540 billion.
+
+236
+00:18:26,574 --> 00:18:34,532
+Now look at the right chart where they fine-tune the models, meaning they train them a bit more on about 3000 example React trajectories.
+
+237
+00:18:34,894 --> 00:18:43,172
+Now React is the best method at both sizes, and the fine-tuned 62 billion model beats the best prompted 540 billion one.
+
+238
+00:18:43,630 --> 00:18:50,276
+So even in 2022, the lesson was that acting like an agent is a skill models get better at with training.
+
+239
+00:18:50,576 --> 00:18:52,164
+Today that's standard.
+
+240
+00:18:52,622 --> 00:19:00,868
+Model companies train in models on agent-style tool use as part of post-training, which is the training done after the base model is built.
+
+241
+00:19:01,198 --> 00:19:07,204
+It's a big part of why current models are so much better at agent tasks than the models in these papers.
+
+242
+00:19:08,462 --> 00:19:11,108
+And here's the comparison that shows thinking matters.
+
+243
+00:19:11,630 --> 00:19:15,204
+Same model, same tools, with and without the bot steps.
+
+244
+00:19:15,758 --> 00:19:19,536
+React with thoughts beats, act without thoughts, on both benchmarks.
+
+245
+00:19:19,886 --> 00:19:23,172
+The gaps are small, a couple of points, but it holds up.
+
+246
+00:19:23,502 --> 00:19:29,056
+And this think, then call a tool pattern is still how nearly every agent works today.
+
+247
+00:19:29,486 --> 00:19:34,052
+Why do the thoughts help if the model could just call the tool directly?
+
+248
+00:19:34,478 --> 00:19:38,340
+The paper's answer is that thoughts let the agent keep track of the plan.
+
+249
+00:19:38,734 --> 00:19:46,404
+It can write down what it's looking for, notice when a result doesn't fit, and decide what to try next when something goes wrong.
+
+250
+00:19:46,798 --> 00:19:52,096
+Without the thought, every action has to carry all of that in the model's head, invisibly.
+
+251
+00:19:52,430 --> 00:19:56,036
+With it, the plan is right there in the context for the next step to read.
+
+252
+00:19:57,134 --> 00:19:58,116
+Next pattern.
+
+253
+00:19:58,574 --> 00:20:01,284
+React gave us think, then act.
+
+254
+00:20:01,900 --> 00:20:03,684
+Reflection adds one more step.
+
+255
+00:20:03,886 --> 00:20:07,524
+When you fail, stop and write down why and then try again.
+
+256
+00:20:07,982 --> 00:20:09,988
+Let's bring back our running example.
+
+257
+00:20:10,446 --> 00:20:16,676
+Our research assistant is writing a one-page briefing on whether the city should switch its buses to electric.
+
+258
+00:20:17,166 --> 00:20:25,092
+Say its first draft comes back from the city's fact checker marked wrong because it quoted the charging cost for the wrong year.
+
+259
+00:20:25,454 --> 00:20:28,460
+A person in that spot doesn't just start over and hope.
+
+260
+00:20:28,846 --> 00:20:33,380
+They think, I grabbed the first number I found, and it was from an old report.
+
+261
+00:20:33,870 --> 00:20:38,180
+Next time I check the date, that sentence is the whole idea of reflection.
+
+262
+00:20:39,214 --> 00:20:40,260
+Here's how it's built.
+
+263
+00:20:40,686 --> 00:20:42,884
+Look at the box diagram on the left.
+
+264
+00:20:43,502 --> 00:20:45,924
+There are three language model rows.
+
+265
+00:20:46,574 --> 00:20:51,216
+The actor is the one doing the task, the normal React agent.
+
+266
+00:20:51,630 --> 00:21:02,404
+The evaluator looks at what the actor did and gives a score, either from a rule, from another model, or straight from the environment, like a test passing or failing.
+
+267
+00:21:02,798 --> 00:21:10,884
+And the self-reflection model takes that score and writes a few sentences of plain text about what went wrong and what to do differently.
+
+268
+00:21:11,406 --> 00:21:14,852
+Now the key part, and it's the line at the bottom of the slide.
+
+269
+00:21:15,374 --> 00:21:19,940
+Those reflection sentences get saved and pasted into the actor's prompt on the next try.
+
+270
+00:21:20,430 --> 00:21:24,164
+The paper calls this long-term memory, but there's nothing fancy here.
+
+271
+00:21:24,494 --> 00:21:26,532
+It's text in the context window.
+
+272
+00:21:27,214 --> 00:21:29,252
+Nobody retrains the model.
+
+273
+00:21:29,774 --> 00:21:31,620
+Its weights never change.
+
+274
+00:21:32,110 --> 00:21:36,868
+The authors describe this as reinforcement learning with words instead of wait update.
+
+275
+00:21:37,230 --> 00:21:42,436
+In normal reinforcement learning, a failure turns into a number that nudges the model's weights.
+
+276
+00:21:43,022 --> 00:21:46,372
+Here, a failure turns into a sentence the model can read.
+
+277
+00:21:46,766 --> 00:21:47,524
+That's cheap.
+
+278
+00:21:47,758 --> 00:21:55,044
+It works with any model you can call through an API, and you can read the reflections yourself to see what the agent thinks it did wrong.
+
+279
+00:21:55,406 --> 00:21:59,012
+The catch is that this only works when you get more than one try.
+
+280
+00:21:59,310 --> 00:22:07,108
+Reflection is a loop over attempts, so it fits tasks you can rerun, like called against tests or a quiz with an answer key.
+
+281
+00:22:07,502 --> 00:22:11,588
+If the action is send the briefing to the city council, you don't get a second attempt.
+
+282
+00:22:12,718 --> 00:22:15,748
+Here are three examples from the paper, and the colors help.
+
+283
+00:22:16,206 --> 00:22:18,852
+Red is where things went wrong, green is the fix.
+
+284
+00:22:19,374 --> 00:22:23,140
+On the left, the agent is in a simulated house trying to clean a pan.
+
+285
+00:22:23,502 --> 00:22:29,028
+It tried to pick up the pan from the wrong burner, and the environment said nothing happens.
+
+286
+00:22:29,646 --> 00:22:36,304
+The reflection says basically the pan wasn't on stove burner one, and on the next try it goes to burner two.
+
+287
+00:22:36,782 --> 00:22:38,884
+In the middle, it's writing code.
+
+288
+00:22:39,310 --> 00:22:41,220
+It writes its own unit tests.
+
+289
+00:22:41,646 --> 00:22:47,876
+A test fails, and the reflection says, I only check the total count of parentheses, not their order.
+
+290
+00:22:48,526 --> 00:22:51,424
+That's a real bug diagnosis in one sentence.
+
+291
+00:22:51,854 --> 00:22:54,180
+On the right is a trivia question.
+
+292
+00:22:54,734 --> 00:22:57,764
+The answer was wrong and the only feedback was a zero.
+
+293
+00:22:58,094 --> 00:23:00,676
+Notice how little the agent was told there.
+
+294
+00:23:01,104 --> 00:23:02,116
+Just wrong.
+
+295
+00:23:02,702 --> 00:23:09,636
+From that it worked out on its own that it had assumed both people shared two professions when they only shared one.
+
+296
+00:23:10,030 --> 00:23:12,868
+Ask yourself what all three have in common.
+
+297
+00:23:13,262 --> 00:23:17,092
+In every case, something outside the model said that didn't work.
+
+298
+00:23:17,454 --> 00:23:19,780
+The hows, the test, the answer key.
+
+299
+00:23:20,174 --> 00:23:21,156
+Keep that in mind.
+
+300
+00:23:21,486 --> 00:23:23,428
+Because it's about to matter a lot.
+
+301
+00:23:24,590 --> 00:23:25,444
+Does it help?
+
+302
+00:23:25,902 --> 00:23:27,396
+Look at the left chart.
+
+303
+00:23:27,918 --> 00:23:32,036
+The flat gray lines are chain of thought and react on their own.
+
+304
+00:23:32,430 --> 00:23:39,076
+You can rerun them as many times as you like, and they don't get better, because nothing carries over between tries.
+
+305
+00:23:39,598 --> 00:23:47,844
+The blue line is React plus Reflection, and it climbs with each trial, from about a third of questions solved to more than half.
+
+306
+00:23:48,366 --> 00:23:58,624
+On a coding benchmark called Humanevil, the code reflection finally submitted passed on 91% of problems compared with 80% for GPT-4 on its own.
+
+307
+00:23:59,054 --> 00:24:04,100
+The right chart is the experiment I really want you to look at, because it answers a fair objection.
+
+308
+00:24:04,526 --> 00:24:06,916
+Maybe reflection isn't doing anything.
+
+309
+00:24:07,310 --> 00:24:09,860
+Maybe it just helps to see your last attempt.
+
+310
+00:24:10,446 --> 00:24:11,584
+So they tested that.
+
+311
+00:24:11,950 --> 00:24:17,316
+The pink dashed line gives the model its previous attempt but no reflection, and it helps a little.
+
+312
+00:24:17,742 --> 00:24:23,332
+The dark purple line adds the written reflection on top, and it helps clearly more.
+
+313
+00:24:23,726 --> 00:24:30,468
+So the value is in the diagnosis, the sentence that says what went wrong, not only in seeing the old attempt.
+
+314
+00:24:30,926 --> 00:24:35,844
+For your own agents, when a step fails, don't just retry the same prompt.
+
+315
+00:24:36,270 --> 00:24:42,276
+Ask the model to write one or two sentences about why it failed and put those in the next attempt.
+
+316
+00:24:43,374 --> 00:24:45,284
+Now here's the catch, I promise.
+
+317
+00:24:45,902 --> 00:24:49,732
+Remember that every reflection example had an outside signal.
+
+318
+00:24:50,094 --> 00:24:55,664
+What happens when there isn't one, and you just ask the model, check your own answer.
+
+319
+00:24:56,046 --> 00:24:59,172
+This paper from Google DeepMind looked at exactly that.
+
+320
+00:24:59,662 --> 00:25:04,644
+Its title says it plainly: large language models cannot self-correct reasoning yet.
+
+321
+00:25:04,974 --> 00:25:06,276
+Look at the table.
+
+322
+00:25:06,734 --> 00:25:11,780
+The top row is GBT4 Turbo answering math word problems and common sense questions once.
+
+323
+00:25:12,302 --> 00:25:15,748
+The rows below ask it to review its answer and fix any problems.
+
+324
+00:25:16,334 --> 00:25:18,212
+And the scores mostly go down.
+
+325
+00:25:18,606 --> 00:25:23,300
+On the common sense questions, it drops by up to almost 10 points with one of the prompts.
+
+326
+00:25:23,822 --> 00:25:26,180
+Why would checking your work make you worse?
+
+327
+00:25:26,606 --> 00:25:29,124
+Because the model has no new information.
+
+328
+00:25:29,710 --> 00:25:34,468
+It's the same model, reading the same question so it has the same blind spots.
+
+329
+00:25:35,118 --> 00:25:36,384
+Asked, are you sure?
+
+330
+00:25:36,686 --> 00:25:39,332
+It often talks itself out of a right answer.
+
+331
+00:25:39,726 --> 00:25:41,604
+And there's a fairness problem too.
+
+332
+00:25:42,350 --> 00:25:52,224
+Some earlier papers that reported big self-correction gains were using the correct answer to decide when to stop correcting, which is information you don't have in real use.
+
+333
+00:25:52,878 --> 00:25:57,892
+That includes reflection's trivia result, where the zero came straight from the answer key.
+
+334
+00:25:58,382 --> 00:26:01,988
+So reflection works because the environment gives it real feedback.
+
+335
+00:26:02,446 --> 00:26:05,504
+Take that away, and much of the benefit goes with it.
+
+336
+00:26:05,902 --> 00:26:08,064
+One update, and it's on the slide.
+
+337
+00:26:08,462 --> 00:26:14,500
+This finding came before today's reasoning models, the ones trained to think for a long time before answering.
+
+338
+00:26:14,926 --> 00:26:20,260
+Those models do catch and fix their own mistakes while they think, because they were trained to.
+
+339
+00:26:20,686 --> 00:26:25,284
+So in practice, you don't usually build a separate now critique yourself step anymore.
+
+340
+00:26:25,742 --> 00:26:27,844
+That's mostly inside the model now.
+
+341
+00:26:28,526 --> 00:26:33,892
+What you still have to build is the outside signal, the tests, the checks, the tool results.
+
+342
+00:26:35,022 --> 00:26:37,092
+Which brings us to critic.
+
+343
+00:26:37,518 --> 00:26:42,096
+The idea if self-critique fails because the model has no new information.
+
+344
+00:26:42,510 --> 00:26:44,964
+Give the critic tools so it can go get some.
+
+345
+00:26:45,358 --> 00:26:46,976
+Look at the loop on the left.
+
+346
+00:26:47,342 --> 00:26:53,828
+The model writes an answer, then a verify step checks it using outside tools, which you can see in the middle box.
+
+347
+00:26:54,222 --> 00:26:58,084
+Search, a calculator, a code interpreter, Wikipedia.
+
+348
+00:26:58,638 --> 00:27:02,852
+That produces a critique, the model corrects its answer and the loop runs again.
+
+349
+00:27:03,278 --> 00:27:04,868
+Now the chart on the right.
+
+350
+00:27:05,198 --> 00:27:10,084
+The orange triangles are critic with tools and it jumps up after the first round.
+
+351
+00:27:10,414 --> 00:27:17,956
+The dotted line with the X marks is the same loop with the tools taken away, so the model is critiquing itself from memory.
+
+352
+00:27:18,478 --> 00:27:19,748
+It barely moves.
+
+353
+00:27:20,270 --> 00:27:23,716
+Same loop, same model, and the difference is entirely the tools.
+
+354
+00:27:24,270 --> 00:27:33,668
+In our buzz briefing, this is the difference between asking the model is that charging cost right, and letting it search for the utility's current rate and compare.
+
+355
+00:27:34,062 --> 00:27:36,964
+The second one can actually catch the old number.
+
+356
+00:27:37,486 --> 00:27:40,356
+So here's the practical rule from this whole section.
+
+357
+00:27:40,814 --> 00:27:44,964
+If you want a checker in your system, make the checker an agent too.
+
+358
+00:27:45,390 --> 00:27:47,844
+Give it tools to look things up or run code.
+
+359
+00:27:48,238 --> 00:27:52,484
+A checker with no tools can only repeat what the writer already believed.
+
+360
+00:27:52,846 --> 00:27:56,228
+And notice the top line on the chart, the Oracle version.
+
+361
+00:27:56,622 --> 00:28:01,796
+That's critic when it's allowed to peek at the right answer to decide when to stop.
+
+362
+00:28:02,158 --> 00:28:10,436
+It does even better, which tells you again how much a stopping signal is worth and why you shouldn't trust results that quietly use one.
+
+363
+00:28:11,534 --> 00:28:12,548
+A new question.
+
+364
+00:28:13,070 --> 00:28:16,896
+When the agent wants to do something, what should the action actually look like?
+
+365
+00:28:17,422 --> 00:28:20,260
+Codec's answer is that the action should be code.
+
+366
+00:28:21,390 --> 00:28:23,076
+First, the usual way.
+
+367
+00:28:23,630 --> 00:28:29,604
+Most agents act by producing a small piece of structured text that names the tool and its arguments.
+
+368
+00:28:30,094 --> 00:28:37,376
+That format is JSON, which is just curly braces with names and values, like tool, lookup rates, country, Germany.
+
+369
+00:28:37,582 --> 00:28:39,136
+Look at the task in the blue box.
+
+370
+00:28:39,696 --> 00:28:43,588
+Find the cheapest country to buy a phone in out of four countries.
+
+371
+00:28:44,110 --> 00:28:46,372
+Now look at how many steps that takes.
+
+372
+00:28:47,022 --> 00:28:49,668
+Look up the exchange rate for Germany, wait.
+
+373
+00:28:50,382 --> 00:28:52,896
+Look up the phone price in Germany, wait.
+
+374
+00:28:53,540 --> 00:28:58,276
+Convert and add tax, wait, then shipping, then the final price.
+
+375
+00:28:58,862 --> 00:29:00,100
+That's one country.
+
+376
+00:29:00,590 --> 00:29:05,060
+Then the agent does all of it again for Japan, the USA, and India.
+
+377
+00:29:05,614 --> 00:29:08,484
+Every one of those steps is a full round trip.
+
+378
+00:29:09,134 --> 00:29:19,172
+The model writes one call, stops, the system runs it, pastes the result into the prompt, and the model reads the whole growing history again to write the next call.
+
+379
+00:29:19,566 --> 00:29:22,212
+It's slow and it calls tokens on every step.
+
+380
+00:29:22,734 --> 00:29:30,212
+And the model has to keep track of all the in-between numbers in the text, which is exactly where it can slip and copy the wrong one.
+
+381
+00:29:31,310 --> 00:29:34,116
+Now the same task with code as the action.
+
+382
+00:29:34,638 --> 00:29:36,164
+Look at the code block.
+
+383
+00:29:36,494 --> 00:29:38,948
+The agent writes one short Python program.
+
+384
+00:29:39,470 --> 00:29:46,692
+It's a for loop over the four countries, calling the same five tools as plain functions, saving each price into a dictionary.
+
+385
+00:29:47,086 --> 00:29:49,060
+Then one line picks the minimum.
+
+386
+00:29:49,582 --> 00:29:52,176
+It runs once and the answer comes back Japan.
+
+387
+00:29:52,750 --> 00:29:57,348
+Look at the two green notes on the slide because there are the two reasons this wins.
+
+388
+00:29:57,902 --> 00:29:59,456
+First, control flow.
+
+389
+00:29:59,950 --> 00:30:03,536
+A loop and an if statement are things code already has.
+
+390
+00:30:03,950 --> 00:30:08,932
+With JSON, the model has to act out, the loop by hand, one call at a time.
+
+391
+00:30:09,326 --> 00:30:10,692
+Second, reuse.
+
+392
+00:30:11,278 --> 00:30:14,212
+That mind function comes for free from Python.
+
+393
+00:30:14,734 --> 00:30:20,196
+With JSON tools, if nobody wrote a find the minimum tool, the model has to do it in its head.
+
+394
+00:30:20,846 --> 00:30:23,556
+There's one more reason that isn't on the slide.
+
+395
+00:30:24,142 --> 00:30:27,108
+Models have seen a huge amount of code during training.
+
+396
+00:30:27,566 --> 00:30:31,076
+Writing a for loop in Python is a very familiar task for them.
+
+397
+00:30:31,502 --> 00:30:36,036
+Writing a long series of custom JSON calls is a format they've seen much less of.
+
+398
+00:30:36,462 --> 00:30:37,732
+Back to our briefing.
+
+399
+00:30:38,094 --> 00:30:44,868
+The assistant needs the cost per bus over 12 years for four bus makers, with fuel, charging, and maintenance.
+
+400
+00:30:45,376 --> 00:30:48,324
+As JSON calls, that's dozens of round trips.
+
+401
+00:30:48,814 --> 00:30:54,724
+As code is one small program and arithmetic is done by the computer instead of by the model.
+
+402
+00:30:55,086 --> 00:31:01,892
+Now the catch, and it's a serious one, is the agents can run any code, it can do anything code can do.
+
+403
+00:31:02,318 --> 00:31:06,976
+It can delete files, read your secrets, or send data out to the internet.
+
+404
+00:31:07,566 --> 00:31:14,096
+So cult actions need a sandbox, meaning an isolated environment where the code can't touch anything that matters.
+
+405
+00:31:14,414 --> 00:31:19,300
+We'll come back to this at the end of today with an agent that has no protections at all.
+
+406
+00:31:20,302 --> 00:31:21,776
+Does it actually help?
+
+407
+00:31:22,158 --> 00:31:23,300
+Look at the left chart.
+
+408
+00:31:23,790 --> 00:31:27,044
+Each row is a model, and the green bar is code as aption.
+
+409
+00:31:27,376 --> 00:31:32,932
+For most models, especially the strong ones at the top, the green bar is the longest.
+
+410
+00:31:33,358 --> 00:31:41,348
+For the best model there, GPT-4, it's around three quarters of tasks solved with code versus about half with JSON or plain text.
+
+411
+00:31:41,678 --> 00:31:45,252
+The right chart is the number of turns and shorter is better.
+
+412
+00:31:45,710 --> 00:31:47,300
+Doing is usually shortest.
+
+413
+00:31:48,078 --> 00:31:52,068
+So code actions get more tasks right and use fewer steps to do it.
+
+414
+00:31:52,462 --> 00:31:54,180
+Notice the bottom rows, though.
+
+415
+00:31:54,734 --> 00:31:56,644
+The weaker models gain much less.
+
+416
+00:31:57,326 --> 00:32:00,932
+Code actions help most when the model is already good at writing code.
+
+417
+00:32:01,262 --> 00:32:09,796
+And this is a big reason why so many agents today, especially coding agents, have a tool like run this in the terminal or run this Python.
+
+418
+00:32:10,158 --> 00:32:12,772
+It's the Code Act idea, used in practice.
+
+419
+00:32:13,262 --> 00:32:21,220
+The paper tested 17 models in total and reports up to 20% higher success rates with code actions than with the alternatives.
+
+420
+00:32:22,478 --> 00:32:24,996
+Next button, Plan First, then execute.
+
+421
+00:32:25,454 --> 00:32:27,652
+Look at the key idea at the bottom.
+
+422
+00:32:28,110 --> 00:32:32,228
+Planning lets you turn an agent's actions back into a workflow.
+
+423
+00:32:32,622 --> 00:32:35,684
+The agent writes the workflow and then playing code runs it.
+
+424
+00:32:36,110 --> 00:32:38,532
+There's a second benefit that's easy to miss.
+
+425
+00:32:38,958 --> 00:32:44,484
+Once the plan is written down before anything runs, a person or a program can look at it first.
+
+426
+00:32:44,878 --> 00:32:49,604
+You can check it, approve it, or reject it before the agent touches anything.
+
+427
+00:32:49,966 --> 00:32:55,524
+That's much harder to do with React, where the next step doesn't exist until the previous one finishes.
+
+428
+00:32:56,718 --> 00:33:00,452
+This is Rewool, which stands for reasoning without observation.
+
+429
+00:33:00,878 --> 00:33:02,148
+Look at the three boxes.
+
+430
+00:33:02,798 --> 00:33:06,788
+The planner, top left, writes out the whole plan before anything runs.
+
+431
+00:33:07,278 --> 00:33:09,956
+Notice the labels E1, E2, and so on.
+
+432
+00:33:10,510 --> 00:33:15,268
+Each step stores its results in the name slot, and later steps refer to those slots.
+
+433
+00:33:15,630 --> 00:33:21,124
+Step 2 says, find the main ingredient given E1, even though E1 doesn't exist yet.
+
+434
+00:33:21,582 --> 00:33:26,276
+Then the worker on the right runs each step in order and fills in the slots.
+
+435
+00:33:26,606 --> 00:33:32,644
+Finally, the solver at the bottom reads the plan plus all the evidence and writes the answer.
+
+436
+00:33:33,038 --> 00:33:34,052
+Why bother?
+
+437
+00:33:34,574 --> 00:33:37,156
+Think about what React does on every step.
+
+438
+00:33:37,614 --> 00:33:44,336
+It sends the whole growing history back to the model, the instructions, the examples, every thought, every search result.
+
+439
+00:33:44,814 --> 00:33:46,564
+That's a lot of repeated tokens.
+
+440
+00:33:47,182 --> 00:33:50,596
+Rewool calls the planning model once, and then the steps are cheap.
+
+441
+00:33:51,182 --> 00:33:53,700
+Some of them don't need a big model at all.
+
+442
+00:33:54,798 --> 00:33:56,292
+And here's the payoff.
+
+443
+00:33:56,782 --> 00:34:02,976
+The y-axis is accuracy, and the x-axis is tokens used, so you want to be up and to the left.
+
+444
+00:34:03,342 --> 00:34:06,436
+The red arrows go from reac to re wool.
+
+445
+00:34:06,958 --> 00:34:11,844
+On both benchmarks, rewool is more accurate and uses far fewer tokens.
+
+446
+00:34:12,494 --> 00:34:19,856
+The paper reports about 5 times better token efficiency and around 4 points higher accuracy on Hotpot QA.
+
+447
+00:34:20,302 --> 00:34:21,444
+Now the catch.
+
+448
+00:34:21,998 --> 00:34:26,468
+Rew all pants without seeing any results, which is right there in the name.
+
+449
+00:34:27,022 --> 00:34:31,076
+If step 1 comes back with something surprising, the plan can't adapt.
+
+450
+00:34:31,406 --> 00:34:41,936
+For our buzz briefing, if the plan says look up the price of the Model X bus, and it turns out that model was discontinued, RWU keeps going with a broken plan.
+
+451
+00:34:42,382 --> 00:34:45,188
+React would have noticed and changed course.
+
+452
+00:34:46,382 --> 00:34:51,556
+LLM compiler from Berkeley fixes both of Ryuo's weak spots.
+
+453
+00:34:52,046 --> 00:35:00,016
+The name comes from Compilers, the programs that turn your code into machine instructions and figure out what can run at the same time.
+
+454
+00:35:00,398 --> 00:35:02,948
+Look at the planner's output in the middle box.
+
+455
+00:35:03,374 --> 00:35:09,136
+It's a list of tasks with dependencies, which the slide calls a DAG, a directed acyclic graph.
+
+456
+00:35:09,582 --> 00:35:15,652
+BACTS means a set of steps with arrows showing which steps need which results and no loops.
+
+457
+00:35:16,334 --> 00:35:18,692
+Search Microsoft's market cap search apples.
+
+458
+00:35:19,182 --> 00:35:20,868
+Neither depends on the other.
+
+459
+00:35:21,358 --> 00:35:22,852
+The division depends on both.
+
+460
+00:35:23,310 --> 00:35:29,956
+Then a task fetching unit sends out any task whose inputs are ready and the executor runs them in parallel.
+
+461
+00:35:30,542 --> 00:35:33,892
+The two differences from Bri Wu are on the slide.
+
+462
+00:35:34,254 --> 00:35:41,092
+Independent steps run at the same time, and if results come back that change things, the planner can replan.
+
+463
+00:35:42,222 --> 00:35:44,804
+Here's what parallel execution buys you.
+
+464
+00:35:45,262 --> 00:35:48,996
+The question asks whether two filmmakers have the same nationality.
+
+465
+00:35:49,358 --> 00:35:54,212
+React on the left searches for the first person, waits, thinks.
+
+466
+00:35:54,766 --> 00:35:58,212
+Searches for the second, waits, and then answers.
+
+467
+00:35:58,574 --> 00:36:05,220
+LLM compiler on the right sees that the two searches are independent and runs them at the same time.
+
+468
+00:36:05,646 --> 00:36:06,384
+Same answer.
+
+469
+00:36:06,544 --> 00:36:10,020
+About 1.8 times faster on this kind of question.
+
+470
+00:36:10,414 --> 00:36:15,876
+For our briefing, looking up four busmaker's prices is exactly this situation.
+
+471
+00:36:16,302 --> 00:36:19,332
+There is no reason to do them one after another.
+
+472
+00:36:20,462 --> 00:36:21,348
+The full results.
+
+473
+00:36:22,158 --> 00:36:28,224
+I want you to look at one row in particular, the one labeled OAI Parallel Function.
+
+474
+00:36:28,590 --> 00:36:36,036
+That's OpenAI's built-in parallel function calling, where the model can ask for several tool calls in a single turn.
+
+475
+00:36:36,494 --> 00:36:39,332
+It already gets a good part of the speedup on its own.
+
+476
+00:36:39,790 --> 00:36:42,628
+That tells you where this idea ended up.
+
+477
+00:36:43,086 --> 00:36:50,212
+Today, most model APIs let the model request several tool calls at once, and the harness runs them in parallel.
+
+478
+00:36:50,574 --> 00:36:53,668
+So, you mostly don't need a separate compiler anymore.
+
+479
+00:36:54,030 --> 00:36:56,708
+The idea moved into the model and the API.
+
+480
+00:36:57,038 --> 00:37:07,236
+The paper reports up to about 3.7 times faster and up to about 6.7 times cheaper than React with similar or better accuracy.
+
+481
+00:37:08,270 --> 00:37:09,764
+Let's recap this section.
+
+482
+00:37:11,054 --> 00:37:15,588
+React reasoning before acting is useful, and it's still the standard loop.
+
+483
+00:37:16,064 --> 00:37:16,864
+Reflection.
+
+484
+00:37:17,166 --> 00:37:23,876
+Self-reflection mostly happens inside the model's reasoning today, and the part you still build is the outside feedback.
+
+485
+00:37:24,238 --> 00:37:24,784
+Code Act.
+
+486
+00:37:25,198 --> 00:37:27,044
+Code is a good format for actions.
+
+487
+00:37:27,566 --> 00:37:30,464
+Re-wool and LLM compiler.
+
+488
+00:37:30,624 --> 00:37:36,452
+The parallel part now mostly lives in parallel tool calls, but planning is still important.
+
+489
+00:37:36,974 --> 00:37:44,868
+And sometimes people still use a fixed workflow to coordinate sub-agents, which brings us full circle to where we started today.
+
+490
+00:37:45,998 --> 00:37:47,684
+Now context management.
+
+491
+00:37:48,398 --> 00:37:51,940
+This is where a lot of the real engineering in agents happens.
+
+492
+00:37:53,230 --> 00:37:58,596
+Same agent loop, but now look at the green box around the model call, the context manager.
+
+493
+00:37:58,958 --> 00:38:03,984
+Every time the loop goes around, something has to decide what goes into the prompt for the next call.
+
+494
+00:38:04,366 --> 00:38:07,620
+In the simplest agent, the answer is everything so far.
+
+495
+00:38:08,046 --> 00:38:09,348
+That works for 10 steps.
+
+496
+00:38:09,902 --> 00:38:11,492
+It fails at 200.
+
+497
+00:38:12,014 --> 00:38:14,784
+Picture our briefing agent after an hour of work.
+
+498
+00:38:15,150 --> 00:38:23,744
+It has read six busmaker brochures, two utility rate sheets, a transit union contract, and the minutes of three council meetings.
+
+499
+00:38:24,046 --> 00:38:28,644
+It has run a dozen cost calculations, and some of them it threw away.
+
+500
+00:38:28,974 --> 00:38:33,380
+If all of that stays in the prompt, every new step pays to reread it.
+
+501
+00:38:33,774 --> 00:38:40,464
+And the one sentence that matters, the council rejects diesel hybrids, is buried somewhere in the middle.
+
+502
+00:38:41,038 --> 00:38:46,372
+This picture is from Anthropic's context engineering post, which was another lecture to reading.
+
+503
+00:38:46,702 --> 00:38:51,876
+On the left is Prompt Engineering, where you write one system prompt and one user message.
+
+504
+00:38:52,206 --> 00:38:54,436
+On the right is context engineering.
+
+505
+00:38:55,022 --> 00:39:01,860
+There's a big pool of things you could include documents, tools, memory files, instructions, message history.
+
+506
+00:39:02,190 --> 00:39:05,924
+And at every step you pick which of them actually go into the window.
+
+507
+00:39:06,318 --> 00:39:13,956
+The post defines it as finding the smallest possible set of high signal tokens that gives you the outcome you want.
+
+508
+00:39:14,446 --> 00:39:17,476
+HighSignal just means actually useful for the current step.
+
+509
+00:39:17,902 --> 00:39:21,732
+The post also describes something it calls just in time context.
+
+510
+00:39:22,126 --> 00:39:32,704
+Instead of loading a whole document up front, the agent keeps a short reference, like a file path or a link, and only reads the document with a tool when it actually needs it.
+
+511
+00:39:33,104 --> 00:39:35,268
+Coding agents work this way.
+
+512
+00:39:35,854 --> 00:39:41,956
+They don't paste your whole repository into the prompt, they search it and open files as they go.
+
+513
+00:39:43,214 --> 00:39:44,740
+Why does this matter?
+
+514
+00:39:45,198 --> 00:39:52,720
+This is the needle in a haystack test that Greg Comrad ran on Claude 2.1 in late 2023.
+
+515
+00:39:53,198 --> 00:40:00,960
+He hid one sentence in a long document and asked the model to find it, varying how long the document was and where the sentence sat.
+
+516
+00:40:01,326 --> 00:40:04,516
+Green means it found it, red means it didn't.
+
+517
+00:40:04,974 --> 00:40:09,520
+As you go right toward 100,000 tokens, there's more and more red.
+
+518
+00:40:10,030 --> 00:40:11,652
+There's a follow-up I like.
+
+519
+00:40:12,174 --> 00:40:26,800
+Anthropic responded that the model was reluctant to answer from one out-of-place sentence, and that adding one line to the prompt, here is the most relevant sentence in the context, raised accuracy on this test from 27 to 98%.
+
+520
+00:40:28,078 --> 00:40:30,788
+So some of the failure was about prompting.
+
+521
+00:40:31,214 --> 00:40:33,760
+But the general effect is real and well documented.
+
+522
+00:40:34,126 --> 00:40:37,120
+Anthropic's own post calls it context rot.
+
+523
+00:40:37,582 --> 00:40:42,276
+The more tokens you put in, the worse the model gets at using any single one of them.
+
+524
+00:40:42,702 --> 00:40:46,820
+Remember Lost in the Middle from Lecture 1, which found the same thing.
+
+525
+00:40:47,310 --> 00:40:49,988
+A bigger window doesn't mean you should fill it.
+
+526
+00:40:51,118 --> 00:40:52,548
+So there are two principles.
+
+527
+00:40:53,102 --> 00:40:54,436
+Look at the two columns.
+
+528
+00:40:55,054 --> 00:40:57,284
+The first is to focus the context.
+
+529
+00:40:57,838 --> 00:40:59,812
+Keep only what the current step needs.
+
+530
+00:41:00,480 --> 00:41:05,700
+The full history doesn't have to be in the window, and extra stuff is just bloat.
+
+531
+00:41:06,254 --> 00:41:08,516
+The second is to preserve continuity.
+
+532
+00:41:08,880 --> 00:41:15,200
+Whatever you cut, the agent still has to remember the goal, the constraints, and what it has already done.
+
+533
+00:41:15,630 --> 00:41:20,676
+If you drop the city council said no diesel hybrids the agent might happily recommend one.
+
+534
+00:41:21,070 --> 00:41:24,644
+And there's a practical point in the last bullet, the KV cache.
+
+535
+00:41:25,038 --> 00:41:33,956
+When a model reads a prompt, it stores intermediate results for every token, so if the next call starts with the same tokens, it can skip rereading them.
+
+536
+00:41:34,382 --> 00:41:37,476
+Providers charge much less for those cached tokens.
+
+537
+00:41:38,094 --> 00:41:41,828
+But the cache only works if the beginning of the prompt stays exactly the same.
+
+538
+00:41:42,318 --> 00:41:48,612
+So if you rewrite old parts of the context every turn, you lose the cache and pay full price every time.
+
+539
+00:41:49,006 --> 00:41:53,188
+Good context management changes the end of the prompt and leaves the beginning alone.
+
+540
+00:41:54,350 --> 00:41:56,324
+So let's go through the patterns.
+
+541
+00:41:57,774 --> 00:42:05,380
+There are five on this slide: a persistent event log, memory offloading, compaction, observation masking, and context isolation.
+
+542
+00:42:05,710 --> 00:42:08,000
+We'll take each one with a real system.
+
+543
+00:42:08,718 --> 00:42:12,400
+Here's the 1.9 version of each before we look closer.
+
+544
+00:42:12,846 --> 00:42:18,788
+The event log keeps a full record somewhere outside the prompt, so you can rebuild the prompt any way you like.
+
+545
+00:42:19,150 --> 00:42:23,204
+Memory offloading saves important facts on where you can search later.
+
+546
+00:42:23,598 --> 00:42:26,436
+Compaction replaces old history with a summary.
+
+547
+00:42:26,766 --> 00:42:29,700
+Observation masking hides old tool outputs.
+
+548
+00:42:30,094 --> 00:42:34,340
+And isolation gives separate jobs their own separate context windows.
+
+549
+00:42:35,534 --> 00:42:38,692
+First, the event log, using OpenHands as the example.
+
+550
+00:42:39,150 --> 00:42:45,284
+OpenHands, which used to be called OpenDevon, is an open source platform for coding agents.
+
+551
+00:42:45,998 --> 00:42:48,964
+Look at the big middle panel, the event stream.
+
+552
+00:42:49,358 --> 00:42:52,612
+Everything that happens is recorded as an event in order.
+
+553
+00:42:53,070 --> 00:43:01,156
+The user's message, the agent writing a file, the result that write, the agent starting a server, the browser output.
+
+554
+00:43:01,550 --> 00:43:03,908
+Each action produces an observation.
+
+555
+00:43:04,398 --> 00:43:12,708
+On the right, actions actually run inside a Docker sandbox, which is an isolated container, so the agent can't damage the host machine.
+
+556
+00:43:13,774 --> 00:43:15,680
+Here's the key design choice.
+
+557
+00:43:16,110 --> 00:43:19,780
+The event log is the source of truth and it's append only.
+
+558
+00:43:20,174 --> 00:43:25,316
+That means you only ever add to the end and never edit or delete old entries.
+
+559
+00:43:25,934 --> 00:43:29,540
+Then, every time you call the model, you build a prompt from the log.
+
+560
+00:43:29,870 --> 00:43:31,556
+Look at the pipeline at the top.
+
+561
+00:43:32,046 --> 00:43:38,596
+Take the event list, filter to the events the model should see, group related ones, and convert them to messages.
+
+562
+00:43:39,086 --> 00:43:41,348
+Why separate the log from the prompt?
+
+563
+00:43:41,742 --> 00:43:45,508
+Because now you can change what the model sees without losing anything.
+
+564
+00:43:45,934 --> 00:43:51,396
+You can summarize, truncate, or hide things in the prompt, and the full record is still there.
+
+565
+00:43:51,758 --> 00:44:01,764
+You can debug a run by replaying the log, and other programs can watch the log, like a monitor that alerts you when the agent tries to run a dangerous command.
+
+566
+00:44:02,990 --> 00:44:06,020
+Second, memory offloading with MemGPT.
+
+567
+00:44:06,350 --> 00:44:09,444
+We'll go deep on this on Wednesday, so here's the short version.
+
+568
+00:44:09,838 --> 00:44:11,492
+Look at the left side.
+
+569
+00:44:12,046 --> 00:44:17,808
+The system warns that memory is getting full, and the agent responds by saving the important facts.
+
+570
+00:44:18,094 --> 00:44:24,356
+Birthday is February 7 and boyfriend named James to a storage area outside the conversation.
+
+571
+00:44:24,846 --> 00:44:27,780
+Then the old messages can be dropped from the prompt.
+
+572
+00:44:28,110 --> 00:44:34,660
+On the right, later on it searches its stored history for six blacks and pulls back exactly the relevant lines.
+
+573
+00:44:35,310 --> 00:44:46,308
+For our briefing, the agent might save council rejects diesel hybrids, and budget cap is 40 million to a notes file, and then let the long meeting transcript fall out of the prompt.
+
+574
+00:44:47,374 --> 00:44:48,804
+Third, compaction.
+
+575
+00:44:49,326 --> 00:44:50,884
+Look at the two columns.
+
+576
+00:44:51,406 --> 00:44:57,540
+On the left is the raw agent, three tons of reasoning, action, and observation all stacked up.
+
+577
+00:44:57,934 --> 00:45:05,124
+On the right, the first two turns have been replaced by one summary written by the model and only the latest turn is kept in full.
+
+578
+00:45:05,486 --> 00:45:06,692
+Clog code does this.
+
+579
+00:45:07,310 --> 00:45:16,288
+A context engineering post says it keeps things like architectural decisions and unresolved bugs, plus the five files the agent touched most recently.
+
+580
+00:45:16,686 --> 00:45:20,708
+The slide's last bullet says it can help for compaction itself to be agentic.
+
+581
+00:45:21,070 --> 00:45:28,388
+That means letting the model decide what's worth keeping, maybe even looking things up rather than running one fix summarize this prompt.
+
+582
+00:45:28,814 --> 00:45:34,180
+The catch is that a summary loses things and you don't know what it lost until the agent needs it.
+
+583
+00:45:34,670 --> 00:45:43,076
+Both COD code and pie, which we'll see in a few minutes, do this automatically when the window gets close to full, and you can also trigger it by hand.
+
+584
+00:45:44,814 --> 00:45:46,276
+Fourth, observation masking.
+
+585
+00:45:46,638 --> 00:45:52,128
+Look at this pie chart from a 2025 paper called the Complexity Trap.
+
+586
+00:45:52,366 --> 00:45:55,460
+It shows where the tokens go in a coding agent's history.
+
+587
+00:45:55,950 --> 00:45:57,476
+Reasoning is under 10%.
+
+588
+00:45:58,688 --> 00:46:00,288
+Actions are under 7.
+
+589
+00:46:01,038 --> 00:46:08,128
+Observations, meaning tool outputs like file contents, test logs, and search results, are about 84%.
+
+590
+00:46:09,102 --> 00:46:12,356
+So the stuff filling up the context isn't the agent's thinking.
+
+591
+00:46:12,814 --> 00:46:13,968
+It's the raw output.
+
+592
+00:46:13,980 --> 00:46:15,600
+it's read along the way.
+
+593
+00:46:16,782 --> 00:46:18,980
+The idea is very simple.
+
+594
+00:46:19,374 --> 00:46:28,708
+Instead of asking a model to summarize old history, just replace old tool outputs with a short placeholder, something like output omitted.
+
+595
+00:46:29,326 --> 00:46:34,916
+Keep the agent's own reasoning and actions and keep the most recent observations in full.
+
+596
+00:46:35,374 --> 00:46:43,108
+It's especially useful for coding agents, where a single test run or file read can be thousands of lines.
+
+597
+00:46:43,630 --> 00:46:47,172
+For our briefing, it's the 40-page BuzzMaker PDF.
+
+598
+00:46:47,566 --> 00:46:49,380
+The agent read 20 steps ago.
+
+599
+00:46:49,934 --> 00:46:52,196
+It already wrote down what it needed.
+
+600
+00:46:52,590 --> 00:46:54,692
+It doesn't need the whole PDF anymore.
+
+601
+00:46:55,214 --> 00:46:57,248
+The catch is small, but real.
+
+602
+00:46:57,838 --> 00:47:02,852
+If the agent later needs something from a MASP output, it has to run the tool again.
+
+603
+00:47:03,438 --> 00:47:06,404
+Usually that's cheap, like reopening a file.
+
+604
+00:47:06,734 --> 00:47:15,588
+But if the tool was slow or costly, like a long test suite or a paid search, you might keep a short note of the result before you hide it.
+
+605
+00:47:16,814 --> 00:47:18,368
+And here's the surprise.
+
+606
+00:47:18,830 --> 00:47:26,692
+The paper ran SWE Agent, an open source coding agent, on SWE Bench Verified, a set of real GitHub bug fixes.
+
+607
+00:47:27,310 --> 00:47:29,648
+Each chart is a different model.
+
+608
+00:47:30,158 --> 00:47:33,088
+The black dot is the raw agent with full history.
+
+609
+00:47:33,422 --> 00:47:36,580
+The pink square is LLM summarization.
+
+610
+00:47:36,942 --> 00:47:39,300
+The purple triangle is plain masking.
+
+611
+00:47:39,886 --> 00:47:43,300
+You won't up and to the left, meaning more soft for less money.
+
+612
+00:47:43,726 --> 00:47:53,028
+In most cases, masking is about as good as summarization, sometimes slightly better, and at roughly half the cost compared to the raw agent.
+
+613
+00:47:53,390 --> 00:47:59,076
+The middle chart is the exception where the raw agent solves more but at more than twice the price.
+
+614
+00:47:59,566 --> 00:48:01,828
+The paper's point is in its title.
+
+615
+00:48:02,510 --> 00:48:05,572
+The simple method often matches the complicated one.
+
+616
+00:48:06,030 --> 00:48:10,660
+So try the cheap, simple thing first and measure before you build the clever one.
+
+617
+00:48:11,886 --> 00:48:14,116
+Fifth, context isolation.
+
+618
+00:48:14,606 --> 00:48:21,732
+A planner splits the work and hands each piece to a subagent, and each sub-agent has its own separate context window.
+
+619
+00:48:22,158 --> 00:48:27,684
+A subagent might read 50 pages about one busmaker, but it returns only a short summary.
+
+620
+00:48:28,110 --> 00:48:32,932
+Anthropics Post says these summaries are often 1 to 2,000 tokens.
+
+621
+00:48:33,582 --> 00:48:36,228
+The main agent never sees the 50 pages.
+
+622
+00:48:36,718 --> 00:48:40,932
+This is orchestrator workers from earlier, but used for a different reason.
+
+623
+00:48:41,326 --> 00:48:44,004
+Before, the reason was spitting up the work.
+
+624
+00:48:44,398 --> 00:48:47,364
+Here the reason is keeping each context clean.
+
+625
+00:48:47,726 --> 00:49:00,836
+The catch is that the sub-agents can't see each other's work, so if two of them need to agree on an assumption, like what year's electricity price to use, you have to pass that to both of them explicitly.
+
+626
+00:49:01,966 --> 00:49:04,624
+A related idea is progressive disclosure.
+
+627
+00:49:05,070 --> 00:49:08,900
+You don't need every tool and every instruction in the first prompt.
+
+628
+00:49:09,454 --> 00:49:13,092
+You show a little up front and reveal more when it's needed.
+
+629
+00:49:13,422 --> 00:49:15,012
+Look at the skill file.
+
+630
+00:49:15,770 --> 00:49:19,972
+Antropic introduced these agent skills in October 2025.
+
+631
+00:49:20,398 --> 00:49:24,516
+At the top is a short header with just a name and a one-line description.
+
+632
+00:49:24,846 --> 00:49:28,064
+Only that header goes into the agent's prompt at the start.
+
+633
+00:49:28,462 --> 00:49:32,676
+If the agent decides it needs to work with a PDF, it reads the rest of the file.
+
+634
+00:49:33,070 --> 00:49:39,588
+And the file points to more files, like a forms guide that it reads only if it actually needs them.
+
+635
+00:49:40,142 --> 00:49:46,468
+So you can give an agent 100 skills and pay for only a few lines each until one gets used.
+
+636
+00:49:47,438 --> 00:49:49,584
+And the note on this slide is important.
+
+637
+00:49:50,222 --> 00:49:52,624
+These strategies all work together.
+
+638
+00:49:53,038 --> 00:49:55,904
+You can save facts to memory and then compact.
+
+639
+00:49:56,430 --> 00:50:00,196
+You can build the prompt from an event log and also mask old observations.
+
+640
+00:50:00,782 --> 00:50:03,908
+Real systems use several of them, sometimes all five.
+
+641
+00:50:04,462 --> 00:50:07,504
+Here's how our briefing agent might use all five.
+
+642
+00:50:07,854 --> 00:50:10,704
+Every action and result goes into an event log.
+
+643
+00:50:11,246 --> 00:50:16,836
+Key facts, like the council's constraints and the budget cap, get saved to a notes file.
+
+644
+00:50:17,294 --> 00:50:21,508
+Old brochure text gets masked once agent has pulled out the numbers.
+
+645
+00:50:21,966 --> 00:50:28,004
+One sub agent per bus maker does the reading in its own context and sends back a short summary.
+
+646
+00:50:28,398 --> 00:50:32,356
+And if the main conversation still gets long, compaction kicks in.
+
+647
+00:50:32,718 --> 00:50:38,852
+Each piece is simple, and together they let the agent work for hours without drowning in its own history.
+
+648
+00:50:39,950 --> 00:50:40,868
+Let's recap.
+
+649
+00:50:42,190 --> 00:50:46,052
+Here's another way to organize all of this from a long chain post.
+
+650
+00:50:46,574 --> 00:50:49,664
+Four verbs write, select, compress, and isolate.
+
+651
+00:50:50,062 --> 00:50:55,236
+Write means saving context somewhere outside the window, like a scratch pad or long-term memory.
+
+652
+00:50:55,790 --> 00:51:00,612
+Select means pulling the right pieces back in, like the right tools or the right memories.
+
+653
+00:51:01,134 --> 00:51:03,460
+Compress means summarizing or trimming.
+
+654
+00:51:04,078 --> 00:51:08,516
+Isolate means splitting context across sandboxes, state or multiple agents.
+
+655
+00:51:09,070 --> 00:51:12,004
+Everything we covered fits into one of these boxes.
+
+656
+00:51:12,526 --> 00:51:15,620
+You can line up today's five patterns with these verbs.
+
+657
+00:51:16,110 --> 00:51:19,300
+The event log and memory offloading are ways to write.
+
+658
+00:51:19,630 --> 00:51:22,980
+Progressive disclosure and searching memory are ways to select.
+
+659
+00:51:23,344 --> 00:51:26,756
+Compaction and observation masking are ways to compress.
+
+660
+00:51:27,150 --> 00:51:29,860
+And subagents are a way to isolate.
+
+661
+00:51:30,926 --> 00:51:33,060
+And the circle pieces are coming up.
+
+662
+00:51:33,550 --> 00:51:37,668
+Long-term memory, both writing and retrieving it, is this Wednesday.
+
+663
+00:51:38,414 --> 00:51:41,540
+Splitting work across multiple agents is next Monday.
+
+664
+00:51:42,784 --> 00:51:48,292
+So event logs, memory, compaction, observation masking, and isolation are the key context patterns.
+
+665
+00:51:48,870 --> 00:51:50,628
+Real systems Combine them.
+
+666
+00:51:51,150 --> 00:51:53,220
+And all of them come from two principles.
+
+667
+00:51:53,486 --> 00:51:56,772
+Keep the context focused and preserve continuity.
+
+668
+00:51:57,950 --> 00:52:00,830
+Let's look at a real harness and spot these decisions.
+
+669
+00:52:02,144 --> 00:52:05,024
+This is Pi, a minimal coding agent harness.
+
+670
+00:52:05,646 --> 00:52:08,224
+It's open source under the MIT license.
+
+671
+00:52:09,710 --> 00:52:11,104
+Here's its philosophy.
+
+672
+00:52:11,310 --> 00:52:18,980
+In its own words, Pi is a minimal agent harness, and you adapt Pi to your workflows, not the other way around.
+
+673
+00:52:19,566 --> 00:52:21,604
+So look at the list of what's missing.
+
+674
+00:52:22,222 --> 00:52:28,868
+No subagents, no permission checks, no plan mode, no to-do lists, and no background shell commands.
+
+675
+00:52:29,454 --> 00:52:31,904
+Popular harnesses ship all of those.
+
+676
+00:52:32,366 --> 00:52:39,076
+Pi leaves them out on purpose and lets you add them yourself with extensions, which are small TypeScript plugins.
+
+677
+00:52:39,470 --> 00:52:41,028
+People have built a lot of them.
+
+678
+00:52:41,710 --> 00:52:46,308
+Pi stocks also point to OpenCloud as an example of a real project built on top of it.
+
+679
+00:52:46,702 --> 00:52:48,164
+Why build it that way?
+
+680
+00:52:48,590 --> 00:52:53,744
+Every built-in feature adds instructions and tools to the prompt, whether or not you're using it.
+
+681
+00:52:54,126 --> 00:52:59,108
+A minimal core keeps the context small and you only add what your workflow needs.
+
+682
+00:53:00,302 --> 00:53:01,668
+Here are the tools.
+
+683
+00:53:02,126 --> 00:53:04,464
+By default, all the four are turned on.
+
+684
+00:53:04,750 --> 00:53:08,740
+Read a file, write a file, edit a file, and run a shell command.
+
+685
+00:53:09,230 --> 00:53:16,708
+The others in the table, like repfind and ls, are really just things you could do through the shell anyway.
+
+686
+00:53:17,198 --> 00:53:19,492
+This connects straight back to Codact.
+
+687
+00:53:19,918 --> 00:53:24,676
+If the agent has a shell, it has every command line program ever written.
+
+688
+00:53:25,134 --> 00:53:31,268
+You don't need a hundred custom JSON tools, and fewer tool descriptions means a smaller prompt.
+
+689
+00:53:31,662 --> 00:53:33,956
+That's the bloat point on the slide.
+
+690
+00:53:35,086 --> 00:53:37,104
+The loop is plain Rhea.
+
+691
+00:53:37,710 --> 00:53:41,988
+The model reasons then makes JSON tool calls, gets results, and repeats.
+
+692
+00:53:42,734 --> 00:53:44,772
+The interesting part is the picture.
+
+693
+00:53:45,326 --> 00:53:48,356
+The conversation is stored as a tree, not a list.
+
+694
+00:53:48,654 --> 00:53:53,264
+At any point you can go back to an earlier message and start a new branch from there.
+
+695
+00:53:53,584 --> 00:53:56,932
+Say your agent went down a back path for 10 steps.
+
+696
+00:53:57,326 --> 00:54:04,944
+Instead of arguing with it, you jump back to before it went wrong and try again, and the bad branch is still saved if you want it.
+
+697
+00:54:05,390 --> 00:54:08,228
+That only works because of the event log idea.
+
+698
+00:54:08,718 --> 00:54:12,900
+The full history is kept and the prompt is built from whichever branch you're on.
+
+699
+00:54:14,222 --> 00:54:16,740
+And look at the context management list.
+
+700
+00:54:17,390 --> 00:54:19,684
+It's three of the patterns from today.
+
+701
+00:54:20,238 --> 00:54:24,100
+First, an event log that gets converted into the model's input.
+
+702
+00:54:24,430 --> 00:54:27,268
+Second, progressive disclosure through skill files.
+
+703
+00:54:27,662 --> 00:54:28,944
+Third, compaction.
+
+704
+00:54:29,486 --> 00:54:40,260
+The picture at the bottom shows what the model actually sees after compaction, the system prompt, then a summary of everything older, then the recent messages kept word for word.
+
+705
+00:54:40,654 --> 00:54:45,540
+By default, Pi keeps about the last 20,000 tokens in full and summarizes the rest.
+
+706
+00:54:45,998 --> 00:54:50,980
+And the summary has fixed headings like goal, progress, key decisions, and next steps.
+
+707
+00:54:51,470 --> 00:54:56,484
+And the full original history stays in the session file, so nothing is actually lost.
+
+708
+00:54:57,582 --> 00:54:59,844
+And here's the catch with being minimal.
+
+709
+00:55:00,384 --> 00:55:07,716
+Pi runs with the same permissions as whatever process started it, and it never pops up a box asking, Are you sure?
+
+710
+00:55:08,238 --> 00:55:12,036
+So think of it as always running in auto mode, with no protection.
+
+711
+00:55:12,558 --> 00:55:14,557
+Remember the code act warning.
+
+712
+00:55:15,118 --> 00:55:17,892
+An agent with a shell can do anything you can do.
+
+713
+00:55:18,304 --> 00:55:21,028
+Pi's answer is that safety is your job.
+
+714
+00:55:21,390 --> 00:55:27,044
+Run it in a container or write an extension that asks for confirmation before risky commands.
+
+715
+00:55:27,374 --> 00:55:30,020
+That's a reasonable choice for an expert tool.
+
+716
+00:55:30,638 --> 00:55:39,076
+It also means that if you run it on your laptop with your real credentials, a prompt injection hidden in a web page could reach all of them.
+
+717
+00:55:39,504 --> 00:55:50,692
+Prompt injection, if you remember from lecture one, is when text the agent reads, like a web page or a file, contains instructions, and the agent follows them as if you'd given them.
+
+718
+00:55:51,118 --> 00:55:55,748
+A harness with no permission checks has nothing standing between that text and your shell.
+
+719
+00:55:56,930 --> 00:55:57,950
+To recap, hi.
+
+720
+00:55:58,510 --> 00:56:00,064
+It's minimal by design.
+
+721
+00:56:00,238 --> 00:56:01,860
+The community extends it.
+
+722
+00:56:02,094 --> 00:56:05,956
+Its default tools are Red, Write, Edit, and Bash.
+
+723
+00:56:06,286 --> 00:56:08,064
+It's a React style agent.
+
+724
+00:56:08,238 --> 00:56:16,388
+It manages context with an event log, progressive disclosure, and compaction, and it has no safeguards built in.
+
+725
+00:56:17,550 --> 00:56:18,564
+Let's wrap up.
+
+726
+00:56:19,598 --> 00:56:22,212
+Today we covered workflows versus agents.
+
+727
+00:56:22,702 --> 00:56:32,292
+The five workflow patterns, patterns for reasoning and acting, patterns for managing context, and a real harness that puts several of them together.
+
+728
+00:56:32,686 --> 00:56:35,140
+If you remember one thing, make it this.
+
+729
+00:56:35,694 --> 00:56:37,764
+These patterns are the vocabulary.
+
+730
+00:56:38,126 --> 00:56:44,900
+When you look at any agent system, including the one you're building for your project, ask, where does the control flow live?
+
+731
+00:56:45,134 --> 00:56:46,784
+How does it reason and act?
+
+732
+00:56:46,864 --> 00:56:50,148
+And what's in the context window at each step and why?
+
+733
+00:56:50,606 --> 00:56:53,412
+Let's run our briefing through it one last time.
+
+734
+00:56:53,774 --> 00:56:59,904
+The outer structure, the sections the city always wants, is a palm chain with gates, so it's predictable.
+
+735
+00:57:00,302 --> 00:57:05,924
+Inside the cost section, an orchestrator sends one worker per busmaker, and those run in parallel.
+
+736
+00:57:06,350 --> 00:57:10,148
+Each worker is a React agent that writes code to do its arithmetic.
+
+737
+00:57:10,606 --> 00:57:20,036
+A checker with search tools verifies every number, Swittic style, and when a check fails, the worker gets a written reflection and tries again.
+
+738
+00:57:20,430 --> 00:57:25,892
+And the whole time the context is managed with a log, notes, masking, and isolation.
+
+739
+00:57:26,350 --> 00:57:28,196
+None of those pieces is new.
+
+740
+00:57:28,526 --> 00:57:32,356
+The design work is choosing which ones you need and leaving out the rest.
+
+741
+00:57:33,518 --> 00:57:39,268
+On Wednesday, we'll talk about memory, which is how agents remember things across steps and across sessions.
+
+742
+00:57:39,950 --> 00:57:40,784
+See you then.
+
