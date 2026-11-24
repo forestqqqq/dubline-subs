@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [When Less Is More: Flight Software Challenges in ESA Space Missions (keynote at ICSA 2026)](medias/WA7K3/) | International Conference on Software Architecture | 2026-11-23 |
 | [CS329Z Lecture 6: Agent Design Patterns & Scaffolds — Engineering AI Agents (unofficial walkthrough)](medias/TM5J9/) | CatDataING | 2026-11-23 |
 | [How to Get Your Data Ready for AI Agents (Docs, PDFs, Websites)](medias/R3D6C/) | Dave Ebbelaar | 2026-11-23 |
 | [MobiSys 2019 - SpecEye: Towards Pervasive and Privacy-Preserving Screen Exposure Detection in Daily](medias/Q01S3/) | ACM SIGMOBILE ONLINE | 2026-11-23 |
