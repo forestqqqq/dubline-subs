@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [WebRTC Deep Dive: The Protocol That Powers Every Video Call](medias/0F01K/) | ByteMonk | 2026-11-26 |
 | [Low Level Design was HARD until I learned these concepts](medias/0DNY6/) | Anubhav Sethi | 2026-11-26 |
 | [When Less Is More: Flight Software Challenges in ESA Space Missions (keynote at ICSA 2026)](medias/WA7K3/) | International Conference on Software Architecture | 2026-11-23 |
 | [CS329Z Lecture 6: Agent Design Patterns & Scaffolds — Engineering AI Agents (unofficial walkthrough)](medias/TM5J9/) | CatDataING | 2026-11-23 |

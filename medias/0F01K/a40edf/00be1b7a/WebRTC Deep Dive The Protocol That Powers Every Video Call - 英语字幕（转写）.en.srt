@@ -1,0 +1,1620 @@
+1
+00:00:00,014 --> 00:00:05,440
+When you talk on a zoom call, your voice reaches the other person in under 200 milliseconds.
+
+2
+00:00:05,680 --> 00:00:09,360
+That is faster than a TCP handshake to most servers on the internet.
+
+3
+00:00:09,760 --> 00:00:13,760
+Faster than your own browser can pull a JSON response from your own backend.
+
+4
+00:00:14,160 --> 00:00:15,920
+Now think about that for a second.
+
+5
+00:00:16,160 --> 00:00:19,040
+What protocol is the browser using to pull this off?
+
+6
+00:00:19,360 --> 00:00:21,040
+It is not HTTP.
+
+7
+00:00:21,280 --> 00:00:22,880
+It is not WebSockets.
+
+8
+00:00:23,040 --> 00:00:24,400
+It is WebRTC.
+
+9
+00:00:24,560 --> 00:00:27,760
+And most engineers have never written a single line of code against it.
+
+10
+00:00:27,920 --> 00:00:31,440
+By the end of this video, you'll know exactly how WebRTC works.
+
+11
+00:00:31,680 --> 00:00:36,880
+Why it is the only way Zoom, Discord, and Google Made could exist at the scale they do.
+
+12
+00:00:36,960 --> 00:00:42,000
+And the one architecture decision every team building real-time video gets wrong on their first try.
+
+13
+00:00:42,240 --> 00:00:43,520
+Let's get into it.
+
+14
+00:00:49,166 --> 00:00:51,108
+Real-time communications is everywhere now.
+
+15
+00:00:51,438 --> 00:00:56,868
+Remote work, telehealth, multiplayer games, live collaboration tools, customer support video calls.
+
+16
+00:00:57,518 --> 00:01:00,292
+Every modern product seems to have a video tab somewhere.
+
+17
+00:01:00,750 --> 00:01:04,548
+But very few engineers actually understand how any of this works under the hood.
+
+18
+00:01:05,038 --> 00:01:11,364
+WebRTC is one of those rare topics that shows up in senior system design interviews and almost never in your day job.
+
+19
+00:01:11,600 --> 00:01:14,276
+Which means if you know it well, you stand out a lot.
+
+20
+00:01:14,798 --> 00:01:16,196
+So this is worth of your time.
+
+21
+00:01:16,718 --> 00:01:22,180
+Now, to understand why WebRTC matters, you have to remember what video calls used to look like.
+
+22
+00:01:22,542 --> 00:01:31,844
+Before 2011, if you wanted to do voice or video in a browser, you needed Flash or a Java applet or some custom plugin the user had to download and install.
+
+23
+00:01:32,302 --> 00:01:33,920
+Google Hangouts had a browser plugin.
+
+24
+00:01:34,240 --> 00:01:39,652
+Half the video products on the web shipped their own sketchy little binary that ran with way too many permissions.
+
+25
+00:01:40,430 --> 00:01:43,204
+It was painful for users, painful for developers.
+
+26
+00:01:43,822 --> 00:01:45,316
+Security holes everywhere.
+
+27
+00:01:45,902 --> 00:01:47,716
+Different plugin for every browser.
+
+28
+00:01:48,462 --> 00:01:50,884
+Half your users could not even get the call started.
+
+29
+00:01:51,566 --> 00:01:55,940
+Then in 2011, Google open sourced a project called WebRTC.
+
+30
+00:01:56,238 --> 00:01:59,716
+By around 2017, every major browser had it built in.
+
+31
+00:02:00,014 --> 00:02:03,940
+Chrome, Firefox, Safari, Edge, no installs, no plugins.
+
+32
+00:02:04,718 --> 00:02:10,340
+The browser became a real-time communication endpoint the same way it had always been an HTTP endpoint.
+
+33
+00:02:10,830 --> 00:02:13,636
+You do not install HTTP, you just use it.
+
+34
+00:02:14,222 --> 00:02:16,932
+Now the same was true for peer-to-peer video.
+
+35
+00:02:17,454 --> 00:02:22,948
+Once the browser could do real-time on its own, every modern video product you use today became possible.
+
+36
+00:02:23,438 --> 00:02:29,700
+Google Meet, Discord, Slack hurdles, Microsoft Teams, all of it sits on top of WebRTC.
+
+37
+00:02:30,350 --> 00:02:34,640
+If you have spent your career writing HTTP services, you are used to one model.
+
+38
+00:02:34,862 --> 00:02:37,092
+Client asks, server answers, done.
+
+39
+00:02:37,390 --> 00:02:39,332
+WebRTC does not work like that at all.
+
+40
+00:02:39,950 --> 00:02:43,812
+So before we look at any code, let us first build the right mental picture.
+
+41
+00:02:44,240 --> 00:02:45,764
+HTTP is a transaction.
+
+42
+00:02:46,158 --> 00:02:50,500
+You send a GET request, you get a response, the connection effectively ends.
+
+43
+00:02:51,438 --> 00:02:53,924
+You send a post, you get a response, done.
+
+44
+00:02:54,480 --> 00:02:58,020
+Stateless, predictable, and built on TCP.
+
+45
+00:02:58,670 --> 00:03:00,196
+WebRTC is a session.
+
+46
+00:03:00,814 --> 00:03:04,196
+Two peers negotiate a connection once and then they keep talking.
+
+47
+00:03:04,590 --> 00:03:06,000
+There's no get or post.
+
+48
+00:03:06,400 --> 00:03:11,940
+Instead, before any audio or video flows, the two browsers have a small back-and-forth conversation.
+
+49
+00:03:12,750 --> 00:03:20,548
+One side sends a description of what it can do, what video formats it supports, what audio formats, what its network looks like.
+
+50
+00:03:21,230 --> 00:03:26,276
+The other side reads that, picks what it can match, and sends back its own description.
+
+51
+00:03:26,766 --> 00:03:29,380
+Once both sides agree, the call begins.
+
+52
+00:03:29,840 --> 00:03:31,972
+That little description document has a name.
+
+53
+00:03:32,240 --> 00:03:36,036
+It is called SDP or the session description protocol.
+
+54
+00:03:36,590 --> 00:03:40,100
+Now do not worry about the name for now, we'll look at it more carefully in a bit.
+
+55
+00:03:40,590 --> 00:03:41,604
+Just remember the idea.
+
+56
+00:03:42,254 --> 00:03:45,156
+Two browsers exchange a description of the capabilities.
+
+57
+00:03:45,806 --> 00:03:50,436
+Agree on what they can both do, and only then do they open a direct pipe between each other.
+
+58
+00:03:51,086 --> 00:03:54,052
+That pipe stays open for as long as the call lasts.
+
+59
+00:03:54,638 --> 00:03:56,036
+And here's the most important part.
+
+60
+00:03:56,650 --> 00:03:59,430
+WebRTC runs on UDP, not TCP.
+
+61
+00:04:00,110 --> 00:04:04,612
+Most engineers spend their entire career building on top of TCP without thinking about it.
+
+62
+00:04:05,262 --> 00:04:13,284
+Every HTTP call you have ever made, every database query, every gRPC request, all of it writes on TCP.
+
+63
+00:04:13,934 --> 00:04:16,964
+TCP is the protocol that makes the internet feel reliable.
+
+64
+00:04:17,742 --> 00:04:23,172
+So when you send a packet over TCP, it is guaranteed to arrive in order exactly once.
+
+65
+00:04:23,886 --> 00:04:27,812
+If a packet gets lost on the way, TCP detects that and resends it.
+
+66
+00:04:28,462 --> 00:04:34,564
+If a packet arrives out of order, TCP buffers them and hands them to your application in the write sequence.
+
+67
+00:04:35,438 --> 00:04:38,884
+You write fetch and you get back exactly the bytes the server sent.
+
+68
+00:04:39,264 --> 00:04:40,132
+No surprises.
+
+69
+00:04:40,846 --> 00:04:42,084
+UDP is the opposite.
+
+70
+00:04:42,574 --> 00:04:45,316
+UDP is just, here is a packet, good luck.
+
+71
+00:04:45,504 --> 00:04:48,548
+No retries, no ordering, no guarantees.
+
+72
+00:04:48,878 --> 00:04:50,820
+If a packet gets lost, it is gone.
+
+73
+00:04:51,310 --> 00:04:54,436
+If two packets arrive out of order, they show up out of order.
+
+74
+00:04:54,798 --> 00:04:57,540
+If a packet shows up corrupted, your app deals with it.
+
+75
+00:04:58,318 --> 00:04:59,268
+Sounds terrible, right?
+
+76
+00:04:59,758 --> 00:05:01,188
+Why would anyone use this?
+
+77
+00:05:01,486 --> 00:05:03,716
+Because TCP's reliability has a cost.
+
+78
+00:05:04,110 --> 00:05:05,664
+And that cost is time.
+
+79
+00:05:06,606 --> 00:05:11,716
+When TCP detects a lost packet, it stops everything and waits for the retransmission.
+
+80
+00:05:12,110 --> 00:05:14,052
+That pause might be 100 milliseconds.
+
+81
+00:05:14,702 --> 00:05:16,068
+200, sometimes more.
+
+82
+00:05:16,462 --> 00:05:19,140
+Your whole stream blocks until the missing piece arrives.
+
+83
+00:05:19,854 --> 00:05:24,580
+For loading a web page, that is fine, but for a live voice call, it is a disaster.
+
+84
+00:05:25,134 --> 00:05:27,396
+UDP is unreliable on purpose.
+
+85
+00:05:28,014 --> 00:05:29,572
+Packets can arrive out of order.
+
+86
+00:05:29,998 --> 00:05:32,100
+Packets can get lost and never come back.
+
+87
+00:05:32,558 --> 00:05:35,140
+For HTTP, that would be unacceptable.
+
+88
+00:05:35,566 --> 00:05:38,916
+Because your bank balance cannot show the wrong number because a packet was late.
+
+89
+00:05:39,470 --> 00:05:41,860
+But for video and voice, it is the opposite.
+
+90
+00:05:42,382 --> 00:05:47,108
+A packet that arrives 300 milliseconds late is worse than a packet that never arrives.
+
+91
+00:05:47,918 --> 00:05:54,144
+You would rather drop one frame of video than freeze the entire call for half a second, waiting for that frame to retransmit.
+
+92
+00:05:54,766 --> 00:05:57,424
+Your face can show one feared frame and nobody dies.
+
+93
+00:05:57,584 --> 00:06:01,028
+Your voice can skip a tiny syllable and the conversation keeps going.
+
+94
+00:06:01,550 --> 00:06:03,652
+TCP optimizes for correctness.
+
+95
+00:06:04,206 --> 00:06:05,860
+UDP optimizes for time.
+
+96
+00:06:06,350 --> 00:06:07,844
+WebRTC pick time.
+
+97
+00:06:08,110 --> 00:06:11,684
+Because in real-time communication, late data is dead data.
+
+98
+00:06:12,174 --> 00:06:15,204
+And that decision shapes everything else about how this works.
+
+99
+00:06:15,534 --> 00:06:23,012
+And speaking of voice, I just wrote this entire design doc problem statement, architecture, trade-offs, and I didn't type a single word.
+
+100
+00:06:23,630 --> 00:06:24,464
+This is Willow Voice.
+
+101
+00:06:24,624 --> 00:06:27,812
+It's a dictation tool built for people who actually write for a living.
+
+102
+00:06:28,064 --> 00:06:31,812
+Engineers, PMs, anyone who lives in docs and Slack all day.
+
+103
+00:06:32,142 --> 00:06:34,756
+So here I'm going to design a distributed rate limiter.
+
+104
+00:06:35,054 --> 00:06:39,588
+I am on my Mac and I just press the function key which I assigned as a hotkey to Willow.
+
+105
+00:06:40,110 --> 00:06:41,764
+Willow activates instantly.
+
+106
+00:06:42,144 --> 00:06:42,692
+Let's go.
+
+107
+00:06:43,246 --> 00:06:47,492
+We need a rate limiter that handles 10 million requests per second across regions.
+
+108
+00:06:48,144 --> 00:06:51,204
+The main constraint is consistency.
+
+109
+00:06:51,982 --> 00:06:53,984
+Token bucket gives us burst tolerance.
+
+110
+00:06:54,286 --> 00:06:58,372
+Sliding window is more accurate, but it's expensive at scale, so let's not do that.
+
+111
+00:06:59,694 --> 00:07:01,060
+And here is what it came up with.
+
+112
+00:07:01,454 --> 00:07:12,900
+I hope you noticed that I took intentional pauses and I sometimes use filler words like mmm like and yet Willow was able to strip out everything and make it into a clean paragraph style sentence.
+
+113
+00:07:13,358 --> 00:07:15,024
+And this is not just plain text.
+
+114
+00:07:15,184 --> 00:07:18,212
+If I say bullet points, it formats them as a bullet points.
+
+115
+00:07:18,606 --> 00:07:20,420
+Alright, let's go to the architecture.
+
+116
+00:07:20,654 --> 00:07:21,892
+Heading architecture.
+
+117
+00:07:22,222 --> 00:07:25,988
+Next line bullet point will use Redis with consistent hashing.
+
+118
+00:07:26,574 --> 00:07:28,836
+Each node owns a shard of the key space.
+
+119
+00:07:29,806 --> 00:07:35,396
+Bullet point for atomicity, Lua scripts handle the increment and check in a single round trip.
+
+120
+00:07:35,664 --> 00:07:36,944
+New heading, trade-offs.
+
+121
+00:07:37,262 --> 00:07:39,524
+Redis gives us speed but adds a dependency.
+
+122
+00:07:40,046 --> 00:07:44,452
+Bullet point, a sidecar approach, keeps latency lower but complicates deploys.
+
+123
+00:07:45,166 --> 00:07:45,824
+Now look at this.
+
+124
+00:07:46,158 --> 00:07:49,636
+It got Redis, Lua, consistent hashing, all in a context.
+
+125
+00:07:49,838 --> 00:07:51,424
+And it works everywhere you write.
+
+126
+00:07:51,630 --> 00:07:53,604
+Notion, Google Docs, Gmail, Slack.
+
+127
+00:07:53,824 --> 00:07:54,944
+Links in the description.
+
+128
+00:07:55,182 --> 00:07:59,364
+You can use my promo code at checkout and get 20% off premium for 12 months.
+
+129
+00:07:59,790 --> 00:08:01,892
+Now here is something that confuses a lot of people.
+
+130
+00:08:02,382 --> 00:08:09,924
+WebRTC is not actually a single protocol, it's a bundle of protocols that all work together, hidden behind one browser API.
+
+131
+00:08:10,574 --> 00:08:16,388
+We'll see the actual JavaScript in a few minutes, but before we look at the code, you need to know what is happening underneath.
+
+132
+00:08:16,814 --> 00:08:20,516
+Because when something breaks in production, it will not be the API that fails.
+
+133
+00:08:20,942 --> 00:08:22,692
+It will be one of these layers underneath.
+
+134
+00:08:23,086 --> 00:08:24,964
+So let me walk you through the seven players.
+
+135
+00:08:25,454 --> 00:08:27,844
+There is SDP, which we already touched on.
+
+136
+00:08:28,270 --> 00:08:30,052
+It is the session description protocol.
+
+137
+00:08:30,542 --> 00:08:33,508
+Just a text document that lists what each site can do.
+
+138
+00:08:33,998 --> 00:08:38,436
+My site says I can send video using this codec, audio using that codec.
+
+139
+00:08:38,702 --> 00:08:42,436
+By the way, codec is just a fancy word for a way of compressing audio or video.
+
+140
+00:08:42,608 --> 00:08:45,476
+So it fits through a network without using too much bandwidth.
+
+141
+00:08:45,902 --> 00:08:50,980
+So both sides have to agree on a codec they both can handle before any media starts flowing.
+
+142
+00:08:51,488 --> 00:08:55,460
+Then there is ice, which stands for Interactive Connectivity Establishment.
+
+143
+00:08:55,982 --> 00:09:00,068
+ICE is the algorithm that figures out the best network path between two peers.
+
+144
+00:09:00,782 --> 00:09:07,748
+We'll spend a lot more time on this in a minute because finding a path between two random laptops on the internet is actually really hard.
+
+145
+00:09:08,270 --> 00:09:14,340
+Then there is STUN or STUN, a small server that helps each peer figure out its own public address.
+
+146
+00:09:14,894 --> 00:09:16,612
+And we'll come back to why that is hard.
+
+147
+00:09:17,166 --> 00:09:24,132
+There is TURN or TURN, a relay server that kicks in when a direct connection between two peers is actually impossible.
+
+148
+00:09:24,526 --> 00:09:31,492
+Roughly 10 to 15% of all WebRTC connections cannot establish a direct path and have to fall back to Turn.
+
+149
+00:09:32,238 --> 00:09:33,668
+And we'll come back to that one too.
+
+150
+00:09:34,510 --> 00:09:46,020
+Then there is DTLS, which is just TLS for UDP, the same encryption handshake your browser does for HTTPS, but adapted to work on top of UDP instead of TCP.
+
+151
+00:09:46,734 --> 00:09:48,804
+And this is what keeps your call private.
+
+152
+00:09:49,454 --> 00:09:53,444
+There is also SRTP, the secure real-time transport protocol.
+
+153
+00:09:53,870 --> 00:09:57,252
+This is what your actual audio and video flow over once the connection is up.
+
+154
+00:09:57,870 --> 00:09:59,396
+The S is for secure.
+
+155
+00:09:59,648 --> 00:10:03,172
+SRTP packets are encrypted courtesy of DTLS.
+
+156
+00:10:03,566 --> 00:10:08,740
+And finally, there is RTCP, the control channel that runs along SRTP.
+
+157
+00:10:09,454 --> 00:10:13,508
+RTCP is how each side tells the other how the connection is doing.
+
+158
+00:10:13,902 --> 00:10:15,088
+Are packets getting lost?
+
+159
+00:10:15,406 --> 00:10:16,452
+Is bandwidth dropping?
+
+160
+00:10:16,750 --> 00:10:17,956
+Should we lower the bitrate?
+
+161
+00:10:18,414 --> 00:10:21,732
+RTCP is the feedback loop that keeps the call adaptive.
+
+162
+00:10:22,190 --> 00:10:26,852
+All seven of these are standardized by the IETF and the W3C.
+
+163
+00:10:27,214 --> 00:10:29,092
+The two big internet standard bodies.
+
+164
+00:10:29,614 --> 00:10:33,796
+That is why your code works the same on Chrome, Firefox, Safari, and Edge.
+
+165
+00:10:34,190 --> 00:10:37,284
+Browsers do not get to invent their own version of WebRTC.
+
+166
+00:10:37,902 --> 00:10:41,668
+7 protocols, 1 API on top, that is WebRTC.
+
+167
+00:10:42,094 --> 00:10:45,732
+Now let us talk about the hardest part of making this thing work in the real world.
+
+168
+00:10:46,318 --> 00:10:48,228
+So you are sitting at home on your laptop.
+
+169
+00:10:48,718 --> 00:10:51,172
+Your friend is sitting at her home, on her laptop.
+
+170
+00:10:51,790 --> 00:10:53,572
+You both want to start a video call.
+
+171
+00:10:53,998 --> 00:10:58,180
+Now it might surprise some of you, but your laptop does not have a public IP address.
+
+172
+00:10:58,670 --> 00:11:03,748
+It has a private one, a local address that only makes sense inside your own home network.
+
+173
+00:11:04,462 --> 00:11:09,380
+Your laptop thinks it is something like 192.168.1.42.
+
+174
+00:11:10,126 --> 00:11:11,364
+So does your friend's laptop.
+
+175
+00:11:11,950 --> 00:11:15,172
+So do about half a billion other laptops on the internet right now.
+
+176
+00:11:15,950 --> 00:11:23,044
+They are all using the same private address ranges, hidden behind some routers that translate between the inside world and the outside world.
+
+177
+00:11:23,694 --> 00:11:27,428
+And that translation is called NAT, Network Address Translation.
+
+178
+00:11:28,014 --> 00:11:29,188
+Every home router does this.
+
+179
+00:11:29,774 --> 00:11:37,124
+The reason it works is that when you make an outgoing request, like loading a web page, the router remembers it and routes the response back to you.
+
+180
+00:11:37,774 --> 00:11:42,628
+The outside world only ever sees the router's public IP, never your laptop's address.
+
+181
+00:11:43,310 --> 00:11:45,540
+But this creates a real problem for video calls.
+
+182
+00:11:46,350 --> 00:11:53,956
+To call your friend directly, you need to send packets to her laptop, not to her router, to her actual laptop sitting on her couch.
+
+183
+00:11:54,158 --> 00:11:56,932
+And from the outside, her laptop is invisible.
+
+184
+00:11:57,294 --> 00:11:59,972
+There is no address you can put in a packet that will reach her.
+
+185
+00:12:00,558 --> 00:12:03,044
+So how do you connect to a machine you cannot even address?
+
+186
+00:12:03,726 --> 00:12:06,564
+And this is the single hardest thing WebRTC has to solve.
+
+187
+00:12:07,182 --> 00:12:09,380
+And the way it solves it actually quite smart.
+
+188
+00:12:09,966 --> 00:12:11,076
+Let me walk you through the steps.
+
+189
+00:12:11,630 --> 00:12:15,680
+Step 1: Both of you connect to a common server somewhere on the public internet.
+
+190
+00:12:16,142 --> 00:12:18,084
+This is called a signaling server.
+
+191
+00:12:18,446 --> 00:12:21,060
+You build this yourself, usually over WebSockets.
+
+192
+00:12:21,550 --> 00:12:23,556
+Its only job is to be a matchmaker.
+
+193
+00:12:24,142 --> 00:12:27,140
+It introduces the two peers and then steps out of the way.
+
+194
+00:12:27,630 --> 00:12:31,812
+WebRTC does not even specify how signaling works because it does not care.
+
+195
+00:12:32,334 --> 00:12:33,028
+You decide.
+
+196
+00:12:33,710 --> 00:12:34,436
+Step 2.
+
+197
+00:12:34,894 --> 00:12:41,284
+Each peer talks to a stun server and basically asks, Hey, what does my public IP look like from your side?
+
+198
+00:12:41,806 --> 00:12:46,052
+Stun replies, and now both peers know what address the outside world sees them on.
+
+199
+00:12:46,574 --> 00:12:47,360
+Step 3.
+
+200
+00:12:47,566 --> 00:12:51,716
+Each peer collects a list of every possible address it might be reachable at.
+
+201
+00:12:52,240 --> 00:12:56,900
+Local network address, public address from stun, maybe a relay address from Turn.
+
+202
+00:12:57,390 --> 00:12:59,684
+Each one of these is called an ICE candidate.
+
+203
+00:13:00,398 --> 00:13:03,716
+A candidate address that the other side might be able to reach you on.
+
+204
+00:13:04,334 --> 00:13:05,120
+Step 4.
+
+205
+00:13:05,486 --> 00:13:09,924
+Both peers send all their ICE candidates to each other through the signaling server.
+
+206
+00:13:10,414 --> 00:13:14,180
+Then they start firing connections attempts at every possible pair of addresses.
+
+207
+00:13:14,734 --> 00:13:17,732
+ICE keeps trying combinations until one of them works.
+
+208
+00:13:18,414 --> 00:13:19,972
+The fastest path wins.
+
+209
+00:13:20,462 --> 00:13:21,732
+Now the connection is up.
+
+210
+00:13:22,222 --> 00:13:31,300
+DTLS does the encryption handshake, SRTP starts carrying media, and from this moment on, your video and audio flows directly between the two laptops.
+
+211
+00:13:31,918 --> 00:13:33,668
+They do not pass through the signaling server.
+
+212
+00:13:34,094 --> 00:13:35,908
+They do not pass through any server you own.
+
+213
+00:13:36,462 --> 00:13:38,692
+The signaling server was just the matchmaker.
+
+214
+00:13:39,040 --> 00:13:41,604
+Once the introduction is done, it bows out.
+
+215
+00:13:42,094 --> 00:13:46,148
+And that is what people mean when they say WebRTC is peer-to-peer.
+
+216
+00:13:46,638 --> 00:13:51,492
+Now all of this sounds like a lot, but the API the browser gives you is shockingly small.
+
+217
+00:13:52,240 --> 00:13:55,652
+let me show you the entire connection flow in about 20 lines of JavaScript.
+
+218
+00:13:56,174 --> 00:13:57,668
+Now quick note before we start.
+
+219
+00:13:57,966 --> 00:14:00,324
+You will see a thing called signaling channel in the code.
+
+220
+00:14:00,942 --> 00:14:04,772
+That is just my placeholder for whatever connection you have to your own signaling server.
+
+221
+00:14:05,550 --> 00:14:06,980
+Usually it is a WebSocket.
+
+222
+00:14:07,406 --> 00:14:13,252
+The browser does not care what you use, as long as you can pass messages back and forth between the two peers.
+
+223
+00:14:13,774 --> 00:14:15,524
+With that out of the way, here is the flow.
+
+224
+00:14:15,886 --> 00:14:17,828
+You start by creating a peer connection.
+
+225
+00:14:18,222 --> 00:14:21,316
+The only thing you tell it upfront is which stun server to use.
+
+226
+00:14:21,806 --> 00:14:25,892
+Google runs a free public one, and that is what most tutorials point at.
+
+227
+00:14:26,446 --> 00:14:31,140
+Then you grab the user's camera and microphone and you add those tracks to the peer connection.
+
+228
+00:14:31,520 --> 00:14:33,476
+This is what you want to send to the other side.
+
+229
+00:14:34,094 --> 00:14:35,748
+Then you create an STP offer.
+
+230
+00:14:36,206 --> 00:14:38,340
+This is the description we talked about earlier.
+
+231
+00:14:38,798 --> 00:14:44,132
+It says, here is what I can do, what video and audio formats I support, and what resolutions.
+
+232
+00:14:44,846 --> 00:14:52,068
+You set it as your local description, meaning your side of the agreement, and you send it to the other peer through your signaling channel.
+
+233
+00:14:52,590 --> 00:14:56,228
+When the other peer's answers come back, you set it as the remote description.
+
+234
+00:14:56,718 --> 00:14:59,204
+Both sides now agree on what the call will look like.
+
+235
+00:14:59,726 --> 00:15:03,940
+So whenever your browser discovers a new ICE candidate, you forward it to the other peer.
+
+236
+00:15:04,398 --> 00:15:05,636
+And they do the same to you.
+
+237
+00:15:06,222 --> 00:15:08,964
+ICE keeps testing peers until something connects.
+
+238
+00:15:09,454 --> 00:15:11,940
+And this last handler fires on the receiving side.
+
+239
+00:15:12,238 --> 00:15:19,940
+When the other peers video and audio actually start arriving, you point a video tag at the incoming stream and you have a working video call.
+
+240
+00:15:20,558 --> 00:15:23,588
+And that is it, about 20 lines of peer-to-peer video.
+
+241
+00:15:24,078 --> 00:15:30,948
+The hard part is not the API, the hard part is the signaling server you have to build and the architecture choices you make next.
+
+242
+00:15:31,726 --> 00:15:32,932
+One more thing before we move on.
+
+243
+00:15:33,262 --> 00:15:35,076
+WebRTC is not just for video.
+
+244
+00:15:35,662 --> 00:15:43,428
+There is something called RTC data channel that lets you send any binary data between peers on the same connection with the same low latency.
+
+245
+00:15:43,886 --> 00:15:53,348
+And this is how Figma syncs cursor positions, how some multiplayer games handle real-time game state between players, how peer-to-peer file transfer apps work in the browser.
+
+246
+00:15:53,966 --> 00:15:55,876
+WebRTC is a real-time pipe.
+
+247
+00:15:56,430 --> 00:15:59,236
+Video just happens to be the most popular thing to send through it.
+
+248
+00:15:59,758 --> 00:16:01,600
+Let me show you this actually working.
+
+249
+00:16:01,838 --> 00:16:04,260
+The code we just looked at uses the camera.
+
+250
+00:16:04,654 --> 00:16:08,804
+For this demo, we are using the same API but capturing the screen instead.
+
+251
+00:16:09,422 --> 00:16:11,236
+Same WebRTC flow underneath.
+
+252
+00:16:11,630 --> 00:16:17,892
+So here we have built a simple browser based screen sharing system where two devices can connect directly with each other in real time.
+
+253
+00:16:18,478 --> 00:16:21,892
+Inside the application, we mainly have four core functions working together.
+
+254
+00:16:22,638 --> 00:16:26,564
+Init receiver prepares the receiving device and generates a unique connection ID.
+
+255
+00:16:27,438 --> 00:16:30,980
+GetShareStream captures the desktop screen securely from the browser.
+
+256
+00:16:31,790 --> 00:16:37,220
+Start Sharing establishes the P2P connection between both devices and starts a live stream.
+
+257
+00:16:37,678 --> 00:16:42,596
+And finally, stop sharing cleanly disconnects this session and stops the stream whenever needed.
+
+258
+00:16:43,182 --> 00:16:51,108
+So first, we start a lightweight local server using Python M HTTP server, which hosts the application on port 8000.
+
+259
+00:16:51,662 --> 00:17:00,228
+Then using VS Code's built-in port forwarding feature, we expose that port publicly so the application becomes accessible from anywhere through a shared link.
+
+260
+00:17:01,038 --> 00:17:04,516
+Now on the mobile phone, we open the shared link and click on receiver.
+
+261
+00:17:05,230 --> 00:17:08,292
+The system instantly generates a unique ID for that device.
+
+262
+00:17:09,294 --> 00:17:12,420
+On the desktop side, we open the same link and select sender.
+
+263
+00:17:13,134 --> 00:17:17,828
+Here we paste the ID generated from the mobile device and click on Start Sharing.
+
+264
+00:17:18,638 --> 00:17:22,788
+So at this point, the application requests screen sharing permission from the desktop browser.
+
+265
+00:17:23,342 --> 00:17:28,836
+Once allowed, a direct peer-to-peer connection gets established between both devices using WebRTC.
+
+266
+00:17:29,390 --> 00:17:37,668
+And as you can see, the desktop screen is now streamed live directly to the mobile phone in real time without using any dedicated streaming server in between.
+
+267
+00:17:38,446 --> 00:17:46,436
+So overall, this demonstrates a lightweight real-time screen sharing solution running completely inside the browser with direct device-to-device communication.
+
+268
+00:17:47,502 --> 00:17:50,660
+So that is peer-to-peer WebRTC working end-to-end.
+
+269
+00:17:51,150 --> 00:17:53,924
+Just two devices, no streaming server in between.
+
+270
+00:17:54,798 --> 00:17:59,940
+Alright, now let us talk about why this peer-to-peer design falls apart the moment you try to scale it.
+
+271
+00:18:00,398 --> 00:18:03,908
+When just two people are on a call, WebRTC works perfectly.
+
+272
+00:18:04,302 --> 00:18:06,788
+One stream up, one stream down for each person.
+
+273
+00:18:07,630 --> 00:18:10,500
+If you add a third person, now things start to get interesting.
+
+274
+00:18:10,766 --> 00:18:13,252
+Each person has to send their video to the other two.
+
+275
+00:18:13,902 --> 00:18:17,156
+So everyone is uploading two streams and downloading two streams.
+
+276
+00:18:17,742 --> 00:18:20,708
+Add a fourth person, three up, three down per person.
+
+277
+00:18:21,358 --> 00:18:22,180
+spot the pattern?
+
+278
+00:18:22,606 --> 00:18:29,092
+With n people in a call, every person has to upload n one streams and download n one streams.
+
+279
+00:18:29,870 --> 00:18:34,272
+The total number of streams lying around the call grows as n times n 1.
+
+280
+00:18:34,670 --> 00:18:35,332
+Quadratic.
+
+281
+00:18:35,694 --> 00:18:36,900
+Let us put numbers on that.
+
+282
+00:18:37,454 --> 00:18:41,860
+10 people in a call means each person is uploading 9 simultaneous video streams.
+
+283
+00:18:42,254 --> 00:18:44,548
+Your home upload bandwidth probably cannot handle that.
+
+284
+00:18:44,942 --> 00:18:49,572
+Even if it can, your laptop is encoding 9 separate copies of your face in real time.
+
+285
+00:18:49,998 --> 00:18:52,484
+Pure peer-to-peer WebRTC works for 2 people.
+
+286
+00:18:52,672 --> 00:18:54,756
+Maybe 3, maybe 4 if you are lucky.
+
+287
+00:18:55,342 --> 00:18:57,712
+Beyond that, you need a different architecture.
+
+288
+00:18:57,966 --> 00:19:00,356
+So how does Zoom put a hundred people in one call?
+
+289
+00:19:00,654 --> 00:19:03,492
+How does Discord put a thousand people in a stage channel?
+
+290
+00:19:03,982 --> 00:19:05,952
+They do not use pure peer-to-peer.
+
+291
+00:19:06,192 --> 00:19:07,332
+Nobody does in production.
+
+292
+00:19:07,822 --> 00:19:09,924
+They use something called an SFU.
+
+293
+00:19:10,510 --> 00:19:12,932
+SFU stands for Selective Forwarding Unit.
+
+294
+00:19:13,454 --> 00:19:16,292
+The name sounds fancy, but the idea is actually simple.
+
+295
+00:19:16,622 --> 00:19:21,732
+Instead of every peer talking to every other peer, every peer talks to one server in the middle.
+
+296
+00:19:22,254 --> 00:19:24,036
+And that server is the SFU.
+
+297
+00:19:24,494 --> 00:19:27,076
+You upload your video to the SFU exactly once.
+
+298
+00:19:27,662 --> 00:19:31,172
+The SFU forwards a copy of your video to everyone else in the call.
+
+299
+00:19:31,566 --> 00:19:36,932
+You upload one stream, you download n-1 streams linear, not quadratic.
+
+300
+00:19:37,422 --> 00:19:40,740
+And suddenly a hundred people in a call is not insane anymore.
+
+301
+00:19:41,198 --> 00:19:42,148
+And here's the cool part.
+
+302
+00:19:42,382 --> 00:19:44,356
+The SFU does not decode your video.
+
+303
+00:19:44,846 --> 00:19:46,020
+It does not re-encode it.
+
+304
+00:19:46,414 --> 00:19:48,388
+It does not even really look at the contents.
+
+305
+00:19:48,878 --> 00:19:53,316
+It just rewrites a few packet headers and ships your packets to the right destinations.
+
+306
+00:19:53,710 --> 00:19:54,564
+Cheap and fast.
+
+307
+00:19:54,912 --> 00:19:57,380
+Basically a smart router for media packets.
+
+308
+00:19:57,806 --> 00:20:02,212
+And because it is sitting in the middle, it can do things no peer-to-peer setup could ever do.
+
+309
+00:20:02,574 --> 00:20:08,164
+For example, imagine you are on a Zoom call with 20 people and everyone is shown in a small box on the grid.
+
+310
+00:20:08,686 --> 00:20:14,468
+There is no point sending your full HD video to someone who is only seeing a postage stamp sized version of you.
+
+311
+00:20:14,958 --> 00:20:16,228
+So the SFU does not.
+
+312
+00:20:16,686 --> 00:20:20,804
+It sends them a low resolution copy instead, saving bandwidth on both sides.
+
+313
+00:20:21,326 --> 00:20:23,460
+This trick is called simulcast.
+
+314
+00:20:23,758 --> 00:20:33,540
+Your client actually sends two or three quality versions of your video at the same time, and the SFU picks the right one for each viewer based on how big your video is showing up on their screen.
+
+315
+00:20:34,350 --> 00:20:40,804
+So, if someone is muted, the SFU just stops forwarding their audio, saves bandwidth across the entire call.
+
+316
+00:20:41,486 --> 00:20:48,996
+If one viewer's connection is dropping, the SFU can downgrade just that one viewer to lower quality without affecting anyone else.
+
+317
+00:20:49,646 --> 00:20:52,228
+And this is what people mean by selective forwarding.
+
+318
+00:20:52,814 --> 00:20:56,900
+The SFU is making smart per-viewer decisions about what to send.
+
+319
+00:20:57,646 --> 00:21:02,500
+Now there used to be another architecture called the MCU, the multi-point control unit.
+
+320
+00:21:03,214 --> 00:21:11,684
+The MCU would actually decode every incoming stream, mix them all into one composite video, and send that one stream out to everyone.
+
+321
+00:21:12,462 --> 00:21:17,060
+It worked, but decoding and re-encoding video at scale is incredibly expensive.
+
+322
+00:21:17,870 --> 00:21:20,480
+CPU costs 10 times what an SFU cost.
+
+323
+00:21:21,102 --> 00:21:24,836
+In 2026, almost nobody uses MCU anymore.
+
+324
+00:21:25,358 --> 00:21:30,340
+Except in some old corporate phone systems where you have to bridge a video call with regular phone numbers.
+
+325
+00:21:31,086 --> 00:21:37,956
+So in practice, you have two real choices: peer-to-peer for tiny calls, SFU for everything else.
+
+326
+00:21:38,702 --> 00:21:43,236
+And every serious video product you have ever used has chosen the SFU route.
+
+327
+00:21:44,014 --> 00:21:46,788
+Now let me show you what that actually looks like at scale.
+
+328
+00:21:47,726 --> 00:21:49,188
+Take Discord for example.
+
+329
+00:21:49,614 --> 00:21:54,564
+Hundreds of millions of users, voice channels with sometimes thousands of people listening at once.
+
+330
+00:21:55,374 --> 00:21:57,860
+How does the architecture actually fit together?
+
+331
+00:21:58,990 --> 00:22:03,268
+So when you join a voice channel, your Discord client does not connect directly to other users.
+
+332
+00:22:03,854 --> 00:22:05,828
+It does not even connect to one Discord server.
+
+333
+00:22:06,350 --> 00:22:12,868
+It connects to a regional voice server, a server that lives in the data center geographically closest to you.
+
+334
+00:22:13,710 --> 00:22:15,588
+Discord runs this all over the world.
+
+335
+00:22:16,046 --> 00:22:18,916
+North Virginia, Frankfurt, Singapore, Mumbai, Sydney.
+
+336
+00:22:19,120 --> 00:22:24,516
+The goal is to keep the network round trip short because round trip is everything in real-time audio.
+
+337
+00:22:24,942 --> 00:22:28,484
+Now that regional voice server is essentially an SFU.
+
+338
+00:22:29,134 --> 00:22:37,764
+Discord uses Elixir for the signaling layer, the part that sets up and tears down calls, manages who is in the channel, handles the matchmaking.
+
+339
+00:22:38,446 --> 00:22:41,316
+And then C handles the actual media streaming.
+
+340
+00:22:41,742 --> 00:22:44,100
+The hot part where every microsecond counts.
+
+341
+00:22:44,910 --> 00:22:48,036
+The core job of the SFU is the same as any SFU.
+
+342
+00:22:48,750 --> 00:22:53,380
+Take incoming audio packets from the clients, forward them to the right other clients.
+
+343
+00:22:54,126 --> 00:22:54,980
+Do not decode.
+
+344
+00:22:55,342 --> 00:22:59,396
+Do not re-encode, just route at the speed of light if possible.
+
+345
+00:22:59,982 --> 00:23:02,852
+Now here is the part most engineers get wrong about Discord.
+
+346
+00:23:03,470 --> 00:23:09,188
+People assume that because WebRTC is peer-to-peer, their voice in Discord goes directly to their friend machines.
+
+347
+00:23:09,870 --> 00:23:10,532
+It does not.
+
+348
+00:23:11,086 --> 00:23:14,724
+Your voice goes to Discord's voice server and Discord forwards it.
+
+349
+00:23:14,960 --> 00:23:18,564
+So your audio absolutely passes through Discord's infrastructure.
+
+350
+00:23:19,182 --> 00:23:22,500
+WebRTC in production almost never means peer-to-peer.
+
+351
+00:23:23,086 --> 00:23:25,060
+The voice server only handles the audio.
+
+352
+00:23:25,550 --> 00:23:36,388
+Everything else, the chat messages, the typing indicators, the presence updates, the push notifications, all of that flows over Discord's normal API and WebSocket infrastructure.
+
+353
+00:23:37,006 --> 00:23:42,852
+Discord uses WebRTC only for the one job it is good at real-time, low latency audio.
+
+354
+00:23:43,566 --> 00:23:45,380
+Everything else uses different tools.
+
+355
+00:23:45,710 --> 00:23:47,748
+Now there is one more piece worth knowing about.
+
+356
+00:23:48,174 --> 00:23:56,004
+When you speak, your client encodes your voice with the Opus codec, which is the audio codec the WebRTC ecosystem standardized on.
+
+357
+00:23:56,782 --> 00:23:58,180
+Opus is really good at this.
+
+358
+00:23:58,638 --> 00:24:05,252
+It can drop down to 6 kHz per second when bandwidth is tight and scale up to studio quality on a good connection.
+
+359
+00:24:05,760 --> 00:24:09,092
+The voice server forwards your Opus packets without decoding them.
+
+360
+00:24:09,774 --> 00:24:11,684
+Each listener decodes locally.
+
+361
+00:24:12,078 --> 00:24:18,020
+So Discord servers, even though they are in the middle of every voice call, never actually listen to a single word.
+
+362
+00:24:18,670 --> 00:24:19,556
+Notice the pattern?
+
+363
+00:24:19,950 --> 00:24:24,868
+Nobody runs production video or voice at scale with pure browser-to-browser WebRTC.
+
+364
+00:24:25,646 --> 00:24:28,324
+The browser API just gives you the basic building block.
+
+365
+00:24:28,942 --> 00:24:33,348
+The architecture, the regional SFUs, the codec choices, the signaling layer.
+
+366
+00:24:33,966 --> 00:24:37,444
+That is what makes it actually work for hundreds of millions of users.
+
+367
+00:24:38,254 --> 00:24:44,100
+And that gap between the API and the actual architecture is where the real engineering work sits.
+
+368
+00:24:44,942 --> 00:24:47,236
+Now, all of this sounds clean on paper.
+
+369
+00:24:47,534 --> 00:24:51,268
+In real production though, there are a bunch of things that will catch you off guard.
+
+370
+00:24:51,918 --> 00:24:54,564
+So let me walk you through them so you do not learn the hard way.
+
+371
+00:24:55,278 --> 00:24:57,668
+Turn, TURN servers cost real money.
+
+372
+00:24:58,158 --> 00:25:05,892
+Remember when I said about 10 to 15% of connections cannot establish a direct path because some networks are extra hostile to peer to peer.
+
+373
+00:25:06,702 --> 00:25:12,960
+Strict corporate firewalls, office networks that block UDP entirely, certain mobile carrier setups.
+
+374
+00:25:13,262 --> 00:25:18,116
+For those connections, you need a turn server to relay every single packet between the two peers.
+
+375
+00:25:18,862 --> 00:25:21,732
+And turn relays full media bandwidth, both directions.
+
+376
+00:25:22,446 --> 00:25:28,836
+If you have a thousand simultaneous calls and a hundred of them need turn, that is real money and real ops work.
+
+377
+00:25:29,294 --> 00:25:35,140
+Now the standard self-hosted option is a project called Coturn, but operating it well is its own job.
+
+378
+00:25:35,472 --> 00:25:37,284
+The signaling server is your problem.
+
+379
+00:25:37,646 --> 00:25:39,268
+WebRTC does not ship one.
+
+380
+00:25:39,726 --> 00:25:43,076
+You build it yourself, usually as a small WebSocket service.
+
+381
+00:25:43,918 --> 00:25:45,444
+The message format is up to you.
+
+382
+00:25:45,902 --> 00:25:47,428
+JSON works fine for most teams.
+
+383
+00:25:48,174 --> 00:25:54,244
+The browser does not care as long as offers, answers, and ICE candidate makes it from one peer to another.
+
+384
+00:25:54,606 --> 00:25:56,772
+And mobile networks hate UDP.
+
+385
+00:25:57,166 --> 00:26:00,452
+Some carriers throttle it, some block it on certain ports.
+
+386
+00:26:00,750 --> 00:26:07,204
+So your turn server has to also supply relaying over TCP and over TLS as fallback transports.
+
+387
+00:26:07,790 --> 00:26:15,172
+The idea is if UDP does not work, try TCP, which most network allow because it is what HTTP uses.
+
+388
+00:26:15,726 --> 00:26:23,044
+Otherwise, your app silently breaks for some percentage of users on mobile data and you will not know why until the support ticket piles up.
+
+389
+00:26:23,918 --> 00:26:28,132
+Moreover, Safari and Chrome do not always negotiate codecs the same way.
+
+390
+00:26:28,878 --> 00:26:32,644
+iOS has its own special rules around when get user media works.
+
+391
+00:26:33,262 --> 00:26:35,652
+So you will have to fix these bugs the hard way.
+
+392
+00:26:36,142 --> 00:26:41,828
+Recording is a separate problem entirely because SFUs forward packets, they do not decode them.
+
+393
+00:26:42,286 --> 00:26:50,084
+So if you want to record a call, you need a separate component that joins the call as a participant, decodes everything, and writes a file.
+
+394
+00:26:50,734 --> 00:26:55,268
+This component is called a recorder and it is its own little distributed system.
+
+395
+00:26:56,032 --> 00:26:59,236
+These are the things that turn a working demo into a real product.
+
+396
+00:26:59,534 --> 00:27:00,612
+So do budget for them.
+
+397
+00:27:01,102 --> 00:27:04,132
+If there is one thing I want you to remember from this video, it is this.
+
+398
+00:27:04,686 --> 00:27:06,884
+WebRTC is how two peers talk.
+
+399
+00:27:07,374 --> 00:27:10,084
+The SFU is how many peers talk efficiently.
+
+400
+00:27:10,734 --> 00:27:19,712
+Everything else, stun, turn, eyes, SDP, all of it, is just plumbing to make those two ideas actually work on the messy real internet.
+
+401
+00:27:20,238 --> 00:27:24,964
+In the next video, we can go one level deeper and actually take apart Discord's full system design.
+
+402
+00:27:25,550 --> 00:27:28,452
+How they handle a thousand people in a single voice channel.
+
+403
+00:27:28,942 --> 00:27:36,580
+I usually save this kind of breakdown for my co students, but if enough of you want it on this channel, drop a comment below and I'll make it happen.
+
+404
+00:27:36,832 --> 00:27:39,312
+Do like and subscribe so you do not miss it.
+
+405
+00:27:39,392 --> 00:27:40,832
+I'll see you in the next one.
+

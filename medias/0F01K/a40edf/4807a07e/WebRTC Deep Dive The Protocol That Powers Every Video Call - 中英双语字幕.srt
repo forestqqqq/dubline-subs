@@ -1,0 +1,2075 @@
+1
+00:00:00,014 --> 00:00:05,440
+当你参加 Zoom 通话时，你的声音在不到 200 毫秒内就能传到对方那里。
+When you talk on a zoom call, your voice reaches the other person in under 200 milliseconds.
+
+2
+00:00:05,680 --> 00:00:09,360
+这比连接到互联网上大多数服务器的 TCP 握手还要快。
+That is faster than a TCP handshake to most servers on the internet.
+
+3
+00:00:09,760 --> 00:00:13,760
+甚至比你的浏览器从自己的后端获取 JSON 响应还要快。
+Faster than your own browser can pull a JSON response from your own backend.
+
+4
+00:00:14,160 --> 00:00:15,920
+现在请思考一下。
+Now think about that for a second.
+
+5
+00:00:16,160 --> 00:00:19,040
+浏览器到底是用什么协议来实现这一点的？
+What protocol is the browser using to pull this off?
+
+6
+00:00:19,360 --> 00:00:21,040
+不是 HTTP。
+It is not HTTP.
+
+7
+00:00:21,280 --> 00:00:22,880
+也不是 WebSockets。
+It is not WebSockets.
+
+8
+00:00:23,040 --> 00:00:24,400
+是 WebRTC。
+It is WebRTC.
+
+9
+00:00:24,560 --> 00:00:27,760
+而且大多数工程师从来没写过一行相关的代码。
+And most engineers have never written a single line of code against it.
+
+10
+00:00:27,920 --> 00:00:31,440
+到这视频结束时，你就会清楚地知道 WebRTC 是如何工作的。
+By the end of this video, you'll know exactly how WebRTC works.
+
+11
+00:00:31,680 --> 00:00:36,880
+为什么它是 Zoom、Discord 和 Google Meet 能达到现有规模的唯一途径。
+Why it is the only way Zoom, Discord, and Google Made could exist at the scale they do.
+
+12
+00:00:36,960 --> 00:00:42,000
+以及每个开发实时视频的团队在第一次尝试时都会搞错的那个架构决策。
+And the one architecture decision every team building real-time video gets wrong on their first try.
+
+13
+00:00:42,240 --> 00:00:43,520
+让我们开始吧。
+Let's get into it.
+
+14
+00:00:49,166 --> 00:00:51,108
+现在，实时通信无处不在。
+Real-time communications is everywhere now.
+
+15
+00:00:51,438 --> 00:00:56,868
+远程办公、远程医疗、多人游戏、实时协作工具、客户支持视频通话。
+Remote work, telehealth, multiplayer games, live collaboration tools, customer support video calls.
+
+16
+00:00:57,518 --> 00:01:00,292
+几乎每个现代产品似乎都有个视频选项卡。
+Every modern product seems to have a video tab somewhere.
+
+17
+00:01:00,750 --> 00:01:04,548
+但很少有工程师真正了解这些东西在底层是如何运作的。
+But very few engineers actually understand how any of this works under the hood.
+
+18
+00:01:05,038 --> 00:01:11,364
+WebRTC 是那些罕见的课题之一，它常出现在高级系统设计面试中，
+却几乎从不出现在你的日常工作中。
+WebRTC is one of those rare topics that shows up in senior system design interviews and almost never in your day job.
+
+19
+00:01:11,600 --> 00:01:14,276
+这意味着如果你精通它，你就会脱颖而出。
+Which means if you know it well, you stand out a lot.
+
+20
+00:01:14,798 --> 00:01:16,196
+所以这非常值得花时间去了解。
+So this is worth of your time.
+
+21
+00:01:16,718 --> 00:01:22,180
+现在，要理解 WebRTC 为什么重要，你得记住以前的视频通话是什么样子的。
+Now, to understand why WebRTC matters, you have to remember what video calls used to look like.
+
+22
+00:01:22,542 --> 00:01:31,844
+在 2011 年之前，如果你想在浏览器里进行语音或视频通话，你需要 Flash、
+Java applet 或者某些用户必须下载安装的自定义插件。
+Before 2011, if you wanted to do voice or video in a browser, you needed Flash
+or a Java applet or some custom plugin the user had to download and install.
+
+23
+00:01:32,302 --> 00:01:33,920
+Google Hangouts 有个浏览器插件。
+Google Hangouts had a browser plugin.
+
+24
+00:01:34,240 --> 00:01:39,652
+网络上有一半的视频产品都自带一些可疑的小型二进制文件，而且运行权限过高。
+Half the video products on the web shipped their own sketchy little binary that ran with way too many permissions.
+
+25
+00:01:40,430 --> 00:01:43,204
+这对用户来说很痛苦，对开发者来说也很痛苦。
+It was painful for users, painful for developers.
+
+26
+00:01:43,822 --> 00:01:45,316
+到处都是安全漏洞。
+Security holes everywhere.
+
+27
+00:01:45,902 --> 00:01:47,716
+每个浏览器都要配不同的插件。
+Different plugin for every browser.
+
+28
+00:01:48,462 --> 00:01:50,884
+你有一半的用户甚至根本没法开始通话。
+Half your users could not even get the call started.
+
+29
+00:01:51,566 --> 00:01:55,940
+然后就在 2011 年，Google 开源了一个叫 WebRTC 的项目。
+Then in 2011, Google open sourced a project called WebRTC.
+
+30
+00:01:56,238 --> 00:01:59,716
+到 2017 年左右，每个主流浏览器都已经内置了它。
+By around 2017, every major browser had it built in.
+
+31
+00:02:00,014 --> 00:02:03,940
+Chrome、Firefox、Safari、Edge，无需安装，无需插件。
+Chrome, Firefox, Safari, Edge, no installs, no plugins.
+
+32
+00:02:04,718 --> 00:02:10,340
+浏览器变成了实时通信的端点，就像它一直以来一直是 HTTP 端点一样。
+The browser became a real-time communication endpoint the same way it had always been an HTTP endpoint.
+
+33
+00:02:10,830 --> 00:02:13,636
+你不需要安装 HTTP，你只需要用它就行。
+You do not install HTTP, you just use it.
+
+34
+00:02:14,222 --> 00:02:16,932
+现在，点对点视频也是如此。
+Now the same was true for peer-to-peer video.
+
+35
+00:02:17,454 --> 00:02:22,948
+一旦浏览器能够自主实现实时通信，你今天使用的每一个现代视频产品就都成为了可能。
+Once the browser could do real-time on its own, every modern video product you use today became possible.
+
+36
+00:02:23,438 --> 00:02:29,700
+Google Meet、Discord、Slack、Microsoft Teams，所有这些都是建立在 WebRTC 之上的。
+Google Meet, Discord, Slack hurdles, Microsoft Teams, all of it sits on top of WebRTC.
+
+37
+00:02:30,350 --> 00:02:34,640
+如果你职业生涯一直都在编写 HTTP 服务，那你已经习惯了某种模型。
+If you have spent your career writing HTTP services, you are used to one model.
+
+38
+00:02:34,862 --> 00:02:37,092
+客户端请求，服务器响应，搞定。
+Client asks, server answers, done.
+
+39
+00:02:37,390 --> 00:02:39,332
+WebRTC 完全不是那样工作的。
+WebRTC does not work like that at all.
+
+40
+00:02:39,950 --> 00:02:43,812
+所以在我们看代码之前，先建立正确的心理模型。
+So before we look at any code, let us first build the right mental picture.
+
+41
+00:02:44,240 --> 00:02:45,764
+HTTP 是一种事务。
+HTTP is a transaction.
+
+42
+00:02:46,158 --> 00:02:50,500
+你发送一个 GET 请求，得到一个响应，连接就实际上结束了。
+You send a GET request, you get a response, the connection effectively ends.
+
+43
+00:02:51,438 --> 00:02:53,924
+你发送一个 post，得到一个响应，搞定。
+You send a post, you get a response, done.
+
+44
+00:02:54,480 --> 00:02:58,020
+它是无状态的，可预测的，并且建立在 TCP 之上。
+Stateless, predictable, and built on TCP.
+
+45
+00:02:58,670 --> 00:03:00,196
+WebRTC 是一个会话。
+WebRTC is a session.
+
+46
+00:03:00,814 --> 00:03:04,196
+两个对等节点协商一次连接，然后它们就一直保持交流。
+Two peers negotiate a connection once and then they keep talking.
+
+47
+00:03:04,590 --> 00:03:06,000
+这里没有 get 或 post。
+There's no get or post.
+
+48
+00:03:06,400 --> 00:03:11,940
+相反，在任何音频或视频流传输之前，两个浏览器会进行一小段往返对话。
+Instead, before any audio or video flows, the two browsers have a small back-and-forth conversation.
+
+49
+00:03:12,750 --> 00:03:20,548
+一方发送一份描述，说明它能做什么，支持哪些视
+频格式，哪些音频格式，以及它的网络情况如何。
+One side sends a description of what it can do, what video formats it supports, what audio formats, what its network looks like.
+
+50
+00:03:21,230 --> 00:03:26,276
+另一方读取这些信息，选择匹配的内容，并返回自己的描述。
+The other side reads that, picks what it can match, and sends back its own description.
+
+51
+00:03:26,766 --> 00:03:29,380
+一旦双方达成一致，通话就开始了。
+Once both sides agree, the call begins.
+
+52
+00:03:29,840 --> 00:03:31,972
+那份小小的描述文档有一个名字。
+That little description document has a name.
+
+53
+00:03:32,240 --> 00:03:36,036
+它被称为 SDP，也就是会话描述协议。
+It is called SDP or the session description protocol.
+
+54
+00:03:36,590 --> 00:03:40,100
+现在先别担心这个名字，我们稍后会仔细研究它。
+Now do not worry about the name for now, we'll look at it more carefully in a bit.
+
+55
+00:03:40,590 --> 00:03:41,604
+只要记住这个核心思想。
+Just remember the idea.
+
+56
+00:03:42,254 --> 00:03:45,156
+两个浏览器交换彼此能力的描述。
+Two browsers exchange a description of the capabilities.
+
+57
+00:03:45,806 --> 00:03:50,436
+就双方都能做的事情达成一致，只有在那之后，它们才会建立起彼此之间的直接通道。
+Agree on what they can both do, and only then do they open a direct pipe between each other.
+
+58
+00:03:51,086 --> 00:03:54,052
+这个通道在通话持续期间一直保持开启。
+That pipe stays open for as long as the call lasts.
+
+59
+00:03:54,638 --> 00:03:56,036
+而这是最重要的一点。
+And here's the most important part.
+
+60
+00:03:56,650 --> 00:03:59,430
+WebRTC 运行在 UDP 上，而不是 TCP。
+WebRTC runs on UDP, not TCP.
+
+61
+00:04:00,110 --> 00:04:04,612
+大多数工程师在整个职业生涯中都在基于 TCP 进行开发，而且根本没往这方面想过。
+Most engineers spend their entire career building on top of TCP without thinking about it.
+
+62
+00:04:05,262 --> 00:04:13,284
+你发出的每一个 HTTP 请求，每一次数据库查询，每一个 gRPC 请求，全都是基于 TCP 运行的。
+Every HTTP call you have ever made, every database query, every gRPC request, all of it writes on TCP.
+
+63
+00:04:13,934 --> 00:04:16,964
+TCP 是让互联网感觉可靠的协议。
+TCP is the protocol that makes the internet feel reliable.
+
+64
+00:04:17,742 --> 00:04:23,172
+所以当你通过 TCP 发送数据包时，它保证能按顺序准确送达一次。
+So when you send a packet over TCP, it is guaranteed to arrive in order exactly once.
+
+65
+00:04:23,886 --> 00:04:27,812
+如果数据包在途中丢失，TCP 会检测到并重新发送它。
+If a packet gets lost on the way, TCP detects that and resends it.
+
+66
+00:04:28,462 --> 00:04:34,564
+如果数据包乱序到达，TCP 会把它们缓存起来，然后按正确的顺序交给你的应用程序。
+If a packet arrives out of order, TCP buffers them and hands them to your application in the write sequence.
+
+67
+00:04:35,438 --> 00:04:38,884
+你写个 fetch，就能拿到服务器发送的准确字节。
+You write fetch and you get back exactly the bytes the server sent.
+
+68
+00:04:39,264 --> 00:04:40,132
+没有任何意外。
+No surprises.
+
+69
+00:04:40,846 --> 00:04:42,084
+UDP 则完全相反。
+UDP is the opposite.
+
+70
+00:04:42,574 --> 00:04:45,316
+UDP 就像是：这就是个数据包，祝你好运。
+UDP is just, here is a packet, good luck.
+
+71
+00:04:45,504 --> 00:04:48,548
+没有重传，没有排序，也没有任何保证。
+No retries, no ordering, no guarantees.
+
+72
+00:04:48,878 --> 00:04:50,820
+如果一个数据包丢了，它就彻底没了。
+If a packet gets lost, it is gone.
+
+73
+00:04:51,310 --> 00:04:54,436
+如果两个数据包乱序到达，它们就会乱序显示。
+If two packets arrive out of order, they show up out of order.
+
+74
+00:04:54,798 --> 00:04:57,540
+如果数据包损坏了，你的应用得自己去处理。
+If a packet shows up corrupted, your app deals with it.
+
+75
+00:04:58,318 --> 00:04:59,268
+听起来很糟糕，对吧？
+Sounds terrible, right?
+
+76
+00:04:59,758 --> 00:05:01,188
+那谁会用这个呢？
+Why would anyone use this?
+
+77
+00:05:01,486 --> 00:05:03,716
+因为 TCP 的可靠性是有代价的。
+Because TCP's reliability has a cost.
+
+78
+00:05:04,110 --> 00:05:05,664
+而这个代价就是时间。
+And that cost is time.
+
+79
+00:05:06,606 --> 00:05:11,716
+当 TCP 检测到数据包丢失时，它会停止一切，等待重传。
+When TCP detects a lost packet, it stops everything and waits for the retransmission.
+
+80
+00:05:12,110 --> 00:05:14,052
+这个停顿可能是 100 毫秒。
+That pause might be 100 milliseconds.
+
+81
+00:05:14,702 --> 00:05:16,068
+可能是 200 毫秒，甚至更多。
+200, sometimes more.
+
+82
+00:05:16,462 --> 00:05:19,140
+你的整个流都会被阻塞，直到缺失的那部分到达。
+Your whole stream blocks until the missing piece arrives.
+
+83
+00:05:19,854 --> 00:05:24,580
+对于加载网页来说，这没问题，但对于实时语音通话来说，这就是一场灾难。
+For loading a web page, that is fine, but for a live voice call, it is a disaster.
+
+84
+00:05:25,134 --> 00:05:27,396
+UDP 是故意设计成不可靠的。
+UDP is unreliable on purpose.
+
+85
+00:05:28,014 --> 00:05:29,572
+数据包可能会乱序到达。
+Packets can arrive out of order.
+
+86
+00:05:29,998 --> 00:05:32,100
+数据包可能会丢失且永远不回来。
+Packets can get lost and never come back.
+
+87
+00:05:32,558 --> 00:05:35,140
+对于 HTTP 来说，这是不可接受的。
+For HTTP, that would be unacceptable.
+
+88
+00:05:35,566 --> 00:05:38,916
+因为你的银行余额不能因为某个数据包迟到就显示错误数字。
+Because your bank balance cannot show the wrong number because a packet was late.
+
+89
+00:05:39,470 --> 00:05:41,860
+但对于视频和语音来说，情况恰恰相反。
+But for video and voice, it is the opposite.
+
+90
+00:05:42,382 --> 00:05:47,108
+一个迟到 300 毫秒的数据包，比一个永远没到的数据包还要糟糕。
+A packet that arrives 300 milliseconds late is worse than a packet that never arrives.
+
+91
+00:05:47,918 --> 00:05:54,144
+与其为了重传那一帧而让整个通话卡住半秒，你宁愿丢掉那一帧视频。
+You would rather drop one frame of video than freeze the entire call for half a second, waiting for that frame to retransmit.
+
+92
+00:05:54,766 --> 00:05:57,424
+你的脸偶尔卡掉一帧也没关系，没人会因此出事。
+Your face can show one feared frame and nobody dies.
+
+93
+00:05:57,584 --> 00:06:01,028
+你的声音漏掉一个微小的音节，对话也能继续进行。
+Your voice can skip a tiny syllable and the conversation keeps going.
+
+94
+00:06:01,550 --> 00:06:03,652
+TCP 优化的是正确性。
+TCP optimizes for correctness.
+
+95
+00:06:04,206 --> 00:06:05,860
+UDP 优化的是时间。
+UDP optimizes for time.
+
+96
+00:06:06,350 --> 00:06:07,844
+WebRTC 选择时间。
+WebRTC pick time.
+
+97
+00:06:08,110 --> 00:06:11,684
+因为在实时通信中，迟到的数据就是废数据。
+Because in real-time communication, late data is dead data.
+
+98
+00:06:12,174 --> 00:06:15,204
+而这个决定决定了这套机制的所有其他运作方式。
+And that decision shapes everything else about how this works.
+
+99
+00:06:15,534 --> 00:06:23,012
+说到语音，我刚刚写完了这整份设计文档，包括问题陈述、架构和权衡，但我一个字都没打。
+And speaking of voice, I just wrote this entire design doc problem
+statement, architecture, trade-offs, and I didn't type a single word.
+
+100
+00:06:23,630 --> 00:06:24,464
+这就是 Willow Voice。
+This is Willow Voice.
+
+101
+00:06:24,624 --> 00:06:27,812
+这是一个为职业写作者打造的听写工具。
+It's a dictation tool built for people who actually write for a living.
+
+102
+00:06:28,064 --> 00:06:31,812
+无论是工程师、产品经理，还是整天沉浸在文档和 Slack 里的任何人。
+Engineers, PMs, anyone who lives in docs and Slack all day.
+
+103
+00:06:32,142 --> 00:06:34,756
+现在，我要设计一个分布式限流器。
+So here I'm going to design a distributed rate limiter.
+
+104
+00:06:35,054 --> 00:06:39,588
+我正在用我的 Mac，我只需按下我为 Willow 设置的快捷键功能键。
+I am on my Mac and I just press the function key which I assigned as a hotkey to Willow.
+
+105
+00:06:40,110 --> 00:06:41,764
+Willow 立即启动。
+Willow activates instantly.
+
+106
+00:06:42,144 --> 00:06:42,692
+开始吧。
+Let's go.
+
+107
+00:06:43,246 --> 00:06:47,492
+我们需要一个能在跨区域处理每秒 1000 万次请求的限流器。
+We need a rate limiter that handles 10 million requests per second across regions.
+
+108
+00:06:48,144 --> 00:06:51,204
+主要的约束是一致性。
+The main constraint is consistency.
+
+109
+00:06:51,982 --> 00:06:53,984
+令牌桶给了我们突发流量的容忍度。
+Token bucket gives us burst tolerance.
+
+110
+00:06:54,286 --> 00:06:58,372
+滑动窗口更准确，但在大规模应用时成本很高，所以我们不要用那个。
+Sliding window is more accurate, but it's expensive at scale, so let's not do that.
+
+111
+00:06:59,694 --> 00:07:01,060
+这就是它生成的内容。
+And here is what it came up with.
+
+112
+00:07:01,454 --> 00:07:12,900
+我希望你们注意到我故意停顿了，有时还会用嗯、那个之类的填充词，
+但 Willow 还是能把所有内容剔除掉，变成整洁的段落式句子。
+I hope you noticed that I took intentional pauses and I sometimes use filler words like mmm like and yet Willow was able to strip out
+everything and make it into a clean paragraph style sentence.
+
+113
+00:07:13,358 --> 00:07:15,024
+而且这不仅仅是纯文本。
+And this is not just plain text.
+
+114
+00:07:15,184 --> 00:07:18,212
+如果我说“要点”，它就会把它们格式化成要点。
+If I say bullet points, it formats them as a bullet points.
+
+115
+00:07:18,606 --> 00:07:20,420
+好了，我们来看架构。
+Alright, let's go to the architecture.
+
+116
+00:07:20,654 --> 00:07:21,892
+架构标题。
+Heading architecture.
+
+117
+00:07:22,222 --> 00:07:25,988
+下一行要点：将使用带有一致性哈希的 Redis。
+Next line bullet point will use Redis with consistent hashing.
+
+118
+00:07:26,574 --> 00:07:28,836
+每个节点拥有键空间的一个分片。
+Each node owns a shard of the key space.
+
+119
+00:07:29,806 --> 00:07:35,396
+关于原子性的要点：Lua 脚本可以在单次往返中处理递增和检查。
+Bullet point for atomicity, Lua scripts handle the increment and check in a single round trip.
+
+120
+00:07:35,664 --> 00:07:36,944
+新标题，权衡。
+New heading, trade-offs.
+
+121
+00:07:37,262 --> 00:07:39,524
+Redis 提供了速度，但增加了一个依赖项。
+Redis gives us speed but adds a dependency.
+
+122
+00:07:40,046 --> 00:07:44,452
+这里有个要点，边车模式能降低延迟，但会让部署变得复杂。
+Bullet point, a sidecar approach, keeps latency lower but complicates deploys.
+
+123
+00:07:45,166 --> 00:07:45,824
+现在看这个。
+Now look at this.
+
+124
+00:07:46,158 --> 00:07:49,636
+它包含了 Redis、Lua 和一致性哈希，都在同一个上下文中。
+It got Redis, Lua, consistent hashing, all in a context.
+
+125
+00:07:49,838 --> 00:07:51,424
+而且它在任何你写代码的地方都能运行。
+And it works everywhere you write.
+
+126
+00:07:51,630 --> 00:07:53,604
+Notion、Google Docs、Gmail、Slack。
+Notion, Google Docs, Gmail, Slack.
+
+127
+00:07:53,824 --> 00:07:54,944
+链接就在描述栏里。
+Links in the description.
+
+128
+00:07:55,182 --> 00:07:59,364
+结账时可以使用我的优惠码，享受 12 个月高级会员 8 折优惠。
+You can use my promo code at checkout and get 20% off premium for 12 months.
+
+129
+00:07:59,790 --> 00:08:01,892
+现在是让很多人感到困惑的一点。
+Now here is something that confuses a lot of people.
+
+130
+00:08:02,382 --> 00:08:09,924
+WebRTC 实际上并不是单一协议，它是隐藏在浏览器 API 后面的、协同工作的协议集合。
+WebRTC is not actually a single protocol, it's a bundle of protocols that all work together, hidden behind one browser API.
+
+131
+00:08:10,574 --> 00:08:16,388
+我们几分钟后会看到实际的 JavaScript，但在看代码之前，你需要了解底层发生了什么。
+We'll see the actual JavaScript in a few minutes, but before we look at the code, you need to know what is happening underneath.
+
+132
+00:08:16,814 --> 00:08:20,516
+因为当生产环境出现故障时，出问题的往往不是 API。
+Because when something breaks in production, it will not be the API that fails.
+
+133
+00:08:20,942 --> 00:08:22,692
+而是这些底层协议中的某一层。
+It will be one of these layers underneath.
+
+134
+00:08:23,086 --> 00:08:24,964
+所以让我带你们过一遍这七个核心组件。
+So let me walk you through the seven players.
+
+135
+00:08:25,454 --> 00:08:27,844
+首先是 SDP，我们之前已经提到了。
+There is SDP, which we already touched on.
+
+136
+00:08:28,270 --> 00:08:30,052
+它是会话描述协议。
+It is the session description protocol.
+
+137
+00:08:30,542 --> 00:08:33,508
+它只是一个列出每个站点功能能力的文本文档。
+Just a text document that lists what each site can do.
+
+138
+00:08:33,998 --> 00:08:38,436
+我的站点会说我可以用这个编解码器发送视频，用那个编解码器发送音频。
+My site says I can send video using this codec, audio using that codec.
+
+139
+00:08:38,702 --> 00:08:42,436
+顺便说一下，编解码器只是压缩音频或视频的一种高级说法。
+By the way, codec is just a fancy word for a way of compressing audio or video.
+
+140
+00:08:42,607 --> 00:08:45,476
+这样它就能在不占用太多带宽的情况下通过网络传输。
+So it fits through a network without using too much bandwidth.
+
+141
+00:08:45,902 --> 00:08:50,980
+所以，在任何媒体开始传输之前，双方必须就他们都能处理的编解码器达成一致。
+So both sides have to agree on a codec they both can handle before any media starts flowing.
+
+142
+00:08:51,488 --> 00:08:55,460
+接下来是 ICE，代表交互式连通性建立。
+Then there is ice, which stands for Interactive Connectivity Establishment.
+
+143
+00:08:55,982 --> 00:09:00,068
+ICE 是用来找出两个对等节点之间最佳网络路径的算法。
+ICE is the algorithm that figures out the best network path between two peers.
+
+144
+00:09:00,782 --> 00:09:07,748
+我们稍后会花更多时间讲这个，因为在互联网上找
+到两个随机笔记本电脑之间的路径其实非常困难。
+We'll spend a lot more time on this in a minute because finding a path
+between two random laptops on the internet is actually really hard.
+
+145
+00:09:08,270 --> 00:09:14,340
+然后是 STUN，这是一个帮助每个对等节点确定自己公网地址的小型服务器。
+Then there is STUN or STUN, a small server that helps each peer figure out its own public address.
+
+146
+00:09:14,894 --> 00:09:16,612
+我们稍后会回到为什么这很难这一点。
+And we'll come back to why that is hard.
+
+147
+00:09:17,166 --> 00:09:24,132
+还有 TURN，这是一个中继服务器，当两个对等节点之间的直接连接实际上无法建立时就会启动。
+There is TURN or TURN, a relay server that kicks in when a direct connection between two peers is actually impossible.
+
+148
+00:09:24,526 --> 00:09:31,492
+大约 10% 到 15% 的所有 WebRTC 连接无法建立直接路径，必须回退到 TURN。
+Roughly 10 to 15% of all WebRTC connections cannot establish a direct path and have to fall back to Turn.
+
+149
+00:09:32,238 --> 00:09:33,668
+我们稍后也会回到这一点。
+And we'll come back to that one too.
+
+150
+00:09:34,510 --> 00:09:46,020
+然后是 DTLS，它本质上就是用于 UDP 的 TLS，就像你的浏览器为 HTTPS 执行的加密握手一样，
+只不过是适配到 UDP 之上而不是 TCP。
+Then there is DTLS, which is just TLS for UDP, the same encryption handshake your browser does for HTTPS,
+but adapted to work on top of UDP instead of TCP.
+
+151
+00:09:46,734 --> 00:09:48,804
+这就是保护通话隐私的关键。
+And this is what keeps your call private.
+
+152
+00:09:49,454 --> 00:09:53,444
+还有 SRTP，也就是安全实时传输协议。
+There is also SRTP, the secure real-time transport protocol.
+
+153
+00:09:53,870 --> 00:09:57,252
+一旦连接建立，你的音频和视频就会通过它传输。
+This is what your actual audio and video flow over once the connection is up.
+
+154
+00:09:57,870 --> 00:09:59,396
+这里的 S 代表安全。
+The S is for secure.
+
+155
+00:09:59,648 --> 00:10:03,172
+SRTP 数据包的加密是由 DTLS 提供的。
+SRTP packets are encrypted courtesy of DTLS.
+
+156
+00:10:03,566 --> 00:10:08,740
+最后是 RTCP，它是与 SRTP 并行的控制通道。
+And finally, there is RTCP, the control channel that runs along SRTP.
+
+157
+00:10:09,454 --> 00:10:13,508
+RTCP 是双方用来告知对方连接状态的手段。
+RTCP is how each side tells the other how the connection is doing.
+
+158
+00:10:13,902 --> 00:10:15,088
+数据包有没有丢失？
+Are packets getting lost?
+
+159
+00:10:15,406 --> 00:10:16,452
+带宽有没有下降？
+Is bandwidth dropping?
+
+160
+00:10:16,750 --> 00:10:17,956
+我们是不是该降低比特率？
+Should we lower the bitrate?
+
+161
+00:10:18,414 --> 00:10:21,732
+RTCP 就是那个让通话能够自适应的反馈循环。
+RTCP is the feedback loop that keeps the call adaptive.
+
+162
+00:10:22,190 --> 00:10:26,852
+这七种协议全部由 IETF 和 W3C 标准化。
+All seven of these are standardized by the IETF and the W3C.
+
+163
+00:10:27,214 --> 00:10:29,092
+也就是两大互联网标准组织。
+The two big internet standard bodies.
+
+164
+00:10:29,614 --> 00:10:33,796
+这就是为什么你的代码在 Chrome、Firefox、Safari 和 Edge 上都能正常运行。
+That is why your code works the same on Chrome, Firefox, Safari, and Edge.
+
+165
+00:10:34,190 --> 00:10:37,284
+浏览器不能随意发明自己的 WebRTC 版本。
+Browsers do not get to invent their own version of WebRTC.
+
+166
+00:10:37,902 --> 00:10:41,668
+7 个协议，加上顶层的 1 个 API，这就是 WebRTC。
+7 protocols, 1 API on top, that is WebRTC.
+
+167
+00:10:42,094 --> 00:10:45,732
+现在让我们来聊聊让这套东西在现实世界中运行最难的部分。
+Now let us talk about the hardest part of making this thing work in the real world.
+
+168
+00:10:46,318 --> 00:10:48,228
+假设你正坐在家里用笔记本电脑。
+So you are sitting at home on your laptop.
+
+169
+00:10:48,718 --> 00:10:51,172
+你的朋友也坐在她家里，用她的笔记本电脑。
+Your friend is sitting at her home, on her laptop.
+
+170
+00:10:51,790 --> 00:10:53,572
+你们两个都想发起视频通话。
+You both want to start a video call.
+
+171
+00:10:53,998 --> 00:10:58,180
+这可能会让有些人感到意外，但你的笔记本电脑并没有公网 IP 地址。
+Now it might surprise some of you, but your laptop does not have a public IP address.
+
+172
+00:10:58,670 --> 00:11:03,748
+它有一个私有 IP，也就是仅在你家内部网络中有效的本地地址。
+It has a private one, a local address that only makes sense inside your own home network.
+
+173
+00:11:04,462 --> 00:11:09,380
+你的笔记本电脑认为自己的地址是类似 192.168.1.42 之类的。
+Your laptop thinks it is something like 192.168.1.42.
+
+174
+00:11:10,126 --> 00:11:11,364
+你朋友的笔记本电脑也是如此。
+So does your friend's laptop.
+
+175
+00:11:11,950 --> 00:11:15,172
+目前互联网上大约还有 5 亿台笔记本电脑也是这样。
+So do about half a billion other laptops on the internet right now.
+
+176
+00:11:15,950 --> 00:11:23,044
+它们都在使用相同的私有地址范围，隐藏在负责转换内外世界的路由器后面。
+They are all using the same private address ranges, hidden behind some
+routers that translate between the inside world and the outside world.
+
+177
+00:11:23,694 --> 00:11:27,428
+这种转换被称为 NAT，即网络地址转换。
+And that translation is called NAT, Network Address Translation.
+
+178
+00:11:28,014 --> 00:11:29,188
+每台家用路由器都在做这件事。
+Every home router does this.
+
+179
+00:11:29,774 --> 00:11:37,124
+它之所以有效，是因为当你发出请求（比如加载网
+页）时，路由器会记住它，并将响应路由回给你。
+The reason it works is that when you make an outgoing request, like loading a web page,
+the router remembers it and routes the response back to you.
+
+180
+00:11:37,774 --> 00:11:42,628
+外界只能看到路由器的公网 IP，永远看不到你笔记本电脑的地址。
+The outside world only ever sees the router's public IP, never your laptop's address.
+
+181
+00:11:43,310 --> 00:11:45,540
+但这给视频通话带来了一个真正的问题。
+But this creates a real problem for video calls.
+
+182
+00:11:46,350 --> 00:11:53,956
+要直接给你的朋友打电话，你需要把数据包发到她的笔记本电脑上，而不是她的路由器，
+而是她坐在沙发上用的那台真正的笔记本电脑。
+To call your friend directly, you need to send packets to her laptop, not to her router, to her actual laptop sitting on her couch.
+
+183
+00:11:54,158 --> 00:11:56,932
+而从外部看，她的笔记本电脑是不可见的。
+And from the outside, her laptop is invisible.
+
+184
+00:11:57,294 --> 00:11:59,972
+没有任何地址能让你发出的数据包到达她的电脑。
+There is no address you can put in a packet that will reach her.
+
+185
+00:12:00,558 --> 00:12:03,044
+那么，你该如何连接到一个甚至无法定位的机器呢？
+So how do you connect to a machine you cannot even address?
+
+186
+00:12:03,726 --> 00:12:06,564
+这是 WebRTC 必须解决的最难的问题。
+And this is the single hardest thing WebRTC has to solve.
+
+187
+00:12:07,182 --> 00:12:09,380
+而它的解决方法其实非常聪明。
+And the way it solves it actually quite smart.
+
+188
+00:12:09,966 --> 00:12:11,076
+让我带大家走一遍这些步骤。
+Let me walk you through the steps.
+
+189
+00:12:11,630 --> 00:12:15,680
+第一步：你们双方都连接到公网上某个公共服务器。
+Step 1: Both of you connect to a common server somewhere on the public internet.
+
+190
+00:12:16,142 --> 00:12:18,084
+这被称为信令服务器。
+This is called a signaling server.
+
+191
+00:12:18,446 --> 00:12:21,060
+你可以自己构建这个服务器，通常是通过 WebSockets 实现的。
+You build this yourself, usually over WebSockets.
+
+192
+00:12:21,550 --> 00:12:23,556
+它的唯一任务就是充当媒人。
+Its only job is to be a matchmaker.
+
+193
+00:12:24,142 --> 00:12:27,140
+它把两个对等节点介绍给对方，然后就退居幕后了。
+It introduces the two peers and then steps out of the way.
+
+194
+00:12:27,630 --> 00:12:31,812
+WebRTC 甚至没有规定信令如何运作，因为它并不关心。
+WebRTC does not even specify how signaling works because it does not care.
+
+195
+00:12:32,334 --> 00:12:33,028
+由你来决定。
+You decide.
+
+196
+00:12:33,710 --> 00:12:34,436
+第二步。
+Step 2.
+
+197
+00:12:34,894 --> 00:12:41,284
+每个对等节点都会与一个 STUN 服务器通信，基本上
+是问：嘿，从你的角度看，我的公网地址是什么样的？
+Each peer talks to a stun server and basically asks, Hey, what does my public IP look like from your side?
+
+198
+00:12:41,806 --> 00:12:46,052
+STUN 服务器做出回应，现在两个对等节点都知道外部世界看到的地址是什么了。
+Stun replies, and now both peers know what address the outside world sees them on.
+
+199
+00:12:46,574 --> 00:12:47,360
+第三步。
+Step 3.
+
+200
+00:12:47,566 --> 00:12:51,716
+每个对等节点都会收集一份所有可能被访问到的地址列表。
+Each peer collects a list of every possible address it might be reachable at.
+
+201
+00:12:52,240 --> 00:12:56,900
+包括局域网地址、来自 STUN 的公网地址，可能还有来自 TURN 的中继地址。
+Local network address, public address from stun, maybe a relay address from Turn.
+
+202
+00:12:57,390 --> 00:12:59,684
+每一个这样的地址都被称为 ICE 候选。
+Each one of these is called an ICE candidate.
+
+203
+00:13:00,398 --> 00:13:03,716
+也就是对方可能用来联系你的候选地址。
+A candidate address that the other side might be able to reach you on.
+
+204
+00:13:04,334 --> 00:13:05,120
+第四步。
+Step 4.
+
+205
+00:13:05,486 --> 00:13:09,924
+两个对等节点通过信令服务器互相发送所有的 ICE 候选。
+Both peers send all their ICE candidates to each other through the signaling server.
+
+206
+00:13:10,414 --> 00:13:14,180
+然后他们开始对所有可能的地址组合尝试建立连接。
+Then they start firing connections attempts at every possible pair of addresses.
+
+207
+00:13:14,734 --> 00:13:17,732
+ICE 会不断尝试各种组合，直到其中一个成功为止。
+ICE keeps trying combinations until one of them works.
+
+208
+00:13:18,414 --> 00:13:19,972
+最快的路径胜出。
+The fastest path wins.
+
+209
+00:13:20,462 --> 00:13:21,732
+现在连接建立好了。
+Now the connection is up.
+
+210
+00:13:22,222 --> 00:13:31,300
+DTLS 完成加密握手，SRTP 开始传输媒体，从这一刻起，
+你的视频和音频流就在两台笔记本电脑之间直接传输了。
+DTLS does the encryption handshake, SRTP starts carrying media, and from this moment on,
+your video and audio flows directly between the two laptops.
+
+211
+00:13:31,918 --> 00:13:33,668
+它们不会经过信令服务器。
+They do not pass through the signaling server.
+
+212
+00:13:34,094 --> 00:13:35,908
+它们不会经过任何你拥有的服务器。
+They do not pass through any server you own.
+
+213
+00:13:36,462 --> 00:13:38,692
+信令服务器只是个媒人。
+The signaling server was just the matchmaker.
+
+214
+00:13:39,040 --> 00:13:41,604
+一旦介绍完成，它就退场了。
+Once the introduction is done, it bows out.
+
+215
+00:13:42,094 --> 00:13:46,148
+这就是人们说 WebRTC 是点对点通话的意思。
+And that is what people mean when they say WebRTC is peer-to-peer.
+
+216
+00:13:46,638 --> 00:13:51,492
+现在这一切听起来很多，但浏览器提供的 API 却出奇地简单。
+Now all of this sounds like a lot, but the API the browser gives you is shockingly small.
+
+217
+00:13:52,240 --> 00:13:55,652
+让我用大约 20 行 JavaScript 代码展示整个连接流程。
+let me show you the entire connection flow in about 20 lines of JavaScript.
+
+218
+00:13:56,174 --> 00:13:57,668
+在开始之前先说明一点。
+Now quick note before we start.
+
+219
+00:13:57,966 --> 00:14:00,324
+你会在代码中看到一个叫 signaling channel 的东西。
+You will see a thing called signaling channel in the code.
+
+220
+00:14:00,942 --> 00:14:04,772
+那只是我用来代表你与自己信令服务器之间任何连接的占位符。
+That is just my placeholder for whatever connection you have to your own signaling server.
+
+221
+00:14:05,550 --> 00:14:06,980
+通常它是一个 WebSocket。
+Usually it is a WebSocket.
+
+222
+00:14:07,406 --> 00:14:13,252
+浏览器不在意你用什么，只要你能在这两个对等节点之间传递消息就行。
+The browser does not care what you use, as long as you can pass messages back and forth between the two peers.
+
+223
+00:14:13,774 --> 00:14:15,524
+既然说到这了，这就是流程。
+With that out of the way, here is the flow.
+
+224
+00:14:15,886 --> 00:14:17,828
+你首先创建一个对等连接。
+You start by creating a peer connection.
+
+225
+00:14:18,222 --> 00:14:21,316
+你唯一需要预先告诉它的就是使用哪个 STUN 服务器。
+The only thing you tell it upfront is which stun server to use.
+
+226
+00:14:21,806 --> 00:14:25,892
+Google 运行着一个免费的公共服务器，大多数教程都指向它。
+Google runs a free public one, and that is what most tutorials point at.
+
+227
+00:14:26,446 --> 00:14:31,140
+然后你获取用户的摄像头和麦克风，并将这些轨道添加到对等连接中。
+Then you grab the user's camera and microphone and you add those tracks to the peer connection.
+
+228
+00:14:31,520 --> 00:14:33,476
+这就是你想发送给另一端的内容。
+This is what you want to send to the other side.
+
+229
+00:14:34,094 --> 00:14:35,748
+然后你创建一个 SDP 提议。
+Then you create an STP offer.
+
+230
+00:14:36,206 --> 00:14:38,340
+这就是我们之前谈到的描述。
+This is the description we talked about earlier.
+
+231
+00:14:38,798 --> 00:14:44,132
+它说明了我能做什么，支持哪些视频和音频格式，以及什么分辨率。
+It says, here is what I can do, what video and audio formats I support, and what resolutions.
+
+232
+00:14:44,846 --> 00:14:52,068
+你将其设为你的本地描述，也就是你这一侧的协议，
+然后通过你的信令通道发送给另一个对等节点。
+You set it as your local description, meaning your side of the agreement,
+and you send it to the other peer through your signaling channel.
+
+233
+00:14:52,590 --> 00:14:56,228
+当另一个对等节点的回答传回来时，你将其设为远程描述。
+When the other peer's answers come back, you set it as the remote description.
+
+234
+00:14:56,718 --> 00:14:59,204
+现在双方就达成了通话参数的一致。
+Both sides now agree on what the call will look like.
+
+235
+00:14:59,726 --> 00:15:03,940
+所以每当你的浏览器发现新的 ICE 候选时，你就把它转发给另一个对等节点。
+So whenever your browser discovers a new ICE candidate, you forward it to the other peer.
+
+236
+00:15:04,398 --> 00:15:05,636
+他们也会对你这样做。
+And they do the same to you.
+
+237
+00:15:06,222 --> 00:15:08,964
+ICE 会不断测试对等节点，直到有东西连接上。
+ICE keeps testing peers until something connects.
+
+238
+00:15:09,454 --> 00:15:11,940
+而最后一个处理程序会在接收端触发。
+And this last handler fires on the receiving side.
+
+239
+00:15:12,238 --> 00:15:19,940
+当对方的视频和音频真正开始到达时，你把一个视频标签指向传入的流，
+你就拥有了一个可用的视频通话。
+When the other peers video and audio actually start arriving, you point
+a video tag at the incoming stream and you have a working video call.
+
+240
+00:15:20,558 --> 00:15:23,588
+就这样，大约 20 行代码就实现了点对点视频。
+And that is it, about 20 lines of peer-to-peer video.
+
+241
+00:15:24,078 --> 00:15:30,948
+难点不在于 API，而在于你必须构建的信令服务器以及后续做出的架构选择。
+The hard part is not the API, the hard part is the signaling server you have to build and the architecture choices you make next.
+
+242
+00:15:31,726 --> 00:15:32,932
+在继续之前，还有一件事。
+One more thing before we move on.
+
+243
+00:15:33,262 --> 00:15:35,076
+WebRTC 不仅仅用于视频。
+WebRTC is not just for video.
+
+244
+00:15:35,662 --> 00:15:43,428
+还有一个叫 RTC data channel 的东西，它能让你在同一个连接上以同样低的延迟，
+在对等节点之间发送任何二进制数据。
+There is something called RTC data channel that lets you send any binary
+data between peers on the same connection with the same low latency.
+
+245
+00:15:43,886 --> 00:15:53,348
+这就是 Figma 同步光标位置的方法，也是一些多人游戏处理玩家间实时游戏状态的方法，
+以及浏览器中点对点文件传输应用的工作原理。
+And this is how Figma syncs cursor positions, how some multiplayer games handle real-time game state between players,
+how peer-to-peer file transfer apps work in the browser.
+
+246
+00:15:53,966 --> 00:15:55,876
+WebRTC 是一个实时的管道。
+WebRTC is a real-time pipe.
+
+247
+00:15:56,430 --> 00:15:59,236
+视频只是通过它传输最流行的内容而已。
+Video just happens to be the most popular thing to send through it.
+
+248
+00:15:59,758 --> 00:16:01,600
+让我给你们看看它实际运行的效果。
+Let me show you this actually working.
+
+249
+00:16:01,838 --> 00:16:04,260
+我们刚才看的代码是使用摄像头。
+The code we just looked at uses the camera.
+
+250
+00:16:04,654 --> 00:16:08,804
+为了这个演示，我们使用相同的 API，但改为捕捉屏幕。
+For this demo, we are using the same API but capturing the screen instead.
+
+251
+00:16:09,422 --> 00:16:11,236
+底层的 WebRTC 流程是一样的。
+Same WebRTC flow underneath.
+
+252
+00:16:11,630 --> 00:16:17,892
+所以这里我们构建了一个简单的基于浏览器的屏幕共享系统，两个设备可以直接实时连接。
+So here we have built a simple browser based screen sharing system
+where two devices can connect directly with each other in real time.
+
+253
+00:16:18,478 --> 00:16:21,892
+在应用程序内部，我们主要有四个核心功能协同工作。
+Inside the application, we mainly have four core functions working together.
+
+254
+00:16:22,638 --> 00:16:26,564
+Init receiver 准备接收设备并生成唯一的连接 ID。
+Init receiver prepares the receiving device and generates a unique connection ID.
+
+255
+00:16:27,438 --> 00:16:30,980
+GetShareStream 从浏览器中安全地捕捉桌面屏幕。
+GetShareStream captures the desktop screen securely from the browser.
+
+256
+00:16:31,790 --> 00:16:37,220
+Start Sharing 在两个设备之间建立点对点连接并开始直播。
+Start Sharing establishes the P2P connection between both devices and starts a live stream.
+
+257
+00:16:37,678 --> 00:16:42,596
+最后，stop sharing 能在需要时干净地断开会话并停止流传输。
+And finally, stop sharing cleanly disconnects this session and stops the stream whenever needed.
+
+258
+00:16:43,182 --> 00:16:51,108
+首先，我们使用 Python 的 HTTP 服务器启动一个轻
+量级的本地服务器，将应用程序托管在 8000 端口。
+So first, we start a lightweight local server using Python M HTTP server, which hosts the application on port 8000.
+
+259
+00:16:51,662 --> 00:17:00,228
+然后利用 VS Code 内置的端口转发功能，我们将该端口公开，
+这样通过共享链接就可以从任何地方访问该应用程序。
+Then using VS Code's built-in port forwarding feature, we expose that port
+publicly so the application becomes accessible from anywhere through a shared link.
+
+260
+00:17:01,038 --> 00:17:04,516
+现在在手机上，我们打开共享链接并点击接收端。
+Now on the mobile phone, we open the shared link and click on receiver.
+
+261
+00:17:05,230 --> 00:17:08,290
+系统会立即为该设备生成一个唯一的 ID。
+The system instantly generates a unique ID for that device.
+
+262
+00:17:09,294 --> 00:17:12,420
+在桌面端，我们打开同一个链接并选择发送端。
+On the desktop side, we open the same link and select sender.
+
+263
+00:17:13,134 --> 00:17:17,828
+这里我们粘贴从移动设备生成的 ID，然后点击开始共享。
+Here we paste the ID generated from the mobile device and click on Start Sharing.
+
+264
+00:17:18,637 --> 00:17:22,788
+此时，应用程序会请求桌面浏览器授予屏幕共享权限。
+So at this point, the application requests screen sharing permission from the desktop browser.
+
+265
+00:17:23,342 --> 00:17:28,836
+一旦允许，两个设备之间就会通过 WebRTC 建立直接的点对点连接。
+Once allowed, a direct peer-to-peer connection gets established between both devices using WebRTC.
+
+266
+00:17:29,390 --> 00:17:37,668
+正如你看到的，桌面屏幕现在正实时直播到手机上，中间不需要任何专门的流媒体服务器。
+And as you can see, the desktop screen is now streamed live directly to the
+mobile phone in real time without using any dedicated streaming server in between.
+
+267
+00:17:38,446 --> 00:17:46,436
+总的来说，这展示了一个完全在浏览器内运行的轻量
+级实时屏幕共享解决方案，实现了设备间的直接通信。
+So overall, this demonstrates a lightweight real-time screen sharing solution
+running completely inside the browser with direct device-to-device communication.
+
+268
+00:17:47,502 --> 00:17:50,660
+这就是端到端运行的点对点 WebRTC。
+So that is peer-to-peer WebRTC working end-to-end.
+
+269
+00:17:51,150 --> 00:17:53,924
+只有两个设备，中间没有任何流媒体服务器。
+Just two devices, no streaming server in between.
+
+270
+00:17:54,798 --> 00:17:59,940
+好了，现在让我们聊聊为什么这种点对点设计在尝试扩展规模时会崩溃。
+Alright, now let us talk about why this peer-to-peer design falls apart the moment you try to scale it.
+
+271
+00:18:00,398 --> 00:18:03,908
+当只有两个人通话时，WebRTC 运行得非常完美。
+When just two people are on a call, WebRTC works perfectly.
+
+272
+00:18:04,302 --> 00:18:06,788
+每人只需要一个上行流和一个下行流。
+One stream up, one stream down for each person.
+
+273
+00:18:07,630 --> 00:18:10,500
+如果你加入第三个人，情况就开始变得有意思了。
+If you add a third person, now things start to get interesting.
+
+274
+00:18:10,766 --> 00:18:13,252
+每个人都必须把自己的视频发给另外两个人。
+Each person has to send their video to the other two.
+
+275
+00:18:13,902 --> 00:18:17,156
+所以每个人都在上传两个流，同时下载两个流。
+So everyone is uploading two streams and downloading two streams.
+
+276
+00:18:17,742 --> 00:18:20,708
+再加第四个人，每人就是三个上行流，三个下行流。
+Add a fourth person, three up, three down per person.
+
+277
+00:18:21,358 --> 00:18:22,180
+看到规律了吗？
+spot the pattern?
+
+278
+00:18:22,606 --> 00:18:29,092
+在包含 n 个人的通话中，每个人都必须上传 n-1 个流，并下载 n-1 个流。
+With n people in a call, every person has to upload n one streams and download n one streams.
+
+279
+00:18:29,870 --> 00:18:34,272
+通话中流的总数按 n 乘以 n-1 的速度增长。
+The total number of streams lying around the call grows as n times n 1.
+
+280
+00:18:34,670 --> 00:18:35,332
+这是平方级增长。
+Quadratic.
+
+281
+00:18:35,694 --> 00:18:36,900
+让我们用数字来算一下。
+Let us put numbers on that.
+
+282
+00:18:37,454 --> 00:18:41,860
+10 个人通话意味着每个人都在同时上传 9 个视频流。
+10 people in a call means each person is uploading 9 simultaneous video streams.
+
+283
+00:18:42,254 --> 00:18:44,548
+你家的上行带宽可能根本扛不住。
+Your home upload bandwidth probably cannot handle that.
+
+284
+00:18:44,942 --> 00:18:49,572
+即便能扛住，你的笔记本电脑也要实时编码 9 个不同副本的脸部画面。
+Even if it can, your laptop is encoding 9 separate copies of your face in real time.
+
+285
+00:18:49,998 --> 00:18:52,484
+纯粹的点对点 WebRTC 只适合 2 个人。
+Pure peer-to-peer WebRTC works for 2 people.
+
+286
+00:18:52,672 --> 00:18:54,756
+运气好的话，也许能支持 3 个或 4 个。
+Maybe 3, maybe 4 if you are lucky.
+
+287
+00:18:55,342 --> 00:18:57,712
+超过这个人数，你就需要不同的架构了。
+Beyond that, you need a different architecture.
+
+288
+00:18:57,966 --> 00:19:00,356
+那么 Zoom 是怎么把一百个人放进一个通话里的？
+So how does Zoom put a hundred people in one call?
+
+289
+00:19:00,654 --> 00:19:03,492
+Discord 是怎么把一千个人放进一个舞台频道里的？
+How does Discord put a thousand people in a stage channel?
+
+290
+00:19:03,982 --> 00:19:05,952
+他们并不使用纯粹的点对点。
+They do not use pure peer-to-peer.
+
+291
+00:19:06,192 --> 00:19:07,332
+在生产环境中，没人会这么干。
+Nobody does in production.
+
+292
+00:19:07,822 --> 00:19:09,924
+他们使用的是一种叫作 SFU 的技术。
+They use something called an SFU.
+
+293
+00:19:10,510 --> 00:19:12,932
+SFU 代表 Selective Forwarding Unit。
+SFU stands for Selective Forwarding Unit.
+
+294
+00:19:13,454 --> 00:19:16,292
+这个名字听起来很高级，但原理其实很简单。
+The name sounds fancy, but the idea is actually simple.
+
+295
+00:19:16,622 --> 00:19:21,732
+与其让每个节点都和所有其他节点通信，不如让每个节点都和中间的一个服务器通信。
+Instead of every peer talking to every other peer, every peer talks to one server in the middle.
+
+296
+00:19:22,254 --> 00:19:24,036
+而那个服务器就是 SFU。
+And that server is the SFU.
+
+297
+00:19:24,494 --> 00:19:27,076
+你只需要把自己的视频上传到 SFU 一次。
+You upload your video to the SFU exactly once.
+
+298
+00:19:27,662 --> 00:19:31,172
+SFU 会把你的视频副本转发给通话中的所有人。
+The SFU forwards a copy of your video to everyone else in the call.
+
+299
+00:19:31,566 --> 00:19:36,932
+你上传一个流，下载 n-1 个流，是线性的，而不是平方级的。
+You upload one stream, you download n-1 streams linear, not quadratic.
+
+300
+00:19:37,422 --> 00:19:40,740
+突然间，一百人同时通话就不再是疯狂的事情了。
+And suddenly a hundred people in a call is not insane anymore.
+
+301
+00:19:41,198 --> 00:19:42,148
+接下来是最酷的部分。
+And here's the cool part.
+
+302
+00:19:42,382 --> 00:19:44,356
+SFU 不会解码你的视频。
+The SFU does not decode your video.
+
+303
+00:19:44,846 --> 00:19:46,020
+它也不会重新编码。
+It does not re-encode it.
+
+304
+00:19:46,414 --> 00:19:48,388
+它甚至根本不会去查看内容。
+It does not even really look at the contents.
+
+305
+00:19:48,878 --> 00:19:53,316
+它只是重写几个数据包报头，然后把你的数据包发到正确的目的地。
+It just rewrites a few packet headers and ships your packets to the right destinations.
+
+306
+00:19:53,710 --> 00:19:54,564
+既便宜又快速。
+Cheap and fast.
+
+307
+00:19:54,912 --> 00:19:57,380
+基本上就是媒体数据包的智能路由器。
+Basically a smart router for media packets.
+
+308
+00:19:57,806 --> 00:20:02,212
+而且因为它处于中间位置，所以它可以做任何点对点架构都做不到的事情。
+And because it is sitting in the middle, it can do things no peer-to-peer setup could ever do.
+
+309
+00:20:02,574 --> 00:20:08,164
+例如，想象一下你在一个有 20 人的 Zoom 会议中，每个人的画面都显示在网格上的小方框里。
+For example, imagine you are on a Zoom call with 20 people and everyone is shown in a small box on the grid.
+
+310
+00:20:08,686 --> 00:20:14,468
+如果对方看到的只是你像邮票一样小的画面，那没必要把你的全高清视频发给他们。
+There is no point sending your full HD video to someone who is only seeing a postage stamp sized version of you.
+
+311
+00:20:14,958 --> 00:20:16,228
+所以 SFU 就不会这么做。
+So the SFU does not.
+
+312
+00:20:16,686 --> 00:20:20,804
+它会给他们发送一个低分辨率的副本，从而节省双方的带宽。
+It sends them a low resolution copy instead, saving bandwidth on both sides.
+
+313
+00:20:21,326 --> 00:20:23,460
+这个技巧叫做“多重投送”。
+This trick is called simulcast.
+
+314
+00:20:23,758 --> 00:20:33,540
+你的客户端实际上会同时发送两个或三个不同质量版本的视频，
+SFU 会根据你的视频在他们屏幕上显示的尺寸，为每个观众挑选最合适的一个。
+Your client actually sends two or three quality versions of your video at the same time,
+and the SFU picks the right one for each viewer based on how big your video is showing up on their screen.
+
+315
+00:20:34,350 --> 00:20:40,804
+所以，如果有人禁音了，SFU 就会停止转发他们的音频，从而节省整个通话的带宽。
+So, if someone is muted, the SFU just stops forwarding their audio, saves bandwidth across the entire call.
+
+316
+00:20:41,486 --> 00:20:48,996
+如果某个观众的连接变差了，SFU 可以只把那一个观众降到低质量，而不会影响到其他人。
+If one viewer's connection is dropping, the SFU can downgrade just that one viewer to lower quality without affecting anyone else.
+
+317
+00:20:49,646 --> 00:20:52,228
+这就是人们所说的“选择性转发”。
+And this is what people mean by selective forwarding.
+
+318
+00:20:52,814 --> 00:20:56,900
+SFU 会针对每个观众做出智能的发送决策。
+The SFU is making smart per-viewer decisions about what to send.
+
+319
+00:20:57,646 --> 00:21:02,500
+现在，以前还有另一种架构叫做 MCU，也就是多点控制单元。
+Now there used to be another architecture called the MCU, the multi-point control unit.
+
+320
+00:21:03,214 --> 00:21:11,684
+MCU 实际上会解码每一个进入的流，把它们全部混
+合成一个合成视频，然后把这一个流发给所有人。
+The MCU would actually decode every incoming stream, mix them all into one composite video, and send that one stream out to everyone.
+
+321
+00:21:12,462 --> 00:21:17,060
+它确实可行，但在大规模情况下，解码和重新编码视频的成本极其高昂。
+It worked, but decoding and re-encoding video at scale is incredibly expensive.
+
+322
+00:21:17,870 --> 00:21:20,480
+CPU 成本是 SFU 的 10 倍。
+CPU costs 10 times what an SFU cost.
+
+323
+00:21:21,102 --> 00:21:24,836
+到 2026 年，几乎没人再用 MCU 了。
+In 2026, almost nobody uses MCU anymore.
+
+324
+00:21:25,358 --> 00:21:30,340
+除非是一些旧的企业电话系统，你必须把视频通话和普通电话号码连接在一起。
+Except in some old corporate phone systems where you have to bridge a video call with regular phone numbers.
+
+325
+00:21:31,086 --> 00:21:37,956
+所以实际上，你有两个真正的选择：小规模通话用点对点，其他情况全部用 SFU。
+So in practice, you have two real choices: peer-to-peer for tiny calls, SFU for everything else.
+
+326
+00:21:38,702 --> 00:21:43,236
+而且你用过的每一个严肃的视频产品，都是选择了 SFU 路线。
+And every serious video product you have ever used has chosen the SFU route.
+
+327
+00:21:44,014 --> 00:21:46,788
+现在让我给你们看看，在大规模应用中这到底是什么样子的。
+Now let me show you what that actually looks like at scale.
+
+328
+00:21:47,726 --> 00:21:49,188
+以 Discord 为例。
+Take Discord for example.
+
+329
+00:21:49,614 --> 00:21:54,564
+数亿用户，语音频道里有时会有成千上万的人同时在听。
+Hundreds of millions of users, voice channels with sometimes thousands of people listening at once.
+
+330
+00:21:55,374 --> 00:21:57,860
+这种架构到底是怎么组合在一起的呢？
+How does the architecture actually fit together?
+
+331
+00:21:58,990 --> 00:22:03,268
+所以当你加入语音频道时，你的 Discord 客户端并不会直接连接到其他用户。
+So when you join a voice channel, your Discord client does not connect directly to other users.
+
+332
+00:22:03,854 --> 00:22:05,828
+它甚至不会连接到某一台 Discord 服务器。
+It does not even connect to one Discord server.
+
+333
+00:22:06,350 --> 00:22:12,868
+它连接到的是区域语音服务器，也就是位于地理位置上离你最近的数据中心里的服务器。
+It connects to a regional voice server, a server that lives in the data center geographically closest to you.
+
+334
+00:22:13,710 --> 00:22:15,588
+Discord 在全球范围内运行这些服务器。
+Discord runs this all over the world.
+
+335
+00:22:16,046 --> 00:22:18,916
+比如北弗吉尼亚、法兰克福、新加坡、孟买、悉尼。
+North Virginia, Frankfurt, Singapore, Mumbai, Sydney.
+
+336
+00:22:19,120 --> 00:22:24,516
+目标是缩短网络往返时延，因为在实时音频中，往返时延就是一切。
+The goal is to keep the network round trip short because round trip is everything in real-time audio.
+
+337
+00:22:24,942 --> 00:22:28,484
+现在，这个区域语音服务器本质上就是一个 SFU。
+Now that regional voice server is essentially an SFU.
+
+338
+00:22:29,134 --> 00:22:37,764
+Discord 使用 Elixir 处理信令层，也就是负责建立和断开通话、
+管理频道成员以及处理匹配的部分。
+Discord uses Elixir for the signaling layer, the part that sets up and
+tears down calls, manages who is in the channel, handles the matchmaking.
+
+339
+00:22:38,446 --> 00:22:41,316
+然后由 C 来处理实际的媒体流传输。
+And then C handles the actual media streaming.
+
+340
+00:22:41,742 --> 00:22:44,100
+这就是每一微秒都至关重要的核心部分。
+The hot part where every microsecond counts.
+
+341
+00:22:44,910 --> 00:22:48,036
+SFU 的核心任务和任何其他 SFU 一样。
+The core job of the SFU is the same as any SFU.
+
+342
+00:22:48,750 --> 00:22:53,380
+接收来自客户端的音频数据包，并将它们转发给正确的其他客户端。
+Take incoming audio packets from the clients, forward them to the right other clients.
+
+343
+00:22:54,126 --> 00:22:54,980
+不要解码。
+Do not decode.
+
+344
+00:22:55,342 --> 00:22:59,396
+不要重新编码，只要尽可能以光速进行路由即可。
+Do not re-encode, just route at the speed of light if possible.
+
+345
+00:22:59,982 --> 00:23:02,852
+现在，这是大多数工程师对 Discord 产生误解的地方。
+Now here is the part most engineers get wrong about Discord.
+
+346
+00:23:03,470 --> 00:23:09,188
+人们认为因为 WebRTC 是点对点的，所以你在 Discord 里的声音会直接传到你朋友的机器上。
+People assume that because WebRTC is peer-to-peer, their voice in Discord goes directly to their friend machines.
+
+347
+00:23:09,870 --> 00:23:10,532
+事实并非如此。
+It does not.
+
+348
+00:23:11,086 --> 00:23:14,724
+你的声音会传到 Discord 的语音服务器，然后由 Discord 进行转发。
+Your voice goes to Discord's voice server and Discord forwards it.
+
+349
+00:23:14,960 --> 00:23:18,564
+所以你的音频绝对是经过 Discord 的基础设施传输的。
+So your audio absolutely passes through Discord's infrastructure.
+
+350
+00:23:19,182 --> 00:23:22,500
+在生产环境中，WebRTC 几乎从不意味着点对点。
+WebRTC in production almost never means peer-to-peer.
+
+351
+00:23:23,086 --> 00:23:25,060
+语音服务器只负责处理音频。
+The voice server only handles the audio.
+
+352
+00:23:25,550 --> 00:23:36,388
+其他所有内容，比如聊天消息、正在输入指示、在线状态更新、推送通知，
+这些全部通过 Discord 的常规 API 和 WebSocket 基础设施传输。
+Everything else, the chat messages, the typing indicators, the presence updates, the push notifications,
+all of that flows over Discord's normal API and WebSocket infrastructure.
+
+353
+00:23:37,006 --> 00:23:42,852
+Discord 只在它擅长的领域——实时、低延迟音频——上使用 WebRTC。
+Discord uses WebRTC only for the one job it is good at real-time, low latency audio.
+
+354
+00:23:43,566 --> 00:23:45,380
+其他所有内容都使用不同的工具。
+Everything else uses different tools.
+
+355
+00:23:45,710 --> 00:23:47,748
+现在还有一点值得了解。
+Now there is one more piece worth knowing about.
+
+356
+00:23:48,174 --> 00:23:56,004
+当你说话时，你的客户端会使用 Opus 编解码器对你的声音进行编码，
+这是 WebRTC 生态系统标准化的音频编解码器。
+When you speak, your client encodes your voice with the Opus codec, which is the audio codec the WebRTC ecosystem standardized on.
+
+357
+00:23:56,782 --> 00:23:58,180
+Opus 在这方面表现非常出色。
+Opus is really good at this.
+
+358
+00:23:58,638 --> 00:24:05,252
+当带宽受限时，它可以降到每秒 6 kHz，而在网络良好的情况下，
+它可以提升到录音室级别的音质。
+It can drop down to 6 kHz per second when bandwidth is tight and scale up to studio quality on a good connection.
+
+359
+00:24:05,760 --> 00:24:09,092
+语音服务器在不解码的情况下转发你的 Opus 数据包。
+The voice server forwards your Opus packets without decoding them.
+
+360
+00:24:09,774 --> 00:24:11,684
+每个听众都在本地进行解码。
+Each listener decodes locally.
+
+361
+00:24:12,078 --> 00:24:18,020
+所以 Discord 服务器虽然处于每次语音通话的中间，但实际上从不监听任何一个词。
+So Discord servers, even though they are in the middle of every voice call, never actually listen to a single word.
+
+362
+00:24:18,670 --> 00:24:19,556
+注意到这个规律了吗？
+Notice the pattern?
+
+363
+00:24:19,950 --> 00:24:24,868
+没有人能用纯粹的浏览器到浏览器 WebRTC 来大规模运行生产级别的视频或语音。
+Nobody runs production video or voice at scale with pure browser-to-browser WebRTC.
+
+364
+00:24:25,646 --> 00:24:28,324
+浏览器 API 只给了你基础的构建模块。
+The browser API just gives you the basic building block.
+
+365
+00:24:28,942 --> 00:24:33,348
+架构、区域 SFU、编解码器的选择、信令层。
+The architecture, the regional SFUs, the codec choices, the signaling layer.
+
+366
+00:24:33,966 --> 00:24:37,444
+这些才是让它能为数亿用户正常运行的关键。
+That is what makes it actually work for hundreds of millions of users.
+
+367
+00:24:38,254 --> 00:24:44,100
+而 API 与实际架构之间的差距，正是真正的工程工作所在。
+And that gap between the API and the actual architecture is where the real engineering work sits.
+
+368
+00:24:44,942 --> 00:24:47,236
+现在，这一切听起来在纸面上都很完美。
+Now, all of this sounds clean on paper.
+
+369
+00:24:47,534 --> 00:24:51,268
+但在实际生产中，有很多事情会让你措手不及。
+In real production though, there are a bunch of things that will catch you off guard.
+
+370
+00:24:51,918 --> 00:24:54,564
+所以让我带你走一遍这些内容，以免你吃过亏才去学习。
+So let me walk you through them so you do not learn the hard way.
+
+371
+00:24:55,278 --> 00:24:57,668
+TURN，TURN 服务器是真金白银的成本。
+Turn, TURN servers cost real money.
+
+372
+00:24:58,158 --> 00:25:05,892
+记得我之前说过，大约 10% 到 15% 的连接无法建立直接路径，
+因为某些网络对点对点连接非常不友好。
+Remember when I said about 10 to 15% of connections cannot establish
+a direct path because some networks are extra hostile to peer to peer.
+
+373
+00:25:06,702 --> 00:25:12,960
+严格的企业防火墙、完全屏蔽 UDP 的办公网络，还有某些移动运营商的设置。
+Strict corporate firewalls, office networks that block UDP entirely, certain mobile carrier setups.
+
+374
+00:25:13,262 --> 00:25:18,116
+对于这些连接，你需要一个 TURN 服务器来转发两个对等节点之间的每一个数据包。
+For those connections, you need a turn server to relay every single packet between the two peers.
+
+375
+00:25:18,862 --> 00:25:21,732
+而且 TURN 会转发完整的媒体带宽，双向都要转发。
+And turn relays full media bandwidth, both directions.
+
+376
+00:25:22,446 --> 00:25:28,836
+如果你有 1000 个并发通话，其中 100 个需要 TURN，那就是实打实的金钱支出和运维工作。
+If you have a thousand simultaneous calls and a hundred of them need turn, that is real money and real ops work.
+
+377
+00:25:29,294 --> 00:25:35,140
+现在标准的自托管选项是一个叫 Coturn 的项目，但把它运维好本身就是一项工作。
+Now the standard self-hosted option is a project called Coturn, but operating it well is its own job.
+
+378
+00:25:35,472 --> 00:25:37,284
+信令服务器是你的另一个问题。
+The signaling server is your problem.
+
+379
+00:25:37,646 --> 00:25:39,268
+WebRTC 不自带信令服务器。
+WebRTC does not ship one.
+
+380
+00:25:39,726 --> 00:25:43,076
+你需要自己构建它，通常是一个小型 WebSocket 服务。
+You build it yourself, usually as a small WebSocket service.
+
+381
+00:25:43,918 --> 00:25:45,444
+消息格式由你决定。
+The message format is up to you.
+
+382
+00:25:45,902 --> 00:25:47,428
+对于大多数团队来说，JSON 就足够了。
+JSON works fine for most teams.
+
+383
+00:25:48,174 --> 00:25:54,244
+只要 offer、answer 和 ICE 候选能从一个对等节点传到另一个，浏览器就不在乎。
+The browser does not care as long as offers, answers, and ICE candidate makes it from one peer to another.
+
+384
+00:25:54,606 --> 00:25:56,772
+而且移动网络非常讨厌 UDP。
+And mobile networks hate UDP.
+
+385
+00:25:57,166 --> 00:26:00,452
+有些运营商会限速，有些会在特定端口上屏蔽它。
+Some carriers throttle it, some block it on certain ports.
+
+386
+00:26:00,750 --> 00:26:07,204
+所以你的 TURN 服务器还必须提供通过 TCP 和 TLS 的转发，作为备选传输协议。
+So your turn server has to also supply relaying over TCP and over TLS as fallback transports.
+
+387
+00:26:07,790 --> 00:26:15,172
+其思路是如果 UDP 不行，就尝试 TCP，因为大多数网络都允许 TCP，毕竟 HTTP 就是用的它。
+The idea is if UDP does not work, try TCP, which most network allow because it is what HTTP uses.
+
+388
+00:26:15,726 --> 00:26:23,044
+否则，你的应用会在某些使用移动数据的用户身上静默崩溃，
+直到支持工单堆积起来你才知道原因。
+Otherwise, your app silently breaks for some percentage of users on
+mobile data and you will not know why until the support ticket piles up.
+
+389
+00:26:23,918 --> 00:26:28,132
+此外，Safari 和 Chrome 在协商编解码器时并不总是采用相同的方式。
+Moreover, Safari and Chrome do not always negotiate codecs the same way.
+
+390
+00:26:28,878 --> 00:26:32,644
+iOS 在获取用户媒体方面有自己的一套特殊规则。
+iOS has its own special rules around when get user media works.
+
+391
+00:26:33,262 --> 00:26:35,652
+所以你得用最笨的方法去修复这些 bug。
+So you will have to fix these bugs the hard way.
+
+392
+00:26:36,142 --> 00:26:41,828
+录制完全是另一个问题，因为 SFU 只是转发数据包，它们不会解码。
+Recording is a separate problem entirely because SFUs forward packets, they do not decode them.
+
+393
+00:26:42,286 --> 00:26:50,084
+所以如果你想录制通话，你需要一个独立的组件作为参与者加入通话，解码所有内容并写入文件。
+So if you want to record a call, you need a separate component that
+joins the call as a participant, decodes everything, and writes a file.
+
+394
+00:26:50,734 --> 00:26:55,268
+这个组件被称为录制器，它本身就是一个微型分布式系统。
+This component is called a recorder and it is its own little distributed system.
+
+395
+00:26:56,032 --> 00:26:59,236
+这些正是把一个可行的演示变成真正产品的关键点。
+These are the things that turn a working demo into a real product.
+
+396
+00:26:59,534 --> 00:27:00,612
+所以你要为这些预留预算。
+So do budget for them.
+
+397
+00:27:01,102 --> 00:27:04,132
+如果说这期视频有一点是我希望你们记住的，那就是这一点。
+If there is one thing I want you to remember from this video, it is this.
+
+398
+00:27:04,686 --> 00:27:06,884
+WebRTC 是两个对等节点进行通信的方式。
+WebRTC is how two peers talk.
+
+399
+00:27:07,374 --> 00:27:10,084
+SFU 是让多个对等节点高效通信的方式。
+The SFU is how many peers talk efficiently.
+
+400
+00:27:10,734 --> 00:27:19,712
+除此之外的所有内容，比如 STUN、TURN、ICE、SDP，全都是为
+了让这两个想法在复杂的真实互联网上真正跑通的基础设施。
+Everything else, stun, turn, eyes, SDP, all of it, is just plumbing to make those two ideas actually work on the messy real internet.
+
+401
+00:27:20,238 --> 00:27:24,964
+在下一期视频中，我们可以更深入一步，真正拆解 Discord 的完整系统设计。
+In the next video, we can go one level deeper and actually take apart Discord's full system design.
+
+402
+00:27:25,550 --> 00:27:28,452
+看看他们是如何处理单个语音频道中的上千人的。
+How they handle a thousand people in a single voice channel.
+
+403
+00:27:28,942 --> 00:27:36,580
+我通常把这种深度解析留给我的同学，但如果你们足够多的
+人想在频道上看到它，就在下方留言，我会把它做出来的。
+I usually save this kind of breakdown for my co students, but if enough of you want it on this channel,
+drop a comment below and I'll make it happen.
+
+404
+00:27:36,832 --> 00:27:39,312
+记得点赞并订阅，以免错过。
+Do like and subscribe so you do not miss it.
+
+405
+00:27:39,392 --> 00:27:40,832
+我们下期见。
+I'll see you in the next one.
+
