@@ -1,0 +1,1412 @@
+1
+00:00:01,166 --> 00:00:01,988
+Hello everyone.
+
+2
+00:00:04,622 --> 00:00:06,532
+Good morning everyone and welcome.
+
+3
+00:00:07,598 --> 00:00:09,280
+My name is Cindy Rubio Gonzalez.
+
+4
+00:00:09,520 --> 00:00:11,780
+I'm one of the co-chairs for ISTA.
+
+5
+00:00:12,800 --> 00:00:19,492
+It is my pleasure today to introduce our keynote for the Impact Paper Award.
+
+6
+00:00:22,800 --> 00:00:35,520
+so this is going to honor the 2016 ISTA paper, Sapiens multi-objective automated Testing for Android Applications, authored by Ken Mao, Mark Harman, and Joe EG.
+
+7
+00:00:36,110 --> 00:00:36,516
+Yeah.
+
+8
+00:00:37,678 --> 00:00:46,500
+And a decade ago, Sapiens fundamentally reframed user interface testing around a principle.
+
+9
+00:00:46,720 --> 00:00:55,556
+And that was that automated testing really earned its place when its results were actionable.
+
+10
+00:00:57,520 --> 00:01:04,320
+So what Sapiens did was have several optimizations at once.
+
+11
+00:01:04,462 --> 00:01:17,636
+So one was coverage, another one was failure detection, and one more was having witnesses, minimal witnesses that we could replay.
+
+12
+00:01:18,894 --> 00:01:35,524
+So and this proved that foundational research could solve real-world problems in industry, and this eventually scaled to running millions of tests on platforms that billions of people use.
+
+13
+00:01:36,942 --> 00:01:38,884
+So our speaker today is Ken Mao.
+
+14
+00:01:39,200 --> 00:01:40,560
+So he's here.
+
+15
+00:01:41,280 --> 00:01:54,692
+so he's a tech lead and meta, and he leads WhatsApp's AI for software productivity, focusing on autonomous agents that write, review, and verify code.
+
+16
+00:01:55,662 --> 00:02:15,040
+And as the lead author of Sapiens, he co-founded a startup called Magic, whose purpose was to transition the research in Sapiens to um um you know um to a scale of production.
+
+17
+00:02:17,200 --> 00:02:30,212
+He also created What's Code, which is WhatsApp's AI engineering agent, and has led deployments spanning large scale reliability and also privacy aware code analysis.
+
+18
+00:02:30,960 --> 00:02:38,500
+he holds a PhD from University College London, and with that, please join me in welcoming our speaker, Ken Mao.
+
+19
+00:02:54,080 --> 00:02:55,108
+good morning everyone.
+
+20
+00:02:56,110 --> 00:02:59,812
+Thank you to Easter and the Impact Award Committee for this honor.
+
+21
+00:03:00,480 --> 00:03:06,884
+10 years ago we introduced the SAPINGS, a system for mobile test generation at Easter 2016.
+
+22
+00:03:07,406 --> 00:03:15,012
+We took it from research prototype to industrial system deployed at Meta, and still running today after 10 years.
+
+23
+00:03:15,502 --> 00:03:29,796
+So today I'm going to share some experience we learned from the industry practice, what we could automate, where we still need human judgment, and how those boundaries are quickly changing with autonomous agent and agent Excel verification.
+
+24
+00:03:31,918 --> 00:03:39,332
+So this is the Easter 2016 paper, SAPIN's Multi-Objective Automated Testing for Android Applications.
+
+25
+00:03:40,942 --> 00:03:47,492
+I co-authored this with Professor Mark Harmon and Yue Jia while I was doing my PhD at University College London.
+
+26
+00:03:48,974 --> 00:03:51,748
+So this is also their journey and their award too.
+
+27
+00:03:53,038 --> 00:04:10,500
+Actually, the SAPINS project was originated from the survey on the use of cross-sourcing in software engineering, and that survey inspired us to ask the question how can we design a system that can produce useful and practical mobile tasks?
+
+28
+00:04:11,598 --> 00:04:13,028
+And could cross sourcing help?
+
+29
+00:04:13,774 --> 00:04:24,548
+The original plan was to start with automated system that generate tasks with automation alone, and then we introduce cross-source intelligence by looping human to improve the task.
+
+30
+00:04:25,326 --> 00:04:32,036
+However, the first version with automation alone already worked surprisingly well, and that became the Sappings paper.
+
+31
+00:04:50,368 --> 00:04:50,688
+The
+
+32
+00:04:50,688 --> 00:04:56,836
+last sentence of SIPM paper says, we believe SAPI is a practical and useful testing tool.
+
+33
+00:04:57,486 --> 00:05:00,128
+And three months later we had to find out.
+
+34
+00:05:00,334 --> 00:05:08,804
+So three of our co-founders found a company named Magic, basically taking the character from each of our co-founders' names.
+
+35
+00:05:09,358 --> 00:05:14,788
+And that company was acquired by Facebook in 2017, February.
+
+36
+00:05:15,470 --> 00:05:28,292
+And within 17 months of the publication of the paper, we deployed it at Facebook Continuous Integration, which started testing the developer-submitted changes for the apps.
+
+37
+00:05:29,294 --> 00:05:40,004
+And now nine years since the initial deployment, it's still running for testing Facebook app family apps like Facebook, Messenger, Instagram, and WhatsApp.
+
+38
+00:05:40,526 --> 00:05:51,204
+So today we're talking about we're generating millions of tests a day and thousands of unique crashes a week and hundreds of releases safeguarded per month.
+
+39
+00:05:55,086 --> 00:06:08,368
+Taking a research system into the industrial deployment takes much more than smart algorithms or um smart algorithms and the novel ideas.
+
+40
+00:06:08,608 --> 00:06:12,528
+So today I want to talk about more on this point.
+
+41
+00:06:12,608 --> 00:06:16,150
+And one key theme is deployment follows the Oracle.
+
+42
+00:06:17,038 --> 00:06:27,844
+So by Oracle we mean how do we know the app, how do we decide the app behave correctly, and we could easily generate many tasks or run developer written tasks.
+
+43
+00:06:28,430 --> 00:06:32,448
+However, tasks could pass or fear for many reasons.
+
+44
+00:06:32,654 --> 00:06:37,412
+A task could fail due to flickness, infrar issues, or just task outdated.
+
+45
+00:06:37,934 --> 00:06:41,220
+Well, a passing task could be just weaker assertions.
+
+46
+00:06:41,998 --> 00:06:51,204
+So we need reliable R code that we can use to check each stage of the software development life cycle and ensure the code is correct.
+
+47
+00:06:51,662 --> 00:06:56,644
+So that question came coming back when we trying to deploy test automation system.
+
+48
+00:06:58,528 --> 00:07:09,088
+And today we're talking about five development stages: writing the code, local verification, review, landing decision, and uh postland.
+
+49
+00:07:09,328 --> 00:07:14,372
+Here, land means to merge a developer submitted change into the code base.
+
+50
+00:07:14,798 --> 00:07:16,190
+We also call that a diff.
+
+51
+00:07:17,038 --> 00:07:20,388
+And post land means the stage after that or post-release.
+
+52
+00:07:21,422 --> 00:07:33,568
+At the time there is no large language models, so we cannot check correctness, and today we may use large language models to check correctness of the app behavior as well.
+
+53
+00:07:34,286 --> 00:07:42,372
+However, large language models is also unreliable, so we need a way to decide when we can trust the agent answers.
+
+54
+00:07:48,014 --> 00:07:50,692
+So this is the loop we'll follow today.
+
+55
+00:07:51,790 --> 00:07:55,568
+Explore, observe, judge, and report.
+
+56
+00:07:55,728 --> 00:07:59,172
+This is from the original Saping's 2016 paper.
+
+57
+00:08:00,448 --> 00:08:08,288
+And for the remainder of the talk, we'll revisit this cycle again, and I'll organize the talk into four parts.
+
+58
+00:08:08,448 --> 00:08:16,484
+First, we'll talk about the original SIPING's idea, and I'll talk about how we deploy it at the meta environment.
+
+59
+00:08:16,878 --> 00:08:22,948
+And then I'll do a retro on what we learned, what doesn't work, and what we didn't expect.
+
+60
+00:08:23,758 --> 00:08:37,412
+And part three, we'll talk about how we shift left with the verification by moving the testing to early stage for bug prevention, and how we extended the system to catch more bug types like privacy.
+
+61
+00:08:37,998 --> 00:08:45,476
+And finally, the fourth part I'll talk about how agent can use this loop to self verify its changes.
+
+62
+00:08:49,616 --> 00:08:54,176
+let me check the okay.
+
+63
+00:08:54,510 --> 00:08:57,636
+So this is the original SIPIN's idea.
+
+64
+00:08:58,542 --> 00:09:00,708
+So you might be familiar with this screen.
+
+65
+00:09:00,976 --> 00:09:02,656
+It's uh app crash.
+
+66
+00:09:02,816 --> 00:09:10,416
+Imagine that you're using your app and viewing your friends' photos or drafting a post and app suddenly stopped.
+
+67
+00:09:10,702 --> 00:09:12,016
+Which is an annoying experience.
+
+68
+00:09:12,334 --> 00:09:17,508
+And our developers certainly don't want to ship this kind of experience to develop to users.
+
+69
+00:09:17,934 --> 00:09:22,660
+So that's the motivational problem we are trying to solve with the original saping system.
+
+70
+00:09:24,718 --> 00:09:36,970
+And at the time, the practice of test automation is design uh engineers working with the machines for test automation, where the engineers would design test cases and the machine execute the test.
+
+71
+00:09:37,518 --> 00:09:41,216
+But why is that machine can only automate test execution?
+
+72
+00:09:41,296 --> 00:09:43,108
+Why can it also automate design, right?
+
+73
+00:09:43,374 --> 00:09:47,940
+So that's the question we ask for the system project, and we're trying to automate both.
+
+74
+00:09:50,318 --> 00:09:57,316
+On high level, Sapings is a search-based multi-object test generation approach for system-level mobile app testing.
+
+75
+00:09:58,446 --> 00:10:06,340
+It runs on the release app, so we don't need the source code and we don't need any pre-existing specification or human written task.
+
+76
+00:10:06,958 --> 00:10:12,292
+The only R code it checks is the app should not crash or should should stop responding.
+
+77
+00:10:13,966 --> 00:10:22,052
+It's in the original paper, we deploy it after release, but later we gradually by moving to early stage for preventing bugs.
+
+78
+00:10:22,766 --> 00:10:32,336
+And if you check the loop we mentioned earlier, there are three items explore, observe, and report are well covered in the original paper.
+
+79
+00:10:32,496 --> 00:10:36,676
+However, the judge is very limited, only focused on the crash finding.
+
+80
+00:10:37,358 --> 00:10:42,404
+And over time we're able to expand the judge to cover more types of bugs.
+
+81
+00:10:44,878 --> 00:10:49,668
+So you might be familiar with the random fuzzers, which is efficient at bug finding.
+
+82
+00:10:50,446 --> 00:10:56,580
+And 10 years ago, there is a state of practice called Android Monkey, which is very popular for crash finding.
+
+83
+00:10:56,974 --> 00:11:03,492
+However, the general test can be unrealistic or very long, which is hard to reproduce or debug.
+
+84
+00:11:04,576 --> 00:11:12,900
+So on the right side, we have smart human testers who are good at designing the test cases, but it's tedious and slow task.
+
+85
+00:11:13,486 --> 00:11:20,036
+So sapiens sits between the two end and generate uh use evolution search to generate smart test cases.
+
+86
+00:11:22,382 --> 00:11:32,580
+The original sapiens paper was targeted for Android only, like most of our papers that time, for obvious reasons that Android is open sourced and easy to improve the harness.
+
+87
+00:11:33,056 --> 00:11:48,164
+Well, for iOS, it's harder due to its closed source nature, and in a later stage we also overcame that difficulty and was able to inject system-level events and let CPNs generate and replay on iOS apps.
+
+88
+00:11:50,254 --> 00:11:52,736
+Here's an overview of the original system.
+
+89
+00:11:54,190 --> 00:11:59,456
+It might be a bit outdated, but I think the idea is still still makes sense.
+
+90
+00:11:59,662 --> 00:12:06,532
+So on the left side, we have the evolution engine, which would initialize the population of test sequences.
+
+91
+00:12:06,926 --> 00:12:14,656
+and then we evaluate those test sequences on the right side, which are a swarm of the Android or iOS emulators.
+
+92
+00:12:14,894 --> 00:12:20,324
+and we evaluate their properties like coverage, photo evolution, and test sequence length.
+
+93
+00:12:27,740 --> 00:12:28,960
+Sorry, it's not responding.
+
+94
+00:12:28,960 --> 00:12:29,220
+Let me,
+
+95
+00:12:36,686 --> 00:12:36,912
+Okay.
+
+96
+00:12:37,152 --> 00:12:42,436
+So we have three features that make it smart than pure random fuzzing.
+
+97
+00:12:42,752 --> 00:12:46,512
+The first feature is we call it motive gene.
+
+98
+00:12:46,592 --> 00:12:51,268
+We introduced a high-level type of event to mimic human behaviors.
+
+99
+00:12:51,950 --> 00:12:55,172
+Taking example here, this is uh retribution screen.
+
+100
+00:12:55,598 --> 00:13:02,112
+For today's agent, it'll be very trivial for agent to fill the form and proceed to the next screen for coverage.
+
+101
+00:13:02,286 --> 00:13:05,872
+However, for the machines 10 years ago, it's a hard problem.
+
+102
+00:13:06,158 --> 00:13:13,572
+So we introduced the type of high-level sequence called MultifGene to simulate human behaviors to improve coverage.
+
+103
+00:13:15,470 --> 00:13:20,676
+And second feature is S-Pings perform genetic search to design test cases.
+
+104
+00:13:21,262 --> 00:13:30,170
+It starts by initializing multiple test sequences, and each sequence is composed of a list of system-level events.
+
+105
+00:13:30,752 --> 00:13:37,290
+for example, here we have let's see, the T ones are click events and the pink ones are type events.
+
+106
+00:13:37,998 --> 00:13:42,660
+And then it applies a bunch of genetic operators to improve the test.
+
+107
+00:13:43,118 --> 00:13:48,708
+The selection would select parent two sequences to breed the next offspring.
+
+108
+00:13:50,126 --> 00:14:06,500
+And it may select test cases with good properties like high coverage or good strong fault like uh fault revolution, and then crossover would swap some of the events for diversity, and the mutation would mutate from one event to another.
+
+109
+00:14:07,726 --> 00:14:16,100
+This will be iterated many times for converging into the objectives with better properties.
+
+110
+00:14:18,478 --> 00:14:22,692
+The third feature is Sapings is a multi-objective optimization approach.
+
+111
+00:14:23,694 --> 00:14:28,112
+It might be trivial to just optimize one objective, let's say coverage.
+
+112
+00:14:28,430 --> 00:14:32,900
+To improve that, you may want to throw many as many events as possible into the system.
+
+113
+00:14:33,358 --> 00:14:40,432
+However, just like random fuzing, this would generate very long and uh uh sequences that are hard to debug or repro.
+
+114
+00:14:41,614 --> 00:14:50,436
+So instead, C Pings takes a multi-objective optimization approach to maximize fault revolution, coverage, and meanwhile minimizing test sequence length.
+
+115
+00:14:50,992 --> 00:15:03,588
+It tries to find a set of test cases that are optimal in terms of you cannot gain on one property without compromising on the other, and this is known as the protofront.
+
+116
+00:15:06,126 --> 00:15:08,752
+So, why short sequences is so important?
+
+117
+00:15:09,390 --> 00:15:16,516
+So, in practice, we believe uh crash only matters if it's actionable and developer could repro, debug, and fix.
+
+118
+00:15:17,070 --> 00:15:27,492
+So for CPN's work, we try to report a crash with shortest possible sequence and also attach a video on how to reproduce or trigger the crash.
+
+119
+00:15:28,398 --> 00:15:32,992
+And in practice, we believe a crash you cannot reproduce, is just a complaint.
+
+120
+00:15:33,152 --> 00:15:40,356
+Well, if a crash is with a replace replayable video and the debug info, that became an actionable task.
+
+121
+00:15:43,950 --> 00:15:48,804
+In the original SciPiens paper, we evaluated on both open source and closed source apps.
+
+122
+00:15:49,358 --> 00:15:56,228
+For the closed source apps, we picked top 1,000 Google Play apps, and the SPIS was able to find the 1000.
+
+123
+00:15:56,622 --> 00:16:06,112
+uh Sypians were able to find 558 unique crashes, and it went a bit further by also contacting the app.
+
+124
+00:16:06,158 --> 00:16:13,508
+owners, and 27 of the apps confirmed there's real fault, and six of them are confirmed fixes.
+
+125
+00:16:17,262 --> 00:16:34,020
+So the original sapiens paper, we said we don't need any specification and we don't need to write down any rules or policies for crash finding, but there's indeed uh in explicit expectation that this app should not crash.
+
+126
+00:16:35,022 --> 00:16:39,268
+So that assumption actually matters than we realized.
+
+127
+00:16:39,758 --> 00:16:47,396
+So this is important for us to allow generalize to more apps and without any extra human effort.
+
+128
+00:16:49,102 --> 00:16:56,900
+And in the paper we mostly focus on the search algorithm but actually it is the Oracle decide we could use the system and deploy.
+
+129
+00:16:58,030 --> 00:17:01,540
+I'll come back to these types of oracles in the later parts as well.
+
+130
+00:17:04,782 --> 00:17:06,640
+So this is the part two.
+
+131
+00:17:06,830 --> 00:17:11,780
+Let's talk about how we uh deploy the system into the industry scale.
+
+132
+00:17:12,320 --> 00:17:14,720
+first let's do a retro of the timeline.
+
+133
+00:17:14,880 --> 00:17:32,900
+We published the Sypings paper at Easter 2016, and three months later we found a startup company, and that company was acquired by Facebook in February 2017, and we started working on integration of the research prototype into the Facebook dev workflow.
+
+134
+00:17:33,710 --> 00:17:38,960
+And the same year, September, we already deployed the system by running postland time.
+
+135
+00:17:39,120 --> 00:17:44,452
+That means after the app is built, we run the savings continuously for crash bug finding.
+
+136
+00:17:45,006 --> 00:17:55,332
+And the following year, we were able to move that bug detection to earlier stage during diff time so that we can prevent bugs at the first place.
+
+137
+00:17:56,782 --> 00:18:01,892
+And then the same year we were able to get 1,000 crash bugs fixed.
+
+138
+00:18:02,926 --> 00:18:11,760
+So one important metric we reported in the original study is there we had 75% of reported crashes that led to a fix.
+
+139
+00:18:11,920 --> 00:18:16,036
+This is actually a quite high number for automated test generation system.
+
+140
+00:18:18,798 --> 00:18:22,628
+So you might wonder how sapiens look like when it is working.
+
+141
+00:18:22,926 --> 00:18:24,240
+So here is a screenshot.
+
+142
+00:18:24,320 --> 00:18:28,000
+It used to be a video, but today I can only show a screenshot.
+
+143
+00:18:28,080 --> 00:18:37,680
+But you can imagine these are flying screens that the uh sapiens will would operate the app to simulate to user uh how user may use the app.
+
+144
+00:18:37,838 --> 00:18:42,244
+And each grid is uh emulator testing for a Facebook family app.
+
+145
+00:18:43,022 --> 00:18:49,956
+And you can see on the lower bottom side there is one crash discovered.
+
+146
+00:18:52,366 --> 00:18:58,340
+And another feature is sapping would log in with test users so that we can isolate from production users.
+
+147
+00:19:00,942 --> 00:19:08,548
+So here shows how sappings is integrated into the continuous integration pipeline at Facebook uh workflow.
+
+148
+00:19:09,806 --> 00:19:11,680
+This is a high-level illustration.
+
+149
+00:19:11,760 --> 00:19:14,640
+So basically, this involves a bunch of operators.
+
+150
+00:19:14,830 --> 00:19:31,760
+First, when developers submit a change, we have a build operator with build the app with that change, and that build, we call smoke build, will be fit into the CPIN's search engine to design test cases and execute the test cases for crash finding.
+
+151
+00:19:32,398 --> 00:19:39,428
+For any reviewed crashes, it will be triaged to the most suspicious diff's owner.
+
+152
+00:19:40,270 --> 00:19:43,460
+And let me talk a bit more on the triage process.
+
+153
+00:19:44,494 --> 00:20:04,080
+So given a crash data, the sappings uh full triage process would go through the bug stack trace, the crash stack trace, and then allocate the first broken build and the last good build, and all the diffs in between are considered as suspicious diff.
+
+154
+00:20:04,974 --> 00:20:13,860
+And then we rank those diffs against the crash stack trace frames and pick the most suspicious one and uh triarc that to the developers.
+
+155
+00:20:14,318 --> 00:20:20,320
+And then the developer may submit a new change and rerun sapiens to ensure the crash has been fixed.
+
+156
+00:20:23,342 --> 00:20:26,148
+We believe finding a crash is only half it.
+
+157
+00:20:26,780 --> 00:20:32,196
+There is also heavy effort on localization, root coursing, and fixing.
+
+158
+00:20:32,622 --> 00:20:38,180
+So we introduced a new system called SetFakes to automatically fix sapings from crashes.
+
+159
+00:20:39,342 --> 00:20:48,132
+And the system would use a bunch of strategies to decide how to generate the fixed patches and how to evaluate it is valid.
+
+160
+00:20:48,366 --> 00:20:53,572
+For those past the validation it would send to developers for review.
+
+161
+00:20:56,046 --> 00:20:59,824
+Here's the fixed generation workflow.
+
+162
+00:21:00,238 --> 00:21:06,624
+So given a stack trace from CPings, the setfix system would use a bunch of strategies.
+
+163
+00:21:06,864 --> 00:21:09,636
+Let's say here we are talking about four.
+
+164
+00:21:10,414 --> 00:21:13,900
+For high-firing crash, it may simply revert the full diff.
+
+165
+00:21:14,864 --> 00:21:21,732
+And if there is a potential merge conflict, that may trigger the second strategy, we may revert partial div.
+
+166
+00:21:22,304 --> 00:21:24,944
+And the third one is template-based fixing.
+
+167
+00:21:25,104 --> 00:21:35,204
+This is more about forward fixing by following the previous fixed patterns from developers, and that would generate a template-based fix.
+
+168
+00:21:36,046 --> 00:21:46,532
+For cases we don't have historical knowledge or it needs a final ground fix, we may mutate across abstract syntax tree for a final ground fix.
+
+169
+00:21:47,246 --> 00:21:53,316
+So this process may generate many fixed candidates, so we need to evaluate how valid they are.
+
+170
+00:21:54,958 --> 00:22:03,104
+For the fixed validation workflow, we let the system ask a bunch of questions and execute to answer them.
+
+171
+00:22:03,344 --> 00:22:07,364
+First one, we build app to check if any compilation errors.
+
+172
+00:22:07,918 --> 00:22:13,700
+And the second, we rerun sapings to check whether the crash can be reproduced or not.
+
+173
+00:22:14,798 --> 00:22:21,252
+And the third, we also check if there are any new crashes introduced by fixing the targeted crash.
+
+174
+00:22:21,806 --> 00:22:32,132
+And finally, for functional correctness, we rely on historical like pre-existing developer-defined entrance tasks to validate there's any correctness errors.
+
+175
+00:22:33,070 --> 00:22:41,664
+So for those past this workflow, we would send the candidate patch to developers for fixing and the system would automatically check their review state.
+
+176
+00:22:41,824 --> 00:22:46,340
+If it's accepted, the suffix system can auto-line the change.
+
+177
+00:22:46,734 --> 00:22:49,240
+If it's rejected, and the system would abandon the diff.
+
+178
+00:22:52,942 --> 00:22:59,104
+The other interesting work we explored a bit is the combination of dynamic and static analysis.
+
+179
+00:22:59,470 --> 00:23:07,984
+So CPNs can be treated as one type of dynamic analysis by triggering different app behaviors and then check if there's any violation.
+
+180
+00:23:08,334 --> 00:23:14,224
+And you might have heard about the Facebook, there's another popular tool for static analysis called infer.
+
+181
+00:23:14,638 --> 00:23:18,304
+So we're combining the two by we call it boost signal boosting.
+
+182
+00:23:18,464 --> 00:23:22,064
+If both two found the same issue, we would prioritize that issue.
+
+183
+00:23:22,144 --> 00:23:26,692
+And in practice, that's a good way to improve the precision of the reported bugs.
+
+184
+00:23:27,886 --> 00:23:34,788
+Another benefit by combining the two is we could localize on a final granularity.
+
+185
+00:23:35,450 --> 00:23:49,184
+Cpins usually found a crash and allocate to a crashing frame that would usually point to a line of the code, but it won't know which variable could be the root cause, let's say the non-ponder exception, which could be notable.
+
+186
+00:23:49,870 --> 00:23:55,904
+And infer performs final analysis with static analysis and could give that information.
+
+187
+00:23:56,174 --> 00:23:59,908
+However, it doesn't have runtime information to confirm this is true positive.
+
+188
+00:24:00,270 --> 00:24:08,132
+So by combining the two, we are able to localize on the variable level, and that's also improved the stat fix uh efficiency.
+
+189
+00:24:11,342 --> 00:24:16,612
+So you might wonder what kind of what are the common courses that crash the app.
+
+190
+00:24:17,038 --> 00:24:23,108
+So this is previously reported distribution of the root courses that crash the app.
+
+191
+00:24:23,760 --> 00:24:29,572
+I think it's also from previous years, but I do believe this is still representative.
+
+192
+00:24:29,902 --> 00:24:34,276
+And the top one are non-pointer exceptions, also known as MPE crash.
+
+193
+00:24:34,880 --> 00:24:40,580
+because so popular, we also prioritize this as the first class system for automated repair system.
+
+194
+00:24:43,406 --> 00:24:46,320
+Now let's do a quick retro.
+
+195
+00:24:46,400 --> 00:24:51,684
+So we introduced the sapings to design test cases for system level testing.
+
+196
+00:24:52,400 --> 00:25:02,852
+And for its front crashes, we feed that into an automated fix system called SAPFix, which would generate valid patches for a developer to review.
+
+197
+00:25:04,302 --> 00:25:07,908
+Now, after 10 years, did we get everything right?
+
+198
+00:25:08,814 --> 00:25:10,240
+And the answer is not quite.
+
+199
+00:26:23,534 --> 00:26:32,580
+Although in practice we gradually shifted to more practical objectives, like time cost, false poster rate, and developer experience.
+
+200
+00:26:35,470 --> 00:26:42,596
+Limitations of the paper, uh first one, obviously we only tackled one type of bug, which is crash.
+
+201
+00:26:43,470 --> 00:26:50,880
+And in practice, we need more types of bug to be covered, like crackness and other reliability type of bugs.
+
+202
+00:26:51,120 --> 00:26:56,772
+And second, we measured coverage and crash count, not whether anyone acted.
+
+203
+00:26:57,134 --> 00:27:08,036
+So actually, in the original SciP's paper, at that time, I think the state of art was to evaluate against open source apps and compare the reviewed crashes.
+
+204
+00:27:08,558 --> 00:27:20,868
+I think we in the original paper went a bit ahead, actually, also tested on closed source apps, and we tried to contact developers to confirm the true positive, which already went a bit further, but I think it's still a bit shallow.
+
+205
+00:27:21,934 --> 00:27:25,120
+The third limitation is we test it on released app.
+
+206
+00:27:25,440 --> 00:27:28,640
+We don't need source code, which is a benefit and also limitation.
+
+207
+00:27:28,800 --> 00:27:31,280
+Without source code, we cannot do bug prevention.
+
+208
+00:27:31,360 --> 00:27:34,788
+We can only capture it when the bug was introduced to the system.
+
+209
+00:27:38,606 --> 00:27:45,316
+There are three things we there are no way we could discuss in the original paper and we learned later.
+
+210
+00:27:45,742 --> 00:27:46,948
+First one, the speed.
+
+211
+00:27:48,078 --> 00:27:57,284
+We didn't expect we just only took three months to find a company, and later about one and a half year to production at the industry environment.
+
+212
+00:27:58,766 --> 00:28:00,772
+And the second, portability.
+
+213
+00:28:01,710 --> 00:28:11,364
+The urgent SPN's idea and paper focused on the crash finding with the evolution of search, and we designed a search engine for generating test cases.
+
+214
+00:28:12,014 --> 00:28:19,108
+However, that engine was also used for privacy analysis later and also worked surprisingly well.
+
+215
+00:28:20,238 --> 00:28:25,380
+Third, there was no major large language models at the time, and there was no agent.
+
+216
+00:28:26,000 --> 00:28:33,860
+So we assumed the code generation and test generation was the expensive part, but nowadays it becomes the cheapest part.
+
+217
+00:28:34,000 --> 00:28:39,140
+And validation and test and verification itself becomes heavy and expensive.
+
+218
+00:28:41,966 --> 00:28:44,896
+So, part three, things start to shift left.
+
+219
+00:28:45,056 --> 00:28:50,724
+By shift left, we mean to move the testing verification to an earlier stage of the development lifecycle.
+
+220
+00:28:51,630 --> 00:28:54,980
+In the original SPN's paper, we deployed at post-release time.
+
+221
+00:28:55,456 --> 00:29:01,536
+And later, when we went to Facebook, we moved that to continuous integration at post-land time.
+
+222
+00:29:01,616 --> 00:29:05,508
+It's a bit earlier for continuous testing and verification.
+
+223
+00:29:06,222 --> 00:29:12,708
+And then we further move that left to code review time so that we can prevent the bug in the first place.
+
+224
+00:29:14,798 --> 00:29:17,220
+So you may ask why we want to shift left.
+
+225
+00:29:17,776 --> 00:29:19,456
+And the answer is obvious.
+
+226
+00:29:19,616 --> 00:29:29,380
+We shift left by shifting the test verification left, we'll find bug at a much earlier stage when the developer or today's agent still have the local contacts.
+
+227
+00:29:29,696 --> 00:29:31,268
+It's much easier to fix.
+
+228
+00:29:31,856 --> 00:29:41,252
+And if the bug slips through to later stage, it's really harder to root course, and there's a lower chance to be fixed for that bug.
+
+229
+00:29:44,750 --> 00:29:56,420
+So one dimension is to shift left by moving the test modification earlier, and the other dimension is to extending to more type of bugs found.
+
+230
+00:29:56,878 --> 00:29:59,780
+So here, let's take privacy as an example.
+
+231
+00:30:00,398 --> 00:30:05,348
+We introduced a system called PrivacyCat at Easter 2024 ZipTrack.
+
+232
+00:30:06,096 --> 00:30:24,256
+And this system reused the SIPIN's evolution search engine to drive the app behavior, and then the privacy cat system would monitor the app against a bunch of privacy policies to check the data flows and check whether if any data flows to the places that they shouldn't.
+
+233
+00:30:24,942 --> 00:30:31,776
+So it used exactly the existing SPINS loop, explore, observe, judge, and report.
+
+234
+00:30:31,936 --> 00:30:35,396
+And that judge is about checking the data flow properties.
+
+235
+00:30:36,398 --> 00:30:50,110
+Since its deployment, PrefaceCat was able to prevent 74% of the in-scope privacy incident at the early stage, and it found over 493 potential privacy incidents.
+
+236
+00:30:51,886 --> 00:30:55,684
+Here shows the high-level architecture on how this looks like.
+
+237
+00:30:56,302 --> 00:31:01,508
+You can see that SIPINGS is in the lower bottom, the left side.
+
+238
+00:32:00,526 --> 00:32:04,452
+However, both articles cannot answer questions like this.
+
+239
+00:32:07,022 --> 00:32:09,508
+Does this change to what the author intended?
+
+240
+00:32:09,998 --> 00:32:12,900
+Does it break an environment that nobody wrote down?
+
+241
+00:32:13,422 --> 00:32:16,548
+And is this a right fix or just make the test pass?
+
+242
+00:32:18,670 --> 00:32:22,496
+So in practice, this is really important problem for a real system.
+
+243
+00:32:22,990 --> 00:32:28,708
+There are likely no crash, there is no rule it's broken, but it could behave incorrectly.
+
+244
+00:32:29,198 --> 00:32:32,900
+And for those cases, we don't have our code to check.
+
+245
+00:32:33,518 --> 00:32:39,044
+Today we could leverage large length models, but also it's not reliable.
+
+246
+00:32:39,216 --> 00:32:42,500
+So we could talk about that in the part four of this talk.
+
+247
+00:32:47,744 --> 00:32:51,344
+So let's put the past decade on the map again.
+
+248
+00:32:51,504 --> 00:32:59,584
+We can see that we shifted left from post land to differ view time for crash finding, but the judge rarely changed.
+
+249
+00:32:59,664 --> 00:33:02,596
+We are still finding reliability and crash issues.
+
+250
+00:33:02,926 --> 00:33:11,172
+For correctness, we are still relying on developer written test and the developer authored policies like privacy policies to detect violations.
+
+251
+00:33:12,462 --> 00:33:20,932
+To make the testing verification work at each of the stages, we need a reliable R code that could help check the correctness.
+
+252
+00:33:21,902 --> 00:33:28,164
+And that's the gap we have today, and that's why I mentioned the deployment would follow R code.
+
+253
+00:33:28,384 --> 00:33:31,268
+And for now, we don't have a reliable solution.
+
+254
+00:33:32,590 --> 00:33:33,424
+Now, part four.
+
+255
+00:33:33,518 --> 00:33:36,420
+To mitigate that gap, let's talk about the agent.
+
+256
+00:33:37,774 --> 00:33:40,676
+In the agentic era, things are shifting.
+
+257
+00:33:41,806 --> 00:33:43,984
+Generation is getting really cheap.
+
+258
+00:33:44,110 --> 00:33:45,796
+However, verification did not.
+
+259
+00:33:47,790 --> 00:33:51,236
+Today, agent can generate code changes faster than ever.
+
+260
+00:33:51,694 --> 00:33:57,924
+However, the workload is mostly on human side, and human need to review those code to ensure quality.
+
+261
+00:33:58,478 --> 00:34:03,264
+And the human attention does not scale with the development of the model.
+
+262
+00:34:03,758 --> 00:34:07,268
+So that creates a gap as shown here in the chart.
+
+263
+00:34:07,982 --> 00:34:12,676
+The human recapacity is not catching up with the volume of code generated.
+
+264
+00:34:13,390 --> 00:34:20,868
+So this is, I think this is now one of the most significant problem in the new South Energy paradigm.
+
+265
+00:34:21,646 --> 00:34:23,556
+And it's a testing verification problem.
+
+266
+00:34:24,494 --> 00:34:33,220
+We need R code that agent can use to check the correctness and review itself during the different life stage of this development lifecycle.
+
+267
+00:34:35,214 --> 00:34:43,428
+One reaction to the problem is might be just maybe we should just generate less to match the capacity that a human can review, right?
+
+268
+00:34:44,624 --> 00:34:53,348
+And however, I think in practice, sometimes we should slow down a bit, but in practice, with AI, the whole industry is accelerating nowadays.
+
+269
+00:34:54,606 --> 00:34:58,148
+So in my opinion, it's better to cap the risk, not the volume.
+
+270
+00:35:00,334 --> 00:35:06,464
+Human attention will quickly get used up with the volume of the agent-generated code.
+
+271
+00:35:06,624 --> 00:35:14,564
+However, if we document the human knowledge and write author some rules, and those rules could be reused to check every future change.
+
+272
+00:35:14,926 --> 00:35:17,124
+So that could be part of the mitigation.
+
+273
+00:35:18,542 --> 00:35:21,444
+And with agent, now we have the third type of R code.
+
+274
+00:35:22,318 --> 00:35:27,140
+We call the learned R code, which can be used to check correctness behaviors.
+
+275
+00:35:28,078 --> 00:35:32,388
+And this R code can be used to check correctness at least in two ways.
+
+276
+00:35:33,070 --> 00:35:37,924
+First, statically, we can deploy an agent reviewer to review the code changes.
+
+277
+00:35:39,024 --> 00:35:57,060
+And second, the agent now can run app dynamically, end-to-end, and infer the agent and check against the app screenshot and logs to check if any state like GUI state issues or expected state mismatch.
+
+278
+00:35:58,254 --> 00:36:01,424
+And this is kind of knowledge we used to rely on human.
+
+279
+00:36:01,504 --> 00:36:03,300
+Now we can leverage the agent.
+
+280
+00:36:04,078 --> 00:36:06,692
+But the problem is the agent sometimes could be wrong.
+
+281
+00:36:07,566 --> 00:36:11,396
+If we always listen to the agent, it's likely worse than no oracle at all.
+
+282
+00:36:14,446 --> 00:36:18,852
+So now the question is how can we use Oracle that sometimes is wrong?
+
+283
+00:36:19,918 --> 00:36:22,820
+Part of that answer is we pair it with policies.
+
+284
+00:36:23,470 --> 00:36:30,084
+The agent would report its findings and we pair with human policies to decide the severity of the reported issues.
+
+285
+00:36:30,606 --> 00:36:41,860
+For example, a suggestion from the agent is it's like if a suggestion is wrong, it's easy to cost a little from the human side with little extra attention.
+
+286
+00:36:42,440 --> 00:36:52,420
+Well, if the agent reported an issue that's wrongly blocked the diff changes, that cost trust, and developers may start ignore every future changes.
+
+287
+00:36:53,134 --> 00:37:03,364
+So in practice, if we found agent keeps reporting false positive, we need to revisit policy and maybe downgrade its severity and the visibility of its findings.
+
+288
+00:37:06,350 --> 00:37:07,968
+Now let's look at the map again.
+
+289
+00:37:08,128 --> 00:37:09,968
+We have the agent R code.
+
+290
+00:37:10,128 --> 00:37:21,252
+We can put agent R code into each of the stage here so that that became a quality gatekeeper when the code goes through the development lifecycle.
+
+291
+00:37:21,870 --> 00:37:24,710
+Specifically, here we're talking about four gate.
+
+292
+00:37:25,808 --> 00:37:28,848
+First one is the self-review.
+
+293
+00:37:28,928 --> 00:37:35,588
+The agent should always run local verification and self-review before delegating to another agent or to human.
+
+294
+00:37:36,430 --> 00:37:51,748
+And second, we need independent agent reviewers, just like human diff workflow, could also check this continuous ingression signals to decide whether it needs to flag any blocking signals.
+
+295
+00:37:52,430 --> 00:37:55,204
+And third, landing decision.
+
+296
+00:37:55,534 --> 00:38:06,916
+Agents should be able to evaluate the risk of a change and decide which one could be merged automatically into the code base and which need to be reassigned to human for actual check.
+
+297
+00:38:07,502 --> 00:38:16,964
+And fourth, we can introduce a new agent that used app end-to-end, just like human, and that would catch the bug slip through from the previous stages.
+
+298
+00:38:20,238 --> 00:38:25,968
+The Git one, the claim here is your reviewer should not be a human in the first place.
+
+299
+00:38:26,208 --> 00:38:28,900
+Agent should always review its own changes.
+
+300
+00:38:29,678 --> 00:38:34,288
+And the benefit is like similar to local early bug fixing.
+
+301
+00:38:34,606 --> 00:38:42,724
+When the agent have all the contact it's much more efficient to fix the bug rather than expecting a later stage could catch the bug and enforce another fix.
+
+302
+00:38:55,488 --> 00:39:02,288
+Not because the model is not smart enough, and sometimes just because the tool it uses is not well designed for the agent.
+
+303
+00:39:02,448 --> 00:39:09,888
+For example, wrong flags, inventing identifiers, error name that doesn't really tell you what the error is.
+
+304
+00:39:10,382 --> 00:39:17,248
+So historically we've been designing these dev tools for human, but nowadays we need to make them friendly for the agent as well.
+
+305
+00:39:17,408 --> 00:39:19,684
+So that could help improve the code quality.
+
+306
+00:39:21,966 --> 00:39:26,372
+The second gate is the independent agent code reviews.
+
+307
+00:39:27,502 --> 00:39:36,772
+It's quite hard to execute the system behavior dynamically to cover the changes, and that's what SAP is trying to solve.
+
+308
+00:39:38,254 --> 00:39:43,648
+However, deploying a model reviewer to perform a static check is much, much easier.
+
+309
+00:39:43,918 --> 00:39:51,588
+But the hard part is how can we make sure its precision is high so that developers do not tend to ignore its findings.
+
+310
+00:40:10,254 --> 00:40:10,528
+And one potential practice here to improve that precision is we could codify the domain-specific conventions into the code base so that agent doesn't flag conventions as the false positive findings.
+
+311
+00:40:10,528 --> 00:40:23,364
+And also to approximate precision, we monitor the developer actions and fixes on the agent reported findings so that we can feed that feedback back to the agent for future improvement.
+
+312
+00:40:25,742 --> 00:40:28,484
+The key three is the landing policy.
+
+313
+00:40:28,974 --> 00:40:35,684
+Not every change has the same risk level and they don't deserve the equivalent verification.
+
+314
+00:40:36,208 --> 00:40:51,428
+So, for example, as shown here, there are a bunch of tiers like no op changes or refactoring usually low risk, and they may be merged into the code base automatically without actual verification.
+
+315
+00:40:52,142 --> 00:41:05,476
+And if a change touched the core functionalities and could have a large blast radius, for those cases we can pair with the policy to recharge the review to a human for actual safety.
+
+316
+00:41:08,206 --> 00:41:14,372
+So, this is an example where the agent could collaborate with the human policies to hold the quality bar.
+
+317
+00:41:16,846 --> 00:41:23,716
+And Git 4 is about the agent that can drive the running product for end-to-end correctness backfinding.
+
+318
+00:41:24,398 --> 00:41:29,604
+The agent would export app as a way the user would like dog footing.
+
+319
+00:41:29,936 --> 00:41:34,340
+So where we our employees used app before our users do.
+
+320
+00:41:34,830 --> 00:41:38,052
+And now we could deploy the agent to do that as well.
+
+321
+00:41:38,446 --> 00:41:49,476
+It would judge what it sees without needing specification or test suite, and it could check against screenshot and the app logs to detect any errors.
+
+322
+00:41:50,030 --> 00:41:59,172
+And for any findings, it could file a report just like human and include reproduction steps and evidence for developer to debug.
+
+323
+00:42:00,558 --> 00:42:10,244
+If you look at this, it's actually exactly the same idea as sappings and follow the same cycle, explore, observe, judge, and report.
+
+324
+00:42:10,734 --> 00:42:19,908
+And the main difference is sapping judge based on the inexplicit article of crash finding, while here we use the agent itself for checking correctness as well.
+
+325
+00:42:22,574 --> 00:42:23,936
+So now the loop closed.
+
+326
+00:42:24,206 --> 00:42:28,996
+Back in 2016, we introduced SIPIN at a post-land stage for crash finding.
+
+327
+00:42:29,616 --> 00:42:34,692
+We move it earlier for during review time to prevent bugs.
+
+328
+00:42:35,406 --> 00:42:43,524
+And now we have a new type of article with agent, which can perform correctness check, which sees the same position where SIPIN used to see it.
+
+329
+00:43:07,056 --> 00:43:12,292
+I have four questions left with the room, maybe for future research.
+
+330
+00:43:12,976 --> 00:43:15,972
+First is calibrating a probabilistic article.
+
+331
+00:43:16,622 --> 00:43:18,724
+The agent article sometimes could be wrong.
+
+332
+00:43:19,056 --> 00:43:24,868
+How can we improve that so that make it reliable that developer could trust it?
+
+333
+00:43:25,422 --> 00:43:28,676
+And second, verifying the verifier.
+
+334
+00:43:30,460 --> 00:43:37,700
+Agent reviewer can score diff change overall quite well but it may confidently make claims that are wrong.
+
+335
+00:43:38,094 --> 00:43:47,908
+So how can we improve those cases to ensure those findings are not costing trust and hurt the developer's future trust for the findings?
+
+336
+00:43:48,430 --> 00:43:52,516
+And third, we need benchmarking that do not get outdated.
+
+337
+00:43:53,198 --> 00:44:02,756
+Testing verification agent and review agent, they need the benchmark to stay refreshed so that agent can build a loop to keep self-involved and improve.
+
+338
+00:44:03,662 --> 00:44:05,840
+And fourth, where do human go?
+
+339
+00:44:06,766 --> 00:44:09,696
+Which change do we still need human to review?
+
+340
+00:44:09,856 --> 00:44:14,016
+Which change do we need human to read the code and understand?
+
+341
+00:44:14,176 --> 00:44:16,516
+And how much code should the human understand?
+
+342
+00:44:17,806 --> 00:44:21,456
+And the human used to play as a role as gatekeeper for quality.
+
+343
+00:44:21,646 --> 00:44:23,780
+Do we need to delegate that role as well?
+
+344
+00:44:24,654 --> 00:44:27,620
+And if we're successful, where do human developers need?
+
+345
+00:44:30,542 --> 00:44:33,936
+Finally, let me do a summarize summary.
+
+346
+00:44:34,496 --> 00:44:42,180
+In 2016, we could find one type of bug, the crash, because the crash would announce itself.
+
+347
+00:44:42,798 --> 00:44:52,484
+And in the past decade, we gradually shift that test and verification earlier and extending to more types of bugs, one oracle at a time.
+
+348
+00:44:53,454 --> 00:45:00,292
+And now we have a new type of Oracle, a learned oracle, based on agent, which is broad but also unreliable.
+
+349
+00:45:00,686 --> 00:45:06,212
+And the interesting part is how can we let autonomous agent self-verify with that Oracle?
+
+350
+00:45:07,758 --> 00:45:12,480
+So Sibbean Sibbeans was born here in Academia, here at ISTA.
+
+351
+00:45:13,326 --> 00:45:20,100
+And after 10 years, we are still asking the same question: can we find the bugs that the user would find before they do?
+
+352
+00:45:21,422 --> 00:45:39,108
+So finally, I'd like to sincerely thank the ISTA organizers and thank my co authors, Mark Harmon and Yue Jia, and also my colleagues at Facebook, uh, and WhatsApp who worked with me along this journey from seepings to autonomous agent.
+
+353
+00:45:40,014 --> 00:45:40,388
+Thank you.
+
