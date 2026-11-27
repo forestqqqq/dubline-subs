@@ -1,0 +1,742 @@
+1
+00:00:00,238 --> 00:00:05,572
+你输入一个 URL，按下回车键，Next.js 页面几乎瞬间就显示出来了。
+You type a URL, hit enter, and a Next.js page shows up almost instantly.
+
+2
+00:00:05,966 --> 00:00:09,060
+但在你的点击和页面显示之间，其实发生了很多事情。
+But between your click and that page, a lot is happening.
+
+3
+00:00:10,350 --> 00:00:14,468
+在接下来的 10 分钟里，我会画出 Next.js 运行的精确原理。
+In the next 10 minutes, I'll draw out exactly how Next.js works.
+
+4
+00:00:14,862 --> 00:00:22,116
+从你项目里的文件夹，到服务器，到 HTML，再到页面在浏览器中变得可交互的那一刻。
+From the folders in your project, to the server, to the HTML, to the moment the page becomes interactive in your browser.
+
+5
+00:00:23,438 --> 00:00:29,764
+到最后，你就能在面试中清晰地解释它，并且知道你的应用为什么快或者为什么慢。
+By the end, you'll be able to explain it clearly in an interview, and you'll know why your app is fast or why it's slow.
+
+6
+00:00:30,158 --> 00:00:31,204
+这是我们的计划。
+Here's the plan.
+
+7
+00:00:33,070 --> 00:00:35,428
+这就是你将在本视频中学习的内容。
+Here's exactly what you'll learn in this video.
+
+8
+00:00:35,758 --> 00:00:39,520
+首先，Next.js 到底在 React 之上增加了什么。
+First, what Next.js actually adds on top of React.
+
+9
+00:00:39,760 --> 00:00:42,480
+然后，简单的文件夹结构是如何实现路由的。
+Then, how routing works with plain folders.
+
+10
+00:00:42,798 --> 00:00:46,564
+接着是重头戏，服务端组件与客户端组件的区别。
+Then the big one, server components versus client components.
+
+11
+00:00:47,854 --> 00:00:52,720
+接下来，我们将追踪一个请求，从代理服务器一直到 Hydration。
+Next, we'll follow a single request, from the proxy all the way to hydration.
+
+12
+00:00:53,134 --> 00:01:00,420
+我们将看到配合 Suspense 的流式渲染是如何工作的，以及
+Next.js 如何决定哪些是静态的，哪些是动态的，哪些会被缓存。
+We'll see how streaming with suspense works and how NextJS decides what's static, what's dynamic, and what gets cached.
+
+13
+00:01:01,678 --> 00:01:08,708
+之后是无需刷新页面的导航、用于更改数据的 Server Actions，以及构建和部署是如何工作的。
+After that, navigation without page reloads, server actions for changing data, and how build and deploy work.
+
+14
+00:01:09,102 --> 00:01:12,804
+最后，我们将用三个面试题来让你自我测试。
+And we'll finish with three interview questions so you can test yourself.
+
+15
+00:01:14,126 --> 00:01:16,612
+那么让我们从最基础的问题开始。
+So let's start with the most basic question.
+
+16
+00:01:18,542 --> 00:01:20,400
+首先，Next.js 到底是什么？
+First, what even is Next.js?
+
+17
+00:01:20,974 --> 00:01:25,060
+React 本身只是一个用于构建用户界面的库。
+React by itself is just a library for building user interfaces.
+
+18
+00:01:25,486 --> 00:01:31,748
+它不决定页面如何路由，数据如何加载，或者你的代码如何到达浏览器。
+It doesn't decide how pages are routed, how data is loaded, or how your code gets to the browser.
+
+19
+00:01:33,038 --> 00:01:42,020
+在经典的 React 单页应用中，服务器发送一个几乎是空的 HTML 文件，
+里面只有一个 div 和一个巨大的 JavaScript 包。
+In a classic React single-page app, the server sends an almost empty HTML file with one div and a big JavaScript bundle.
+
+20
+00:01:42,510 --> 00:01:47,076
+用户会盯着空白屏幕，直到那个 JavaScript 下载并运行完毕。
+The user stares at a blank screen until that JavaScript downloads and runs.
+
+21
+00:01:48,366 --> 00:01:51,600
+Next.js 是构建在 React 之上的框架。
+Next.js is a framework built on top of React.
+
+22
+00:01:51,886 --> 00:01:57,828
+它增加了一个路由系统、一个渲染组件的服务器、
+一个叫 Turbopack 的打包工具，以及一个编译器。
+It adds a router, a server that renders your components, a bundler called Turbopack, and a compiler.
+
+23
+00:01:58,318 --> 00:02:01,476
+所有这些都整合在一起，这样你就不用自己去配置它们了。
+All wired together so you don't have to set them up yourself.
+
+24
+00:02:02,766 --> 00:02:04,320
+核心思想很简单。
+The big idea is simple.
+
+25
+00:02:04,622 --> 00:02:09,380
+先在服务器上渲染，这样用户就能立即获得真实的 HTML。
+Render on the server first so the user gets real HTML right away.
+
+26
+00:02:09,806 --> 00:02:13,316
+然后让 React 在浏览器中接管，让页面变得可交互。
+Then let React take over in the browser to make it interactive.
+
+27
+00:02:15,182 --> 00:02:16,320
+现在来看路由。
+Now, routing.
+
+28
+00:02:16,622 --> 00:02:19,620
+在 App Router 中，你不需要写路由配置文件。
+In the app router, you don't write a routes config file.
+
+29
+00:02:19,918 --> 00:02:24,196
+你 app 目录下的文件夹结构就是你的 URL 结构。
+The folder structure inside your app directory is your URL structure.
+
+30
+00:02:25,486 --> 00:02:29,860
+一个叫 blog 的文件夹，里面包含一个 page 文件，就变成了 /blog。
+A folder called blog with a page file inside becomes slash blog.
+
+31
+00:02:30,254 --> 00:02:38,276
+方括号表示动态片段，所以 slash blog slash 任何内容都会匹配 slug 文件夹，
+并且你会把 slug 作为参数获取到。
+Square brackets make a dynamic segment, so slash blog slash anything matches the slug folder, and you get the slug as a parameter.
+
+32
+00:02:39,566 --> 00:02:41,860
+只有命名为 page 的文件是公开的。
+Only files named page are public.
+
+33
+00:02:42,222 --> 00:02:49,956
+该文件夹中的其他所有内容，比如组件或测试，都是私有的，
+所以你可以把相关的代码直接放在路由旁边。
+Everything else in that folder, like components or tests, stays private, so you can keep related code right next to the route.
+
+34
+00:02:51,278 --> 00:02:52,560
+接下来是布局。
+Then there are layouts.
+
+35
+00:02:52,910 --> 00:02:55,600
+布局文件会包裹它下面的每一个页面。
+A layout file wraps every page below it.
+
+36
+00:02:55,854 --> 00:02:59,760
+你的导航栏和侧边栏就在布局里，关键点来了：
+Your navbar and sidebar live in a layout, and here's the key part.
+
+37
+00:03:00,078 --> 00:03:03,428
+当你页面跳转时，布局保持挂载状态。
+When you navigate between pages, the layout stays mounted.
+
+38
+00:03:03,790 --> 00:03:06,212
+它不会重新渲染，它的状态也会被保留。
+It doesn't re-render, and its state is kept.
+
+39
+00:03:07,470 --> 00:03:09,280
+还有几个特殊文件。
+There are a few more special files.
+
+40
+00:03:09,582 --> 00:03:12,080
+Loading 在页面加载时显示备选内容。
+Loading shows a fallback while the page loads.
+
+41
+00:03:12,462 --> 00:03:21,028
+Error 捕获该部分应用的崩溃，not found 处理 404，而 route.ts 让你能编写 API 端点。
+Error catches crashes in that part of the app, not found handles 404s, and route.ts lets you write API endpoints.
+
+42
+00:03:22,894 --> 00:03:26,500
+这是现代 Next.js 中最重要的概念。
+This is the most important idea in modern Next.js.
+
+43
+00:03:26,894 --> 00:03:31,044
+app 文件夹内的每个组件默认都是服务端组件。
+Every component inside the app folder is a server component by default.
+
+44
+00:03:32,302 --> 00:03:35,108
+服务端组件只在服务器上运行。
+A server component runs only on the server.
+
+45
+00:03:35,502 --> 00:03:42,180
+它可以是同步的，可以直接读取你的数据库或文件系统，而且它的代码永远不会发送到浏览器。
+It can be a sync, it can read your database or file system directly, and its code is never sent to the browser.
+
+46
+00:03:42,606 --> 00:03:45,252
+这意味着该组件对应的 JavaScript 为零。
+That's zero Java script for that component.
+
+47
+00:03:46,510 --> 00:03:48,836
+但是服务端组件不能具有交互性。
+But server components can't be interactive.
+
+48
+00:03:49,166 --> 00:03:52,772
+没有 use state，没有 onClick，也没有浏览器 API。
+No use state, no onClick, no browser APIs.
+
+49
+00:03:53,102 --> 00:03:56,196
+为了实现这些，你在文件最顶部添加 use client。
+For that, you add useClient at the very top of the file.
+
+50
+00:03:57,518 --> 00:03:59,396
+useClient 标记了一个边界。
+UseClient marks a boundary.
+
+51
+00:03:59,726 --> 00:04:04,548
+那个组件以及它导入的所有内容，都会成为 JavaScript 包的一部分。
+That component, and everything it imports, becomes part of the JavaScript bundle.
+
+52
+00:04:04,974 --> 00:04:09,200
+客户端组件仍然先在服务器上渲染成 HTML。
+Client components are still rendered to HTML on the server first.
+
+53
+00:04:09,518 --> 00:04:11,460
+它们只是还会运行在浏览器里。
+They just also run in the browser.
+
+54
+00:04:12,750 --> 00:04:22,148
+所以这里有一个经验法则：把大部分组件树留在服务器上，并将 use client 推到像按钮、
+表单和菜单这样小的交互式叶子节点上。
+So here's the rule of thumb Keep most of your tree on the server and push use
+client down to the small interactive leaves like buttons, forms, and menus.
+
+55
+00:04:22,606 --> 00:04:24,996
+更少的 JavaScript，更快的页面。
+Less JavaScript, faster pages.
+
+56
+00:04:26,926 --> 00:04:28,432
+让我们跟踪一个请求。
+Let's follow one request.
+
+57
+00:04:28,750 --> 00:04:30,992
+你打开了 slash blog slash hello。
+You open slash blog slash hello.
+
+58
+00:04:31,438 --> 00:04:35,552
+如果你的应用有 proxy.ts 文件，请求会先到达它。
+If your app has a proxy.ts file, the request reaches it first.
+
+59
+00:04:35,950 --> 00:04:38,756
+在旧版本中，这个文件被称为 middleware。
+In older versions, this file was called middleware.
+
+60
+00:04:40,046 --> 00:04:42,432
+proxy 在任何内容渲染之前运行。
+The proxy runs before anything renders.
+
+61
+00:04:42,766 --> 00:04:47,428
+这是你重定向未登录用户、重写 URL 或设置请求头的地方。
+It's where you redirect logged-out users, rewrite URLs, or set headers.
+
+62
+00:04:47,790 --> 00:04:51,172
+保持它尽可能轻量，因为它会在每个匹配的请求中运行。
+Keep it light because it runs on every matching request.
+
+63
+00:04:52,494 --> 00:04:55,524
+接下来，路由器会将 URL 与你的文件夹进行匹配。
+Next, the router matches the URL to your folders.
+
+64
+00:04:55,886 --> 00:05:02,820
+它会找到根布局、博客布局和 slug 页面，并将它们作为一个组件树在服务器上渲染。
+It finds the root layout, the blog layout, and the slug page, and renders them on the server as one component tree.
+
+65
+00:05:04,110 --> 00:05:05,952
+渲染会产生两样东西。
+Rendering produces two things.
+
+66
+00:05:06,222 --> 00:05:10,340
+首先是 HTML，这样浏览器就能立即绘制页面。
+First, HTML, so the browser can paint the page immediately.
+
+67
+00:05:10,830 --> 00:05:13,028
+其次是 RSC 负载。
+Second, the RSC payload.
+
+68
+00:05:13,358 --> 00:05:21,284
+那是渲染出的组件树的紧凑描述，其中包含客户端组
+件的占位符以及指向它们 JavaScript 文件的链接。
+That's a compact description of the rendered component tree with
+placeholders where client components go and links to their JavaScript files.
+
+69
+00:05:22,574 --> 00:05:25,632
+在浏览器中，HTML 会首先显示出来。
+In the browser, the HTML shows up first.
+
+70
+00:05:25,998 --> 00:05:33,892
+然后客户端组件的 JavaScript 下载完成，React 利用
+负载将事件处理器绑定到已经显示在屏幕上的内容上。
+Then the Java script for your client components downloads, and React
+uses the payload to attach event handlers to what's already on screen.
+
+71
+00:05:34,350 --> 00:05:36,356
+这个步骤叫做注水（hydration）。
+This step is called hydration.
+
+72
+00:05:37,678 --> 00:05:41,124
+所以用户在任何 JavaScript 运行之前就能看到内容。
+So a user sees content before any Java script runs.
+
+73
+00:05:41,486 --> 00:05:46,724
+而且服务端组件永远不会进行注水，因为它们里面没有任何内容可以变成交互式的。
+And server components never hydrate at all because there's nothing in them to make interactive.
+
+74
+00:05:48,590 --> 00:05:50,832
+现在，如果页面的某一部分很慢怎么办？
+Now, what if one part of your page is slow?
+
+75
+00:05:51,118 --> 00:05:53,348
+假设评论需要三秒钟才能加载。
+Say the comments take three seconds to load.
+
+76
+00:05:53,678 --> 00:05:57,220
+如果没有流式渲染，整个页面都要等待最慢的那一部分。
+Without streaming, the whole page waits for the slowest piece.
+
+77
+00:05:58,510 --> 00:06:01,764
+有了 Suspense，你可以把慢的部分包裹起来并给它一个备选状态。
+With suspense, you wrap the slow part and give it a fallback.
+
+78
+00:06:02,158 --> 00:06:06,980
+接下来，JS 会立即发送页面的其余部分，同时保留备选状态。
+Next, JS sends the rest of the page right away with the fallback sitting in place.
+
+79
+00:06:08,302 --> 00:06:15,076
+当服务器上的评论处理完成时，它们的 HTML 会在
+同一个响应中流式传输下来，并替换到原来的位置。
+When the comments finish on the server, their HTML is streamed down in the same response and swapped into place.
+
+80
+00:06:15,502 --> 00:06:18,596
+不需要额外的请求，也不需要客户端获取。
+No extra request and no client side fetching.
+
+81
+00:06:19,886 --> 00:06:23,716
+loading 文件本质上就是围绕整个页面的 Suspense 边界。
+A loading file is just a suspense boundary around the whole page.
+
+82
+00:06:24,110 --> 00:06:29,028
+所以你可以在路由级别使用 loading 进行流式传输，也可以在组件级别使用 Suspense。
+So you can stream at the route level with loading or at the component level with suspense.
+
+83
+00:06:30,958 --> 00:06:33,472
+下一个问题：渲染什么时候发生？
+Next question: When does the rendering happen?
+
+84
+00:06:33,806 --> 00:06:38,340
+有些页面对所有人来说都是一样的，比如博客文章或定价页面。
+Some pages are the same for everyone, like a blog post or a pricing page.
+
+85
+00:06:38,670 --> 00:06:42,660
+这些可以在构建时渲染一次，并从 CDN 提供服务。
+Those can be rendered once at build time and served from a CDN.
+
+86
+00:06:43,054 --> 00:06:44,356
+这就是静态渲染。
+That's static rendering.
+
+87
+00:06:45,646 --> 00:06:47,712
+其他页面则取决于请求。
+Other pages depend on the request.
+
+88
+00:06:48,078 --> 00:06:52,964
+它们会读取 Cookie、请求头或搜索参数，比如已登录用户的仪表板。
+They read cookies, headers, or search params, like a dashboard for a logged in user.
+
+89
+00:06:53,262 --> 00:06:55,152
+这些会在每次请求时渲染。
+Those render on every request.
+
+90
+00:06:55,502 --> 00:06:56,932
+这就是动态渲染。
+That's dynamic rendering.
+
+91
+00:06:58,222 --> 00:07:03,236
+最近版本的 Next.js 默认是动态的，没有隐藏的缓存。
+Recent versions of Next.js are dynamic by default, with no hidden caching.
+
+92
+00:07:03,694 --> 00:07:09,540
+你可以通过在函数或组件上使用 use cache 指令，明确决定哪些内容会被缓存。
+You decide what gets cached, explicitly, with the use cache directive on a function or a component.
+
+93
+00:07:10,830 --> 00:07:12,672
+你可以在同一个页面上混合使用这两种方式。
+And you can mix both on one page.
+
+94
+00:07:13,006 --> 00:07:18,564
+缓存的静态外壳会立即发送，而动态部分则通过 Suspense 流式传输进来。
+A cached, static shell is sent instantly, while dynamic parts stream in through suspense.
+
+95
+00:07:18,958 --> 00:07:21,540
+能用静态的地方就用静态，必须用动态的地方才用动态。
+Static where you can, dynamic where you must.
+
+96
+00:07:22,830 --> 00:07:26,244
+当缓存数据变化时，你不需要重新构建整个网站。
+When cache data changes, you don't need to rebuild the site.
+
+97
+00:07:26,606 --> 00:07:33,348
+你可以在定时器上或者在更改后立即按需重新验证，下一个访问者就能看到最新版本。
+You can revalidate it on a timer or on demand right after a change, and the next visitor gets a fresh version.
+
+98
+00:07:33,806 --> 00:07:37,156
+这个概念叫做增量静态再生成。
+That idea is called incremental static regeneration.
+
+99
+00:07:39,054 --> 00:07:43,712
+一旦第一个页面加载完成，Next.js 的行为就像单页应用一样。
+Once the first page has loaded, Next.js behaves like a single page app.
+
+100
+00:07:44,014 --> 00:07:47,396
+当你点击链接组件时，不会发生全页面的重新加载。
+When you click a link component, there's no full page reload.
+
+101
+00:07:48,654 --> 00:07:56,352
+相反，路由只会获取新路由的 RSC 负载，然后 React 只更新页面中发生变化的部分。
+Instead, the router fetches only the RSC payload for the new route, and React updates just the part of the page that changed.
+
+102
+00:07:56,814 --> 00:08:00,804
+你的共享布局会保持原样，包括它们的状态。
+Your shared layouts stay exactly as they are, including their state.
+
+103
+00:08:02,126 --> 00:08:03,232
+而且速度会更快。
+And it gets faster.
+
+104
+00:08:03,662 --> 00:08:08,228
+当链接滚动到视野中时，Next.js 可以在后台预取该路由。
+When a link scrolls into view, Next.js can prefetch that route in the background.
+
+105
+00:08:08,622 --> 00:08:13,412
+所以当你点击时，加载外壳甚至整个页面都已经准备好了。
+So by the time you click, the loading shell or even the whole page is already there.
+
+106
+00:08:14,702 --> 00:08:21,316
+前进和后退导航感觉也非常快，因为最近访问的路由会被保存在客户端缓存中。
+Back and forward navigation feels instant too, because recently visited routes are kept in a client-side cache.
+
+107
+00:08:23,150 --> 00:08:24,992
+到目前为止，我们只讲了读取数据。
+So far we've only read data.
+
+108
+00:08:25,326 --> 00:08:27,552
+那如果是写入呢，比如提交评论？
+What about writing it, like submitting a comment?
+
+109
+00:08:27,918 --> 00:08:29,952
+Next.js 有 Server Actions。
+NextJS has server actions.
+
+110
+00:08:30,382 --> 00:08:36,004
+标记了 use server 的函数在服务器上运行，但你可以直接从组件中调用它。
+A function marked with use server runs on the server, but you can call it straight from your components.
+
+111
+00:08:37,294 --> 00:08:39,072
+你可以把它传递给表单操作。
+You pass it to a forms action.
+
+112
+00:08:39,405 --> 00:08:43,587
+当用户提交时，Next.js 会帮你把请求发送到服务器。
+When the user submits, Next.js sends the request to the server for you.
+
+113
+00:08:43,982 --> 00:08:46,884
+不需要编写 API 路由，也不需要 fetch 调用。
+No API route to write and no fetch call.
+
+114
+00:08:48,142 --> 00:08:53,956
+更改完成后，你可以告诉 Next.js 哪些内容现在过时了，例如使用 Revalidate Path。
+After the change, you tell Next.js what's now stale, for example with Revalidate Path.
+
+115
+00:08:54,382 --> 00:08:59,940
+它会在服务器上重新渲染该路由，并在同一个响应中返回更新后的 UI。
+It re renders that route on the server and sends the updated UI back in the same response.
+
+116
+00:09:01,230 --> 00:09:10,532
+如果你仍需要传统的 API，比如为了移动应用或 Webhook，
+你可以编写一个 route.ts 文件来直接处理 GET 和 POST 请求。
+And if you still need a classic API, say for a mobile app or a webhook,
+you write a route.ts file that handles get and post requests directly.
+
+117
+00:09:12,398 --> 00:09:13,668
+最后是部署。
+Finally, shipping it.
+
+118
+00:09:14,062 --> 00:09:22,276
+当你运行 next build 时，Turbopack 会编译你的代码并按路由拆分，
+这样每个页面只加载它实际需要的 JavaScript。
+When you run next build, Turbopack compiles your code and splits it
+by route, so each page only loads the Java script it actually needs.
+
+119
+00:09:23,534 --> 00:09:30,020
+构建过程还会识别哪些路由可以作为静态文件预渲染，哪些需要在请求时由服务器处理。
+The build also works out which routes can be pre-rendered as static files and which need a server at request time.
+
+120
+00:09:30,446 --> 00:09:34,468
+你可以在构建输出中看到这些，每个路由旁边都有一个小图标。
+You'll see that in the build output, as a little symbol next to each route.
+
+121
+00:09:35,758 --> 00:09:36,640
+然后你就可以部署了。
+Then you deploy.
+
+122
+00:09:37,006 --> 00:09:38,948
+在 Vercel 上，它是零配置的。
+On Vercel, it's zero config.
+
+123
+00:09:39,342 --> 00:09:47,300
+但 Next.js 也可以运行在 Docker 容器中的任何 Node 服务器上，
+或者如果你根本不需要服务器，也可以作为全静态导出运行。
+But Next.js also runs on any node server in a Docker container or as a fully static export if you don't need a server at all.
+
+124
+00:09:48,622 --> 00:09:56,292
+静态文件和图片会分发到靠近用户的 CDN，而服务器只负责那些真正需要服务器处理的工作。
+Static files and images go out to a CDN close to your users, and the server only does the work that truly needs a server.
+
+125
+00:09:58,158 --> 00:10:02,800
+在结束之前，这里有三个面试官非常喜欢问的关于 Next.js 的问题。
+Before we wrap up, here are three questions interviewers love to ask about Next.js.
+
+126
+00:10:03,470 --> 00:10:06,884
+暂停视频，在我回答之前，试着回答每一个问题。
+Pause the video and try to answer each one before I do.
+
+127
+00:10:08,174 --> 00:10:12,000
+1. 服务端组件和客户端组件有什么区别？
+1. What's the difference between a server component and a client component?
+
+128
+00:10:12,320 --> 00:10:16,708
+服务端组件只在服务器上运行，且不会传输任何 JavaScript。
+Server components run only on the server and ship no JavaScript.
+
+129
+00:10:17,038 --> 00:10:19,492
+客户端组件是用 use client 标记的。
+Client components are marked with use client.
+
+130
+00:10:19,822 --> 00:10:23,684
+它们同样也会在服务器上渲染，然后在浏览器中进行 Hydration。
+They're rendered on the server too, and then they hydrate in the browser.
+
+131
+00:10:24,942 --> 00:10:26,720
+2. 什么是 Hydration？
+2. What is hydration?
+
+132
+00:10:27,118 --> 00:10:36,100
+它是 React 将事件处理器绑定到服务器已经渲染好的
+HTML 上，这样页面就能变得可交互，而不需要从头构建。
+It's React attaching event handlers to the HTML, the server already rendered,
+so the page becomes interactive without being rebuilt from scratch.
+
+133
+00:10:37,454 --> 00:10:40,800
+3. 页面什么时候是静态的，什么时候是动态的？
+3. When is a page static and when is it dynamic?
+
+134
+00:10:41,134 --> 00:10:44,676
+如果不依赖于请求，它就可以被预渲染并缓存。
+If it doesn't depend on the request, it can be pre-rendered and cached.
+
+135
+00:10:45,006 --> 00:10:49,828
+如果它读取了 Cookie、Header 或搜索参数，它就会在每次请求时渲染。
+If it reads cookies, headers, or search params, it renders on every request.
+
+136
+00:10:51,662 --> 00:10:52,880
+让我们把所有内容串联起来。
+Let's put it all together.
+
+137
+00:10:53,166 --> 00:10:55,076
+你的文件夹定义了路由。
+Your folders define the routes.
+
+138
+00:10:55,438 --> 00:11:01,348
+请求通过代理，路由器进行匹配，然后你的服务端组件在服务器上渲染。
+A request passes through the proxy, the router matches it, and your server components render on the server.
+
+139
+00:11:02,670 --> 00:11:05,028
+浏览器首先获取到 HTML。
+The browser gets HTML first.
+
+140
+00:11:05,358 --> 00:11:11,492
+接着，客户端组件的负载和 JavaScript 到达，Hydration 让页面变得可交互。
+Then the payload and the Java script for client components arrive, and hydration makes the page interactive.
+
+141
+00:11:11,918 --> 00:11:14,372
+慢的部分通过 Suspense 流式传输进来。
+Slow parts stream in through suspense.
+
+142
+00:11:15,662 --> 00:11:25,476
+之后，链接可以在不重新加载的情况下跳转，Server Actions 处理你的更改，
+而缓存机制决定哪些内容是只渲染一次，哪些是每次请求都渲染。
+After that, links navigate without reloads, server actions handle your changes,
+and caching decides what gets rendered once, versus on every request.
+
+143
+00:11:26,766 --> 00:11:29,280
+这就是 Next.js 实际的工作原理。
+And that's how Next.js actually works.
+
+144
+00:11:29,646 --> 00:11:35,908
+如果这对你有帮助，把它保存到下次面试用，并关
+注 frontendschool.in 获取更多这样的深度解析。
+If this helped, save it for your next interview and follow frontendschool.in for more deep dives like this one.
+

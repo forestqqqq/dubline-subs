@@ -1,0 +1,576 @@
+1
+00:00:00,238 --> 00:00:05,572
+You type a URL, hit enter, and a Next.js page shows up almost instantly.
+
+2
+00:00:05,966 --> 00:00:09,060
+But between your click and that page, a lot is happening.
+
+3
+00:00:10,350 --> 00:00:14,468
+In the next 10 minutes, I'll draw out exactly how Next.js works.
+
+4
+00:00:14,862 --> 00:00:22,116
+From the folders in your project, to the server, to the HTML, to the moment the page becomes interactive in your browser.
+
+5
+00:00:23,438 --> 00:00:29,764
+By the end, you'll be able to explain it clearly in an interview, and you'll know why your app is fast or why it's slow.
+
+6
+00:00:30,158 --> 00:00:31,204
+Here's the plan.
+
+7
+00:00:33,070 --> 00:00:35,428
+Here's exactly what you'll learn in this video.
+
+8
+00:00:35,758 --> 00:00:39,520
+First, what Next.js actually adds on top of React.
+
+9
+00:00:39,760 --> 00:00:42,480
+Then, how routing works with plain folders.
+
+10
+00:00:42,798 --> 00:00:46,564
+Then the big one, server components versus client components.
+
+11
+00:00:47,854 --> 00:00:52,720
+Next, we'll follow a single request, from the proxy all the way to hydration.
+
+12
+00:00:53,134 --> 00:01:00,420
+We'll see how streaming with suspense works and how NextJS decides what's static, what's dynamic, and what gets cached.
+
+13
+00:01:01,678 --> 00:01:08,708
+After that, navigation without page reloads, server actions for changing data, and how build and deploy work.
+
+14
+00:01:09,102 --> 00:01:12,804
+And we'll finish with three interview questions so you can test yourself.
+
+15
+00:01:14,126 --> 00:01:16,612
+So let's start with the most basic question.
+
+16
+00:01:18,542 --> 00:01:20,400
+First, what even is Next.js?
+
+17
+00:01:20,974 --> 00:01:25,060
+React by itself is just a library for building user interfaces.
+
+18
+00:01:25,486 --> 00:01:31,748
+It doesn't decide how pages are routed, how data is loaded, or how your code gets to the browser.
+
+19
+00:01:33,038 --> 00:01:42,020
+In a classic React single-page app, the server sends an almost empty HTML file with one div and a big JavaScript bundle.
+
+20
+00:01:42,510 --> 00:01:47,076
+The user stares at a blank screen until that JavaScript downloads and runs.
+
+21
+00:01:48,366 --> 00:01:51,600
+Next.js is a framework built on top of React.
+
+22
+00:01:51,886 --> 00:01:57,828
+It adds a router, a server that renders your components, a bundler called Turbopack, and a compiler.
+
+23
+00:01:58,318 --> 00:02:01,476
+All wired together so you don't have to set them up yourself.
+
+24
+00:02:02,766 --> 00:02:04,320
+The big idea is simple.
+
+25
+00:02:04,622 --> 00:02:09,380
+Render on the server first so the user gets real HTML right away.
+
+26
+00:02:09,806 --> 00:02:13,316
+Then let React take over in the browser to make it interactive.
+
+27
+00:02:15,182 --> 00:02:16,320
+Now, routing.
+
+28
+00:02:16,622 --> 00:02:19,620
+In the app router, you don't write a routes config file.
+
+29
+00:02:19,918 --> 00:02:24,196
+The folder structure inside your app directory is your URL structure.
+
+30
+00:02:25,486 --> 00:02:29,860
+A folder called blog with a page file inside becomes slash blog.
+
+31
+00:02:30,254 --> 00:02:38,276
+Square brackets make a dynamic segment, so slash blog slash anything matches the slug folder, and you get the slug as a parameter.
+
+32
+00:02:39,566 --> 00:02:41,860
+Only files named page are public.
+
+33
+00:02:42,222 --> 00:02:49,956
+Everything else in that folder, like components or tests, stays private, so you can keep related code right next to the route.
+
+34
+00:02:51,278 --> 00:02:52,560
+Then there are layouts.
+
+35
+00:02:52,910 --> 00:02:55,600
+A layout file wraps every page below it.
+
+36
+00:02:55,854 --> 00:02:59,760
+Your navbar and sidebar live in a layout, and here's the key part.
+
+37
+00:03:00,078 --> 00:03:03,428
+When you navigate between pages, the layout stays mounted.
+
+38
+00:03:03,790 --> 00:03:06,212
+It doesn't re-render, and its state is kept.
+
+39
+00:03:07,470 --> 00:03:09,280
+There are a few more special files.
+
+40
+00:03:09,582 --> 00:03:12,080
+Loading shows a fallback while the page loads.
+
+41
+00:03:12,462 --> 00:03:21,028
+Error catches crashes in that part of the app, not found handles 404s, and route.ts lets you write API endpoints.
+
+42
+00:03:22,894 --> 00:03:26,500
+This is the most important idea in modern Next.js.
+
+43
+00:03:26,894 --> 00:03:31,044
+Every component inside the app folder is a server component by default.
+
+44
+00:03:32,302 --> 00:03:35,108
+A server component runs only on the server.
+
+45
+00:03:35,502 --> 00:03:42,180
+It can be a sync, it can read your database or file system directly, and its code is never sent to the browser.
+
+46
+00:03:42,606 --> 00:03:45,252
+That's zero Java script for that component.
+
+47
+00:03:46,510 --> 00:03:48,836
+But server components can't be interactive.
+
+48
+00:03:49,166 --> 00:03:52,772
+No use state, no onClick, no browser APIs.
+
+49
+00:03:53,102 --> 00:03:56,196
+For that, you add useClient at the very top of the file.
+
+50
+00:03:57,518 --> 00:03:59,396
+UseClient marks a boundary.
+
+51
+00:03:59,726 --> 00:04:04,548
+That component, and everything it imports, becomes part of the JavaScript bundle.
+
+52
+00:04:04,974 --> 00:04:09,200
+Client components are still rendered to HTML on the server first.
+
+53
+00:04:09,518 --> 00:04:11,460
+They just also run in the browser.
+
+54
+00:04:12,750 --> 00:04:22,148
+So here's the rule of thumb Keep most of your tree on the server and push use client down to the small interactive leaves like buttons, forms, and menus.
+
+55
+00:04:22,606 --> 00:04:24,996
+Less JavaScript, faster pages.
+
+56
+00:04:26,926 --> 00:04:28,432
+Let's follow one request.
+
+57
+00:04:28,750 --> 00:04:30,992
+You open slash blog slash hello.
+
+58
+00:04:31,438 --> 00:04:35,552
+If your app has a proxy.ts file, the request reaches it first.
+
+59
+00:04:35,950 --> 00:04:38,756
+In older versions, this file was called middleware.
+
+60
+00:04:40,046 --> 00:04:42,432
+The proxy runs before anything renders.
+
+61
+00:04:42,766 --> 00:04:47,428
+It's where you redirect logged-out users, rewrite URLs, or set headers.
+
+62
+00:04:47,790 --> 00:04:51,172
+Keep it light because it runs on every matching request.
+
+63
+00:04:52,494 --> 00:04:55,524
+Next, the router matches the URL to your folders.
+
+64
+00:04:55,886 --> 00:05:02,820
+It finds the root layout, the blog layout, and the slug page, and renders them on the server as one component tree.
+
+65
+00:05:04,110 --> 00:05:05,952
+Rendering produces two things.
+
+66
+00:05:06,222 --> 00:05:10,340
+First, HTML, so the browser can paint the page immediately.
+
+67
+00:05:10,830 --> 00:05:13,028
+Second, the RSC payload.
+
+68
+00:05:13,358 --> 00:05:21,284
+That's a compact description of the rendered component tree with placeholders where client components go and links to their JavaScript files.
+
+69
+00:05:22,574 --> 00:05:25,632
+In the browser, the HTML shows up first.
+
+70
+00:05:25,998 --> 00:05:33,892
+Then the Java script for your client components downloads, and React uses the payload to attach event handlers to what's already on screen.
+
+71
+00:05:34,350 --> 00:05:36,356
+This step is called hydration.
+
+72
+00:05:37,678 --> 00:05:41,124
+So a user sees content before any Java script runs.
+
+73
+00:05:41,486 --> 00:05:46,724
+And server components never hydrate at all because there's nothing in them to make interactive.
+
+74
+00:05:48,590 --> 00:05:50,832
+Now, what if one part of your page is slow?
+
+75
+00:05:51,118 --> 00:05:53,348
+Say the comments take three seconds to load.
+
+76
+00:05:53,678 --> 00:05:57,220
+Without streaming, the whole page waits for the slowest piece.
+
+77
+00:05:58,510 --> 00:06:01,764
+With suspense, you wrap the slow part and give it a fallback.
+
+78
+00:06:02,158 --> 00:06:06,980
+Next, JS sends the rest of the page right away with the fallback sitting in place.
+
+79
+00:06:08,302 --> 00:06:15,076
+When the comments finish on the server, their HTML is streamed down in the same response and swapped into place.
+
+80
+00:06:15,502 --> 00:06:18,596
+No extra request and no client side fetching.
+
+81
+00:06:19,886 --> 00:06:23,716
+A loading file is just a suspense boundary around the whole page.
+
+82
+00:06:24,110 --> 00:06:29,028
+So you can stream at the route level with loading or at the component level with suspense.
+
+83
+00:06:30,958 --> 00:06:33,472
+Next question: When does the rendering happen?
+
+84
+00:06:33,806 --> 00:06:38,340
+Some pages are the same for everyone, like a blog post or a pricing page.
+
+85
+00:06:38,670 --> 00:06:42,660
+Those can be rendered once at build time and served from a CDN.
+
+86
+00:06:43,054 --> 00:06:44,356
+That's static rendering.
+
+87
+00:06:45,646 --> 00:06:47,712
+Other pages depend on the request.
+
+88
+00:06:48,078 --> 00:06:52,964
+They read cookies, headers, or search params, like a dashboard for a logged in user.
+
+89
+00:06:53,262 --> 00:06:55,152
+Those render on every request.
+
+90
+00:06:55,502 --> 00:06:56,932
+That's dynamic rendering.
+
+91
+00:06:58,222 --> 00:07:03,236
+Recent versions of Next.js are dynamic by default, with no hidden caching.
+
+92
+00:07:03,694 --> 00:07:09,540
+You decide what gets cached, explicitly, with the use cache directive on a function or a component.
+
+93
+00:07:10,830 --> 00:07:12,672
+And you can mix both on one page.
+
+94
+00:07:13,006 --> 00:07:18,564
+A cached, static shell is sent instantly, while dynamic parts stream in through suspense.
+
+95
+00:07:18,958 --> 00:07:21,540
+Static where you can, dynamic where you must.
+
+96
+00:07:22,830 --> 00:07:26,244
+When cache data changes, you don't need to rebuild the site.
+
+97
+00:07:26,606 --> 00:07:33,348
+You can revalidate it on a timer or on demand right after a change, and the next visitor gets a fresh version.
+
+98
+00:07:33,806 --> 00:07:37,156
+That idea is called incremental static regeneration.
+
+99
+00:07:39,054 --> 00:07:43,712
+Once the first page has loaded, Next.js behaves like a single page app.
+
+100
+00:07:44,014 --> 00:07:47,396
+When you click a link component, there's no full page reload.
+
+101
+00:07:48,654 --> 00:07:56,352
+Instead, the router fetches only the RSC payload for the new route, and React updates just the part of the page that changed.
+
+102
+00:07:56,814 --> 00:08:00,804
+Your shared layouts stay exactly as they are, including their state.
+
+103
+00:08:02,126 --> 00:08:03,232
+And it gets faster.
+
+104
+00:08:03,662 --> 00:08:08,228
+When a link scrolls into view, Next.js can prefetch that route in the background.
+
+105
+00:08:08,622 --> 00:08:13,412
+So by the time you click, the loading shell or even the whole page is already there.
+
+106
+00:08:14,702 --> 00:08:21,316
+Back and forward navigation feels instant too, because recently visited routes are kept in a client-side cache.
+
+107
+00:08:23,150 --> 00:08:24,992
+So far we've only read data.
+
+108
+00:08:25,326 --> 00:08:27,552
+What about writing it, like submitting a comment?
+
+109
+00:08:27,918 --> 00:08:29,952
+NextJS has server actions.
+
+110
+00:08:30,382 --> 00:08:36,004
+A function marked with use server runs on the server, but you can call it straight from your components.
+
+111
+00:08:37,294 --> 00:08:39,072
+You pass it to a forms action.
+
+112
+00:08:39,406 --> 00:08:43,588
+When the user submits, Next.js sends the request to the server for you.
+
+113
+00:08:43,982 --> 00:08:46,884
+No API route to write and no fetch call.
+
+114
+00:08:48,142 --> 00:08:53,956
+After the change, you tell Next.js what's now stale, for example with Revalidate Path.
+
+115
+00:08:54,382 --> 00:08:59,940
+It re renders that route on the server and sends the updated UI back in the same response.
+
+116
+00:09:01,230 --> 00:09:10,532
+And if you still need a classic API, say for a mobile app or a webhook, you write a route.ts file that handles get and post requests directly.
+
+117
+00:09:12,398 --> 00:09:13,668
+Finally, shipping it.
+
+118
+00:09:14,062 --> 00:09:22,276
+When you run next build, Turbopack compiles your code and splits it by route, so each page only loads the Java script it actually needs.
+
+119
+00:09:23,534 --> 00:09:30,020
+The build also works out which routes can be pre-rendered as static files and which need a server at request time.
+
+120
+00:09:30,446 --> 00:09:34,468
+You'll see that in the build output, as a little symbol next to each route.
+
+121
+00:09:35,758 --> 00:09:36,640
+Then you deploy.
+
+122
+00:09:37,006 --> 00:09:38,948
+On Vercel, it's zero config.
+
+123
+00:09:39,342 --> 00:09:47,300
+But Next.js also runs on any node server in a Docker container or as a fully static export if you don't need a server at all.
+
+124
+00:09:48,622 --> 00:09:56,292
+Static files and images go out to a CDN close to your users, and the server only does the work that truly needs a server.
+
+125
+00:09:58,158 --> 00:10:02,800
+Before we wrap up, here are three questions interviewers love to ask about Next.js.
+
+126
+00:10:03,470 --> 00:10:06,884
+Pause the video and try to answer each one before I do.
+
+127
+00:10:08,174 --> 00:10:12,000
+1. What's the difference between a server component and a client component?
+
+128
+00:10:12,320 --> 00:10:16,708
+Server components run only on the server and ship no JavaScript.
+
+129
+00:10:17,038 --> 00:10:19,492
+Client components are marked with use client.
+
+130
+00:10:19,822 --> 00:10:23,684
+They're rendered on the server too, and then they hydrate in the browser.
+
+131
+00:10:24,942 --> 00:10:26,720
+2. What is hydration?
+
+132
+00:10:27,118 --> 00:10:36,100
+It's React attaching event handlers to the HTML, the server already rendered, so the page becomes interactive without being rebuilt from scratch.
+
+133
+00:10:37,454 --> 00:10:40,800
+3. When is a page static and when is it dynamic?
+
+134
+00:10:41,134 --> 00:10:44,676
+If it doesn't depend on the request, it can be pre-rendered and cached.
+
+135
+00:10:45,006 --> 00:10:49,828
+If it reads cookies, headers, or search params, it renders on every request.
+
+136
+00:10:51,662 --> 00:10:52,880
+Let's put it all together.
+
+137
+00:10:53,166 --> 00:10:55,076
+Your folders define the routes.
+
+138
+00:10:55,438 --> 00:11:01,348
+A request passes through the proxy, the router matches it, and your server components render on the server.
+
+139
+00:11:02,670 --> 00:11:05,028
+The browser gets HTML first.
+
+140
+00:11:05,358 --> 00:11:11,492
+Then the payload and the Java script for client components arrive, and hydration makes the page interactive.
+
+141
+00:11:11,918 --> 00:11:14,372
+Slow parts stream in through suspense.
+
+142
+00:11:15,662 --> 00:11:25,476
+After that, links navigate without reloads, server actions handle your changes, and caching decides what gets rendered once, versus on every request.
+
+143
+00:11:26,766 --> 00:11:29,280
+And that's how Next.js actually works.
+
+144
+00:11:29,646 --> 00:11:35,908
+If this helped, save it for your next interview and follow frontendschool.in for more deep dives like this one.
+
