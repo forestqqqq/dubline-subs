@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [[ISSTA'26] Beyond Next-Token Prediction: Autonomous Verification and Visual Testing in the(…)](medias/HRYWT/) | ACM SIGPLAN | 2026-11-26 |
 | [Unlocking AI workflows: A blueprint for leading teams \| ODSP2114](medias/F63JS/) | Microsoft Events | 2026-11-26 |
 | [How Ad Blockers REALLY Work? 🛡️ From Website Ads to Brave Shields & AI Explained in 3D](medias/57HQG/) | kilzsnippet | 2026-11-26 |
 | [TSMC Explains Semiconductor Chips in 3 Levels \| TSMC × WIRED](medias/3D26C/) | TSMC | 2026-11-26 |
