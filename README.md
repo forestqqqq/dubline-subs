@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [Working with AI - By Nathan Wilmers, Maxim Massenkoff, Peter McCrory](medias/JVAW9/) | AskwhoCasts AI | 2026-11-26 |
 | [Next.js Explained in 10 Minutes(How It Really Works)](medias/J2RZS/) | Frontend School | 2026-11-26 |
 | [[ISSTA'26] Beyond Next-Token Prediction: Autonomous Verification and Visual Testing in the(…)](medias/HRYWT/) | ACM SIGPLAN | 2026-11-26 |
 | [Unlocking AI workflows: A blueprint for leading teams \| ODSP2114](medias/F63JS/) | Microsoft Events | 2026-11-26 |
