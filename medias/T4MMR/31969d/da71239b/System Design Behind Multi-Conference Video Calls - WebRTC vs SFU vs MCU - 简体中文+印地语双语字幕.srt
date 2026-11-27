@@ -1,0 +1,1298 @@
+1
+00:00:00,686 --> 00:00:02,660
+好了，大家好，欢迎回来。
+All right, so hey everyone, welcome back.
+
+2
+00:00:02,766 --> 00:00:04,200
+欢迎来到又一个精彩的视频。
+Welcome back to another exciting video.
+
+3
+00:00:04,200 --> 00:00:17,720
+在今天的这个视频里，我们将讨论多人视频会议应用的系统设计。所以，在这个特定的视频里，
+我们将理解我所说的多人视频应用是什么意思，这些应用是如何工作的？WebRTC、P2P、SFU、
+And in this particular video, हम बात करेंगे about multi-conference application के system design क ी. So,
+इस particular video के अंदर समझेंगे that what do I mean by multi-conference video applications,
+
+4
+00:00:17,720 --> 00:00:20,610
+在今天的这个视频里，我们将讨论多人视频会议应用的系统设计。所以，在这个特定的视频里，
+我们将理解我所说的多人视频应用是什么意思，这些应用是如何工作的？WebRTC、P2P、SFU、
+किस थर ां से ये applications काम करते ह ैं? WebRTC, P2P, SFU, MCU, ये सब चीज ़े
+क्या होती ह ैं and how they help you to scale your multi-conference applications?
+
+5
+00:00:20,610 --> 00:00:28,132
+多点控制单元，这些东西都是什么，以及它们如何帮助你扩展你的多人视频会议应用？
+किस थर ां से ये applications काम करते ह ैं? WebRTC, P2P, SFU, MCU, ये सब चीज ़े
+क्या होती ह ैं and how they help you to scale your multi-conference applications?
+
+6
+00:00:28,160 --> 00:00:39,160
+这个应用视频包含非常丰富的知识，我们在这里要讨论很多新东西。订阅这个视频，
+你只需要听就行了，你只需要在脑海中想象这个故事就行。
+एप्लीकेशन्स सो काफी नॉलेज पाक वीडियो है और बहुत सारी न्यू चीज हम यह ां पर डिस्क्रिस करने वाले ह ैं.
+सब्सक्राइब द वीडियो एंड इसम ें आपको बस इसको सुनना ह ै, यू जस्ट हाफ्ट विजुअलाइज द स्टोरी सिट.
+
+7
+00:00:39,160 --> 00:00:42,540
+放轻松，观看视频，那么，让我们开始吧。
+बाक relax and watch the video, and with that, let's start.
+
+8
+00:00:42,670 --> 00:00:48,100
+好了，首先我们来谈谈我所说的多人视频会议应用是什么意思？
+Alright, so पहले बात करते ह ैं that what do I mean by multi-conference application?
+
+9
+00:00:48,782 --> 00:01:00,160
+所以我很确定，你一定曾经使用过 Zoom，或者曾经使用过像 Google Meet 这样的应用，
+在那里你可以和多个人进行视频通话。
+So, I'm pretty sure that आपने कभी ना कभी Zoom को use किया होग ा, आपने कभी ना कभी Google Meet जैसे applications को use किया होग ा,
+जहांपर what you can do is आप multiple लोग ों से बात कर सकते हो as a video call.
+
+10
+00:01:00,302 --> 00:01:05,360
+例如，你有一个界面，里面有多个用户，比如用户 1。
+For example, आपके पास एक ऐसा interface होता है जिसके अंदर you have multiple users, you have user 1.
+
+11
+00:01:05,519 --> 00:01:10,140
+你有用户 2，你有用户 3，还有多个……这意味着什么？超过 2 个。
+You have user 2, you have user 3 and multiple ... का मतलब क्या ह ै? More than 2.
+
+12
+00:01:10,140 --> 00:01:15,340
+所以，当你谈论超过 2 个人时，这就是多人视频会议应用出现的地方。
+So, जब आप more than 2 people की बात करते ह ो, so that is where the comes multi-conference application.
+
+13
+00:01:15,340 --> 00:01:25,540
+现在，设计一个多人视频会议应用并不容易，因为第一，
+它属于非常多的实时应用，因为你必须传输音视频流。
+Now, designing something, a multi-conference application is not easy because number 1,
+ये एक बहुती real time application म ें आता है because you have to transmit audio and video.
+
+14
+00:01:25,540 --> 00:01:34,080
+其次，它包含很多架构模式，所以我们将在这个特定的视频里去理解那些模式，好吗？
+And secondly, इसके अंदर बहुत सारे architectural patterns ह ै, तो उन
+patterns के बारे म ें हम समझने वाले ह ैं इस particular video के अंदर, okay?
+
+15
+00:01:34,200 --> 00:01:39,820
+首先我们开始，就像从头开始讲故事一样，你有一个用户 1。
+सबसे पहले start करते ह ैं, like कहानी को शुरू से शुरू करते ह ैं, that you have user 1.
+
+16
+00:01:39,960 --> 00:01:47,480
+我们称之为对等节点，所以每当你谈论 WebRTC 或
+者视频通话时，通常你会看到一个术语：对等节点。
+इनको हम in terms म ें कहते ह ैं peer, तो जब भी आप web RTC या फिर आप video calling की बात करोग े, तो usually आपको एक term मिलेगी peer.
+
+17
+00:01:47,854 --> 00:01:56,300
+对等节点是谁？一个用户被称为对等节点。例如，我是谁？我是一个对等节点。你是谁？
+你是一个对等节点。所以对等节点是谁？任何参与者都是。
+Peer कौन ह ै? एक user को peer कहा जाता ह ै. For example, म ैं कौन ह ूँ? म ैं एक peer ह ूँ. आप कौन ह ै? आप एक peer ह ै.
+So peer कौन ह ै? Anyone who is a participant.
+
+18
+00:01:56,300 --> 00:02:04,660
+所以假设你有对等节点 1，你有对等节点 2，这两个人想要互相交流，
+他们想要一起进行视频和音频会议。
+So let's say you have peer 1, you have peer 2 and इन दोन ों को आपस म ें बात करनी ह ै,
+they want to have a video and audio conference together.
+
+19
+00:02:05,600 --> 00:02:09,680
+现在，我们这里有一个很好的情况，那就是我们只有两个对等节点。
+Now, यह ाँ पर हमारे पास एक अच्छी चीज क्या है that we only have two peers.
+
+20
+00:02:11,860 --> 00:02:22,340
+每当你只有两个对等节点时，你可以在这里做什么？你可以
+在这里使用 WebRTC。所以，WebRTC 代表 Web 实时连接。
+जब भी आपके पास सिरफ और सिरफ two peers ह ो, आप यह ाँ पर क्या कर सकते ह ो? आप यह
+ाँ पर use कर सकते हो webRTC क ो। So, webRTC stands for web real time connections.
+
+21
+00:02:22,766 --> 00:02:28,280
+那么，WebRTC 实现了什么？它让你能够进行点对点通信。
+So, webRTC क्या enable करता ह ै? This enables you to have a peer to peer communication.
+
+22
+00:02:28,680 --> 00:02:33,580
+这也被称为 P2P，即点对点连接或直接通信。
+इसको P2P भी कहा जाता ह ै, peer to peer connection or a communication directly.
+
+23
+00:02:34,158 --> 00:02:41,180
+这种点对点连接是在你的 UDP 协议上运行的。那么，UDP 是什么？User Datagram Protocol。
+यह जो peer to peer connection होता ह ै, यह work करता है आपके UDP protocol के उपर। So, UDP क्या होता ह ै? User datagram protocol.
+
+24
+00:02:41,646 --> 00:02:46,060
+为什么要用 UDP？因为它更快，而且你可以建立直接连接。
+UDP क्य ों use होता ह ै? Because this is more fast, प्लस you can have a direct connection.
+
+25
+00:02:47,150 --> 00:02:49,800
+所以在点对点中，没有服务器。
+So, peer to peer के अंदर there is no server.
+
+26
+00:02:49,800 --> 00:02:51,240
+是的，没有服务器。
+Yes, there is no server.
+
+27
+00:02:51,240 --> 00:02:56,720
+所以，你可以做什么？你可以直接把这个对等节点连接到那个对等节点，
+也可以直接把这个对等节点连接到那个对等节点。
+So, आप क्या कर सकत े? You can directly connect this peer to this peer, and you can directly connect this peer to this peer.
+
+28
+00:02:56,720 --> 00:03:06,980
+所以，你可以在这里看到，这是点对点连接，是直接连接。这里没有任何服务器参与。
+这个对等节点做什么？它把自己的流……我在这里用
+So, यह ाँ पर you can see, it's a peer to peer connection, direct connection होता ह ै. कोई भी यह ाँ पर server involvement नह ीं होत ी.
+यह peer क्या करता ह ै? अपनी streams क ो... यह ाँ पर म ैं एक word use कर
+
+29
+00:03:06,980 --> 00:03:07,200
+了一个词，它把自己的流，例如，视频是什么？流。
+So, यह ाँ पर you can see, it's a peer to peer connection, direct connection होता ह ै. कोई भी यह ाँ पर server involvement नह ीं होत ी.
+यह peer क्या करता ह ै? अपनी streams क ो... यह ाँ पर म ैं एक word use कर
+
+30
+00:03:07,200 --> 00:03:10,920
+了一个词，它把自己的流，例如，视频是什么？流。
+रहा ह ूँ, अपनी streams क ो, for example, वीडियो क्या ह ै? एक्स्ट्रीम.
+
+31
+00:03:11,278 --> 00:03:22,640
+音频也是流，所以这个对等节点会将自己的视频和音视频流传输给这个对等节点，同样地，
+这个对等节点也会把自己的音视频流传输给那个对等节点，
+आउडियो भी क्या है एक्स्ट्रीम, तो ये peer अपनी video and audio stream को इस peer को transfer करेग ा,
+and similarly ये वाला peer भी अपनी audio and video stream को इस peer को transfer करेग ा,
+
+32
+00:03:22,640 --> 00:03:22,830
+这就是两个人如何进行视频通话的方式。
+आउडियो भी क्या है एक्स्ट्रीम, तो ये peer अपनी video and audio stream को इस peer को transfer करेग ा,
+and similarly ये वाला peer भी अपनी audio and video stream को इस peer को transfer करेग ा,
+
+33
+00:03:22,830 --> 00:03:25,740
+这就是两个人如何进行视频通话的方式。
+so this is how two people can have a video call.
+
+34
+00:03:25,740 --> 00:03:36,380
+现在，因为这里没有任何服务器参与，这个特定的事情里没有服务器参与，
+所以它几乎是免费运行的。你只需要支付带宽成本，而且还
+Now, because इसके अंदर कोई भी आपके server की involvement नह ीं होती ह ै, there is no server involved in this particular thing,
+तो ये almost free work करता ह ै। आपको सिर्फ bandwidth की cost आती ह
+
+35
+00:03:36,380 --> 00:03:37,260
+是你自己的互联网带宽。没有服务器，所以它几乎是免费的。
+Now, because इसके अंदर कोई भी आपके server की involvement नह ीं होती ह ै, there is no server involved in this particular thing,
+तो ये almost free work करता ह ै। आपको सिर्फ bandwidth की cost आती ह
+
+36
+00:03:37,260 --> 00:03:41,260
+是你自己的互联网带宽。没有服务器，所以它几乎是免费的。
+ै, वो भी आपके internet क ी। There is no server, so it's almost free.
+
+37
+00:03:41,260 --> 00:03:43,200
+点对点连接中没有成本。
+There is no cost in a peer-to-peer connection.
+
+38
+00:03:44,240 --> 00:03:54,980
+现在，点对点连接的缺点是，你只能建立点对点连接。你不能在点对点连接中包含多个人。
+Now, the disadvantage of the peer-to-peer connection is that इसके अंदर आप सिर्फ peer-to-peer connection बना सकते ह ो.
+You cannot have multiple people in a peer-to-peer connection.
+
+39
+00:04:03,694 --> 00:04:16,180
+那如果你的点对点网络里想加入第三个对等节点呢？也就是说，我的意思是，
+如果你这里有一个对等节点，还有一个对等节点。到这一步为止，故事很简单。你做了什么？
+तो क्या हो अगर आपकी peer-to-peer network के अंदर एक third peer enter करना चाहता ह ै?
+So that means what I meant to say is कि आपके पास यह ाँ पर एक peer थ ा, आपके पास एक और peer थ ा। यह ाँ तक कहानी बहुत simple थ ी। आपने
+
+40
+00:04:16,180 --> 00:04:18,790
+那如果你的点对点网络里想加入第三个对等节点呢？也就是说，我的意思是，
+如果你这里有一个对等节点，还有一个对等节点。到这一步为止，故事很简单。你做了什么？
+क्या किय ा? आपने इसकी streams इसको transfer क ी। You made a peer-to-peer connection,
+आपने इसकी streams को इसको transfer किय ा। यह ाँ तक कोई भी problem नह ीं ह ै, but the problem comes जैसे ही third user यह ाँ पर enter
+
+41
+00:04:18,790 --> 00:04:29,190
+你传输了它们的流。你建立了一个点对点连接，传输了它们的流。到这里为止没有任何问题，
+但问题在于，一旦第三个用户进入这里，因为点对点只能连接两个人。
+क्या किय ा? आपने इसकी streams इसको transfer क ी। You made a peer-to-peer connection,
+आपने इसकी streams को इसको transfer किय ा। यह ाँ तक कोई भी problem नह ीं ह ै, but the problem comes जैसे ही third user यह ाँ पर enter
+
+42
+00:04:29,190 --> 00:04:33,280
+你传输了它们的流。你建立了一个点对点连接，传输了它们的流。到这里为止没有任何问题，
+但问题在于，一旦第三个用户进入这里，因为点对点只能连接两个人。
+करता ह ै, because peer-to-peer सिर्फ दो लोग ों को connect कर सकता ह ै। So यह
+ाँ पर you get second architecture that is called a mesh peer.-To-peer, okay.
+
+43
+00:04:33,280 --> 00:04:38,520
+所以这里你会得到第二种架构，叫做网状对等网络，好吗。
+करता ह ै, because peer-to-peer सिर्फ दो लोग ों को connect कर सकता ह ै। So यह
+ाँ पर you get second architecture that is called a mesh peer.-To-peer, okay.
+
+44
+00:04:38,520 --> 00:04:47,396
+比如如果你想做一个多人视频会议应用，但又想用点对点，那你会用什么？网状对等网络。
+जैसे अगर आपको multi-conference application बनाना ह ै, but you want to use peer-to-peer, तो आप यह ाँ पर क्या use करोग े? Mesh P2P.
+
+45
+00:04:47,480 --> 00:04:50,020
+那么，什么是网状对等网络？
+Now, what is this mesh P2P?
+
+46
+00:04:50,020 --> 00:05:01,030
+网状对等网络的意思很简单，就是每个对等节点都会与每个对等节点建立直接连接。举个例子，
+我在这里举个例子，如果我们把这些箭头删掉，现在
+Mesh P2P का बहुत simple meaning है that हर peer, हर peer के साथ एक direct connection बनाएग ा. For example,
+म ैं यह ाँ पर example देता ह ूँ, so अगर हम let's say इन arrows को delete कर
+
+47
+00:05:01,030 --> 00:05:01,390
+网状对等网络的意思很简单，就是每个对等节点都会与每个对等节点建立直接连接。举个例子，
+我在这里举个例子，如果我们把这些箭头删掉，现在
+देते ह ैं, so अभी हमारे पास यह ाँ पर कितने peers ह ै? We have three peers.
+
+48
+00:05:01,390 --> 00:05:05,420
+我们这里有多少个对等节点？我们有三个对等节点。
+देते ह ैं, so अभी हमारे पास यह ाँ पर कितने peers ह ै? We have three peers.
+
+49
+00:05:05,420 --> 00:05:17,900
+所以，在这种情况下会发生什么，就是我们的这个对等节点1会与它建立直接连接。这可行吗？
+当然可行，因为 WebRTC 说，你可以建立点对点连接。很好。
+So, what is going to happen in this scenario is यह जो हमारा peer 1 ह ै, यह इसके साथ एक direct connection बनाएग ा। क्या ये possible ह
+ै? बिल्कुल possible ह Because WebRTC क्या कहते ह ै, कि आप एक peer-to-peer connection बना सकते ह ो? Good.
+
+50
+00:05:18,360 --> 00:05:25,500
+然后这个特定的对等节点，也会和它做什么？建立
+一个点对点连接。这可行吗？当然可行。非常好。
+उसके बाद ये particular peer, इसके साथ भी क्या करेग ा? एक peer-to-peer
+connection बनाएग ा। क्या ये possible ह ै? बिल्कुल ह ै. Very good.
+
+51
+00:05:25,902 --> 00:05:27,100
+然后，这个就完成了。
+Then, इसका done.
+
+52
+00:05:27,534 --> 00:05:33,920
+然后这个对等节点会做什么？它会与它建立直接连接。好，这就是网状拓扑的基本工作原理。
+Then ये peer क्या करेग ा? ये इसके साथ एक direct connection बनाएग ा. Okay, तो this is basically how the mesh works.
+
+53
+00:05:34,414 --> 00:05:41,240
+每个对等节点都要与每一个其他对等节点建立点对点连接，所以这被称为网状拓扑。
+Every peer is going to open a peer to peer connection with every other peer, तो इसको कहा जाता है mesh.
+
+54
+00:05:41,806 --> 00:05:44,400
+所以在这里，你可以看到这运作得非常完美。
+तो यह ाँ पर, you can see this perfectly works fine.
+
+55
+00:05:45,230 --> 00:05:53,040
+所以如果你想用 WebRTC 做一个多人视频会议应用，
+其中有两个以上的对等节点，这就是它的工作原理。
+तो अगर आपको WebRTC को use करके एक multi conference application बनाना
+ह ै, जिसम ें आपके पास दो से ज्यादा peers ह ैं, this is how it works.
+
+56
+00:05:53,358 --> 00:05:57,820
+但问题来了，一旦第四个对等节点加入，现在你要做什么？
+But the problem comes कि जैसे ही एक fourth peer आएग ा, now what you have to do?
+
+57
+00:05:57,820 --> 00:06:03,040
+首先，你加入的那个对等节点，它将消耗每个人的流。
+पहले जो आपने नेया peer join किया ह ै, this is going to consume everyone's stream.
+
+58
+00:06:03,040 --> 00:06:08,740
+所以首先它会做什么？它会与所有人建立点对点连接，而且每个人都要和他建立点对点连接。
+तो पहले ये क्या करेग ा? ये सबके साथ एक peer-to-peer connection बनाएग ा, and everyone is going to make a peer-to-peer with him.
+
+59
+00:06:08,740 --> 00:06:14,500
+所以这意味着它能工作，但这并不是真正可扩展的东西。
+तो that means ये work करता ह ै, but this is not something really scalable.
+
+60
+00:06:14,500 --> 00:06:26,860
+如果你能看到，每增加一个对等节点，我们就必须重新建立所有对等节点的连接，
+因为每个人都要与新对等节点建立连接，而新对等节点也要与所有现有的对等节点建立连接。
+अगर आप देख पा रहे हो एक Peer के add होने से हम ें सारे peers के connections को दुबारा से re-establish करना होता ह ै,
+because everyone has to make a connection with the new peer and the new peer has to make connection with all the existing peers.
+
+61
+00:06:26,860 --> 00:06:28,760
+所以这并不容易。
+तो this is not easy.
+
+62
+00:06:28,760 --> 00:06:30,280
+第一，它不可扩展。
+Number one, this is not scalable.
+
+63
+00:06:30,280 --> 00:06:44,790
+而且如果你看到，到一定程度时它会变得非常复杂。你已经可以看到仅仅 4 个对等节点就已经变
+得多么复杂了。想象一下如果有 10 到 12 个人在场，会有这么多点对点连接，
+and अगर आप देख रहे हो न, एक point पे बहुत ज़्यादा complex हो जाएग ा. You can already see कि सिर्फ 4 peers के अंदर ये कितना complex हो
+चुके ह ै. Imagine what happens if 10 to 12 people are there, so many peer to peer connections are going to be there,
+
+64
+00:06:44,790 --> 00:06:44,980
+而且它完全不具备容错能力。它很快就会崩溃，因为某个特定对等节点上的负载太高，
+因为如果有 12 个对等节点，这个特定对等节点必须与 12 个人建立点对点连接，
+and अगर आप देख रहे हो न, एक point पे बहुत ज़्यादा complex हो जाएग ा. You can already see कि सिर्फ 4 peers के अंदर ये कितना complex हो
+चुके ह ै. Imagine what happens if 10 to 12 people are there, so many peer to peer connections are going to be there,
+
+65
+00:06:44,980 --> 00:06:58,810
+而且它完全不具备容错能力。它很快就会崩溃，因为某个特定对等节点上的负载太高，
+因为如果有 12 个对等节点，这个特定对等节点必须与 12 个人建立点对点连接，
+and ये बिलकुल भी fault tolerant नह ीं ह ै. ये बहुत जल्दी crash करेग ा, एक particular peer की उपर बहुत ज़ादा load है because if there
+are 12 peers, इस particular peer को 12 जन ों के साथ peer-to-peer connection मिठाना ह ै, which is not a good idea,
+
+66
+00:06:58,810 --> 00:06:59,610
+这并不是个好主意，也不是个好的架构，而且其中的调试非常困难，而且它经常崩溃。
+但因为我们只有 WebRTC 一个选项，所以 WebRTC 最初是为什么样的点对点连接设计的？
+and ये बिलकुल भी fault tolerant नह ीं ह ै. ये बहुत जल्दी crash करेग ा, एक particular peer की उपर बहुत ज़ादा load है because if there
+are 12 peers, इस particular peer को 12 जन ों के साथ peer-to-peer connection मिठाना ह ै, which is not a good idea,
+
+67
+00:06:59,610 --> 00:07:13,420
+这并不是个好主意，也不是个好的架构，而且其中的调试非常困难，而且它经常崩溃。
+但因为我们只有 WebRTC 一个选项，所以 WebRTC 最初是为什么样的点对点连接设计的？
+which is not a good architecture, and इसके अंदर debugging is very difficult and ये बहुत frequent crash करता ह ै.
+But because हमारे पास सिरफ webRTC एक option थ ा, so webRTC originally was made for what peer to peer connections?
+
+68
+00:07:13,420 --> 00:07:21,000
+但如果你想做多个点对点，你仍然必须与每个人建立点对点连接。
+But अगर आपको multiple peer to peer करना ह ै, तो you have to still make a peer to peer connection but with everyone.
+
+69
+00:07:21,000 --> 00:07:24,520
+现在这被称为网状对等网络。
+इसको कहा जाता है mesh P2P now.
+
+70
+00:07:26,062 --> 00:07:31,260
+所以很快行业就意识到，如果只是要连接两个人，我们有点对点。
+तो बहुत soon industry ने realize कि अगर सिर्फ दो लोग ों को connect करना ह ै, we have peer to peer.
+
+71
+00:07:31,260 --> 00:07:34,520
+但如果要连接多人，这不是我们可以做的。
+But अगर multiple लोग ों को connect करना ह ै, this is not something we can do.
+
+72
+00:07:34,520 --> 00:07:38,640
+如果你去用 Google Meet 或 Zoom，这并不是一个可扩展的解决方案。
+अगर आप Google Meet पर जाते ह ो, Zoom पर जाते ह ो, this is not something a scalable solution.
+
+73
+00:07:38,640 --> 00:07:39,660
+那么，怎么办？
+So, what?
+
+74
+00:07:39,660 --> 00:07:40,640
+我们能做什么？
+can we do?
+
+75
+00:07:41,198 --> 00:07:43,720
+所以，他们在那里引入了服务器。
+So, वहाँ पर उन्होंने introduce किया server को.
+
+76
+00:07:43,758 --> 00:07:47,560
+他们说，看，如果有多个用户，那我们就需要一个服务器。
+उन्होंने कहा कि, देखो, अगर multiple users हैं, so we need a server.
+
+77
+00:07:47,940 --> 00:07:52,040
+现在发生了什么是，在这里你得到了一个转发单元。
+Now, what happens is, यहाँ पर आपके पास एक forwarding unit आया.
+
+78
+00:07:52,260 --> 00:07:52,760
+好吗？
+Okay?
+
+79
+00:07:53,198 --> 00:07:53,480
+出现了什么？
+क्या आया?
+
+80
+00:07:53,520 --> 00:07:54,460
+一个转发单元。
+एक forwarding unit.
+
+81
+00:07:55,860 --> 00:07:56,860
+转发单元。
+Forwarding unit.
+
+82
+00:07:57,358 --> 00:07:59,200
+这个转发单元是做什么的？
+यह forwarding unit क्या करता है?
+
+83
+00:07:59,260 --> 00:07:59,520
+好吗？
+Okay?
+
+84
+00:07:59,982 --> 00:08:01,340
+让我们在中间放一个服务器。
+Let's have a server in between.
+
+85
+00:08:01,550 --> 00:08:03,940
+因为我们需要一个中心节点。
+Because we need some kind of a central place.
+
+86
+00:08:04,142 --> 00:08:08,680
+因为如果我们走网状拓扑，或者走点对点，那就变得非常困难了。
+Because अगर हम यह mesh म ें जा रहे ह ैं, हम यह peer-to-peer म ें जा रहे ह ैं, it is becoming very difficult.
+
+87
+00:08:09,774 --> 00:08:20,080
+所以大家决定这么做：让多少个对等节点都进来。假设这是你的对等节点1，这是对等节点2，
+这是对等节点3，这是对等节点4，假设你还有一个对等节点5。
+तो सबी ने क्या decide किया कि एक काम करते ह ैं, जितने मरजी peers को आने द ो. Let's say यह आपका peer 1 ह ै, यह आपका peer 2,
+यह आपका peer 3 ह ै, यह आपका peer 4 ह ै, and let's say you have one more peer, peer 5.
+
+88
+00:08:21,070 --> 00:08:34,360
+我们该怎么做？我们将它视为一个中心转发单元，一个服务器。
+WebRTC协议规定只能允许点对点连接，这没问题。
+हम क्या करेंग े? हम इसको एक central forwarding unit की तरह treat करेंग े, एक server क जो WebRTC protocol ह ै, जो WebRTC ह ै,
+वो क्या कहता है कि म ैं सिर्फ peer-to-peer allow करूँग ा, which is fine.
+
+89
+00:08:34,360 --> 00:08:38,620
+我们要记住这个定义：WebRTC只允许点对点连接。
+इस definition को हम ें याद रखना है that WebRTC only allows peer-to-peer.
+
+90
+00:08:39,220 --> 00:08:47,460
+这个单个对等节点能和我们的服务器建立点对点连接吗？当然可以。单个的，对吧？
+क्या ये एक single peer हमारे server के साथ एक peer-to-peer connection बना सकता ह ै? बिल्कुल बना सकता ह ै. Single, right?
+
+91
+00:08:47,460 --> 00:08:57,820
+那么，我们的这个客户端，我们的这个对等节点该怎么做？如果我选一下铅笔，
+那我们在这里要做什么？我们要在WebRTC上与服务器建立点对点连接。
+So, हमारा ये client, हमारा ये peer क्या करेग ा? If I just select the pencil, तो यह ाँ पर हम ें क्या करेंग े?
+हम ें peer-to-peer connection बनाएंगे with the server over WebRTC.
+
+92
+00:08:57,838 --> 00:08:58,540
+搞定。
+Done.
+
+93
+00:08:58,700 --> 00:09:04,460
+没问题。这个客户端也能和我们的服务器建立点对点连接吗？
+कोई problem नह ीं ह ै। क्या यह वाला client भी एक peer-to-peer connection बना सकता है हमारे server के साथ?
+
+94
+00:09:04,462 --> 00:09:05,460
+没啥大不了的。
+Not a big deal.
+
+95
+00:09:05,582 --> 00:09:19,090
+可以。这个客户端也能建立点对点连接吗？当然可以。这个客户端也能建立点对点连接吗？
+当然可以。所以我们在这里做了什么？我们建立了一个点对点连接，
+बना सकता ह ै। क्या यह वाला client भी एक peer-to-peer connection बना सकता ह ै? बिल्कुल बना सकता ह ै। क्या ये वाला client भी एक
+peer-to-peer connection बना सकता ह ै? बिल्कुल बना सकता ह ै। तो यह ाँ पर हमने क्या किय ा? हमने एक peer-to-peer connection बना लिय ा,
+
+96
+00:09:19,090 --> 00:09:20,230
+这意味着每个客户端需要建立多少个对等连接？只需要一个。
+बना सकता ह ै। क्या यह वाला client भी एक peer-to-peer connection बना सकता ह ै? बिल्कुल बना सकता ह ै। क्या ये वाला client भी एक
+peer-to-peer connection बना सकता ह ै? बिल्कुल बना सकता ह ै। तो यह ाँ पर हमने क्या किय ा? हमने एक peer-to-peer connection बना लिय ा,
+
+97
+00:09:20,230 --> 00:09:24,310
+这意味着每个客户端需要建立多少个对等连接？只需要一个。
+तो that means हर client को कितने peer connection बनाने ह ै? सिर्फ one.
+
+98
+00:09:24,310 --> 00:09:34,050
+如果你走网状拓扑，你可以看到它打开了非常多的连接，建立了非常多的点对点连接，
+但在这里你可以看到每个客户端只建立一个点对点连接。
+अगर आप mesh म ें जाओग े, you can see that इसने बहुत सारे connections open कर लिये थ े, बहुत सारे peer-to-peer connections बना ल थ े,
+but यह ाँ पर you can see every client is only making one peer-to-peer connection.
+
+99
+00:09:34,606 --> 00:09:52,300
+所以这里的架构是说：你们把你们的流都给我。所以它也会把自己的音视频流给它，
+它也会把自己的音视频流给它，五个对等节点，然后它会把它们发回去，这就是广播，给他们，
+तो यह ाँ पर जो architecture ह ै, वो क्या कहता है कि आप सब ना अपनी जो streams ह ै,
+आप सब अपनी streams मेरे को द ो। तो यह भी अपनी audio-video stream इसको देग ा, यह भी अपनी audio-video stream इसको देग ा,
+
+100
+00:09:52,300 --> 00:09:59,160
+所以这里的架构是说：你们把你们的流都给我。所以它也会把自己的音视频流给它，
+它也会把自己的音视频流给它，五个对等节点，然后它会把它们发回去，这就是广播，给他们，
+पांचो peers ह ै, and उनको वापिस कर देग ा, ये ल ो, उनको broadcast कर देग ा, ये ल ो, ये ल ो, stream ये ल ो. तो now what is happening is,
+these all five people are connected on a video calling application.
+
+101
+00:09:59,160 --> 00:10:10,350
+给他们，流给他们。现在发生的情况是，这五个人都连接在一个视频通话应用上。
+पांचो peers ह ै, and उनको वापिस कर देग ा, ये ल ो, उनको broadcast कर देग ा, ये ल ो, ये ल ो, stream ये ल ो. तो now what is happening is,
+these all five people are connected on a video calling application.
+
+102
+00:10:11,342 --> 00:10:24,590
+我再解释一遍，别担心，好吗，不要搞混了。所以我们在这里说，我们要建立一个转发单元。
+这是一个服务器，这个服务器有一个固定的地址，比如叫 转发单元 .pyush，或者叫 xyz，好吗？
+दोबारे explain करता ह ूँ, don't worry, ठीक ह ै, confused नह ीं होना ह ै। तो यह ाँ पर हमने क्या बोल ा,
+कि हम एक forwarding unit बनाएंग े। ये एक server ह ै, इस server का एक fixed address होग ा, something like let's say forwarding unit .pyush,
+
+103
+00:10:24,590 --> 00:10:25,970
+我再解释一遍，别担心，好吗，不要搞混了。所以我们在这里说，我们要建立一个转发单元。
+这是一个服务器，这个服务器有一个固定的地址，比如叫 转发单元 .pyush，或者叫 xyz，好吗？
+let's say कुछ भी xyz, ठीक ह ै? तो हमने कुछ ऐसा क्या ले लिय ा, हमने कुछ इसको हम forwarding बोल लेते ह ै, forwarding unit,
+यह हमारा forwarding unit ह ै, .pyush.xyz। हमने क्या बोला कि देखो multiple peers आ सकते ह ैं, that's completely fine, ठीक ह ै?
+
+104
+00:10:25,970 --> 00:10:38,260
+所以我们拿到了这样一个东西，我们叫它转发单元，这是我们的转发单元 .pyush.xyz。我们说，
+看，多个对等节点可以进来，这完全没问题，好吗？完全没问题，看，多个用户进来了。
+let's say कुछ भी xyz, ठीक ह ै? तो हमने कुछ ऐसा क्या ले लिय ा, हमने कुछ इसको हम forwarding बोल लेते ह ै, forwarding unit,
+यह हमारा forwarding unit ह ै, .pyush.xyz। हमने क्या बोला कि देखो multiple peers आ सकते ह ैं, that's completely fine, ठीक ह ै?
+
+105
+00:10:38,260 --> 00:10:40,340
+所以我们拿到了这样一个东西，我们叫它转发单元，这是我们的转发单元 .pyush.xyz。我们说，
+看，多个对等节点可以进来，这完全没问题，好吗？完全没问题，看，多个用户进来了。
+That's completely fine, यह देखो multiple users आ गए। हम क्या करेंग े? हम हर user को बोलेंगे कि भाई,
+हमारे server के साथ एक webRTC peer-to-peer connection बनाओ, ठीक ह ै? हमारा server is big enough to have multiple connections.
+
+106
+00:10:40,340 --> 00:10:51,170
+我们该怎么做？我们告诉每个用户，兄弟，和我们的服务器建立一个WebRTC点对点连接，好吗？
+我们的服务器足够大，可以处理多个连接。
+That's completely fine, यह देखो multiple users आ गए। हम क्या करेंग े? हम हर user को बोलेंगे कि भाई,
+हमारे server के साथ एक webRTC peer-to-peer connection बनाओ, ठीक ह ै? हमारा server is big enough to have multiple connections.
+
+107
+00:10:51,502 --> 00:10:55,030
+好，所以它也做了什么？它也建立了一个连接，好。
+Okay, so इसने भी क्या किय ा? इसने भी एक connection बनाय ा, okay.
+
+108
+00:10:55,090 --> 00:11:01,670
+然后同样地，它也建立了一个连接，它也建立了一
+个点对点连接，它也建立了一个点对点连接，很好。
+And then similarly, इसने भी एक connection बनाय ा, इसने भी एक peer-to-peer connection बनाय ा,
+and इसने भी एक peer to peer connection बना गय ा, good.
+
+109
+00:11:01,670 --> 00:11:14,060
+现在我们要做什么？我们告诉我们的对等节点：你们所有对等节点把你们的音视频流发送到我的
+服务器上。那么我们的服务器就会收到多个音视频流。我们的服务器要做什么？
+अब हम क्या करेंग े? हम अपने peers को कहेंगे that आप सब peers अपनी अपनी audio and video stream मेरे server को send कर ो,
+तो हमारे server के पास multiple audio video streams आएग ा। हमारा server क्या करेग ा? हमारा server चारो streams को लेग ा,
+
+110
+00:11:14,060 --> 00:11:15,690
+我们的服务器会获取所有流，无论有多少个连接的对等节点，它会把它们变成一个单一的合并流。
+所以如果你看到了，我会创建一个合并流，其中包含四个人的音视频，就像这样。
+अब हम क्या करेंग े? हम अपने peers को कहेंगे that आप सब peers अपनी अपनी audio and video stream मेरे server को send कर ो,
+तो हमारे server के पास multiple audio video streams आएग ा। हमारा server क्या करेग ा? हमारा server चारो streams को लेग ा,
+
+111
+00:11:15,690 --> 00:11:26,790
+我们的服务器会获取所有流，无论有多少个连接的对等节点，它会把它们变成一个单一的合并流。
+所以如果你看到了，我会创建一个合并流，其中包含四个人的音视频，就像这样。
+जितने भी peers connected ह ै, उनकी ना एक single combined stream बना देग ा। तो अगर आपने देखा होग ा, म ैं एक combined stream बना दूँग ा,
+जिसम ें चारो की audio and video ह ै, something like this.
+
+112
+00:11:27,022 --> 00:11:40,090
+所以我做了什么？我创建了一个单一的合并流，其中包含四个人的视频和四个人的音频，
+然后我把这个单一流也返回回去，就在同一个点对点连接上，我把它返回回去，对吧，
+तो मैंने क्या किय ा? मैंने एक single combined stream बना द ी, जिसम ें चारो की video ह ै, चारो का audio ह ै, and इस single stream क ो,
+म ैं इसको भी return कर दूँग ा, same connection पे जो peer to peer ह ै, म ैं इसको भी return कर दूँग ा, right,
+
+113
+00:11:40,090 --> 00:11:40,330
+所以我做了什么？我创建了一个单一的合并流，其中包含四个人的视频和四个人的音频，
+然后我把这个单一流也返回回去，就在同一个点对点连接上，我把它返回回去，对吧，
+and I am also going to return to this particular one, and म ैं इसको भी return करतूंग तो इससे you can simply see कि हर peer को सिर्फ एक
+connection बनाना ह ै, उसको वो सिर्फ अपनी audio और video भेजेगा and in return उसको एक combined audio video आएग ा,
+
+114
+00:11:40,330 --> 00:11:51,910
+我也会把它返回给这一个，我也会把它返回给它。所以你可以简单地看到，
+每个对等节点只需要建立一个连接，它只需要发送自己的音视频，作为回报，
+and I am also going to return to this particular one, and म ैं इसको भी return करतूंग तो इससे you can simply see कि हर peer को सिर्फ एक
+connection बनाना ह ै, उसको वो सिर्फ अपनी audio और video भेजेगा and in return उसको एक combined audio video आएग ा,
+
+115
+00:11:51,910 --> 00:11:53,860
+它会收到一个合并的音视频，这就是转发单元的基本工作原理。
+and I am also going to return to this particular one, and म ैं इसको भी return करतूंग तो इससे you can simply see कि हर peer को सिर्फ एक
+connection बनाना ह ै, उसको वो सिर्फ अपनी audio और video भेजेगा and in return उसको एक combined audio video आएग ा,
+
+116
+00:11:53,860 --> 00:11:56,750
+它会收到一个合并的音视频，这就是转发单元的基本工作原理。
+so this is how a forwarding unit basically works.
+
+117
+00:11:56,890 --> 00:12:07,710
+它的工作是什么？只是转发。但这里有一个问题：
+在实时情况下合并几个流是一项非常昂贵的任务。
+इसका काम क्या थ ा? बस forward करन ा. But here is a problem number one, you
+can see real time के अंदर few stream को combine करना is a very expensive task.
+
+118
+00:12:08,462 --> 00:12:14,490
+如果你在考虑从多个对等节点接收流，到这一步为止没问题，你可以接收输入。
+अगर आप सोचो आप multiple peers से stream को input ले रहे ह ो, यह ां तक कोई problem नह ीं ह ै, you can take the input.
+
+119
+00:12:14,490 --> 00:12:19,710
+但问题是把它合并成一个单一流，而且还要在实时状态下完成。
+But the problem is इसको एक single stream म ें combine करना that to in a real time.
+
+120
+00:12:19,710 --> 00:12:37,690
+而且这是在处理过程中非常耗费CPU的任务，所以这里会发生什么？会出现一点点延迟，
+这里会出现轻微的延迟，而且你的服务器成本会大幅增加。
+That to on the go बहुत जादा CPU intensive task ह ै, तो यह ाँ पर क्या होग ा? एक छोटा सा lag आएग ा,
+यह ाँ पर एक हलका सा lag आएगा and आपके जो server की जो cost है न, वो बहुत जादा increase हो जाएग.
+
+121
+00:12:37,690 --> 00:12:42,570
+这绝不是件容易的事，这是一项非常耗费CPU的任务，但它确实可行。
+Not at all an easy task, it's a very CPU intensive task, but it works.
+
+122
+00:12:43,342 --> 00:12:57,230
+现在我给一个例子。例子是什么？如果你看到过，我，Hitesh，Sir，Manu，Paji，Anirodh，
+我们通常做直播，你在YouTube上看到的那个直播，那是我们的一个合并直播流，对吧？
+अब म ैं इसका एक example देता ह ूँ। Example क्या है इसक ा? अगर आपने देखा होगा कि म ैं, हितेश, सर, मन ु, पाज ी, अनिरोध,
+हम usually live streams करते ह आपको जो YouTube की उपर live stream दिखती ह ै, वो हमारी एक combined live stream होती ह ै, right?
+
+123
+00:12:57,390 --> 00:13:05,470
+你没法把它们分开，你看，这是一个合并流，所有的
+嘉宾都在这里互相交流，所以这就是转发单元的作用。
+आप उसको अलग-अलग नह ीं कर सकत े, you see a combined stream जहांपर हम सारे भी जो
+guests ह ैं, वो बात कर रहे ह ैं दूसरे स े, so that's exactly what a forwarding unit.
+
+124
+00:13:05,902 --> 00:13:16,810
+我们四个都连接到同一个服务器上，生成的合并流我们会在 YouTube 上展示。
+这种特定的架构具体叫什么？它被称为 多点控制单元。
+हम चार ों के एक server से connected ह ैं and जो इसके combined stream बनती है उसको हम YouTube के ऊपर realize करते ह ैं। इस particular
+architecture को specifically क्या कहा जाता ह ै? इसको कहा जाता है MCU.
+
+125
+00:13:20,494 --> 00:13:45,150
+好，我们来看 SFU，因为它是最好的 SFU。也就是选择性转发单元。它是这样工作的，
+如果我们稍微向下滚动一点，稍后我们会讲 SFU。好，如果你先看这里的 多点控制单元，
+ठीक ह ै, SFU पे लेते ह ैं, बिकॉज द बेस्ट एस एसएफ य ू। ठीक ह ै, सिलेक्टिव फॉरवर्डिंग यूनिट। तो यह काम करते ह ैं,
+अगर हम थोड ़ा सा स्क्रॉल डाउन करते ह ैं, एसएफ यू को बाद म ें पढ़ेंग े। ओक े, अगर आप यह ां पर पहले एमसी यू को देखत े,
+
+126
+00:13:45,150 --> 00:13:48,560
+好，我们来看 SFU，因为它是最好的 SFU。也就是选择性转发单元。它是这样工作的，
+如果我们稍微向下滚动一点，稍后我们会讲 SFU。好，如果你先看这里的 多点控制单元，
+point control unit, okay, and allows for multi, allows for multi-party communication by integrating various audio and video signals
+into a single stream, so this is the main line, so ये क्या करता है MCU, integrating.
+
+127
+00:13:48,560 --> 00:14:11,250
+多点控制单元，好，它通过将各种音频和视频信号整合到单个流中来实现多方通信，这是主线，
+所以 多点控制单元 是做什么的？就是整合。
+point control unit, okay, and allows for multi, allows for multi-party communication by integrating various audio and video signals
+into a single stream, so this is the main line, so ये क्या करता है MCU, integrating.
+
+128
+00:14:11,770 --> 00:14:15,070
+把各种音频和视频信号整合到单个流中，明白吗？
+Various audio and video signals into a single stream, okay?
+
+129
+00:14:15,310 --> 00:14:22,430
+所以，多点控制单元 通常用于 VOIP 和视频会议应用，好吗？
+So, MCUs are commonly, sorry for that, MCUs are commonly used in VOIP and video conferencing applications, okay?
+
+130
+00:14:22,638 --> 00:14:36,030
+那么在点对点中发生了什么呢，每个参与者，我不知道为什么在滚动，
+每个参与者直接与对方发送和接收媒体，但在 多点控制单元 中发生了什么呢，
+So, peer-to-peer के अंदर क्या होता थ ा, in which each party, I don't know ये scroll की क्य ों हो रहा ह ै,
+each party sends and receives media directly to and from the party, but MCU म ें क्या होता ह ै, एक single server,
+
+131
+00:14:36,030 --> 00:14:36,150
+它把单个服务器里的内容整合到单个流中，但这里的问题是，它消耗大量的 CPU。
+So, peer-to-peer के अंदर क्या होता थ ा, in which each party, I don't know ये scroll की क्य ों हो रहा ह ै,
+each party sends and receives media directly to and from the party, but MCU म ें क्या होता ह ै, एक single server,
+
+132
+00:14:36,150 --> 00:14:43,350
+它把单个服务器里的内容整合到单个流中，但这里的问题是，它消耗大量的 CPU。
+उसको एक single stream के अंदर क्या करता ह ै, combine करता ह ै, but यह ाँ पर problem क्या ह ै, it consumes a lot of CPU.
+
+133
+00:14:43,694 --> 00:14:45,290
+这就是这里的问题，好吗？
+That's the problem here, okay?
+
+134
+00:14:45,518 --> 00:14:49,690
+那么我们把这种特定的架构叫什么？叫 多点控制单元，好吗？
+तो इस particular architecture को हम क्या बोलेंग े? MCU बोलेंग े, okay?
+
+135
+00:14:49,730 --> 00:14:51,410
+多点控制单元。
+Multi point conferencing unit.
+
+136
+00:14:51,982 --> 00:15:06,310
+那它做什么呢？它基本上把你的流转换成单个流，但这完全不是一个好的解决方案，
+因为这里会出现很大的延迟，而且服务器的带宽会全部耗尽。所以现在，
+तो यह क्या करता ह ै? यह basically आपके stream को single म ें convert करता ह ै, but this is not at all a good solution,
+because यह ाँ पर बहुत ज़्यादा lag आएग ा, and server की पूरी band बच जाएग ी. So अब इसक ा, जो next version आता ह ै,
+
+137
+00:15:06,310 --> 00:15:06,440
+那它做什么呢？它基本上把你的流转换成单个流，但这完全不是一个好的解决方案，
+因为这里会出现很大的延迟，而且服务器的带宽会全部耗尽。所以现在，
+that is known as SFU, ठीक ह ै? Now before going into the full form, before going into the stuff, पहले म ैं आपको बताता ह ूँ,
+वो काम कैसे करता ह ै. यह ाँ पर भी हमने क्या बोला कि हमारे पास एक server होग बिल्कुल सही बात ह ै। हमारे पास एक server होग ा,
+
+138
+00:15:06,440 --> 00:15:20,800
+它的下一个版本被称为 SFU，好吗？在进入全称和细节之前，我先告诉你它是如何工作的。
+这里我们也说了，我们有一个服务器，没错，我们有一个服务器，
+that is known as SFU, ठीक ह ै? Now before going into the full form, before going into the stuff, पहले म ैं आपको बताता ह ूँ,
+वो काम कैसे करता ह ै. यह ाँ पर भी हमने क्या बोला कि हमारे पास एक server होग बिल्कुल सही बात ह ै। हमारे पास एक server होग ा,
+
+139
+00:15:20,800 --> 00:15:21,600
+我们可以把这个服务器托管在类似 sfu.pyush.xyz 之上的地方。现在，SFU 做什么呢？非常有趣。
+that is known as SFU, ठीक ह ै? Now before going into the full form, before going into the stuff, पहले म ैं आपको बताता ह ूँ,
+वो काम कैसे करता ह ै. यह ाँ पर भी हमने क्या बोला कि हमारे पास एक server होग बिल्कुल सही बात ह ै। हमारे पास एक server होग ा,
+
+140
+00:15:21,600 --> 00:15:29,610
+我们可以把这个服务器托管在类似 sfu.pyush.xyz 之上的地方。现在，SFU 做什么呢？非常有趣。
+इस server को हम host कर सकते ह ैं, let us say something like sfu.pyush.xyz के उपर। Now, sfu क्या करता ह ै? Very interesting.
+
+141
+00:15:29,614 --> 00:15:33,590
+这是一个非常有趣的理念，这就是你在 Google Meet、Zoom 以及到处都在使用的技术。
+This is a very interesting concept, and यही use होता है आपके Google Meets म ें, Zooms म ें, everywhere.
+
+142
+00:15:34,542 --> 00:15:38,870
+假设你有两个对等节点，对等节点 1 和对等节点 2。
+Let's say आपके पास एक peer आय ा, peer 1, peer 2.
+
+143
+00:15:38,870 --> 00:15:50,680
+你有一个对等节点，又来了一个对等节点。你做的第一件事是什么？你把自己的流发送到服务器。
+到这一步为止，没变，在 多点控制单元 中我们也这样做。所以，
+आपके पास एक peer आय ा, आपके पास एक और peer आय ा। सबसे पहली चीज आप क्या करते ह ो? आप अपनी stream server को भेजते ह ो। यह ां तक no
+change, MCU म ें भी हम यही कर रहे थ े। स ो, एक काम करते ह ैं, तो म ैं
+
+144
+00:15:50,680 --> 00:15:50,960
+你有一个对等节点，又来了一个对等节点。你做的第一件事是什么？你把自己的流发送到服务器。
+到这一步为止，没变，在 多点控制单元 中我们也这样做。所以，
+इसको बोलूंगा कि भाई यह पकड ़ो मेर Stream, this is a one way communication.
+
+145
+00:15:50,960 --> 00:15:55,570
+我们这样做，我就说，兄弟，把我的流拿走，这是单向通信。
+इसको बोलूंगा कि भाई यह पकड ़ो मेर Stream, this is a one way communication.
+
+146
+00:15:55,570 --> 00:16:15,880
+仔细看，它不会合并这些流，因为如果服务器合并了这些流，那它就是 多点控制单元 的一部分。
+现在我运行的这个特定服务器，它有多少个流？在某一时刻，有 4 个流，对吧？
+ध्यान से देखना जाएगा इन streams को combine नह ीं करेग ा, because अगर server ने इन streams को combine कर दिय ा,
+वो तो एक MCU का part थ ा, इसके पास। अभी जो ये particular server मेरा चल
+
+147
+00:16:15,880 --> 00:16:23,550
+仔细看，它不会合并这些流，因为如果服务器合并了这些流，那它就是 多点控制单元 的一部分。
+现在我运行的这个特定服务器，它有多少个流？在某一时刻，有 4 个流，对吧？
+रहा ह ै, इसके पास कितनी streams ह ै? At a point, 4 streams ह ै, right?
+
+148
+00:16:23,918 --> 00:16:31,350
+它有 4 个流。如果这是对等节点 1，这是对等节点 2，假设这是我们的对等节点 3，
+这是我们的对等节点 4，所以他有 4 个流。
+इसके पास 4 streams ह ै। अगर ये peer 1 ह ै, ये peer 2 ह ै, let's say ये हमारा peer 3 ह ै, ये हमारा peer 4 ह ै, so he has 4 streams.
+
+149
+00:16:32,046 --> 00:16:44,140
+这个 SFU 单元会做什么呢？它会把这些原始流广播给所有人，所以它会说，“嘿，拿走这个流，
+拿走另一个流，再拿走一个流”，然后它会把这些流分开给到大家，
+ये SFU unit क्या करेग in इन raw streams को सबको broadcast कर देग ा, तो ये बोलेग ा, "यार ये पकड ़ो stream, ये पकड ़ो एक और stream,
+और ये पकड ़ो एक और stream ," और ये इन streams को segregate करके देग ा, कि ये ना second peer की stream ह ै,
+
+150
+00:16:44,140 --> 00:16:47,030
+告诉他们这是第二个对等节点的流，这是第三个对等节点的流，这是第四个对等节点的流。
+这意味着，每个对等节点都会发送自己的流，但作为回报，他们会收到其他所有人的独立流。好，
+ये SFU unit क्या करेग in इन raw streams को सबको broadcast कर देग ा, तो ये बोलेग ा, "यार ये पकड ़ो stream, ये पकड ़ो एक और stream,
+और ये पकड ़ो एक और stream ," और ये इन streams को segregate करके देग ा, कि ये ना second peer की stream ह ै,
+
+151
+00:16:47,030 --> 00:16:58,380
+告诉他们这是第二个对等节点的流，这是第三个对等节点的流，这是第四个对等节点的流。
+这意味着，每个对等节点都会发送自己的流，但作为回报，他们会收到其他所有人的独立流。好，
+ये third peer की stream ह ै, और ये fourth peer की stream ह ै। तो that means, every peer खुद की stream भेजेग ा,
+but in return उसको बाकी सब की अलग-अलग streams मिल जाएंग ी। ओक े, ये SFU क्या करेग ा? second वाले को भी क्या करेग ा?
+
+152
+00:16:58,380 --> 00:17:01,600
+这个 SFU 会做什么？它对第二个节点也会做什么？发送三个流。好，这就是流 1，这就是流 3。
+ये third peer की stream ह ै, और ये fourth peer की stream ह ै। तो that means, every peer खुद की stream भेजेग ा,
+but in return उसको बाकी सब की अलग-अलग streams मिल जाएंग ी। ओक े, ये SFU क्या करेग ा? second वाले को भी क्या करेग ा?
+
+153
+00:17:01,600 --> 00:17:05,329
+这个 SFU 会做什么？它对第二个节点也会做什么？发送三个流。好，这就是流 1，这就是流 3。
+तीन streams भेजेग ा। ओक े, तो ये होगी stream 1, ये होगी 3.
+
+154
+00:17:05,470 --> 00:17:17,640
+这就是流 4，同样地，它会收到多少个流？它也会收到三个流。所以这里它会收到流 1、
+流 2 和流 4。好，这是流 2，它会做什么呢？它会把这三个流返回回去。所以它会告诉它，
+और ये होगी 4 की stream, and similarly इसको भी कितनी streams मिल जाएंग ी? इसको भी तीन streams मिलेग ी। तो यह ाँ पर इसको one की मिलेग ी,
+two की मिलेग ी, and four की मिलेग ी। ठीक ह ै, यह two ह ै, and इसको भी क्या करेग ा?
+
+155
+00:17:17,640 --> 00:17:19,990
+这就是流 4，同样地，它会收到多少个流？它也会收到三个流。所以这里它会收到流 1、
+流 2 和流 4。好，这是流 2，它会做什么呢？它会把这三个流返回回去。所以它会告诉它，
+यह तीन streams वापिस return कर देग ा। तो इसको एक बोलेग ा, one क ी, two क ी, and three क ी। तो यह ाँ पर SFU,
+which stands for Selective Forwarding Unit, यह ाँ पर होता क्या ह ै? हर peer अपनी stream server को send करता है कि यह लो पकड ़ो मेरा
+
+156
+00:17:19,990 --> 00:17:31,140
+这是流 1、流 2 和流 3。那么这里的 SFU，也就是选择性转发单元，它是怎么运作的呢？
+每个对等节点把自己的流发送到服务器，说“拿走我的音频流，拿走我的视频流”。
+यह तीन streams वापिस return कर देग ा। तो इसको एक बोलेग ा, one क ी, two क ी, and three क ी। तो यह ाँ पर SFU,
+which stands for Selective Forwarding Unit, यह ाँ पर होता क्या ह ै? हर peer अपनी stream server को send करता है कि यह लो पकड ़ो मेरा
+
+157
+00:17:31,140 --> 00:17:33,860
+这是流 1、流 2 和流 3。那么这里的 SFU，也就是选择性转发单元，它是怎么运作的呢？
+每个对等节点把自己的流发送到服务器，说“拿走我的音频流，拿走我的视频流”。
+audio stream, यह लो पकड ़ो मेरा video stream.
+
+158
+00:17:34,510 --> 00:17:45,200
+现在它拥有所有人的流。它做什么呢？它不混合它们，因为它不想消耗 CPU，
+它就这样把那些流作为独立的流返回给所有人。
+Now इसके पास सबकी streams ह ै। यह क्या करता ह ै? उनको mix नह ीं करता है because इसको वो CPU utilize नह ीं करना ह ै,
+यह as it is वो उन streams को सब को return कर देता as a separate stream.
+
+159
+00:17:46,158 --> 00:17:57,740
+它的第一大优点是什么？你这个选择性转发单元，它就像是透传，它就像是一个隧道，
+就像是一个管道。你把流发进去，它就把所有流发出去，对吧？
+इसका number one benefit क्या ह ै? जो आपका इस selective forwarding unit है न, इसकी उपर, it's just like a pass through,
+यह एक तरह की tunnel ह ै, यह एक तरह की pipe ह ै। आपने इसम ें stream भेज ा, और इसने वो सब को भेज दिय ा, right?
+
+160
+00:17:58,030 --> 00:18:02,220
+所以它不进行任何处理，它的工作仅仅是什么？一个中央服务器。
+तो यह किसी भी तरह की processing नह ीं कर रहा ह ै, इसका काम सिर्फ क्या ह ै? एक central server.
+
+161
+00:18:02,446 --> 00:18:17,130
+只是一个管道。其次，因为你收到每个对等节点的独立流，所以你的客户端可以决定如何渲染它，
+是否要消费它，是否要把它单独分开，或者我要把它固定住，这些事情。我给你举个例子，
+एक बस pipe करन ा, secondly because आपको हर peer की stream different मिल रही ह ै, तो आपका client decide कर सकता है उसको कैसे render
+करना ह ै, उसको consume करना है या नह ीं करना ह ै, उसको यह ां से अलग रखना ह ै, मुझे उसको pin करना ह ै,
+
+162
+00:18:17,130 --> 00:18:18,420
+只是一个管道。其次，因为你收到每个对等节点的独立流，所以你的客户端可以决定如何渲染它，
+是否要消费它，是否要把它单独分开，或者我要把它固定住，这些事情。我给你举个例子，
+वो सब चीज ़ें। म ैं आपको एक example देता ह ूँ, अगर आप MCU म ें ह ो, MCU म ें क्या हो रहा थ ा? Server क्या कर रहा थ ा?
+आपकी stream को combine कर रहा था for some reasons.
+
+163
+00:18:18,420 --> 00:18:27,480
+如果你在 多点控制单元 中，多点控制单元 里发生了什
+么？服务器在做什么？它为了某些原因在合并你的流。
+वो सब चीज ़ें। म ैं आपको एक example देता ह ूँ, अगर आप MCU म ें ह ो, MCU म ें क्या हो रहा थ ा? Server क्या कर रहा थ ा?
+आपकी stream को combine कर रहा था for some reasons.
+
+164
+00:18:27,580 --> 00:18:41,190
+在这里你也能看到，如果你有 3 个对等节点，对等节点 1 因为某些原因不想听对等节点 3 的话，
+1 说“嘿，我想看所有人，但我不想听第三个人的话”，
+यह ाँ पर भी you can see, अगर आपके पास 3 peers ह ैं, जो peer 1 है न, वो 3 की बात ें नह ीं सुनना चाहत For some reasons,
+1 कहता यार मेरे को सब दिखाओ, मुझे न 3 तीन, जो ये third वाला person ह ै, मुझे इसकी बात नह ीं सुनन ी,
+
+165
+00:18:41,190 --> 00:18:41,260
+在这里你也能看到，如果你有 3 个对等节点，对等节点 1 因为某些原因不想听对等节点 3 的话，
+1 说“嘿，我想看所有人，但我不想听第三个人的话”，
+तो क्या वो इसको specifically खुद के लिए mute कर सकता ह नहीं कर सकता है, right?
+
+166
+00:18:41,260 --> 00:18:46,400
+那么他能专门为自己把那个节点静音吗？能吗？对吧？
+तो क्या वो इसको specifically खुद के लिए mute कर सकता ह नहीं कर सकता है, right?
+
+167
+00:18:46,702 --> 00:18:51,220
+因为他收到的流中，所有人的音频都已经合并了，所有人的视频都已经合并了。
+Because जो उसको stream मिल रही है, उसमें सबका audio combine हो चुका है, उसमें सबकी video combine हो चुका है.
+
+168
+00:18:51,500 --> 00:19:03,610
+如果你想把它静音，你只能在服务器层面把它静音，那对所有人来说都会静音，
+但你没法专门把第三个对等节点的流区分出来，没法单独把它静音。但在这里，你可以做到。
+अगर आप उसको mute करना चाहते ह ो, तो server level पे आप उसको mute कर सकते ह ो, वो सब के लिए mute हो जाएग ा,
+but one specifically तीन जो third peer की stream ह ै, उसको अलग से differentiate नह ीं कर सकत ा, उसको अलग से mute नह ीं कर सकत ा,
+
+169
+00:19:03,610 --> 00:19:05,360
+如果你想把它静音，你只能在服务器层面把它静音，那对所有人来说都会静音，
+但你没法专门把第三个对等节点的流区分出来，没法单独把它静音。但在这里，你可以做到。
+but यह ाँ पर वो कर सकता ह ै, क्य ों? Because उसको third की stream ह ै, वो अलग से मिल रही ह ै,
+तो यह इसको consume करना बंद कर देग ा। अगर हम इसको red कर देते ह ैं, अगर one कहते ह ै,
+
+170
+00:19:05,360 --> 00:19:12,550
+为什么？因为他有第三个节点的独立流，它是单独收到的，所以他可以停止消费它。
+如果我们把它标记为红色，如果 1 说“我没兴趣听 3 的”，那他基本上会做什么？
+but यह ाँ पर वो कर सकता ह ै, क्य ों? Because उसको third की stream ह ै, वो अलग से मिल रही ह ै,
+तो यह इसको consume करना बंद कर देग ा। अगर हम इसको red कर देते ह ैं, अगर one कहते ह ै,
+
+171
+00:19:12,550 --> 00:19:18,310
+为什么？因为他有第三个节点的独立流，它是单独收到的，所以他可以停止消费它。
+如果我们把它标记为红色，如果 1 说“我没兴趣听 3 的”，那他基本上会做什么？
+"I am not interested in listening to three ," तो वो basically क्या करेग ा? इस stream को ignore करना start कर देग ा। तो आप उसके पास
+सिर्फ two और four। बच ा, because यह ाँ पर आपको जो streams ह ै, वो segregate, वो separate,
+
+172
+00:19:18,310 --> 00:19:24,260
+他会开始忽略这个流。所以他手里就只剩下 2 和 4。剩下的，因为这里的流是分开的，是独立的。
+每个层级都有自己的流。如果你曾经注意到过，可能 1 想要在全屏上看到 4，对吧？
+"I am not interested in listening to three ," तो वो basically क्या करेग ा? इस stream को ignore करना start कर देग ा। तो आप उसके पास
+सिर्फ two और four। बच ा, because यह ाँ पर आपको जो streams ह ै, वो segregate, वो separate,
+
+173
+00:19:24,260 --> 00:19:32,540
+他会开始忽略这个流。所以他手里就只剩下 2 和 4。剩下的，因为这里的流是分开的，是独立的。
+每个层级都有自己的流。如果你曾经注意到过，可能 1 想要在全屏上看到 4，对吧？
+separate मिलती ह ै। हर tier की अपनी stream मिल रही ह ै। अगर आपने कभी notice किया होग ा, हो सकता है जो one ह ै,
+वो four को बड ़ी screen पे देखना चाहता ह ै, right?
+
+174
+00:19:32,540 --> 00:19:35,640
+可能 4 是个可爱的女孩，而 1 想要全屏看她。
+हो सकता है four एक cute लड़की है and one wants to see it in a full screen.
+
+175
+00:19:36,270 --> 00:19:46,540
+在这里这是不可能的，因为在单个流中所有内容都已经合并了。但在这里，
+因为你得到了 4 的独立流，你可以按自己的方式去渲染它。
+यह ाँ पर वो possible नह ीं ह ै, because single stream म ें सब कुछ combine हो गय ा, but यह ाँ पर,
+because you are getting a separate stream for four, आप उसको अपने तरीके से render कर सकते ह ो। तो अगर आप कभी भी Google Meet म ें आप
+
+176
+00:19:46,540 --> 00:19:47,630
+所以如果你在 Google Meet 中注意到，你可以只为自己放大或缩小某个特定用户的平铺块，
+因为你收到了不同的流，这就是所谓的 SFU 架构。
+यह ाँ पर वो possible नह ीं ह ै, because single stream म ें सब कुछ combine हो गय ा, but यह ाँ पर,
+because you are getting a separate stream for four, आप उसको अपने तरीके से render कर सकते ह ो। तो अगर आप कभी भी Google Meet म ें आप
+
+177
+00:19:47,630 --> 00:19:57,180
+所以如果你在 Google Meet 中注意到，你可以只为自己放大或缩小某个特定用户的平铺块，
+因为你收到了不同的流，这就是所谓的 SFU 架构。
+notice करोग े, आप किसी particular user की tile को बड ़ा कर सकते ह चोटा कर सकते हो for just yourself,
+because आपको वो different stream मिल रही ह ै, तो इसको कहा जाता है SFU architecture.
+
+178
+00:19:57,180 --> 00:20:03,460
+它的全称是什么？它代表选择性转发单元。
+और इसका full form क्या ह ै? This stands for Selective Forwarding Unit.
+
+179
+00:20:04,640 --> 00:20:10,640
+为什么叫选择性转发单元？因为在这里，你可以选择你想消费哪个流。
+Selective Forwarding Unit क्य ों कहा जाता है इसक ो? Because यह ाँ पर क्या ह ै, you can select which stream you want to consume.
+
+180
+00:20:10,640 --> 00:20:21,560
+可能服务器收到了上千个流，但你可以决定选择哪个流，选择哪个流去转发，选择哪个流去渲染。
+这就是它被称为这个名字的原因，好吗？
+हो सकता है server के पास thousand streams आ रही ह ै, but आपको कौन सी stream को select करक े, आपको कौन सी stream को forward करना ह ै,
+आपको render करना ह ै, वो आप decide कर सकते ह ो. That's why it is known as this thing, okay?
+
+181
+00:20:21,560 --> 00:20:24,300
+所以在这里你可以看到，你知道的。
+And तो यह ाँ पर you can see, you know.
+
+182
+00:20:24,300 --> 00:20:27,760
+现在是「选择性」的意思，你也知道「转发单元」的意思了。
+The meaning of selective now, and you also know the meaning of forwarding unit.
+
+183
+00:20:27,760 --> 00:20:31,800
+那为什么叫转发单元呢？因为它接收流，把它们转发给所有人，但它是选择性的。
+तो forwarding unit क्य ों ह ै? Because stream लेता ह ै, सबको forward कर देता ह ै, but it is selective.
+
+184
+00:20:31,822 --> 00:20:35,360
+你可以在这里进行选择，所以它就是 SFU。
+You can be selective in this, तो SFU.
+
+185
+00:20:35,460 --> 00:20:39,100
+如果我们把这里向上滚动一点，这就是基本的 SFU。
+अगर हम यह ाँ पर थोड ़ा scroll up करते ह ैं, तो this is basically the SFU.
+
+186
+00:20:39,246 --> 00:20:49,440
+你可以从这个图里看到，每个对等节点都把自己的流发送给服务器，作为回报，
+它会收到其他对等节点的流。所以，一个 SFU 会接收会议中每个参与者的媒体。
+You can see in this diagram, हर peer अपनी stream server को भेजता ह ै, but in return उसको बाकी peers की stream मिल जाती ह ै. So,
+an SFU receives media from each party in a conference call.
+
+187
+00:20:49,646 --> 00:20:54,360
+它决定哪些流应该转发给其他参与者，然后把它们转发出去，好吗。
+Decides which stream should be forwarded to other parties and then forwards them, okay.
+
+188
+00:20:54,360 --> 00:21:02,980
+所以它在这里进行选择性转发。也许你注意到了，决定转发哪些流，
+我不知道为什么这行字总是跳到最上面，所以你可
+तो यह selective forwarding करता है यह ाँ पर आप, maybe आपने notice किया होगा कि decide which stream to forward, I don't know,
+यह बार-बार ऊपर क्य ों चला जाता ह ै, so, आपने यह ाँ पर notice किया होग ा, एक line ह ै, decide which stream should be forward.
+
+189
+00:21:02,980 --> 00:21:06,800
+能注意到了，有一行字是：决定哪些流应该被转发。
+तो यह selective forwarding करता है यह ाँ पर आप, maybe आपने notice किया होगा कि decide which stream to forward, I don't know,
+यह बार-बार ऊपर क्य ों चला जाता ह ै, so, आपने यह ाँ पर notice किया होग ा, एक line ह ै, decide which stream should be forward.
+
+190
+00:21:07,182 --> 00:21:13,790
+你看，怎么决定呢？可能你在一个房间里，你在一个 Google Meet 里，
+我在另一个 Google Meet 里，所以你的会议内容不应
+देख ो, decide कैस े, हो सकता ह ै, आप एक अलग room म ें ह ो, आप एक अलग Google meet म ें ह ो, म ैं एक अलग Google meet म ें ह ूँ, so,
+आपकी meeting का कोई भी content मेरी meeting म ें नह ीं आना चाहिए, so that's why it's selective.
+
+191
+00:21:13,790 --> 00:21:16,720
+该出现在我的会议里，这就是为什么它是选择性的。
+देख ो, decide कैस े, हो सकता ह ै, आप एक अलग room म ें ह ो, आप एक अलग Google meet म ें ह ो, म ैं एक अलग Google meet म ें ह ूँ, so,
+आपकी meeting का कोई भी content मेरी meeting म ें नह ीं आना चाहिए, so that's why it's selective.
+
+192
+00:21:17,006 --> 00:21:27,400
+所以它自己决定，Piyush 在哪个会议里，以及它需要哪些流，这就是 SFU 基本的工作原理，
+而且 SFU 现在实际上就是生产环境里使用的东西，好吗。
+तो वो खुद select करता ह ै, कि Piyush किस meeting का part है और इसको कौन सी stream चाहिए, so this is how basically an SFU works,
+and SFU is actually something used in production these days, okay.
+
+193
+00:21:28,110 --> 00:21:30,040
+这就是你的 SFU 工作的方式。
+तो इस तरह से काम करता है आपका SFU.
+
+194
+00:21:30,574 --> 00:21:43,340
+现在，如果你想自己实现一个 SFU，有一个非常好的库，这就是一个 SFU，
+它是一个低级别的选择性转发单元。
+Now, just in case अगर आप खुद का एक SFU implement करना चाहते ह ो, तो उसके लिए एक
+बहुत ही अच्छी library ह ै, ए एक SFU ह ै, it's a low level selective forwarding unit.
+
+195
+00:21:43,758 --> 00:21:48,480
+你可以把它放入你的节点式服务器中，好吗，而且要配合它工作并不容易。
+जिसको आप अपने node जैसे server म ें डाल सकते ह ो, okay, and इसके साथ काम करना is not easy.
+
+196
+00:21:48,878 --> 00:22:04,330
+只是为了提供背景信息，我给你们看个东西。如果我们去 MediaSoup 的代码仓库，
+如果我们在作者 Piyush Kirk 和我这里看那些关闭的 issue，
+Just for the context, म ैं आपको एक चीज़ दिखाता ह ूँ। अगर हम MediaSoup की repository म ें जाते ह ैं,
+and अगर हम यह ाँ पर author करते ह ैं, Piyush Kirk and I go into the closed
+
+197
+00:22:04,330 --> 00:22:04,420
+你可以看到我在 2021 年删除了很多内容，删除了整个 issue 模板。
+Just for the context, म ैं आपको एक चीज़ दिखाता ह ूँ। अगर हम MediaSoup की repository म ें जाते ह ैं,
+and अगर हम यह ाँ पर author करते ह ैं, Piyush Kirk and I go into the closed
+
+198
+00:22:04,420 --> 00:22:11,560
+你可以看到我在 2021 年删除了很多内容，删除了整个 issue 模板。
+ones, you can see म ैं 2021 म ें बहुत जदा काम deleted the full issue template.
+
+199
+00:22:11,790 --> 00:22:18,960
+显然，知道你的操作系统和其他软件版本没什么用，关
+闭这个 issue，他们在这里说：开源不是这样运作的。
+Obviously, knowing your OS and other software version is not useful, closing this issue,
+and यह ाँ पर उन्होंने क्या बोला थ Open source doesn't work like this.
+
+200
+00:22:19,054 --> 00:22:27,680
+请做出贡献，并避免向其他人索要免费劳动。我不知
+道，这里只是有一点点，但这真的是一件很棒的事情。
+Please contribute and avoid demanding free work from other people I don't
+know, मतलब थोड ़ा सा रहता है यह ाँ पर, but this is such an amazing thing.
+
+201
+00:22:27,780 --> 00:22:38,420
+好，我过去 5 到 6 年一直在研究 MediaSoup，中间有
+一段时间我没在做 WebRTC，但这是一个非常棒的库。
+Okay, I have been working with MediaSoup for the last 5 to 6 years, बीच म ें मैंने थोड
+़ा सा मतलब I was not working on WebRTC, but this is an amazing library to work with.
+
+202
+00:22:39,374 --> 00:22:49,760
+所以，如果你想让我针对 MediaSoup 做一个专门的视频，讲解它是如何工作的，
+它的架构是什么样的？它的架构真的非常出色。
+So, तो अगर आप चाहते हो कि म ैं MediaSoup के ऊपर एक dedicated video बनाओं कि ये काम
+कैसे करता ह ै, इसका architecture क्या ह ै? The architecture is just really amazing.
+
+203
+00:22:49,760 --> 00:22:56,000
+如果你去看他们的设计，不是这个，如果你去查看概览，文档也做得相当不错。
+अगर आप इनका design देखोग े, not this one, if you go into the overview, so documentation is Also pretty good.
+
+204
+00:22:56,000 --> 00:23:04,620
+所以，在 V3 里面有一个图，如果我们去查看设计，就是这个。
+So, यह ाँ पर एक diagram होती है V3 के अंदर, अगर हम जाते ह ैं and we go into the design, this one.
+
+205
+00:23:04,620 --> 00:23:13,940
+所以，这就是 MediaSoup 中 SFU 的基本工作原理，以及他们设计的架构：什么是工作线程，
+什么是传输层，以及里面包含什么？
+So, this is basically how the SFU in MediaSoup works and the way they have designed कि एक worker क्या होता ह ै,
+एक transport क्या होती ह ै, और उसके अंदर what do you have?
+
+206
+00:23:13,940 --> 00:23:19,580
+路由器以及路由器如何工作，这些家伙建立的架构真的非常出色。
+Routers and routers कैसे काम करते ह तो this is such an amazing architecture that these guys have put up.
+
+207
+00:23:19,580 --> 00:23:20,900
+所以，请在评论区告诉我。
+So, let me know in the comments.
+
+208
+00:23:20,900 --> 00:23:28,300
+我想用 MediaSoup 来写一套完整的 SFU 代码，我过去两天一直在做这件事，也就是在进行修改。
+म ैं एक media soup को use करके एक पूरा SFU code करना चाहता ह ूँ, म ैं पिछले दो दिन से वो ही कर रहा ह ूँ, मतलब I was just revising.
+
+209
+00:23:28,300 --> 00:23:29,820
+我自己就在做，这是一件很棒的事情。
+Myself, and it's an amazing thing.
+
+210
+00:23:29,820 --> 00:23:34,260
+所以如果你想要一个关于 MediaSoup 的专门视频，请告诉我，我很乐意制作它。
+So let me know if you want a dedicated video on Media Soup, I am more than happy to make it.
+
+211
+00:23:34,260 --> 00:23:41,920
+不管怎样，我打算做它，但这就是你实际上如何构建，怎么说呢，多人视频会议应用的方法。
+Anyway, I am planning to make it, but this was how you can actually build, like, what do you call, multi-conference applications.
+
+212
+00:23:41,920 --> 00:23:49,780
+所以这基本上是它的系统设计，当你使用 Google Meet 或 Zoom 时，
+这就是你创建这些东西的基本方式。
+तो ये basically उसका एक system design था कि जब आप Google Meet पर होते ह ो, जब आप Zoom पर होते ह ो,
+this is basically how you create these things.
+
+213
+00:23:49,780 --> 00:23:58,660
+所以你有 WebRTC 的点对点，然后你有网状拓扑，其中
+你把点对点用于多个连接。这完全不是一个好的方法。
+तो peer-to-peer है आपके पास WebRTC, then you have a mesh जिसम ें आप peer-to-peer
+को kind of एक multiple connection के लिए use करते ह ो. Not at all a good approach.
+
+214
+00:23:58,660 --> 00:24:12,020
+然后你有了转发单元。转发单元的问题是它非常消耗 CPU。所以我们决定做一件事，
+就用服务器作为透传机制，客户端可以决定如何渲染特定的流。这就是 SFU 诞生的原因。
+फिर आपके पास एक forwarding unit आता ह ै। The problem is with the forwarding unit is that ये बहुत साथ CPU intensive ह ै। तो फिर we
+decided कि एक काम करते ह ैं, let's just use the server as a pass-through mechanism and clients decide कर सकते ह ैं कि उनको ए पर्टिकुलर
+
+215
+00:24:12,020 --> 00:24:15,080
+然后你有了转发单元。转发单元的问题是它非常消耗 CPU。所以我们决定做一件事，
+就用服务器作为透传机制，客户端可以决定如何渲染特定的流。这就是 SFU 诞生的原因。
+stream कैसे render करनी ह ै। So that's how the SFU was born.
+
+216
+00:24:15,374 --> 00:24:17,620
+这就是本视频的所有内容。
+So that was all about this particular video.
+
+217
+00:24:17,620 --> 00:24:23,760
+希望你们喜欢这个视频，我们下个视频再见。到那时，拜拜，保重。
+I hope आपने इस वीडियो को enjoy किया and मिलते ह ैं हम आपको next वीडियो के अंदर। Until then, bye-bye and take care.
+
