@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [[REBASE'26] The Last Mile of Certified Programming](medias/MQ93Y/) | ACM SIGPLAN | 2026-11-27 |
 | [How to Actually Code with AI (ft. Matt Pocock)](medias/MBZNR/) | NetworkChuck | 2026-11-27 |
 | [Working with AI - By Nathan Wilmers, Maxim Massenkoff, Peter McCrory](medias/JVAW9/) | AskwhoCasts AI | 2026-11-26 |
 | [Next.js Explained in 10 Minutes(How It Really Works)](medias/J2RZS/) | Frontend School | 2026-11-26 |
