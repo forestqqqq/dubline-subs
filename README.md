@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [TSMC Explains Semiconductor Chips in 3 Levels \| TSMC × WIRED](medias/3D26C/) | TSMC | 2026-11-26 |
 | [[REBASE'26] The Real World is Messy: Examining the Productivity Impact of Automatically Reverting(…)](medias/2YG1E/) | ACM SIGPLAN | 2026-11-26 |
 | [Master Gemini 4, Transformers, Word2Vec & Foundations of Artificial Intelligence](medias/29J66/) | The Cutting Edge School | 2026-11-26 |
 | [WebRTC Deep Dive: The Protocol That Powers Every Video Call](medias/0F01K/) | ByteMonk | 2026-11-26 |
