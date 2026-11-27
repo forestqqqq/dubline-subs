@@ -1,0 +1,952 @@
+1
+00:00:00,462 --> 00:00:01,828
+All right, thank you very much.
+
+2
+00:00:03,342 --> 00:00:12,960
+So today, I'm going to be talking a little bit about software productivity, and, hopefully, trying to stimulate your mind.
+
+3
+00:00:13,040 --> 00:00:33,732
+not just about this particular thing that I'm looking at, this feature we launched, but to think about any feature that you think might have some sort of impact on how people do a task in the workplace or even at home, how that actually changes some notion of productivity.
+
+4
+00:00:34,446 --> 00:00:48,240
+And I think this is a very interesting area for us to think about as a community because the nature of work is changing, and what we think about as work and as productivity is also changing.
+
+5
+00:00:48,320 --> 00:00:59,748
+And so as we're thinking about that, we do have to think about what our values are, what do we value, what is the point of the work that we're doing, and what is the outcome that we actually want.
+
+6
+00:01:01,550 --> 00:01:17,924
+so I think probably everybody in the sort of the IST uh oopsla community knows, you know, there's not really a good, acceptable method for evaluating productivity in programming.
+
+7
+00:01:18,254 --> 00:01:21,520
+It's not something that we really have access to.
+
+8
+00:01:22,702 --> 00:01:36,292
+there are many things that people have proposed that are sort of like proxies, famously, you know, something like number of lines of code produced was a classic thing that people have tried, and it has, you know, perverse incentives.
+
+9
+00:01:36,654 --> 00:01:43,108
+For instance, if you wanted to have your LLM be judged on number of lines of code, it would be very easy for it to pass.
+
+10
+00:01:43,534 --> 00:01:44,800
+That is a productivity metric.
+
+11
+00:01:44,960 --> 00:01:49,700
+None of the code would actually compile or run, but it could produce, you know, gigatons of code.
+
+12
+00:01:50,560 --> 00:02:01,284
+so it's not a very good use of measuring productivity to just look at volume or other sort of basic things, number of bugs closed, number of features closed.
+
+13
+00:02:02,414 --> 00:02:05,988
+so it's sort of a difficult thing for us to get our hands around.
+
+14
+00:02:07,822 --> 00:02:12,868
+but we can start to think about things that are not productive work.
+
+15
+00:02:13,360 --> 00:02:19,920
+Um it's this is something that is I think much more straightforward for us to think about.
+
+16
+00:02:20,080 --> 00:02:37,680
+And if we get into what is not productive, and we try and sort of optimize out time that people are spending on tasks that are not something that they're productively engaged on, that's something that we can measure and something we can improve on.
+
+17
+00:02:37,840 --> 00:02:45,284
+So this is sort of my frame for this whole talk is what we're valuing is people doing something that they define productive.
+
+18
+00:02:45,520 --> 00:02:58,308
+We don't exactly know what that is, but we can find parts of their day where they are spending time waiting or doing other things that they don't find fulfilling or productive.
+
+19
+00:02:58,734 --> 00:02:59,492
+So that's the frame.
+
+20
+00:03:00,558 --> 00:03:05,360
+Okay, so here's how I define an inverse productivity metric.
+
+21
+00:03:05,742 --> 00:03:12,836
+It's basically any metric or measure that is about the amount of time somebody's doing something that they don't like.
+
+22
+00:03:14,400 --> 00:03:20,708
+and whenever we have something, for instance, we're waiting on the compiler to compile our code.
+
+23
+00:03:22,542 --> 00:03:31,524
+if it's a few seconds, you're likely to spend that time looking at the screen, waiting for the compile to happen.
+
+24
+00:03:32,270 --> 00:03:37,988
+But if it's much longer than that, you will start probably start task switching.
+
+25
+00:03:38,382 --> 00:03:45,188
+You might go look at email, but you might actually go, you know, do something useful or productive, not just go get lunch.
+
+26
+00:03:46,766 --> 00:04:01,540
+and so it's hard to know exactly what the real relationship is between sort of the wasted time that we can easily measure, like how long a build takes, and like how much that really impacts the productive work that person could have been doing.
+
+27
+00:04:01,998 --> 00:04:07,972
+But we do know that it's directionally associated with productive work.
+
+28
+00:04:09,710 --> 00:04:16,452
+Okay, so for the example metric that I'm going to be talking about today, it's the lead time for change.
+
+29
+00:04:17,998 --> 00:04:36,868
+I also you could think of it as you know, commit to production or submit to production or merge to production, however your organization or workflow views this process of taking a change that you've made, getting it reviewed, you've gotten that all done, and now it's submitted into the code base.
+
+30
+00:04:37,166 --> 00:04:42,500
+How long does it take to get to your production environment however you define that?
+
+31
+00:04:44,576 --> 00:04:55,140
+and it could be in fact just a staging environment because you can start getting useful validation signals rather than verification signals since this is a testing group.
+
+32
+00:04:56,336 --> 00:05:07,204
+and we want to get those signals so that we can get real feedback on how the changes that we are making are impacting the user or impacting the business.
+
+33
+00:05:08,302 --> 00:05:17,316
+So here is sort of like a complicated diagram where I have time up at the top and people are submitting changes.
+
+34
+00:05:17,856 --> 00:05:20,228
+in this case they're called CLs because I work at Google.
+
+35
+00:05:20,576 --> 00:05:27,940
+But in any case, they're submitting changes, and some of them are good changes in green, and some of them are red changes where tests fail.
+
+36
+00:05:28,416 --> 00:05:31,268
+And eventually all these changes go to production.
+
+37
+00:05:32,686 --> 00:05:36,484
+but it they have to go through different processes in order to get there.
+
+38
+00:05:36,750 --> 00:05:51,076
+And so the the metric we're looking at is the time from when something was submitted to when it actually reaches production, and it can be quite a long time, and many different candidates can sort of get partially through these different stages.
+
+39
+00:05:52,750 --> 00:05:58,656
+and these stages are sort of like constantly happening in a modern software deployment architecture.
+
+40
+00:05:58,736 --> 00:06:04,452
+You're sort of partially creating releases, but maybe they don't make it all the way through to get to users.
+
+41
+00:06:05,216 --> 00:06:20,164
+but it's very important for uh in terms of like actually figuring out if any of the changes we are making to the software has any positive impact on the business, either from a user standpoint or a resource standpoint or a revenue standpoint, whatever it is.
+
+42
+00:06:21,136 --> 00:06:24,496
+and it it often takes many changes, right?
+
+43
+00:06:24,590 --> 00:06:32,976
+It's not just one change usually, but a sequence of changes that we have to get through and get out to production.
+
+44
+00:06:33,198 --> 00:06:47,056
+And then once we have gotten to that point, we get this user impact because we have to go through some sort of iterative cycle where we're looking at how the changes are behaving and then we're actually modifying them again.
+
+45
+00:06:47,136 --> 00:06:53,764
+We're changing the specification because we didn't understand the problem that we were solving when we made the first change.
+
+46
+00:06:54,158 --> 00:06:56,016
+And so we have to go through this iterative process.
+
+47
+00:06:56,096 --> 00:07:06,212
+It takes quite a long time, but it's the user impact or the business impact at the very end that's, in my view, the productive work is that impact.
+
+48
+00:07:06,574 --> 00:07:11,696
+All of the stuff up between then is sort of what the keynote speaker was talking about.
+
+49
+00:07:11,776 --> 00:07:16,260
+Like, you made a huge mess in the code base, but nothing useful happened.
+
+50
+00:07:16,622 --> 00:07:20,932
+It's only when we get to the end that the productivity is sort of realized.
+
+51
+00:07:22,990 --> 00:07:31,936
+So that's what I'm thinking about, and we're gonna look at lead time for change as our metric that's sort of inversely correlating with the business impact.
+
+52
+00:07:32,016 --> 00:07:33,696
+I'm gonna skip through this.
+
+53
+00:07:35,296 --> 00:07:47,776
+and it's not possible, at least for me, to usually measure sort of direct impact because I work at a very, very large organization, you know, has several hundred thousand developers.
+
+54
+00:07:47,936 --> 00:07:52,016
+People are working on a very diverse set of products and things.
+
+55
+00:07:52,096 --> 00:07:57,216
+Some things are for internal users, some things are for external users, some things are for the infrastructure.
+
+56
+00:07:57,518 --> 00:08:00,132
+It's hard to know what they mean by business impact.
+
+57
+00:08:00,590 --> 00:08:11,332
+So using these inverse proxies allows us to have the best sort of imperfect assessment of any changes to the developer process.
+
+58
+00:08:12,416 --> 00:08:26,596
+So once again, this is the high-level view of what we are measuring, and it's that max S2P is what I say here, of that we are getting as our final measure.
+
+59
+00:08:27,216 --> 00:08:40,708
+And the change that we're gonna make to the developer process is when somebody submits a change that breaks a test in the CI environment, let's find that change and automatically revert it.
+
+60
+00:08:41,614 --> 00:08:48,256
+Okay, so we launched this feature a little bit ago, and that gave us a lot of time to collect data.
+
+61
+00:08:48,416 --> 00:08:55,776
+I had a paper that you can look up if you're curious on some of the the sort of background research that went into this.
+
+62
+00:08:56,782 --> 00:09:01,188
+and that was at ICST a number of years ago now, I think 2024.
+
+63
+00:09:02,510 --> 00:09:05,668
+but this is basically find the change and revert it.
+
+64
+00:09:06,416 --> 00:09:08,516
+So it looks like this.
+
+65
+00:09:09,454 --> 00:09:15,108
+We have many tests, we run them not all the time, but we run them periodically.
+
+66
+00:09:15,696 --> 00:09:27,140
+you find a test failure, you confirm that it's actually failing, and then you find the culprit, which I've noted as C as for culprit, and we're gonna automatically revert it.
+
+67
+00:09:29,006 --> 00:09:32,868
+And we've made this system, it works great.
+
+68
+00:09:33,376 --> 00:09:38,308
+but does it actually improve productivity based on anything that we can measure?
+
+69
+00:09:38,896 --> 00:09:42,980
+and so the thing that we've chosen to measure is this lead time for change measurement.
+
+70
+00:09:43,776 --> 00:09:47,376
+So let's look at the data.
+
+71
+00:09:47,630 --> 00:10:02,896
+I said Google has a lot of developers, and this is sort of all of the data, excluding some holiday periods, which I've like kind of removed from the middle.
+
+72
+00:10:02,976 --> 00:10:04,548
+I'm gonna turn on the laser pointer.
+
+73
+00:10:05,070 --> 00:10:21,380
+So this section here, I've wanted to remove any time that had Thanksgiving, Christmas, New Year's, all of this time, and I sort of wanted to match as much as possible sort of the volume of data over here with the volume of data over here.
+
+74
+00:10:21,742 --> 00:10:26,180
+This is like before the feature is over here and after the feature is over here.
+
+75
+00:10:26,816 --> 00:10:44,256
+And uh the if you're not blue, orange color brand, some of the dots are orange over here, and those are the ones where the feature actually occurred and was like we found was used on a particular product.
+
+76
+00:10:44,416 --> 00:10:49,124
+And the issue for me is I can't tell a difference between this side and that side.
+
+77
+00:10:50,222 --> 00:10:56,164
+I'm looking at it, and if you are colorblind, you're not missing much because they look about the same.
+
+78
+00:10:56,910 --> 00:11:06,244
+And so this is sort of tremendously disappointing for anybody who makes their living working on tools to improve developer productivity for continuous integration.
+
+79
+00:11:08,174 --> 00:11:18,896
+but we know that we have these customers, some of them are like big and important, and they're like, they actually really love this feature, they asked for it, they tell us how much it's making a difference for them.
+
+80
+00:11:19,056 --> 00:11:22,884
+So anecdotally, we know that it's doing something for somebody.
+
+81
+00:11:24,430 --> 00:11:26,096
+but can we see a difference in the data?
+
+82
+00:11:26,256 --> 00:11:33,508
+Or are they just is it sort of like a placebo effect thing, where they asked for the feature, we gave it to them, and they told us it was working great.
+
+83
+00:11:34,222 --> 00:11:36,900
+Um can we like get a little bit more granular?
+
+84
+00:11:37,870 --> 00:11:43,172
+So uh so let's look at some of the gotchas of this kind of real-world messy data.
+
+85
+00:11:43,376 --> 00:11:59,524
+The first one is a volume bias, where when you measure at sort of the per change level, a change can go to many different sort of endpoints.
+
+86
+00:11:59,790 --> 00:12:00,868
+I'm gonna call them that.
+
+87
+00:12:01,216 --> 00:12:03,856
+Places where software gets deployed.
+
+88
+00:12:04,174 --> 00:12:08,976
+For instance, you can make a change to a low-level library like the allocator or something.
+
+89
+00:12:09,294 --> 00:12:14,532
+It goes to basically every single server, but also every client that uses that.
+
+90
+00:12:15,616 --> 00:12:19,396
+so if you make a bug in that, that's sort of like blocking everything.
+
+91
+00:12:20,176 --> 00:12:24,100
+but you probably haven't made a bug because that gets extra testing and scrutiny.
+
+92
+00:12:25,902 --> 00:12:35,684
+another issue is batching, where when you make a change, it has a bug, and it gets reverted.
+
+93
+00:12:36,416 --> 00:12:44,576
+Um it the change that was rolled back and had the bug actually goes to production.
+
+94
+00:12:44,656 --> 00:12:47,556
+It just goes to production with the fix.
+
+95
+00:12:48,336 --> 00:12:58,276
+Because we don't ship like change deltas to production, we ship the summation of applying all of those deltas to a starting point.
+
+96
+00:12:58,656 --> 00:12:58,976
+Right?
+
+97
+00:12:59,056 --> 00:13:04,420
+So we're applying a batch of changes at the production point, we're not applying individual changes.
+
+98
+00:13:05,006 --> 00:13:07,300
+And finally, there's a selection bias.
+
+99
+00:13:09,584 --> 00:13:18,180
+Where candidates with no test failures are going to be inherently faster to production than candidates with test failures.
+
+100
+00:13:18,638 --> 00:13:28,772
+So if we compare auto rollback candidates, things where the auto rollback was applied to a specific release to everything, it's not a valid comparison.
+
+101
+00:13:29,038 --> 00:13:42,500
+Because it's going to tell us that things where the auto rollback feature was applied, or a treatment occurred to you, sort of a medical analogy, those patients were always the sick patients.
+
+102
+00:13:43,310 --> 00:13:49,504
+It's like looking at mortality between people who got your cancer drug with the entire population.
+
+103
+00:13:49,664 --> 00:13:53,444
+You have to compare it with the people who had cancer in the first place.
+
+104
+00:13:55,342 --> 00:14:06,756
+So another gotcha here is project level effects, where each different project that you look at has uh has very different configurations just to start with.
+
+105
+00:14:07,054 --> 00:14:22,916
+And those configurations end up dominating more than anything we do centrally because people have set things up for different reasons, maybe not good reasons, but they have made choices, or at least copied choices that other people have made.
+
+106
+00:14:24,174 --> 00:14:27,780
+and breakages are very infrequent events.
+
+107
+00:14:28,078 --> 00:14:43,812
+They're um, to use in a machine learning choice, they're like uh super extreme class imbalance where you have 99.99% of candidates never experience a problem, and then that last like 0.001% do.
+
+108
+00:14:45,326 --> 00:14:48,464
+So let's look at a real world example.
+
+109
+00:14:49,104 --> 00:14:52,804
+this is just noise on the screen, so I'm gonna clean it up really quick.
+
+110
+00:14:53,904 --> 00:14:54,224
+Okay.
+
+111
+00:14:55,054 --> 00:14:57,828
+Here's a real world example of something going to production.
+
+112
+00:14:58,464 --> 00:15:10,084
+And when I clean it up and classify all the different segments, basically the two things that are taking a very long time are configuration-driven delays.
+
+113
+00:15:10,638 --> 00:15:23,876
+Where basically we had a schedule, and because we followed it, we waited almost two days to push the changes to production just because of how the project owners decided to configure when things should execute.
+
+114
+00:15:25,518 --> 00:15:29,156
+we'd like to fix this as well, but that's not the point of this talk.
+
+115
+00:15:29,744 --> 00:15:31,684
+I'm also working on fixing this particular problem.
+
+116
+00:15:32,558 --> 00:15:32,864
+Okay.
+
+117
+00:15:33,584 --> 00:15:40,644
+So to solve the project level effects, we need some way of grouping and stratifying projects.
+
+118
+00:15:41,070 --> 00:15:57,796
+It would be nice to be able to compare projects just to themselves, and I do do that, but it's not fully convincing because since breakages are so rare, we actually have to compare breakages between different projects to get like a full view of how this feature is actually helping people or not.
+
+119
+00:15:58,624 --> 00:16:06,436
+So we have sort of two release systems that have confusing names, uh Irfine and Rapid Native, doesn't matter what they are.
+
+120
+00:16:07,584 --> 00:16:14,500
+and I found that the best way to group things is sort of healthy projects and unhealthy projects, in my view.
+
+121
+00:16:14,862 --> 00:16:18,532
+Healthy projects are projects that get a release candidate on a daily basis.
+
+122
+00:16:19,278 --> 00:16:23,024
+Unhealthy ones are ones that don't get a release candidate on a daily basis.
+
+123
+00:16:23,104 --> 00:16:25,824
+I call them slow and fast projects.
+
+124
+00:16:26,624 --> 00:16:40,996
+And when I look at the data in these strata and I log normalize it, and I do a bunch of statistical plotting, I find that there's a lot of pitfalls that remain after I do that.
+
+125
+00:16:41,744 --> 00:16:52,676
+the data still seems multimodal with different effects still hidden under there that's not fully accounted for in the stratification, but the data's getting a little sparse if I do further stratification.
+
+126
+00:16:54,638 --> 00:16:57,060
+Everything gets a little wiggly.
+
+127
+00:16:57,454 --> 00:16:59,568
+Uh, on that's it's called a QQ plot.
+
+128
+00:16:59,950 --> 00:17:08,996
+If you are doing a statistical analysis, ideally, you'd want the blue line to be like on the red line, but it's wiggling around.
+
+129
+00:17:10,208 --> 00:17:14,660
+so this creates problems from a statistical perspective.
+
+130
+00:17:15,088 --> 00:17:21,808
+If you are familiar with your stats 101, it's much better to have sort of normally distributed data.
+
+131
+00:17:22,062 --> 00:17:39,364
+And even though we have a lot and a lot of data points individually, if we just throw them into a t-test and we like compare one group versus another group, unfortunately what happens is the mathematics of the t-test means that small differences will always show up as significant.
+
+132
+00:17:39,488 --> 00:17:43,428
+So it's not something that's statistically viable for us to do.
+
+133
+00:17:43,888 --> 00:17:52,388
+So in order to solve for this, I'm gonna use something that's called a bootstrap confidence interval.
+
+134
+00:17:53,008 --> 00:18:10,180
+And this is a nice technique for our community in particular, because it allows us to not need to rely on a statistical model in order to compare two groups together.
+
+135
+00:18:10,926 --> 00:18:23,844
+Instead, what we do is we take our sample of data points and we do many s we do many resamplings of these data points, and we apply whatever our statistical estimator is.
+
+136
+00:18:24,206 --> 00:18:41,888
+For instance, if you want to compare the the average of two groups, and you have your sample from group one and your sample from group two, you resample, maybe 10,000 times from group one, and you compute the average each time, and you sample 10,000 times from group two.
+
+137
+00:18:42,128 --> 00:18:44,128
+and you take the average each time.
+
+138
+00:18:44,334 --> 00:18:48,068
+you can look at the distributions of those averages and compare the two of them.
+
+139
+00:18:48,462 --> 00:18:59,204
+And this technique is called bootstrap resampling, and it gives you a confidence interval that doesn't rely on any assumptions of how your data may or may not be distributed.
+
+140
+00:18:59,694 --> 00:19:06,884
+And that's a very powerful technique for us where we have weird data often in the software field.
+
+141
+00:19:07,630 --> 00:19:11,620
+And so just statistical note, look it up, it's a great way.
+
+142
+00:19:12,048 --> 00:19:31,076
+And what I like to do is I like to use that and then cross-check it with some of the fancier parametric methods like mixed regression models or I think there's like a generalized linear regression model.
+
+143
+00:19:31,406 --> 00:19:34,208
+These models are more robust to some of the issues.
+
+144
+00:19:34,350 --> 00:19:42,208
+The linear mixed regression models allows us to group things by projects or other criteria.
+
+145
+00:19:42,368 --> 00:19:54,276
+So both of these, both fancy parametric models and sort of non-fancy, mostly easy to explain, bootstrap models allow us to control for these very important project level effects.
+
+146
+00:19:54,958 --> 00:19:55,248
+Okay.
+
+147
+00:19:56,046 --> 00:19:57,732
+Now some quick things.
+
+148
+00:19:58,638 --> 00:20:03,908
+All right, for testing people, flakiness actually turns out to matter at scale.
+
+149
+00:20:04,288 --> 00:20:08,768
+So I don't know if there's anybody who works in flakiness in this group.
+
+150
+00:20:09,038 --> 00:20:10,916
+Okay, I see John is back there.
+
+151
+00:20:11,214 --> 00:20:14,048
+I would like to tell you, John, your work has not been wasted.
+
+152
+00:20:14,208 --> 00:20:25,808
+I was very happy when I did this plot and found that no matter what kind of project you are, if I detect that you are affected by a flaking test, it does make your project slower.
+
+153
+00:20:25,968 --> 00:20:32,580
+This is a wonderful result, in my opinion, for just certifying that yes, we can see a productivity impact.
+
+154
+00:20:33,134 --> 00:20:35,524
+That's sort of our most basic issue.
+
+155
+00:20:36,878 --> 00:20:38,928
+The second thing is breakages matter.
+
+156
+00:20:39,118 --> 00:20:45,764
+This is like we've confirmed that it's a real breakage, the test is really failing, and something or someone has to go fix it.
+
+157
+00:20:46,062 --> 00:20:49,860
+It actually does make releasing your project slower in all groups.
+
+158
+00:20:51,214 --> 00:20:55,648
+and it makes the slowest projects more slow.
+
+159
+00:20:56,208 --> 00:21:03,844
+so this is like really I felt also validating as someone who tries to minimize breakages getting to this point.
+
+160
+00:21:04,494 --> 00:21:11,488
+So we have confirmed what we had as our background hypothesis that these two things make us slow.
+
+161
+00:21:12,622 --> 00:21:30,308
+And here's an interesting thing, which is that the longer it takes for your project to get released from you know, like one hour down here, and this is log scaled, to a thousand hours over here, the more breakages your project is likely to experience.
+
+162
+00:21:30,958 --> 00:21:35,488
+Because people are constantly submitting code at like you know like five changes per second.
+
+163
+00:21:35,568 --> 00:21:39,044
+And eventually They're gonna break your software.
+
+164
+00:21:39,822 --> 00:21:46,628
+And if you take a really long time, it might break your software, say, 40 times per release, which is this data point up here.
+
+165
+00:21:47,328 --> 00:21:53,636
+And so this interacts with the feature that we're launching in the following way.
+
+166
+00:21:55,008 --> 00:22:13,348
+from this paper that we presented a couple years ago, uh our feature does not trigger on every single change that introduces a breakage, because we need to be very sure that we're not rolling back a good change.
+
+167
+00:22:13,678 --> 00:22:19,648
+And so breaking changes, this feature only triggers, I'd say, between 25 and 50% of the time.
+
+168
+00:22:19,808 --> 00:22:20,848
+Let's call it 30%.
+
+169
+00:22:22,048 --> 00:22:38,404
+And if you have 20 breakages and it only triggered on 30% of them, then the fact that your candidate was treated by auto rollback probably indicates that it was a bad candidate to begin with, or it was just a bad project.
+
+170
+00:22:39,278 --> 00:22:49,284
+And so it starts interacting weirdly, where your treatment signal also just becomes a signal that this is a particularly unhealthy individual.
+
+171
+00:22:50,222 --> 00:23:00,996
+And so this is where the stratification sort of starts breaking down a little bit, where maybe we needed a slightly more complicated design on how we did the stratification to measure project health.
+
+172
+00:23:01,358 --> 00:23:07,684
+But in any case, this is gonna interact in our final analysis a little bit in an unpleasant way.
+
+173
+00:23:08,686 --> 00:23:08,928
+Okay.
+
+174
+00:23:09,518 --> 00:23:13,988
+So what's our final top level uh finding, and then we'll have questions.
+
+175
+00:23:14,446 --> 00:23:15,972
+And the answer is yes.
+
+176
+00:23:16,288 --> 00:23:27,076
+We did improve the speed at which software made it production by having bad changes be automatically reverted.
+
+177
+00:23:27,854 --> 00:23:33,988
+the effect was most noticeable on the fastest projects with a standardized setup.
+
+178
+00:23:34,128 --> 00:23:36,036
+That's this earth-in fast group.
+
+179
+00:23:36,686 --> 00:23:40,260
+And we saw almost a 25% improvement there.
+
+180
+00:23:41,262 --> 00:23:46,208
+with a meaningfully large time impact from our CI.
+
+181
+00:23:48,014 --> 00:23:51,204
+that's confidence interval there, sorry, not continuous integration.
+
+182
+00:23:51,694 --> 00:23:53,924
+So we had a meaningfully large time impact.
+
+183
+00:23:54,688 --> 00:23:57,088
+but we also had a negative time impact.
+
+184
+00:23:57,168 --> 00:24:04,164
+That means it actually took longer, and that was for our slow, sort of heterogeneously configured projects over here.
+
+185
+00:24:04,558 --> 00:24:22,128
+And the reason why those ones were much slower was this grouping effect that I noted previously, where the presence of an auto rollback treatment actually indicated that the project had multiple breakages, and that's what we found when we went and looked at the data under the hood.
+
+186
+00:24:22,510 --> 00:24:31,972
+Okay, and so I'm gonna skip my next slide and just say, let's go to the conclusions, which is that we did have a positive impact.
+
+187
+00:24:32,430 --> 00:24:47,248
+It probably had no impact on projects that have infrequent or irregular releases, and that we do believe that it correlates with productivity and faster changes get to production more quickly, allowing developers to test and get user feedback.
+
+188
+00:24:47,534 --> 00:24:53,284
+Now, if you'd like to replicate this kind of work at your own organization, you're in for a little bit of work.
+
+189
+00:24:53,808 --> 00:25:00,100
+but I think it's valuable to be able to convince your leadership that investing in developer tooling is important.
+
+190
+00:25:01,742 --> 00:25:05,168
+you're going to not be able to measure productivity directly.
+
+191
+00:25:05,328 --> 00:25:16,368
+I'd caution your leaders from like trying to measure lines of code, especially in the days of you know, Mistral giving us our wonderfully fast things to generate code with.
+
+192
+00:25:16,928 --> 00:25:22,564
+but do measure some inverse productivity proxies that matter to you and your environment.
+
+193
+00:25:23,168 --> 00:25:28,048
+And make sure you watch out for these statistical gotchas when you analyze the data.
+
+194
+00:25:28,208 --> 00:25:34,448
+It does make it slightly complicated to explain to your executives, but it is worthwhile trying.
+
+195
+00:25:34,734 --> 00:25:40,484
+Okay, and finally, my last thing is just be skeptical of data and take a second look every single time.
+
+196
+00:25:40,814 --> 00:25:41,860
+All right, thank you very much.
+
+197
+00:25:57,616 --> 00:25:59,696
+Hi, thank you so much for the presentation.
+
+198
+00:25:59,856 --> 00:26:18,816
+I had a question which was it which is mostly about the implementation of the auto rollback, which is if I got it correctly, correct me if I'm wrong, the changes are merged and then after uh or like pushed somewhere, and then if they break something eventually, they roll back.
+
+199
+00:26:19,182 --> 00:26:24,004
+But what happens if some other changes already depend on the broken commit?
+
+200
+00:26:24,656 --> 00:26:29,444
+Like what is there a cascading rollback or how would that work?
+
+201
+00:26:30,126 --> 00:26:30,916
+Yeah, okay.
+
+202
+00:26:31,616 --> 00:26:36,096
+So let me go to the slide that explains it.
+
+203
+00:26:36,336 --> 00:26:36,656
+Uh-huh.
+
+204
+00:26:36,846 --> 00:26:37,284
+There we go.
+
+205
+00:26:37,550 --> 00:26:38,212
+Here's the slide.
+
+206
+00:26:38,606 --> 00:26:40,576
+Okay, so here's how I would explain this to you.
+
+207
+00:26:40,896 --> 00:26:45,764
+at Google we have a very, very large mono repository with like several billion lines of code.
+
+208
+00:26:46,256 --> 00:26:46,496
+Okay.
+
+209
+00:26:46,896 --> 00:26:53,796
+And when we run changes, we're sort of like running all of them together in a batch.
+
+210
+00:26:54,256 --> 00:27:02,084
+And so like people, if they want their product to depend on the test of the changes, they have to configure it that way.
+
+211
+00:27:02,446 --> 00:27:13,892
+And so if their product does depend on the test of the changes and they fail and they did not configure that, and we roll it back, but we don't roll back their particular product, that's a little bit too bad for them.
+
+212
+00:27:14,336 --> 00:27:21,156
+they should have set up their thing to depend on the the tests that are telling them about the quality of their product.
+
+213
+00:27:21,774 --> 00:27:23,616
+So that's sort of how we set it up.
+
+214
+00:27:23,696 --> 00:27:29,028
+But in general, yes, it's because we have everything in one large mono repository.
+
+215
+00:27:29,230 --> 00:27:42,096
+It's um we don't need to like mark versions of packages that we've built and then people have put into some you know frozen requirements file somewhere that like they need to like roll back to a different thing.
+
+216
+00:27:42,256 --> 00:27:44,736
+So the rollbacks are fairly simple for us.
+
+217
+00:27:44,816 --> 00:27:49,636
+It's just a code rollback, it's not you know marking things bad in artifactory or something.
+
+218
+00:27:55,918 --> 00:28:01,444
+Yeah, I I like the idea of measuring unproductivity as a proxy for productivity.
+
+219
+00:28:01,806 --> 00:28:08,736
+That's also what the lean programming people did, but they focused on the product rather than the process as you do.
+
+220
+00:28:08,896 --> 00:28:12,736
+So things like code that is not used, stuff like that.
+
+221
+00:28:12,896 --> 00:28:19,300
+So is it something that you've also considered, or do you really want to focus just on the process?
+
+222
+00:28:19,856 --> 00:28:33,700
+Yeah, so actually in some ways, that beginning section, I had my background sort of like the lean startup sort of mentality of that build, measure, learn where it's very important to get to the learning part.
+
+223
+00:28:34,126 --> 00:28:41,828
+And if you don't get there, you can't have any real productivity because you're never gonna find out what your users or business actually needs out of the changes you're making.
+
+224
+00:28:42,222 --> 00:28:47,268
+So that was sort of my conceptual framework that I came into this work with.
+
+225
+00:28:47,918 --> 00:28:49,636
+Does that I don't know if that answers your question.
+
+226
+00:28:53,296 --> 00:28:53,536
+Okay.
+
+227
+00:28:53,710 --> 00:28:54,736
+All right, that's fine.
+
+228
+00:28:56,896 --> 00:29:12,736
+my question is with this kind of evaluation in place, I wonder if there are people who attempt to kind of throw like no rebu HGTM or like reduce the amount of tests and like just ignore safety to kind of cheat the evaluation.
+
+229
+00:29:13,056 --> 00:29:15,616
+Is that kind of thing that happens there?
+
+230
+00:29:15,776 --> 00:29:18,336
+Or like do you have anything to prevent that kind of thing?
+
+231
+00:29:18,976 --> 00:29:30,212
+well actually wonderfully, we know when somebody has configured things to skip all the tests at the pre-submission time, the pre-submission test gating.
+
+232
+00:29:30,496 --> 00:29:34,532
+And it's a fantastic signal to know that it's a likely culprit.
+
+233
+00:29:35,054 --> 00:29:46,496
+So we use it to both increase testing on the tests affected by that change, and to sort of bias our search to find those culprits faster.
+
+234
+00:29:46,656 --> 00:29:49,856
+Yeah, so they're marked, they're tracked, and that's how we do it.
+
+235
+00:29:50,016 --> 00:29:56,656
+And they're also it's sort of a general feature of our of our models that we put in.
+
+236
+00:29:56,736 --> 00:30:02,692
+We extract all those kinds of signals of how much testing effort was put in before the code was submitted.
+
+237
+00:30:03,822 --> 00:30:04,036
+Thank you.
+
+238
+00:30:05,998 --> 00:30:08,736
+Okay, let's thank the speaker again and enjoy the lunch.
+

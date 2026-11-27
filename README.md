@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [[REBASE'26] The Real World is Messy: Examining the Productivity Impact of Automatically Reverting(…)](medias/2YG1E/) | ACM SIGPLAN | 2026-11-26 |
 | [Master Gemini 4, Transformers, Word2Vec & Foundations of Artificial Intelligence](medias/29J66/) | The Cutting Edge School | 2026-11-26 |
 | [WebRTC Deep Dive: The Protocol That Powers Every Video Call](medias/0F01K/) | ByteMonk | 2026-11-26 |
 | [Low Level Design was HARD until I learned these concepts](medias/0DNY6/) | Anubhav Sethi | 2026-11-26 |
