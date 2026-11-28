@@ -1,0 +1,1000 @@
+1
+00:00:00,160 --> 00:00:01,476
+You guys want to hear something funny?
+
+2
+00:00:01,870 --> 00:00:08,000
+This is one of the most important topics ever if you want to become a professional embedded systems or firmware engineer.
+
+3
+00:00:08,080 --> 00:00:17,840
+You need to know about this, but I have a feeling this is going to be one of the worst performing, lowest viewed videos on my YouTube channel, but I'm still going to put in the time because you deserve it.
+
+4
+00:00:17,920 --> 00:00:21,760
+If you're here, congratulations, you want to be a real pro.
+
+5
+00:00:22,254 --> 00:00:24,240
+Hardware abstraction layer or howl.
+
+6
+00:00:24,320 --> 00:00:27,012
+I'm not talking about the evil dude from the Space Odyssey film.
+
+7
+00:00:27,280 --> 00:00:37,920
+We're talking about a component of the embedded software stack that your application can use as a reliable and stable interface to call hardware functionality.
+
+8
+00:00:38,094 --> 00:00:43,440
+If you've used Arduino or STM32 before, you've probably used a HAL without even realizing it.
+
+9
+00:00:43,600 --> 00:00:46,160
+And if that's the case, it's working as intended.
+
+10
+00:00:46,414 --> 00:00:51,680
+But if you want to be a professional, you gotta know how that thing actually works and be able to dig under the hood.
+
+11
+00:00:52,014 --> 00:00:53,760
+Let's start with something you're probably familiar with.
+
+12
+00:00:53,840 --> 00:00:56,000
+Now we have the Arduino collection of boards.
+
+13
+00:00:56,080 --> 00:01:00,160
+You can get a variety of different boards for Arduino, and they all have different microcontrollers.
+
+14
+00:01:00,240 --> 00:01:08,800
+So for example, the venerable Uno R3 has an Atmega 328P, whereas the Uno R4 has an Renesus RA4M1.
+
+15
+00:01:09,006 --> 00:01:11,428
+Now you're probably thinking, okay, Hoff, that's cool, who cares?
+
+16
+00:01:11,822 --> 00:01:20,000
+Well, actually, it's quite a feat of engineering that all of these boards with their different microcontrollers can use the exact same library reference, right?
+
+17
+00:01:20,080 --> 00:01:24,000
+So you can call digital read on this board, this board, this board, this board.
+
+18
+00:01:24,142 --> 00:01:32,960
+You can call analog read resolution on all these different boards, you know, and it doesn't matter, you can use the same code on different Arduino boards and it'll just work.
+
+19
+00:01:33,454 --> 00:01:39,920
+Now, this, my friend, is why you need to know about hardware abstraction layers because it is the wizardry that makes all of this possible.
+
+20
+00:01:40,174 --> 00:01:47,280
+Now, to bring this to a more professional adjacent context, we're gonna actually dive in and look at how STM32 implements its HAL.
+
+21
+00:01:47,630 --> 00:01:58,240
+For example, if you have used the function HALGPIORIPPIN, you have interacted with ST Microelectronics's hardware abstraction layer that they have made for STM32.
+
+22
+00:01:58,400 --> 00:02:00,320
+And at first it seems like magic, right?
+
+23
+00:02:00,494 --> 00:02:03,588
+I just call this function and it makes the LED light up.
+
+24
+00:02:03,822 --> 00:02:04,960
+So how does that actually work?
+
+25
+00:02:05,070 --> 00:02:06,160
+We're going to dive into it.
+
+26
+00:02:06,478 --> 00:02:15,280
+So if you go to the main.c of a modern STM32 project and you do a search for HAL underscore, you will get many, many results.
+
+27
+00:02:15,440 --> 00:02:21,188
+This is standard STM32 initialization code, and you can see HAL is all over the place.
+
+28
+00:02:21,550 --> 00:02:29,440
+And indeed, if you go to your application and you want to do something like blink an LED, you'll be using a function like HALGPIOWritePin.
+
+29
+00:02:29,710 --> 00:02:32,228
+So who is HAL and what does he want from me?
+
+30
+00:02:32,526 --> 00:02:40,480
+Well, if you've got a modern development environment, you can right-click on this function and hit go to definition to get a look at how this function actually works, right?
+
+31
+00:02:40,560 --> 00:02:43,680
+Because we want to know how the LED actually turns on.
+
+32
+00:02:43,840 --> 00:02:48,164
+When I just do this magic function call, how does it actually turn the LED on?
+
+33
+00:02:48,494 --> 00:02:51,280
+And at first, it seems a little bit strange, right?
+
+34
+00:02:51,566 --> 00:02:58,080
+We've got this magic function that's not very many lines of code, and somehow that makes my LED go red.
+
+35
+00:02:58,286 --> 00:03:02,720
+Now, if we want to unravel the mystery of how this function works, there are a couple of key takeaways.
+
+36
+00:03:02,958 --> 00:03:08,452
+The first is this cast to a Uint32T that's going to this parameter right here.
+
+37
+00:03:08,720 --> 00:03:13,520
+The second is the location in memory that this value is being assigned to.
+
+38
+00:03:13,870 --> 00:03:18,640
+So you can see we've got two memory locations, BSRR and BRR.
+
+39
+00:03:19,150 --> 00:03:30,500
+So the key takeaway from this function is we can manipulate the hardware peripherals on our microcontroller simply by assigning certain values to certain memory locations.
+
+40
+00:03:30,958 --> 00:03:34,640
+This is MMIO, memory mapped IO.
+
+41
+00:03:35,120 --> 00:03:40,400
+And understanding this is one of the most important things to becoming a professional firmware engineer.
+
+42
+00:03:40,622 --> 00:03:44,996
+Now, if you haven't seen one of these documents before, I want to introduce you to the reference manual.
+
+43
+00:03:45,614 --> 00:03:56,196
+Some microcontroller manufacturers will put the information in here, also inside the main data sheet for your microcontroller, but ST Microelectronics likes to split it out into a separate document.
+
+44
+00:03:56,878 --> 00:03:58,400
+What information am I talking about?
+
+45
+00:03:58,638 --> 00:04:01,520
+It's the register and memory address definitions.
+
+46
+00:04:01,680 --> 00:04:04,560
+This is what I was talking about before when we say MMIO.
+
+47
+00:04:04,686 --> 00:04:05,700
+What is MMIO?
+
+48
+00:04:05,934 --> 00:04:14,596
+It is nothing but the reservation of a component of your microcontroller's main memory to directly control the hardware of the device.
+
+49
+00:04:15,118 --> 00:04:16,160
+So let's break it down.
+
+50
+00:04:16,366 --> 00:04:28,000
+This kind of document looks a little bit scary if you haven't seen this before, but literally all it is is the assigning of memory addresses to certain peripherals in your microcontroller.
+
+51
+00:04:28,526 --> 00:04:32,064
+So let's say I have an LED wired up to GPIO pin A1.
+
+52
+00:04:32,494 --> 00:04:38,864
+Well, to manipulate GPIO A, I have to make an assignment to one of these memory addresses in this range.
+
+53
+00:04:39,118 --> 00:04:42,304
+And if you think about it, that's exactly what we're doing in the HAL.
+
+54
+00:04:42,638 --> 00:04:46,916
+All the HAL is doing is getting this memory address and making an assignment.
+
+55
+00:04:47,086 --> 00:04:54,944
+And this reference manual is going to tell us exactly which memory address we need to make the assignment to in order to do what we want.
+
+56
+00:04:55,374 --> 00:05:00,804
+So if we go one step further here and we hit GPIO register map, you'll see we have all these different register names.
+
+57
+00:05:01,134 --> 00:05:04,864
+And if we scroll down, one of these is gonna look a little bit familiar.
+
+58
+00:05:05,024 --> 00:05:08,064
+You can see here GPIO XBSRR.
+
+59
+00:05:08,334 --> 00:05:13,344
+And that's exactly what our HAL is referencing when we want to turn on and off an LED.
+
+60
+00:05:13,582 --> 00:05:21,988
+Now if we go to the GPIO section of the reference manual, it'll tell us a little bit more about the registers we can manipulate to get the GPIO to do various things.
+
+61
+00:05:22,350 --> 00:05:27,236
+If we look for our register of interest, we'll find more information about it here, and this is actually quite demystifying.
+
+62
+00:05:27,566 --> 00:05:36,464
+The bit set reset register is a 32-bit register which allows the application to set and reset each individual bit in the output data register.
+
+63
+00:05:36,654 --> 00:05:40,304
+Now if we look for what this output data register is, it's described right up here.
+
+64
+00:05:40,464 --> 00:05:42,304
+It stores the data to be output.
+
+65
+00:05:42,384 --> 00:05:46,944
+So it stores what that pin is going to output, low or high.
+
+66
+00:05:47,150 --> 00:05:57,424
+So by manipulating this BSRR, we can therefore manipulate ODR, which manipulates the logic level of the PIN, which means does our LED turn on?
+
+67
+00:05:57,678 --> 00:05:59,264
+Does our LED turn off?
+
+68
+00:05:59,534 --> 00:06:05,892
+So memory is the key to everything when it comes to manipulating the hardware devices of the STM32.
+
+69
+00:06:06,094 --> 00:06:07,184
+And this sounds great.
+
+70
+00:06:07,344 --> 00:06:08,304
+This sounds super easy.
+
+71
+00:06:08,464 --> 00:06:12,484
+All I have to do to mess with the hardware devices is make a memory assignment.
+
+72
+00:06:12,782 --> 00:06:16,420
+Here's where things get interesting, and here's where the how comes back into this.
+
+73
+00:06:16,750 --> 00:06:18,864
+So different STM32 variants.
+
+74
+00:06:19,024 --> 00:06:23,264
+If you've been paying attention, you'll notice we've been looking at the L432 so far.
+
+75
+00:06:23,438 --> 00:06:28,064
+But there are a gajillion different STM32 variants with different hardware devices.
+
+76
+00:06:28,144 --> 00:06:33,504
+You know, some will have a billion timers, others will have multiple SPI or I2C or UART.
+
+77
+00:06:33,584 --> 00:06:39,460
+You know, some of them will have multiple ADCs or DACs on board, and they all have different amounts of SRAM memory.
+
+78
+00:06:39,662 --> 00:06:47,104
+So we have all these different STM variants with all different hardware configurations, and therefore all different memory addresses.
+
+79
+00:06:47,264 --> 00:06:52,228
+You know, each variant will have different memory addresses assigned for different things.
+
+80
+00:06:52,718 --> 00:06:55,664
+And this is where things get hairy, and this is why we need a HAL.
+
+81
+00:06:55,904 --> 00:07:03,908
+Now, if you use STM32CUBEMX to generate driver initialization code for you, it'll copy in STM32's HAL library.
+
+82
+00:07:04,206 --> 00:07:08,292
+And as part of that, you get a file that kind of looks like this.
+
+83
+00:07:08,654 --> 00:07:18,308
+For the specific microcontroller we've been looking at so far, the L432, there's a huge header file that contains all kinds of different stuff.
+
+84
+00:07:18,704 --> 00:07:25,824
+But the main thing that it contains for our interesting purposes is a whole bunch of memory address definitions.
+
+85
+00:07:26,158 --> 00:07:33,584
+So you can see here GPIOA is defined as a GPIO type dev cast of this memory address GPIO base.
+
+86
+00:07:34,030 --> 00:07:40,836
+And if we actually go and have a look at what this means, we can just keep going to the definition here and sort of unraveling the mystery.
+
+87
+00:07:41,102 --> 00:07:45,504
+This is going to be AHB2 peripher base plus zero, right?
+
+88
+00:07:45,584 --> 00:07:48,704
+So GPIOA starts right at this base address.
+
+89
+00:07:48,814 --> 00:07:54,148
+So if we keep going to this definition, we'll find peripheral base plus 0x08.
+
+90
+00:07:54,704 --> 00:08:01,000
+if we keep going through here, you know, we'll eventually get to peripheral base, which is 0x4000000.
+
+91
+00:08:01,904 --> 00:08:07,424
+Now, if you do the calculation and you cross-reference that with the reference manual, you'll notice that it starts at this address.
+
+92
+00:08:07,504 --> 00:08:14,304
+This is the address of GPIOA and it falls under the umbrella of AHB2, which we saw in that header file as well.
+
+93
+00:08:14,574 --> 00:08:17,156
+Is everything starting to come together and make sense for you guys?
+
+94
+00:08:17,710 --> 00:08:33,904
+So the upshot of this is that if the register access pattern is the exact same between two microcontrollers, and the only difference is the memory address they need to access, then that means we can just sub in one of these big header files with all the definitions, and it'll just work.
+
+95
+00:08:34,064 --> 00:08:35,344
+It'll be exactly the same.
+
+96
+00:08:35,504 --> 00:08:37,504
+The code will be exactly the same.
+
+97
+00:08:37,998 --> 00:08:41,664
+Now, something interesting to look at here is the names of these files, right?
+
+98
+00:08:41,998 --> 00:08:47,172
+So if you go up to the top of this one, you'll see stm32L4XX underscore HAL.
+
+99
+00:08:47,504 --> 00:08:52,224
+That implies that this file will work for any L4 series STM32.
+
+100
+00:08:52,494 --> 00:08:56,384
+And if you notice, this one is STM32L432.
+
+101
+00:08:56,622 --> 00:09:02,724
+Now there are plenty of other L4 series microcontrollers, like the L41, the 42, the 44, the 45.
+
+102
+00:09:03,086 --> 00:09:11,812
+And so that implies that all you have to do is sub in a different header file for your specific variant, and this will work for all of the L4 series.
+
+103
+00:09:12,270 --> 00:09:13,860
+So okay, Hoff, that's really cool.
+
+104
+00:09:14,286 --> 00:09:17,104
+But that doesn't answer our question from the beginning of the video.
+
+105
+00:09:17,326 --> 00:09:23,984
+Now Arduino doesn't just have the same series microcontroller, not even the same manufacturer of microcontroller.
+
+106
+00:09:24,238 --> 00:09:27,940
+Arduino has completely different microcontrollers, okay?
+
+107
+00:09:28,224 --> 00:09:30,384
+Absolutely just completely different.
+
+108
+00:09:30,544 --> 00:09:32,676
+I understand how MMIO works now.
+
+109
+00:09:32,942 --> 00:09:43,172
+I understand that if you have the same register access pattern and you just have memory addresses that change, you know, we can just sub in a big definitions.h file and the memory access will just work.
+
+110
+00:09:43,406 --> 00:09:48,624
+But what if we have a completely different microcontroller with a completely different register access pattern?
+
+111
+00:09:48,846 --> 00:09:50,916
+It might not even have the same registers at all.
+
+112
+00:09:51,502 --> 00:09:54,864
+So what I want you to think of now is a how in a more abstract sense.
+
+113
+00:09:54,944 --> 00:10:05,732
+We've just looked at the exact implementation of how this works and how it accesses this register in memory and how it manipulates the hardware devices through the reference manual and the memory addresses and MMIO.
+
+114
+00:10:05,934 --> 00:10:10,052
+But I want you to think of what is a HAL in a more abstract sense.
+
+115
+00:10:10,638 --> 00:10:17,504
+What it is, is an agreed upon, stable, and reusable API for your application to call.
+
+116
+00:10:17,664 --> 00:10:17,984
+Okay.
+
+117
+00:10:18,414 --> 00:10:26,304
+So how GPIO write pin, the contract that this makes with your application when you write this line of code, right?
+
+118
+00:10:26,464 --> 00:10:30,244
+Or if your AI agent writes this line of code, you know, whatever, you do you.
+
+119
+00:10:30,638 --> 00:10:37,104
+The contract is that if I give you an abstract definition of a GPIO type def, which is a pointer, right?
+
+120
+00:10:37,184 --> 00:10:41,636
+It could be a pointer to any GPIO type def as long as I define it correctly.
+
+121
+00:10:41,934 --> 00:10:47,104
+I give you a GPIO pin in UN 16 and I give you a pin state, right?
+
+122
+00:10:47,344 --> 00:10:52,612
+Set or reset, that means that you will do this operation that I am intending, right?
+
+123
+00:10:52,974 --> 00:10:55,588
+The implementation doesn't actually matter.
+
+124
+00:10:55,950 --> 00:10:58,544
+This could be a completely different function.
+
+125
+00:10:58,766 --> 00:11:03,504
+Okay, it could access a completely different Maybe my register is called ASRR.
+
+126
+00:11:03,584 --> 00:11:05,252
+It's not, but like maybe it could be.
+
+127
+00:11:05,424 --> 00:11:06,144
+It doesn't matter.
+
+128
+00:11:06,304 --> 00:11:10,756
+As long as it does what I need it to do, the contract is satisfied.
+
+129
+00:11:11,118 --> 00:11:14,436
+So to illustrate this, we're looking at two Arduino library variants.
+
+130
+00:11:14,702 --> 00:11:16,464
+This is Arduino Core AVR.
+
+131
+00:11:16,558 --> 00:11:24,484
+So this is targeting things like the Atmega 328P, and this is Arduino Core SAMD, targeting things like the SAM C21 and the D21.
+
+132
+00:11:24,878 --> 00:11:26,464
+So I want you to look at DigitalWrite.
+
+133
+00:11:26,624 --> 00:11:31,972
+This is the Arduino equivalent of the HAL GPIO write pin we've been looking at for STM32.
+
+134
+00:11:32,334 --> 00:11:44,064
+So you can see that the way the AVR does it, now you don't really have to understand what this is doing, so much so that you should look at the SAM implementation and see that it is actually quite a different implementation.
+
+135
+00:11:44,398 --> 00:11:49,824
+You know, we do different things, like the code is different, but the contract is exactly the same.
+
+136
+00:11:50,094 --> 00:12:02,852
+The contract being you give me a pin, you give me a value for that pin, and I will manipulate the hardware to do that for you, even though these two libraries for the two different microcontrollers have a different implementation under the hood.
+
+137
+00:12:03,182 --> 00:12:05,424
+You still give it a pin, you still give it a val.
+
+138
+00:12:05,998 --> 00:12:15,344
+And if you're confused by pin size T, by the way, that's essentially just typedeft in here to like UN32 or UN8, depending on the chip that you're using.
+
+139
+00:12:15,598 --> 00:12:17,984
+So, like at the end of the day, it's still the same contract.
+
+140
+00:12:18,126 --> 00:12:23,556
+It's like, do you want to give me a pin number and give me a pin value and I will set it for you?
+
+141
+00:12:23,664 --> 00:12:30,948
+So this is what I'm talking about when I say like even between different microcontroller families, you can have the same contract.
+
+142
+00:12:31,310 --> 00:12:36,356
+Now to really drive this point home, okay, we have Arduino call Renaissus.
+
+143
+00:12:36,782 --> 00:12:41,904
+And you can see here it's implementing the digital write contract exactly the same as they were before.
+
+144
+00:12:42,158 --> 00:12:46,544
+But in this case, we're just gonna do another function call to our IO port pin write.
+
+145
+00:12:46,990 --> 00:12:47,652
+What is this?
+
+146
+00:12:48,046 --> 00:12:50,780
+Well, that's actually part of the Renaissance how.
+
+147
+00:12:51,024 --> 00:13:01,892
+So we have Arduino providing a how layer, and it's calling the Renaissance HAL for the, the, you know, at the register level that we kind of showed you before with the STM32.
+
+148
+00:13:02,254 --> 00:13:08,224
+So you can see that HALs can have different layers stacked on top of them depending on the level of abstraction that you want to provide.
+
+149
+00:13:08,558 --> 00:13:18,404
+So you've got the register level house, like I showed you just before, and then Arduino has like entire microcontroller family level house where you've got all this kind of crazy stuff going on.
+
+150
+00:13:18,704 --> 00:13:25,956
+But that really gives you the flexibility to just be able to provide a single language reference and it'll work on every Arduino board.
+
+151
+00:13:26,222 --> 00:13:30,180
+So, you know, like you just have to be intelligent with how you use this abstraction.
+
+152
+00:13:30,384 --> 00:13:38,308
+Another really important thing that the STM32 HAL gives you, for example, is all of these nice typedef handles for your hardware devices.
+
+153
+00:13:38,798 --> 00:13:45,024
+So for every hardware device you define, you're going to have a handle to that, which is defined as one of these structs right here.
+
+154
+00:13:45,390 --> 00:13:50,144
+So we've got ADC, we've got DAC, we've got UART, we've got timers, etc. etc.
+
+155
+00:13:50,542 --> 00:13:55,824
+So to give you a handle, and all of the HAL functions will take in this handle as an argument.
+
+156
+00:13:56,142 --> 00:14:03,204
+So if I want to transfer data over UART, well, this is the function right here, which takes in one of these UART typedefs.
+
+157
+00:14:03,790 --> 00:14:10,148
+It's at this point that we realize the HAL is doing a lot more for us than just simply abstracting register and MMIO operations.
+
+158
+00:14:10,464 --> 00:14:14,116
+It is introducing state management and error handling.
+
+159
+00:14:14,286 --> 00:14:20,676
+And it can specifically relate those two hardware devices through these typedefs that the HAL introduces.
+
+160
+00:14:21,070 --> 00:14:28,932
+So at this point, it's more like a philosophical question of where does it stop being a layer and where does it start being a library, right?
+
+161
+00:14:29,486 --> 00:14:43,044
+But for now, we still call hardware abstraction layer, it's not really that well defined, and you can get away with calling a lot of things a HAL, like just a simple shim layer or a library, you know, it's it's kind of not clear where that lands.
+
+162
+00:14:43,534 --> 00:14:45,664
+So what does the UART type def actually give us?
+
+163
+00:14:45,744 --> 00:14:49,892
+Well, the first thing it gives us is an instance which is the UART registers base address.
+
+164
+00:14:50,254 --> 00:14:51,664
+Now this is really interesting.
+
+165
+00:14:51,950 --> 00:15:04,304
+What this means is that whenever the HAL needs to actually do one of those MMIO operations we talked about before, it can use this as an instant base address lookup, and it can just add offsets to that depending on what it wants to do.
+
+166
+00:15:04,430 --> 00:15:07,184
+And we'll notice that as we go through some of the functions later on.
+
+167
+00:15:07,374 --> 00:15:16,304
+We also have an init struct, which in STM32 HAL land is a set of initial hardware parameters that we want the UAR to operate with.
+
+168
+00:15:16,464 --> 00:15:22,384
+So for example, the board rate, the word length, the stop bits, the parity, the mode, you know, things like this.
+
+169
+00:15:22,638 --> 00:15:29,700
+And the STM32 HAL gives you a nice high-level init struct that you can use to specify all of these startup parameters.
+
+170
+00:15:29,998 --> 00:15:35,184
+And STM32CubMax is actually kind enough to generate this for you automatically.
+
+171
+00:15:35,502 --> 00:15:39,108
+We've had code gen long before AI in the embedded world, guys.
+
+172
+00:15:39,470 --> 00:15:46,564
+Now unpacking that, we can come along to the UART setconfig function, which is part of this STM32L4HAL UART file.
+
+173
+00:15:46,894 --> 00:16:04,804
+And basically what this is going to do is check all of the startup parameters that we've given it and modify the registers accordingly, literally just implementing what is in the reference manual, but in a higher level, nicer way, so that when we're going into main.c, like we don't have to worry about setting the individual registers.
+
+174
+00:16:05,070 --> 00:16:11,012
+We just define up the parameters we want, and then this HAL is going to take care of the register setting for us.
+
+175
+00:16:11,470 --> 00:16:15,972
+So we come down in our initialization function, you'll see we're setting a couple of register values.
+
+176
+00:16:16,064 --> 00:16:30,372
+Now, in generic HAL init functions, basically the pattern that they all take is some register setting values based on the init struct, and then also a couple of switch statements based on the human readable definitions of these things.
+
+177
+00:16:30,798 --> 00:16:32,944
+And that's basically all it boils down to.
+
+178
+00:16:33,134 --> 00:16:40,224
+At the end of the day, underneath all of this abstraction, you are still just setting bits in registers to get all of this done.
+
+179
+00:16:40,590 --> 00:16:44,420
+The HAL just adds nice human readable abstraction layers for you.
+
+180
+00:16:44,718 --> 00:16:47,664
+Now, if we want to, we can cross reference this stuff with the reference manual.
+
+181
+00:16:47,758 --> 00:16:51,504
+So let's go to main.c and we'll see what we're actually setting in this init config.
+
+182
+00:16:51,918 --> 00:16:53,312
+So for example, stop bits one.
+
+183
+00:16:53,552 --> 00:16:57,712
+Well, I can go to the definition of that, and I can see here it's literally defined as zero.
+
+184
+00:16:57,792 --> 00:17:00,672
+So for the sake of argument, let's pick a more interesting value.
+
+185
+00:17:00,878 --> 00:17:02,244
+Let's go with two stop bits.
+
+186
+00:17:02,638 --> 00:17:08,352
+So if I go to the definition of this, it'll bring me back to this big header file that we explored earlier on in the video.
+
+187
+00:17:08,590 --> 00:17:14,832
+And it'll basically say that we want 0x2 shifted by 12 positions.
+
+188
+00:17:14,992 --> 00:17:17,472
+If I hover over it, it says 12 positions, right?
+
+189
+00:17:17,678 --> 00:17:22,032
+And you can see here that our init function is wanting to set the stop bits in CR2.
+
+190
+00:17:22,272 --> 00:17:32,260
+So if we cross-reference that with the reference manual, take a shot every time I say reference, you can see here in the CR2 in position 12, this is where our stop bits are located.
+
+191
+00:17:32,432 --> 00:17:36,352
+So we can scroll down to find what the value of that should be.
+
+192
+00:17:36,718 --> 00:17:42,500
+And you can see here if one zero is in this position, that means we have two stop bits.
+
+193
+00:17:42,592 --> 00:17:45,312
+And we can certainly see that defined up here.
+
+194
+00:17:45,646 --> 00:17:50,180
+So if we hover over that, it's two shifted into the stop position, which was 12.
+
+195
+00:17:50,672 --> 00:17:53,312
+and you can see we've got the other ones defined there as well.
+
+196
+00:17:53,614 --> 00:18:06,500
+To finish off the video, we're going to look at the how you are transmit function, see how it transmits data, see how it manages state and handles errors, because it kind of gives us the entire overview of the benefit of this howl, what this HAL gives to us.
+
+197
+00:18:06,990 --> 00:18:14,112
+And of course, you'll notice the first parameter we take in is this UART handle type def, because that's where a lot of the state management is stored.
+
+198
+00:18:14,222 --> 00:18:19,312
+So you like you'll notice the first thing we do is check what is the state of the UART peripheral.
+
+199
+00:18:19,406 --> 00:18:24,352
+So there's reset, ready, busy, busy tx, busy rx, blah blah blah.
+
+200
+00:18:24,558 --> 00:18:30,432
+And this stuff can be managed by the HAL or it can be managed by hardware, and the HAL can kind of just read that and report it.
+
+201
+00:18:30,670 --> 00:18:35,072
+So you'll notice the first thing we do if we're ready is we do a validity check on the parameters.
+
+202
+00:18:35,152 --> 00:18:38,512
+Now, dude, this is like completely rookie amateur hour stuff here.
+
+203
+00:18:38,592 --> 00:18:41,792
+This is like, did you pass a null pointer as an argument to the function?
+
+204
+00:18:41,952 --> 00:18:44,192
+Did you pass a zero size to the function?
+
+205
+00:18:44,272 --> 00:18:46,468
+This is like actual amateur hour stuff.
+
+206
+00:18:46,894 --> 00:18:50,912
+And one of the drawbacks of the how is that you get all this extra junk.
+
+207
+00:18:50,992 --> 00:18:53,220
+Like, I would never do something this stupid.
+
+208
+00:18:53,392 --> 00:18:56,992
+I would always be giving it a well-defined pointer and a non-zero size.
+
+209
+00:18:57,326 --> 00:19:00,432
+Like, there is no situation in which I would make this mistake.
+
+210
+00:19:00,718 --> 00:19:03,792
+So this is really just wasting CPU cycles, right?
+
+211
+00:19:04,078 --> 00:19:12,512
+So this is one of the drawbacks of a HAL, is like you have to deal with all the extra checking and all the extra fluff that the manufacturer is going to put in there.
+
+212
+00:19:12,782 --> 00:19:15,392
+And it's not always the most high-performance stuff.
+
+213
+00:19:15,472 --> 00:19:17,412
+Like, there's no reason why I need this.
+
+214
+00:19:17,710 --> 00:19:22,192
+But maybe a complete rookie, a complete beginner might accidentally do that, and so it's good for them.
+
+215
+00:19:22,352 --> 00:19:24,804
+But that's one of the drawbacks of a howl you've got to wrangle with.
+
+216
+00:19:24,942 --> 00:19:30,112
+Now, this stuff here, the transfer size and the transfer count, this is just used by the HAL for state management, right?
+
+217
+00:19:30,192 --> 00:19:34,752
+So it's gonna transmit your data in chunks, it's not gonna do the whole block.
+
+218
+00:19:35,054 --> 00:19:38,352
+To keep things simple, let's assume you're not using 9-bit data transfers.
+
+219
+00:19:38,432 --> 00:19:40,164
+You're using 8 bits like a normal person.
+
+220
+00:19:40,430 --> 00:19:44,324
+Well, what that means is that your data is gonna be transmit eight bits at a time.
+
+221
+00:19:44,558 --> 00:19:56,272
+And so while we might have a very large total size in terms of bytes, like maybe we're transmitting one kilobyte, we're not actually going to be able to transmit that all in one UART transfer.
+
+222
+00:19:56,352 --> 00:19:58,084
+It's gonna do it in 8-bit chunks.
+
+223
+00:19:58,766 --> 00:20:13,872
+So you can see if we're using 8-bit data transfers, what we're going to do is set the TDR register to the value of that data buffer at the point in time that we're at, and then they're just gonna increment it by one and decrement the transfer count by one.
+
+224
+00:20:14,094 --> 00:20:32,032
+And it's just gonna loop on that until the transfer is done, or if we get an error, so if this wait on flag until timeout, the TX flag, if that expires with a timeout, then it's going to return some kind of error, like as in the hardware had some issue and the transfer could not complete in the allotted time.
+
+225
+00:20:32,334 --> 00:20:37,796
+So you can see all it's really doing is just implementing state and error handling for the hardware device.
+
+226
+00:20:38,032 --> 00:20:40,512
+And this is something you could build yourself, you know.
+
+227
+00:20:40,592 --> 00:20:51,952
+And in fact, when I was teaching embedded systems at my university as a teaching assistant, I saw many people without access to a HAL, you know, because in the first instance of this, we don't give them access to a HAL.
+
+228
+00:20:52,206 --> 00:20:57,552
+So they essentially build something very similar to this themselves, and that's really great to see.
+
+229
+00:20:57,774 --> 00:21:05,712
+So the benefit of getting a manufacturer's one is that it's been pretty much battle tested by many, many customers, right?
+
+230
+00:21:05,872 --> 00:21:12,912
+If they have problems, they're gonna report it to the manufacturer, and you hope the manufacturer does some kind of quality assurance as well.
+
+231
+00:21:13,198 --> 00:21:18,912
+So that's why, in general, the advice is like use the manufacturers versus build your own.
+
+232
+00:21:19,150 --> 00:21:21,472
+Building your own is great for a learning exercise.
+
+233
+00:21:21,552 --> 00:21:25,636
+And I actually encourage everyone who's getting started and embedded.
+
+234
+00:21:25,952 --> 00:21:28,752
+A great project is to build a HAL for yourself.
+
+235
+00:21:29,006 --> 00:21:33,872
+But if you're doing a production device, uh do do not use your own register HAL.
+
+236
+00:21:34,032 --> 00:21:39,044
+Okay, please use the manufacturer's one because that thing has been tested by millions of customers.
+
+237
+00:21:39,854 --> 00:21:42,432
+So that brings us to the end of all the time we have today.
+
+238
+00:21:42,512 --> 00:21:48,036
+If I want the retention to absolutely not be horrible, I already know that the retention on this video is going to be horrible.
+
+239
+00:21:48,654 --> 00:21:49,552
+That kind of sucked, man.
+
+240
+00:21:49,632 --> 00:21:50,244
+Honestly, like.
+
+241
+00:21:50,670 --> 00:22:06,368
+Thinking about making this video, it's super, super important for firmware engineers to be able to understand what the hell is doing and be able to dive under the hood and actually you know demystify it because it seems like a magical layer, you know, where I just type in the function and the hardware does the thing.
+
+242
+00:22:06,638 --> 00:22:08,368
+It just seems so magical, but it's really not.
+
+243
+00:22:08,448 --> 00:22:11,812
+It's just computer code, and at the end of the day, it's just setting memory addresses.
+
+244
+00:22:12,270 --> 00:22:16,848
+But I get that it's a dry subject, so I'm gonna look at the retention graph, it's not gonna be good.
+
+245
+00:22:17,102 --> 00:22:26,528
+YouTube's not gonna push this video, but hey, it has to be out there for the people that actually want it, for the people that need it, for the people that actually really are interested in becoming pros.
+
+246
+00:22:26,926 --> 00:22:28,208
+You gotta understand this stuff.
+
+247
+00:22:28,368 --> 00:22:29,796
+So I hope you enjoyed.
+
+248
+00:22:29,968 --> 00:22:32,708
+If you're here, that's you, and I wish you the best of luck.
+
+249
+00:22:33,070 --> 00:22:34,660
+Please let me know what you thought in the comments.
+
+250
+00:22:35,088 --> 00:22:35,888
+Thank you.
+

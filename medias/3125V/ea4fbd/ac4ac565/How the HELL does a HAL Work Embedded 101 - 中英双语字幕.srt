@@ -1,0 +1,1403 @@
+1
+00:00:00,160 --> 00:00:01,476
+你们想听点有意思的吗？
+You guys want to hear something funny?
+
+2
+00:00:01,870 --> 00:00:08,000
+如果你想成为一名专业的嵌入式系统或固件工程师，这是最重要的主题之一。
+This is one of the most important topics ever if you want to become a professional embedded systems or firmware engineer.
+
+3
+00:00:08,080 --> 00:00:17,840
+你必须了解这个，但我感觉这可能会是我 YouTube 频道上表现最差、播放量最低的视频之一，
+但我还是要把时间花在这上面，因为你们值得。
+You need to know about this, but I have a feeling this is going to be one of the worst performing,
+lowest viewed videos on my YouTube channel, but I'm still going to put in the time because you deserve it.
+
+4
+00:00:17,920 --> 00:00:21,760
+如果你看到这里，恭喜你，你想成为真正的专业人士。
+If you're here, congratulations, you want to be a real pro.
+
+5
+00:00:22,254 --> 00:00:24,240
+硬件抽象层，也就是 硬件抽象层。
+Hardware abstraction layer or howl.
+
+6
+00:00:24,320 --> 00:00:27,012
+我不是在说《2001太空漫游》里的那个反派。
+I'm not talking about the evil dude from the Space Odyssey film.
+
+7
+00:00:27,280 --> 00:00:37,920
+我们说的是嵌入式软件栈中的一个组件，你的应用程
+序可以用它作为可靠且稳定的接口来调用硬件功能。
+We're talking about a component of the embedded software stack that your application
+can use as a reliable and stable interface to call hardware functionality.
+
+8
+00:00:38,094 --> 00:00:43,440
+如果你以前用过 Arduino 或 STM32，你可能在不知不觉中就已经使用过 硬件抽象层 了。
+If you've used Arduino or STM32 before, you've probably used a HAL without even realizing it.
+
+9
+00:00:43,600 --> 00:00:46,160
+如果是这样的话，它正按预期运行。
+And if that's the case, it's working as intended.
+
+10
+00:00:46,414 --> 00:00:51,680
+但如果你想成为专业人士，你就得知道这玩意儿到
+底是怎么工作的，并且能够深入了解其底层原理。
+But if you want to be a professional, you gotta know how that thing actually works and be able to dig under the hood.
+
+11
+00:00:52,014 --> 00:00:53,760
+让我们从一些你可能熟悉的东西开始。
+Let's start with something you're probably familiar with.
+
+12
+00:00:53,840 --> 00:00:56,000
+现在我们有了 Arduino 系列开发板。
+Now we have the Arduino collection of boards.
+
+13
+00:00:56,080 --> 00:01:00,160
+你可以买到各种不同的 Arduino 开发板，它们都搭载了不同的微控制器。
+You can get a variety of different boards for Arduino, and they all have different microcontrollers.
+
+14
+00:01:00,240 --> 00:01:08,800
+例如，经典的 Uno R3 搭载的是 Atmega 328P，而 Uno R4 搭载的是 Renesus RA4M1。
+So for example, the venerable Uno R3 has an Atmega 328P, whereas the Uno R4 has an Renesus RA4M1.
+
+15
+00:01:09,006 --> 00:01:11,428
+现在你可能在想，好吧，霍夫，这很酷，但谁在乎呢？
+Now you're probably thinking, okay, Hoff, that's cool, who cares?
+
+16
+00:01:11,822 --> 00:01:20,000
+事实上，所有这些搭载不同微控制器的开发板都能使用完全相同的库引用，
+这本身就是一项了不起的工程成就，对吧？
+Well, actually, it's quite a feat of engineering that all of these boards with
+their different microcontrollers can use the exact same library reference, right?
+
+17
+00:01:20,080 --> 00:01:24,000
+所以你可以在这个板子、那个板子、这个板子、那个板子上调用 digital read。
+So you can call digital read on this board, this board, this board, this board.
+
+18
+00:01:24,142 --> 00:01:32,960
+你可以在所有这些不同的板子上调用 analog read 分辨率，你知道，这并不重要，
+你可以在不同的 Arduino 板子上使用相同的代码，它就能直接运行。
+You can call analog read resolution on all these different boards, you know, and it doesn't matter,
+you can use the same code on different Arduino boards and it'll just work.
+
+19
+00:01:33,454 --> 00:01:39,920
+朋友，这就是为什么你需要了解硬件抽象层，因为正是这种“魔法”让这一切成为可能。
+Now, this, my friend, is why you need to know about hardware abstraction
+layers because it is the wizardry that makes all of this possible.
+
+20
+00:01:40,174 --> 00:01:47,280
+现在，为了进入更专业的上下文，我们实际上要深入研究 STM32 是如何实现其 硬件抽象层 的。
+Now, to bring this to a more professional adjacent context, we're gonna actually dive in and look at how STM32 implements its HAL.
+
+21
+00:01:47,630 --> 00:01:58,240
+例如，如果你用过 HAL_GPIO_WritePin 函数，你就已经与 ST
+Microelectronics 为 STM32 开发的硬件抽象层交互过了。
+For example, if you have used the function HALGPIORIPPIN, you have interacted with
+ST Microelectronics's hardware abstraction layer that they have made for STM32.
+
+22
+00:01:58,400 --> 00:02:00,320
+起初这看起来就像魔法，对吧？
+And at first it seems like magic, right?
+
+23
+00:02:00,494 --> 00:02:03,588
+我只要调用这个函数，LED 就会亮起来。
+I just call this function and it makes the LED light up.
+
+24
+00:02:03,822 --> 00:02:04,960
+那这到底是怎么工作的呢？
+So how does that actually work?
+
+25
+00:02:05,070 --> 00:02:06,160
+我们要深入研究一下。
+We're going to dive into it.
+
+26
+00:02:06,478 --> 00:02:15,280
+如果你去查看一个现代 STM32 项目的 main.c，并搜索 硬件抽象层_，你会得到非常多的结果。
+So if you go to the main.c of a modern STM32 project and you do a search for HAL underscore, you will get many, many results.
+
+27
+00:02:15,440 --> 00:02:21,188
+这是标准的 STM32 初始化代码，你可以看到 硬件抽象层 遍布在各处。
+This is standard STM32 initialization code, and you can see HAL is all over the place.
+
+28
+00:02:21,550 --> 00:02:29,440
+确实，如果你在自己的应用程序中想要做点什么，比如让 LED 闪烁，
+你会使用像 HAL_GPIO_WritePin 这样的函数。
+And indeed, if you go to your application and you want to do something like blink an LED,
+you'll be using a function like HALGPIOWritePin.
+
+29
+00:02:29,710 --> 00:02:32,228
+那么 硬件抽象层 是谁，它想要什么？
+So who is HAL and what does he want from me?
+
+30
+00:02:32,526 --> 00:02:40,480
+嗯，如果你有现代的开发环境，你可以右键点击这个函数，
+点击“转到定义”来看看这个函数到底是怎么工作的，对吧？
+Well, if you've got a modern development environment, you can right-click on this function
+and hit go to definition to get a look at how this function actually works, right?
+
+31
+00:02:40,560 --> 00:02:43,680
+因为我们想知道 LED 到底是怎么亮起来的。
+Because we want to know how the LED actually turns on.
+
+32
+00:02:43,840 --> 00:02:48,164
+当我只是调用这个神奇的函数时，它到底是怎么让 LED 亮起的？
+When I just do this magic function call, how does it actually turn the LED on?
+
+33
+00:02:48,494 --> 00:02:51,280
+起初，这看起来有点奇怪，对吧？
+And at first, it seems a little bit strange, right?
+
+34
+00:02:51,566 --> 00:02:58,080
+我们有一个只有几行代码的神奇函数，不知怎么的，它就让我的 LED 变红了。
+We've got this magic function that's not very many lines of code, and somehow that makes my LED go red.
+
+35
+00:02:58,286 --> 00:03:02,720
+现在，如果我们想揭开这个函数工作原理的奥秘，有几个关键点需要掌握。
+Now, if we want to unravel the mystery of how this function works, there are a couple of key takeaways.
+
+36
+00:03:02,958 --> 00:03:08,452
+第一点是这个转换成 Uint32T 的操作，它对应到这个参数上。
+The first is this cast to a Uint32T that's going to this parameter right here.
+
+37
+00:03:08,720 --> 00:03:13,520
+第二点是这个值被赋值到的内存位置。
+The second is the location in memory that this value is being assigned to.
+
+38
+00:03:13,870 --> 00:03:18,640
+所以你可以看到我们有两个内存位置，分别是 BSRR 和 BRR。
+So you can see we've got two memory locations, BSRR and BRR.
+
+39
+00:03:19,150 --> 00:03:30,500
+所以这个函数的关键点是，我们只需要给特定的内存位置赋值，就能操控微控制器上的硬件外设。
+So the key takeaway from this function is we can manipulate the hardware peripherals
+on our microcontroller simply by assigning certain values to certain memory locations.
+
+40
+00:03:30,958 --> 00:03:34,640
+这就是 MMIO，内存映射 IO。
+This is MMIO, memory mapped IO.
+
+41
+00:03:35,120 --> 00:03:40,400
+理解这一点是成为专业固件工程师最重要的事情之一。
+And understanding this is one of the most important things to becoming a professional firmware engineer.
+
+42
+00:03:40,622 --> 00:03:44,996
+现在，如果你以前没见过这类文档，我想向你介绍一下参考手册。
+Now, if you haven't seen one of these documents before, I want to introduce you to the reference manual.
+
+43
+00:03:45,614 --> 00:03:56,196
+有些微控制器制造商会将信息放在这里，也会放在你微控制器的主要数据手册里，
+但 ST Microelectronics 喜欢把它拆分到单独的文档中。
+Some microcontroller manufacturers will put the information in here, also inside the main data sheet for your microcontroller,
+but ST Microelectronics likes to split it out into a separate document.
+
+44
+00:03:56,878 --> 00:03:58,400
+我说的这些信息是什么？
+What information am I talking about?
+
+45
+00:03:58,638 --> 00:04:01,520
+是寄存器和内存地址的定义。
+It's the register and memory address definitions.
+
+46
+00:04:01,680 --> 00:04:04,560
+这就是我之前提到 MMIO 时所说的东西。
+This is what I was talking about before when we say MMIO.
+
+47
+00:04:04,686 --> 00:04:05,700
+什么是 MMIO？
+What is MMIO?
+
+48
+00:04:05,934 --> 00:04:14,596
+它只不过是预留了微控制器主内存的一部分，用来直接控制设备的硬件。
+It is nothing but the reservation of a component of your microcontroller's main memory to directly control the hardware of the device.
+
+49
+00:04:15,118 --> 00:04:16,160
+所以让我们来分解一下。
+So let's break it down.
+
+50
+00:04:16,366 --> 00:04:28,000
+如果你以前没见过这种文档，它看起来可能有点吓人，但
+它本质上只是把内存地址分配给微控制器中的某些外设。
+This kind of document looks a little bit scary if you haven't seen this before, but literally all it is is the assigning of memory
+addresses to certain peripherals in your microcontroller.
+
+51
+00:04:28,526 --> 00:04:32,064
+假设我有一个 LED 连接到 GPIO 引脚 A1。
+So let's say I have an LED wired up to GPIO pin A1.
+
+52
+00:04:32,494 --> 00:04:38,864
+嗯，为了操作 GPIO A，我必须给这个范围内的其中一个内存地址进行赋值。
+Well, to manipulate GPIO A, I have to make an assignment to one of these memory addresses in this range.
+
+53
+00:04:39,118 --> 00:04:42,304
+如果你仔细想想，这正是我们在 硬件抽象层 中所做的事情。
+And if you think about it, that's exactly what we're doing in the HAL.
+
+54
+00:04:42,638 --> 00:04:46,916
+硬件抽象层 所做的全部就是获取这个内存地址并进行赋值。
+All the HAL is doing is getting this memory address and making an assignment.
+
+55
+00:04:47,086 --> 00:04:54,944
+而这份参考手册会告诉我们，为了实现想要的功能，我们需要给哪个具体的内存地址赋值。
+And this reference manual is going to tell us exactly which memory
+address we need to make the assignment to in order to do what we want.
+
+56
+00:04:55,374 --> 00:05:00,804
+所以如果我们再深入一步，点击 GPIO 寄存器映射，你会看到我们有所有这些不同的寄存器名称。
+So if we go one step further here and we hit GPIO register map, you'll see we have all these different register names.
+
+57
+00:05:01,134 --> 00:05:04,864
+如果我们向下滚动，其中一个看起来会有点眼熟。
+And if we scroll down, one of these is gonna look a little bit familiar.
+
+58
+00:05:05,024 --> 00:05:08,064
+你可以看到这里的 GPIO XBSRR。
+You can see here GPIO XBSRR.
+
+59
+00:05:08,334 --> 00:05:13,344
+而这正是我们的 硬件抽象层 在我们想要开启或关闭 LED 时所引用的内容。
+And that's exactly what our HAL is referencing when we want to turn on and off an LED.
+
+60
+00:05:13,582 --> 00:05:21,988
+现在如果我们去参考手册的 GPIO 部分，它会告诉我们更多关
+于我们可以操作的寄存器信息，从而让 GPIO 执行各种操作。
+Now if we go to the GPIO section of the reference manual, it'll tell us a little
+bit more about the registers we can manipulate to get the GPIO to do various things.
+
+61
+00:05:22,350 --> 00:05:27,236
+如果我们去找我们感兴趣的那个寄存器，就能在这里找到更多信息，这其实挺让人豁然开朗的。
+If we look for our register of interest, we'll find more information about it here, and this is actually quite demystifying.
+
+62
+00:05:27,566 --> 00:05:36,464
+位设置重置寄存器是一个 32 位寄存器，它允许应用
+程序设置和重置输出数据寄存器中的每一个独立位。
+The bit set reset register is a 32-bit register which allows the application
+to set and reset each individual bit in the output data register.
+
+63
+00:05:36,654 --> 00:05:40,304
+现在如果我们看看这个输出数据寄存器是什么，就在这里描述了。
+Now if we look for what this output data register is, it's described right up here.
+
+64
+00:05:40,464 --> 00:05:42,304
+它存储要输出的数据。
+It stores the data to be output.
+
+65
+00:05:42,384 --> 00:05:46,944
+所以它存储的是那个引脚将要输出的内容，是低电平还是高电平。
+So it stores what that pin is going to output, low or high.
+
+66
+00:05:47,150 --> 00:05:57,424
+所以通过操作这个 BSRR，我们就能操作 ODR，进而操作引脚的逻辑电平，
+也就是我们的 LED 是亮还是灭？
+So by manipulating this BSRR, we can therefore manipulate ODR, which
+manipulates the logic level of the PIN, which means does our LED turn on?
+
+67
+00:05:57,678 --> 00:05:59,264
+我们的 LED 是灭还是亮？
+Does our LED turn off?
+
+68
+00:05:59,534 --> 00:06:05,892
+所以，在操作 STM32 的硬件设备时，内存就是一切的关键。
+So memory is the key to everything when it comes to manipulating the hardware devices of the STM32.
+
+69
+00:06:06,094 --> 00:06:07,184
+这听起来很棒。
+And this sounds great.
+
+70
+00:06:07,344 --> 00:06:08,304
+这听起来超级简单。
+This sounds super easy.
+
+71
+00:06:08,464 --> 00:06:12,484
+我只需要做个内存赋值就能搞定硬件设备。
+All I have to do to mess with the hardware devices is make a memory assignment.
+
+72
+00:06:12,782 --> 00:06:16,420
+接下来事情就变得有意思了，这也是“如何实现”的核心所在。
+Here's where things get interesting, and here's where the how comes back into this.
+
+73
+00:06:16,750 --> 00:06:18,864
+比如不同的 STM32 型号。
+So different STM32 variants.
+
+74
+00:06:19,024 --> 00:06:23,264
+如果你一直在关注，你会注意到到目前为止我们一直在看 L432。
+If you've been paying attention, you'll notice we've been looking at the L432 so far.
+
+75
+00:06:23,438 --> 00:06:28,064
+但是有无数种不同的 STM32 型号，它们拥有不同的硬件设备。
+But there are a gajillion different STM32 variants with different hardware devices.
+
+76
+00:06:28,144 --> 00:06:33,504
+你知道，有些型号会有成千上万个定时器，有些会有多个 SPI、I2C 或 UART。
+You know, some will have a billion timers, others will have multiple SPI or I2C or UART.
+
+77
+00:06:33,584 --> 00:06:39,460
+有些型号板载会有多个 ADC 或 DAC，而且它们的 SRAM 内存大小都不一样。
+You know, some of them will have multiple ADCs or DACs on board, and they all have different amounts of SRAM memory.
+
+78
+00:06:39,662 --> 00:06:47,104
+所以我们有这么多不同的 STM 型号，拥有完全不同的硬件配置，因此也有完全不同的内存地址。
+So we have all these different STM variants with all different hardware configurations, and therefore all different memory addresses.
+
+79
+00:06:47,264 --> 00:06:52,228
+每个型号都会为不同的功能分配不同的内存地址。
+You know, each variant will have different memory addresses assigned for different things.
+
+80
+00:06:52,718 --> 00:06:55,664
+这就是事情变得棘手的地方，这也是为什么我们需要 硬件抽象层 的原因。
+And this is where things get hairy, and this is why we need a HAL.
+
+81
+00:06:55,904 --> 00:07:03,908
+现在，如果你使用 STM32CUBEMX 来为你生成驱动初始化代码，
+它会引入 STM32 的 硬件抽象层 库。
+Now, if you use STM32CUBEMX to generate driver initialization code for you, it'll copy in STM32's HAL library.
+
+82
+00:07:04,206 --> 00:07:08,292
+作为其中的一部分，你会得到一个长得像这样的文件。
+And as part of that, you get a file that kind of looks like this.
+
+83
+00:07:08,654 --> 00:07:18,308
+对于我们到目前为止一直在看的特定微控制器 L432，有一个巨大的头文件包含了各种各样的内容。
+For the specific microcontroller we've been looking at so far, the L432,
+there's a huge header file that contains all kinds of different stuff.
+
+84
+00:07:18,704 --> 00:07:25,824
+但对我们感兴趣的主要内容是大量的内存地址定义。
+But the main thing that it contains for our interesting purposes is a whole bunch of memory address definitions.
+
+85
+00:07:26,158 --> 00:07:33,584
+所以你可以看到这里 GPIOA 被定义为这个内存地址 GPIO 基地址的 GPIO 类型强制转换。
+So you can see here GPIOA is defined as a GPIO type dev cast of this memory address GPIO base.
+
+86
+00:07:34,030 --> 00:07:40,836
+如果我们真的去看看这意味着什么，我们可以继续追踪这里的定义，慢慢揭开这个谜团。
+And if we actually go and have a look at what this means, we can just
+keep going to the definition here and sort of unraveling the mystery.
+
+87
+00:07:41,102 --> 00:07:45,504
+这应该是 AHB2 外设基地址加 0，对吧？
+This is going to be AHB2 peripher base plus zero, right?
+
+88
+00:07:45,584 --> 00:07:48,704
+所以 GPIOA 就从这个基地址开始。
+So GPIOA starts right at this base address.
+
+89
+00:07:48,814 --> 00:07:54,148
+如果我们继续追踪这个定义，我们会发现外设基地址加 0x08。
+So if we keep going to this definition, we'll find peripheral base plus 0x08.
+
+90
+00:07:54,704 --> 00:08:01,000
+如果我们继续往下看，最终会到达外设基地址，也就是 0x4000000。
+if we keep going through here, you know, we'll eventually get to peripheral base, which is 0x4000000.
+
+91
+00:08:01,904 --> 00:08:07,424
+现在，如果你做一下计算，然后去参考手册里交叉比对，你会发现它就从这个地址开始。
+Now, if you do the calculation and you cross-reference that with the reference manual, you'll notice that it starts at this address.
+
+92
+00:08:07,504 --> 00:08:14,304
+这是 GPIOA 的地址，它属于 AHB2 范畴，这也是我们在那个头文件里看到的内容。
+This is the address of GPIOA and it falls under the umbrella of AHB2, which we saw in that header file as well.
+
+93
+00:08:14,574 --> 00:08:17,156
+大家现在是不是觉得这些内容开始串联起来，变得好理解了？
+Is everything starting to come together and make sense for you guys?
+
+94
+00:08:17,710 --> 00:08:30,700
+所以结论是，如果两个微控制器的寄存器访问模式完全一样，
+唯一的区别只是它们需要访问的内存地址，那么这意味着我们只需要把包含所有定义的其中一个
+So the upshot of this is that if the register access pattern is the exact same between two microcontrollers,
+and the only difference is the memory address they need to access, then that means we can just sub in one of these big header files
+
+95
+00:08:30,700 --> 00:08:31,210
+大头文件替换进去，它就能正常工作。
+So the upshot of this is that if the register access pattern is the exact same between two microcontrollers,
+and the only difference is the memory address they need to access, then that means we can just sub in one of these big header files
+
+96
+00:08:31,210 --> 00:08:33,904
+大头文件替换进去，它就能正常工作。
+with all the definitions, and it'll just work.
+
+97
+00:08:34,063 --> 00:08:35,344
+它会完全一样。
+It'll be exactly the same.
+
+98
+00:08:35,504 --> 00:08:37,504
+代码也会完全一样。
+The code will be exactly the same.
+
+99
+00:08:37,998 --> 00:08:41,664
+现在，这里有个很有意思的地方是这些文件的名称，对吧？
+Now, something interesting to look at here is the names of these files, right?
+
+100
+00:08:41,998 --> 00:08:47,172
+如果你看这个文件的顶部，你会看到 stm32L4XX_硬件抽象层。
+So if you go up to the top of this one, you'll see stm32L4XX underscore HAL.
+
+101
+00:08:47,504 --> 00:08:52,224
+这意味着这个文件适用于任何 L4 系列的 STM32。
+That implies that this file will work for any L4 series STM32.
+
+102
+00:08:52,494 --> 00:08:56,384
+而且如果你注意到，这个是 STM32L432。
+And if you notice, this one is STM32L432.
+
+103
+00:08:56,622 --> 00:09:02,724
+现在还有很多其他的 L4 系列微控制器，比如 L41、42、44、45。
+Now there are plenty of other L4 series microcontrollers, like the L41, the 42, the 44, the 45.
+
+104
+00:09:03,086 --> 00:09:11,812
+所以这意味着你只需要为你的特定型号替换一个不同的头文件，
+这个代码就能适用于所有的 L4 系列。
+And so that implies that all you have to do is sub in a different header
+file for your specific variant, and this will work for all of the L4 series.
+
+105
+00:09:12,270 --> 00:09:13,860
+好，霍夫，这真的很酷。
+So okay, Hoff, that's really cool.
+
+106
+00:09:14,286 --> 00:09:17,104
+但这并没有回答我们在视频开头提出的问题。
+But that doesn't answer our question from the beginning of the video.
+
+107
+00:09:17,326 --> 00:09:23,984
+现在，Arduino 不仅仅是相同的系列微控制器，甚至不是同一个制造商的微控制器。
+Now Arduino doesn't just have the same series microcontroller, not even the same manufacturer of microcontroller.
+
+108
+00:09:24,238 --> 00:09:27,940
+Arduino 使用的是完全不同的微控制器，好吗？
+Arduino has completely different microcontrollers, okay?
+
+109
+00:09:28,224 --> 00:09:30,384
+绝对是完全不同的。
+Absolutely just completely different.
+
+110
+00:09:30,544 --> 00:09:32,676
+我现在明白 MMIO 是如何工作的了。
+I understand how MMIO works now.
+
+111
+00:09:32,942 --> 00:09:43,172
+我明白如果拥有相同的寄存器访问模式，只是内存地址发生了变化，你知道，
+我们只需要替换一个大的 definitions.h 文件，内存访问就能正常工作。
+I understand that if you have the same register access pattern and you just have memory addresses that change, you know,
+we can just sub in a big definitions.h file and the memory access will just work.
+
+112
+00:09:43,406 --> 00:09:48,624
+但如果我们有一个完全不同的微控制器，拥有完全不同的寄存器访问模式呢？
+But what if we have a completely different microcontroller with a completely different register access pattern?
+
+113
+00:09:48,846 --> 00:09:50,916
+它甚至可能根本没有相同的寄存器。
+It might not even have the same registers at all.
+
+114
+00:09:51,502 --> 00:09:54,864
+所以我现在想让你们思考的是，从更抽象的意义上来说，什么是 硬件抽象层。
+So what I want you to think of now is a how in a more abstract sense.
+
+115
+00:09:54,944 --> 00:10:05,732
+我们刚刚看了这个是如何工作的具体实现，它是如何通过参考手册、
+内存地址和 MMIO 来访问内存中的寄存器，以及如何操作硬件设备的。
+We've just looked at the exact implementation of how this works and how it accesses this register in memory and how it manipulates the
+hardware devices through the reference manual and the memory addresses and MMIO.
+
+116
+00:10:05,934 --> 00:10:10,052
+但我希望你们从更抽象的角度去思考什么是 硬件抽象层。
+But I want you to think of what is a HAL in a more abstract sense.
+
+117
+00:10:10,638 --> 00:10:17,504
+它本质上是你的应用程序可以调用的、达成共识的、稳定的且可重用的 API。
+What it is, is an agreed upon, stable, and reusable API for your application to call.
+
+118
+00:10:17,664 --> 00:10:17,984
+好。
+Okay.
+
+119
+00:10:18,414 --> 00:10:26,304
+所以，当你写下这一行代码时，HAL_GPIO_WritePin
+与你的应用程序之间建立的契约是什么，对吧？
+So how GPIO write pin, the contract that this makes with your application when you write this line of code, right?
+
+120
+00:10:26,464 --> 00:10:30,244
+或者如果你的 AI 代理写下了这一行代码，你知道，随便你怎么做。
+Or if your AI agent writes this line of code, you know, whatever, you do you.
+
+121
+00:10:30,638 --> 00:10:37,104
+契约是，如果我给你一个 GPIO 类型 def 的抽象定义，它是一个指针，对吧？
+The contract is that if I give you an abstract definition of a GPIO type def, which is a pointer, right?
+
+122
+00:10:37,184 --> 00:10:41,636
+只要我定义正确，它就可以指向任何 GPIO 类型 def 的指针。
+It could be a pointer to any GPIO type def as long as I define it correctly.
+
+123
+00:10:41,934 --> 00:10:47,104
+我给你一个 uint16_t 类型的 GPIO 引脚，再给你一个引脚状态，对吧？
+I give you a GPIO pin in UN 16 and I give you a pin state, right?
+
+124
+00:10:47,344 --> 00:10:52,612
+置位或复位，这意味着你会执行我想要的操作，对吧？
+Set or reset, that means that you will do this operation that I am intending, right?
+
+125
+00:10:52,974 --> 00:10:55,588
+具体的实现其实并不重要。
+The implementation doesn't actually matter.
+
+126
+00:10:55,950 --> 00:10:58,544
+这可能是一个完全不同的函数。
+This could be a completely different function.
+
+127
+00:10:58,766 --> 00:11:03,504
+好吧，它可能访问一个完全不同的，比如我的寄存器可能叫 ASRR。
+Okay, it could access a completely different Maybe my register is called ASRR.
+
+128
+00:11:03,584 --> 00:11:05,252
+它不是，但也许它可能是。
+It's not, but like maybe it could be.
+
+129
+00:11:05,424 --> 00:11:06,144
+这并不重要。
+It doesn't matter.
+
+130
+00:11:06,304 --> 00:11:10,756
+只要它能完成我需要的操作，契约就达成了。
+As long as it does what I need it to do, the contract is satisfied.
+
+131
+00:11:11,118 --> 00:11:14,436
+为了说明这一点，我们来看看两个 Arduino 库的变体。
+So to illustrate this, we're looking at two Arduino library variants.
+
+132
+00:11:14,702 --> 00:11:16,464
+这是 Arduino Core AVR。
+This is Arduino Core AVR.
+
+133
+00:11:16,558 --> 00:11:24,484
+所以这是针对 Atmega 328P 等芯片的，而这是
+Arduino Core SAMD，针对 SAM C21 和 D21 等芯片。
+So this is targeting things like the Atmega 328P, and this is Arduino Core SAMD, targeting things like the SAM C21 and the D21.
+
+134
+00:11:24,878 --> 00:11:26,464
+我想让你们看看 DigitalWrite。
+So I want you to look at DigitalWrite.
+
+135
+00:11:26,624 --> 00:11:31,972
+这是 Arduino 中对应的、我们之前在 STM32 上看到的 硬件抽象层 GPIO 写引脚函数。
+This is the Arduino equivalent of the HAL GPIO write pin we've been looking at for STM32.
+
+136
+00:11:32,334 --> 00:11:44,064
+你可以看到 AVR 的实现方式，你其实不需要理解它具体在做什么，甚至你可以看看 SAM 的实现，
+你会发现它实际上是完全不同的实现。
+So you can see that the way the AVR does it, now you don't really have to understand what this is doing,
+so much so that you should look at the SAM implementation and see that it is actually quite a different implementation.
+
+137
+00:11:44,398 --> 00:11:49,824
+你知道，我们做的是不同的事情，代码也不同，但契约完全一样。
+You know, we do different things, like the code is different, but the contract is exactly the same.
+
+138
+00:11:50,094 --> 00:12:02,852
+契约就是：你给我一个引脚，给我一个该引脚的值，我会操作硬件帮你完成，
+即便这两个针对不同微控制器的库在底层原理上有着不同的实现。
+The contract being you give me a pin, you give me a value for that pin, and I will manipulate the hardware to do that for you,
+even though these two libraries for the two different microcontrollers have a different implementation under the hood.
+
+139
+00:12:03,182 --> 00:12:05,424
+你仍然给它一个引脚，仍然给它一个值。
+You still give it a pin, you still give it a val.
+
+140
+00:12:05,998 --> 00:12:15,344
+如果你对 pin_size_t 感到困惑，顺便说一下，这本质上只是在这里被 类型定义 成 uint32_t
+或 uint8_t，取决于你使用的芯片。
+And if you're confused by pin size T, by the way, that's essentially just
+typedeft in here to like UN32 or UN8, depending on the chip that you're using.
+
+141
+00:12:15,598 --> 00:12:17,984
+所以，归根结底，它仍然是同样的契约。
+So, like at the end of the day, it's still the same contract.
+
+142
+00:12:18,126 --> 00:12:23,556
+就像是：你想给我一个引脚编号和一个引脚值，然后由我来帮你设置它吗？
+It's like, do you want to give me a pin number and give me a pin value and I will set it for you?
+
+143
+00:12:23,664 --> 00:12:30,948
+这就是我所说的，即使在不同的微控制器家族之间，你也可以拥有同样的契约。
+So this is what I'm talking about when I say like even between different microcontroller families, you can have the same contract.
+
+144
+00:12:31,310 --> 00:12:36,356
+现在为了真正说明这一点，好，我们有 Arduino 调用 Renaissance。
+Now to really drive this point home, okay, we have Arduino call Renaissus.
+
+145
+00:12:36,782 --> 00:12:41,904
+你可以看到这里它实现的 digital write 契约与之前完全一样。
+And you can see here it's implementing the digital write contract exactly the same as they were before.
+
+146
+00:12:42,158 --> 00:12:46,544
+但在这种情况下，我们只是再调用另一个函数，也就是我们的 IO 端口引脚写。
+But in this case, we're just gonna do another function call to our IO port pin write.
+
+147
+00:12:46,990 --> 00:12:47,652
+这是什么？
+What is this?
+
+148
+00:12:48,046 --> 00:12:50,780
+嗯，那实际上是 Renaissance 硬件抽象层 的一部分。
+Well, that's actually part of the Renaissance how.
+
+149
+00:12:51,024 --> 00:13:01,892
+所以我们有 Arduino 提供一个 硬件抽象层 层，它在调用 Renaissance 硬件抽象层，
+也就是我们之前在 STM32 上展示过的、在寄存器层面的操作。
+So we have Arduino providing a how layer, and it's calling the Renaissance HAL for the, the, you know,
+at the register level that we kind of showed you before with the STM32.
+
+150
+00:13:02,254 --> 00:13:08,224
+所以你可以看到，根据你想提供的抽象层级，硬件抽象层 之上可以堆叠不同的层。
+So you can see that HALs can have different layers stacked on top of
+them depending on the level of abstraction that you want to provide.
+
+151
+00:13:08,558 --> 00:13:18,404
+所以你有了我刚才展示过的寄存器层级的 硬件抽象层，然后 Arduino 还有整个微控制器家族层
+级的 硬件抽象层，里面包含了所有这些复杂的逻辑。
+So you've got the register level house, like I showed you just before, and then Arduino has like entire microcontroller family level
+house where you've got all this kind of crazy stuff going on.
+
+152
+00:13:18,704 --> 00:13:25,956
+但这确实给了你灵活性，让你只需要提供单一的语言引用，它就能在每一块 Arduino 板子上运行。
+But that really gives you the flexibility to just be able to provide
+a single language reference and it'll work on every Arduino board.
+
+153
+00:13:26,222 --> 00:13:30,180
+所以，你知道的，你必须聪明地去使用这种抽象。
+So, you know, like you just have to be intelligent with how you use this abstraction.
+
+154
+00:13:30,384 --> 00:13:38,308
+比如，STM32 硬件抽象层提供的另一个非常重要的
+东西，就是所有这些漂亮的硬件设备类型定义句柄。
+Another really important thing that the STM32 HAL gives you, for example,
+is all of these nice typedef handles for your hardware devices.
+
+155
+00:13:38,798 --> 00:13:45,024
+所以对于你定义的每一个硬件设备，你都会有一个句柄，它被定义为这里的其中一个结构体。
+So for every hardware device you define, you're going to have a handle to that, which is defined as one of these structs right here.
+
+156
+00:13:45,390 --> 00:13:50,144
+所以我们有 ADC、DAC、UART、定时器等等。
+So we've got ADC, we've got DAC, we've got UART, we've got timers, etc. etc.
+
+157
+00:13:50,542 --> 00:13:55,824
+所以为了给你提供一个句柄，所有的硬件抽象层函数都会把这个句柄作为参数传入。
+So to give you a handle, and all of the HAL functions will take in this handle as an argument.
+
+158
+00:13:56,142 --> 00:14:03,204
+所以如果我想通过 UART 传输数据，嗯，这就是这里的函数，它接收其中一个 UART 类型定义。
+So if I want to transfer data over UART, well, this is the function right here, which takes in one of these UART typedefs.
+
+159
+00:14:03,790 --> 00:14:10,148
+就在这一刻我们意识到，硬件抽象层为我们做的不仅仅是简单的抽象寄存器和 MMIO 操作。
+It's at this point that we realize the HAL is doing a lot more for us than just simply abstracting register and MMIO operations.
+
+160
+00:14:10,464 --> 00:14:14,116
+它还引入了状态管理和错误处理。
+It is introducing state management and error handling.
+
+161
+00:14:14,286 --> 00:14:20,676
+而且它可以通过硬件抽象层引入的这些类型定义，将这两个硬件设备具体关联起来。
+And it can specifically relate those two hardware devices through these typedefs that the HAL introduces.
+
+162
+00:14:21,070 --> 00:14:28,932
+所以到这一步，这更像是一个哲学问题：它在什么时候停止成为一个层，
+又在什么时候开始成为一个库，对吧？
+So at this point, it's more like a philosophical question of where does
+it stop being a layer and where does it start being a library, right?
+
+163
+00:14:29,486 --> 00:14:38,880
+但目前，我们仍然称之为硬件抽象层，它的定义其实并不那么明确，
+你可以把很多东西都叫作硬件抽象层，比如简单的
+But for now, we still call hardware abstraction layer, it's not really that well defined,
+and you can get away with calling a lot of things a HAL, like just a simple shim layer or a library, you know,
+
+164
+00:14:38,880 --> 00:14:40,520
+垫片层或者一个库，你知道，这界限其实不太清晰。
+But for now, we still call hardware abstraction layer, it's not really that well defined,
+and you can get away with calling a lot of things a HAL, like just a simple shim layer or a library, you know,
+
+165
+00:14:40,520 --> 00:14:43,044
+垫片层或者一个库，你知道，这界限其实不太清晰。
+it's it's kind of not clear where that lands.
+
+166
+00:14:43,534 --> 00:14:45,664
+那么 UART 类型定义实际上给了我们什么？
+So what does the UART type def actually give us?
+
+167
+00:14:45,744 --> 00:14:49,892
+嗯，它给我们的第一样东西是一个实例，也就是 UART 寄存器的基地址。
+Well, the first thing it gives us is an instance which is the UART registers base address.
+
+168
+00:14:50,254 --> 00:14:51,664
+现在这真的很有意思。
+Now this is really interesting.
+
+169
+00:14:51,950 --> 00:15:04,304
+这意味着每当硬件抽象层需要实际执行我们之前提到的那些 MMIO 操作时，
+它可以把这作为实例基地址查找，然后根据它想要执行的操作，只需给它加上偏移量即可。
+What this means is that whenever the HAL needs to actually do one of those MMIO operations we talked about before,
+it can use this as an instant base address lookup, and it can just add offsets to that depending on what it wants to do.
+
+170
+00:15:04,430 --> 00:15:07,184
+我们在稍后查看一些函数时会注意到这一点。
+And we'll notice that as we go through some of the functions later on.
+
+171
+00:15:07,374 --> 00:15:16,304
+我们还有一个初始化结构体，在 STM32 硬件抽象层
+中，它是一组我们希望 UART 使用的初始硬件参数。
+We also have an init struct, which in STM32 HAL land is a set of initial hardware parameters that we want the UAR to operate with.
+
+172
+00:15:16,464 --> 00:15:22,384
+例如，波特率、字长、停止位、校验位、模式，你知道，就是这些东西。
+So for example, the board rate, the word length, the stop bits, the parity, the mode, you know, things like this.
+
+173
+00:15:22,638 --> 00:15:29,700
+而 STM32 硬件抽象层提供了一个漂亮的、高层级的初始化结构体，
+你可以用它来指定所有这些启动参数。
+And the STM32 HAL gives you a nice high-level init struct that you can use to specify all of these startup parameters.
+
+174
+00:15:29,998 --> 00:15:35,184
+而且 STM32CubeMX 甚至足够好心为你自动生成这个。
+And STM32CubMax is actually kind enough to generate this for you automatically.
+
+175
+00:15:35,502 --> 00:15:39,108
+伙计们，在嵌入式领域，早在 AI 出现之前我们就有了代码生成。
+We've had code gen long before AI in the embedded world, guys.
+
+176
+00:15:39,470 --> 00:15:46,564
+现在拆解一下，我们可以来到 UART_SetConfig 函数，它是这个 STM32L4HAL UART 文件的一部分。
+Now unpacking that, we can come along to the UART setconfig function, which is part of this STM32L4HAL UART file.
+
+177
+00:15:46,894 --> 00:15:59,150
+基本上，它的作用是检查我们提供的所有启动参数，并相应地修改寄存器，实际上就是以更高层、
+更优雅的方式实现参考手册中的内容，这样当我们
+And basically what this is going to do is check all of the startup parameters that we've given it and modify the registers
+accordingly, literally just implementing what is in the reference manual, but in a higher level, nicer way,
+
+178
+00:15:59,150 --> 00:16:00,430
+基本上，它的作用是检查我们提供的所有启动参数，并相应地修改寄存器，实际上就是以更高层、
+更优雅的方式实现参考手册中的内容，这样当我们
+so that when we're going into main.c, like we don't have to worry about setting the individual registers.
+
+179
+00:16:00,430 --> 00:16:04,804
+进入 main.c 时，就不必担心设置单个寄存器了。
+so that when we're going into main.c, like we don't have to worry about setting the individual registers.
+
+180
+00:16:05,070 --> 00:16:11,012
+我们只需定义好我们想要的参数，然后这个硬件抽象层就会帮我们处理寄存器设置。
+We just define up the parameters we want, and then this HAL is going to take care of the register setting for us.
+
+181
+00:16:11,470 --> 00:16:15,972
+所以当我们回到初始化函数时，你会看到我们正在设置几个寄存器值。
+So we come down in our initialization function, you'll see we're setting a couple of register values.
+
+182
+00:16:16,064 --> 00:16:30,372
+现在，在通用的硬件抽象层初始化函数中，它们基本上遵循的模式是根据初始化结构体设置一些
+寄存器值，然后还有几个基于这些事物人类可读定义的 switch 语句。
+Now, in generic HAL init functions, basically the pattern that they all take is some register setting values based on the init struct,
+and then also a couple of switch statements based on the human readable definitions of these things.
+
+183
+00:16:30,798 --> 00:16:32,944
+基本上核心逻辑就是这些。
+And that's basically all it boils down to.
+
+184
+00:16:33,134 --> 00:16:40,224
+归根结底，在所有这些抽象之下，你仍然只是在设置寄存器中的位来完成所有这些操作。
+At the end of the day, underneath all of this abstraction, you are still just setting bits in registers to get all of this done.
+
+185
+00:16:40,590 --> 00:16:44,420
+硬件抽象层只是为你增加了漂亮的、人类可读的抽象层。
+The HAL just adds nice human readable abstraction layers for you.
+
+186
+00:16:44,718 --> 00:16:47,664
+现在，如果我们要的话，我们可以把这些内容与参考手册进行交叉比对。
+Now, if we want to, we can cross reference this stuff with the reference manual.
+
+187
+00:16:47,758 --> 00:16:51,504
+所以让我们去 main.c 看看我们实际上在初始化配置中设置了什么。
+So let's go to main.c and we'll see what we're actually setting in this init config.
+
+188
+00:16:51,918 --> 00:16:53,312
+比如，停止位为 1。
+So for example, stop bits one.
+
+189
+00:16:53,552 --> 00:16:57,712
+嗯，我可以去查看它的定义，可以看到这里它确实被定义为 0。
+Well, I can go to the definition of that, and I can see here it's literally defined as zero.
+
+190
+00:16:57,792 --> 00:17:00,672
+为了论证起见，咱们选个更有意思的值。
+So for the sake of argument, let's pick a more interesting value.
+
+191
+00:17:00,878 --> 00:17:02,244
+咱们选两个停止位。
+Let's go with two stop bits.
+
+192
+00:17:02,638 --> 00:17:08,352
+如果我跳转到这个定义，它会带我回到视频前面提到的那个巨大的头文件里。
+So if I go to the definition of this, it'll bring me back to this big header file that we explored earlier on in the video.
+
+193
+00:17:08,589 --> 00:17:14,832
+它基本上会说我们要把 0x2 左移 12 位。
+And it'll basically say that we want 0x2 shifted by 12 positions.
+
+194
+00:17:14,992 --> 00:17:17,472
+如果我把鼠标悬停在上面，它显示是 12 位，对吧？
+If I hover over it, it says 12 positions, right?
+
+195
+00:17:17,678 --> 00:17:22,031
+你可以看到这里的初始化函数想要在 CR2 中设置停止位。
+And you can see here that our init function is wanting to set the stop bits in CR2.
+
+196
+00:17:22,271 --> 00:17:32,260
+如果我们对照参考手册，每当我提到参考时你就拍一下，你可
+以看到在 CR2 的第 12 位，这就是我们停止位所在的位置。
+So if we cross-reference that with the reference manual, take a shot every time I say reference,
+you can see here in the CR2 in position 12, this is where our stop bits are located.
+
+197
+00:17:32,432 --> 00:17:36,352
+我们可以向下滚动，看看那个值应该是多少。
+So we can scroll down to find what the value of that should be.
+
+198
+00:17:36,718 --> 00:17:42,500
+你可以看到如果这一位是 0，那就意味着我们有两个停止位。
+And you can see here if one zero is in this position, that means we have two stop bits.
+
+199
+00:17:42,592 --> 00:17:45,312
+我们当然可以在上面看到这个定义。
+And we can certainly see that defined up here.
+
+200
+00:17:45,646 --> 00:17:50,180
+所以如果我们把鼠标悬停在上面，它就是 2 移位到停止位，也就是第 12 位。
+So if we hover over that, it's two shifted into the stop position, which was 12.
+
+201
+00:17:50,672 --> 00:17:53,312
+你可以看到其他的定义也在那里。
+and you can see we've got the other ones defined there as well.
+
+202
+00:17:53,614 --> 00:18:02,730
+为了结束这个视频，我们要看看 UART 发送函数，看看它是如何传输数据的，
+如何管理状态和处理错误的，因为它基本上给了我们关于硬件抽象层好处的全面概述，
+To finish off the video, we're going to look at the how you are transmit function, see how it transmits data,
+see how it manages state and handles errors, because it kind of gives us
+
+203
+00:18:02,730 --> 00:18:04,010
+为了结束这个视频，我们要看看 UART 发送函数，看看它是如何传输数据的，
+如何管理状态和处理错误的，因为它基本上给了我们关于硬件抽象层好处的全面概述，
+the entire overview of the benefit of this howl, what this HAL gives to us.
+
+204
+00:18:04,010 --> 00:18:06,500
+也就是这个硬件抽象层给了我们什么。
+the entire overview of the benefit of this howl, what this HAL gives to us.
+
+205
+00:18:06,990 --> 00:18:14,112
+当然，你会注意到我们接收的第一个参数是这个 UART 句柄类型定义，
+因为很多状态管理都是存储在这里的。
+And of course, you'll notice the first parameter we take in is this UART handle type def,
+because that's where a lot of the state management is stored.
+
+206
+00:18:14,222 --> 00:18:19,312
+所以你会注意到我们做的第一件事是检查 UART 外设的状态。
+So you like you'll notice the first thing we do is check what is the state of the UART peripheral.
+
+207
+00:18:19,406 --> 00:18:24,352
+所以有复位、就绪、忙碌、发送忙、接收忙，等等等。
+So there's reset, ready, busy, busy tx, busy rx, blah blah blah.
+
+208
+00:18:24,558 --> 00:18:30,432
+这些内容可以由硬件抽象层管理，也可以由硬件管理，硬件抽象层可以只是读取并报告这些。
+And this stuff can be managed by the HAL or it can be managed by hardware, and the HAL can kind of just read that and report it.
+
+209
+00:18:30,670 --> 00:18:35,072
+所以你会注意到，如果我们准备好了，第一件事就是对参数进行有效性检查。
+So you'll notice the first thing we do if we're ready is we do a validity check on the parameters.
+
+210
+00:18:35,152 --> 00:18:38,512
+兄弟，这简直就是完全的菜鸟水平。
+Now, dude, this is like completely rookie amateur hour stuff here.
+
+211
+00:18:38,592 --> 00:18:41,792
+这就像是，你是不是把空指针作为参数传给函数了？
+This is like, did you pass a null pointer as an argument to the function?
+
+212
+00:18:41,952 --> 00:18:44,192
+你是不是把零长度传给函数了？
+Did you pass a zero size to the function?
+
+213
+00:18:44,272 --> 00:18:46,468
+这简直就是纯纯的菜鸟水平。
+This is like actual amateur hour stuff.
+
+214
+00:18:46,894 --> 00:18:50,912
+硬件抽象层的一个缺点就是你会得到所有这些额外的垃圾代码。
+And one of the drawbacks of the how is that you get all this extra junk.
+
+215
+00:18:50,992 --> 00:18:53,220
+比如，我绝不会做这么蠢的事情。
+Like, I would never do something this stupid.
+
+216
+00:18:53,392 --> 00:18:56,992
+我总是会给它一个定义明确的指针和一个非零的长度。
+I would always be giving it a well-defined pointer and a non-zero size.
+
+217
+00:18:57,326 --> 00:19:00,432
+就像，没有任何情况我会犯这种错误。
+Like, there is no situation in which I would make this mistake.
+
+218
+00:19:00,718 --> 00:19:03,792
+所以这真的只是在浪费 CPU 周期，对吧？
+So this is really just wasting CPU cycles, right?
+
+219
+00:19:04,078 --> 00:19:12,512
+所以这就是硬件抽象层的一个缺点，就是你得处理厂家塞进去的所有额外检查和冗余代码。
+So this is one of the drawbacks of a HAL, is like you have to deal with all the extra
+checking and all the extra fluff that the manufacturer is going to put in there.
+
+220
+00:19:12,782 --> 00:19:15,392
+而且它并不总是性能最高的。
+And it's not always the most high-performance stuff.
+
+221
+00:19:15,472 --> 00:19:17,412
+比如，我根本没理由需要这些。
+Like, there's no reason why I need this.
+
+222
+00:19:17,710 --> 00:19:22,192
+但对于一个完全的新手或者初学者来说，他们可能会不小心犯错，所以这对他们是有好处的。
+But maybe a complete rookie, a complete beginner might accidentally do that, and so it's good for them.
+
+223
+00:19:22,352 --> 00:19:24,804
+但这就是你必须去处理的硬件抽象层的一个缺点。
+But that's one of the drawbacks of a howl you've got to wrangle with.
+
+224
+00:19:24,942 --> 00:19:30,112
+现在，这里的传输大小和传输计数，只是硬件抽象层用来做状态管理的，对吧？
+Now, this stuff here, the transfer size and the transfer count, this is just used by the HAL for state management, right?
+
+225
+00:19:30,192 --> 00:19:34,752
+所以它会分块传输你的数据，而不是一次性传输整个数据块。
+So it's gonna transmit your data in chunks, it's not gonna do the whole block.
+
+226
+00:19:35,054 --> 00:19:38,352
+为了简单起见，我们假设你不用 9 位数据传输。
+To keep things simple, let's assume you're not using 9-bit data transfers.
+
+227
+00:19:38,432 --> 00:19:40,164
+你像正常人一样使用 8 位。
+You're using 8 bits like a normal person.
+
+228
+00:19:40,430 --> 00:19:44,324
+也就是说，你的数据将一次传输 8 位。
+Well, what that means is that your data is gonna be transmit eight bits at a time.
+
+229
+00:19:44,558 --> 00:19:56,272
+所以虽然我们的总字节数可能很大，比如我们要传输 1KB，
+但我们实际上无法在一次 UART 传输中完成全部。
+And so while we might have a very large total size in terms of bytes, like maybe we're transmitting one kilobyte,
+we're not actually going to be able to transmit that all in one UART transfer.
+
+230
+00:19:56,352 --> 00:19:58,084
+它会按 8 位一组来处理。
+It's gonna do it in 8-bit chunks.
+
+231
+00:19:58,766 --> 00:20:13,872
+所以你可以看到，如果我们使用 8 位数据传输，我们要做的就是把 TDR 寄存器设置为当前时间
+点数据缓冲区的值，然后它们就只是把它加 1，并把传输计数减 1。
+So you can see if we're using 8-bit data transfers, what we're going to do is set the TDR register to the value of that data buffer at
+the point in time that we're at, and then they're just gonna increment it by one and decrement the transfer count by one.
+
+232
+00:20:14,094 --> 00:20:26,340
+它会一直循环直到传输完成，或者我们收到错误。比如“等待标志位直到超时”，
+如果 TX 标志位在超时前没变，它就会返回某种错误，就像硬件出了问题，
+And it's just gonna loop on that until the transfer is done, or if we get an error, so if this wait on flag until timeout,
+the TX flag, if that expires with a timeout, then it's going to return some kind of error,
+
+233
+00:20:26,340 --> 00:20:28,400
+它会一直循环直到传输完成，或者我们收到错误。比如“等待标志位直到超时”，
+如果 TX 标志位在超时前没变，它就会返回某种错误，就像硬件出了问题，
+like as in the hardware had some issue and the transfer could not complete in the allotted time.
+
+234
+00:20:28,400 --> 00:20:32,032
+导致传输无法在规定时间内完成一样。
+like as in the hardware had some issue and the transfer could not complete in the allotted time.
+
+235
+00:20:32,334 --> 00:20:37,796
+所以你可以看到，它实际上做的只是为硬件设备实现状态管理和错误处理。
+So you can see all it's really doing is just implementing state and error handling for the hardware device.
+
+236
+00:20:38,032 --> 00:20:40,512
+而且这是你可以自己构建的东西，你知道的。
+And this is something you could build yourself, you know.
+
+237
+00:20:40,592 --> 00:20:51,952
+事实上，当我以前在大学当助教教嵌入式系统时，我看到很多人没法使用硬件抽象层，
+因为在最初阶段，我们不给他们提供硬件抽象层。
+And in fact, when I was teaching embedded systems at my university as a teaching assistant, I saw many people without access to a HAL,
+you know, because in the first instance of this, we don't give them access to a HAL.
+
+238
+00:20:52,206 --> 00:20:57,552
+所以他们基本上是自己构建了非常类似的东西，看到这一点真的很棒。
+So they essentially build something very similar to this themselves, and that's really great to see.
+
+239
+00:20:57,774 --> 00:21:05,712
+所以使用厂家提供的优点是，它已经被非常多的客户经过实战检验了，对吧？
+So the benefit of getting a manufacturer's one is that it's been pretty much battle tested by many, many customers, right?
+
+240
+00:21:05,872 --> 00:21:12,912
+如果他们遇到问题，他们会向厂家报告，你也希望厂家能做一些质量保证。
+If they have problems, they're gonna report it to the manufacturer, and
+you hope the manufacturer does some kind of quality assurance as well.
+
+241
+00:21:13,198 --> 00:21:18,912
+所以这就是为什么，通常的建议是使用厂家的，而不是自己构建。
+So that's why, in general, the advice is like use the manufacturers versus build your own.
+
+242
+00:21:19,150 --> 00:21:21,472
+自己构建非常适合作为学习练习。
+Building your own is great for a learning exercise.
+
+243
+00:21:21,552 --> 00:21:25,636
+而且我实际上鼓励所有刚开始接触嵌入式的人。
+And I actually encourage everyone who's getting started and embedded.
+
+244
+00:21:25,952 --> 00:21:28,752
+一个很棒的项目就是为自己构建一个硬件抽象层。
+A great project is to build a HAL for yourself.
+
+245
+00:21:29,006 --> 00:21:33,872
+但如果你在做生产设备，呃，千万不要用你自己写的寄存器硬件抽象层。
+But if you're doing a production device, uh do do not use your own register HAL.
+
+246
+00:21:34,032 --> 00:21:39,044
+好吗，请使用厂家的，因为那个东西已经被数百万客户测试过了。
+Okay, please use the manufacturer's one because that thing has been tested by millions of customers.
+
+247
+00:21:39,854 --> 00:21:42,432
+所以这就到了我们今天的全部时间。
+So that brings us to the end of all the time we have today.
+
+248
+00:21:42,512 --> 00:21:48,036
+如果我想要留存效果绝对不那么糟糕，但我已经知道这个视频的留存肯定会很糟糕。
+If I want the retention to absolutely not be horrible, I already know that the retention on this video is going to be horrible.
+
+249
+00:21:48,654 --> 00:21:49,552
+那感觉真挺糟糕的，伙计。
+That kind of sucked, man.
+
+250
+00:21:49,632 --> 00:21:50,244
+说实话，就像……
+Honestly, like.
+
+251
+00:21:50,670 --> 00:22:02,610
+在考虑做这个视频的时候，我觉得固件工程师能够理解到底发生了什么，
+能够深入底层原理并揭开神秘面纱是非常非常重要的，因为它看起来就像个神奇的层，
+Thinking about making this video, it's super, super important for firmware engineers to be able to understand what the hell is doing
+and be able to dive under the hood and actually you know demystify it because it seems like a magical layer, you know,
+
+252
+00:22:02,610 --> 00:22:03,120
+就像我只要输入个函数，硬件就自动运行了那样。
+Thinking about making this video, it's super, super important for firmware engineers to be able to understand what the hell is doing
+and be able to dive under the hood and actually you know demystify it because it seems like a magical layer, you know,
+
+253
+00:22:03,120 --> 00:22:06,368
+就像我只要输入个函数，硬件就自动运行了那样。
+where I just type in the function and the hardware does the thing.
+
+254
+00:22:06,638 --> 00:22:08,368
+它看起来确实很神奇，但其实并不是。
+It just seems so magical, but it's really not.
+
+255
+00:22:08,448 --> 00:22:11,812
+它只是计算机代码，说到底，它只是在设置内存地址。
+It's just computer code, and at the end of the day, it's just setting memory addresses.
+
+256
+00:22:12,270 --> 00:22:16,848
+但我知道这是个枯燥的课题，所以我得看看留存率图表了，估计不会太好。
+But I get that it's a dry subject, so I'm gonna look at the retention graph, it's not gonna be good.
+
+257
+00:22:17,102 --> 00:22:26,528
+YouTube 可能不会给这个视频推流，但嘿，它得发出来给那些真正想要它、需要它、
+并且真心想成为专业人士的人看。
+YouTube's not gonna push this video, but hey, it has to be out there for the people that actually want it,
+for the people that need it, for the people that actually really are interested in becoming pros.
+
+258
+00:22:26,926 --> 00:22:28,208
+你必须理解这些东西。
+You gotta understand this stuff.
+
+259
+00:22:28,368 --> 00:22:29,796
+所以希望你们喜欢这个视频。
+So I hope you enjoyed.
+
+260
+00:22:29,968 --> 00:22:32,708
+如果你还在看，那就是你，祝你好运。
+If you're here, that's you, and I wish you the best of luck.
+
+261
+00:22:33,070 --> 00:22:34,660
+请在评论区告诉我你的想法。
+Please let me know what you thought in the comments.
+
+262
+00:22:35,088 --> 00:22:35,888
+谢谢大家。
+Thank you.
+
