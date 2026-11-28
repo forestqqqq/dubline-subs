@@ -5,6 +5,7 @@
 | 视频 | 原作者 | 更新 |
 |---|---|---|
 | [India is 3rd in Quantum Research - So Why No Billion-Dollar Companies?](medias/BS1XE/) | AIM Network | 2026-11-28 |
+| [Google's New CARBON is Now the Most Powerful AI in the World](medias/368DD/) | AI Revolution | 2026-11-28 |
 | [How the HELL does a HAL Work? Embedded 101](medias/3125V/) | hoff._world | 2026-11-28 |
 | [CS Colloquium: "Agentic Proof Oriented Program" with Nikhil Swamy](medias/1YQDG/) | CU Engineering Academics | 2026-11-28 |
 | [Master WebRTC & LiveKIT Before SPENDING HOURS Building AI AGENT](medias/ZH6J6/) | Kno2gether | 2026-11-27 |
