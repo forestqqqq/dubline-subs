@@ -1,0 +1,1328 @@
+1
+00:00:00,174 --> 00:00:35,044
+Hey, I really don't know whether it would be controversial to say that this is the only video in the entire internet, which will give you the comprehensive knowledge and absolutely everything that you need to know about WebRTC and LiveKit from an architecture point of view, so that you know everything in detail and create your design and architecture for your next production standard AI agent, especially the multimodal AI agents, and not regret later that I wish I knew this earlier.
+
+2
+00:00:35,662 --> 00:00:42,084
+This knowledge gap has literally caused me countless hours in building a project and later scrap it.
+
+3
+00:00:42,720 --> 00:00:44,000
+More about that later.
+
+4
+00:00:44,320 --> 00:00:48,900
+let's go ahead to the screen and let's get you through the tutorial.
+
+5
+00:00:49,326 --> 00:00:51,280
+So shall we move to the screen?
+
+6
+00:00:57,102 --> 00:00:58,640
+Welcome to the screen.
+
+7
+00:00:58,720 --> 00:01:15,428
+and as you can see, the screen is really messed up with hundreds and hundreds, design documents or design diagram that I had to create to decide how I'm going to present this topic to you, because this is really, really complicated stuff.
+
+8
+00:01:15,760 --> 00:01:21,956
+and I'm really trying my best to put it in a way so that you understand it without any hiccups.
+
+9
+00:01:22,160 --> 00:01:32,350
+I will even use analogy wherever it's required so that you understand all of the terminology, all of the architecture about how WebRTC work.
+
+10
+00:01:32,686 --> 00:01:47,172
+I'll talk about terminologies like STARN, Whip servers, and then SFU and many other such things that you really probably need to know if you're planning to create a multimodal AI agent using WebRTC.
+
+11
+00:01:47,760 --> 00:02:05,316
+I know that after OpenAI have kind of launched their tutorial about how to integrate with LiveKit, there have been a lot of videos coming up in the YouTube, but I really don't see, or at least I could not find any video that talks about how those things and actually works under the hood.
+
+12
+00:02:05,806 --> 00:02:18,820
+And this is really essential if you're trying to build a production-ready system, you really need to know how things works, because if something breaks, you at least know where the problem is, and that is the whole reason why I thought to create this tutorial.
+
+13
+00:02:19,726 --> 00:02:31,236
+But this literally took me an entire day to design everything step by step, create a lot of sequence diagram, and then finally, I have created the guide for you to follow.
+
+14
+00:02:32,238 --> 00:02:35,760
+so you can download the entire guide, not this one, of course.
+
+15
+00:02:35,920 --> 00:02:37,540
+This was my rough work.
+
+16
+00:02:38,160 --> 00:02:50,756
+the actual page that I've created, I'm going to share to you that you would probably will need as reference as you go through this particular crash course about WebRTC 101 and LiveKit.
+
+17
+00:02:51,438 --> 00:02:56,708
+So let's proceed to the core tutorial part and let's start the actual tutorial, shall we?
+
+18
+00:02:57,040 --> 00:03:08,132
+And one last thing before we head to the tutorial is I really want to save my back by saying that I am not really a WebRTC specialist as such.
+
+19
+00:03:08,622 --> 00:03:16,164
+This is what my understanding is, and all the analogy that I would use going forward in the tutorial is an analogy that I have created.
+
+20
+00:03:16,686 --> 00:03:31,492
+So if you are someone who is really really specialized in WebRTC and you find some flaws in those analogies or some flaws in the statement that I use to make you understand, you can definitely correct me by commenting on this video.
+
+21
+00:03:31,840 --> 00:03:33,636
+I am all ears for that.
+
+22
+00:03:33,966 --> 00:03:38,468
+I'd be really happy to know your constructive criticism if there is any.
+
+23
+00:03:38,766 --> 00:03:41,124
+So, with that said, let's proceed to the tutorial.
+
+24
+00:03:41,486 --> 00:03:51,492
+Welcome to the core tutorial part of the video where we will discuss how LiveKit and WebRTC is going to solve the problem with multimodal AI agent setup.
+
+25
+00:03:55,886 --> 00:04:04,304
+To start with, I have to touch on the traditional architecture, and what I mean by traditional architecture is the client server architecture.
+
+26
+00:04:04,384 --> 00:04:13,636
+And I know I have covered about this in many videos previously, but I still need to quickly touch upon it so that you understand from ground up, really.
+
+27
+00:04:14,478 --> 00:04:23,024
+Now, in a traditional setup, what happens is your user is your client and you have the AI agent sitting either with the server or behind the server.
+
+28
+00:04:23,278 --> 00:04:34,212
+That means every communication that happens between your client or you or your customer and the AI agent has to be a separate HTTP request, right?
+
+29
+00:04:34,894 --> 00:04:38,304
+Now there are potentially few problems with this architecture.
+
+30
+00:04:38,464 --> 00:04:46,340
+One is if it is a multimodal AI use cases, that means you're likely to send voice or images along with the text data, right?
+
+31
+00:04:46,944 --> 00:04:57,924
+And that means you will send a large amount of data with limited bandwidth from your you know mobile phone or from your desktop application or from your web browser.
+
+32
+00:04:59,118 --> 00:05:06,624
+Now, generally servers are good to process multiple requests in parallel when the request size is small.
+
+33
+00:05:06,926 --> 00:05:12,516
+So that means when you send multiple requests with large data, it is likely to overwhelm the server.
+
+34
+00:05:13,184 --> 00:05:26,224
+Plus, as you are doing so many API calls, even for, let's say, the stage changes in between the AI agents when you are communicating, that will create too many connections.
+
+35
+00:05:26,384 --> 00:05:31,940
+Even when one client is just making communication with your AI agent, it's, it's creating too many connections.
+
+36
+00:05:32,384 --> 00:05:34,212
+and that will easily eat up.
+
+37
+00:05:34,414 --> 00:05:37,824
+you know, your server resource or your connection resource.
+
+38
+00:05:38,126 --> 00:05:49,092
+because the physical server on which your web server will run on, where your AI agent is running, is easily going to hit the number of, you know, TCP, connection limit, or similar issues.
+
+39
+00:05:49,614 --> 00:05:55,620
+So that's really a problem why I had to stop my open source project.
+
+40
+00:05:55,886 --> 00:06:04,036
+Although it has over 52 star, probably more than 300 or 500 people who have downloaded it and are still being interested in the project.
+
+41
+00:06:04,144 --> 00:06:15,904
+But you see, I haven't made any update to this project yet because I really feel this project was good at for that period of time, but this project cannot be improved.
+
+42
+00:06:15,984 --> 00:06:28,224
+It's not because there was less capable AI model or anything, it's just because this project was fundamentally flawed from an architecture point of view, which I realized later, of course.
+
+43
+00:06:28,526 --> 00:06:37,412
+Having said that, I'm going to improve this project hopefully in this year, and I'm going to completely redefine this code so that we use the best practices really.
+
+44
+00:06:37,966 --> 00:06:41,984
+So, this project again had the same problem, it was running on client server architecture.
+
+45
+00:06:42,158 --> 00:06:59,824
+That means whenever you turn up your phone, you call it through Twilio, it was using REST API to call the API that we have created in I think app.py, there are multiple APIs and redirect that was happening in this file, and as a result, the agent was getting overwhelmed.
+
+46
+00:06:59,904 --> 00:07:05,988
+The response was very slow, and I really could not find a way until I found out about WebRTC.
+
+47
+00:07:06,318 --> 00:07:20,196
+And by that time this project became so big that I didn't have any chance to improve the project to make it to production standard, so that's why I left the project and I started working on Not AI Pro version as part of the SaaS course that I have launched.
+
+48
+00:07:20,624 --> 00:07:23,620
+Now there is one way we can fix the issue.
+
+49
+00:07:27,886 --> 00:07:39,076
+Uh from being using REST API in a client server architecture to using WebSocket or WSS connection, which is WebSocket secure connection.
+
+50
+00:07:39,694 --> 00:07:57,220
+Again, this will be a client server architecture, but instead of using REST API, we will use WebSocket, and what that will give us benefit, it maintains the persistent connection, but it enables a kind of tunnel between your AI agent or your server and your user.
+
+51
+00:07:57,710 --> 00:07:59,376
+So it's a bi-directional communication.
+
+52
+00:07:59,456 --> 00:08:10,896
+So once your connection is established between the client and your agent, uh, if every data that goes to your client or to the AI agent back and forth is onto that specific tunnel.
+
+53
+00:08:10,976 --> 00:08:15,652
+so that means it resolves the problem of multiple connections being opened.
+
+54
+00:08:16,110 --> 00:08:20,996
+and it also enables the bidirectional communication, and it reduces the connection over it, of course.
+
+55
+00:08:22,094 --> 00:08:32,068
+And this diagram is kind of showing you that how the things works, but there are still the problem of bandwidth constraint, which is still exist.
+
+56
+00:08:32,590 --> 00:08:36,656
+The network limitations, which I talked earlier about in a multimodal use case.
+
+57
+00:08:36,736 --> 00:08:43,748
+if you use public internet or your own house, internet or mobile internet, you could hit the network limitations.
+
+58
+00:08:44,176 --> 00:08:53,444
+and especially if you are creating multimodal use case and you are sharing videos over the network, as you are speaking with your AI agent, that will definitely cause bottlenecks.
+
+59
+00:08:54,656 --> 00:09:01,696
+And the final problem that we have had here is about the server can still be overwhelmed with multiple clients.
+
+60
+00:09:01,776 --> 00:09:12,804
+That means if multiple clients all at the same time create a WSS connection, your AI agent or your server can get overwhelmed and uh it's it may stop responding.
+
+61
+00:09:13,934 --> 00:09:24,772
+So these problems are there in traditional client-server architecture, but I think that can be resolved using WebRTC and how WebRTC has actually resolved this.
+
+62
+00:09:25,136 --> 00:09:25,476
+Let's see.
+
+63
+00:09:29,838 --> 00:09:38,656
+So in a WebRTC setup, what is really happening is we are trying to take off the server layer from it, and we are trying to make it a peer-to-peer connection.
+
+64
+00:09:38,958 --> 00:09:47,876
+What I mean by that is when an user or a client tries to connect with your AI agent, it's not actually going through any server anymore.
+
+65
+00:09:48,494 --> 00:10:01,510
+It basically goes to the signal server, and the signal server says, Here is the AI agent, here is the address of the AI agent, and then the user directly connect with the AI agent in a peer-to-peer connections.
+
+66
+00:10:01,966 --> 00:10:04,656
+So as a result, it's not going through any server.
+
+67
+00:10:04,736 --> 00:10:11,364
+There is no server limitations at all, and all the streaming that is happening is between the user and AI agent directly.
+
+68
+00:10:12,096 --> 00:10:28,016
+And as a result, we are kind of solving a lot of the problem, such as server getting overwhelmed or vision capability being affected, because it's using its own peer-to-peer network and bandwidth based on the stream that it is sending to the AI agent.
+
+69
+00:10:28,176 --> 00:10:30,176
+If it is a video stream, it will use higher bandwidth.
+
+70
+00:10:30,286 --> 00:10:32,580
+If it is data stream, it will probably use lesser bandwidth.
+
+71
+00:10:33,456 --> 00:10:37,028
+And these are all benefits of a general P2P communications.
+
+72
+00:10:38,542 --> 00:10:47,908
+As I said, there is a need for initial discovery, so the user needs to find where is the agent, and signal signaling server is kind of the matchmaker here, right?
+
+73
+00:10:48,976 --> 00:10:52,416
+But there is still a problem with this architecture.
+
+74
+00:10:52,686 --> 00:10:53,956
+Do you see any problem with this?
+
+75
+00:10:54,702 --> 00:10:56,176
+Just have a think about it.
+
+76
+00:10:56,336 --> 00:11:04,292
+Maybe pause the video and maybe write down in the comment what is the problem that do you see with this particular setup, even with WebRTC?
+
+77
+00:11:04,736 --> 00:11:11,108
+Let me show you the problems that is there with the WebRTC in this implementation.
+
+78
+00:11:11,470 --> 00:11:20,068
+Even with WebRTC as a peer to peer connection, how would you handle clients behind firewalls or complex NAT setups?
+
+79
+00:11:20,846 --> 00:11:37,188
+What I mean by that is if your AI agent and different clients or you have multiple AI agents sitting on different networks or different corporate networks, you might have firewall issues that a peer-to-peer connection will not be allowed in a corporate network, right?
+
+80
+00:11:37,312 --> 00:11:40,676
+So that could cause hindrance in creating the connection.
+
+81
+00:11:41,038 --> 00:11:57,092
+There could be NAT or network address translation problem where the signal server has sent an IP and let's say port to connect to the peer agent, but the NAT is not able to translate that into a real AI agent or real um Wave RTC peer.
+
+82
+00:11:57,392 --> 00:12:01,828
+That could be a problem if there could be some network issues as well, right?
+
+83
+00:12:02,254 --> 00:12:06,352
+What happens when multiple clients wants to connect to the same AI agent, right?
+
+84
+00:12:06,606 --> 00:12:19,232
+That means you need to have a lot of AI agent running, and and then the problem is the signal server has to have the status of all the AI agents if it is operational or not, right?
+
+85
+00:12:19,392 --> 00:12:22,832
+Otherwise, how would a signal server know if an AI agent is operational?
+
+86
+00:12:23,072 --> 00:12:30,592
+It might just send back the same address to two clients, whereas the agent is still maybe occupied with the client one.
+
+87
+00:12:30,894 --> 00:12:32,420
+How would client two would interact?
+
+88
+00:12:32,974 --> 00:12:36,272
+How does the AI agent handle multiple simultaneous peer connection?
+
+89
+00:12:36,512 --> 00:12:46,564
+For example, you make the AI agent multithreaded, but still if there are too many communications or too many connections coming through peer-to-peer connection, how would it handle it?
+
+90
+00:12:47,694 --> 00:12:51,872
+There are network and resource constraints that could be on the agent side as well, right?
+
+91
+00:12:51,982 --> 00:12:56,036
+So if it gets too many media to process, then there could be some issues.
+
+92
+00:12:56,832 --> 00:13:06,752
+And the most problem is if there are multiple clients and multiple agent in one network, how would you manage the state of this peer-to-peer communication?
+
+93
+00:13:06,832 --> 00:13:15,364
+As I said at the start, is you need to know or you need to register the state of those agents or state of these clients somewhere.
+
+94
+00:13:15,872 --> 00:13:22,052
+for example, all the media that it is sharing, you need to save all those states in an OebRTC setup.
+
+95
+00:13:22,574 --> 00:13:23,428
+How do you do that?
+
+96
+00:13:24,366 --> 00:13:39,072
+The other problem that I will probably discuss in more details later, is if you have this kind of peer-to-peer mess, and let's say user one wants to share its audio and its video to both agent one and agent two.
+
+97
+00:13:39,312 --> 00:13:46,432
+that means it needs to send the same video stream two times, one to agent one, another to agent two.
+
+98
+00:13:46,752 --> 00:13:55,460
+and that, again, can cause the bandwidth issue that we have seen before in the WSS setup or in the HTTP server setup.
+
+99
+00:13:55,872 --> 00:13:56,192
+right?
+
+100
+00:13:56,974 --> 00:14:01,636
+I'm going to talk about this in more details later part of this one, how we are going to resolve it.
+
+101
+00:14:02,352 --> 00:14:06,468
+But let's actually attack each of this problem one by one.
+
+102
+00:14:07,246 --> 00:14:12,352
+So the first problem where we could have issues with firewalls and NAT.
+
+103
+00:14:12,814 --> 00:14:20,356
+Now, if you do not know what firewall is, what NAT is, I think you are going to get some idea when you when you go through the next section, so stay tuned for that.
+
+104
+00:14:20,752 --> 00:14:28,352
+Now, what I will do for the next section is I am going to use some kind of analogy so that you understand it better.
+
+105
+00:14:28,526 --> 00:14:43,652
+I don't want to use too much technical terms, or even if I use technical terms, I really wanted to use analogy because there will be a couple of new concepts and couple of new term or terminology that we need to understand as part of Wave RTC protocol.
+
+106
+00:14:44,462 --> 00:14:48,644
+So I really want you to understand all of this in details.
+
+107
+00:14:52,910 --> 00:15:10,496
+And as I said, I will try my best to make it as simple as possible so that you never have to go back to any other video in future, and you would understand exactly how Waybird is your live kit work so that you can create your next multimodal AI agent or your AI SaaS without any hiccups really.
+
+108
+00:15:10,830 --> 00:15:20,324
+Okay, so in the NAT and firewall problem, we need to understand two type of new terminology, which is what is called turn and stern servers.
+
+109
+00:15:20,413 --> 00:15:35,460
+I am not very fond of terminologies like the full form of a term, but if you are interested, turn stands for traversal using relay around NAT and stand for session traversal utilities for NAT.
+
+110
+00:15:35,616 --> 00:15:37,412
+Now, again, you don't have to remember that.
+
+111
+00:15:38,030 --> 00:15:47,936
+I'm going to explain it in a very very simple way using some kind of analogy and or example, so you don't have to remember these terminologies.
+
+112
+00:15:48,622 --> 00:15:51,524
+Now let's understand a real-world analogy.
+
+113
+00:15:51,886 --> 00:16:00,176
+Let's say there is two office building or two affix complex, one is office complex A and another is Office Complex B.
+
+114
+00:16:00,302 --> 00:16:01,350
+That means two different building.
+
+115
+00:16:02,222 --> 00:16:10,628
+Now each of the building of course, you have different cabins and different desks for for those specific offices or for those specific companies.
+
+116
+00:16:11,278 --> 00:16:15,056
+Now it could be in on one company, it could be two different companies.
+
+117
+00:16:15,216 --> 00:16:27,376
+I'm not going into that, but it's just think about two different building which have different desks and cabins, and each of the building will of course have a front desk and there will be security in the gate, right?
+
+118
+00:16:27,456 --> 00:16:29,732
+That's how usually office buildings are.
+
+119
+00:16:47,616 --> 00:17:00,836
+So if you know anything about IP, uh there are private IPs and then there are public IPs, so these are private IPs, and then think about the street which is in front of the building, is the public IP.
+
+120
+00:17:01,056 --> 00:17:05,456
+So that means if anyone needs to access to this building, they need to come to the street.
+
+121
+00:17:05,582 --> 00:17:11,056
+So that means the street is the public IP, and your cabin and desk are private IPs.
+
+122
+00:17:11,376 --> 00:17:16,260
+But someone from this office wants to visit this cabin.
+
+123
+00:17:17,358 --> 00:17:18,256
+How do they do that?
+
+124
+00:17:18,416 --> 00:17:21,796
+They don't know where exactly cabin 101 is, right?
+
+125
+00:17:22,670 --> 00:17:35,364
+So what they have to do is first go through the security check and then go to the front desk, and in the front desk they will ask, Hey, where is the cabin 101 or desk 102 exist?
+
+126
+00:17:36,366 --> 00:17:46,916
+And based on that, the front desk will basically give the address, and then the person in Kevin 201 can actually meet the desk one desk 102 or Kevin 101, right?
+
+127
+00:17:48,078 --> 00:17:50,052
+So that's how generally works.
+
+128
+00:17:50,176 --> 00:17:54,148
+So here the front desk is NAT or network address translation.
+
+129
+00:17:54,446 --> 00:18:07,236
+So basically, the Kevin 201 comes via the public internet and then it hits the NAT, and then in the NAT it translates the address into the private IP and it goes to the specific destination.
+
+130
+00:18:07,776 --> 00:18:20,932
+But in a proper corporate scenario or in a proper production standard implementation, you will have firewall, so you will definitely will not allow anyone from this building to come and meet uh another person in this building, right?
+
+131
+00:18:21,294 --> 00:18:23,972
+So that is where your firewall will start blocking.
+
+132
+00:18:24,398 --> 00:18:36,356
+So in a peer-to-peer communication, let's say this is a client and this client want to connect with this client, so it has to use the address colon port and that port might be blocked at the firewall level.
+
+133
+00:18:37,518 --> 00:18:41,296
+Then how would you make the peer-to-peer connection possible through ABRTC?
+
+134
+00:18:41,376 --> 00:18:42,244
+It's not possible, right?
+
+135
+00:18:42,656 --> 00:18:46,852
+So that is where we have something called Turn.
+
+136
+00:18:47,856 --> 00:19:01,376
+But if Kevin 201 needs to communicate with desk 202, which is in the same office, which is on the same NAT, then it can use the server called Stan.
+
+137
+00:19:02,606 --> 00:19:17,280
+So using stun, what happens is this communication happens easily because it doesn't have to come through the other building through the public IP address, it can easily traverse through the internal network, and that's where stun will help it basically.
+
+138
+00:19:17,440 --> 00:19:21,540
+Again, I am just taking this as an example so that you understand how all this thing works.
+
+139
+00:19:22,126 --> 00:19:31,684
+Don't take the literal meaning of it because, as and when I'm going to explore more, you will have much better understanding how and this turn works basically.
+
+140
+00:19:32,240 --> 00:19:35,172
+So, this is how thing works.
+
+141
+00:19:35,854 --> 00:19:37,360
+So, in case of stun, what is happening?
+
+142
+00:19:37,550 --> 00:19:56,356
+If your device needs to connect with another device, it goes to the NAT or the router to the stun server, and the stun server basically publish the port or the address of the particular client that this device needs to connect, and then it basically makes the peer-to-peer connection.
+
+143
+00:19:56,750 --> 00:20:15,680
+But in case of turn, as I said, both this building have their own security, so you cannot meet within this office, so that is why they go to turn servers, and turn servers are basically turn server basically says go to this specific conference place where you both of you can actually talk, so something like that.
+
+144
+00:20:15,840 --> 00:20:22,564
+So they actually meet at a trusted conference center, which are the turn server provided relay services.
+
+145
+00:20:22,830 --> 00:20:28,080
+So this is how thing works, and I'm going to share you all of all this document in the file.
+
+146
+00:20:28,160 --> 00:20:33,360
+So maybe make sure just use the link below and download this file for your own understanding.
+
+147
+00:20:33,840 --> 00:20:54,148
+But in a simple sequence, what is happening is if a person from building A wants to meet person B and it cannot use turn, it goes to Turn server, and Turn server provide the address where they can meet, which is a trusted conference server or a relay server in case of WebRTC.
+
+148
+00:20:54,240 --> 00:20:55,364
+and that is where they go and meet.
+
+149
+00:20:56,302 --> 00:20:58,800
+I am saying these things again and again so that you understand.
+
+150
+00:20:58,880 --> 00:21:09,188
+I know these are a bit complex concepts and advanced concepts, so that is why I am using the same terminologies and same process once again and again.
+
+151
+00:21:09,614 --> 00:21:27,680
+Again, I have given the example here for you to understand that client one goes for turn server, it returns the relay address and it sends the media and it relay the turn server is relaying the media, and then client two is sending response to the turn server and turn server is relaying the response.
+
+152
+00:21:27,760 --> 00:21:36,100
+So, as you can see, turn server is kind of providing that interconnectivity rather between two devices on different networks.
+
+153
+00:21:36,558 --> 00:21:46,212
+Again, I have used the same example again and again for you so that you have the complete clarity about when to use turn and when it is using turn.
+
+154
+00:21:46,894 --> 00:21:55,524
+Now, again, you don't as a client or as an AI agent setup, you don't need to know all of this or you don't need to manually implement all of this.
+
+155
+00:21:55,920 --> 00:22:12,772
+But why I am sharing this is because if you are creating an AI agent using some of the latest framework that is coming today, for example, small agent framework or many other like you want to create an agent or you using let's say crew AI framework, you can create that.
+
+156
+00:22:12,974 --> 00:22:32,164
+And if you have this idea about how to use those kind of framework, agentic framework, and still make it available through LiveKit or similar WebRTC component, then you really need to understand how these things work so that you can actually configure your agent or your architecture accordingly, right?
+
+157
+00:22:32,718 --> 00:22:38,148
+So, again, I have went through these examples again and again in this document.
+
+158
+00:22:38,446 --> 00:22:58,000
+Please go through it, but there is some security consideration, of course, in the turn server because, as I said, as trans servers are providing the security between two different web rtc client they need to ensure there is a proper authentication in place, there is encryption in place, and there is rate limiting in place, right?
+
+159
+00:22:58,094 --> 00:23:03,280
+So that no two unauthorized client or web RTC client talk can talk each other.
+
+160
+00:23:03,360 --> 00:23:14,560
+So they need to ensure that those clients are really authenticated and those two WebRTC client are really authorized clients to actually access the relay servers, right?
+
+161
+00:23:14,640 --> 00:23:17,092
+So all these are ensured by TAL servers.
+
+162
+00:23:17,870 --> 00:23:26,116
+Now, if you want to use any other Web RTC implementation, you might face an issue that you have to separately configure a turn server.
+
+163
+00:23:26,414 --> 00:23:30,528
+you have to separately host a turn server, which is not the case for LiveKit.
+
+164
+00:23:30,688 --> 00:23:35,408
+because LiveKit, as I have read through, the LiveKit comes with its own turn server.
+
+165
+00:23:35,488 --> 00:23:42,884
+so you don't really have to think about setting up a turn server for your WebRTC architecture if you want to self-host it.
+
+166
+00:23:43,008 --> 00:23:43,568
+for example.
+
+167
+00:23:43,728 --> 00:23:45,728
+Again, same thing again and again.
+
+168
+00:23:45,808 --> 00:23:47,728
+How as a flow diagram?
+
+169
+00:23:47,808 --> 00:23:48,688
+I have mentioned it here.
+
+170
+00:23:48,928 --> 00:23:49,668
+Please go through it.
+
+171
+00:23:50,190 --> 00:23:51,888
+I'm not repeating it again.
+
+172
+00:23:52,048 --> 00:23:54,308
+I really hope that you have already understood this.
+
+173
+00:23:54,848 --> 00:24:05,888
+Now there is a specific problem that can happen if there are too many clients that want to connect with other too many clients who are on different buildings, right?
+
+174
+00:24:05,998 --> 00:24:16,036
+So if you have only one turn server, what might happen is because the turn server is helping with the relay services, it might just get overwhelmed and it might just get dead.
+
+175
+00:24:16,590 --> 00:24:20,368
+So that is why you need to have cluster of trans servers.
+
+176
+00:24:20,448 --> 00:24:32,228
+So you need to have different turn servers and you need to have a load balancer which should be available through different region if you are trying to create a really comprehensive and production-ready system, right?
+
+177
+00:24:32,526 --> 00:24:35,204
+And it needs to support both UDP and TCP.
+
+178
+00:24:35,822 --> 00:24:44,548
+And again, as I said, a lot of the corporate uh firewalls don't like UDP packets, they drop the UDP packets.
+
+179
+00:24:44,848 --> 00:24:50,724
+So this is one of the reason why you need specialized implementation like LiveKit.
+
+180
+00:24:51,088 --> 00:24:51,460
+Cool.
+
+181
+00:24:51,808 --> 00:24:58,884
+Now I think we have solved the first problem about the NAT and firewall problem.
+
+182
+00:24:59,246 --> 00:25:05,956
+So let's understand how it actually works in a live kit environment in a real life WebRTC environment.
+
+183
+00:25:10,446 --> 00:25:18,660
+So for that, we also need to understand one new service which is called ICE or interactive connectivity establishment.
+
+184
+00:25:19,022 --> 00:25:22,212
+So what is meant by IC service and what it does?
+
+185
+00:25:22,688 --> 00:25:33,380
+I said here that if two clients are on same building, they can use stun, if they are on different buildings, they should use turn and all these things, right?
+
+186
+00:25:33,968 --> 00:25:41,968
+But does that mean that you have to write all those logic in your client or you have to write all those logic in your AI agent?
+
+187
+00:25:42,128 --> 00:25:42,608
+No, right?
+
+188
+00:25:42,768 --> 00:25:44,260
+That would make it more complex.
+
+189
+00:25:45,070 --> 00:25:54,608
+So that is why LiveKit and similar WebRTC implementation provides a service called ICE service or interactive connectivity establishment.
+
+190
+00:25:54,768 --> 00:26:02,128
+So that means this IC service will actually manage internally whether you need to use a turn service or not, right?
+
+191
+00:26:02,286 --> 00:26:03,968
+So it will decide itself.
+
+192
+00:26:04,048 --> 00:26:17,764
+So basically, for a client or an AI agent to communicate, all they have to do is just go through the ICE service, and the IC service knows the best path available to connect to the other client, like the AI agent.
+
+193
+00:26:17,968 --> 00:26:30,564
+So, for example, in this instance, if the client need to connect with AI agent, the client will go to the IC service and the IC service will basically know how to connect AI agent in a best possible path or in a best possible way.
+
+194
+00:26:31,008 --> 00:26:36,516
+So it might use the relay if the stun is not available and all these bits.
+
+195
+00:26:36,688 --> 00:26:41,476
+And if stun is available, it will use stun server and directly connect connect with AI agent.
+
+196
+00:26:41,934 --> 00:26:52,868
+So as a WebRTC AI agent or as a WebRTC client, if you are designing, you don't have to worry about all this logic about whether to select stun server or turn server.
+
+197
+00:26:53,934 --> 00:26:55,876
+I really hope it all makes sense.
+
+198
+00:26:56,496 --> 00:27:15,940
+And if it is, and if you are really learning something new, please give a thumbs up to the video so that it reaches out to many other people like you who really need to understand and not get swayed away by different other YouTube tutorials or documentation and just create an AI agent without understanding what they are building.
+
+199
+00:27:16,526 --> 00:27:17,892
+And that happened with me.
+
+200
+00:27:18,096 --> 00:27:29,540
+I have the personal experience as I have shown you that one of my very endearing project, I had to shut it down because I didn't have the understanding, so I really don't want that to happen to you.
+
+201
+00:27:30,158 --> 00:27:36,036
+So please make sure give this video a like so that it reaches out to the wider audience.
+
+202
+00:27:37,198 --> 00:27:37,616
+Thank you.
+
+203
+00:27:37,856 --> 00:27:44,496
+Let's proceed with now how we will solve the other four problems we discussed above.
+
+204
+00:27:44,576 --> 00:27:49,764
+So we have now solved the NAT and firewall problem, but we still had four other problems, right?
+
+205
+00:27:50,542 --> 00:28:00,484
+We had problem where multiple client want to connect to same AI agent, or we had problems about how agent will handle multiple simultaneous peer-to-peer connections.
+
+206
+00:28:00,816 --> 00:28:05,250
+What if there is a lot of peer-to-peer connections between client1, client two, one agent two?
+
+207
+00:28:05,456 --> 00:28:07,044
+There is a mess of connections.
+
+208
+00:28:07,278 --> 00:28:10,244
+How to manage all those things, like I have shown you here.
+
+209
+00:28:10,606 --> 00:28:28,932
+And as I have said earlier, if user one needs to share a video, let's say they are in a meeting room and user one needs to share his video using his camera, that means user one's client need to share the same video feed to both user two and user three, right?
+
+210
+00:28:29,136 --> 00:28:33,696
+And that will actually eat up the bandwidth of user one's device unnecessarily.
+
+211
+00:28:33,902 --> 00:28:34,948
+Why would you have to do that?
+
+212
+00:28:35,822 --> 00:28:37,860
+But that's a problem with a peer-to-peer mess.
+
+213
+00:28:42,318 --> 00:28:44,292
+How does LiveKit solve this problem?
+
+214
+00:28:44,496 --> 00:28:49,252
+Is something called SFU or Selective Forwarding Unit.
+
+215
+00:28:49,376 --> 00:28:50,976
+Now there is a really good article.
+
+216
+00:28:51,136 --> 00:28:52,676
+I have linked down here.
+
+217
+00:28:53,056 --> 00:29:02,336
+Go through this article, which will give you if you want to know more about SFU or the different other options that is available to solve this problem.
+
+218
+00:29:02,638 --> 00:29:04,096
+This article talks about it.
+
+219
+00:29:04,558 --> 00:29:06,276
+Actually, I'll just quickly open it for you.
+
+220
+00:29:06,766 --> 00:29:14,816
+So here it says that when two peers connect one another, they exchange ignoring data channels, audio and video directly.
+
+221
+00:29:14,896 --> 00:29:17,124
+This works well for set of two to three peers.
+
+222
+00:29:17,856 --> 00:29:25,508
+But how many people have internet connection which can consistently upload 5, 7, 20 pixel video stream simultaneously?
+
+223
+00:29:26,016 --> 00:29:26,244
+Right?
+
+224
+00:29:26,862 --> 00:29:27,376
+Not many.
+
+225
+00:29:27,598 --> 00:29:33,700
+Thus, scaling Weber TC to group of more than two to three people require a client server model.
+
+226
+00:29:34,062 --> 00:29:43,044
+Again, that means you will say, Hey Avijet, you just said that the client server architecture doesn't work, and now you are talking about you will go back to the client server architecture.
+
+227
+00:29:43,950 --> 00:29:52,772
+Yes and no, you will see how these things are being resolved using the client server architecture on top of WebRTC using SFU.
+
+228
+00:29:53,056 --> 00:30:01,936
+So basically, without an SFU, what is happening is you have your AI agent have multiple connections with different users.
+
+229
+00:30:02,126 --> 00:30:03,844
+Let's say if they're on the same meeting room.
+
+230
+00:30:05,038 --> 00:30:07,012
+So that means you have n connection required.
+
+231
+00:30:07,136 --> 00:30:24,996
+But what LiveKit is saying is you have one SFU, which is the selective forward thing unit, and both the clients which are user 1, user 2, user 3, and many more clients there could be, they all will be connected to SFU, and the AI agent will also connect it to SFU.
+
+232
+00:30:25,390 --> 00:30:31,216
+And then SFU will manage the transfer of data like the video tracks, text data, and everything.
+
+233
+00:30:31,662 --> 00:30:38,460
+It SFU will manage it using the best latency free and bandwidth compatible way.
+
+234
+00:30:39,342 --> 00:30:41,792
+You don't have to worry about it how it is doing it.
+
+235
+00:30:41,952 --> 00:30:50,756
+You just write your AI agent code, or you just write your WebRTC client, and all you need to do is just point to the SFU, and the SFU will take care of it.
+
+236
+00:30:51,278 --> 00:30:54,112
+There is a classic problem that I tried to explain it here.
+
+237
+00:30:54,272 --> 00:31:04,740
+That means let's say there are five clients or like four client and one agent, or similar like that, they all went into a meeting room which is powered by WebRTC.
+
+238
+00:31:05,358 --> 00:31:13,316
+Now let's say three of the client have shared their audio and video both, and two of the client have only shared their audio.
+
+239
+00:31:13,632 --> 00:31:20,000
+But these two client who have only shared their audio, they want to consume the video from all these three client.
+
+240
+00:31:20,622 --> 00:31:26,692
+But this three client let's say two client only want to consume the audio from the other participants, not the video.
+
+241
+00:31:27,182 --> 00:31:31,300
+And let's say this participant want to consume both audio and video.
+
+242
+00:31:31,918 --> 00:31:36,832
+Now this is a really complex setup when it comes to a peer-to-peer setup, right?
+
+243
+00:31:36,912 --> 00:31:46,660
+Because in a peer-to-peer setup, it's very difficult for to manage such a system because let's say this client want audio video from everyone.
+
+244
+00:31:47,342 --> 00:31:54,884
+so that means this client has to share the video to this user in a peer-to-peer network.
+
+245
+00:31:55,310 --> 00:31:57,316
+and this user using three channels.
+
+246
+00:31:57,952 --> 00:32:05,632
+Whereas this client may be just interested in audio, so all this client have to produce the audio for each of the clients, right?
+
+247
+00:32:05,712 --> 00:32:07,552
+So this makes it really really complicated.
+
+248
+00:32:07,712 --> 00:32:12,832
+In case of SFU, what happens is everyone goes to LivePed SFU and SFU manage it.
+
+249
+00:32:12,912 --> 00:32:17,472
+So basically, this client have to subscribe to the tracks that they need to access.
+
+250
+00:32:17,632 --> 00:32:20,432
+For example, an AI agent is a voiceai agent.
+
+251
+00:32:20,512 --> 00:32:26,752
+So if it is a voice AI agent, there is no need for the voice AI agent to subscribe to a video track, right?
+
+252
+00:32:26,832 --> 00:32:33,072
+So you when you design your AI agent system, you would say, I don't want a video track.
+
+253
+00:32:33,232 --> 00:32:44,484
+All I would do is just subscribe to audio tracks, or maybe just subscribe to the data stream where you get the text output because your AI agent maybe is meant for only chat, it doesn't have multimodal use case.
+
+254
+00:32:44,592 --> 00:32:56,644
+So based on that, you define your AI agent, it will go to the SFU and it will only subscribe for let's say audio track or data or data stream, and then SFU will actually manage the track distribution.
+
+255
+00:32:57,262 --> 00:32:58,272
+Does it make sense to you?
+
+256
+00:32:58,574 --> 00:33:02,992
+So that's how they basically live kit is managing the SFU.
+
+257
+00:33:03,072 --> 00:33:10,340
+So LiveKit node have SFU nodes built in it, and it also have the turn server and stun server built in it.
+
+258
+00:33:11,566 --> 00:33:22,148
+So when you are going to self-host a live kit server in a node, that node will have SFU and it will have stun and turn servers built into it.
+
+259
+00:33:23,712 --> 00:33:24,032
+But
+
+260
+00:33:28,526 --> 00:33:39,952
+the question is if there is one SFU managing media streams from 5, 10, 15 clients, this SFU must be exhausted, right?
+
+261
+00:33:40,112 --> 00:33:53,092
+If there are too many media streams that it needs to process, so SFU actually that is where is better than MCU, which they have discussed in this blog.
+
+262
+00:33:53,582 --> 00:34:03,492
+That SFU is horizontally scalable, that means you can have multiple nodes, SFU nodes you can spin up as and when you need more and more processing.
+
+263
+00:34:03,872 --> 00:34:12,516
+But then the question is how the SFU node would ensure that same track is not being reprocessed by different node.
+
+264
+00:34:12,752 --> 00:34:13,552
+You don't want that, right?
+
+265
+00:34:13,632 --> 00:34:19,748
+Let's say client to have sent their video stream and that is already processed and sent to other clients.
+
+266
+00:34:20,174 --> 00:34:24,964
+You don't want the new node, which is node 2, to reprocess that again.
+
+267
+00:34:25,742 --> 00:34:31,940
+For that, there is a Redis cluster that you need to spin up if you want to sell FOST Live kit.
+
+268
+00:34:32,352 --> 00:34:41,348
+And this Redis is where the node will connect to and it will save the session state, it will save the context, it will save the media states and everything.
+
+269
+00:34:41,774 --> 00:34:52,484
+So that new nodes as they spin up or as they are operational in a cluster, they basically share they basically get the state of the information and they basically process it properly.
+
+270
+00:34:53,102 --> 00:34:59,392
+So that means in a true live kit architecture, you need to have a load balancer.
+
+271
+00:34:59,472 --> 00:35:11,972
+That means each client or agent needs to come through the load balancer and connect to the nodes for the SFU services, and these nodes will be connected to the Redis.
+
+272
+00:35:12,398 --> 00:35:22,244
+Even the better architecture will be to have even a Redis cluster available so that in case of any fallback that is needed in a production setup, you have a Redis replica as well.
+
+273
+00:35:23,278 --> 00:35:35,588
+And trust me, this is one of the reasons why, even in my SaaS project, even though I'm using LiveKit, I am taking my hands off from hosting LiveKit myself.
+
+274
+00:35:36,558 --> 00:35:39,012
+And this is what I recommend to you two as well.
+
+275
+00:35:39,456 --> 00:35:47,492
+That sometime, even if there are softwares that is open source and you can self-host it, doesn't mean that you have to self-host it.
+
+276
+00:35:47,856 --> 00:35:59,044
+You don't need to redesign or reinvent a wheel, or you don't need to actually take a lot of stress and lot of complications when you are building your SaaS.
+
+277
+00:36:00,430 --> 00:36:07,908
+Your focus should be to solve a problem that is not solved before rather than solving a problem which is already solved by someone.
+
+278
+00:36:08,750 --> 00:36:14,884
+So LiveKit is managing, I think, their own services and all these complicated setups.
+
+279
+00:36:15,278 --> 00:36:21,700
+They are giving CDNs and everything to you, and they have a very nice, I would say, free tier if you want to test it.
+
+280
+00:36:22,254 --> 00:36:29,252
+There is no really need for you to host it, but if you really want to host it, I will create the next video about how to host it.
+
+281
+00:36:30,158 --> 00:36:34,756
+But that means you have to really think about this architecture when you want to host it.
+
+282
+00:36:35,216 --> 00:36:40,548
+Okay, so this is where I have finally created the end-to-end diagram.
+
+283
+00:36:40,750 --> 00:36:57,476
+Now that you have understood all of the services and protocols that is involved in this end-to-end Wave RTC architecture, and this sequence diagram will actually give you the end-to-end flow of between different components in a proper WebRTC architecture.
+
+284
+00:36:58,062 --> 00:36:58,576
+Go through it.
+
+285
+00:36:58,656 --> 00:37:03,136
+If you have any questions, come and join the community, post it there, or let me know in the comment.
+
+286
+00:37:03,342 --> 00:37:07,936
+I'm not going through that because I have already covered it in much detail, hopefully, as part of my explanation.
+
+287
+00:37:08,016 --> 00:37:26,660
+If you have listened through it, so that means now we have solved all of the problem that we had just by introducing the SFU, all of these four problems, and that's what I have mentioned it here, which is state management, resource constraints simultaneous connection, and multiple clients, all of these are now resolved.
+
+288
+00:37:30,734 --> 00:37:32,576
+However, there is still another problem.
+
+289
+00:37:32,736 --> 00:37:37,284
+You might just say, obviously, your list of problems is not just getting ended.
+
+290
+00:37:37,582 --> 00:37:38,564
+Please stop it, man.
+
+291
+00:37:38,656 --> 00:37:41,732
+Um, and I promise this is kind of the last problem that I'm going to discuss.
+
+292
+00:37:42,496 --> 00:37:48,260
+So, even though you solve all of the problem the one of the problem is the AI agent system.
+
+293
+00:37:48,718 --> 00:37:53,296
+So, you as I said, you can use any of the AI agent framework or AI agent system.
+
+294
+00:37:53,456 --> 00:38:01,056
+That means the live kit do not have control on what kind of media your AI agent will produce.
+
+295
+00:38:01,216 --> 00:38:12,772
+For example, you might use 11 Labs, you might use DeepGram, you might use Kokoro TTS or something else for your text-to-speech services.
+
+296
+00:38:13,296 --> 00:38:20,996
+Now, in a WebRTC framework, you do not want to use RTMP streaming because that is overkill for WebRTC framework.
+
+297
+00:38:21,870 --> 00:38:26,244
+You really need some lightweight way to share the media streams.
+
+298
+00:38:27,694 --> 00:38:38,212
+Now, if any of these text-to-speech services generate the media in a format which WebRTC doesn't support out of the box, then there is a problem, right?
+
+299
+00:38:38,496 --> 00:38:49,796
+Because you have your UI running, you have your clients running, and those clients won't be able to ingest those media streams that your AI agent is producing.
+
+300
+00:38:51,118 --> 00:39:04,804
+So that is why there is a protocol that is supported in WebRTC HTTP ingestion protocol, and live kit actually internally manages a web server as well.
+
+301
+00:39:05,134 --> 00:39:21,860
+So that means, whenever your AI agent initialize any stream, basically, then this WHIP server basically check if that stream needs to be transcoded for all of the end users or web or web.c client.
+
+302
+00:39:22,336 --> 00:39:24,836
+and if that is supported by this webrc client.
+
+303
+00:39:25,136 --> 00:39:40,420
+If if needed, then the web server will basically transcode it and then it will forward it to the end user through SFU, or if there is no need, then it will basically directly transfer the communications or the streams to the end user.
+
+304
+00:39:41,198 --> 00:39:58,340
+Because it is using WebRTC HTTP ingestion protocol, that is the reason why this WebRTC powered AI agents are so fast because this protocol ensures that the media streamings that is happening through WebRTC are low latency distribution.
+
+305
+00:39:58,958 --> 00:40:05,092
+So you see, there are so many benefits of using a proper WebRTC system.
+
+306
+00:40:05,968 --> 00:40:20,288
+To make your web agent or your AI agent architecture really really stress-free as we are going towards more multi multimodal AI with visions and other capabilities, right?
+
+307
+00:40:20,398 --> 00:40:25,188
+There are capabilities that Gemini have introduced with spatial understanding.
+
+308
+00:40:25,550 --> 00:40:35,248
+So you can understand that when you want to process an image or a video with special understanding, how many or how much media processing that needs to be done?
+
+309
+00:40:35,328 --> 00:40:40,260
+So if you want to have your AI agent do all those stuff, well, best of luck.
+
+310
+00:40:40,590 --> 00:40:42,916
+And that's what I am doing as part of my SaaS course.
+
+311
+00:40:43,088 --> 00:41:00,848
+I am using LiveKit, and even though you use LiveKit, there are still a lot and lots of issues to really think through when you design your system, especially if you are planning to create a SaaS, and that's what I usually we discuss in our SaaS course.
+
+312
+00:41:01,008 --> 00:41:06,308
+So if you really want to get all those insights, again use the link below and come and join us.
+
+313
+00:41:07,182 --> 00:41:10,368
+because I am really thinking to close down that course as well.
+
+314
+00:41:10,862 --> 00:41:16,068
+Because with the course running and YouTube, I'm really not able to focus on the SaaS that I want to build.
+
+315
+00:41:16,558 --> 00:41:24,612
+So maybe this is the best time where I'll probably ask you to join the course while it is still on the pre-launch phase.
+
+316
+00:41:24,928 --> 00:41:37,092
+Because I'm going to, hopefully, probably close the pre-launch phase registration by end of this month or mid of February, depending on my situation and time availability.
+
+317
+00:41:37,488 --> 00:41:44,932
+and I'll probably again reopen it once I have launched my SaaS, or once I have completed the uh SaaS course.
+
+318
+00:41:45,728 --> 00:41:49,476
+But yes, then the SaaS course will be priced up, of course.
+
+319
+00:41:50,350 --> 00:41:59,328
+So, maybe if you want to join, if you want to know more about how you should design your live kit based agent or any other, if you are using PipeCat.
+
+320
+00:41:59,534 --> 00:42:09,380
+and if you really want to know more about how you should approach this kind of decisions when you are using uh Wave RTC framework for your multimodal AI use cases.
+
+321
+00:42:10,128 --> 00:42:21,700
+I think the course is really a best place to come and talk with the other SaaS, masterminds and other SaaS entrepreneurs who are also working in the same space and have joined the course.
+
+322
+00:42:22,350 --> 00:42:28,228
+I don't want to talk about it anymore and make this entire tutorial an advertisement.
+
+323
+00:42:29,248 --> 00:42:35,492
+but what I will do instead is in the next video I will deal with the self-hosting.
+
+324
+00:42:35,694 --> 00:42:38,368
+Again, use the link, download this guide.
+
+325
+00:42:38,574 --> 00:42:40,356
+You can see this guide is long.
+
+326
+00:42:41,262 --> 00:42:45,796
+so many diagram and points that I have made as part of this tutorial.
+
+327
+00:42:46,288 --> 00:42:52,836
+And if you can, maybe you take the membership because creating this kind of video, of course, takes a lot of time effort.
+
+328
+00:42:53,358 --> 00:43:05,988
+Uh, as I think I was showing you, uh I had to literally create over 50 diagrams to think through how to present it properly to you so that you understand it with simple analogies and use cases.
+
+329
+00:43:06,446 --> 00:43:12,448
+Yeah, so please let me know what you think about the video and if you have learned something new.
+
+330
+00:43:12,528 --> 00:43:15,648
+And I will look forward to see you again into the next one.
+
+331
+00:43:15,950 --> 00:43:18,372
+So, till then, please take care and peace out.
+
+332
+00:43:18,862 --> 00:43:19,076
+Bye.
+
