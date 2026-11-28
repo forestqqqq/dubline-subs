@@ -1,0 +1,2696 @@
+1
+00:00:00,240 --> 00:00:07,588
+Uh uh so today we have uh the pleasure of welcoming Nick Tommy, Nick Formy from Microsoft Research.
+
+2
+00:00:07,918 --> 00:00:17,040
+Uh so Nick is a researcher in Rice Group at Microsoft uh in Mozartman, covers various topics including like systems, function programming, program proofs, and theory improving.
+
+3
+00:00:17,198 --> 00:00:19,330
+And these days, the intersection of these topics with AI.
+
+4
+00:00:19,330 --> 00:00:30,468
+is one of the others of F-Star Group-Orient Programming Language, which is used to build probability correct and secure code, including the photographic software and OS components, some of which may very well be running on your device.
+
+5
+00:00:31,214 --> 00:00:35,748
+His work has received several awards, including most influential paper award from Popular 2016.
+
+6
+00:00:36,160 --> 00:00:38,788
+he has a PhD from the University of Maryland in 2008.
+
+7
+00:00:39,118 --> 00:00:40,800
+That was the bio that Nick has sent.
+
+8
+00:00:41,420 --> 00:00:41,920
+He has been modest.
+
+9
+00:00:42,640 --> 00:00:47,360
+Nick has actually made phenomenal contributions towards making formal verification practical.
+
+10
+00:00:47,840 --> 00:00:58,340
+his FSTAR tool that I just mentioned is actually and the papers he published on FSTAR were sort of an inspiration for a generation of PL and verification students, graduate students, including myself.
+
+11
+00:00:59,440 --> 00:01:08,800
+So his work on Project Everest, again based in FSTAR, was cited by Biden administration's Office of National Cyber Director as a railway example of high short software engineering.
+
+12
+00:01:09,360 --> 00:01:13,520
+note that all of that work was done before AI has made that a lot cheaper.
+
+13
+00:01:14,000 --> 00:01:17,440
+now that we have the power of AI at our disposal.
+
+14
+00:01:17,520 --> 00:01:22,560
+So Nick has been doing some really cool work on FSTAR, intersection of FSTAR and agents.
+
+15
+00:01:22,720 --> 00:01:24,484
+So he's gonna talk about that today.
+
+16
+00:01:25,038 --> 00:01:25,920
+Thank you, Gautam.
+
+17
+00:01:26,000 --> 00:01:29,680
+Uh thank and uh thanks for that kind intro and thanks for inviting me.
+
+18
+00:01:29,760 --> 00:01:30,628
+It's great to be here.
+
+19
+00:01:31,950 --> 00:01:36,548
+so I wrote an abstract for this talk about two or three weeks ago.
+
+20
+00:01:37,280 --> 00:01:45,120
+and then as I was preparing the talk over this past weekend, I was well, two, three weeks ago is is an age ago.
+
+21
+00:01:45,280 --> 00:01:48,960
+Clearly, I can't talk about that stuff, like it's so old.
+
+22
+00:01:49,230 --> 00:01:52,292
+So I've I've kind of changed gears on the fly.
+
+23
+00:01:52,560 --> 00:02:10,480
+And my uh my talk maybe is is better titled Mo Better Proofs, which uh I don't know, maybe you guys are too young for this, but uh or I don't know if you catch the spike lee reference, um, or if you recognize the three giants on that poster.
+
+24
+00:02:10,800 --> 00:02:14,800
+Anyone Turing?
+
+25
+00:02:16,160 --> 00:02:19,520
+Hoar Dijkstra Dijkstra, right?
+
+26
+00:02:19,600 --> 00:02:21,760
+Okay, so uh more better proofs.
+
+27
+00:02:21,840 --> 00:02:26,240
+Um so um what is what is a uh what is a program proof?
+
+28
+00:02:26,320 --> 00:02:29,860
+So program proofs have a a really uh long tradition.
+
+29
+00:02:30,080 --> 00:02:42,564
+I think it starts uh at least with Alan Turing in 1949, who had this paper, which is called rather modestly Checking a Large Routine.
+
+30
+00:02:42,960 --> 00:02:59,556
+And it's the paper that, you know he outlines how one can have some assurance that a piece of code in his time it was more like you know diagrams and flow charts and so on, that they have actually achieved, you know its intended purpose.
+
+31
+00:03:00,000 --> 00:03:08,000
+And the particular he has a couple of routines that he's interested in.
+
+32
+00:03:08,080 --> 00:03:15,748
+And the one that he calls out is how to prove the correctness of a multiplication by repeated addition.
+
+33
+00:03:16,334 --> 00:03:21,760
+And he lays out proof what we would think of today as proof rules to reason about this.
+
+34
+00:03:21,998 --> 00:03:23,652
+So it has a pretty old tradition.
+
+35
+00:03:24,000 --> 00:03:34,480
+And the next another big milestone is Tony Hoare's work in 20 years later, where Hoare was really then thinking of this as proof rules.
+
+36
+00:03:34,560 --> 00:03:46,080
+And by then there was you know a syntax of programs, and Hoare who actually his work is also based on the work of Floyd, maybe a decade, earlier than this.
+
+37
+00:03:46,240 --> 00:03:50,468
+And Hoare, his classic paper, an axiomatic basis of computer programming.
+
+38
+00:03:51,760 --> 00:03:53,600
+it's a very accessible paper, by the way.
+
+39
+00:03:53,680 --> 00:04:04,800
+And if you want to read a paper and you know think about how to write a beautiful exposition of a deep idea, like that, I go to that one repeatedly.
+
+40
+00:04:04,880 --> 00:04:07,268
+So check it out if you haven't read it already.
+
+41
+00:04:07,520 --> 00:04:21,840
+And uh the thing that Bohr does is um find a describes a way in which you can use the syntax of a programming language to uh and and and use that to structure the reasoning of a program.
+
+42
+00:04:22,080 --> 00:04:30,080
+So, in this particular rule, you know, if you want to know that if by taking a command, if you have some commands, think of C as a piece of program text.
+
+43
+00:04:30,382 --> 00:04:44,164
+and if there's some precondition for the program text for that program, and you want to know that when you run it, it ends up with some post condition, whore gives you some rules that tell you how to decompose reasoning about C into reasoning about the fragments of C.
+
+44
+00:04:44,782 --> 00:04:48,400
+Okay, I'm not going to describe it in detail, but that's whore's big idea.
+
+45
+00:04:48,480 --> 00:04:51,812
+Like you use the syntax of the program to structure program reasoning.
+
+46
+00:04:52,576 --> 00:04:54,496
+And you know, now what are we?
+
+47
+00:04:54,656 --> 00:05:10,820
+Like uh I don't know, 80 years after uh after Turing, uh there's uh this field has been growing for a long time, and now we have programming languages that are built with these ideas at their core.
+
+48
+00:05:11,136 --> 00:05:14,372
+And uh I like to collect the names of these programming languages.
+
+49
+00:05:14,576 --> 00:05:16,260
+And here's one from A to Z.
+
+50
+00:05:16,576 --> 00:05:26,176
+And if you're thinking of inventing a new programming language in the space, you know, J, Q, and X are up for grabs.
+
+51
+00:05:27,136 --> 00:05:30,564
+so I'm looking to you next generation to fill the holes here.
+
+52
+00:05:30,816 --> 00:05:31,216
+All right.
+
+53
+00:05:31,456 --> 00:05:36,096
+So the one that I work on is called x star.
+
+54
+00:05:37,216 --> 00:05:43,616
+And I thought I'd give you a little taste of it just to get going, so that you know what we're talking about.
+
+55
+00:05:43,776 --> 00:05:59,780
+But the general idea of proof-oriented programming, as this you know, this little explanation here says, you write your programs together with specifications and proofs, and you do it all in a single environment, and you have theorem provers that check that your programs and their specs are conformant.
+
+56
+00:06:01,614 --> 00:06:14,276
+Of course, I should say through this this episode, you surely have heard about lean these days, which is the uh developed at Microsoft Research as well.
+
+57
+00:06:16,014 --> 00:06:19,216
+so here's what F star looks like.
+
+58
+00:06:19,376 --> 00:06:21,380
+Is that big enough for you guys to see in the back?
+
+59
+00:06:22,670 --> 00:06:23,136
+Yes.
+
+60
+00:06:23,376 --> 00:06:35,056
+So here is a f-star is at its core a functional programming language, and it has a syntax that looks a bit like OCaml or a standard ML or F sharp or one of these languages.
+
+61
+00:06:35,296 --> 00:06:39,524
+And here is Turing's program in some sense.
+
+62
+00:06:39,758 --> 00:06:51,776
+You know, I have this is a it's defining a function called multiply by recursion on two integers x and y, sorry, two natural numbers x and y, and it's going to return a number z.
+
+63
+00:06:52,078 --> 00:06:53,376
+And this is the interesting part here.
+
+64
+00:06:53,456 --> 00:06:57,136
+This is what this is the kind of thing that these proof-oriented languages let you do.
+
+65
+00:06:57,422 --> 00:07:06,564
+Here's a bit of specification that says this function returns a z, and this z is equal to x times y, the multiplication of x and y.
+
+66
+00:07:06,926 --> 00:07:12,420
+But it's going to do this not by just multiplying them, but by doing repeated additions, like Turing already do, right?
+
+67
+00:07:12,656 --> 00:07:16,336
+And this particular one, is, if y is zero, then return zero.
+
+68
+00:07:16,496 --> 00:07:21,936
+Otherwise, recurse, decrementing y and add one x to it.
+
+69
+00:07:22,062 --> 00:07:25,216
+So it's going to add x to itself y times, right?
+
+70
+00:07:25,536 --> 00:07:37,124
+And uh, if you you know, if if for instance, if I screw up and don't do that, it's going to say, well, I expected z to be x times y, but I only got z equal x times y minus one.
+
+71
+00:07:37,742 --> 00:07:44,100
+Okay, so the proof checker in the back is going to catch your mistakes.
+
+72
+00:07:44,416 --> 00:07:44,656
+Okay.
+
+73
+00:07:45,070 --> 00:07:51,524
+Now if you look at this program, well, you know, can someone tell me there's an obvious inefficiency here?
+
+74
+00:07:54,510 --> 00:07:55,108
+Anyone?
+
+75
+00:07:59,456 --> 00:08:02,016
+If x is zero, it's going to add it a bunch of times, that's true.
+
+76
+00:08:02,256 --> 00:08:03,652
+so I can add another case here.
+
+77
+00:08:10,336 --> 00:08:14,116
+the green on the side means it's checked, So anything else?
+
+78
+00:08:16,462 --> 00:08:19,216
+It's using space proportional to y, right?
+
+79
+00:08:19,296 --> 00:08:21,376
+Like it's it's not tail recursive, right?
+
+80
+00:08:21,616 --> 00:08:29,284
+So you can write a tail recursive version, and here's a tail recursive version, and this time I'm going to thread through an accumulator.
+
+81
+00:08:29,774 --> 00:08:33,616
+And now look, I can add the same optimization that you pointed out.
+
+82
+00:08:35,726 --> 00:08:35,936
+right.
+
+83
+00:08:36,416 --> 00:08:40,896
+And here, now I can prove that, and this function is tail recursive, right?
+
+84
+00:08:40,976 --> 00:08:41,376
+There's no
+
+85
+00:08:46,064 --> 00:08:47,044
+Here, yes.
+
+86
+00:08:47,854 --> 00:08:48,292
+Yes.
+
+87
+00:08:49,454 --> 00:09:03,684
+So under the covers, there's F star is doing some proof simplification, and then it's calling into this theorem prover that is built at MSR called Z3, which is a SMT solver that can reason about arithmetic and Boolean satisfiability and so on.
+
+88
+00:09:04,784 --> 00:09:08,944
+And here, notice I can prove the same thing, but my spec is a little bit more interesting, right?
+
+89
+00:09:09,024 --> 00:09:14,500
+Because what I prove is that the result is X times Y plus whatever the initial value of the accumulator is, right?
+
+90
+00:09:14,624 --> 00:09:19,812
+And of course, if I call multiply tail with the initial accumulator equal to zero, then I get my multiplication.
+
+91
+00:09:20,544 --> 00:09:26,532
+So this is kind of the core of F-star, like pure functional programming with these kinds of specifications.
+
+92
+00:09:26,784 --> 00:09:30,404
+But of course, you don't want to only write purely functional programs.
+
+93
+00:09:30,734 --> 00:09:39,684
+So F star also lets you write imperative programs and to you know write, honest to goodness, while loops and mutable state and do the same kinds of proofs.
+
+94
+00:09:39,984 --> 00:09:42,304
+So here's an imperative one.
+
+95
+00:09:42,542 --> 00:09:46,784
+And what I'm going to do is it's a function called MULT.
+
+96
+00:09:47,086 --> 00:09:52,516
+It takes two mutable references, x and y, references that contain natural numbers.
+
+97
+00:09:53,070 --> 00:09:56,304
+Okay, think of them as pointers or you know in other languages, right?
+
+98
+00:09:56,464 --> 00:10:07,904
+And uh and what it's gonna do is it's going to prove that when it ends, the value of x when it returns is equal to the old value of x times the value of y.
+
+99
+00:10:08,544 --> 00:10:13,636
+it's gonna compute the same multiplication, but it's gonna do it iteratively rather than recursively.
+
+100
+00:10:13,998 --> 00:10:19,584
+So let me just walk you through this, I can comment out all the spec, and we can yes.
+
+101
+00:10:20,270 --> 00:10:25,984
+Is it because of concurrency that you're worried about the old value of x or or are you mutating x?
+
+102
+00:10:26,544 --> 00:10:27,584
+I'm going to mutate x.
+
+103
+00:10:28,110 --> 00:10:31,396
+So old value of x is the value of x at the entry to the function.
+
+104
+00:10:32,078 --> 00:10:34,144
+Okay, uh, and there's many ways to write the spec.
+
+105
+00:10:34,224 --> 00:10:34,980
+This is one way.
+
+106
+00:10:35,584 --> 00:10:38,384
+Um so um so let's see.
+
+107
+00:10:38,544 --> 00:10:49,924
+So at its core, before you look at all the spec, what I'm going to do is I'm going to read the initial value of x, store it in some local uh called n, and then I'm going to initialize a counter.
+
+108
+00:10:50,464 --> 00:10:53,264
+And I'm uh there's a case where y equals zero.
+
+109
+00:10:53,966 --> 00:11:01,264
+but then what I'm going to do is I'm going to enter a loop and increment the counter at each step, but also add n to x, right?
+
+110
+00:11:01,584 --> 00:11:10,064
+And now if I do this and I try to do this, f star immediately complained saying, I don't have permission to read x, it's it's it's proofs in a separation logic.
+
+111
+00:11:10,158 --> 00:11:14,704
+Okay, so when you're trying to read mutable references, you need to have ownership over them.
+
+112
+00:11:15,054 --> 00:11:18,784
+So if you're used to programming in Rust or things like that, that should also be familiar.
+
+113
+00:11:19,022 --> 00:11:22,704
+So I need to say as my precondition that I actually have permission to X.
+
+114
+00:11:22,864 --> 00:11:25,504
+That's this uh requires preserves live X.
+
+115
+00:11:25,614 --> 00:11:28,132
+X is going to be live initially and it's gonna be live at the end.
+
+116
+00:11:28,846 --> 00:11:31,184
+And now it's complaining, well, I don't have permission to read Y.
+
+117
+00:11:31,662 --> 00:11:34,064
+So I need the same thing on Y.
+
+118
+00:11:34,784 --> 00:11:39,588
+And now it says, Well, I can't prove that this loop actually terminates.
+
+119
+00:11:40,224 --> 00:11:43,460
+So I can add this to tell you why the loop terminates.
+
+120
+00:11:43,984 --> 00:11:51,984
+And at this point it says, Well, I can't actually prove that the counter value doesn't uh that that this that the counter value is changing at this point.
+
+121
+00:11:52,064 --> 00:11:57,984
+I don't, I can't tell you I have permission to change the counter value or to change x.
+
+122
+00:11:58,542 --> 00:12:05,664
+And if I do this, at this point, at least I have a function that verifies it's type correct, but I haven't proved that much interesting about it.
+
+123
+00:12:05,744 --> 00:12:09,444
+I haven't proven this interesting fact, the fact that it's actually computing a multiplication.
+
+124
+00:12:10,030 --> 00:12:11,840
+So for that, I need some more invariants.
+
+125
+00:12:12,270 --> 00:12:17,092
+I need to know that the counter is almost is always less than or equal to y.
+
+126
+00:12:17,646 --> 00:12:25,060
+And I need to know that the current value of x through this loop is equal to the counter times the initial value of x.
+
+127
+00:12:25,454 --> 00:12:26,704
+Those are my two invariants.
+
+128
+00:12:26,926 --> 00:12:34,884
+If I have this, I now have the loop proven correct, and now I can restore these pre and post conditions, and it's happening.
+
+129
+00:12:35,214 --> 00:12:43,264
+Okay, so as you can see, doing these kinds of proofs is gives you a lot of assurance about this program.
+
+130
+00:12:43,344 --> 00:12:51,108
+You know that it always terminates, it always computes the right answer, but you have to think pretty carefully about what the invariants are, and you have to convince the prover that you're doing it all correctly.
+
+131
+00:12:52,704 --> 00:13:02,144
+and I gave you an example of this at really tiny scale, but this technique it works at large scale.
+
+132
+00:13:02,384 --> 00:13:15,684
+So in 2016, at Microsoft Research, we started a project to use these kinds of techniques to build a verified stack of software that does uh secure internet communication.
+
+133
+00:13:15,904 --> 00:13:25,860
+So when you go to your browser and you use HTTPS to connect to a bank that's using behind the scenes, it's using a cryptographic protocol to encrypt your connection.
+
+134
+00:13:26,464 --> 00:13:32,224
+This thing is you know the security critical core of the internet, so it's really worth getting it right.
+
+135
+00:13:32,494 --> 00:13:37,444
+So we had a project called Project Everest to verify, build a verified implementation of that entire stack.
+
+136
+00:13:38,064 --> 00:13:40,064
+And it took us, you know.
+
+137
+00:13:41,568 --> 00:13:47,076
+Around, I mean, there were 10 of us, roughly 10 of us working for 10 years doing this.
+
+138
+00:13:47,470 --> 00:13:51,492
+And so it took us about 100 person years of work, person years of PhD work.
+
+139
+00:13:52,208 --> 00:13:54,768
+Everyone had a PhD, we're all experienced researchers.
+
+140
+00:13:54,848 --> 00:13:56,260
+We are the developers of this tool.
+
+141
+00:13:56,654 --> 00:14:05,636
+Took us about 100% years of work to build a million and a half lines of verified code that represents about 200,000 lines of executable C in assembly.
+
+142
+00:14:06,062 --> 00:14:13,924
+That code now runs in Windows, it runs in Firefox, it runs in Linux, it runs in, I don't know, Python, It runs in a bunch of places.
+
+143
+00:14:14,928 --> 00:14:23,876
+I mean, we were very happy doing this, but you had to ask the question like, and there are lots of reusable bits, but you know, is this level of effort justifiable?
+
+144
+00:14:25,326 --> 00:14:28,132
+Yeah, a century of work, right, to produce this.
+
+145
+00:14:28,398 --> 00:14:30,048
+And we learned a lot doing it.
+
+146
+00:14:30,368 --> 00:14:52,768
+And uh, maybe, you know, the way we always thought of it is that, well, for systems where correctness really matters, you know, where I don't know, systems that are delivering anesthetic doses, or systems that are controlling rocket launchers, or systems that are controlling the fabric of our internet infrastructure.
+
+147
+00:14:52,928 --> 00:14:53,088
+right?
+
+148
+00:14:53,248 --> 00:14:58,948
+For all of this, maybe this level of effort is worth it, but it is genuinely really expensive.
+
+149
+00:14:59,968 --> 00:15:08,548
+But what's happened, especially in the last year, is that AI is making this way easier.
+
+150
+00:15:09,088 --> 00:15:22,448
+And I thought I would give you a little demo of how that looks these days with AI, but in talking with people today, I think most of you already know this.
+
+151
+00:15:22,926 --> 00:15:24,048
+Just let me get a show of hands.
+
+152
+00:15:24,128 --> 00:15:31,364
+How many of you are using I don't know, codecs or claud code or copilot or something like that?
+
+153
+00:15:33,568 --> 00:15:44,048
+how many of you are using it with something like a lean or rock or an F star some of you?
+
+154
+00:15:44,128 --> 00:15:47,408
+So maybe maybe it's worth me showing you how this actually works.
+
+155
+00:15:47,728 --> 00:15:55,172
+So um so you saw me doing you know my multiply by repeated addition, one little procedure, right?
+
+156
+00:15:55,502 --> 00:16:06,020
+And it took us, you know, it it would it would have taken me if I was sitting cold doing it, it would have taken me probably a good 15 minutes to get it right, at least.
+
+157
+00:16:06,288 --> 00:16:06,608
+Okay.
+
+158
+00:16:07,088 --> 00:16:18,448
+Um and uh so what I'm going to do here is I have in this session, is this copilot running with the model of the day, 256 Astra?
+
+159
+00:16:19,008 --> 00:16:21,808
+And I don't think the model matters too much actually.
+
+160
+00:16:21,968 --> 00:16:24,996
+This would work with more or less any of the models these days.
+
+161
+00:16:25,408 --> 00:16:35,012
+And my prompt to it is I want to implement a circular doubly linked list in pulse and a client program that tests it.
+
+162
+00:16:35,328 --> 00:16:40,580
+And when you write a pulse program, you might you might have been wondering like, well, how do you actually execute these programs?
+
+163
+00:16:40,848 --> 00:16:50,288
+Well, pulse actually allows you to compile programs to C or to OCaml or to what you know a bunch of executable languages and to actually get executable code.
+
+164
+00:16:50,574 --> 00:16:57,156
+And it's compiled it all to C with something called custard, which is our latest C backend, and to run the client.
+
+165
+00:16:58,254 --> 00:17:10,208
+I think if I if I told it to do this, it will, I'm guessing, I tried it last night, and it took maybe less than 10 minutes.
+
+166
+00:17:10,448 --> 00:17:27,808
+It took me five, seven minutes, and it wrote a program that this particular program, I don't know, at least for some of you who do set both know about program proofs, circular doubly linked lists in separation logic, yeah, it's it's a bit of a it's a bit of a bear.
+
+167
+00:17:28,288 --> 00:17:31,684
+And it can be done, but you have to know what you're doing.
+
+168
+00:17:31,888 --> 00:17:46,128
+And if you're doing things in if you're used to programming in say in Rust, which is also an ownership-based system, you simply cannot program a circular W-linked list, let alone circular.
+
+169
+00:17:46,288 --> 00:17:49,168
+You cannot program a W link list without resorting to unsafe code.
+
+170
+00:17:49,248 --> 00:17:51,716
+So this is it's a pretty non-trivial exercise.
+
+171
+00:17:52,128 --> 00:17:58,372
+And I think it's gonna take uh it's it's scanning the libraries to look at what's around and it's going to do it.
+
+172
+00:17:58,608 --> 00:18:01,540
+It will finish in probably six, seven minutes.
+
+173
+00:18:02,448 --> 00:18:06,628
+And I thought, rather than waiting for that time, I'll show you what it generated last night.
+
+174
+00:18:07,248 --> 00:18:08,608
+um, which is,
+
+175
+00:18:21,838 --> 00:18:22,640
+which is here.
+
+176
+00:18:22,720 --> 00:18:24,400
+and it produces a.
+
+177
+00:18:24,686 --> 00:18:25,680
+you know, um.
+
+178
+00:18:26,446 --> 00:18:30,400
+I don't know, 500 lines of code and proof with a.
+
+179
+00:18:31,438 --> 00:18:34,240
+I think, with the nice thing.
+
+180
+00:18:34,320 --> 00:18:39,360
+the main value proposition about doing this kind of programming is that you don't have to look at the code.
+
+181
+00:18:39,520 --> 00:18:41,120
+I don't care what the code looks like.
+
+182
+00:18:41,326 --> 00:18:46,852
+What I care about is I think about what the code does purely through what its specifications tell.
+
+183
+00:18:47,374 --> 00:19:06,916
+And what it's done is, it's created for me, a, a type of W-link list, the top line, 12, with properties that tell me that if I have a W-link list and its current contents is X's, and if I want to push a new value onto it, it evolves to the list that has X at the front.
+
+184
+00:19:08,160 --> 00:19:09,200
+which is what you would expect.
+
+185
+00:19:09,360 --> 00:19:13,860
+And you can look at, and it's gone sort of the extra mile, and it's given me.
+
+186
+00:19:14,382 --> 00:19:33,600
+So if also if you're into separation logic, you know that doing iterators on top of this is another, you know, I don't know, like a whole pot of interest over there to go look at how to do iterators Well, it's done iterators and it's given me iterators of two styles to iterate from the front or from the back, right?
+
+187
+00:19:34,000 --> 00:19:41,732
+And uh and it's also written a client program to exercise all this.
+
+188
+00:19:42,320 --> 00:19:50,800
+And at the end of the day, this is the C code that this thing is written.
+
+189
+00:19:50,960 --> 00:20:02,212
+And I don't know about you, I'm a pretty good C programmer, but there's no way, even for a textbook thing like W8 list, that I'm going to get it right on the first shot.
+
+190
+00:20:03,310 --> 00:20:04,960
+I'm going to mess up the pointers somehow.
+
+191
+00:20:05,040 --> 00:20:08,320
+I'm going to have some null pointers, I'm going to have some memory corruption.
+
+192
+00:20:08,400 --> 00:20:10,400
+This is this is the way.
+
+193
+00:20:11,566 --> 00:20:14,560
+If I'm gonna make a you know, this is the way to program in the future.
+
+194
+00:20:15,600 --> 00:20:28,260
+we get code that we know is right, and we know is correct, and it is fast, it's raw C code, and we don't have to read the code, we have high-level proofs that it's correct, and it compiles and runs correctly the first time.
+
+195
+00:20:29,120 --> 00:20:32,320
+So I think that's probably missing is a complexity specification.
+
+196
+00:20:32,560 --> 00:20:33,924
+Yes, I will get to complexity.
+
+197
+00:20:34,400 --> 00:20:43,120
+I will uh um so so just to give you a sense, AI is making this easier, but I want to tell you how much easier it's making it, right?
+
+198
+00:20:43,278 --> 00:20:46,212
+So I told you this was 100% years of PhDs.
+
+199
+00:20:47,040 --> 00:20:52,160
+So in June this year, we have completely changed F-Star, meanwhile.
+
+200
+00:20:52,240 --> 00:20:58,436
+We have a new this pulse thing is brand new, and this whole stack of code, we want to rewrite it, modernize it, make it better.
+
+201
+00:20:59,246 --> 00:21:04,164
+It took three researchers, me and two others in my team, six weeks to replace the top piece.
+
+202
+00:21:05,678 --> 00:21:13,680
+Okay, six six uh and then in September and October, this piece, the core cryptography, this was probably the hardest part of this whole effort.
+
+203
+00:21:13,760 --> 00:21:15,556
+It took 50 person years to build previously.
+
+204
+00:21:16,000 --> 00:21:18,980
+It took six weeks and one researcher to rebuild it.
+
+205
+00:21:20,000 --> 00:21:24,644
+And this week, this piece here took six hours.
+
+206
+00:21:26,126 --> 00:21:45,220
+Okay, and we have this whole stack, um, you know, redone in our latest tools faster than our previous stack, covering more features, supporting post-quantum algorithms that didn't exist at the time, done in, honestly, just weeks, and a cost of probably a few thousand dollars in tokens.
+
+207
+00:21:45,774 --> 00:21:47,332
+less than ten thousand dollars in tokens.
+
+208
+00:21:48,302 --> 00:21:54,084
+Okay, and of course, the agents have you know the irony of it is that well, the agents can do all this.
+
+209
+00:21:54,510 --> 00:21:56,932
+Of course, the agents learned from us humans.
+
+210
+00:21:57,550 --> 00:22:06,788
+We you know, we shed you know blood and tears doing this, and um and the agents have clearly learned from this, but now they're amazing.
+
+211
+00:22:07,200 --> 00:22:09,280
+And so so now, right?
+
+212
+00:22:09,440 --> 00:22:11,520
+Um uh well.
+
+213
+00:22:12,942 --> 00:22:14,672
+And it's not just me saying this, right?
+
+214
+00:22:14,752 --> 00:22:16,132
+You've seen the yes, question.
+
+215
+00:22:16,672 --> 00:22:21,072
+But you still have to go and examine all the specifications.
+
+216
+00:22:21,312 --> 00:22:23,632
+You haven't done that in six weeks, I can't.
+
+217
+00:22:24,272 --> 00:22:25,392
+That's what the six weeks soon has.
+
+218
+00:22:25,712 --> 00:22:26,432
+Ah, okay.
+
+219
+00:22:28,272 --> 00:22:33,636
+Yeah, reading, and I'm going to tell you that last of the rest of the talk is going to be how do you make that feasible?
+
+220
+00:22:34,192 --> 00:22:40,352
+Um, so um uh and it's not just so this is this you've you've heard this in the news.
+
+221
+00:22:40,432 --> 00:22:46,352
+This last month has just been just amazing, like the what we've been hearing, right?
+
+222
+00:22:46,432 --> 00:22:48,324
+Just in terms of there are all kinds of problems.
+
+223
+00:22:48,814 --> 00:22:50,912
+Uh we'll talk about I'll talk about some of the problems at the moment.
+
+224
+00:22:51,072 --> 00:23:01,232
+There are all kinds of problems, but in terms of like sheer technical output, I mean September 4th, Fermat's last theorem, 13 million lines of code formalized by agents in V, right?
+
+225
+00:23:01,838 --> 00:23:07,130
+September 8th, Navier Stokes, OpenAI, Millennium Prize.
+
+226
+00:23:07,952 --> 00:23:14,272
+Less than a month later, 372 papers from solving open problems, and now it's happening in software.
+
+227
+00:23:14,352 --> 00:23:20,324
+And last week, Anthropic releases binary analysis of 123 binaries, 180 million lines of rock code.
+
+228
+00:23:21,262 --> 00:23:21,552
+Right?
+
+229
+00:23:21,712 --> 00:23:28,772
+This is this proofs are proofs are cheap right now, and will only get cheaper.
+
+230
+00:23:30,062 --> 00:23:31,332
+So what's next, right?
+
+231
+00:23:31,854 --> 00:23:35,232
+So that's where I come to my hook, more better proofs, right?
+
+232
+00:23:35,552 --> 00:23:38,032
+So prove harder, right?
+
+233
+00:23:38,574 --> 00:23:44,832
+Certain kinds of proofs, like we all, I mean, those of us working in proofs, proving safety, we know how to do it.
+
+234
+00:23:45,134 --> 00:23:46,352
+These agents know how to do it.
+
+235
+00:23:46,770 --> 00:23:52,592
+you've got to find ways to prove harder things, proving security, liveness, complexity, latency.
+
+236
+00:23:53,230 --> 00:23:56,068
+when you need new proof techniques to actually do this.
+
+237
+00:23:56,398 --> 00:23:59,632
+So that's uh that's that's one thing.
+
+238
+00:23:59,872 --> 00:24:01,472
+Prove bigger, right?
+
+239
+00:24:01,792 --> 00:24:06,352
+Can we go after multi-system proofs, large code bases, legacy code bases?
+
+240
+00:24:06,542 --> 00:24:09,252
+And we need better, more scalable tools to actually do that.
+
+241
+00:24:10,126 --> 00:24:17,632
+And then the big thing, that I think the hardest, maybe the most intangible thing is getting to your question, prove cleaner, right?
+
+242
+00:24:17,712 --> 00:24:24,484
+So that at the end of the day, we know if what was proven, like that we can make sense of it and judge if what was proven was actually correct.
+
+243
+00:24:25,294 --> 00:24:32,036
+Okay, so that's kind of my slogan, and I'm gonna kind of illustrate this for the rest of this talk.
+
+244
+00:24:32,238 --> 00:24:47,972
+So I'm gonna talk about some textbook algorithms, three three scenarios really, textbook algorithms, and then I'm going to talk about internet standard protocols, this whole stack of stuff that I showed you earlier, and then I'm going to give you a little taste of some stuff that we're doing on verifying legacy code.
+
+245
+00:24:49,070 --> 00:24:54,372
+So I'll pause there for a question and for questions and just get a drink of water if anyone has anything.
+
+246
+00:24:59,086 --> 00:25:06,592
+Okay, so I've been working with AI agents and formal proofs since probably GPD-3.
+
+247
+00:25:07,952 --> 00:25:14,916
+And um those systems showed like glimmers of hope, but nothing that really was going to change my life.
+
+248
+00:25:15,952 --> 00:25:20,708
+In December 2025, that's when things started to change.
+
+249
+00:25:20,912 --> 00:25:34,352
+And in January, I using at the time, I think it was Opus 4.5, I took this classic textbook, which I bet you teach here at CU, right?
+
+250
+00:25:34,432 --> 00:25:36,580
+Some of you undergrads probably seen this.
+
+251
+00:25:36,832 --> 00:25:40,900
+It's an introduction to data structures and algorithms.
+
+252
+00:25:41,312 --> 00:25:45,860
+And me and an agent working through January, I wrote about it in the blog post, I think in February.
+
+253
+00:25:46,032 --> 00:25:48,032
+We formalized this algorithm's textbook.
+
+254
+00:25:48,112 --> 00:25:50,912
+There was maybe 52 different algorithms and data structures.
+
+255
+00:25:51,232 --> 00:26:07,792
+it's too small to read, but you know, it contains, I don't know, Dijkstra's algorithm and Floyd Warshall algorithm, and various sortings, all stuff that you know I think many of us should just know, or at least be able to recall if you if you read it.
+
+256
+00:26:07,952 --> 00:26:10,832
+So, what I did was I took the textbook.
+
+257
+00:26:11,502 --> 00:26:17,860
+And I fed it to Copilot and I said, write it all in pulse, implement everything, and prove it correct.
+
+258
+00:26:18,576 --> 00:26:25,456
+And I spent most of that month just reading specifications, convincing myself that, oh, can you make this nicer?
+
+259
+00:26:25,616 --> 00:26:27,616
+Can you prove the thing that I actually want?
+
+260
+00:26:30,016 --> 00:26:36,324
+and I can give you a sample of the kinds of things that are proven and some problems with it.
+
+261
+00:26:36,896 --> 00:26:41,796
+So here's heap sort and um a specification of heap sort.
+
+262
+00:26:42,158 --> 00:26:55,652
+And it says Heapsort is gonna take an array of integers and a size for that array, and it's gonna say this is s0, some kind of like logical view of the contents of the array.
+
+263
+00:26:55,856 --> 00:27:01,376
+It's gonna say some constraints about the length of that array, but it's also got this weird side constraint.
+
+264
+00:27:01,456 --> 00:27:04,816
+It's saying the length has to twice the length plus two has to fit.
+
+265
+00:27:04,896 --> 00:27:06,736
+I don't know, it's a little bit strange.
+
+266
+00:27:07,056 --> 00:27:17,856
+And it says at the end, if the array initially points to s0, at the end it points to s, and s is sorted up to the index n, and it's a permutation of s0.
+
+267
+00:27:18,096 --> 00:27:19,908
+So it looks kind of correct.
+
+268
+00:27:20,576 --> 00:27:26,176
+And and but you look at these kinds of specifications, and this is what you spend your time scratching your head about.
+
+269
+00:27:26,336 --> 00:27:28,676
+Is it actually proven what you think it's proven?
+
+270
+00:27:29,056 --> 00:27:32,496
+And some odd things like it's sorted a prefix of the array.
+
+271
+00:27:32,576 --> 00:27:35,056
+Is that what I wanted, or did I want it to sort the whole thing?
+
+272
+00:27:35,278 --> 00:27:37,220
+And there's this surprising preconditions, right?
+
+273
+00:27:37,456 --> 00:27:41,028
+So we have to find ways to audit such specifications.
+
+274
+00:27:41,296 --> 00:27:48,292
+And one thing that me and my colleague Shravedu, Dahiri, we've been thinking about is how do you audit specifications?
+
+275
+00:27:48,558 --> 00:27:57,616
+And one simple idea we have is well, write small tests against the specifications and against the specifications only, right?
+
+276
+00:27:57,696 --> 00:28:00,484
+It's not a test that, like a concrete test that you expect to run.
+
+277
+00:28:00,878 --> 00:28:21,380
+What I want to be able to do is that if I have, if I, if I call heap sort on a three element array, I must be able to prove that I satisfy the precondition of heap sort on this, and I must be able to show that using the post-condition of heap sort, whatever it is, I should be able to show that A now contains one, two, three.
+
+278
+00:28:21,838 --> 00:28:29,348
+And if I can show this, then I have some confidence that the spec is precise enough, at least on these concrete instances.
+
+279
+00:28:29,582 --> 00:28:40,736
+Okay, so we call these things small proof-oriented tests, and this arguably is easier to judge than this, right?
+
+280
+00:28:40,816 --> 00:28:42,372
+Because it's a small concrete test.
+
+281
+00:28:42,736 --> 00:28:46,788
+So we've been thinking of these kinds of spec audit techniques, and this is one of them.
+
+282
+00:28:47,214 --> 00:28:56,420
+And it turns out, once we had finished this CLRS formalization, we had the agent go and write these spot checks across the entire development.
+
+283
+00:28:56,736 --> 00:28:59,136
+and it found that —I think, what is it?
+
+284
+00:28:59,536 --> 00:29:02,496
+maybe like, what is that?
+
+285
+00:29:02,670 --> 00:29:04,016
+seven, ten of them.
+
+286
+00:29:04,366 --> 00:29:05,110
+ten out of 52.
+
+287
+00:29:05,536 --> 00:29:05,696
+right.
+
+288
+00:29:06,256 --> 00:29:10,336
+had specs that were um, or eight, I guess these are precise.
+
+289
+00:29:10,656 --> 00:29:15,844
+Eight out of 52 had specs that were imprecise that could not actually prove the post conditions.
+
+290
+00:29:16,496 --> 00:29:19,940
+So these spots do uncover interesting spec bugs.
+
+291
+00:29:20,494 --> 00:29:31,652
+And to give you a flavor of what kinds of things it catches, this is a spec of CLRS has a thing called a linear scanning hash table, which is a hash table in a fixed size.
+
+292
+00:29:32,256 --> 00:29:37,136
+you know, you look at this, you try to hash something, you find its spot in the table.
+
+293
+00:29:37,358 --> 00:29:43,056
+But if that spot is full, you scan past it to find the next empty slot and you stick it there, right?
+
+294
+00:29:43,376 --> 00:29:48,896
+So what can happen is that your table can, this table doesn't have any allocation of buckets or anything.
+
+295
+00:29:48,976 --> 00:29:50,308
+So your table can run out of space.
+
+296
+00:29:50,830 --> 00:29:56,996
+And at some point, if we try to insert into this table, it can just say, out of space, the error condition, I'm not going to insert anything.
+
+297
+00:29:57,536 --> 00:30:08,452
+Now, the way this spec was written by the agent initially was to say if the result is true, then the table is probably updated.
+
+298
+00:30:08,816 --> 00:30:11,524
+But if the result is false, it doesn't say anything.
+
+299
+00:30:12,416 --> 00:30:20,416
+So this spec allows an implementation to always return false and do nothing, So it's a one-sided spec.
+
+300
+00:30:20,496 --> 00:30:25,856
+It tells you something when it returns successfully, but it doesn't tell you anything about the error case.
+
+301
+00:30:25,936 --> 00:30:27,236
+And there were many such cases.
+
+302
+00:30:27,566 --> 00:30:35,076
+And this kind of behavior, if I have to read this and decide does it characterize the error case correctly, it's a little subtle.
+
+303
+00:30:35,616 --> 00:30:50,852
+But if you write a test program against it and you see that, well, the else branch here, it simply can't be proven because there's nothing that tells the code that tells this client program that the else case is not reachable because the error case is not specified.
+
+304
+00:30:51,296 --> 00:31:00,816
+So once you find these kinds of audit gaps, you can ask the agent to fix it, it strengthens the spec, and the test now becomes clean, straight line code.
+
+305
+00:31:00,896 --> 00:31:04,964
+You don't have to branch out the failure condition anymore because you can prove that the failure never happened.
+
+306
+00:31:05,774 --> 00:31:09,316
+Okay, so these kinds of techniques is what we've been thinking about, like spec audit techniques.
+
+307
+00:31:10,350 --> 00:31:25,796
+and it turns out that if you can come up with a good spec audit technique, you can use that in a feedback loop with an agent and have it iterate until all the code is produced passes whatever audit benchmark you have in place.
+
+308
+00:31:26,112 --> 00:31:29,508
+And that helped us really clean up this whole development.
+
+309
+00:31:32,352 --> 00:31:39,908
+so that's just I want you to think about how do you prove cleaner, how do you think about specifications, testing specifications, these kinds of things.
+
+310
+00:31:40,046 --> 00:31:44,032
+So I mean I have a little bit of a philosophical problem with it.
+
+311
+00:31:44,112 --> 00:31:46,992
+Unless humans examine these specifications, right?
+
+312
+00:31:47,278 --> 00:31:48,592
+You are testing specifications.
+
+313
+00:31:48,672 --> 00:31:51,392
+We use pre testing programs, not testing specifications.
+
+314
+00:31:51,552 --> 00:32:02,592
+You can prove absence of issues, but you can never say that the spec is exactly what you want, because unless you actually look at it and say this is what yeah, I think this is a great point.
+
+315
+00:32:02,832 --> 00:32:12,484
+I think it is a deep philosophical question about how to map you know fuzzy intent, right, in our head somewhere, to formal symbols.
+
+316
+00:32:13,232 --> 00:32:33,072
+And you know, I don't know if there is a there probably isn't a definitive way to ask this, but that you know, so then I think of it as that we need uh we need concrete approaches into the specifications that allow us to more easily assess this correspondence between brains and all the stuff.
+
+317
+00:32:33,262 --> 00:32:43,552
+And concrete test is maybe one such thing, but I I don't I I this is I have by no means have you know all the answers.
+
+318
+00:32:43,632 --> 00:32:46,272
+Like these are the kinds of things that we should all be thinking about.
+
+319
+00:32:46,432 --> 00:32:49,028
+How do you how do you do intent confirmation well?
+
+320
+00:32:50,958 --> 00:32:51,844
+Thanks for the question.
+
+321
+00:32:54,094 --> 00:32:54,820
+anyone else?
+
+322
+00:32:57,806 --> 00:33:01,312
+So uh so that slide that section was there to be.
+
+323
+00:33:01,392 --> 00:33:04,112
+I was I was saying, well, being concrete helps.
+
+324
+00:33:04,462 --> 00:33:08,592
+Let's make it, you know, let's look at the spec from the lens of how it acts on a three-element array.
+
+325
+00:33:08,752 --> 00:33:11,152
+Concrete helps, but abstract helps too.
+
+326
+00:33:11,470 --> 00:33:13,060
+Okay, so let me give you an example of this.
+
+327
+00:33:13,632 --> 00:33:23,312
+So now if I wanted to, you know, all these sorting algorithms, sorting algorithms on arrays, they all have lots of shared structure, right?
+
+328
+00:33:23,392 --> 00:33:26,692
+Whether it's heap sort or quick sort or whatever, they're all just trying to sort arrays.
+
+329
+00:33:26,992 --> 00:33:29,872
+So why should I have separate specifications for all of them?
+
+330
+00:33:30,032 --> 00:33:37,284
+I should use the nice abstraction powers of our beautiful programming languages and write a shared spec for all sorting algorithms.
+
+331
+00:33:37,792 --> 00:33:39,381
+And here's one of those in F.
+
+332
+00:33:39,381 --> 00:33:39,530
+star.
+
+333
+00:33:40,078 --> 00:33:46,532
+It's the specification of an array sort given any total order on its elements.
+
+334
+00:33:47,232 --> 00:33:55,872
+And it says, you know, uh, it doesn't have any of these weird side conditions on lengths or partial sorts of prefixes or whatnot.
+
+335
+00:33:56,046 --> 00:34:05,252
+It says if I have an array and a length, and if the array points to s initially, it points to s prime finally, and s prime is a sorted permutation of s.
+
+336
+00:34:05,792 --> 00:34:06,032
+Right?
+
+337
+00:34:06,192 --> 00:34:09,872
+So you read this, it's already pretty you know much cleaner.
+
+338
+00:34:10,032 --> 00:34:15,012
+You can judge this on a concrete instance, on an abstract concrete instance to check that it works.
+
+339
+00:34:15,374 --> 00:34:20,708
+But if you have this, now my spec key sort becomes a one-liner.
+
+340
+00:34:21,166 --> 00:34:22,832
+And so does my spec of insert and sort.
+
+341
+00:34:23,152 --> 00:34:26,500
+That's all I have to read to convince myself that this is actually doing what I intend.
+
+342
+00:34:26,912 --> 00:34:28,512
+So concrete helps.
+
+343
+00:34:28,672 --> 00:34:35,012
+Abstraction also promotes understanding and helps bridge that gap between brains and symbols.
+
+344
+00:34:37,070 --> 00:34:40,032
+so yeah, I think we should be looking at this is proving cleaner, right?
+
+345
+00:34:40,112 --> 00:34:47,396
+This is like let's get the right abstractions in place and have it prove beautiful, you know, terse statements of correctness.
+
+346
+00:34:47,918 --> 00:34:51,392
+Now, sorting is easy, but let's prove harder, right?
+
+347
+00:34:51,472 --> 00:34:54,352
+We've all been doing proofs of correctness of algorithms.
+
+348
+00:34:54,432 --> 00:34:55,872
+Can we prove complexity bounds too?
+
+349
+00:34:55,952 --> 00:34:57,572
+And that's maybe getting to Gautam's question.
+
+350
+00:34:58,192 --> 00:35:06,272
+And generally speaking, we have techniques to do proofs of complexity, but they're kind of hard to do.
+
+351
+00:35:06,352 --> 00:35:09,552
+And you know, usually humans doing proofs of these of safety.
+
+352
+00:35:09,632 --> 00:35:16,912
+I mean, speaking for myself, after I've done a proof of safety, I'm so tired that I can't, you know, I can't bother to do anything more.
+
+353
+00:35:17,072 --> 00:35:20,032
+So, you know, we know how to do it, but it's just it's just toil.
+
+354
+00:35:20,432 --> 00:35:23,072
+So we haven't been doing proofs of complexity.
+
+355
+00:35:23,232 --> 00:35:33,632
+And if you look at it, in a way, this spec for heap sort is somehow unsatisfying because this spec says heap sort and insertion sort have exactly the same spec.
+
+356
+00:35:34,350 --> 00:35:39,552
+But clearly they're different algorithms, and there's some reason to prefer one over the other.
+
+357
+00:35:39,712 --> 00:35:42,672
+And the spec should distinguish them somehow.
+
+358
+00:35:43,022 --> 00:35:48,592
+And the one way the spec can distinguish them is by reflecting their complexity there, Right?
+
+359
+00:35:48,752 --> 00:35:50,724
+So, how can we prove complexity bounds?
+
+360
+00:35:51,312 --> 00:35:57,316
+Well, this slide is probably the most technical slide in this talk, so I don't expect you to follow it.
+
+361
+00:35:58,112 --> 00:36:04,352
+but I'll just say in the rough idea, don't bother with the symbols, I'll just tell you the rough idea.
+
+362
+00:36:04,592 --> 00:36:17,152
+The way in which you prove you can imagine proving a complexity bound of an algorithm is to instrument the algorithm with some kind of a counter that's going to count your operations of interest, right?
+
+363
+00:36:17,312 --> 00:36:23,268
+Let's say for sorting, typically you try to count the number of comparisons and give a bound on the number of comparisons.
+
+364
+00:36:23,712 --> 00:36:35,268
+Okay, so the idea is let's instrument our algorithms with these operation counters and then write specifications, write bounds on the values of those operation counters.
+
+365
+00:36:35,790 --> 00:36:50,512
+Now the catch is I want to make sure that every operation that I care about is properly accounted for, like that I don't somehow forget to tick my counter when I use a particular comparison, and that this counter is monotonic.
+
+366
+00:36:50,592 --> 00:36:52,512
+I don't I shouldn't be able to decrement the counter.
+
+367
+00:36:52,672 --> 00:36:56,192
+I'm just really just you know, it's a tick counter, keep screwing forward.
+
+368
+00:36:56,912 --> 00:37:02,752
+So there are ways in which, by using abstraction, you can set it up.
+
+369
+00:37:02,752 --> 00:37:04,912
+so that, um, I can.
+
+370
+00:37:05,232 --> 00:37:23,872
+I can define this type in F* star using a few gadgets from separation logic and ensure that for a particular, if I care to count comparisons, I can write a spec for algorithms in which every comparison is definitely counted.
+
+371
+00:37:24,078 --> 00:37:26,192
+And I don't and and that's just a property of the spec.
+
+372
+00:37:26,272 --> 00:37:27,152
+I don't have to read the code.
+
+373
+00:37:27,232 --> 00:37:32,100
+The spec alone tells me that every operation is going to be counted, and I can do this once and for all.
+
+374
+00:37:34,542 --> 00:37:41,860
+now if you have one of the one of these counting aware specs, then you can get the agent to do this.
+
+375
+00:37:43,054 --> 00:37:56,752
+So what this says is insertion sort is a sort on integer arrays such that this is the worst case complexity bound on the number of comparisons in square, right?
+
+376
+00:37:57,152 --> 00:38:03,108
+And for merge sort, it is logarithmic, and you get even the constants.
+
+377
+00:38:05,006 --> 00:38:10,500
+Okay, and and keep sort is also logarithmic, but the constants are somewhat different.
+
+378
+00:38:11,534 --> 00:38:28,964
+Okay, and all of this is to say that if you give the agents a framework in which to do proofs and in which to produce, you know, and you set it up in a way so that you can read what is produced in a terse, cleanly analyzable way, it will just prove it.
+
+379
+00:38:30,190 --> 00:38:49,700
+Okay, so uh here we have complexity aware specs of in uh in uh uh if you go look at our online development, and there's we have complexity aware specs for sorting, for data structures, for red black trees, for a whole bunch of stuff that is really just push button.
+
+380
+00:38:50,830 --> 00:38:57,152
+but this is again I want to say yes, we can do complexity proofs, but this is let's prove harder stuff still, right?
+
+381
+00:38:57,232 --> 00:38:58,672
+This is not uh look.
+
+382
+00:39:00,046 --> 00:39:02,272
+can we do average case?
+
+383
+00:39:02,352 --> 00:39:03,716
+This is worst case complexity.
+
+384
+00:39:04,046 --> 00:39:07,524
+In worst case complexity, quick sort looks no better than insertion sort.
+
+385
+00:39:08,462 --> 00:39:12,164
+But quick sort, the value of quick sort is average case is logarithmic.
+
+386
+00:39:12,272 --> 00:39:13,668
+Can we do average case proofs?
+
+387
+00:39:13,870 --> 00:39:14,832
+I don't know how to do them.
+
+388
+00:39:15,086 --> 00:39:16,272
+Maybe you guys can figure it out.
+
+389
+00:39:16,352 --> 00:39:18,404
+That's what we should be thinking about how to do the hard stuff.
+
+390
+00:39:18,894 --> 00:39:19,152
+Okay.
+
+391
+00:39:19,552 --> 00:39:22,052
+Um can we do space complexity?
+
+392
+00:39:23,950 --> 00:39:27,264
+Can we do go against a lower level model rather than just counting operations?
+
+393
+00:39:27,344 --> 00:39:28,932
+Can we prove it against a Turing machine?
+
+394
+00:39:31,566 --> 00:39:33,344
+Can we have nice big O notation?
+
+395
+00:39:33,550 --> 00:39:34,948
+I don't want to see all these constants.
+
+396
+00:39:35,984 --> 00:39:36,304
+Right?
+
+397
+00:39:36,464 --> 00:39:38,052
+Like there's lots of stuff to think about.
+
+398
+00:39:39,024 --> 00:39:42,532
+And I think that's what we as humans, that's what we should be thinking about.
+
+399
+00:39:42,704 --> 00:39:44,420
+Building those gadgets.
+
+400
+00:39:47,470 --> 00:39:49,184
+So that's proving cleaner.
+
+401
+00:39:49,264 --> 00:39:51,588
+So let me tell you a bit about proving bigger.
+
+402
+00:39:51,984 --> 00:39:57,700
+So I told you that in a few weeks we've proven this whole communication stack.
+
+403
+00:39:58,224 --> 00:40:03,652
+And then the question is, how do we know that what we've proven is what we intend?
+
+404
+00:40:06,734 --> 00:40:08,944
+So let me give you a taste of it.
+
+405
+00:40:09,104 --> 00:40:16,624
+So what we've built is an implementation of a client-server key exchange.
+
+406
+00:40:16,878 --> 00:40:19,492
+We call this thing Atlas, agente TLS.
+
+407
+00:40:20,464 --> 00:40:26,724
+Um, and roughly you can think of it as that there's a client and a server implemented in verified code.
+
+408
+00:40:27,374 --> 00:40:34,692
+They both compile to a piece of C code, and this C code is maybe about 100,000 lines of optimized C.
+
+409
+00:40:35,664 --> 00:40:39,748
+it comes from this stuff is about 500,000 lines in verified code.
+
+410
+00:40:41,584 --> 00:40:49,824
+and then this C here's an interesting kind of I think philosophical question like you're getting at, right?
+
+411
+00:40:49,984 --> 00:40:53,668
+Which is how do you know that you've implemented TLS?
+
+412
+00:40:54,158 --> 00:40:57,664
+TLS is described in RFC 8446.
+
+413
+00:40:58,126 --> 00:41:05,664
+It's a bunch of natural language text reflecting the brain contents of the editors of the SARS, right now.
+
+414
+00:41:08,078 --> 00:41:10,224
+how do I know that it's not a formal thing?
+
+415
+00:41:10,304 --> 00:41:14,864
+I cannot judge that any piece of code correctly implements a natural language document.
+
+416
+00:41:15,104 --> 00:41:20,900
+There has to be some way to transcribe that natural language document into something formal before I can ask that question.
+
+417
+00:41:21,198 --> 00:41:25,024
+And then you have to wonder like, well, is my interpretation of this formal stuff?
+
+418
+00:41:25,104 --> 00:41:27,492
+Does it correspond to the document or not?
+
+419
+00:41:27,904 --> 00:41:39,460
+Now I think this is actually like an empirical question, and for standardized things like TLS, the way you answer this question is by interoperability.
+
+420
+00:41:40,238 --> 00:41:59,012
+So when the ITF goes and standardizes a new a new protocol, they hold interop workshops, interop audience, where different people are given the protocol, they get together for a weekend and they check if their implementation running on their computer can communicate with someone else's implementation.
+
+421
+00:41:59,310 --> 00:42:05,028
+And if it can, then they know that they both interpreted the standard in the same way.
+
+422
+00:42:05,518 --> 00:42:08,784
+And this is the only way in which we build the internet.
+
+423
+00:42:09,198 --> 00:42:15,664
+The fact that the Linux implementation of TCP agrees with the Windows one is only by interop, right now.
+
+424
+00:42:15,984 --> 00:42:17,744
+Um so that's what we do.
+
+425
+00:42:17,824 --> 00:42:27,812
+We get our atlas implementation and we check that it actually speaks TLS to the extent that it can interoperate with OpenSSL or boring SSL or something.
+
+426
+00:42:27,904 --> 00:42:29,252
+So that's empirical, right?
+
+427
+00:42:29,838 --> 00:42:32,164
+And then comes the proof part.
+
+428
+00:42:32,590 --> 00:42:37,984
+And the proof part is what we show is that our implementations, uh,
+
+429
+00:42:42,144 --> 00:42:42,544
+yeah.
+
+430
+00:42:43,184 --> 00:42:48,132
+uh, our implementations refine a state machine spec of TLS.
+
+431
+00:42:49,184 --> 00:42:56,384
+and that if you take these two state machines together, you can prove that they satisfy some nice property at the top.
+
+432
+00:42:57,584 --> 00:43:02,596
+and then what you have to read is really the nice property at the top.
+
+433
+00:43:03,342 --> 00:43:07,812
+And the nice property at the top is 500 lines, not 500,000 lines.
+
+434
+00:43:08,464 --> 00:43:11,984
+And this again is like one of the other messages I want to drive home, right?
+
+435
+00:43:12,064 --> 00:43:19,344
+This is the story of like verification is an exercise in complexity reduction, right?
+
+436
+00:43:19,664 --> 00:43:24,384
+So this is the complexity of the actual code, or maybe this in some sense, right?
+
+437
+00:43:24,624 --> 00:43:28,864
+And we've reduced that complexity down to this audit surface.
+
+438
+00:43:29,358 --> 00:43:35,424
+Okay, I also want to I also like to think of verification as a risk reduction exercise, right?
+
+439
+00:43:35,744 --> 00:43:44,544
+That we haven't eliminated all risk, like all of these proofs are done against our assumptions about the underlying hardware, underlying operating system.
+
+440
+00:43:44,846 --> 00:43:47,424
+It's not that there might still be a bug in all of that.
+
+441
+00:43:47,630 --> 00:43:54,180
+We've reduced risk, we haven't eliminated it, but we've also those are the two things we're after risk and complexity.
+
+442
+00:43:56,462 --> 00:44:07,184
+and the way we get at this is uh is this state machine spec is itself about 3,000 lines long.
+
+443
+00:44:07,566 --> 00:44:08,516
+And I don't want to read it.
+
+444
+00:44:10,000 --> 00:44:15,844
+I do read it, but I can't really convince myself that 3,000 lines of code is correct at a glance.
+
+445
+00:44:16,400 --> 00:44:24,800
+So the way we do it is we've been building these generic libraries that I call typed rubrics, right?
+
+446
+00:44:24,960 --> 00:44:33,476
+These libraries that codify different proof patterns that one can use in these systems.
+
+447
+00:44:33,920 --> 00:44:43,748
+So this symbol here, the subset equals symbol, is actually a representation in F star for what a state machine refinement proof looks like.
+
+448
+00:44:44,366 --> 00:44:45,520
+And it's done once and for all.
+
+449
+00:44:46,510 --> 00:44:51,140
+that definition exists independently of TLS, independently of any particular state machine.
+
+450
+00:44:51,630 --> 00:44:59,040
+And it's a very abstract notion that it lives in our library, can be audited and signed off by experts.
+
+451
+00:44:59,214 --> 00:45:11,040
+And once you have that notion, the agent can prove that this state machine, some state transition system, a canonical one, that it is refined by this implementation.
+
+452
+00:45:11,120 --> 00:45:14,692
+And once you have that, you don't need to see the implementation anymore.
+
+453
+00:45:15,438 --> 00:45:19,140
+All the code is out of the picture, and now all you have left is the state machine.
+
+454
+00:45:20,320 --> 00:45:25,220
+because this subset equals symbol has removed that complexity once and for all.
+
+455
+00:45:26,414 --> 00:45:38,560
+Okay, so now so then we have these canonical state machine specs, which you can choose to read, and you can get agents to try to annotate the spec and relate it to sections of the RFC and so on.
+
+456
+00:45:38,640 --> 00:45:39,396
+That's useful.
+
+457
+00:45:40,320 --> 00:45:44,800
+And then you shouldn't be satisfied with just this kind of spec.
+
+458
+00:45:45,038 --> 00:45:49,220
+The state machine exists to achieve some protocol objective.
+
+459
+00:45:49,774 --> 00:46:01,124
+And that protocol objective is that if you know I'm talking if I'm negotiating in connection with Gautam and at the end our handshake succeeds, then Gotham and I have derived the same session key.
+
+460
+00:46:01,582 --> 00:46:02,916
+That's the whole point of TLS.
+
+461
+00:46:03,680 --> 00:46:08,880
+So that's proved that this state machine formalization actually gives us that problem.
+
+462
+00:46:09,870 --> 00:46:18,240
+So at the end of the day, we show that you know, two communicating state machines, if they reach agreement, then they do have they have derived the same keys.
+
+463
+00:46:18,446 --> 00:46:20,004
+And that's the top of the theorem, right?
+
+464
+00:46:20,400 --> 00:46:27,972
+And yeah, so that's reigning in complexity, proving cleaner, that's lots of stuff to think about still.
+
+465
+00:46:30,080 --> 00:46:34,000
+I also wanted to tell you about some things that this enables.
+
+466
+00:46:34,160 --> 00:46:40,356
+So once you have proofs, all kinds of stuff opens up, and one of them is continuous optimization.
+
+467
+00:46:41,230 --> 00:46:46,756
+If I had my proof in place, so what we did is we first had this proof, and then we said, let's benchmark it against OpenSSL.
+
+468
+00:46:47,150 --> 00:46:52,644
+And it turns out that we were kind of 2x slower than OpenSSL, right?
+
+469
+00:46:53,520 --> 00:47:00,292
+200 to 240 megabytes per second as opposed to 560 megabytes per second using OpenSSL.
+
+470
+00:47:00,960 --> 00:47:05,668
+Uh, and like off on the handshakes per second, also by substantial amount.
+
+471
+00:47:06,094 --> 00:47:08,960
+And it turns out that there were two main bottlenecks.
+
+472
+00:47:09,294 --> 00:47:21,200
+One, we were not using vectorized cryptography, and two, our implementation of the protocol had lots of extra buffering in data copies, right?
+
+473
+00:47:21,600 --> 00:47:33,060
+So but the proof was in place, and now when the proof is in place, I can just tell an agent don't change the top-level theorem, but go for it, optimize as much as you like.
+
+474
+00:47:33,840 --> 00:47:37,476
+And it cranks just literally in a few hours.
+
+475
+00:47:39,150 --> 00:47:51,940
+it had eliminated, it had switched to vectorized crypto, and it removes all the redundant copying, and we're on par with OpenSSL, and we beat OpenSSL on the large transfers.
+
+476
+00:47:53,710 --> 00:47:59,392
+Just just completely, you know, by setting the proof in place and saying agent optimize, right?
+
+477
+00:47:59,552 --> 00:48:06,432
+So yeah, the things that so so now, so what's the next frontier?
+
+478
+00:48:06,512 --> 00:48:08,164
+Like where where do we go from here?
+
+479
+00:48:08,592 --> 00:48:14,912
+And one thing I wanted to point out is that over the past two decades there have been a number of successes.
+
+480
+00:48:15,072 --> 00:48:21,392
+We haven't been the only ones like sweating blood, building verified things, you know, a lot of groups have been doing this.
+
+481
+00:48:21,872 --> 00:48:33,412
+but what has happened typically is in all these projects, people have built fresh code from scratch and done proofs from the get-go rather than trying to verify an implementation after the fact.
+
+482
+00:48:34,032 --> 00:48:44,388
+So, but most of the code in the world is actually it already exists, or I mean, I don't know, maybe the agents will rewrite it all, but there's still a ton of code out there, right?
+
+483
+00:48:44,718 --> 00:48:46,992
+And how do we get any guarantees about any of this?
+
+484
+00:48:47,278 --> 00:48:49,668
+It's traditionally been completely out of scope for our tools.
+
+485
+00:48:50,062 --> 00:48:51,364
+Can we do something about it?
+
+486
+00:48:51,632 --> 00:48:54,832
+And one thing we've been doing is building such a tool.
+
+487
+00:48:55,086 --> 00:48:59,552
+So we have a new tool called PAL, proof annotation language for C.
+
+488
+00:49:00,078 --> 00:49:03,472
+And we're building PAL for C sharp, we're building PAL for C.
+
+489
+00:49:03,952 --> 00:49:05,380
+Like we're building a bunch of new tools.
+
+490
+00:49:05,838 --> 00:49:11,172
+We'd love, if you want to, if this sounds interesting to you, please reach out, be fun to work on.
+
+491
+00:49:11,712 --> 00:49:24,752
+Um, and the way PAL works is that here's our favorite multiplication by repeated addition in C, this time, where, rather than writing Pulse code, you can write PAL code.
+
+492
+00:49:24,832 --> 00:49:31,952
+you can write C code, and you can decorate it in place with the same types of annotations that I showed you in Pulse.
+
+493
+00:49:32,512 --> 00:49:41,444
+And we have a tool that takes this program and translates it to pulse against our model of the C standard.
+
+494
+00:49:42,190 --> 00:49:46,980
+And then you do a proof in pulse with these annotations about the correctness of this program.
+
+495
+00:49:47,472 --> 00:49:53,072
+Okay, and this too is starting to work.
+
+496
+00:49:53,232 --> 00:50:02,020
+So uh our the circular W link list thing I showed you earlier is actually a really common pattern in the Linux kernel.
+
+497
+00:50:02,734 --> 00:50:09,872
+For example, like the whole device driver stack is built around this thing called this data structure called SK buffs.
+
+498
+00:50:10,286 --> 00:50:25,252
+And skbuffs is a circular doubly linked list with a sentinel, and it's done in C with lots of interesting complications, the style called intrusive lists and and so on, and it was quite hairy to verify.
+
+499
+00:50:25,552 --> 00:50:30,468
+And um, but the agents looked at the Linux kernel code, they know it really well, right?
+
+500
+00:50:30,752 --> 00:50:40,452
+They've been trained on Linux kernel inside out, they they certainly know about this data structure, and then it's a question of can they translate that into proof annotations?
+
+501
+00:50:40,832 --> 00:50:54,724
+And this summer with a couple of interns, we built out PAL, a brand new proof tool that the agents have not seen before, and they blast out proofs of kernel drivers.
+
+502
+00:50:57,312 --> 00:51:01,792
+so let me just think I'm going to wrap up.
+
+503
+00:51:01,872 --> 00:51:05,312
+Uh just want to say the future is here.
+
+504
+00:51:05,678 --> 00:51:12,192
+I think there's there's a lot of uncertainty, and you know, like what is our role in this in this future?
+
+505
+00:51:12,272 --> 00:51:26,112
+and you know, um, and but I think, um, you know, the uh, we may stop reading code, but there's still plenty of stuff for us to do and to do it and to do it well, you know.
+
+506
+00:51:26,192 --> 00:51:32,752
+and and to apply our uh, the insights that our research community has developed over the years to find out.
+
+507
+00:51:32,832 --> 00:51:40,900
+but but to pivot it to think about, rather than how just to prove, but how to specify, how to confirm intent, how to compose things.
+
+508
+00:51:41,472 --> 00:51:43,876
+I think that's where the action is going to be.
+
+509
+00:51:45,712 --> 00:51:52,752
+and uh also wanted to wrap up with some reflections and maybe some problems.
+
+510
+00:51:53,392 --> 00:52:01,456
+but first, you know, I I wonder if you're If you're wondering like me, how can this work?
+
+511
+00:52:01,776 --> 00:52:05,668
+how is it possible for a computer to just turn this out?
+
+512
+00:52:05,934 --> 00:52:09,296
+And I think what's to be honest, I don't know.
+
+513
+00:52:09,376 --> 00:52:12,548
+I don't think anybody knows how these LLMs are really working.
+
+514
+00:52:12,896 --> 00:52:21,124
+There's some very fresh work on interpretability that suggests that maybe someday we'll find out how these LLMs are actually working.
+
+515
+00:52:21,422 --> 00:52:23,332
+Right now, I think the answer is that we don't know.
+
+516
+00:52:23,790 --> 00:52:30,496
+But empirically, what seems to be really important is to build closed objective feedback loops around it.
+
+517
+00:52:31,296 --> 00:52:43,536
+And verifiers, program verifiers, are and math theorem checkers are perhaps the best objective feedback.
+
+518
+00:52:44,302 --> 00:52:58,096
+If you can set guardrails and you have a symbolic thing that's going to tell you exactly when you've passed it or not, and you let these things run, they will run for days, chugging away, trying to meet that objective, and they'll blast through any difficulty.
+
+519
+00:52:58,176 --> 00:53:03,616
+So we we have to think about how to build these loops and build these closed loops effectively.
+
+520
+00:53:03,854 --> 00:53:05,616
+So that's that's one thing.
+
+521
+00:53:06,542 --> 00:53:11,296
+Then, you know, as I've also been having for conversations with folks here, like what does all this mean?
+
+522
+00:53:11,376 --> 00:53:13,616
+Like, what does it mean for us as a community and so on?
+
+523
+00:53:14,062 --> 00:53:18,916
+And you know, uh, it's like months of PhD level work just done in hours.
+
+524
+00:53:20,016 --> 00:53:25,136
+and uh I you know, I don't know, I don't know what to say about this.
+
+525
+00:53:25,774 --> 00:53:40,976
+I can only say is like we all have to think about ways to kind of refocus what we're doing, aim higher, and maybe feel a bit sort of I don't know, unshackled by constraints that we had before, right?
+
+526
+00:53:41,136 --> 00:53:47,012
+Maybe we would never dream up a certain proof technique in the past because it was just too hard to actually do.
+
+527
+00:53:47,296 --> 00:53:49,216
+And that's not a constraint anymore.
+
+528
+00:53:49,296 --> 00:53:50,724
+Maybe we should go after those things.
+
+529
+00:53:51,536 --> 00:53:55,652
+Um also like, what do you how do you teach any of this?
+
+530
+00:53:56,176 --> 00:54:12,420
+And you know, if can you, you know, if agents are doing all the coding, and if today, if I'm if what I'm saying is that humans even we risk we're not reading this code anymore, like how do you become a good engineer without reading or writing code?
+
+531
+00:54:13,454 --> 00:54:13,696
+Right?
+
+532
+00:54:13,856 --> 00:54:19,376
+How do you become a proof engineer without ever like wrestling with like, oh, do I have the right induction hypothesis here?
+
+533
+00:54:19,536 --> 00:54:21,412
+Like, you know, is that even possible?
+
+534
+00:54:23,374 --> 00:54:23,856
+I don't know.
+
+535
+00:54:24,016 --> 00:54:37,028
+And you know, maybe we should be teaching slightly different things, and you know, maybe the important thing is no longer like the raw proof technique, but like spec review.
+
+536
+00:54:37,326 --> 00:54:40,388
+You know, how do you critique a claim?
+
+537
+00:54:40,750 --> 00:54:41,056
+Right?
+
+538
+00:54:41,376 --> 00:54:46,256
+And uh and maybe we should be thinking, I've been wondering about this.
+
+539
+00:54:46,336 --> 00:54:48,416
+Like, what is what would what would proof-oriented?
+
+540
+00:54:48,496 --> 00:54:51,616
+It's no longer about programming, like what is proof-oriented architecture look like?
+
+541
+00:54:51,776 --> 00:55:00,656
+How do you build a large system with you know uh clear modular interfaces to you know arrange a large proof?
+
+542
+00:55:01,390 --> 00:55:04,868
+Um, I don't know, I'd be happy to brainstorm with you guys about it.
+
+543
+00:55:05,456 --> 00:55:11,044
+And the other is is there's so many other social problems around it.
+
+544
+00:55:12,096 --> 00:55:24,800
+from you know, and one I'll just mention is just access and inequalities, and you know, and if I speak to this one, does it accelerate only the view?
+
+545
+00:55:25,296 --> 00:55:30,948
+I mean, there's access, of course, but there's also inequalities around expertise.
+
+546
+00:55:31,214 --> 00:55:38,896
+You know, I've been doing this stuff for 20 years or more, and so I can use it and I've been trained, I've benefited from all the training that I've had.
+
+547
+00:55:39,056 --> 00:55:42,896
+And if you haven't had this stuff before, can you suddenly ramp up?
+
+548
+00:55:42,976 --> 00:55:46,176
+And is it only accelerating the experts or what?
+
+549
+00:55:46,336 --> 00:55:51,620
+I don't know the answers to these things, but they're tough things to think about.
+
+550
+00:55:52,416 --> 00:55:57,616
+But let me just aim on a finish on a on a high note.
+
+551
+00:55:57,696 --> 00:56:05,856
+I think we should just aim high, like question premises, but stay principled to what we really believe.
+
+552
+00:56:06,016 --> 00:56:21,216
+And you know, for decades, I think our me's me, our community, people working in programming languages, we've really believed in doing things with rigor, getting strong guarantees, you know, all of that I think is more important than ever.
+
+553
+00:56:21,486 --> 00:56:31,296
+Like, let's and I'm sure like we're all working in slightly different areas, and you know, I'm sure there's versions of what I'm saying that apply to whatever discipline you're in.
+
+554
+00:56:31,406 --> 00:56:35,684
+Like, stick to those things, but aim high, like aim crazy high.
+
+555
+00:56:36,174 --> 00:56:38,336
+Okay, because it's wild.
+
+556
+00:56:38,496 --> 00:56:39,856
+So thank you.
+
+557
+00:56:40,078 --> 00:56:41,700
+I'm happy to take some questions.
+
+558
+00:56:50,720 --> 00:56:56,240
+out of curiosity's sake, what was the optimization that happened from like what is the agent boot for it?
+
+559
+00:56:56,560 --> 00:56:58,372
+Oh, it removed all those redundant copies.
+
+560
+00:56:59,598 --> 00:57:03,360
+The initial overhead was not using vectorized crypto.
+
+561
+00:57:03,520 --> 00:57:09,920
+So it switched to using vectorized uh you know uh ABX 512 instructions, vectorized crypto.
+
+562
+00:57:10,000 --> 00:57:23,172
+So that gave it a big speed boost, and then it had all these like redundant copies from the input buffers to several internal buffers, and then it just said, Oh, I'm gonna remove all these redundant copies and work directly out of the input.
+
+563
+00:57:24,720 --> 00:57:27,200
+But they have to work with parsers, they're just having zero copy.
+
+564
+00:57:27,760 --> 00:57:30,212
+Uh they they are using ever parse zero copy parsers.
+
+565
+00:57:30,798 --> 00:57:32,292
+So actually, it turned out that
+
+566
+00:57:37,038 --> 00:57:42,276
+we had gone through a lot of trouble in building ever parse to make serializers especially zero copy.
+
+567
+00:57:43,200 --> 00:57:46,404
+to serialize directly into the output buffer in place.
+
+568
+00:57:47,040 --> 00:57:51,920
+And this turned out to not be important, at least not in this benchmark.
+
+569
+00:57:52,000 --> 00:57:56,708
+Like we're using a copying variant of it, and it doesn't show up in the profile.
+
+570
+00:57:59,662 --> 00:58:03,600
+I mean, premature optimization is yeah, yes.
+
+571
+00:58:04,174 --> 00:58:10,240
+How much of your time do you spend um actually from the HOT or how detailed?
+
+572
+00:58:11,120 --> 00:58:13,200
+Increasingly, increasingly little.
+
+573
+00:58:13,360 --> 00:58:17,280
+I mean, you know, it's changed a lot even over the course of this year.
+
+574
+00:58:17,440 --> 00:58:18,720
+Like initially,
+
+575
+00:58:23,440 --> 00:58:32,836
+you know, several iterations around spec critique, and you know, uh I think it uh I might even in January have been providing like invariant hints and so on.
+
+576
+00:58:33,966 --> 00:58:34,788
+Not anymore.
+
+577
+00:58:35,662 --> 00:58:40,160
+I mostly uh I mean I can give you an example.
+
+578
+00:58:40,240 --> 00:58:46,916
+Like uh there's um this week I was doing some proof about I I wanted to add a feature to Pulse.
+
+579
+00:58:47,280 --> 00:58:51,680
+Some for those of you who might recognize this, something called logical atomicity from Iris.
+
+580
+00:58:51,840 --> 00:58:52,900
+I wanted to add it to Pulse.
+
+581
+00:58:53,198 --> 00:58:55,760
+I had a general idea of how to do it and where the problems were.
+
+582
+00:58:56,000 --> 00:59:06,436
+I wrote two paragraphs, but I knew enough of pulse and iris to know what two paragraphs to write, but it was just two paragraphs, and that was it.
+
+583
+00:59:08,334 --> 00:59:08,644
+Yeah.
+
+584
+00:59:09,920 --> 00:59:10,160
+So
+
+585
+00:59:16,110 --> 00:59:24,800
+if you want to verify some running software for that, the the implementation could be changed by adding some new features or reflecting the code or those kinds of stuff.
+
+586
+00:59:24,910 --> 00:59:26,820
+Then the spection features, how do you handle it?
+
+587
+00:59:28,240 --> 00:59:29,040
+so two questions.
+
+588
+00:59:29,120 --> 00:59:31,120
+The first one is how do we write the spots?
+
+589
+00:59:31,280 --> 00:59:32,880
+How do you get the agents to write the spots?
+
+590
+00:59:33,600 --> 00:59:35,200
+So the first one.
+
+591
+00:59:35,600 --> 00:59:38,160
+so, so what we say to it was, you know,
+
+592
+00:59:42,638 --> 00:59:49,600
+we have written a description of what a spot is, and uh, what we thought, what we think of a spot, made something similar to this.
+
+593
+00:59:49,760 --> 00:59:53,764
+each sort example, write a small number of test and prove that the test is correct.
+
+594
+00:59:54,320 --> 00:59:54,640
+right?
+
+595
+00:59:55,534 --> 01:00:14,240
+And then we said, "Uh, here's an example for each sort, go and do it for all 52 outputs .". And so then it writes a bunch of uh spots, and then we go and, you know, at least for, at least for CLRS, we went and read the spots to make sure that, "Oh, yeah.
+
+596
+01:00:14,320 --> 01:00:15,360
+this is a reasonable case.
+
+597
+01:00:15,520 --> 01:00:20,480
+it's, you know, inserting an element into the list and then putting it out and checking this thing that's we test.
+
+598
+01:00:21,262 --> 01:00:23,716
+So so we then audit the spots.
+
+599
+01:00:24,160 --> 01:00:32,868
+and, but honestly, increasingly, I think of spots as a um as an audit signal.
+
+600
+01:00:32,960 --> 01:00:35,716
+Like if you write a spot, the agent is going to write.
+
+601
+01:00:36,960 --> 01:00:38,480
+sorry if I sound too bullish about it.
+
+602
+01:00:38,480 --> 01:00:51,440
+So the agents are they will write a reasonable spot, and then they will see that you know if the spot fails to check, that's a good signal, and it will iterate until that signal, until it you know makes that spot pass.
+
+603
+01:00:51,680 --> 01:00:55,172
+So increasingly, I don't read all the spots either.
+
+604
+01:00:57,520 --> 01:00:59,440
+We have a second question about.
+
+605
+01:01:00,480 --> 01:01:05,280
+So if you want to verify minus software, the documentation could be changed.
+
+606
+01:01:09,600 --> 01:01:09,840
+Yeah.
+
+607
+01:01:10,320 --> 01:01:11,440
+How do you handle that problem?
+
+608
+01:01:11,840 --> 01:01:20,720
+So merging, you know, we have agents for merging changes and they they uh if they just they merge or fix up the proofs.
+
+609
+01:01:20,814 --> 01:01:23,460
+If the top of the spec doesn't change, we just merge.
+
+610
+01:01:25,678 --> 01:01:27,840
+If the spec changes, we go and do something.
+
+611
+01:01:28,000 --> 01:01:34,160
+If you open a PR, if the spec changes, then you know one of us critiques the PR, signs off on the spec change.
+
+612
+01:01:34,320 --> 01:01:36,320
+Then, if the top of the spec doesn't change,
+
+613
+01:01:41,160 --> 01:01:41,380
+let it go.
+
+614
+01:01:42,400 --> 01:01:57,120
+So, I view form methods as like a, yeah, where you start with testing, then you do something more expensive, but very cheap if there's like puzzling, then you go to tension testing, and you get like automated the reports and then leave.
+
+615
+01:01:57,360 --> 01:01:57,520
+Sure.
+
+616
+01:01:57,774 --> 01:02:00,080
+Now this whole thing has collapsed to just one thing.
+
+617
+01:02:00,560 --> 01:02:01,040
+I don't think so.
+
+618
+01:02:01,120 --> 01:02:14,560
+Okay, sorry, finish it but I mean there are stuff, but it's more of a monetary thing where if I throw enough tokens, I can get like a lead roof for we do see this code coming out, right?
+
+619
+01:02:14,800 --> 01:02:27,280
+Yeah, so uh yes, uh so um I still think there's a continuum of stuff, and you know, testing is still but you do want to write your testing, you can have programs.
+
+620
+01:02:27,440 --> 01:02:28,800
+And you also want to write to enter and test.
+
+621
+01:02:28,960 --> 01:02:40,560
+I think take the atlas example, I still want to test it against OpenSSL because I may have proven some awesome P agreement theorem about a protocol that has nothing to do with TLS, right?
+
+622
+01:02:40,880 --> 01:02:51,040
+And you know, so testing is important for to you know uh confirm hypotheses that one makes about the environment, right?
+
+623
+01:02:51,120 --> 01:02:54,980
+And about your hardware, about the things that you're talking to, about the operating system, all that kind of stuff.
+
+624
+01:02:55,662 --> 01:02:59,120
+Testing is also specifications are also not absolute, right?
+
+625
+01:02:59,200 --> 01:03:01,360
+So they don't cover everything about your program.
+
+626
+01:03:01,680 --> 01:03:03,360
+Specifications are an abstraction of your program.
+
+627
+01:03:03,760 --> 01:03:14,320
+So the spec, a good spec typically will not say anything about, I mean, let's say it says something about asynchronous complexity, but it's not going to say we don't have good proof techniques.
+
+628
+01:03:14,560 --> 01:03:16,356
+Techniques to talk about concrete performance.
+
+629
+01:03:16,686 --> 01:03:19,120
+So you've got to do a performance testing, right?
+
+630
+01:03:20,160 --> 01:03:24,100
+it's not our specs today don't cover, I don't know, liveness.
+
+631
+01:03:25,102 --> 01:03:26,000
+We've got to do the testing.
+
+632
+01:03:26,080 --> 01:03:28,720
+So I think there's still a continuum.
+
+633
+01:03:29,180 --> 01:03:33,360
+Do You think like we're going to get a replication of that for specs in itself?
+
+634
+01:03:33,840 --> 01:03:35,920
+Yeah, lower release of spots.
+
+635
+01:03:36,270 --> 01:03:39,760
+Yeah, you have to put in the testing with spots and we get like something similar.
+
+636
+01:03:40,142 --> 01:03:41,120
+That's a great observation.
+
+637
+01:03:41,200 --> 01:03:42,400
+I think that could well happen.
+
+638
+01:03:42,830 --> 01:03:43,396
+That could happen.
+
+639
+01:03:43,600 --> 01:03:43,908
+Yes.
+
+640
+01:03:45,070 --> 01:03:46,660
+Uh other questions, Evan?
+
+641
+01:03:47,200 --> 01:03:47,360
+yeah.
+
+642
+01:03:47,520 --> 01:03:51,268
+I want to kind of just brainstorm more about the what teach aspect.
+
+643
+01:03:51,680 --> 01:04:01,680
+So, you know, is there some aspect of the activity of you going through CLRS with these Asians and a spots that made you learn something about the data structure?
+
+644
+01:04:02,190 --> 01:04:07,972
+You know, that you never knew about or something, yes, a lot of that.
+
+645
+01:04:08,526 --> 01:04:24,880
+So, so I mean, you know, CLRS, honestly, there's a bunch of stuff in it that you know, I I don't know, I remember there's like some there's like a rod-cutting dynamic programming algorithm, which I mean I couldn't get me off the top of my head exactly how it works.
+
+646
+01:04:24,960 --> 01:04:31,716
+So, you know, going and judging these things, you know, reading spec helped me understand like what it is that it's trying to do.
+
+647
+01:04:32,080 --> 01:04:35,460
+And then so I think there was all, I learned a lot.
+
+648
+01:04:35,886 --> 01:04:43,680
+Uh both in some cases just refreshing my memory, and in some cases, just like I don't know, learning things that maybe I was ever taught.
+
+649
+01:04:43,760 --> 01:04:44,480
+I'm not, I'm not sure.
+
+650
+01:04:44,720 --> 01:04:47,268
+I can hope that so that was it was definitely interesting.
+
+651
+01:04:47,534 --> 01:04:56,100
+Uh, and maybe it's an interesting way to uh An interesting way to think about teaching algorithms like that.
+
+652
+01:04:56,672 --> 01:05:03,876
+We do teach algorithms things about what is the main variant that this thing is for the most competent.
+
+653
+01:05:04,272 --> 01:05:06,672
+This maybe makes it come alive a little bit, right?
+
+654
+01:05:06,832 --> 01:05:12,708
+You can actually see somewhere at some at the some domestic white group, like here's the actual environment.
+
+655
+01:05:13,392 --> 01:05:16,432
+Um maybe that's uh it's good to think about.
+
+656
+01:05:21,582 --> 01:05:32,676
+So I've been talking with so it turns out the folks at UPN are are teaching a course in this in the spring about uh it's called page property.
+
+657
+01:05:33,632 --> 01:05:38,340
+And I'm trying to, and I think they're trying to assemble some kind of character going around it.
+
+658
+01:05:38,542 --> 01:05:54,020
+And I've been thinking about like what type of content to it, and the thing that I've been thinking about is, and the way they want to structure it, which I think makes a lot of sense, is, you know, we should have like people learn through doing exercises.
+
+659
+01:05:54,672 --> 01:05:57,220
+So, what could some exercises be in this space?
+
+660
+01:05:57,712 --> 01:06:01,284
+And the way I've been thinking about it is that
+
+661
+01:06:07,150 --> 01:06:13,284
+I think it'd be interesting to teach people how to set up rubrics for different classes of algorithms.
+
+662
+01:06:13,870 --> 01:06:25,970
+So, for instance, you know, um uh uh if you look at there's there's a bunch of search trees, and they all they all there's lots of variations on them, lots of interesting things.
+
+663
+01:06:26,672 --> 01:06:28,868
+but they're all abstractly just search trees.
+
+664
+01:06:29,486 --> 01:06:30,272
+And what is it, you know?
+
+665
+01:06:30,352 --> 01:06:36,388
+So, how do you what what is an what is an abstract specification that covers an entire class of search trees look like?
+
+666
+01:06:36,686 --> 01:06:39,300
+And to set up exercises of this flavor.
+
+667
+01:06:40,112 --> 01:06:41,792
+now I don't know.
+
+668
+01:06:43,232 --> 01:07:00,832
+I think it's interesting to do, and I find it interesting, and I think it would be interesting to people who are already maybe capable of certain level of doing abstraction at a certain level is maybe not the thing that you want to teach at your intro data structures class, right?
+
+669
+01:07:01,038 --> 01:07:04,100
+You know, it's a kind of learning one level of abstraction up kind of thing.
+
+670
+01:07:04,672 --> 01:07:11,972
+So I don't know exactly if that's the right kind of exercise, but I'd love to think about myself.
+
+671
+01:07:13,392 --> 01:07:13,632
+Um
+
+672
+01:07:17,792 --> 01:07:18,272
+question?
+
+673
+01:07:20,654 --> 01:07:24,388
+So I just wanted to announce that so people can feel free to leave.
+
+674
+01:07:25,326 --> 01:07:28,192
+so uh maybe decided to take a leave.
+

@@ -5,6 +5,7 @@
 | 视频 | 原作者 | 更新 |
 |---|---|---|
 | [India is 3rd in Quantum Research - So Why No Billion-Dollar Companies?](medias/BS1XE/) | AIM Network | 2026-11-28 |
+| [CS Colloquium: "Agentic Proof Oriented Program" with Nikhil Swamy](medias/1YQDG/) | CU Engineering Academics | 2026-11-28 |
 | [Master WebRTC & LiveKIT Before SPENDING HOURS Building AI AGENT](medias/ZH6J6/) | Kno2gether | 2026-11-27 |
 | [AI Engineering Full Course - Build and Deploy a Real AI App](medias/YG3XA/) | Dave Ebbelaar | 2026-11-27 |
 | [continuous flow language model survey paper explained](medias/WXCQT/) | peb aryan | 2026-11-27 |

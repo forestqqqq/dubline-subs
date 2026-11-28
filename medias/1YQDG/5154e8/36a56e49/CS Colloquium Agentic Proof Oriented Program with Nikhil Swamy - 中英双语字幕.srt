@@ -1,0 +1,4081 @@
+1
+00:00:00,240 --> 00:00:07,588
+呃，今天我们非常荣幸地邀请到来自 Microsoft Research 的 Nikhil Swamy。
+Uh uh so today we have uh the pleasure of welcoming Nick Tommy, Nick Formy from Microsoft Research.
+
+2
+00:00:07,918 --> 00:00:17,040
+呃，Nikhil 是 Microsoft 研究院 Rice 小组的研究员，
+在 Microsoft 负责涵盖系统、函数式编程、程序证明和理论改进等各种主题。
+Uh so Nick is a researcher in Rice Group at Microsoft uh in Mozartman,
+covers various topics including like systems, function programming, program proofs, and theory improving.
+
+3
+00:00:17,198 --> 00:00:19,330
+而且最近，这些主题与 AI 的交集……
+And these days, the intersection of these topics with AI.
+
+4
+00:00:19,330 --> 00:00:27,990
+是 FSTAR 证明导向编程语言的重点之一，该语言用于构建可证明正确且安全的代
+码，包括摄影软件和操作系统组件，其中一些可能就在您的设备上运行。
+is one of the others of F-Star Group-Orient Programming Language, which is used to build probability correct and
+secure code, including the photographic software and OS components,
+
+5
+00:00:27,990 --> 00:00:30,468
+是 FSTAR 证明导向编程语言的重点之一，该语言用于构建可证明正确且安全的代
+码，包括摄影软件和操作系统组件，其中一些可能就在您的设备上运行。
+some of which may very well be running on your device.
+
+6
+00:00:31,214 --> 00:00:35,748
+他的工作获得了多项奖励，包括 Popular Papers 2016 的最具影响力论文奖。
+His work has received several awards, including most influential paper award from Popular 2016.
+
+7
+00:00:36,160 --> 00:00:38,788
+他于 2008 年获得马里兰大学博士学位。
+he has a PhD from the University of Maryland in 2008.
+
+8
+00:00:39,118 --> 00:00:40,800
+这是 Nikhil 发来的简介。
+That was the bio that Nick has sent.
+
+9
+00:00:41,420 --> 00:00:41,920
+他很谦虚。
+He has been modest.
+
+10
+00:00:42,640 --> 00:00:47,360
+Nikhil 实际上为让形式化验证变得实用做出了卓越的贡献。
+Nick has actually made phenomenal contributions towards making formal verification practical.
+
+11
+00:00:47,840 --> 00:00:58,340
+我刚才提到的 FSTAR 工具，以及他发表的关于 FSTAR 的论文，
+实际上是启发了一代编程语言和验证领域的学生，包括我这样的研究生。
+his FSTAR tool that I just mentioned is actually and the papers he published on FSTAR were sort of an
+inspiration for a generation of PL and verification students, graduate students, including myself.
+
+12
+00:00:59,440 --> 00:01:08,800
+所以他在 Project Everest 上基于 FSTAR 的工作，
+被拜登政府的国家网络安全局引用为高保障软件工程的 role model。
+So his work on Project Everest, again based in FSTAR, was cited by Biden administration's Office of National
+Cyber Director as a railway example of high short software engineering.
+
+13
+00:01:09,360 --> 00:01:13,520
+请注意，所有这些工作都是在 AI 让这一切变得廉价之前完成的。
+note that all of that work was done before AI has made that a lot cheaper.
+
+14
+00:01:14,000 --> 00:01:17,440
+现在我们拥有了 AI 的力量。
+now that we have the power of AI at our disposal.
+
+15
+00:01:17,520 --> 00:01:22,560
+所以 Nikhil 在 FSTAR 上做了一些非常酷的工作，
+也就是 FSTAR 与 Agent 的交集。
+So Nick has been doing some really cool work on FSTAR, intersection of FSTAR and agents.
+
+16
+00:01:22,720 --> 00:01:24,484
+所以他今天将就此进行演讲。
+So he's gonna talk about that today.
+
+17
+00:01:25,038 --> 00:01:25,920
+谢谢你，Gautam。
+Thank you, Gautam.
+
+18
+00:01:26,000 --> 00:01:29,680
+呃，谢谢，谢谢这么精彩的介绍，也谢谢你们的邀请。
+Uh thank and uh thanks for that kind intro and thanks for inviting me.
+
+19
+00:01:29,760 --> 00:01:30,628
+很高兴来到这里。
+It's great to be here.
+
+20
+00:01:31,950 --> 00:01:36,548
+我大约两三周前就写好了这次演讲的摘要。
+so I wrote an abstract for this talk about two or three weeks ago.
+
+21
+00:01:37,280 --> 00:01:45,120
+然后在准备这个周末的演讲时，嗯，两三周前已经是很久以前了。
+and then as I was preparing the talk over this past weekend, I was well, two, three weeks ago is is an age ago.
+
+22
+00:01:45,280 --> 00:01:48,960
+显然，我没法讲那些内容了，因为它们太旧了。
+Clearly, I can't talk about that stuff, like it's so old.
+
+23
+00:01:49,230 --> 00:01:52,292
+所以我临时调整了一下思路。
+So I've I've kind of changed gears on the fly.
+
+24
+00:01:52,560 --> 00:02:06,460
+我的演讲标题也许更适合叫「More Better Proofs」，呃，我不知道，
+也许你们太年轻了没听过，或者我不知道你们有没有注意到 Spike Lee 的梗，
+And my uh my talk maybe is is better titled Mo Better Proofs, which uh I don't know,
+maybe you guys are too young for this, but uh or I don't know if you catch the spike lee reference, um,
+
+25
+00:02:06,460 --> 00:02:07,220
+我的演讲标题也许更适合叫「More Better Proofs」，呃，我不知道，
+也许你们太年轻了没听过，或者我不知道你们有没有注意到 Spike Lee 的梗，
+or if you recognize the three giants on that poster.
+
+26
+00:02:07,220 --> 00:02:10,479
+或者认出海报上的那三个巨人。
+or if you recognize the three giants on that poster.
+
+27
+00:02:10,800 --> 00:02:14,800
+有人认识 Turing 吗？
+Anyone Turing?
+
+28
+00:02:16,160 --> 00:02:19,520
+Hoare, Dijkstra, Dijkstra，对吧？
+Hoar Dijkstra Dijkstra, right?
+
+29
+00:02:19,600 --> 00:02:21,760
+好，那么「More Better Proofs」。
+Okay, so uh more better proofs.
+
+30
+00:02:21,840 --> 00:02:26,240
+嗯，那么，什么是程序证明？
+Um so um what is what is a uh what is a program proof?
+
+31
+00:02:26,320 --> 00:02:29,860
+程序证明有着非常悠久的传统。
+So program proofs have a a really uh long tradition.
+
+32
+00:02:30,080 --> 00:02:42,564
+我认为它至少始于 1949 年的 Alan Turing，他写了一篇论文，
+名字叫得非常谦虚，叫《检查大型例程》。
+I think it starts uh at least with Alan Turing in 1949, who had this paper,
+which is called rather modestly Checking a Large Routine.
+
+33
+00:02:42,960 --> 00:02:54,800
+在这篇论文中，他概述了如何确保在那个时代的代码——那时候更多是图表和流程
+图之类的——确实实现了它们预期的目的。
+And it's the paper that, you know he outlines how one can have some assurance that a piece of code in his time
+it was more like you know diagrams and flow charts and so on,
+
+34
+00:02:54,800 --> 00:02:59,556
+在这篇论文中，他概述了如何确保在那个时代的代码——那时候更多是图表和流程
+图之类的——确实实现了它们预期的目的。
+that they have actually achieved, you know its intended purpose.
+
+35
+00:03:00,000 --> 00:03:08,000
+他特别关注其中的几个程序。
+And the particular he has a couple of routines that he's interested in.
+
+36
+00:03:08,080 --> 00:03:15,748
+他特别提到的其中一个，就是如何证明通过重复加法实现的乘法的正确性。
+And the one that he calls out is how to prove the correctness of a multiplication by repeated addition.
+
+37
+00:03:16,334 --> 00:03:21,760
+他列出了我们今天所认为的、用于推理这些内容的证明规则。
+And he lays out proof what we would think of today as proof rules to reason about this.
+
+38
+00:03:21,998 --> 00:03:23,652
+所以这有着相当悠久的历史。
+So it has a pretty old tradition.
+
+39
+00:03:24,000 --> 00:03:34,480
+下一个重大里程碑是 20 年后 Robin Milner 的工作，
+当时 Hoare 真正是将这些视为证明规则。
+And the next another big milestone is Tony Hoare's work in 20 years later,
+where Hoare was really then thinking of this as proof rules.
+
+40
+00:03:34,560 --> 00:03:46,080
+到那时，程序已经有了语法，而 Hoare 的工
+作实际上也是基于大约十年前 Floyd 的工作。
+And by then there was you know a syntax of programs, and Hoare who actually his work is also based on the work
+of Floyd, maybe a decade, earlier than this.
+
+41
+00:03:46,240 --> 00:03:50,468
+Hoare 的经典论文是《计算机编程的公理基础》。
+And Hoare, his classic paper, an axiomatic basis of computer programming.
+
+42
+00:03:51,760 --> 00:03:53,600
+顺便说一下，这是一篇非常易懂的论文。
+it's a very accessible paper, by the way.
+
+43
+00:03:53,680 --> 00:04:04,800
+如果你想读一篇论文，并思考如何漂亮地阐述
+一个深刻的观点，比如那篇，我会反复阅读它。
+And if you want to read a paper and you know think about how to write a beautiful exposition of a deep idea,
+like that, I go to that one repeatedly.
+
+44
+00:04:04,880 --> 00:04:07,268
+所以如果你还没读过，去看看吧。
+So check it out if you haven't read it already.
+
+45
+00:04:07,520 --> 00:04:21,839
+Hoare 所做的事情是，他描述了一种利用编
+程语言的语法来构建程序推理结构的方法。
+And uh the thing that Bohr does is um find a describes a way in which you can use the syntax of a programming
+language to uh and and and use that to structure the reasoning of a program.
+
+46
+00:04:22,079 --> 00:04:30,080
+所以在这个特定的规则中，如果你想知道，
+如果你有一些命令，把 C 看作一段程序文本。
+So, in this particular rule, you know, if you want to know that if by taking a command,
+if you have some commands, think of C as a piece of program text.
+
+47
+00:04:30,382 --> 00:04:38,120
+如果这段程序文本有一些前置条件，而你想知道运行它后是否会达到某些后置条
+件，Hoare 提供了一些规则，告诉你如何将
+and if there's some precondition for the program text for that program,
+and you want to know that when you run it, it ends up with some post condition,
+
+48
+00:04:38,120 --> 00:04:40,840
+如果这段程序文本有一些前置条件，而你想知道运行它后是否会达到某些后置条
+件，Hoare 提供了一些规则，告诉你如何将
+whore gives you some rules that tell you how to decompose
+reasoning about C into reasoning about the fragments of C.
+
+49
+00:04:40,840 --> 00:04:44,164
+关于 C 的推理分解为关于 C 片段的推理。
+whore gives you some rules that tell you how to decompose
+reasoning about C into reasoning about the fragments of C.
+
+50
+00:04:44,782 --> 00:04:48,400
+好，我不会详细描述，但这就是 Hoare 的核心思想。
+Okay, I'm not going to describe it in detail, but that's whore's big idea.
+
+51
+00:04:48,480 --> 00:04:51,812
+就是利用程序的语法来构建程序推理。
+Like you use the syntax of the program to structure program reasoning.
+
+52
+00:04:52,576 --> 00:04:54,496
+那么，现在我们处于什么阶段呢？
+And you know, now what are we?
+
+53
+00:04:54,656 --> 00:05:10,820
+在 Turing 之后大约 80 年，这个领域已经发展了很长时间，
+现在我们有了以这些思想为核心构建的编程语言。
+Like uh I don't know, 80 years after uh after Turing, uh there's uh this field has been growing for a long time,
+and now we have programming languages that are built with these ideas at their core.
+
+54
+00:05:11,136 --> 00:05:14,372
+我喜欢收集这些编程语言的名字。
+And uh I like to collect the names of these programming languages.
+
+55
+00:05:14,576 --> 00:05:16,260
+这里是按字母顺序排列的。
+And here's one from A to Z.
+
+56
+00:05:16,576 --> 00:05:26,176
+如果你在考虑发明一种新的编程语言，你知道，J、Q 和 X 还是空缺的。
+And if you're thinking of inventing a new programming
+language in the space, you know, J, Q, and X are up for grabs.
+
+57
+00:05:27,136 --> 00:05:30,564
+所以我期待下一代人来填补这里的空白。
+so I'm looking to you next generation to fill the holes here.
+
+58
+00:05:30,816 --> 00:05:31,216
+好了。
+All right.
+
+59
+00:05:31,456 --> 00:05:36,096
+我目前研究的语言叫做 F*。
+So the one that I work on is called x star.
+
+60
+00:05:37,216 --> 00:05:43,616
+我想先给你们简单介绍一下，让大家知道我们在聊什么。
+And I thought I'd give you a little taste of it just to get going, so that you know what we're talking about.
+
+61
+00:05:43,776 --> 00:05:54,740
+但证明导向编程的总体思想，正如这里的简短解释所说，
+就是你编写程序的同时编写规格说明和证明，并且在同一个环境中完成所有操作，
+But the general idea of proof-oriented programming, as this you know, this little explanation here says,
+you write your programs together with specifications and proofs, and you do it all in a single environment,
+
+62
+00:05:54,740 --> 00:05:55,010
+并且有定理证明器来检查你的程序及其规格说明是否符合要求。
+But the general idea of proof-oriented programming, as this you know, this little explanation here says,
+you write your programs together with specifications and proofs, and you do it all in a single environment,
+
+63
+00:05:55,010 --> 00:05:59,780
+并且有定理证明器来检查你的程序及其规格说明是否符合要求。
+and you have theorem provers that check that your programs and their specs are conformant.
+
+64
+00:06:01,614 --> 00:06:14,276
+当然，我得说，在这一集里，你们肯定最近听过 Lean，
+它也是在 Microsoft Research 开发的。
+Of course, I should say through this this episode, you surely have heard about lean these days,
+which is the uh developed at Microsoft Research as well.
+
+65
+00:06:16,014 --> 00:06:19,216
+这就是 F* 的样子。
+so here's what F star looks like.
+
+66
+00:06:19,376 --> 00:06:21,380
+后排的同学看清楚了吗？
+Is that big enough for you guys to see in the back?
+
+67
+00:06:22,670 --> 00:06:23,136
+看到了。
+Yes.
+
+68
+00:06:23,376 --> 00:06:35,056
+所以，F* 在核心上是一种函数式编程语言，它的语法看起来有点像 OCaml、
+Standard ML 或 F# 等语言。
+So here is a f-star is at its core a functional programming language,
+and it has a syntax that looks a bit like OCaml or a standard ML or F sharp or one of these languages.
+
+69
+00:06:35,296 --> 00:06:39,524
+从某种意义上说，这就是图灵的程序。
+And here is Turing's program in some sense.
+
+70
+00:06:39,758 --> 00:06:51,776
+你看，这里定义了一个名为 multiply 的函数，通过递归处理两个整数 x 和 y，
+抱歉，是两个自然数 x 和 y，它将返回一个数字 z。
+You know, I have this is a it's defining a function called multiply by recursion on two integers x and y, sorry,
+two natural numbers x and y, and it's going to return a number z.
+
+71
+00:06:52,078 --> 00:06:53,376
+而这里就是有趣的部分。
+And this is the interesting part here.
+
+72
+00:06:53,456 --> 00:06:57,136
+这就是这类证明导向语言能让你做的事情。
+This is what this is the kind of thing that these proof-oriented languages let you do.
+
+73
+00:06:57,422 --> 00:07:06,564
+这里有一小段规格说明，说明这个函数返回一个 z，
+且这个 z 等于 x 乘以 y，也就是 x 和 y 的乘积。
+Here's a bit of specification that says this function returns a z,
+and this z is equal to x times y, the multiplication of x and y.
+
+74
+00:07:06,926 --> 00:07:12,420
+但它不是直接把它们相乘，而是通过重复相
+加来实现，就像图灵已经做的那样，对吧？
+But it's going to do this not by just multiplying them, but
+by doing repeated additions, like Turing already do, right?
+
+75
+00:07:12,656 --> 00:07:16,336
+而这个特定的部分是，如果 y 是零，就返回零。
+And this particular one, is, if y is zero, then return zero.
+
+76
+00:07:16,496 --> 00:07:21,936
+否则，进行递归，递减 y 并加上一个 x。
+Otherwise, recurse, decrementing y and add one x to it.
+
+77
+00:07:22,062 --> 00:07:25,216
+所以它会把 x 加上 y 次，对吧？
+So it's going to add x to itself y times, right?
+
+78
+00:07:25,536 --> 00:07:37,124
+而且，呃，如果你，你知道，比如，如果我搞砸了没这么做，它会说，嗯，
+我预期 z 是 x 乘以 y，但我只得到了 z 等于 x 乘以 y 减一。
+And uh, if you you know, if if for instance, if I screw up and don't do that, it's going to say, well,
+I expected z to be x times y, but I only got z equal x times y minus one.
+
+79
+00:07:37,742 --> 00:07:44,100
+好，所以背后的证明检查器会发现你的错误。
+Okay, so the proof checker in the back is going to catch your mistakes.
+
+80
+00:07:44,416 --> 00:07:44,656
+好的。
+Okay.
+
+81
+00:07:45,070 --> 00:07:51,524
+现在如果你看这个程序，嗯，你知道，有人能告诉我这里有个明显的低效之处吗？
+Now if you look at this program, well, you know, can someone tell me there's an obvious inefficiency here?
+
+82
+00:07:54,510 --> 00:07:55,108
+有人吗？
+Anyone?
+
+83
+00:07:59,456 --> 00:08:02,016
+如果 x 是零，它还是会加很多次，这是事实。
+If x is zero, it's going to add it a bunch of times, that's true.
+
+84
+00:08:02,256 --> 00:08:03,652
+所以我可以在这里增加另一个情况。
+so I can add another case here.
+
+85
+00:08:10,336 --> 00:08:14,116
+侧边的绿色表示它已经过检查了，还有别的吗？
+the green on the side means it's checked, So anything else?
+
+86
+00:08:16,462 --> 00:08:19,216
+它使用的是与 y 成正比的空间，对吧？
+It's using space proportional to y, right?
+
+87
+00:08:19,296 --> 00:08:21,376
+就像它不是尾递归，对吧？
+Like it's it's not tail recursive, right?
+
+88
+00:08:21,616 --> 00:08:29,284
+所以你可以写一个尾递归版本，这就是一个尾递归版本，
+这次我将通过一个累加器来传递。
+So you can write a tail recursive version, and here's a tail recursive version,
+and this time I'm going to thread through an accumulator.
+
+89
+00:08:29,774 --> 00:08:33,616
+现在看，我可以加上你们指出的同样的优化。
+And now look, I can add the same optimization that you pointed out.
+
+90
+00:08:35,726 --> 00:08:35,936
+对。
+right.
+
+91
+00:08:36,416 --> 00:08:40,895
+而在这里，现在我可以证明它，而且这个函数是尾递归的，对吧？
+And here, now I can prove that, and this function is tail recursive, right?
+
+92
+00:08:40,976 --> 00:08:41,376
+这里没有
+There's no
+
+93
+00:08:46,064 --> 00:08:47,044
+这里，是的。
+Here, yes.
+
+94
+00:08:47,854 --> 00:08:48,292
+是的。
+Yes.
+
+95
+00:08:49,454 --> 00:08:58,230
+所以底层上，F* 正在进行一些证明简化，然后它会调用在 MSR 构建的定理证明
+器 Z3，这是一个可以推理算术和布尔可满足性的 SMT 求解器等等。
+So under the covers, there's F star is doing some proof simplification,
+and then it's calling into this theorem prover that is built at MSR called Z3,
+
+96
+00:08:58,230 --> 00:09:03,684
+所以底层上，F* 正在进行一些证明简化，然后它会调用在 MSR 构建的定理证明
+器 Z3，这是一个可以推理算术和布尔可满足性的 SMT 求解器等等。
+which is a SMT solver that can reason about arithmetic and Boolean satisfiability and so on.
+
+97
+00:09:04,784 --> 00:09:08,944
+而在这里，注意我可以证明同样的事情，但我的规格说明更有趣一点，对吧？
+And here, notice I can prove the same thing, but my spec is a little bit more interesting, right?
+
+98
+00:09:09,024 --> 00:09:14,500
+因为我证明的是结果是 X 乘以 Y 加上累加器的初始值，对吧？
+Because what I prove is that the result is X times Y plus
+whatever the initial value of the accumulator is, right?
+
+99
+00:09:14,624 --> 00:09:19,812
+当然，如果我调用 multiply_tail 并让初始累加器等于零，
+我就得到了我的乘法结果。
+And of course, if I call multiply tail with the initial accumulator equal to zero, then I get my multiplication.
+
+100
+00:09:20,544 --> 00:09:26,532
+这就是 F* 的核心，就像是带有这类规格说明的纯函数式编程。
+So this is kind of the core of F-star, like pure functional programming with these kinds of specifications.
+
+101
+00:09:26,784 --> 00:09:30,404
+当然，你并不只想写纯函数式程序。
+But of course, you don't want to only write purely functional programs.
+
+102
+00:09:30,734 --> 00:09:39,684
+所以 F* 也允许你编写命令式程序，而且你知道，
+是真的可以写 while 循环和可变状态，并进行同样的证明。
+So F star also lets you write imperative programs and to you know write, honest to goodness,
+while loops and mutable state and do the same kinds of proofs.
+
+103
+00:09:39,984 --> 00:09:42,304
+这里有一个命令式程序。
+So here's an imperative one.
+
+104
+00:09:42,542 --> 00:09:46,784
+我要做的是一个叫 MULT 的函数。
+And what I'm going to do is it's a function called MULT.
+
+105
+00:09:47,086 --> 00:09:52,516
+它接收两个可变引用 x 和 y，这两个引用包含自然数。
+It takes two mutable references, x and y, references that contain natural numbers.
+
+106
+00:09:53,070 --> 00:09:56,304
+好，把它们想象成指针，或者你知道，在其他语言里就是这样，对吧？
+Okay, think of them as pointers or you know in other languages, right?
+
+107
+00:09:56,464 --> 00:10:07,904
+呃，它的作用是证明当它结束时，返回时的 x 值等于旧的 x 值乘以 y 的值。
+And uh and what it's gonna do is it's going to prove that when it ends,
+the value of x when it returns is equal to the old value of x times the value of y.
+
+108
+00:10:08,544 --> 00:10:13,636
+它将计算同样的乘法，但它是通过迭代而不是递归来完成的。
+it's gonna compute the same multiplication, but it's gonna do it iteratively rather than recursively.
+
+109
+00:10:13,998 --> 00:10:19,584
+让我带大家过一遍，我可以把所有规格说明注释掉，我们可以这样做。
+So let me just walk you through this, I can comment out all the spec, and we can yes.
+
+110
+00:10:20,270 --> 00:10:25,984
+是因为并发问题让你担心 x 的旧值，还是因为你在修改 x？
+Is it because of concurrency that you're worried about the old value of x or or are you mutating x?
+
+111
+00:10:26,544 --> 00:10:27,584
+我要修改 x。
+I'm going to mutate x.
+
+112
+00:10:28,110 --> 00:10:31,396
+所以 x 的旧值是进入函数时的 x 值。
+So old value of x is the value of x at the entry to the function.
+
+113
+00:10:32,078 --> 00:10:34,144
+好，呃，写规格说明有很多种方法。
+Okay, uh, and there's many ways to write the spec.
+
+114
+00:10:34,224 --> 00:10:34,980
+这是其中一种。
+This is one way.
+
+115
+00:10:35,584 --> 00:10:38,384
+嗯，所以，嗯，让我们看看。
+Um so um so let's see.
+
+116
+00:10:38,544 --> 00:10:49,924
+所以核心在于，在你查看所有规格说明之前，我要做的操作是读取 x 的初始值，
+将其存储在某个名为 n 的局部变量中，然后初始化一个计数器。
+So at its core, before you look at all the spec, what I'm going to do is I'm going to read the initial value of
+x, store it in some local uh called n, and then I'm going to initialize a counter.
+
+117
+00:10:50,464 --> 00:10:53,264
+而且我，呃，有一种情况是 y 等于零。
+And I'm uh there's a case where y equals zero.
+
+118
+00:10:53,966 --> 00:11:01,264
+但接下来我要做的是进入一个循环，并在每一步增加计数器，
+同时把 n 加到 x 上，对吧？
+but then what I'm going to do is I'm going to enter a loop and
+increment the counter at each step, but also add n to x, right?
+
+119
+00:11:01,584 --> 00:11:10,064
+现在如果我这样做并尝试执行，F* 立即报错说，我没有权限读取 x，
+这是基于分离逻辑的证明。
+And now if I do this and I try to do this, f star immediately complained saying,
+I don't have permission to read x, it's it's it's proofs in a separation logic.
+
+120
+00:11:10,158 --> 00:11:14,704
+好，所以当你尝试读取可变引用时，你需要拥有它们的权限。
+Okay, so when you're trying to read mutable references, you need to have ownership over them.
+
+121
+00:11:15,054 --> 00:11:18,784
+如果你习惯用 Rust 或者类似的语言编程，这应该也很熟悉。
+So if you're used to programming in Rust or things like that, that should also be familiar.
+
+122
+00:11:19,022 --> 00:11:22,704
+所以我需要在前置条件中说明，我实际上拥有对 x 的权限。
+So I need to say as my precondition that I actually have permission to X.
+
+123
+00:11:22,864 --> 00:11:25,504
+这就是，呃，requires preserves live X。
+That's this uh requires preserves live X.
+
+124
+00:11:25,614 --> 00:11:28,132
+X 最初是有效的，并且在结束时也是有效的。
+X is going to be live initially and it's gonna be live at the end.
+
+125
+00:11:28,846 --> 00:11:31,184
+现在它在报错，说，嗯，我没有权限读取 y。
+And now it's complaining, well, I don't have permission to read Y.
+
+126
+00:11:31,662 --> 00:11:34,064
+所以我也需要在 y 上做同样的操作。
+So I need the same thing on Y.
+
+127
+00:11:34,784 --> 00:11:39,588
+现在它说，嗯，我无法证明这个循环实际上会终止。
+And now it says, Well, I can't prove that this loop actually terminates.
+
+128
+00:11:40,224 --> 00:11:43,460
+所以我可以加上这个来告诉你们为什么循环会终止。
+So I can add this to tell you why the loop terminates.
+
+129
+00:11:43,984 --> 00:11:51,984
+到这一步，它说，嗯，我实际上无法证明计数器的值……呃，
+证明在这一点上计数器的值在变化。
+And at this point it says, Well, I can't actually prove that the counter value doesn't uh that that this that
+the counter value is changing at this point.
+
+130
+00:11:52,064 --> 00:11:57,984
+我没法告诉你，我有权限修改计数器的值或者修改 x。
+I don't, I can't tell you I have permission to change the counter value or to change x.
+
+131
+00:11:58,542 --> 00:12:05,664
+如果我这样做，到这一步为止，至少我有一个函数可以验证它的类型正确，
+但我还没证明出什么有趣的东西。
+And if I do this, at this point, at least I have a function that verifies it's type correct,
+but I haven't proved that much interesting about it.
+
+132
+00:12:05,744 --> 00:12:09,444
+我还没证明出这个有趣的结论，也就是它实际上是在计算乘法。
+I haven't proven this interesting fact, the fact that it's actually computing a multiplication.
+
+133
+00:12:10,030 --> 00:12:11,840
+所以为了实现这一点，我需要更多的不变式。
+So for that, I need some more invariants.
+
+134
+00:12:12,270 --> 00:12:17,092
+我需要知道计数器几乎总是小于或等于 y。
+I need to know that the counter is almost is always less than or equal to y.
+
+135
+00:12:17,646 --> 00:12:25,060
+而且我需要知道，通过这个循环得到的 x 当前值，等于计数器乘以 x 的初始值。
+And I need to know that the current value of x through this
+loop is equal to the counter times the initial value of x.
+
+136
+00:12:25,454 --> 00:12:26,704
+这就是我的两个不变式。
+Those are my two invariants.
+
+137
+00:12:26,926 --> 00:12:34,884
+如果我有这些，我现在就证明了循环是正确的，现在
+我可以恢复这些前置和后置条件，而且它就在运行。
+If I have this, I now have the loop proven correct, and now I
+can restore these pre and post conditions, and it's happening.
+
+138
+00:12:35,214 --> 00:12:43,264
+好了，正如你们看到的，做这类证明能让你们对这个程序更有信心。
+Okay, so as you can see, doing these kinds of proofs is gives you a lot of assurance about this program.
+
+139
+00:12:43,344 --> 00:12:48,530
+你知道它总是会终止，总是能算出正确答案，但你必须非常仔细地思考什么是不
+变式，并且你必须说服证明器你做的一切都是正确的。
+You know that it always terminates, it always computes the right answer,
+but you have to think pretty carefully about what the invariants are,
+
+140
+00:12:48,530 --> 00:12:51,108
+你知道它总是会终止，总是能算出正确答案，但你必须非常仔细地思考什么是不
+变式，并且你必须说服证明器你做的一切都是正确的。
+and you have to convince the prover that you're doing it all correctly.
+
+141
+00:12:52,704 --> 00:13:02,144
+我给你们展示了一个非常微小的例子，但这种技术在大型规模上也是有效的。
+and I gave you an example of this at really tiny scale, but this technique it works at large scale.
+
+142
+00:13:02,384 --> 00:13:15,684
+所以从 2016 年开始，我们在 Microsoft Research 启动了一个项目，
+利用这类技术来构建一个用于安全互联网通信的已验证的软件栈。
+So in 2016, at Microsoft Research, we started a project to use these kinds of techniques to build a verified
+stack of software that does uh secure internet communication.
+
+143
+00:13:15,904 --> 00:13:25,860
+所以当你打开浏览器并使用 HTTPS 连接到银行时，在幕后，
+它正在使用加密协议来加密你的连接。
+So when you go to your browser and you use HTTPS to connect to a bank that's using behind the scenes,
+it's using a cryptographic protocol to encrypt your connection.
+
+144
+00:13:26,464 --> 00:13:32,224
+这是互联网安全至关重要的核心，所以确实非常值得把它做对。
+This thing is you know the security critical core of the internet, so it's really worth getting it right.
+
+145
+00:13:32,494 --> 00:13:37,444
+所以我们有一个叫 Project Everest 的项目，去验证、
+去构建整个软件栈的已验证实现。
+So we had a project called Project Everest to verify, build a verified implementation of that entire stack.
+
+146
+00:13:38,064 --> 00:13:40,064
+这花了我们，你知道的。
+And it took us, you know.
+
+147
+00:13:41,568 --> 00:13:47,076
+大概，我是说，我们有 10 个人，大约 10 个人花了 10 年时间在做这件事。
+Around, I mean, there were 10 of us, roughly 10 of us working for 10 years doing this.
+
+148
+00:13:47,470 --> 00:13:51,492
+所以这大约耗费了我们 100 人年，是 100 人年的博士水平的工作量。
+And so it took us about 100 person years of work, person years of PhD work.
+
+149
+00:13:52,208 --> 00:13:54,768
+每个人都有博士学位，我们都是经验丰富的研究人员。
+Everyone had a PhD, we're all experienced researchers.
+
+150
+00:13:54,848 --> 00:13:56,260
+我们是这个工具的开发者。
+We are the developers of this tool.
+
+151
+00:13:56,654 --> 00:14:05,636
+我们花了大约 100 人年，构建了 150 万行已验证的代码，
+这相当于大约 20 万行可执行的 C 汇编代码。
+Took us about 100% years of work to build a million and a half lines of verified code that represents about
+200,000 lines of executable C in assembly.
+
+152
+00:14:06,062 --> 00:14:13,924
+这些代码现在运行在 Windows 里，运行在 Firefox 里，运行在 Linux 里，
+运行在，我不知道，Python 里，它运行在很多地方。
+That code now runs in Windows, it runs in Firefox, it runs in Linux,
+it runs in, I don't know, Python, It runs in a bunch of places.
+
+153
+00:14:14,928 --> 00:14:23,876
+我是说，我们做这件事非常开心，但你不得不问，虽然有很多可重用的部分，
+但是这种程度的投入真的合理吗？
+I mean, we were very happy doing this, but you had to ask the question like,
+and there are lots of reusable bits, but you know, is this level of effort justifiable?
+
+154
+00:14:25,326 --> 00:14:28,132
+是的，为了产出这个，花了整整一个世纪的工作量，对吧。
+Yeah, a century of work, right, to produce this.
+
+155
+00:14:28,398 --> 00:14:30,048
+我们在过程中学到了很多东西。
+And we learned a lot doing it.
+
+156
+00:14:30,368 --> 00:14:40,480
+而且，呃，也许，你知道，我们一直认为，对于那些正确性至关重要的系统，
+比如，我不知道，输送麻醉剂的系统，或者控制火箭发射的系统，
+And uh, maybe, you know, the way we always thought of it is that, well,
+for systems where correctness really matters, you know, where I don't know,
+
+157
+00:14:40,480 --> 00:14:47,570
+而且，呃，也许，你知道，我们一直认为，对于那些正确性至关重要的系统，
+比如，我不知道，输送麻醉剂的系统，或者控制火箭发射的系统，
+systems that are delivering anesthetic doses, or systems that are controlling rocket launchers,
+or systems that are controlling the fabric of our internet infrastructure.
+
+158
+00:14:47,570 --> 00:14:52,768
+或者控制我们互联网基础设施架构的系统。
+systems that are delivering anesthetic doses, or systems that are controlling rocket launchers,
+or systems that are controlling the fabric of our internet infrastructure.
+
+159
+00:14:52,928 --> 00:14:53,088
+对吧？
+right?
+
+160
+00:14:53,248 --> 00:14:58,948
+对于所有这些，也许这种程度的投入是值得的，但它确实非常昂贵。
+For all of this, maybe this level of effort is worth it, but it is genuinely really expensive.
+
+161
+00:14:59,968 --> 00:15:08,548
+但发生的情况是，特别是在过去的一年里，AI 让这一切变得容易得多。
+But what's happened, especially in the last year, is that AI is making this way easier.
+
+162
+00:15:09,088 --> 00:15:22,448
+我想给你们演示一下现在用 AI 做起来是什么样子的，但在和今天的人交流时，
+我觉得你们大多数人已经知道了。
+And I thought I would give you a little demo of how that looks these days with AI,
+but in talking with people today, I think most of you already know this.
+
+163
+00:15:22,926 --> 00:15:24,048
+让我看看大家的反应一下。
+Just let me get a show of hands.
+
+164
+00:15:24,128 --> 00:15:31,364
+有多少人在用，我不知道，Codecs 或者 Claude Code 或者 Copilot 之类的工具？
+How many of you are using I don't know, codecs or claud code or copilot or something like that?
+
+165
+00:15:33,568 --> 00:15:44,048
+有多少人在用 Lean 或者 Rust 或者 F* 之类的语言？
+how many of you are using it with something like a lean or rock or an F star some of you?
+
+166
+00:15:44,128 --> 00:15:47,408
+所以，也许我还是得给你们演示一下这玩意儿到底是怎么运作的。
+So maybe maybe it's worth me showing you how this actually works.
+
+167
+00:15:47,728 --> 00:15:55,172
+所以，嗯，你们刚才看到我做了那个乘法
+重复加法的操作，就是一个小过程，对吧？
+So um so you saw me doing you know my multiply by repeated addition, one little procedure, right?
+
+168
+00:15:55,502 --> 00:16:06,020
+如果我从零开始做，大概得花上至少 15 分钟才能把它写对。
+And it took us, you know, it it would it would have taken me if I was sitting cold doing it,
+it would have taken me probably a good 15 minutes to get it right, at least.
+
+169
+00:16:06,288 --> 00:16:06,608
+好的。
+Okay.
+
+170
+00:16:07,088 --> 00:16:18,448
+嗯，那个，我要做的操作是，在这个会话里，
+这是用当下的模型，GPT-4o 运行的 Copilot。
+Um and uh so what I'm going to do here is I have in this session,
+is this copilot running with the model of the day, 256 Astra?
+
+171
+00:16:19,008 --> 00:16:21,808
+而且我觉得模型其实没那么重要。
+And I don't think the model matters too much actually.
+
+172
+00:16:21,968 --> 00:16:24,996
+现在基本上任何模型都能跑通这个。
+This would work with more or less any of the models these days.
+
+173
+00:16:25,408 --> 00:16:35,012
+我给它的提示词是：我想在 Pulse 中实现一个双向循环链表，
+以及一个测试它的客户端程序。
+And my prompt to it is I want to implement a circular doubly
+linked list in pulse and a client program that tests it.
+
+174
+00:16:35,328 --> 00:16:40,580
+当你写 Pulse 程序时，你可能会想，这些程序到底是怎么执行的？
+And when you write a pulse program, you might you might have been wondering like, well,
+how do you actually execute these programs?
+
+175
+00:16:40,848 --> 00:16:50,288
+Pulse 实际上允许你把程序编译成 C 或者 OCaml，
+或者其他你熟悉的各种可执行语言，从而获得可执行代码。
+Well, pulse actually allows you to compile programs to C or to OCaml or to what you know a bunch of executable
+languages and to actually get executable code.
+
+176
+00:16:50,574 --> 00:16:57,156
+它把所有内容都编译成了 C，使用的是我们
+最新的 C 后端 Custard，然后运行客户端。
+And it's compiled it all to C with something called custard,
+which is our latest C backend, and to run the client.
+
+177
+00:16:58,254 --> 00:17:10,208
+我觉得如果我让它这么做，它就能做到。我
+猜，我昨晚试过了，大概花了不到 10 分钟。
+I think if I if I told it to do this, it will, I'm guessing, I tried it last night,
+and it took maybe less than 10 minutes.
+
+178
+00:17:10,448 --> 00:17:22,600
+我花了 5 到 7 分钟，它就写出了这个程序。这个程序，我不知道，
+至少对于你们中一些了解程序证明、了解分离逻
+It took me five, seven minutes, and it wrote a program that this particular program, I don't know,
+at least for some of you who do set both know about program proofs, circular doubly linked lists in separation
+
+179
+00:17:22,600 --> 00:17:24,400
+辑中双向循环链表的人来说，这确实挺难搞的。
+It took me five, seven minutes, and it wrote a program that this particular program, I don't know,
+at least for some of you who do set both know about program proofs, circular doubly linked lists in separation
+
+180
+00:17:24,400 --> 00:17:27,808
+辑中双向循环链表的人来说，这确实挺难搞的。
+logic, yeah, it's it's a bit of a it's a bit of a bear.
+
+181
+00:17:28,288 --> 00:17:31,684
+这事儿能做成，但你得懂行。
+And it can be done, but you have to know what you're doing.
+
+182
+00:17:31,888 --> 00:17:46,128
+如果你习惯用 Rust 这种同样基于所有权的系统来编程，
+你根本没法写出一个循环 linked list，更别说循环的了。
+And if you're doing things in if you're used to programming in say in Rust,
+which is also an ownership-based system, you simply cannot program a circular W-linked list, let alone circular.
+
+183
+00:17:46,288 --> 00:17:49,168
+如果不使用 unsafe 代码，你根本没法写出一个 linked list。
+You cannot program a W link list without resorting to unsafe code.
+
+184
+00:17:49,248 --> 00:17:51,716
+所以这是一个相当复杂的练习。
+So this is it's a pretty non-trivial exercise.
+
+185
+00:17:52,128 --> 00:17:58,372
+我觉得它现在正在扫描库文件，看看周围的环境，然后它就会把它做出来。
+And I think it's gonna take uh it's it's scanning the
+libraries to look at what's around and it's going to do it.
+
+186
+00:17:58,608 --> 00:18:01,540
+大概会在 6 到 7 分钟内完成。
+It will finish in probably six, seven minutes.
+
+187
+00:18:02,448 --> 00:18:06,628
+我想，与其在那儿干等，不如我给你们看看它昨晚生成了什么。
+And I thought, rather than waiting for that time, I'll show you what it generated last night.
+
+188
+00:18:07,248 --> 00:18:08,608
+嗯，就是这个，
+um, which is,
+
+189
+00:18:21,838 --> 00:18:22,640
+就在这里。
+which is here.
+
+190
+00:18:22,720 --> 00:18:24,400
+它生成了一个……
+and it produces a.
+
+191
+00:18:24,686 --> 00:18:25,680
+就是，嗯……
+you know, um.
+
+192
+00:18:26,446 --> 00:18:30,400
+我不知道，大概 500 行代码和证明，还有一个……
+I don't know, 500 lines of code and proof with a.
+
+193
+00:18:31,438 --> 00:18:34,240
+我觉得，最棒的一点是，
+I think, with the nice thing.
+
+194
+00:18:34,320 --> 00:18:39,360
+这种编程方式的核心价值在于，你不需要去盯着看代码。
+the main value proposition about doing this kind of programming is that you don't have to look at the code.
+
+195
+00:18:39,520 --> 00:18:41,120
+我不在乎代码长什么样。
+I don't care what the code looks like.
+
+196
+00:18:41,326 --> 00:18:46,852
+我在乎的是，我完全通过它的规格说明来思考代码的功能。
+What I care about is I think about what the code does purely through what its specifications tell.
+
+197
+00:18:47,374 --> 00:19:00,520
+它已经为我创建了一种 W-link 链表，就在第 12 行，它具备一些属性，
+告诉我如果我有一个 W-link 链表，当前内容是 X，如果我想往里推入一个新值，
+And what it's done is, it's created for me, a, a type of W-link list, the top line, 12,
+with properties that tell me that if I have a W-link list and its current contents is X's,
+
+198
+00:19:00,520 --> 00:19:03,130
+它已经为我创建了一种 W-link 链表，就在第 12 行，它具备一些属性，
+告诉我如果我有一个 W-link 链表，当前内容是 X，如果我想往里推入一个新值，
+and if I want to push a new value onto it, it evolves to the list that has X at the front.
+
+199
+00:19:03,130 --> 00:19:06,916
+它会演变成一个以 X 为首部的链表。
+and if I want to push a new value onto it, it evolves to the list that has X at the front.
+
+200
+00:19:08,160 --> 00:19:09,200
+这就是你预期的结果。
+which is what you would expect.
+
+201
+00:19:09,360 --> 00:19:13,860
+而且你可以看看，它甚至做得更出色了，它还给了我……
+And you can look at, and it's gone sort of the extra mile, and it's given me.
+
+202
+00:19:14,382 --> 00:19:26,360
+所以如果你对分离逻辑感兴趣，你知道在上面做迭代器是另一个……你知道，
+我不知道，那是另一堆很有意思的东西，去研究怎么做迭代器。嗯，
+So if also if you're into separation logic, you know that doing iterators on top of this is another, you know,
+I don't know, like a whole pot of interest over there to go look at how to do iterators Well,
+
+203
+00:19:26,360 --> 00:19:26,690
+它已经做好了迭代器，而且给了我两种风格
+的迭代器，可以从头部或尾部遍历，对吧？
+So if also if you're into separation logic, you know that doing iterators on top of this is another, you know,
+I don't know, like a whole pot of interest over there to go look at how to do iterators Well,
+
+204
+00:19:26,690 --> 00:19:33,600
+它已经做好了迭代器，而且给了我两种风格
+的迭代器，可以从头部或尾部遍历，对吧？
+it's done iterators and it's given me iterators of two styles to iterate from the front or from the back, right?
+
+205
+00:19:34,000 --> 00:19:41,732
+而且它还写了一个客户端程序来测试所有这些内容。
+And uh and it's also written a client program to exercise all this.
+
+206
+00:19:42,320 --> 00:19:50,800
+说到底，这就是这个东西生成的 C 代码。
+And at the end of the day, this is the C code that this thing is written.
+
+207
+00:19:50,960 --> 00:20:02,212
+我不知道你怎么样，我算是个不错的 C 程序员，但即便对于像 W8 链表这种教科
+书上的东西，我也没可能第一次就写对。
+And I don't know about you, I'm a pretty good C programmer, but there's no way,
+even for a textbook thing like W8 list, that I'm going to get it right on the first shot.
+
+208
+00:20:03,310 --> 00:20:04,960
+我总会在某些地方搞错指针。
+I'm going to mess up the pointers somehow.
+
+209
+00:20:05,040 --> 00:20:08,320
+我会有一些空指针，我会有一些内存损坏。
+I'm going to have some null pointers, I'm going to have some memory corruption.
+
+210
+00:20:08,400 --> 00:20:10,400
+这就是……这就是未来的方式。
+This is this is the way.
+
+211
+00:20:11,566 --> 00:20:14,560
+如果我要做，你知道，这就是未来的编程方式。
+If I'm gonna make a you know, this is the way to program in the future.
+
+212
+00:20:15,600 --> 00:20:25,280
+我们得到的代码是已知正确的、已知是正确的，而且它很快，它是原始的 C 代码，
+我们不需要阅读代码，我们有高层级的证明来确保它是正确的，
+we get code that we know is right, and we know is correct, and it is fast, it's raw C code,
+and we don't have to read the code, we have high-level proofs that it's correct,
+
+213
+00:20:25,280 --> 00:20:25,840
+我们得到的代码是已知正确的、已知是正确的，而且它很快，它是原始的 C 代码，
+我们不需要阅读代码，我们有高层级的证明来确保它是正确的，
+and it compiles and runs correctly the first time.
+
+214
+00:20:25,840 --> 00:20:28,260
+而且它第一次编译就能正确运行。
+and it compiles and runs correctly the first time.
+
+215
+00:20:29,120 --> 00:20:32,320
+所以我觉得可能还缺少一个复杂度规范。
+So I think that's probably missing is a complexity specification.
+
+216
+00:20:32,560 --> 00:20:33,924
+是的，我会讲到复杂度。
+Yes, I will get to complexity.
+
+217
+00:20:34,400 --> 00:20:43,120
+我会……嗯，所以为了让你们有个概念，AI 让这变得更容易了，
+但我想告诉你们它到底让它变容易了多少，对吧？
+I will uh um so so just to give you a sense, AI is making this easier,
+but I want to tell you how much easier it's making it, right?
+
+218
+00:20:43,278 --> 00:20:46,212
+所以我告诉过你们，这原本是需要耗费多年博士研究的工作。
+So I told you this was 100% years of PhDs.
+
+219
+00:20:47,040 --> 00:20:52,160
+与此同时，在今年 6 月，我们完全改变了 F-Star。
+So in June this year, we have completely changed F-Star, meanwhile.
+
+220
+00:20:52,240 --> 00:20:58,436
+我们有一个新的 Pulse 东西是全新的，而这整套代码栈，我们想重写它，
+使其现代化，让它变得更好。
+We have a new this pulse thing is brand new, and this whole stack
+of code, we want to rewrite it, modernize it, make it better.
+
+221
+00:20:59,246 --> 00:21:04,164
+用了三名研究人员，我加上我团队里的另外两个人，
+花了六周时间就替换了最顶层的部分。
+It took three researchers, me and two others in my team, six weeks to replace the top piece.
+
+222
+00:21:05,678 --> 00:21:13,680
+好，六……嗯，然后在 9 月和 10 月，这部分，核心加密部分，
+这可能是整个工作中最难的部分。
+Okay, six six uh and then in September and October, this piece, the core cryptography,
+this was probably the hardest part of this whole effort.
+
+223
+00:21:13,760 --> 00:21:15,556
+以前构建它需要 50 人年。
+It took 50 person years to build previously.
+
+224
+00:21:16,000 --> 00:21:18,980
+现在只需要一名研究人员花了六周时间就重建了它。
+It took six weeks and one researcher to rebuild it.
+
+225
+00:21:20,000 --> 00:21:24,644
+而这周，这部分只需要花了六个小时。
+And this week, this piece here took six hours.
+
+226
+00:21:26,126 --> 00:21:39,400
+好，我们现在有了这整套栈，嗯，你知道，用我们最新的工具重新做了，
+比我们之前的栈更快，涵盖了更多功能，支持当时还不存在的后量子算法，
+Okay, and we have this whole stack, um, you know, redone in our latest tools faster than our previous stack,
+covering more features, supporting post-quantum algorithms that didn't exist at the time, done in, honestly,
+
+227
+00:21:39,400 --> 00:21:40,740
+而且说实话，只花了几周时间，成本大概也就几千美元的 Token。
+Okay, and we have this whole stack, um, you know, redone in our latest tools faster than our previous stack,
+covering more features, supporting post-quantum algorithms that didn't exist at the time, done in, honestly,
+
+228
+00:21:40,740 --> 00:21:45,220
+而且说实话，只花了几周时间，成本大概也就几千美元的 Token。
+just weeks, and a cost of probably a few thousand dollars in tokens.
+
+229
+00:21:45,774 --> 00:21:47,332
+Token 成本不到一万美元。
+less than ten thousand dollars in tokens.
+
+230
+00:21:48,302 --> 00:21:54,084
+好，当然，Agent 有个讽刺点在于，嗯，Agent 可以完成所有这些。
+Okay, and of course, the agents have you know the irony of it is that well, the agents can do all this.
+
+231
+00:21:54,510 --> 00:21:56,932
+当然，Agent 是从我们人类身上学习的。
+Of course, the agents learned from us humans.
+
+232
+00:21:57,550 --> 00:22:06,788
+你知道，我们为了做这些付出了血汗，嗯，Agent 显然从这些中学习到了，
+但现在它们简直太神奇了。
+We you know, we shed you know blood and tears doing this, and um and
+the agents have clearly learned from this, but now they're amazing.
+
+233
+00:22:07,200 --> 00:22:09,280
+所以现在，对吧？
+And so so now, right?
+
+234
+00:22:09,440 --> 00:22:11,520
+嗯，呃，好吧。
+Um uh well.
+
+235
+00:22:12,942 --> 00:22:14,672
+而且不只是我这么说，对吧？
+And it's not just me saying this, right?
+
+236
+00:22:14,752 --> 00:22:16,132
+你们也看到了这个问题。
+You've seen the yes, question.
+
+237
+00:22:16,672 --> 00:22:21,072
+但你还是得去检查所有的规格说明。
+But you still have to go and examine all the specifications.
+
+238
+00:22:21,312 --> 00:22:23,632
+你不可能在六周内完成所有工作，我也不行。
+You haven't done that in six weeks, I can't.
+
+239
+00:22:24,272 --> 00:22:25,392
+这就是这六周里要做的事情。
+That's what the six weeks soon has.
+
+240
+00:22:25,712 --> 00:22:26,432
+啊，好的。
+Ah, okay.
+
+241
+00:22:28,272 --> 00:22:33,636
+是的，阅读，我接下来要告诉你们的是，剩下的演讲内容将是，
+你如何让这一切变得可行？
+Yeah, reading, and I'm going to tell you that last of the
+rest of the talk is going to be how do you make that feasible?
+
+242
+00:22:34,192 --> 00:22:40,352
+嗯，所以，嗯，呃，而且不只是，这是你们在新闻里听到的。
+Um, so um uh and it's not just so this is this you've you've heard this in the news.
+
+243
+00:22:40,432 --> 00:22:46,352
+这个月简直太惊人了，就像我们一直在听到的，对吧？
+This last month has just been just amazing, like the what we've been hearing, right?
+
+244
+00:22:46,432 --> 00:22:48,324
+就从各种各样的问题来说。
+Just in terms of there are all kinds of problems.
+
+245
+00:22:48,814 --> 00:22:50,912
+呃，我将谈论目前的一些问题。
+Uh we'll talk about I'll talk about some of the problems at the moment.
+
+246
+00:22:51,072 --> 00:23:01,232
+有很多种问题，但就纯粹的技术产出而言，我是说 9 月 4 日，费马大定理，
+由 Agent 在 V 中形式化了 1300 万行代码，对吧？
+There are all kinds of problems, but in terms of like sheer technical output, I mean September 4th,
+Fermat's last theorem, 13 million lines of code formalized by agents in V, right?
+
+247
+00:23:01,838 --> 00:23:07,130
+9 月 8 日，Navier Stokes，OpenAI，Millennium Prize。
+September 8th, Navier Stokes, OpenAI, Millennium Prize.
+
+248
+00:23:07,952 --> 00:23:14,272
+不到一个月后，有 372 篇关于解决开放问题的论文，现在这正发生在软件领域。
+Less than a month later, 372 papers from solving open problems, and now it's happening in software.
+
+249
+00:23:14,352 --> 00:23:20,324
+上周，Anthropic 发布了对 123 个二进制文件的分析，包含 1.8 亿行代码。
+And last week, Anthropic releases binary analysis of 123 binaries, 180 million lines of rock code.
+
+250
+00:23:21,262 --> 00:23:21,552
+对吧？
+Right?
+
+251
+00:23:21,712 --> 00:23:28,772
+没错，现在的证明是很廉价的，而且只会变得更便宜。
+This is this proofs are proofs are cheap right now, and will only get cheaper.
+
+252
+00:23:30,062 --> 00:23:31,332
+那么接下来呢，对吧？
+So what's next, right?
+
+253
+00:23:31,854 --> 00:23:35,232
+这就是我切入点所在，更好的证明，对吧？
+So that's where I come to my hook, more better proofs, right?
+
+254
+00:23:35,552 --> 00:23:38,032
+所以是更难的证明，对吧？
+So prove harder, right?
+
+255
+00:23:38,574 --> 00:23:44,832
+某些类型的证明，比如我们，我是说那些从事证
+明工作、证明安全性的人，我们知道该怎么做。
+Certain kinds of proofs, like we all, I mean, those of us
+working in proofs, proving safety, we know how to do it.
+
+256
+00:23:45,134 --> 00:23:46,352
+这些 Agent 也知道该怎么做。
+These agents know how to do it.
+
+257
+00:23:46,770 --> 00:23:52,592
+你必须找到方法去证明更难的东西，证明安全性、活性、复杂度、延迟。
+you've got to find ways to prove harder things, proving security, liveness, complexity, latency.
+
+258
+00:23:53,230 --> 00:23:56,068
+当你需要新的证明技术来真正实现这些时。
+when you need new proof techniques to actually do this.
+
+259
+00:23:56,398 --> 00:23:59,632
+所以那是，那是其中一方面。
+So that's uh that's that's one thing.
+
+260
+00:23:59,872 --> 00:24:01,472
+更大的证明，对吧？
+Prove bigger, right?
+
+261
+00:24:01,792 --> 00:24:06,352
+我们能不能去搞多系统证明、大型代码库、遗留代码库？
+Can we go after multi-system proofs, large code bases, legacy code bases?
+
+262
+00:24:06,542 --> 00:24:09,252
+而且我们需要更好、更具扩展性的工具来真正实现这些。
+And we need better, more scalable tools to actually do that.
+
+263
+00:24:10,126 --> 00:24:17,632
+然后最重要的一点，我觉得最难的、甚至可能是最抽象的一点，
+就是回到你的问题：证明得更简洁，对吧？
+And then the big thing, that I think the hardest, maybe the most
+intangible thing is getting to your question, prove cleaner, right?
+
+264
+00:24:17,712 --> 00:24:24,484
+也就是说，到头来，我们得能看懂被证明的内容，
+并判断出这些证明是否真的正确。
+So that at the end of the day, we know if what was proven, like that we
+can make sense of it and judge if what was proven was actually correct.
+
+265
+00:24:25,294 --> 00:24:32,036
+好，这就是我的口号，我将在接下来的演讲中对此进行说明。
+Okay, so that's kind of my slogan, and I'm gonna kind of illustrate this for the rest of this talk.
+
+266
+00:24:32,238 --> 00:24:42,560
+我将谈论一些教科书上的算法，实际上是三种场景：教科书算法，
+然后我会谈论互联网标准协议，就是我之前给你们展示的这一整套东西，
+So I'm gonna talk about some textbook algorithms, three three scenarios really, textbook algorithms,
+and then I'm going to talk about internet standard protocols, this whole stack of stuff that I showed you
+
+267
+00:24:42,560 --> 00:24:43,020
+我将谈论一些教科书上的算法，实际上是三种场景：教科书算法，
+然后我会谈论互联网标准协议，就是我之前给你们展示的这一整套东西，
+earlier, and then I'm going to give you a little taste of some stuff that we're doing on verifying legacy code.
+
+268
+00:24:43,020 --> 00:24:47,972
+接着我会简单介绍一下我们在验证遗留代码方面做的一些工作。
+earlier, and then I'm going to give you a little taste of some stuff that we're doing on verifying legacy code.
+
+269
+00:24:49,070 --> 00:24:54,372
+到这里我先停一下，大家有什么问题可以提，或者我喝口水。
+So I'll pause there for a question and for questions and just get a drink of water if anyone has anything.
+
+270
+00:24:59,086 --> 00:25:06,592
+好，我从大概 GPT-3 时代开始就一直在研究 AI Agent 和形式化证明。
+Okay, so I've been working with AI agents and formal proofs since probably GPD-3.
+
+271
+00:25:07,952 --> 00:25:14,916
+嗯，那些系统当时确实展现出了一些希望的曙光，
+但还没有到足以改变我生活的程度。
+And um those systems showed like glimmers of hope, but nothing that really was going to change my life.
+
+272
+00:25:15,952 --> 00:25:20,708
+到了 2025 年 12 月，情况开始发生变化。
+In December 2025, that's when things started to change.
+
+273
+00:25:20,912 --> 00:25:34,352
+到了 1 月份，我当时使用的是，我想应该是 Opus 4.5，
+我拿出了这本经典的教科书，我敢打赌你们在 CU 也会教这本，对吧？
+And in January, I using at the time, I think it was Opus 4.5, I took this classic textbook,
+which I bet you teach here at CU, right?
+
+274
+00:25:34,432 --> 00:25:36,580
+你们中有些本科生可能见过这本。
+Some of you undergrads probably seen this.
+
+275
+00:25:36,832 --> 00:25:40,900
+它是关于数据结构与算法的入门教材。
+It's an introduction to data structures and algorithms.
+
+276
+00:25:41,312 --> 00:25:45,860
+我和一个 Agent 在 1 月份一起研究它，我在 2 月份的博客文章里写过这件事。
+And me and an agent working through January, I wrote about it in the blog post, I think in February.
+
+277
+00:25:46,032 --> 00:25:48,032
+我们对这本算法教科书进行了形式化。
+We formalized this algorithm's textbook.
+
+278
+00:25:48,112 --> 00:25:50,912
+里面大概有 52 种不同的算法和数据结构。
+There was maybe 52 different algorithms and data structures.
+
+279
+00:25:51,232 --> 00:26:01,590
+内容太多了没法全部读完，但你知道，它包含了，我不知道，
+Dijkstra's algorithm、Floyd Warshall algorithm，还有各种排序算法，
+it's too small to read, but you know, it contains, I don't know, Dijkstra's algorithm and Floyd Warshall
+algorithm, and various sortings, all stuff that you know I think many of us should just know,
+
+280
+00:26:01,590 --> 00:26:04,540
+这些都是我觉得我们很多人应该掌握的，或者至少只要读过就能记起来的东西。
+it's too small to read, but you know, it contains, I don't know, Dijkstra's algorithm and Floyd Warshall
+algorithm, and various sortings, all stuff that you know I think many of us should just know,
+
+281
+00:26:04,540 --> 00:26:07,792
+这些都是我觉得我们很多人应该掌握的，或者至少只要读过就能记起来的东西。
+or at least be able to recall if you if you read it.
+
+282
+00:26:07,952 --> 00:26:10,832
+所以我做的就是拿出了这本教科书。
+So, what I did was I took the textbook.
+
+283
+00:26:11,502 --> 00:26:17,860
+我把它喂给 Copilot，然后对它说：用 Pulse 把它们
+全部写出来，实现所有内容，并证明它们是正确的。
+And I fed it to Copilot and I said, write it all in pulse, implement everything, and prove it correct.
+
+284
+00:26:18,576 --> 00:26:25,456
+那个月的大部分时间我都在读规格说明，试图说服自己：噢，
+你能把这个做得更好点吗？
+And I spent most of that month just reading specifications, convincing myself that, oh, can you make this nicer?
+
+285
+00:26:25,616 --> 00:26:27,616
+你能证明我真正想要证明的东西吗？
+Can you prove the thing that I actually want?
+
+286
+00:26:30,016 --> 00:26:36,324
+我可以给你们看一些被证明的内容示例，以及其中存在的一些问题。
+and I can give you a sample of the kinds of things that are proven and some problems with it.
+
+287
+00:26:36,896 --> 00:26:41,796
+这就是堆排序，以及堆排序的规格说明。
+So here's heap sort and um a specification of heap sort.
+
+288
+00:26:42,158 --> 00:26:55,652
+它说堆排序将接收一个整数数组和一个数组大小，它会说这是 s0，
+也就是数组内容的某种逻辑视图。
+And it says Heapsort is gonna take an array of integers and a size for that array,
+and it's gonna say this is s0, some kind of like logical view of the contents of the array.
+
+289
+00:26:55,856 --> 00:27:01,376
+它会给出一些关于数组长度的约束，但它还有一个奇怪的侧面约束。
+It's gonna say some constraints about the length of that array, but it's also got this weird side constraint.
+
+290
+00:27:01,456 --> 00:27:04,816
+它说长度必须是两倍的长度加二，而且必须符合要求。
+It's saying the length has to twice the length plus two has to fit.
+
+291
+00:27:04,896 --> 00:27:06,736
+我不知道，这有点奇怪。
+I don't know, it's a little bit strange.
+
+292
+00:27:07,056 --> 00:27:17,856
+它最后说，如果数组最初指向 s0，最后它指向 s，且 s 在索引 n 处是排序好的，
+并且它是 s0 的一个置换。
+And it says at the end, if the array initially points to s0, at the end it points to s,
+and s is sorted up to the index n, and it's a permutation of s0.
+
+293
+00:27:18,096 --> 00:27:19,908
+所以它看起来似乎是正确的。
+So it looks kind of correct.
+
+294
+00:27:20,576 --> 00:27:26,176
+但是当你看到这类规格说明时，这就是你会花时间抓耳挠腮思考的地方。
+And and but you look at these kinds of specifications, and
+this is what you spend your time scratching your head about.
+
+295
+00:27:26,336 --> 00:27:28,676
+它真的证明了你认为它证明的内容吗？
+Is it actually proven what you think it's proven?
+
+296
+00:27:29,056 --> 00:27:32,496
+还有一些奇怪的东西，比如它只证明了数组的前缀是排序好的。
+And some odd things like it's sorted a prefix of the array.
+
+297
+00:27:32,576 --> 00:27:35,056
+这是我想要的吗，还是我想要它对整个数组进行排序？
+Is that what I wanted, or did I want it to sort the whole thing?
+
+298
+00:27:35,278 --> 00:27:37,220
+而且这里还有一些令人惊讶的前置条件，对吧？
+And there's this surprising preconditions, right?
+
+299
+00:27:37,456 --> 00:27:41,028
+所以我们必须找到审计这类规格说明的方法。
+So we have to find ways to audit such specifications.
+
+300
+00:27:41,296 --> 00:27:48,292
+我和我的同事 Shravedu、Dahiri 一直在思考的一个问题是，如何审计规格说明？
+And one thing that me and my colleague Shravedu, Dahiri,
+we've been thinking about is how do you audit specifications?
+
+301
+00:27:48,558 --> 00:27:57,616
+我们有一个简单的想法，就是针对规格说明编写小型测试，
+而且仅仅是针对规格说明，对吧？
+And one simple idea we have is well, write small tests against
+the specifications and against the specifications only, right?
+
+302
+00:27:57,696 --> 00:28:00,484
+这不是那种你预期要运行的具体的测试。
+It's not a test that, like a concrete test that you expect to run.
+
+303
+00:28:00,878 --> 00:28:11,850
+我想做的是，如果我对一个包含三个元素的数组调用堆排序，
+我必须能够证明我满足堆排序的前置条件，而且我必须能够展示，
+What I want to be able to do is that if I have, if I, if I call heap sort on a three element array,
+I must be able to prove that I satisfy the precondition of heap sort on this,
+
+304
+00:28:11,850 --> 00:28:13,490
+我想做的是，如果我对一个包含三个元素的数组调用堆排序，
+我必须能够证明我满足堆排序的前置条件，而且我必须能够展示，
+and I must be able to show that using the post-condition of heap sort, whatever it is,
+I should be able to show that A now contains one, two, three.
+
+305
+00:28:13,490 --> 00:28:21,380
+利用堆排序的后置条件——无论它是什么——我应该能够展示出 A 现在包含 1、2、3。
+and I must be able to show that using the post-condition of heap sort, whatever it is,
+I should be able to show that A now contains one, two, three.
+
+306
+00:28:21,838 --> 00:28:29,348
+如果我能展示这一点，那么我就有信心认为这个规格说明足够精确，
+至少在这些具体实例上是这样的。
+And if I can show this, then I have some confidence that the
+spec is precise enough, at least on these concrete instances.
+
+307
+00:28:29,582 --> 00:28:40,736
+好，所以我们把这些东西称为小型面向证明的测试，
+这比起之前的做法显然更容易判断，对吧？
+Okay, so we call these things small proof-oriented tests, and this arguably is easier to judge than this, right?
+
+308
+00:28:40,816 --> 00:28:42,372
+因为它是一个小的具体测试。
+Because it's a small concrete test.
+
+309
+00:28:42,736 --> 00:28:46,788
+所以我们一直在思考这类规格审计技术，这就是其中一种。
+So we've been thinking of these kinds of spec audit techniques, and this is one of them.
+
+310
+00:28:47,214 --> 00:28:56,420
+结果发现，当我们完成了 CLRS 的形式化之后，我
+们让 Agent 在整个开发过程中编写这些抽样检查。
+And it turns out, once we had finished this CLRS formalization, we had
+the agent go and write these spot checks across the entire development.
+
+311
+00:28:56,736 --> 00:28:59,136
+它发现——我想，是多少？
+and it found that —I think, what is it?
+
+312
+00:28:59,536 --> 00:29:02,496
+大概是，那是多少？
+maybe like, what is that?
+
+313
+00:29:02,670 --> 00:29:04,016
+大概是 7 到 10 个。
+seven, ten of them.
+
+314
+00:29:04,366 --> 00:29:05,110
+52 个里面有 10 个。
+ten out of 52.
+
+315
+00:29:05,536 --> 00:29:05,696
+对。
+right.
+
+316
+00:29:06,256 --> 00:29:10,336
+有规格说明是……或者 8 个，我想这些是精确的。
+had specs that were um, or eight, I guess these are precise.
+
+317
+00:29:10,656 --> 00:29:15,844
+52 个里面有 8 个规格说明不精确，实际上无法证明后置条件。
+Eight out of 52 had specs that were imprecise that could not actually prove the post conditions.
+
+318
+00:29:16,496 --> 00:29:19,940
+所以这些抽样检查确实发现了有趣的规格说明漏洞。
+So these spots do uncover interesting spec bugs.
+
+319
+00:29:20,494 --> 00:29:31,652
+为了让你们了解它捕捉到了哪些问题，这是 CLRS 的一个规格说明，
+它有一个叫线性扫描哈希表的结构，这是一个固定大小的哈希表。
+And to give you a flavor of what kinds of things it catches, this is a spec of CLRS has a thing called a linear
+scanning hash table, which is a hash table in a fixed size.
+
+320
+00:29:32,256 --> 00:29:37,136
+你知道，你看这个，你尝试对某些内容进行哈希，找到它在表中的位置。
+you know, you look at this, you try to hash something, you find its spot in the table.
+
+321
+00:29:37,358 --> 00:29:43,056
+但如果那个位置满了，你会跳过它去寻找下一个空位并把它放进去，对吧？
+But if that spot is full, you scan past it to find the next empty slot and you stick it there, right?
+
+322
+00:29:43,376 --> 00:29:48,896
+所以可能会发生的情况是，你的表……这个表没有任何桶的分配之类的。
+So what can happen is that your table can, this table doesn't have any allocation of buckets or anything.
+
+323
+00:29:48,976 --> 00:29:50,308
+所以你的表可能会耗尽空间。
+So your table can run out of space.
+
+324
+00:29:50,830 --> 00:29:56,996
+在某个时刻，如果我们尝试插入到这个表中，它可能直接说空间不足，
+这就是错误条件，我不会插入任何内容。
+And at some point, if we try to insert into this table, it can just say,
+out of space, the error condition, I'm not going to insert anything.
+
+325
+00:29:57,536 --> 00:30:08,452
+现在，Agent 最初编写的这个规格说明是
+说，如果结果为真，那么表可能已被更新。
+Now, the way this spec was written by the agent initially was to
+say if the result is true, then the table is probably updated.
+
+326
+00:30:08,816 --> 00:30:11,524
+但如果结果为假，它就什么也没说。
+But if the result is false, it doesn't say anything.
+
+327
+00:30:12,416 --> 00:30:20,416
+所以这个规格说明允许实现始终返回假且什么都不做，所以这是一个单向规格。
+So this spec allows an implementation to always return false and do nothing, So it's a one-sided spec.
+
+328
+00:30:20,496 --> 00:30:25,856
+当它成功返回时它会告诉你一些信息，但它不会告诉你任何关于错误情况的信息。
+It tells you something when it returns successfully, but it doesn't tell you anything about the error case.
+
+329
+00:30:25,936 --> 00:30:27,236
+而且还有很多这样的情况。
+And there were many such cases.
+
+330
+00:30:27,566 --> 00:30:35,076
+这种行为，如果我得去读它并判断它是否正确地描述了错误情况，那就有点微妙。
+And this kind of behavior, if I have to read this and decide does
+it characterize the error case correctly, it's a little subtle.
+
+331
+00:30:35,616 --> 00:30:45,020
+但如果你针对它写一个测试程序，你会发现，嗯，
+这里的 else 分支根本无法被证明，因为没有任何东西告诉代码，
+But if you write a test program against it and you see that, well, the else branch here,
+it simply can't be proven because there's nothing that tells the code that tells this client program that the
+
+332
+00:30:45,020 --> 00:30:46,930
+或者告诉这个客户端程序 else 情况不可达，因为错误情况没有被定义。
+But if you write a test program against it and you see that, well, the else branch here,
+it simply can't be proven because there's nothing that tells the code that tells this client program that the
+
+333
+00:30:46,930 --> 00:30:50,852
+或者告诉这个客户端程序 else 情况不可达，因为错误情况没有被定义。
+else case is not reachable because the error case is not specified.
+
+334
+00:30:51,296 --> 00:31:00,816
+所以一旦你发现这些审计漏洞，你就可以要求 Agent 去修复它，
+这能强化规格说明，而且测试现在就变成了简洁的直线代码。
+So once you find these kinds of audit gaps, you can ask the agent to fix it, it strengthens the spec,
+and the test now becomes clean, straight line code.
+
+335
+00:31:00,896 --> 00:31:04,964
+你不再需要去分支处理失败条件了，因为你可以证明失败永远不会发生。
+You don't have to branch out the failure condition anymore
+because you can prove that the failure never happened.
+
+336
+00:31:05,774 --> 00:31:09,316
+好，所以这些技术就是我们一直在思考的，比如规格审计技术。
+Okay, so these kinds of techniques is what we've been thinking about, like spec audit techniques.
+
+337
+00:31:10,350 --> 00:31:20,750
+事实证明，如果你能想出一种好的规格审计技术，
+你就可以在与 Agent 的反馈循环中使用它，让它不断迭代，
+and it turns out that if you can come up with a good spec audit technique,
+you can use that in a feedback loop with an agent and have it iterate until all the code is produced passes
+
+338
+00:31:20,750 --> 00:31:22,650
+直到所有生成的代码都通过你设定的任何审计基准。
+and it turns out that if you can come up with a good spec audit technique,
+you can use that in a feedback loop with an agent and have it iterate until all the code is produced passes
+
+339
+00:31:22,650 --> 00:31:25,796
+直到所有生成的代码都通过你设定的任何审计基准。
+whatever audit benchmark you have in place.
+
+340
+00:31:26,112 --> 00:31:29,508
+这确实帮助我们清理了整个开发过程。
+And that helped us really clean up this whole development.
+
+341
+00:31:32,352 --> 00:31:39,908
+所以这就是我想让你们思考的：如何证明得更简洁，如何思考规格说明，
+如何测试规格说明，这些事情。
+so that's just I want you to think about how do you prove cleaner, how do you think about specifications,
+testing specifications, these kinds of things.
+
+342
+00:31:40,046 --> 00:31:44,032
+我的意思是，我对这方面有一点哲学上的困惑。
+So I mean I have a little bit of a philosophical problem with it.
+
+343
+00:31:44,112 --> 00:31:46,992
+除非人类去检查这些规格说明，对吧？
+Unless humans examine these specifications, right?
+
+344
+00:31:47,278 --> 00:31:48,592
+你是在测试规格说明。
+You are testing specifications.
+
+345
+00:31:48,672 --> 00:31:51,392
+我们是使用预测试程序，而不是测试规格说明。
+We use pre testing programs, not testing specifications.
+
+346
+00:31:51,552 --> 00:31:59,470
+你可以证明问题的不存在，但你永远无法说规格说明正是你想要的，
+因为除非你真的去查看它并说：‘没错，我觉
+You can prove absence of issues, but you can never say that the spec is exactly what you want,
+because unless you actually look at it and say this is what yeah, I think this is a great point.
+
+347
+00:31:59,470 --> 00:32:02,592
+得这就是我要的’。这是一个很好的切入点。
+You can prove absence of issues, but you can never say that the spec is exactly what you want,
+because unless you actually look at it and say this is what yeah, I think this is a great point.
+
+348
+00:32:02,832 --> 00:32:12,484
+我认为这是一个深刻的哲学问题，即如何将
+我们脑海中模糊的意图映射到正式符号上。
+I think it is a deep philosophical question about how to map you know fuzzy intent, right,
+in our head somewhere, to formal symbols.
+
+349
+00:32:13,232 --> 00:32:26,000
+而且你知道，我不知道有没有一个……可能没有一个确切的问法，但就是，
+所以我觉得我们需要一些具体的手段来处理规格说明，
+And you know, I don't know if there is a there probably isn't a definitive way to ask this, but that you know,
+so then I think of it as that we need uh we need concrete approaches into the specifications that allow us to
+
+350
+00:32:26,000 --> 00:32:27,900
+让我们能更容易地评估大脑中的想法与所有这些内容之间的对应关系。
+And you know, I don't know if there is a there probably isn't a definitive way to ask this, but that you know,
+so then I think of it as that we need uh we need concrete approaches into the specifications that allow us to
+
+351
+00:32:27,900 --> 00:32:33,072
+让我们能更容易地评估大脑中的想法与所有这些内容之间的对应关系。
+more easily assess this correspondence between brains and all the stuff.
+
+352
+00:32:33,262 --> 00:32:43,552
+具体的测试也许就是其中一种手段，但我……我并不是说我有所有的答案。
+And concrete test is maybe one such thing, but I I don't I
+I this is I have by no means have you know all the answers.
+
+353
+00:32:43,632 --> 00:32:46,272
+这些都是我们所有人都应该思考的事情。
+Like these are the kinds of things that we should all be thinking about.
+
+354
+00:32:46,432 --> 00:32:49,028
+如何才能做好意图确认？
+How do you how do you do intent confirmation well?
+
+355
+00:32:50,958 --> 00:32:51,844
+谢谢你的提问。
+Thanks for the question.
+
+356
+00:32:54,094 --> 00:32:54,820
+还有其他人吗？
+anyone else?
+
+357
+00:32:57,806 --> 00:33:01,312
+所以，呃，那张幻灯片那个部分是用来……
+So uh so that slide that section was there to be.
+
+358
+00:33:01,392 --> 00:33:04,112
+我刚才说的是，具体化确实有帮助。
+I was I was saying, well, being concrete helps.
+
+359
+00:33:04,462 --> 00:33:08,592
+让我们把它……你知道，让我们从它如何作用于三元素数组的角度来看规格说明。
+Let's make it, you know, let's look at the spec from the lens of how it acts on a three-element array.
+
+360
+00:33:08,752 --> 00:33:11,152
+具体化有帮助，但抽象化也有帮助。
+Concrete helps, but abstract helps too.
+
+361
+00:33:11,470 --> 00:33:13,060
+好，让我举个例子。
+Okay, so let me give you an example of this.
+
+362
+00:33:13,632 --> 00:33:23,312
+现在如果我想，你知道，所有这些排序算法，数组的排序算法，
+它们都有很多共同结构，对吧？
+So now if I wanted to, you know, all these sorting algorithms, sorting algorithms on arrays,
+they all have lots of shared structure, right?
+
+363
+00:33:23,392 --> 00:33:26,692
+不管是堆排序还是快速排序还是其他的，它们都在尝试对数组进行排序。
+Whether it's heap sort or quick sort or whatever, they're all just trying to sort arrays.
+
+364
+00:33:26,992 --> 00:33:29,872
+那为什么我要为它们每一个都写独立的规格说明呢？
+So why should I have separate specifications for all of them?
+
+365
+00:33:30,032 --> 00:33:37,284
+我应该利用我们那些漂亮的编程语言强大的抽象能力，
+为所有的排序算法写一个共享的规格说明。
+I should use the nice abstraction powers of our beautiful programming
+languages and write a shared spec for all sorting algorithms.
+
+366
+00:33:37,792 --> 00:33:39,381
+这是在 F* 中的一个例子。
+And here's one of those in F.
+
+367
+00:33:39,381 --> 00:33:39,530
+星。
+star.
+
+368
+00:33:40,078 --> 00:33:46,532
+这是在元素具有全序的情况下，对数组排序的规格说明。
+It's the specification of an array sort given any total order on its elements.
+
+369
+00:33:47,232 --> 00:33:55,872
+它说，你知道，呃，它没有任何关于长度或前缀部分排序之类的奇怪副作用。
+And it says, you know, uh, it doesn't have any of these weird side
+conditions on lengths or partial sorts of prefixes or whatnot.
+
+370
+00:33:56,046 --> 00:34:05,252
+它说，如果我有一个数组和一个长度，如果数组最初指向 s，最终指向 s'，
+且 s' 是 s 的一个已排序的置换。
+It says if I have an array and a length, and if the array points to s initially, it points to s prime finally,
+and s prime is a sorted permutation of s.
+
+371
+00:34:05,792 --> 00:34:06,032
+对吧？
+Right?
+
+372
+00:34:06,192 --> 00:34:09,871
+所以你读到这里，它已经非常，你知道，整洁多了。
+So you read this, it's already pretty you know much cleaner.
+
+373
+00:34:10,032 --> 00:34:15,012
+你可以在具体的实例上，或者在抽象的具体实例上判断它是否有效。
+You can judge this on a concrete instance, on an abstract concrete instance to check that it works.
+
+374
+00:34:15,373 --> 00:34:20,708
+但如果你有了这个，现在我的堆排序规格说明就变成了一行代码。
+But if you have this, now my spec key sort becomes a one-liner.
+
+375
+00:34:21,166 --> 00:34:22,831
+插入排序和排序的规格说明也是如此。
+And so does my spec of insert and sort.
+
+376
+00:34:23,152 --> 00:34:26,500
+这就是我需要读的所有内容，就能说服我自己这是在按我的意图运行。
+That's all I have to read to convince myself that this is actually doing what I intend.
+
+377
+00:34:26,911 --> 00:34:28,512
+所以具体化很有帮助。
+So concrete helps.
+
+378
+00:34:28,672 --> 00:34:35,012
+抽象也能促进理解，并帮助弥合大脑和符号之间的鸿沟。
+Abstraction also promotes understanding and helps bridge that gap between brains and symbols.
+
+379
+00:34:37,070 --> 00:34:40,032
+所以，是的，我认为我们应该关注如何让证明更简洁，对吧？
+so yeah, I think we should be looking at this is proving cleaner, right?
+
+380
+00:34:40,112 --> 00:34:47,396
+这就像是，让我们建立正确的抽象，让它证明出漂亮的、简洁的正确性陈述。
+This is like let's get the right abstractions in place and have
+it prove beautiful, you know, terse statements of correctness.
+
+381
+00:34:47,918 --> 00:34:51,391
+现在，排序很容易，但让我们证明更难的东西，对吧？
+Now, sorting is easy, but let's prove harder, right?
+
+382
+00:34:51,472 --> 00:34:54,351
+我们一直在做算法的正确性证明。
+We've all been doing proofs of correctness of algorithms.
+
+383
+00:34:54,431 --> 00:34:55,871
+我们也能证明复杂度界限吗？
+Can we prove complexity bounds too?
+
+384
+00:34:55,952 --> 00:34:57,572
+这可能涉及到了 Gautam 的问题。
+And that's maybe getting to Gautam's question.
+
+385
+00:34:58,192 --> 00:35:06,272
+总的来说，我们有证明复杂度的技术，但它们挺难做的。
+And generally speaking, we have techniques to do proofs of complexity, but they're kind of hard to do.
+
+386
+00:35:06,352 --> 00:35:09,552
+而且你知道，通常人类在做这些安全性证明时……
+And you know, usually humans doing proofs of these of safety.
+
+387
+00:35:09,632 --> 00:35:16,912
+我是说，就我个人而言，在我做完安全性证明后，我累到根本，你知道，
+根本没精力再做别的事了。
+I mean, speaking for myself, after I've done a proof of safety, I'm
+so tired that I can't, you know, I can't bother to do anything more.
+
+388
+00:35:17,072 --> 00:35:20,032
+所以，你知道，我们知道怎么做，但这纯粹是苦力活。
+So, you know, we know how to do it, but it's just it's just toil.
+
+389
+00:35:20,432 --> 00:35:23,072
+所以我们一直没在做复杂度证明。
+So we haven't been doing proofs of complexity.
+
+390
+00:35:23,232 --> 00:35:33,632
+如果你看它，在某种程度上，这个堆排序的规格说明有些让人不满意，
+因为这个规格说明说堆排序和插入排序有完全相同的规格说明。
+And if you look at it, in a way, this spec for heap sort is somehow unsatisfying because this spec says heap
+sort and insertion sort have exactly the same spec.
+
+391
+00:35:34,350 --> 00:35:39,552
+但显然它们是不同的算法，而且有一些理由让人偏好其中一个。
+But clearly they're different algorithms, and there's some reason to prefer one over the other.
+
+392
+00:35:39,712 --> 00:35:42,672
+规格说明应该以某种方式区分它们。
+And the spec should distinguish them somehow.
+
+393
+00:35:43,022 --> 00:35:48,592
+而规格说明区分它们的一种方式就是反映它们的复杂度，对吧？
+And the one way the spec can distinguish them is by reflecting their complexity there, Right?
+
+394
+00:35:48,752 --> 00:35:50,724
+那么，我们如何证明复杂度界限呢？
+So, how can we prove complexity bounds?
+
+395
+00:35:51,312 --> 00:35:57,316
+嗯，这张幻灯片可能是这次演讲中最技术性的幻灯片，
+所以我没指望你们能完全跟上。
+Well, this slide is probably the most technical slide in this talk, so I don't expect you to follow it.
+
+396
+00:35:58,112 --> 00:36:04,352
+但我只简单说一下大概思路，别去管那些符号，我只告诉你们大概思路。
+but I'll just say in the rough idea, don't bother with the symbols, I'll just tell you the rough idea.
+
+397
+00:36:04,592 --> 00:36:17,152
+证明算法复杂度边界的方法，是给算法插桩某种计数器，
+用来统计你感兴趣的操作，对吧？
+The way in which you prove you can imagine proving a complexity bound of an algorithm is to instrument the
+algorithm with some kind of a counter that's going to count your operations of interest, right?
+
+398
+00:36:17,312 --> 00:36:23,268
+比如对于排序，通常你会尝试统计比较次数，并给出一个比较次数的边界。
+Let's say for sorting, typically you try to count the number
+of comparisons and give a bound on the number of comparisons.
+
+399
+00:36:23,712 --> 00:36:35,268
+好，所以思路是给我们的算法插桩这些操作计数器，然后写规格说明，
+给这些操作计数器的数值写出边界。
+Okay, so the idea is let's instrument our algorithms with these operation counters and then write
+specifications, write bounds on the values of those operation counters.
+
+400
+00:36:35,790 --> 00:36:46,370
+现在的关键是，我要确保我关心的每一个操作都被正确计入，
+比如我不会在执行特定比较时忘记增加计数器，而且这个计数器必须是单调的。
+Now the catch is I want to make sure that every operation that I care about is properly accounted for,
+like that I don't somehow forget to tick my counter when I use
+
+401
+00:36:46,370 --> 00:36:50,512
+现在的关键是，我要确保我关心的每一个操作都被正确计入，
+比如我不会在执行特定比较时忘记增加计数器，而且这个计数器必须是单调的。
+a particular comparison, and that this counter is monotonic.
+
+402
+00:36:50,592 --> 00:36:52,512
+我不……我不应该能减少计数器的数值。
+I don't I shouldn't be able to decrement the counter.
+
+403
+00:36:52,672 --> 00:36:56,192
+我只是，你知道，这是一个滴答计数器，只能一直往上涨。
+I'm just really just you know, it's a tick counter, keep screwing forward.
+
+404
+00:36:56,912 --> 00:37:02,752
+所以通过使用抽象，你可以建立一套这样的机制。
+So there are ways in which, by using abstraction, you can set it up.
+
+405
+00:37:02,752 --> 00:37:04,912
+这样，嗯，我就能……
+so that, um, I can.
+
+406
+00:37:05,232 --> 00:37:18,600
+我可以在 F* 中利用分离逻辑的几个小组件来定义这个类型，
+并确保如果我关心比较次数，我可以为算法写出规格说明，
+I can define this type in F* star using a few gadgets from separation logic and ensure that for a particular,
+if I care to count comparisons, I can write a spec for
+
+407
+00:37:18,600 --> 00:37:19,690
+我可以在 F* 中利用分离逻辑的几个小组件来定义这个类型，
+并确保如果我关心比较次数，我可以为算法写出规格说明，
+algorithms in which every comparison is definitely counted.
+
+408
+00:37:19,690 --> 00:37:23,872
+其中每一次比较都肯定会被计入。
+algorithms in which every comparison is definitely counted.
+
+409
+00:37:24,078 --> 00:37:26,192
+而且我不需要……而且这就是规格说明的一个属性。
+And I don't and and that's just a property of the spec.
+
+410
+00:37:26,272 --> 00:37:27,152
+我不需要去读代码。
+I don't have to read the code.
+
+411
+00:37:27,232 --> 00:37:32,100
+规格说明本身就能告诉我每一次操作都会被计入，而且我可以一次性搞定这一切。
+The spec alone tells me that every operation is going to be counted, and I can do this once and for all.
+
+412
+00:37:34,542 --> 00:37:41,860
+现在如果你有一个这种具备计数意识的规格说明，你就可以让 Agent 来做这件事。
+now if you have one of the one of these counting aware specs, then you can get the agent to do this.
+
+413
+00:37:43,054 --> 00:37:56,752
+所以这里说的是，插入排序是对整数数组的排序，
+其比较次数的最坏情况复杂度边界是平方级别的，对吧？
+So what this says is insertion sort is a sort on integer arrays such that this is the worst case complexity
+bound on the number of comparisons in square, right?
+
+414
+00:37:57,152 --> 00:38:03,108
+而对于归并排序，它是对数级别的，你甚至能得到常数项。
+And for merge sort, it is logarithmic, and you get even the constants.
+
+415
+00:38:05,006 --> 00:38:10,500
+好，快速排序也是对数级别的，但常数项有些不同。
+Okay, and and keep sort is also logarithmic, but the constants are somewhat different.
+
+416
+00:38:11,534 --> 00:38:24,110
+好，所有这些都是为了说明，如果你给 Agent 提供一个进行证明和产出结果的框
+架，并且你把它设置成一种可以以简洁、清晰
+Okay, and all of this is to say that if you give the agents a framework in which to do proofs and in which to
+produce, you know, and you set it up in a way so that you can read what is produced in a terse,
+
+417
+00:38:24,110 --> 00:38:25,530
+的方式分析产出结果的方式，它就能证明出来。
+Okay, and all of this is to say that if you give the agents a framework in which to do proofs and in which to
+produce, you know, and you set it up in a way so that you can read what is produced in a terse,
+
+418
+00:38:25,530 --> 00:38:28,964
+的方式分析产出结果的方式，它就能证明出来。
+cleanly analyzable way, it will just prove it.
+
+419
+00:38:30,190 --> 00:38:42,260
+好，所以呃，这里我们有具备复杂度意识的规格说明，
+如果你去查看我们的在线开发库，我们有针对排序、数据结构、
+Okay, so uh here we have complexity aware specs of in uh in uh uh if you go look at our online development,
+and there's we have complexity aware specs for sorting, for data structures, for red black trees,
+
+420
+00:38:42,260 --> 00:38:45,340
+红黑树等一大堆东西的复杂度意识规格说明，这些真的就是一键生成的。
+Okay, so uh here we have complexity aware specs of in uh in uh uh if you go look at our online development,
+and there's we have complexity aware specs for sorting, for data structures, for red black trees,
+
+421
+00:38:45,340 --> 00:38:49,700
+红黑树等一大堆东西的复杂度意识规格说明，这些真的就是一键生成的。
+for a whole bunch of stuff that is really just push button.
+
+422
+00:38:50,830 --> 00:38:57,152
+但我想再次强调，是的，我们可以做复杂度
+证明，但我们还是要证明更难的东西，对吧？
+but this is again I want to say yes, we can do complexity
+proofs, but this is let's prove harder stuff still, right?
+
+423
+00:38:57,232 --> 00:38:58,672
+这不是……看。
+This is not uh look.
+
+424
+00:39:00,046 --> 00:39:02,272
+我们能做平均情况吗？
+can we do average case?
+
+425
+00:39:02,352 --> 00:39:03,716
+这是最坏情况复杂度。
+This is worst case complexity.
+
+426
+00:39:04,046 --> 00:39:07,524
+在最坏情况复杂度下，快速排序看起来并不比插入排序好。
+In worst case complexity, quick sort looks no better than insertion sort.
+
+427
+00:39:08,462 --> 00:39:12,164
+但快速排序的价值在于，它的平均情况是对数级别的。
+But quick sort, the value of quick sort is average case is logarithmic.
+
+428
+00:39:12,272 --> 00:39:13,668
+我们能做平均情况的证明吗？
+Can we do average case proofs?
+
+429
+00:39:13,870 --> 00:39:14,832
+我不知道该怎么做。
+I don't know how to do them.
+
+430
+00:39:15,086 --> 00:39:16,272
+也许你们可以研究一下。
+Maybe you guys can figure it out.
+
+431
+00:39:16,352 --> 00:39:18,404
+这就是我们应该思考的，如何去处理那些难题。
+That's what we should be thinking about how to do the hard stuff.
+
+432
+00:39:18,894 --> 00:39:19,152
+好。
+Okay.
+
+433
+00:39:19,552 --> 00:39:22,052
+嗯，我们可以讨论空间复杂度吗？
+Um can we do space complexity?
+
+434
+00:39:23,950 --> 00:39:27,264
+我们能不能针对更底层的模型进行分析，而不只是简单地计算操作次数？
+Can we do go against a lower level model rather than just counting operations?
+
+435
+00:39:27,344 --> 00:39:28,932
+我们能针对图灵机来证明它吗？
+Can we prove it against a Turing machine?
+
+436
+00:39:31,566 --> 00:39:33,344
+我们能得到漂亮的 O notation 吗？
+Can we have nice big O notation?
+
+437
+00:39:33,550 --> 00:39:34,948
+我不想看到这么多常数。
+I don't want to see all these constants.
+
+438
+00:39:35,984 --> 00:39:36,304
+对吧？
+Right?
+
+439
+00:39:36,464 --> 00:39:38,052
+就像有很多事情需要考虑一样。
+Like there's lots of stuff to think about.
+
+440
+00:39:39,024 --> 00:39:42,532
+而且我认为作为人类，这就是我们应该思考的事情。
+And I think that's what we as humans, that's what we should be thinking about.
+
+441
+00:39:42,704 --> 00:39:44,420
+去构建那些小组件。
+Building those gadgets.
+
+442
+00:39:47,470 --> 00:39:49,184
+这样证明过程就更清晰了。
+So that's proving cleaner.
+
+443
+00:39:49,264 --> 00:39:51,588
+所以让我稍微讲讲如何证明更宏观的东西。
+So let me tell you a bit about proving bigger.
+
+444
+00:39:51,984 --> 00:39:57,700
+我刚才告诉过你们，我们在几周内就证明了整个通信栈。
+So I told you that in a few weeks we've proven this whole communication stack.
+
+445
+00:39:58,224 --> 00:40:03,652
+那么问题来了，我们怎么知道我们证明的内容就是我们想要的内容？
+And then the question is, how do we know that what we've proven is what we intend?
+
+446
+00:40:06,734 --> 00:40:08,944
+所以让我给你们简单介绍一下。
+So let me give you a taste of it.
+
+447
+00:40:09,104 --> 00:40:16,624
+我们构建的是一个客户端-服务器密钥交换的实现。
+So what we've built is an implementation of a client-server key exchange.
+
+448
+00:40:16,878 --> 00:40:19,492
+我们把这个东西叫做 Atlas，也就是 Atlas TLS。
+We call this thing Atlas, agente TLS.
+
+449
+00:40:20,464 --> 00:40:26,724
+嗯，大致上你可以把它理解为用经验证的代码实现的客户端和服务器。
+Um, and roughly you can think of it as that there's a client and a server implemented in verified code.
+
+450
+00:40:27,374 --> 00:40:34,692
+它们都编译成一段 C 代码，这段 C 代码大约有 10 万行优化后的 C 代码。
+They both compile to a piece of C code, and this C code is maybe about 100,000 lines of optimized C.
+
+451
+00:40:35,664 --> 00:40:39,748
+它源自大约 50 万行的经验证的代码。
+it comes from this stuff is about 500,000 lines in verified code.
+
+452
+00:40:41,584 --> 00:40:49,824
+那么这里的 C 代码就涉及到一个有趣的、甚至可以说是哲学上的问题，
+就像你们提到的那样，对吧？
+and then this C here's an interesting kind of I think philosophical question like you're getting at, right?
+
+453
+00:40:49,984 --> 00:40:53,668
+那就是，你如何确定你确实实现了 TLS？
+Which is how do you know that you've implemented TLS?
+
+454
+00:40:54,158 --> 00:40:57,664
+TLS 是在 RFC 8446 中描述的。
+TLS is described in RFC 8446.
+
+455
+00:40:58,126 --> 00:41:05,664
+它是一堆自然语言文本，反映了目前标准制定者的思维内容，对吧？
+It's a bunch of natural language text reflecting the brain contents of the editors of the SARS, right now.
+
+456
+00:41:08,078 --> 00:41:10,224
+我怎么知道它不是一个形式化的东西呢？
+how do I know that it's not a formal thing?
+
+457
+00:41:10,304 --> 00:41:14,864
+我无法判断任何一段代码是否正确实现了自然语言文档。
+I cannot judge that any piece of code correctly implements a natural language document.
+
+458
+00:41:15,104 --> 00:41:20,900
+在我能提出这个问题之前，必须有一种方法把
+那个自然语言文档转录成某种形式化的东西。
+There has to be some way to transcribe that natural language
+document into something formal before I can ask that question.
+
+459
+00:41:21,198 --> 00:41:25,024
+然后你还得怀疑，嗯，我对这些形式化内容的理解……
+And then you have to wonder like, well, is my interpretation of this formal stuff?
+
+460
+00:41:25,104 --> 00:41:27,492
+它是否真的对应那个文档？
+Does it correspond to the document or not?
+
+461
+00:41:27,904 --> 00:41:39,460
+现在我认为这实际上是一个经验问题，对于像 TLS 这样的标准化事物，
+回答这个问题的方法就是通过互操作性。
+Now I think this is actually like an empirical question, and for standardized things like TLS,
+the way you answer this question is by interoperability.
+
+462
+00:41:40,238 --> 00:41:52,990
+所以当 IETF 去标准化一个新的协议时，他们会举办互操作性研讨会，
+也就是互操作性测试，让不同的人拿到协议，他们聚在一起过个周末，
+So when the ITF goes and standardizes a new a new protocol, they hold interop workshops, interop audience,
+where different people are given the protocol, they get together for a weekend and they check if their
+
+463
+00:41:52,990 --> 00:41:53,400
+所以当 IETF 去标准化一个新的协议时，他们会举办互操作性研讨会，
+也就是互操作性测试，让不同的人拿到协议，他们聚在一起过个周末，
+implementation running on their computer can communicate with someone else's implementation.
+
+464
+00:41:53,400 --> 00:41:59,012
+检查他们电脑上运行的实现是否能与别人的实现进行通信。
+implementation running on their computer can communicate with someone else's implementation.
+
+465
+00:41:59,310 --> 00:42:05,028
+如果可以，那就说明他们对标准的理解是一致的。
+And if it can, then they know that they both interpreted the standard in the same way.
+
+466
+00:42:05,518 --> 00:42:08,784
+这也是我们构建互联网的唯一方式。
+And this is the only way in which we build the internet.
+
+467
+00:42:09,198 --> 00:42:15,664
+目前，Linux 的 TCP 实现之所以与 Windows 的实现一致，
+仅仅是通过互操作性来验证的。
+The fact that the Linux implementation of TCP agrees with the Windows one is only by interop, right now.
+
+468
+00:42:15,984 --> 00:42:17,744
+嗯，这就是我们目前的做法。
+Um so that's what we do.
+
+469
+00:42:17,824 --> 00:42:27,812
+我们拿到 Atlas 的实现，然后检查它是否真的支持 TLS，
+即它是否能与 OpenSSL 或 BoringSSL 之类的软件互操作。
+We get our atlas implementation and we check that it actually speaks TLS to the extent that it can interoperate
+with OpenSSL or boring SSL or something.
+
+470
+00:42:27,904 --> 00:42:29,252
+所以这是经验性的，对吧？
+So that's empirical, right?
+
+471
+00:42:29,838 --> 00:42:32,164
+接下来就是证明部分。
+And then comes the proof part.
+
+472
+00:42:32,590 --> 00:42:37,984
+证明部分我们要展示的是，我们的实现，呃……
+And the proof part is what we show is that our implementations, uh,
+
+473
+00:42:42,144 --> 00:42:42,544
+是的。
+yeah.
+
+474
+00:42:43,184 --> 00:42:48,132
+呃，我们的实现细化了 TLS 的状态机规格。
+uh, our implementations refine a state machine spec of TLS.
+
+475
+00:42:49,184 --> 00:42:56,384
+而且如果你把这两个状态机结合起来，你可以证明它们满足顶层的某些良好属性。
+and that if you take these two state machines together, you
+can prove that they satisfy some nice property at the top.
+
+476
+00:42:57,584 --> 00:43:02,596
+然后你真正需要阅读的就是顶层的那些良好属性。
+and then what you have to read is really the nice property at the top.
+
+477
+00:43:03,342 --> 00:43:07,812
+而且顶层的良好属性只有 500 行，而不是 50 万行。
+And the nice property at the top is 500 lines, not 500,000 lines.
+
+478
+00:43:08,464 --> 00:43:11,984
+这再次强调了我想要传达的另一个核心信息，对吧？
+And this again is like one of the other messages I want to drive home, right?
+
+479
+00:43:12,064 --> 00:43:19,344
+这就是验证的本质：它是一项降低复杂度的练习，对吧？
+This is the story of like verification is an exercise in complexity reduction, right?
+
+480
+00:43:19,664 --> 00:43:24,384
+所以这是实际代码的复杂度，或者从某种意义上说，是这个。
+So this is the complexity of the actual code, or maybe this in some sense, right?
+
+481
+00:43:24,624 --> 00:43:28,864
+而我们将这种复杂度降低到了这个审计面。
+And we've reduced that complexity down to this audit surface.
+
+482
+00:43:29,358 --> 00:43:35,424
+好，我还想把验证看作是一项风险降低的练习，对吧？
+Okay, I also want to I also like to think of verification as a risk reduction exercise, right?
+
+483
+00:43:35,744 --> 00:43:44,544
+我们并没有消除所有风险，因为所有这些证明都
+是基于我们对底层硬件和底层操作系统的假设。
+That we haven't eliminated all risk, like all of these proofs are done against our assumptions about the
+underlying hardware, underlying operating system.
+
+484
+00:43:44,846 --> 00:43:47,424
+并不是说其中可能仍然存在漏洞。
+It's not that there might still be a bug in all of that.
+
+485
+00:43:47,630 --> 00:43:54,180
+我们降低了风险，但并没有消除它，不过这
+两点正是我们追求的目标：风险和复杂度。
+We've reduced risk, we haven't eliminated it, but we've also
+those are the two things we're after risk and complexity.
+
+486
+00:43:56,462 --> 00:44:07,184
+而我们实现这一点的办法是，呃，这个状态机规格本身大约有 3000 行。
+and the way we get at this is uh is this state machine spec is itself about 3,000 lines long.
+
+487
+00:44:07,566 --> 00:44:08,516
+我不想去读它。
+And I don't want to read it.
+
+488
+00:44:10,000 --> 00:44:15,844
+我确实读过，但我没法一眼就确信 3000 行代码是正确的。
+I do read it, but I can't really convince myself that 3,000 lines of code is correct at a glance.
+
+489
+00:44:16,400 --> 00:44:24,800
+所以我们的做法是，我们一直在构建一些通用的库，我称之为类型化准则，对吧？
+So the way we do it is we've been building these generic libraries that I call typed rubrics, right?
+
+490
+00:44:24,960 --> 00:44:33,476
+这些库将可以在这些系统中使用的不同证明模式进行了代码化。
+These libraries that codify different proof patterns that one can use in these systems.
+
+491
+00:44:33,920 --> 00:44:43,748
+所以这里的这个符号，子集等于符号，实际
+上是 F* 中对状态机细化证明外观的表示。
+So this symbol here, the subset equals symbol, is actually a representation
+in F star for what a state machine refinement proof looks like.
+
+492
+00:44:44,366 --> 00:44:45,520
+而且它是一次性完成的。
+And it's done once and for all.
+
+493
+00:44:46,510 --> 00:44:51,140
+那个定义独立于 TLS，也独立于任何特定的状态机。
+that definition exists independently of TLS, independently of any particular state machine.
+
+494
+00:44:51,630 --> 00:44:59,040
+这是一个非常抽象的概念，它存在于我们的库中，
+可以由专家进行审计并签字确认。
+And it's a very abstract notion that it lives in our library, can be audited and signed off by experts.
+
+495
+00:44:59,214 --> 00:45:11,040
+一旦有了这个概念，Agent 就可以证明这个状态机，或者说某种状态转移系统，
+一个规范的状态机，是由这个实现所精炼出来的。
+And once you have that notion, the agent can prove that this state machine, some state transition system,
+a canonical one, that it is refined by this implementation.
+
+496
+00:45:11,120 --> 00:45:14,692
+一旦有了这个，你就不需要再去看具体的实现代码了。
+And once you have that, you don't need to see the implementation anymore.
+
+497
+00:45:15,438 --> 00:45:19,140
+所有的代码都从考虑范围中剔除了，现在剩下的只有状态机。
+All the code is out of the picture, and now all you have left is the state machine.
+
+498
+00:45:20,320 --> 00:45:25,220
+因为这个子集等于符号已经彻底消除了那种复杂度。
+because this subset equals symbol has removed that complexity once and for all.
+
+499
+00:45:26,414 --> 00:45:35,560
+好，所以现在我们有了这些规范的状态机规格说明，你可以选择去阅读它们，
+也可以让 Agent 去尝试为规格说明添加注释，
+Okay, so now so then we have these canonical state machine specs, which you can choose to read,
+and you can get agents to try to annotate the spec and relate it to sections of the RFC and so on.
+
+500
+00:45:35,560 --> 00:45:38,560
+并将其与 RFC 的相关章节联系起来等等。
+Okay, so now so then we have these canonical state machine specs, which you can choose to read,
+and you can get agents to try to annotate the spec and relate it to sections of the RFC and so on.
+
+501
+00:45:38,640 --> 00:45:39,396
+这很有用。
+That's useful.
+
+502
+00:45:40,320 --> 00:45:44,800
+而且你不应该仅仅满足于这种规格说明。
+And then you shouldn't be satisfied with just this kind of spec.
+
+503
+00:45:45,038 --> 00:45:49,220
+状态机是为了实现某些协议目标而存在的。
+The state machine exists to achieve some protocol objective.
+
+504
+00:45:49,774 --> 00:46:01,124
+而那个协议目标就是，如果你知道我在说，如果我在和 Gautam 进行连接协商，
+并且最后我们的握手成功了，那么 Gautam 和我推导出了相同的会话密钥。
+And that protocol objective is that if you know I'm talking if I'm negotiating in connection with Gautam and at
+the end our handshake succeeds, then Gotham and I have derived the same session key.
+
+505
+00:46:01,582 --> 00:46:02,916
+这就是 TLS 的核心意义。
+That's the whole point of TLS.
+
+506
+00:46:03,680 --> 00:46:08,880
+所以这就证明了，这个状态机的形式化实际上解决了那个问题。
+So that's proved that this state machine formalization actually gives us that problem.
+
+507
+00:46:09,870 --> 00:46:18,240
+所以说，归根结底，我们展示了，你知道，两个通信的状态机，
+如果它们达成一致，那么它们确实推导出了相同的密钥。
+So at the end of the day, we show that you know, two communicating state machines, if they reach agreement,
+then they do have they have derived the same keys.
+
+508
+00:46:18,446 --> 00:46:20,004
+这就是定理的顶层，对吧？
+And that's the top of the theorem, right?
+
+509
+00:46:20,400 --> 00:46:27,972
+是的，所以这就是在控制复杂度，让证明更简洁，这仍然有很多值得思考的东西。
+And yeah, so that's reigning in complexity, proving cleaner, that's lots of stuff to think about still.
+
+510
+00:46:30,080 --> 00:46:34,000
+我还想告诉你们，这能带来的一些变化。
+I also wanted to tell you about some things that this enables.
+
+511
+00:46:34,160 --> 00:46:40,356
+所以一旦有了证明，各种可能性就打开了，其中之一就是持续优化。
+So once you have proofs, all kinds of stuff opens up, and one of them is continuous optimization.
+
+512
+00:46:41,230 --> 00:46:46,756
+如果我有现成的证明，所以我们做的第一步是先有了这个证明，然后我们说，
+让我们用它来和 OpenSSL 做基准测试。
+If I had my proof in place, so what we did is we first had this
+proof, and then we said, let's benchmark it against OpenSSL.
+
+513
+00:46:47,150 --> 00:46:52,644
+结果发现我们的速度比 OpenSSL 慢了大约两倍，对吧？
+And it turns out that we were kind of 2x slower than OpenSSL, right?
+
+514
+00:46:53,520 --> 00:47:00,292
+每秒 200 到 240 兆字节，而使用 OpenSSL 时是每秒 560 兆字节。
+200 to 240 megabytes per second as opposed to 560 megabytes per second using OpenSSL.
+
+515
+00:47:00,960 --> 00:47:05,668
+呃，而且每秒握手次数也减少了很大一部分。
+Uh, and like off on the handshakes per second, also by substantial amount.
+
+516
+00:47:06,094 --> 00:47:08,960
+结果发现有两个主要的瓶颈。
+And it turns out that there were two main bottlenecks.
+
+517
+00:47:09,294 --> 00:47:21,200
+第一，我们没有使用向量化加密；第二，我们的协
+议实现中在数据拷贝时有很多额外的缓冲，对吧？
+One, we were not using vectorized cryptography, and two, our implementation
+of the protocol had lots of extra buffering in data copies, right?
+
+518
+00:47:21,600 --> 00:47:33,060
+但是证明已经就绪了，现在证明有了，我就可以告诉 Agent，不要改变顶层定理，
+尽管去优化，随便怎么优化都可以。
+So but the proof was in place, and now when the proof is in place, I can just tell an agent don't change the
+top-level theorem, but go for it, optimize as much as you like.
+
+519
+00:47:33,840 --> 00:47:37,476
+它就在短短几个小时内就搞定了。
+And it cranks just literally in a few hours.
+
+520
+00:47:39,150 --> 00:47:51,940
+它消除了冗余拷贝，切换到了向量化加密，我们现在和 OpenSSL 持平，
+而且在大规模传输上我们甚至超过了 OpenSSL。
+it had eliminated, it had switched to vectorized crypto, and it removes all the redundant copying,
+and we're on par with OpenSSL, and we beat OpenSSL on the large transfers.
+
+521
+00:47:53,710 --> 00:47:59,392
+就仅仅是，你知道，通过建立证明并告诉 Agent 去优化，就这么简单。
+Just just completely, you know, by setting the proof in place and saying agent optimize, right?
+
+522
+00:47:59,552 --> 00:48:06,432
+所以没错，既然这些都实现了，那么下一个前沿是什么？
+So yeah, the things that so so now, so what's the next frontier?
+
+523
+00:48:06,512 --> 00:48:08,164
+比如，我们接下来该往哪走？
+Like where where do we go from here?
+
+524
+00:48:08,592 --> 00:48:14,912
+我想指出的一点是，在过去的二十年里，已经取得了很多成功。
+And one thing I wanted to point out is that over the past two decades there have been a number of successes.
+
+525
+00:48:15,072 --> 00:48:21,392
+我们不是唯一在流血流汗构建可验证事物的人，你知道，很多团队都在做这件事。
+We haven't been the only ones like sweating blood, building
+verified things, you know, a lot of groups have been doing this.
+
+526
+00:48:21,872 --> 00:48:33,412
+但通常在这些项目中，人们是直接从零开始编写新代码并从一开始就进行证明，
+而不是事后才尝试去验证实现。
+but what has happened typically is in all these projects, people have built fresh code from scratch and done
+proofs from the get-go rather than trying to verify an implementation after the fact.
+
+527
+00:48:34,032 --> 00:48:44,388
+但是，世界上大部分代码其实已经存在了，或者我的意思是，我不知道，
+也许 Agent 会重写所有代码，但现在依然有大量的代码在运行，对吧？
+So, but most of the code in the world is actually it already exists, or I mean, I don't know,
+maybe the agents will rewrite it all, but there's still a ton of code out there, right?
+
+528
+00:48:44,718 --> 00:48:46,992
+那我们怎么对这些代码获得任何保证呢？
+And how do we get any guarantees about any of this?
+
+529
+00:48:47,278 --> 00:48:49,668
+传统上，这完全超出了我们工具的范围。
+It's traditionally been completely out of scope for our tools.
+
+530
+00:48:50,062 --> 00:48:51,364
+我们能做点什么吗？
+Can we do something about it?
+
+531
+00:48:51,632 --> 00:48:54,832
+我们一直在做的一件事就是构建这样的工具。
+And one thing we've been doing is building such a tool.
+
+532
+00:48:55,086 --> 00:48:59,552
+所以我们有一个叫 PAL 的新工具，它是 C 语言的证明标注语言。
+So we have a new tool called PAL, proof annotation language for C.
+
+533
+00:49:00,078 --> 00:49:03,472
+我们正在为 C sharp 构建 PAL，也在为 C 构建 PAL。
+And we're building PAL for C sharp, we're building PAL for C.
+
+534
+00:49:03,952 --> 00:49:05,380
+就像我们正在构建一系列全新的工具一样。
+Like we're building a bunch of new tools.
+
+535
+00:49:05,838 --> 00:49:11,172
+如果你感兴趣的话，我们很乐意邀请你加入，这会是一项很有趣的工作。
+We'd love, if you want to, if this sounds interesting to you, please reach out, be fun to work on.
+
+536
+00:49:11,712 --> 00:49:24,752
+嗯，PAL 的工作原理是这样的：这里是我们最喜欢的 C 语言重复加法乘法示例，
+这一次，你不需要写 Pulse 代码，你可以写 PAL 代码。
+Um, and the way PAL works is that here's our favorite multiplication by repeated addition in C, this time,
+where, rather than writing Pulse code, you can write PAL code.
+
+537
+00:49:24,832 --> 00:49:31,952
+你可以写 C 代码，并直接在代码中添加我之前在 Pulse 中展示过的同类标注。
+you can write C code, and you can decorate it in place with
+the same types of annotations that I showed you in Pulse.
+
+538
+00:49:32,512 --> 00:49:41,444
+我们有一个工具可以将这个程序翻译成 Pulse，并对照我们的 C 标准模型。
+And we have a tool that takes this program and translates it to pulse against our model of the C standard.
+
+539
+00:49:42,190 --> 00:49:46,980
+然后你就可以在 Pulse 中利用这些标注来证明这个程序的正确性。
+And then you do a proof in pulse with these annotations about the correctness of this program.
+
+540
+00:49:47,472 --> 00:49:53,072
+好的，这个也开始起作用了。
+Okay, and this too is starting to work.
+
+541
+00:49:53,232 --> 00:50:02,020
+所以，呃，我之前给你们展示的双向循环链表，
+实际上是 Linux 内核中非常常见的模式。
+So uh our the circular W link list thing I showed you earlier
+is actually a really common pattern in the Linux kernel.
+
+542
+00:50:02,734 --> 00:50:09,872
+例如，整个设备驱动堆栈都是围绕这个叫 SK buffs 的数据结构构建的。
+For example, like the whole device driver stack is built
+around this thing called this data structure called SK buffs.
+
+543
+00:50:10,286 --> 00:50:20,940
+而 skbuffs 是一个带有哨兵的双向循环链表，它是用 C 语言实现的，
+包含很多有趣的复杂点，比如所谓的侵入
+And skbuffs is a circular doubly linked list with a sentinel, and it's done in C with lots of interesting
+complications, the style called intrusive lists and and so on, and it was quite hairy to verify.
+
+544
+00:50:20,940 --> 00:50:25,252
+式链表风格等等，它的验证过程非常棘手。
+And skbuffs is a circular doubly linked list with a sentinel, and it's done in C with lots of interesting
+complications, the style called intrusive lists and and so on, and it was quite hairy to verify.
+
+545
+00:50:25,552 --> 00:50:30,468
+嗯，但是 Agent 看了 Linux 内核代码，它们非常熟悉这些代码，对吧？
+And um, but the agents looked at the Linux kernel code, they know it really well, right?
+
+546
+00:50:30,752 --> 00:50:40,452
+它们在 Linux 内核上进行了深入的训练，它们肯定知道这个数据结构，
+那么问题就在于它们能否将其转化为证明标注？
+They've been trained on Linux kernel inside out, they they certainly know about this data structure,
+and then it's a question of can they translate that into proof annotations?
+
+547
+00:50:40,832 --> 00:50:54,724
+今年夏天，我和几个实习生一起构建了 PAL，这是一个全新的证明工具，
+Agent 之前没见过它，而它们现在能快速生成内核驱动的证明。
+And this summer with a couple of interns, we built out PAL, a brand new proof tool that the agents have not seen
+before, and they blast out proofs of kernel drivers.
+
+548
+00:50:57,312 --> 00:51:01,792
+所以，让我稍微思考一下，我要收尾了。
+so let me just think I'm going to wrap up.
+
+549
+00:51:01,872 --> 00:51:05,312
+呃，只想说未来已经来了。
+Uh just want to say the future is here.
+
+550
+00:51:05,678 --> 00:51:12,192
+我认为有很多不确定性，而且你知道，在这种未来中，我们的角色是什么？
+I think there's there's a lot of uncertainty, and you know, like what is our role in this in this future?
+
+551
+00:51:12,272 --> 00:51:26,112
+你知道，嗯，但是我觉得，嗯，你知道，我们可能会停止阅读代码，
+但仍有很多事情要做，而且要把它做好，你知道。
+and you know, um, and but I think, um, you know, the uh, we may stop reading code,
+but there's still plenty of stuff for us to do and to do it and to do it well, you know.
+
+552
+00:51:26,192 --> 00:51:32,752
+而且要应用我们研究社区多年来积累的见解去发现新事物。
+and and to apply our uh, the insights that our research community has developed over the years to find out.
+
+553
+00:51:32,832 --> 00:51:40,900
+但是要转变思路，不再仅仅是思考如何证明，而是思考如何定义规格、
+如何确认意图、如何组合事物。
+but but to pivot it to think about, rather than how just to prove,
+but how to specify, how to confirm intent, how to compose things.
+
+554
+00:51:41,472 --> 00:51:43,876
+我认为这就是核心所在。
+I think that's where the action is going to be.
+
+555
+00:51:45,712 --> 00:51:52,752
+而且，呃，我还想最后做一些总结，也许还有一些问题。
+and uh also wanted to wrap up with some reflections and maybe some problems.
+
+556
+00:51:53,392 --> 00:52:01,456
+但首先，你知道，我不知道你是否在和我一样在思考：这到底怎么才能实现呢？
+but first, you know, I I wonder if you're If you're wondering like me, how can this work?
+
+557
+00:52:01,776 --> 00:52:05,668
+电脑是怎么做到直接生成这些内容的？
+how is it possible for a computer to just turn this out?
+
+558
+00:52:05,934 --> 00:52:09,296
+说实话，我觉得我也不知道。
+And I think what's to be honest, I don't know.
+
+559
+00:52:09,376 --> 00:52:12,548
+我不认为有人知道这些 LLMs 到底是怎么运作的。
+I don't think anybody knows how these LLMs are really working.
+
+560
+00:52:12,896 --> 00:52:21,124
+目前有一些关于可解释性的最新研究，表明也许有
+一天我们会弄清楚这些 LLMs 到底是怎么运作的。
+There's some very fresh work on interpretability that suggests that
+maybe someday we'll find out how these LLMs are actually working.
+
+561
+00:52:21,422 --> 00:52:23,332
+现在，我认为答案是我们不知道。
+Right now, I think the answer is that we don't know.
+
+562
+00:52:23,790 --> 00:52:30,496
+但从经验上看，真正重要的事情是围绕它建立封闭的客观反馈循环。
+But empirically, what seems to be really important is to build closed objective feedback loops around it.
+
+563
+00:52:31,296 --> 00:52:43,536
+程序验证器和数学定理检查器，也许是最好的客观反馈。
+And verifiers, program verifiers, are and math theorem checkers are perhaps the best objective feedback.
+
+564
+00:52:44,302 --> 00:52:54,070
+如果你能设置护栏，并且有一个符号化的东西能准确告诉你是否通过，
+然后让这些东西运行，它们会连续运行几天，
+If you can set guardrails and you have a symbolic thing that's going to tell you exactly when you've passed it
+or not, and you let these things run, they will run for days, chugging away, trying to meet that objective,
+
+565
+00:52:54,070 --> 00:52:55,770
+不断地推进，试图达到目标，并冲破任何困难。
+If you can set guardrails and you have a symbolic thing that's going to tell you exactly when you've passed it
+or not, and you let these things run, they will run for days, chugging away, trying to meet that objective,
+
+566
+00:52:55,770 --> 00:52:58,096
+不断地推进，试图达到目标，并冲破任何困难。
+and they'll blast through any difficulty.
+
+567
+00:52:58,176 --> 00:53:03,616
+所以我们必须思考如何有效地构建这些循环，构建这些封闭循环。
+So we we have to think about how to build these loops and build these closed loops effectively.
+
+568
+00:53:03,854 --> 00:53:05,616
+这就是其中一点。
+So that's that's one thing.
+
+569
+00:53:06,542 --> 00:53:11,296
+然后，就像我一直在和这里的各位交流的那样，这一切意味着什么？
+Then, you know, as I've also been having for conversations with folks here, like what does all this mean?
+
+570
+00:53:11,376 --> 00:53:13,616
+比如，对我们这个社区来说意味着什么等等？
+Like, what does it mean for us as a community and so on?
+
+571
+00:53:14,062 --> 00:53:18,916
+你知道，就像几个月的博士水平的工作，现在几小时就完成了。
+And you know, uh, it's like months of PhD level work just done in hours.
+
+572
+00:53:20,016 --> 00:53:25,136
+呃，我，你知道，我不知道该怎么评价这件事。
+and uh I you know, I don't know, I don't know what to say about this.
+
+573
+00:53:25,774 --> 00:53:40,976
+我只能说，我们都得思考如何重新聚焦我们正在做的事情，追求更高的目标，
+也许会感觉有点，我不知道，像是从以前的约束中解脱出来了，对吧？
+I can only say is like we all have to think about ways to kind of refocus what we're doing, aim higher,
+and maybe feel a bit sort of I don't know, unshackled by constraints that we had before, right?
+
+574
+00:53:41,136 --> 00:53:47,012
+也许在过去我们永远不会想到某种证明技术，因为实际操作起来太难了。
+Maybe we would never dream up a certain proof technique in the past because it was just too hard to actually do.
+
+575
+00:53:47,296 --> 00:53:49,216
+而现在，那不再是限制了。
+And that's not a constraint anymore.
+
+576
+00:53:49,296 --> 00:53:50,724
+也许我们应该去追求那些东西。
+Maybe we should go after those things.
+
+577
+00:53:51,536 --> 00:53:55,652
+嗯，还有，你们怎么教这些内容？
+Um also like, what do you how do you teach any of this?
+
+578
+00:53:56,176 --> 00:54:07,620
+你知道，如果 Agent 负责所有的编码，而且如果我所说的是人类甚至面临着不再
+阅读这些代码的风险，那么如果不阅读或编写代码，
+And you know, if can you, you know, if agents are doing all the coding, and if today,
+if I'm if what I'm saying is that humans even we risk we're not reading this code anymore,
+
+579
+00:54:07,620 --> 00:54:09,230
+你知道，如果 Agent 负责所有的编码，而且如果我所说的是人类甚至面临着不再
+阅读这些代码的风险，那么如果不阅读或编写代码，
+like how do you become a good engineer without reading or writing code?
+
+580
+00:54:09,230 --> 00:54:12,420
+你如何成为一名优秀的工程师？
+like how do you become a good engineer without reading or writing code?
+
+581
+00:54:13,454 --> 00:54:13,696
+对吧？
+Right?
+
+582
+00:54:13,856 --> 00:54:19,376
+如果不去纠结，比如，哦，我这里的归纳假设对吗？你如何成为一名证明工程师？
+How do you become a proof engineer without ever like wrestling with like, oh,
+do I have the right induction hypothesis here?
+
+583
+00:54:19,536 --> 00:54:21,412
+你知道，这甚至可能吗？
+Like, you know, is that even possible?
+
+584
+00:54:23,374 --> 00:54:23,856
+我不知道。
+I don't know.
+
+585
+00:54:24,016 --> 00:54:37,028
+你知道，也许我们应该教授稍微不同的内容，而且，
+也许重要的不再是原始的证明技术，而是像规格审查。
+And you know, maybe we should be teaching slightly different things, and you know,
+maybe the important thing is no longer like the raw proof technique, but like spec review.
+
+586
+00:54:37,326 --> 00:54:40,388
+你知道，你如何评判一个主张？
+You know, how do you critique a claim?
+
+587
+00:54:40,750 --> 00:54:41,056
+对吧？
+Right?
+
+588
+00:54:41,376 --> 00:54:46,256
+呃，也许我们应该思考，我一直在思考这个问题。
+And uh and maybe we should be thinking, I've been wondering about this.
+
+589
+00:54:46,336 --> 00:54:48,416
+比如，什么是，什么是证明导向的？
+Like, what is what would what would proof-oriented?
+
+590
+00:54:48,496 --> 00:54:51,616
+它不再是关于编程了，比如证明导向架构看起来是什么样的？
+It's no longer about programming, like what is proof-oriented architecture look like?
+
+591
+00:54:51,776 --> 00:55:00,656
+你该如何构建一个拥有清晰模块化接口的大型系统，来组织一个大型证明？
+How do you build a large system with you know uh clear modular interfaces to you know arrange a large proof?
+
+592
+00:55:01,390 --> 00:55:04,868
+嗯，我不知道，我很乐意和大家一起头脑风暴一下。
+Um, I don't know, I'd be happy to brainstorm with you guys about it.
+
+593
+00:55:05,456 --> 00:55:11,044
+而且还有很多其他的社会问题围绕在它周围。
+And the other is is there's so many other social problems around it.
+
+594
+00:55:12,096 --> 00:55:24,800
+比如，我只想提一个就是准入权和不平等，而且如果我谈论这个，
+它只是加速了某些人的视角吗？
+from you know, and one I'll just mention is just access and inequalities, and you know,
+and if I speak to this one, does it accelerate only the view?
+
+595
+00:55:25,296 --> 00:55:30,948
+我的意思是，当然有准入权的问题，但还有围绕专业知识的不平等。
+I mean, there's access, of course, but there's also inequalities around expertise.
+
+596
+00:55:31,214 --> 00:55:38,896
+你知道，我做这些事情已经 20 年或更久了，所以我能用它，而且我接受过培训，
+受益于我所受的所有培训。
+You know, I've been doing this stuff for 20 years or more, and so I can use it and I've been trained,
+I've benefited from all the training that I've had.
+
+597
+00:55:39,056 --> 00:55:42,896
+如果你以前没接触过这些东西，你能突然快速上手吗？
+And if you haven't had this stuff before, can you suddenly ramp up?
+
+598
+00:55:42,976 --> 00:55:46,176
+而且它只是在加速专家，还是别的？
+And is it only accelerating the experts or what?
+
+599
+00:55:46,336 --> 00:55:51,620
+我不知道这些问题的答案，但这些都是很难思考的问题。
+I don't know the answers to these things, but they're tough things to think about.
+
+600
+00:55:52,416 --> 00:55:57,616
+但让我最后以一个高调结尾。
+But let me just aim on a finish on a on a high note.
+
+601
+00:55:57,696 --> 00:56:05,856
+我认为我们应该志向高远，比如质疑前提，但要坚持我们真正相信的原则。
+I think we should just aim high, like question premises, but stay principled to what we really believe.
+
+602
+00:56:06,016 --> 00:56:17,600
+而且你知道，几十年来，我认为我们的社区，那些从事编程语言研究的人，
+我们一直相信用严谨的方法做事，获得强有力的保证，你知道，
+And you know, for decades, I think our me's me, our community, people working in programming languages,
+we've really believed in doing things with rigor, getting strong guarantees, you know,
+
+603
+00:56:17,600 --> 00:56:18,250
+我认为这一切都比以往任何时候都更重要。
+And you know, for decades, I think our me's me, our community, people working in programming languages,
+we've really believed in doing things with rigor, getting strong guarantees, you know,
+
+604
+00:56:18,250 --> 00:56:21,216
+我认为这一切都比以往任何时候都更重要。
+all of that I think is more important than ever.
+
+605
+00:56:21,486 --> 00:56:31,296
+就像，我知道我们都在略有不同的领域工作，而且我相信我所说的话，
+在你们所在的任何学科中都有对应的版本。
+Like, let's and I'm sure like we're all working in slightly different areas, and you know,
+I'm sure there's versions of what I'm saying that apply to whatever discipline you're in.
+
+606
+00:56:31,406 --> 00:56:35,684
+就像，坚持那些原则，但要志向高远，甚至要志向极其高远。
+Like, stick to those things, but aim high, like aim crazy high.
+
+607
+00:56:36,174 --> 00:56:38,336
+好，因为这很疯狂。
+Okay, because it's wild.
+
+608
+00:56:38,496 --> 00:56:39,856
+所以谢谢大家。
+So thank you.
+
+609
+00:56:40,078 --> 00:56:41,700
+我很乐意回答一些问题。
+I'm happy to take some questions.
+
+610
+00:56:50,720 --> 00:56:56,240
+出于好奇，那个 Agent 优化到底做了什么？
+out of curiosity's sake, what was the optimization that happened from like what is the agent boot for it?
+
+611
+00:56:56,560 --> 00:56:58,372
+哦，它去除了所有那些冗余的拷贝。
+Oh, it removed all those redundant copies.
+
+612
+00:56:59,598 --> 00:57:03,360
+最初的开销是没用向量化加密。
+The initial overhead was not using vectorized crypto.
+
+613
+00:57:03,520 --> 00:57:09,920
+所以它切换到了使用向量化的，你知道，AVX-512 指令，也就是向量化加密。
+So it switched to using vectorized uh you know uh ABX 512 instructions, vectorized crypto.
+
+614
+00:57:10,000 --> 00:57:19,290
+所以这让它速度大幅提升，然后它还有从输入缓冲区到几个内部缓冲区的这些冗
+余拷贝，然后它就说，哦，我要去掉所有这些冗余拷贝，直接从输入中处理。
+So that gave it a big speed boost, and then it had all these like redundant copies from the input buffers to
+several internal buffers, and then it just said, Oh, I'm gonna
+
+615
+00:57:19,290 --> 00:57:23,172
+所以这让它速度大幅提升，然后它还有从输入缓冲区到几个内部缓冲区的这些冗
+余拷贝，然后它就说，哦，我要去掉所有这些冗余拷贝，直接从输入中处理。
+remove all these redundant copies and work directly out of the input.
+
+616
+00:57:24,720 --> 00:57:27,200
+但他们必须配合解析器，他们只是在做零拷贝。
+But they have to work with parsers, they're just having zero copy.
+
+617
+00:57:27,760 --> 00:57:30,212
+呃，他们正在使用 everparse 零拷贝解析器。
+Uh they they are using ever parse zero copy parsers.
+
+618
+00:57:30,798 --> 00:57:32,292
+所以实际上，结果是
+So actually, it turned out that
+
+619
+00:57:37,038 --> 00:57:42,276
+我们在构建 everparse 时付出了很多努力，为了让序列化器，特别是零拷贝。
+we had gone through a lot of trouble in building ever parse to make serializers especially zero copy.
+
+620
+00:57:43,200 --> 00:57:46,404
+为了直接在原位序列化到输出缓冲区。
+to serialize directly into the output buffer in place.
+
+621
+00:57:47,040 --> 00:57:51,920
+结果发现这并不重要，至少在这个基准测试中不是。
+And this turned out to not be important, at least not in this benchmark.
+
+622
+00:57:52,000 --> 00:57:56,708
+就像我们使用的是它的拷贝变体，而且它没出现在性能分析中。
+Like we're using a copying variant of it, and it doesn't show up in the profile.
+
+623
+00:57:59,662 --> 00:58:03,600
+我的意思是，过早优化，没错，确实是这样。
+I mean, premature optimization is yeah, yes.
+
+624
+00:58:04,174 --> 00:58:10,240
+你花多少时间在处理 HOT，或者说细节有多少？
+How much of your time do you spend um actually from the HOT or how detailed?
+
+625
+00:58:11,120 --> 00:58:13,200
+越来越少，越来越少。
+Increasingly, increasingly little.
+
+626
+00:58:13,360 --> 00:58:17,280
+我是说，甚至在这一年里，情况也发生了很大变化。
+I mean, you know, it's changed a lot even over the course of this year.
+
+627
+00:58:17,440 --> 00:58:18,720
+比如最初，
+Like initially,
+
+628
+00:58:23,440 --> 00:58:32,836
+你知道，经历了好几次关于规格说明评述的迭代，而且我觉得甚至在 1 月份，
+我可能还在提供不变性提示之类的。
+you know, several iterations around spec critique, and you know, uh I think it uh I might even in January have
+been providing like invariant hints and so on.
+
+629
+00:58:33,966 --> 00:58:34,788
+现在不再这样了。
+Not anymore.
+
+630
+00:58:35,662 --> 00:58:40,160
+我现在大部分……我是说，我可以举个例子。
+I mostly uh I mean I can give you an example.
+
+631
+00:58:40,240 --> 00:58:46,916
+比如，这周我正在做一些证明，我想给 Pulse 增加一个功能。
+Like uh there's um this week I was doing some proof about I I wanted to add a feature to Pulse.
+
+632
+00:58:47,280 --> 00:58:51,680
+对于可能认出这个的人来说，这是来自 Iris 的逻辑原子性。
+Some for those of you who might recognize this, something called logical atomicity from Iris.
+
+633
+00:58:51,840 --> 00:58:52,900
+我想把它加到 Pulse 里。
+I wanted to add it to Pulse.
+
+634
+00:58:53,198 --> 00:58:55,760
+我对如何实现以及问题出在哪有大致的思路。
+I had a general idea of how to do it and where the problems were.
+
+635
+00:58:56,000 --> 00:59:06,436
+我写了两个段落，但我对 Pulse 和 Iris 了解足够多，知道该写哪两个段落，
+但就只是两个段落，仅此而已。
+I wrote two paragraphs, but I knew enough of pulse and iris to know what two paragraphs to write,
+but it was just two paragraphs, and that was it.
+
+636
+00:59:08,334 --> 00:59:08,644
+是的。
+Yeah.
+
+637
+00:59:09,920 --> 00:59:10,160
+所以
+So
+
+638
+00:59:16,110 --> 00:59:24,800
+如果你想验证某些运行中的软件，实现部分可以通过增加新功能、
+重构代码或类似的操作来更改。
+if you want to verify some running software for that, the the implementation could be changed by adding some new
+features or reflecting the code or those kinds of stuff.
+
+639
+00:59:24,910 --> 00:59:26,820
+那么规格说明功能，你该怎么处理？
+Then the spection features, how do you handle it?
+
+640
+00:59:28,240 --> 00:59:29,040
+所以有两个问题。
+so two questions.
+
+641
+00:59:29,120 --> 00:59:31,120
+第一个是，我们如何编写 spot？
+The first one is how do we write the spots?
+
+642
+00:59:31,280 --> 00:59:32,880
+你如何让 Agent 去编写 spot？
+How do you get the agents to write the spots?
+
+643
+00:59:33,600 --> 00:59:35,200
+所以第一个问题。
+So the first one.
+
+644
+00:59:35,600 --> 00:59:38,160
+所以，我们对它说的是，你知道，
+so, so what we say to it was, you know,
+
+645
+00:59:42,638 --> 00:59:49,600
+我们写了一份关于 spot 是什么的描述，而且我们认为、我们对 spot 的看法，
+是做了一些类似这样的东西。
+we have written a description of what a spot is, and uh, what we
+thought, what we think of a spot, made something similar to this.
+
+646
+00:59:49,760 --> 00:59:53,764
+每个 sort 示例，写少量的测试并证明测试是正确的。
+each sort example, write a small number of test and prove that the test is correct.
+
+647
+00:59:54,320 --> 00:59:54,640
+对吧？
+right?
+
+648
+00:59:55,534 --> 01:00:09,390
+然后我们说，“呃，这是每个 sort 的示例，去把所有 52 个输出都做一遍”。
+然后它就写了一堆 spot，接着我们去，你知道，至少对于 CLRS，
+And then we said, "Uh, here's an example for each sort, go and do it for all 52 outputs .".
+And so then it writes a bunch of uh spots, and then we go and, you know, at least for, at least for CLRS,
+
+649
+01:00:09,390 --> 01:00:10,010
+我们去阅读了这些 spot，以确保，“噢，是的。”
+And then we said, "Uh, here's an example for each sort, go and do it for all 52 outputs .".
+And so then it writes a bunch of uh spots, and then we go and, you know, at least for, at least for CLRS,
+
+650
+01:00:10,010 --> 01:00:14,240
+我们去阅读了这些 spot，以确保，“噢，是的。”
+we went and read the spots to make sure that, "Oh, yeah.
+
+651
+01:00:14,320 --> 01:00:15,360
+这是一个合理的案例。
+this is a reasonable case.
+
+652
+01:00:15,520 --> 01:00:20,480
+它是，你知道，把一个元素插入到列表中，然后把它拿出来，
+并检查我们测试的这个东西。
+it's, you know, inserting an element into the list and
+then putting it out and checking this thing that's we test.
+
+653
+01:00:21,262 --> 01:00:23,716
+所以，我们接着审计这些 spot。
+So so we then audit the spots.
+
+654
+01:00:24,160 --> 01:00:32,868
+但是说实话，我越来越觉得 spot 是一个……是一个审计信号。
+and, but honestly, increasingly, I think of spots as a um as an audit signal.
+
+655
+01:00:32,960 --> 01:00:35,716
+就像如果你写一个 spot，Agent 就会去写。
+Like if you write a spot, the agent is going to write.
+
+656
+01:00:36,960 --> 01:00:38,480
+如果我听起来太乐观了，请见谅。
+sorry if I sound too bullish about it.
+
+657
+01:00:38,480 --> 01:00:49,000
+所以 Agent 会写出一个合理的 spot，然后它们会看到，你知道，
+如果 spot 检查失败，那就是一个很好的信号，它会不断迭代直到那个信号，
+So the agents are they will write a reasonable spot, and then they will see that you know if the spot fails to
+check, that's a good signal, and it will iterate until that signal, until it you know makes that spot pass.
+
+658
+01:00:49,000 --> 01:00:51,440
+直到你知道，让那个 spot 通过。
+So the agents are they will write a reasonable spot, and then they will see that you know if the spot fails to
+check, that's a good signal, and it will iterate until that signal, until it you know makes that spot pass.
+
+659
+01:00:51,680 --> 01:00:55,172
+所以现在，我也不读所有的 spot 了。
+So increasingly, I don't read all the spots either.
+
+660
+01:00:57,520 --> 01:00:59,440
+我们还有第二个问题。
+We have a second question about.
+
+661
+01:01:00,480 --> 01:01:05,280
+所以如果你想验证运行软件，文档可能会变。
+So if you want to verify minus software, the documentation could be changed.
+
+662
+01:01:09,600 --> 01:01:09,840
+是的。
+Yeah.
+
+663
+01:01:10,320 --> 01:01:11,440
+你如何处理这个问题？
+How do you handle that problem?
+
+664
+01:01:11,840 --> 01:01:20,720
+所以合并，你知道，我们有专门负责合并更改的 Agent，
+如果它们只是合并或者修复证明。
+So merging, you know, we have agents for merging changes and
+they they uh if they just they merge or fix up the proofs.
+
+665
+01:01:20,814 --> 01:01:23,460
+如果规格说明的顶部没变，我们就直接合并。
+If the top of the spec doesn't change, we just merge.
+
+666
+01:01:25,678 --> 01:01:27,840
+如果规格说明变了，我们就去处理一下。
+If the spec changes, we go and do something.
+
+667
+01:01:28,000 --> 01:01:34,160
+如果你提交了一个 PR，如果规格说明变了，那么你知道我们中有人会评审这个
+PR，并批准规格说明的更改。
+If you open a PR, if the spec changes, then you know one of us critiques the PR, signs off on the spec change.
+
+668
+01:01:34,320 --> 01:01:36,320
+然后，如果规格说明的顶部没变，
+Then, if the top of the spec doesn't change,
+
+669
+01:01:41,160 --> 01:01:41,380
+就让它通过。
+let it go.
+
+670
+01:01:42,400 --> 01:01:53,700
+所以，我把形式化方法看作是，是的，你从测试开始，
+然后做一些更昂贵但如果存在证明问题就非常便宜的事情，然后你去做回归测试，
+So, I view form methods as like a, yeah, where you start with testing, then you do something more expensive,
+but very cheap if there's like puzzling, then you go to tension testing,
+
+671
+01:01:53,700 --> 01:01:53,870
+所以，我把形式化方法看作是，是的，你从测试开始，
+然后做一些更昂贵但如果存在证明问题就非常便宜的事情，然后你去做回归测试，
+and you get like automated the reports and then leave.
+
+672
+01:01:53,870 --> 01:01:57,120
+获得自动生成的报告，然后就结束了。
+and you get like automated the reports and then leave.
+
+673
+01:01:57,360 --> 01:01:57,520
+当然。
+Sure.
+
+674
+01:01:57,774 --> 01:02:00,080
+现在这一切都简化成了一件事。
+Now this whole thing has collapsed to just one thing.
+
+675
+01:02:00,560 --> 01:02:01,040
+我不这么认为。
+I don't think so.
+
+676
+01:02:01,120 --> 01:02:11,240
+好吧，抱歉，说完了，但我的意思是有些东西，但这更多是金钱问题，
+如果我投入足够的 token，我就能得到一个 lead proof，
+Okay, sorry, finish it but I mean there are stuff, but it's more of a monetary thing where if I throw enough
+tokens, I can get like a lead roof for we do see this code coming out, right?
+
+677
+01:02:11,240 --> 01:02:14,560
+我们确实看到了这些代码产出来，对吧？
+Okay, sorry, finish it but I mean there are stuff, but it's more of a monetary thing where if I throw enough
+tokens, I can get like a lead roof for we do see this code coming out, right?
+
+678
+01:02:14,800 --> 01:02:27,280
+是的，所以，呃，是的，呃，所以，嗯，我仍然认为有一系列的东西，你知道，
+测试仍然存在，但你确实想写你的测试，你可以有程序。
+Yeah, so uh yes, uh so um I still think there's a continuum of stuff, and you know,
+testing is still but you do want to write your testing, you can have programs.
+
+679
+01:02:27,440 --> 01:02:28,800
+你还想写进入和测试。
+And you also want to write to enter and test.
+
+680
+01:02:28,960 --> 01:02:37,660
+我想以 Atlas 为例，我仍然想针对 OpenSSL 进行测试，
+因为我可能证明了一些很棒的关于协议的 P 协议定理，
+I think take the atlas example, I still want to test it against OpenSSL because I may have proven some awesome P
+agreement theorem about a protocol that has nothing to do with TLS, right?
+
+681
+01:02:37,660 --> 01:02:40,560
+而那个协议和 TLS 毫无关系，对吧？
+I think take the atlas example, I still want to test it against OpenSSL because I may have proven some awesome P
+agreement theorem about a protocol that has nothing to do with TLS, right?
+
+682
+01:02:40,880 --> 01:02:51,040
+而且你知道，所以测试对于，你知道，确
+认人们对环境提出的假设非常重要，对吧？
+And you know, so testing is important for to you know uh
+confirm hypotheses that one makes about the environment, right?
+
+683
+01:02:51,120 --> 01:02:54,980
+还有关于你的硬件，关于你正在交互的东西，关于操作系统，所有这些东西。
+And about your hardware, about the things that you're talking
+to, about the operating system, all that kind of stuff.
+
+684
+01:02:55,662 --> 01:02:59,120
+测试，还有规格说明也不是绝对的，对吧？
+Testing is also specifications are also not absolute, right?
+
+685
+01:02:59,200 --> 01:03:01,360
+所以它们并不能涵盖你程序的全部内容。
+So they don't cover everything about your program.
+
+686
+01:03:01,680 --> 01:03:03,360
+规格说明是你程序的抽象。
+Specifications are an abstraction of your program.
+
+687
+01:03:03,760 --> 01:03:10,950
+所以规格说明，一个好的规格说明通常不会说任何关于，我是说，
+假设它说了一些关于异步复杂度的内容，但它不会说我们没有好的证明技术。
+So the spec, a good spec typically will not say anything about, I mean,
+let's say it says something about asynchronous complexity,
+
+688
+01:03:10,950 --> 01:03:14,320
+所以规格说明，一个好的规格说明通常不会说任何关于，我是说，
+假设它说了一些关于异步复杂度的内容，但它不会说我们没有好的证明技术。
+but it's not going to say we don't have good proof techniques.
+
+689
+01:03:14,560 --> 01:03:16,356
+谈论具体性能的技术。
+Techniques to talk about concrete performance.
+
+690
+01:03:16,686 --> 01:03:19,120
+所以你必须做性能测试，对吧？
+So you've got to do a performance testing, right?
+
+691
+01:03:20,160 --> 01:03:24,100
+不是我们现在的规格说明不涵盖，我不知道，活性。
+it's not our specs today don't cover, I don't know, liveness.
+
+692
+01:03:25,102 --> 01:03:26,000
+我们得做测试。
+We've got to do the testing.
+
+693
+01:03:26,080 --> 01:03:28,720
+所以我觉得仍然存在一个连续体。
+So I think there's still a continuum.
+
+694
+01:03:29,180 --> 01:03:33,360
+你觉得我们能在规格说明本身上实现类似的复制吗？
+Do You think like we're going to get a replication of that for specs in itself?
+
+695
+01:03:33,840 --> 01:03:35,920
+是的，规格说明的较低版本。
+Yeah, lower release of spots.
+
+696
+01:03:36,270 --> 01:03:39,760
+是的，你得把测试和规格说明结合起来，我们就能得到类似的东西。
+Yeah, you have to put in the testing with spots and we get like something similar.
+
+697
+01:03:40,142 --> 01:03:41,120
+这是一个很棒的观察。
+That's a great observation.
+
+698
+01:03:41,200 --> 01:03:42,400
+我觉得这很有可能发生。
+I think that could well happen.
+
+699
+01:03:42,830 --> 01:03:43,396
+这可能会发生。
+That could happen.
+
+700
+01:03:43,600 --> 01:03:43,908
+是的。
+Yes.
+
+701
+01:03:45,070 --> 01:03:46,660
+呃，还有其他问题吗，Evan？
+Uh other questions, Evan?
+
+702
+01:03:47,200 --> 01:03:47,360
+有的。
+yeah.
+
+703
+01:03:47,520 --> 01:03:51,268
+我想再多头脑风暴一下关于教学方面的内容。
+I want to kind of just brainstorm more about the what teach aspect.
+
+704
+01:03:51,680 --> 01:04:01,680
+所以，你知道，在带着这些 agents 和规格说明去读 CLRS 的过程中，
+有没有哪方面让你学到了关于数据结构的东西？
+So, you know, is there some aspect of the activity of you going through CLRS with these Asians and a spots that
+made you learn something about the data structure?
+
+705
+01:04:02,190 --> 01:04:07,972
+你知道，就是那些你以前从未知道过的东西，是的，有很多。
+You know, that you never knew about or something, yes, a lot of that.
+
+706
+01:04:08,526 --> 01:04:19,760
+所以，我是说，说实话，CLRS 里有很多东西，我不知道，
+我记得好像有个割绳问题的动态规划算法，
+So, so I mean, you know, CLRS, honestly, there's a bunch of stuff in it that you know, I I don't know,
+I remember there's like some there's like a rod-cutting dynamic programming algorithm,
+
+707
+01:04:19,760 --> 01:04:20,390
+我是说我没法立刻想起它具体是怎么运作的。
+So, so I mean, you know, CLRS, honestly, there's a bunch of stuff in it that you know, I I don't know,
+I remember there's like some there's like a rod-cutting dynamic programming algorithm,
+
+708
+01:04:20,390 --> 01:04:24,880
+我是说我没法立刻想起它具体是怎么运作的。
+which I mean I couldn't get me off the top of my head exactly how it works.
+
+709
+01:04:24,960 --> 01:04:31,716
+所以，你知道，去评判这些东西，阅读规格说明帮我理解了它到底想要做什么。
+So, you know, going and judging these things, you know, reading
+spec helped me understand like what it is that it's trying to do.
+
+710
+01:04:32,080 --> 01:04:35,460
+然后，所以我觉得，我学到了很多。
+And then so I think there was all, I learned a lot.
+
+711
+01:04:35,886 --> 01:04:43,680
+呃，有些情况只是在温故知新，有些情况则是，我不知道，
+学到了可能以前从未被教过的东西。
+Uh both in some cases just refreshing my memory, and in some cases, just like I don't know,
+learning things that maybe I was ever taught.
+
+712
+01:04:43,760 --> 01:04:44,480
+我不确定。
+I'm not, I'm not sure.
+
+713
+01:04:44,720 --> 01:04:47,268
+我希望如此，那确实很有意思。
+I can hope that so that was it was definitely interesting.
+
+714
+01:04:47,534 --> 01:04:56,100
+呃，也许这是一种很有意思的，呃，思考如何教授算法的方法。
+Uh, and maybe it's an interesting way to uh An interesting way to think about teaching algorithms like that.
+
+715
+01:04:56,672 --> 01:05:03,876
+我们确实在教授算法，关于这个东西最核心的变体是什么。
+We do teach algorithms things about what is the main variant that this thing is for the most competent.
+
+716
+01:05:04,272 --> 01:05:06,672
+这也许能让它变得更生动一点，对吧？
+This maybe makes it come alive a little bit, right?
+
+717
+01:05:06,832 --> 01:05:12,708
+你实际上可以在某些地方，比如在某些国内白组，看到实际的环境。
+You can actually see somewhere at some at the some domestic white group, like here's the actual environment.
+
+718
+01:05:13,392 --> 01:05:16,432
+嗯，也许那是，呃，值得思考的。
+Um maybe that's uh it's good to think about.
+
+719
+01:05:21,582 --> 01:05:32,676
+所以我一直在交流，结果发现 UPN 的同事们在春季开一门关于……呃，
+叫 Page Property 的课程。
+So I've been talking with so it turns out the folks at UPN are are
+teaching a course in this in the spring about uh it's called page property.
+
+720
+01:05:33,632 --> 01:05:38,340
+我正在尝试，而且我觉得他们正试图围绕它构建某种架构。
+And I'm trying to, and I think they're trying to assemble some kind of character going around it.
+
+721
+01:05:38,542 --> 01:05:50,370
+我一直在思考该加入什么样的内容，我一直在思考的事情是，
+他们想要构建的结构，我觉得非常有道理，就是，你知道，
+And I've been thinking about like what type of content to it, and the thing that I've been thinking about is,
+and the way they want to structure it, which I think makes a lot of sense, is, you know,
+
+722
+01:05:50,370 --> 01:05:50,430
+我一直在思考该加入什么样的内容，我一直在思考的事情是，
+他们想要构建的结构，我觉得非常有道理，就是，你知道，
+we should have like people learn through doing exercises.
+
+723
+01:05:50,430 --> 01:05:54,020
+我们应该让人们通过做练习来学习。
+we should have like people learn through doing exercises.
+
+724
+01:05:54,672 --> 01:05:57,220
+那么，在这个领域里，什么样的练习是可以行的呢？
+So, what could some exercises be in this space?
+
+725
+01:05:57,712 --> 01:06:01,284
+我一直在思考的方式是……
+And the way I've been thinking about it is that
+
+726
+01:06:07,150 --> 01:06:13,284
+我觉得教大家如何为不同类别的算法建立准则会很有意思。
+I think it'd be interesting to teach people how to set up rubrics for different classes of algorithms.
+
+727
+01:06:13,870 --> 01:06:25,970
+比如，你看，有很多搜索树，而且它们有很多变体，有很多有趣的东西。
+So, for instance, you know, um uh uh if you look at there's there's a bunch of search trees,
+and they all they all there's lots of variations on them, lots of interesting things.
+
+728
+01:06:26,672 --> 01:06:28,868
+但从抽象上讲，它们全都是搜索树。
+but they're all abstractly just search trees.
+
+729
+01:06:29,486 --> 01:06:30,272
+那问题是什么呢？
+And what is it, you know?
+
+730
+01:06:30,352 --> 01:06:36,388
+那么，一个涵盖整类搜索树的抽象规格说明长什么样呢？
+So, how do you what what is an what is an abstract specification
+that covers an entire class of search trees look like?
+
+731
+01:06:36,686 --> 01:06:39,300
+还有如何设计这类练习。
+And to set up exercises of this flavor.
+
+732
+01:06:40,112 --> 01:06:41,792
+现在我还不确定。
+now I don't know.
+
+733
+01:06:43,232 --> 01:06:56,250
+我觉得这很有意思，我也觉得很有意思，而且对于那些已经具备一定抽象能力的
+人来说，这也会很有意思。不过这可能不是
+I think it's interesting to do, and I find it interesting, and I think it would be interesting to people who are
+already maybe capable of certain level of doing abstraction at a certain level is maybe not the thing that you
+
+734
+01:06:56,250 --> 01:06:57,150
+你想在入门数据结构课上教的内容，对吧？
+I think it's interesting to do, and I find it interesting, and I think it would be interesting to people who are
+already maybe capable of certain level of doing abstraction at a certain level is maybe not the thing that you
+
+735
+01:06:57,150 --> 01:07:00,832
+你想在入门数据结构课上教的内容，对吧？
+want to teach at your intro data structures class, right?
+
+736
+01:07:01,038 --> 01:07:04,100
+你知道，这有点像是学习更高一层的抽象。
+You know, it's a kind of learning one level of abstraction up kind of thing.
+
+737
+01:07:04,672 --> 01:07:11,972
+所以我不确定这是否是合适的练习，但我很想自己思考一下。
+So I don't know exactly if that's the right kind of exercise, but I'd love to think about myself.
+
+738
+01:07:13,392 --> 01:07:13,632
+嗯
+Um
+
+739
+01:07:17,792 --> 01:07:18,272
+有问题吗？
+question?
+
+740
+01:07:20,654 --> 01:07:24,388
+所以我只是想宣布一下，大家可以自由离开。
+So I just wanted to announce that so people can feel free to leave.
+
+741
+01:07:25,326 --> 01:07:28,192
+所以，呃，可能决定先退出了。
+so uh maybe decided to take a leave.
+
