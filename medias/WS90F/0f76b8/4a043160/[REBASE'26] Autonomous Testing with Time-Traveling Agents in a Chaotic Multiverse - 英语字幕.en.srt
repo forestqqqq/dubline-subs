@@ -1,0 +1,1716 @@
+1
+00:00:00,400 --> 00:00:00,676
+All right.
+
+2
+00:00:01,454 --> 00:00:07,460
+Welcome everyone to the second session of rebase today about testing in the age of AI, I guess.
+
+3
+00:00:08,109 --> 00:00:17,572
+And it's my great pleasure to have uh Ron here for the first talk about autonomous testing with time traveling agents in a chaotic multiverse with a very questionable font choice.
+
+4
+00:00:18,080 --> 00:00:19,840
+So I'm very much looking forward to this talk.
+
+5
+00:00:20,782 --> 00:00:21,920
+let's welcome the speaker.
+
+6
+00:00:22,480 --> 00:00:22,788
+Thank you.
+
+7
+00:00:24,800 --> 00:00:25,444
+Thanks all.
+
+8
+00:00:27,360 --> 00:00:28,640
+Thank you for coming.
+
+9
+00:00:30,350 --> 00:00:40,868
+I know this title sounds a little uh you know clickbaity or or buzzwordy, uh, but I promise you it's going to be a roller cursor, and I think the title reflects my sense of excitement about some of the things I'm going to talk about.
+
+10
+00:00:41,360 --> 00:00:44,320
+but first let me tell you why I'm here at at Rebase in the first place.
+
+11
+00:00:44,622 --> 00:00:48,080
+Sort of this you know, academic disguise at an industry track talk.
+
+12
+00:00:48,302 --> 00:00:50,720
+I'm actually a professor at Carnegie Mellon university.
+
+13
+00:00:51,040 --> 00:00:52,880
+I lead the pasta research lab there.
+
+14
+00:00:52,960 --> 00:00:57,680
+I've been doing research on mostly automated testing, dynamic analysis, fuzzing, property-based testing.
+
+15
+00:00:57,870 --> 00:01:00,548
+For those of you who know me back when I had hair, I used to give out free bugs.
+
+16
+00:01:00,654 --> 00:01:01,760
+That's what this bag says.
+
+17
+00:01:02,080 --> 00:01:03,840
+I think this is about eight years ago.
+
+18
+00:01:04,494 --> 00:01:15,120
+So uh but right now I've actually been on sabbatical, out in the industry, working with this company called Antithesis, and we'll talk about what they do in quite a bit of detail.
+
+19
+00:01:15,374 --> 00:01:26,692
+But the reason I was sort of excited is because all of these techniques that I've been working on for so many years, Antithesis is sort of the first company that at least I know of, which has sort of successfully commercialized many of these techniques in very innovative ways.
+
+20
+00:01:27,598 --> 00:01:31,680
+And so today in this talk, I want to cover like sort of three different things.
+
+21
+00:01:31,840 --> 00:01:35,812
+One is like, you know, why what made me go on sort of sabbatical, why I sort of chose to do that.
+
+22
+00:01:36,160 --> 00:01:50,960
+what sort of cooking in terms of what are the kind of capabilities that are out there that I think we should all know about, especially in the context of an academic conference, and also what ideas or thoughts or processes that I think uh you know we can sort of bring back into academia based on what I learned.
+
+23
+00:01:51,150 --> 00:01:54,160
+So these are gonna be some unfiltered thoughts from my side.
+
+24
+00:01:55,360 --> 00:02:02,320
+so to start with, you know, why did I sort of choose to go on sabbatical to industry?
+
+25
+00:02:02,574 --> 00:02:05,760
+So I've been doing, as I said, research in automated testing for quite some time.
+
+26
+00:02:06,062 --> 00:02:23,040
+There's gonna be a little bit of a hot take, but I started seeing a pattern of the kinds of research papers in at least my field, where I used to do a lot of first testing, and it seemed like I used to go to lots and lots of conference talks that ended up sort of having the same shape over time.
+
+27
+00:02:23,374 --> 00:02:40,836
+And usually it was like, hey, I've built some new technique to do, let's say, some sort of fuss testing, and then I can show with some fancy heuristics that I can run my technique, run a fuzzing technique for let's say 24 hours, and compared to some baseline, I do better because I get more code coverage or maybe find find more bugs.
+
+28
+00:02:41,360 --> 00:02:52,132
+and usually these things are sort of evaluated on very widely studied, well-known benchmarks, like what I show you on the screen here is a subset of uh targets from a popular benchmark called Fuzzbench.
+
+29
+00:02:52,334 --> 00:02:57,360
+And so these are programs like libpng or libxml, these are parsers for different file formats.
+
+30
+00:02:57,614 --> 00:03:04,068
+And so these are programs that are sort of very well understood now because they've been used so heavily and overrepresented in this kind of research.
+
+31
+00:03:04,302 --> 00:03:14,640
+They're mostly like uh sort of small, you know, usually C C programs that are uh, you know, once you sort of wire them up with a harness to give random inputs, they sort of terminate really quickly.
+
+32
+00:03:14,720 --> 00:03:16,932
+They're like short running, maybe a few milliseconds at most.
+
+33
+00:03:17,520 --> 00:03:22,244
+they're completely deterministic, they're stateless, they don't really have any sort of state over multiple inputs.
+
+34
+00:03:22,800 --> 00:03:39,600
+and the kinds of bugs that most people, at least in this community, are sort of interested in is like memory corruption bugs, which don't get me wrong, they're very important in terms of security vulnerabilities, but you don't really need to know a lot about these targets to sort of you know identify that this is this is you know the program is wrong if it like gets a sec fault or has a has a heap overflow.
+
+35
+00:03:39,822 --> 00:03:43,680
+And so you're not sort of maybe thinking about what the expected output or logic of this program is.
+
+36
+00:03:43,854 --> 00:03:45,040
+And there's a lot of research in this space.
+
+37
+00:03:45,262 --> 00:03:49,040
+And by the way, I'm not pointing fingers at anybody, because this is basically what most of my papers look like as well.
+
+38
+00:03:49,120 --> 00:03:50,160
+I've been doing this for many years.
+
+39
+00:03:50,320 --> 00:03:54,404
+This is what most of my PhD research was, maybe about eight years ago or so.
+
+40
+00:03:54,800 --> 00:04:00,400
+And so, but but I think things are changing quite a bit, and that's sort of what I want to uh sort of reflect on today.
+
+41
+00:04:00,560 --> 00:04:10,212
+And I think things have changed a lot, and so my claim is that the promise of what we can do with automated testing has changed actually quite dramatically in the last couple of years, since about 2024 or so.
+
+42
+00:04:10,574 --> 00:04:11,360
+And I know what you're all thinking.
+
+43
+00:04:11,440 --> 00:04:12,740
+Yeah, of course, because AI and agents.
+
+44
+00:04:13,166 --> 00:04:18,800
+And yes, AI and agents are part of the story, but I would say that's not the only thing that's important here.
+
+45
+00:04:18,880 --> 00:04:22,212
+There's something else that changed in 2024, and that is that we got time travel.
+
+46
+00:04:22,702 --> 00:04:24,000
+And this is what I'm going to talk about today.
+
+47
+00:04:24,462 --> 00:04:31,280
+And so this is a screenshot from a Video posted in about 2024 on YouTube.
+
+48
+00:04:31,758 --> 00:04:34,788
+The speaker is Will Wilson, who is the co-founder of Andithesis now.
+
+49
+00:04:35,054 --> 00:04:40,480
+At the time when I saw this video, this is like a sort of a GPT 3 moment, I would say at the time.
+
+50
+00:04:40,560 --> 00:04:51,748
+And I'm being very careful here to say GPT-3 moment and not chat GPT moment, because it was not actually immediately obvious what uh what's sort of going on, but but there are some subtle hints of what is to come.
+
+51
+00:04:52,046 --> 00:04:59,970
+And so in this talk, this talk is actually about I I think I think the talk is about using fuzzing to solve Nintendo games like Super Mario Brothers.
+
+52
+00:05:00,320 --> 00:05:08,320
+But at the end, Will showed uh this sort of screenshot of these two seemingly innocuous screens of uh Linux system sort of booting up.
+
+53
+00:05:08,400 --> 00:05:14,116
+These are both the initial output you see from booting up an instance of Ubuntu.
+
+54
+00:05:14,510 --> 00:05:30,404
+And what he showed is that he has sort of they built a system where you could boot up Ubuntu on two different computers, two different times, and then at the end, sort of pause and take a hash of the entire memory of the system and it gives you sort of a bit identical version of what the memory looks like.
+
+55
+00:05:30,990 --> 00:05:49,828
+This is kind of very subtle, and it like, you know, wasn't immediately like, you know, mind-blowing to me at the time, but now that I think of this, this is very, very, very hard to do because it is sort of abstracting away all of the non-determinism in the system, everything from things like system clocks, other sources of randomness, disk state, and everything, and getting back to exactly the same state that you had before.
+
+56
+00:05:50,000 --> 00:05:54,916
+This is pure deterministic execution of an entire system, of an entire Linux operating system.
+
+57
+00:05:56,366 --> 00:06:02,916
+And what you can do with this, or what they did with this over several years, was build what's called a deterministic hypervisor.
+
+58
+00:06:03,086 --> 00:06:18,720
+So this is a system that can run other sort of virtual machines in a completely deterministic setup, and you can use this as a test bed for all kinds of other applications and targets that can be stateful, and in fact, they can be stateful, non-deterministic, and even itself be distributed.
+
+59
+00:06:18,990 --> 00:06:38,720
+And the way you can test distributed systems is essentially putting a virtual network inside the VM, because you can obviously have nested virtualization, and then load up a bunch of Docker containers that have some application that you want, like a distributed database or some other sort of application, and then execute this completely unmodified targets, Written in any programming language that you choose, maybe having files in I.O.
+
+60
+00:06:38,958 --> 00:06:41,920
+And just keep running this in what's called a deterministic sort of simulation environment.
+
+61
+00:06:42,062 --> 00:06:43,200
+Because this is all running in a VM.
+
+62
+00:06:43,280 --> 00:06:55,844
+The only constraint is that you are not allowed to talk to anything outside this box, you can't access the internet, but within this simulation, you can run anything, and you can always pause at any point and you can rewind and replay and you get back exactly the same state.
+
+63
+00:06:56,494 --> 00:06:59,680
+And in fact, you don't necessarily always want to get back exactly the same state.
+
+64
+00:06:59,886 --> 00:07:17,700
+What you might actually want to do is you might want to say, let's get back to some intermediate state that I found interesting, and then actually change something about the system by messing with some bits in memory or providing some other kind of input, and then that's called injecting entropy, and then play forward and get a slightly different behavior than you saw before, but from a common prefix, from a common sort of starting point.
+
+65
+00:07:18,350 --> 00:07:24,100
+This is sort of the you know the promise of the sort of multiverse uh uh sort of state space for doing automated testing.
+
+66
+00:07:24,622 --> 00:07:32,164
+And then based on this, they built an entire product which now does what's called this paradigm is called deterministic simulation testing or DST for short.
+
+67
+00:07:32,366 --> 00:07:36,000
+And on top of that, that there's like a fuzzing engine that can do automatic input generation.
+
+68
+00:07:36,302 --> 00:07:47,972
+There's a property-based testing library for generating uh uh you know well-type inputs, there's fault injection for testing distributed systems, this is also known as chaos testing, and there's some cool capabilities for things like causal experimentation.
+
+69
+00:07:48,270 --> 00:07:49,840
+Uh by the way these are all sort of screenshots.
+
+70
+00:07:49,920 --> 00:07:56,388
+The first two things are screenshots from the actual product UI, and I'm gonna show you in detail what those things actually mean in a bit.
+
+71
+00:07:56,720 --> 00:08:01,280
+and then the product also obviously has web APIs and and uh for agents to use.
+
+72
+00:08:01,360 --> 00:08:04,932
+So you don't even need humans to do that, and that's why we have essentially have time traveling agents.
+
+73
+00:08:05,326 --> 00:08:14,980
+And so I found all of this super exciting because this is like the most exciting thing I think that happened in at least my field of automated testing, and which is why I said I've joined this company on sabbatical to do to do some research.
+
+74
+00:08:16,142 --> 00:08:28,964
+And so let me talk to you about how this actually all works with an example of a system which kind of was like one of my first targets of like using the system to do testing on open source when I started working with antithesis.
+
+75
+00:08:29,248 --> 00:08:37,796
+And so we decided, or at least I decided to target this uh a system called RQ Lite, uh which is sort of open source, it's a Go-based distributed database.
+
+76
+00:08:39,648 --> 00:08:42,980
+it's sort of fairly fairly popular, it has like I think 17,000 stars that you can see there.
+
+77
+00:08:43,248 --> 00:08:45,408
+It's essentially taking SQLite.
+
+78
+00:08:45,568 --> 00:08:47,088
+How many of you have heard of SQLite?
+
+79
+00:08:47,168 --> 00:08:48,288
+Can you raise your hand if you heard of SQLite?
+
+80
+00:08:48,526 --> 00:09:01,636
+Okay, so SQLite is sort of a very widely used a well-known single process, single file database, which is again has been around for a long time, and then just converting that into a distributed application using the Raft protocol.
+
+81
+00:09:02,128 --> 00:09:03,008
+How many of you have heard of Raft?
+
+82
+00:09:03,168 --> 00:09:04,164
+Can you raise your hand if you heard of Raft?
+
+83
+00:09:04,448 --> 00:09:06,244
+Okay, so again, almost many people in the room.
+
+84
+00:09:06,510 --> 00:09:09,248
+So this is a specific implementation of Raft by a company called HashiCorp.
+
+85
+00:09:09,518 --> 00:09:14,368
+So HashiCorp Raft again is one of the most sort of popular implementations of this protocol.
+
+86
+00:09:14,606 --> 00:09:23,012
+And the idea of RQ Lite is you have multiple nodes in the distributed system that are replicating the same SQLite database you know, for fault tolerance.
+
+87
+00:09:24,142 --> 00:09:29,008
+I use this target because you know these are some of the most well understood and well-tested systems out there.
+
+88
+00:09:29,248 --> 00:09:31,568
+SQLite is legendary for how well it's tested.
+
+89
+00:09:31,648 --> 00:09:36,608
+I've been using it when I teach software testing at Carnegie Mellon, I use that as an example of all types of different testing.
+
+90
+00:09:36,688 --> 00:09:40,768
+They do unit testing, fuss testing, they do have mutation testing, a huge suite of tests.
+
+91
+00:09:41,134 --> 00:09:43,808
+RQ Lite similarly also is extremely well tested.
+
+92
+00:09:43,888 --> 00:09:47,248
+You can see a blog post by the by the creator there on the testing pyramid.
+
+93
+00:09:47,328 --> 00:09:50,692
+They have many more lines of test code than implementation code.
+
+94
+00:09:51,008 --> 00:10:00,516
+Um uh the the RQ Lite creator has also been writing articles on how to design distributed systems correctly for over a decade, and those articles are also used in teaching and education.
+
+95
+00:10:01,088 --> 00:10:05,728
+and also a few months ago the creator's name is Philip O'Toole.
+
+96
+00:10:05,808 --> 00:10:12,768
+Uh he put out a blog post and using Cloud Fable to try and scan the entire code base and see if it can find any bugs.
+
+97
+00:10:12,848 --> 00:10:16,288
+And it did find one issue which was fixed promptly.
+
+98
+00:10:16,528 --> 00:10:17,568
+but that's basically all it did.
+
+99
+00:10:17,678 --> 00:10:18,768
+So these are like pretty robust systems.
+
+100
+00:10:19,086 --> 00:10:24,964
+And the Raft consensus algorithm, again, very, very widely used in sort of teaching and and and implementation as well.
+
+101
+00:10:25,408 --> 00:10:34,852
+this is a consensus protocol, it's formally specified and verified using TLA and there are many implementations of which this HashiCorp one is like I think one of the top two or three implementations.
+
+102
+00:10:36,078 --> 00:10:43,908
+And then when I started working in thithesis, I said, okay, let's take the tools that we have and let's take our best AI models and point them at this code.
+
+103
+00:10:44,288 --> 00:10:50,564
+And voila, we found six new bugs that none of the models could identify, just like statically staring at the code.
+
+104
+00:10:50,688 --> 00:11:06,608
+And these are like critical issues in the system, not just like parsing errors that you know have sort of off by one, but things like safety violations, which actually break critical consensus properties in draft in the database systems that can create either data loss when like a node reboots, but the fault tolerance goes bad.
+
+105
+00:11:06,768 --> 00:11:16,608
+In some cases, even like having duplicated data, so you insert one row, but then after some fault, you actually end up getting two rows if you select it back again, or you get liveness issues like a node crashing that doesn't come back.
+
+106
+00:11:16,928 --> 00:11:23,076
+A node getting deadlocked, or in some cases a live lock, which means the node is alive, but it just refuses to respond to the client request.
+
+107
+00:11:23,648 --> 00:11:27,168
+the RQLite uh developers is really cool, he lives in Pittsburgh.
+
+108
+00:11:27,342 --> 00:11:28,608
+I actually even met him in person after this.
+
+109
+00:11:28,718 --> 00:11:31,248
+Those bugs are all fixed really, really quickly.
+
+110
+00:11:31,568 --> 00:11:38,276
+the SQLite bug was not discovered by us originally, it was discovered I think by Tailscale, but we were able to reproduce it very quickly using the same technique.
+
+111
+00:11:38,848 --> 00:11:41,670
+And the Raft bugs, they're all confirmed by Hashicob.
+
+112
+00:11:41,808 --> 00:11:46,308
+I think there's pull requests on GitHub, but they're doing some internal code reviews to get them merged to the database.
+
+113
+00:11:47,150 --> 00:11:47,488
+Sorry?
+
+114
+00:11:48,896 --> 00:11:49,616
+no, this is all Go.
+
+115
+00:11:49,856 --> 00:11:54,372
+so SQLite is plus the the Archulite and uh the Raft implementation are in Go.
+
+116
+00:11:55,086 --> 00:11:55,972
+Yeah, these are Go bugs.
+
+117
+00:11:56,462 --> 00:11:58,816
+So these are all this race condition bugs that actually just cause failures.
+
+118
+00:11:58,976 --> 00:11:59,876
+This is the not memory corruption bugs.
+
+119
+00:12:00,654 --> 00:12:09,536
+Now I'm I know I'm sounding like a little a little bit of a hypocrite over here because I initially said that I'm tired of paper that just say, hey, I've found more bugs than the other guy, and I'm kind of doing the same thing.
+
+120
+00:12:09,870 --> 00:12:11,376
+But I'll tell you like, yes, I mean I'm proud of these bugs.
+
+121
+00:12:11,456 --> 00:12:14,468
+You know, if you look at all six of them, they're on GitHub, I I filed those issue reports.
+
+122
+00:12:14,670 --> 00:12:21,124
+But I don't really want to take credit for any of these because my actual effort for all of this was about 30 seconds or so of human effort.
+
+123
+00:12:21,646 --> 00:12:23,136
+And so that's sort of what I want to talk about today.
+
+124
+00:12:23,296 --> 00:12:26,788
+Like this is this did not require me to do anything like super, super interesting.
+
+125
+00:12:27,342 --> 00:12:29,700
+And that's the capabilities that we should all accept that exists over here.
+
+126
+00:12:30,222 --> 00:12:32,576
+So to do that, I'm going to deep dive into just one of these bugs.
+
+127
+00:12:32,736 --> 00:12:48,736
+I want to explain this in a little bit of detail, and talk about how using the antithesis platform, all the technology behind it, as well as the agent skills that exist for using that, can be used to do completely end-to-end fully autonomous testing by just pointing this system at the target and trying to find bugs.
+
+128
+00:12:49,294 --> 00:12:53,508
+And this is basically the 30 seconds of effort sort of looks like this.
+
+129
+00:12:53,742 --> 00:12:58,096
+It's just like me writing a prompt to an agent saying, hey, can you clone the HashiCorp graph repository?
+
+130
+00:12:58,256 --> 00:13:01,252
+Use the skills, these are open source skills that this is released.
+
+131
+00:13:01,616 --> 00:13:03,376
+I have to give it some explanation of what I wanted to do.
+
+132
+00:13:03,456 --> 00:13:07,936
+So I say I want to set up a test cluster with three nodes and validate the core safety properties.
+
+133
+00:13:08,016 --> 00:13:12,452
+I don't have to say what they are because the agent can figure it out from the documentation or the raft paper.
+
+134
+00:13:12,816 --> 00:13:14,656
+and then I have to tell it what kind of workload I want.
+
+135
+00:13:14,736 --> 00:13:16,260
+So I just say, okay, let's have one client.
+
+136
+00:13:16,656 --> 00:13:22,896
+this is just the raph library, so now I'm not talking about RQ Lite anymore, I'm talking only about the Raft library, so it can have any state, not just a database.
+
+137
+00:13:23,086 --> 00:13:37,188
+And for simplicity, I'm gonna say for this presentation that let's have a FSM or a finite state machine, which the state is just a single integer, and the clients are gonna send it random numbers, and I want all the nodes to to essentially keep running some of these random numbers.
+
+138
+00:13:37,376 --> 00:13:38,020
+That's all I want to do.
+
+139
+00:13:39,886 --> 00:13:45,924
+And so maybe I'll give you sort of a quick primer on what raft does, since not everyone might be familiar with that.
+
+140
+00:13:46,126 --> 00:13:49,296
+There's like a famous paper on which this is based.
+
+141
+00:13:49,614 --> 00:13:57,476
+So Raft is a distributed consensus protocol where you have a cluster of nodes, each node is replicating the same exact state, it's called the finite state machine.
+
+142
+00:13:57,856 --> 00:14:01,028
+One of those nodes is identified as the leader, the others are followers.
+
+143
+00:14:01,696 --> 00:14:05,376
+which node is the leader is sort of identified using a majority vote.
+
+144
+00:14:05,536 --> 00:14:10,308
+So they need to get at least half or more of the nodes to vote for that particular node as a leader.
+
+145
+00:14:10,656 --> 00:14:23,332
+And because your nodes can sort of go down because of things like network faults, new leaders can be elected, and each sort of node that gets a leader is sort of they are an um increasing term numbers, so starting at term one, then going up term two, three, et cetera.
+
+146
+00:14:23,662 --> 00:14:36,496
+And only the leader can accept client rights, and then that right is broadcast to all the followers, the followers have to agree to that, and then each node keeps sort of a change log of all the rights that it has applied to its internal state so that if it crashes and reboots, it can replay all of that.
+
+147
+00:14:36,718 --> 00:14:41,764
+And so this protocol is designed to be tolerant to all kinds of faults, like network partitions and node crashes.
+
+148
+00:14:42,606 --> 00:14:53,136
+And so when I give that user prompt, the agent is pretty easily able to sort of identify either from this paper or from the documentation that there are some core safety properties that are expected in the RAF protocol.
+
+149
+00:14:53,216 --> 00:14:54,976
+I'm not gonna explain what all of these are, but they're sort of there.
+
+150
+00:14:55,136 --> 00:15:02,948
+These are the core properties, like you know, there should be only one leader at any given point of time for any given term, or the state machine of all these nodes should agree on what the state is for a given term.
+
+151
+00:15:03,936 --> 00:15:06,660
+and so these properties have to be somehow asserted in the system.
+
+152
+00:15:07,376 --> 00:15:09,936
+and then I can just say, okay, why don't you, I mean, I don't have to say it.
+
+153
+00:15:10,016 --> 00:15:16,416
+The agent has figured out that it has to go and set up a test cluster of three nodes, as in my original prompt with the state machine.
+
+154
+00:15:16,654 --> 00:15:18,276
+And this is what that cluster actually looks like.
+
+155
+00:15:18,606 --> 00:15:23,536
+It's a client sending these sort of random numbers, and each of these nodes is maintaining a state.
+
+156
+00:15:23,696 --> 00:15:26,404
+The state is just like sum of the running numbers, it's replicated.
+
+157
+00:15:26,576 --> 00:15:34,576
+Each of these nodes have some term, and there's a change log of like what operation write operations have told it, which in this case is adding numbers, and at what term this is being added.
+
+158
+00:15:35,086 --> 00:15:54,500
+And all of this is being set up automatically using the AI skills, which means that this is a test cluster of three nodes with three different Docker containers, a virtualized network, a client node, there's a property based test, kind of input generator for these random numbers, all of this being synthesized automatically, put into a Docker container, ready to go, ready to launch, and send to Antithesis to run in the cloud.
+
+159
+00:15:55,214 --> 00:15:56,672
+And then we say, okay, it has run in the cloud.
+
+160
+00:15:56,878 --> 00:15:58,820
+The antithesis platform will do fault injection.
+
+161
+00:15:59,022 --> 00:16:04,832
+So it's going to run the same test, but it's going to do some bad things from time to time, like it may partition the network.
+
+162
+00:16:04,942 --> 00:16:07,072
+It might just turn off this link and say, let's see what happens now.
+
+163
+00:16:07,310 --> 00:16:18,404
+In this case, when the client sends a request to A, it's not going to be able to replicate this particular entry, and so only its state will change, sorry, its state will not change because it cannot be replicated.
+
+164
+00:16:18,702 --> 00:16:24,004
+The other two nodes are now going to do a leader election for term two because they're sort of they're like we don't have a leader, we need to find a leader.
+
+165
+00:16:24,302 --> 00:16:29,156
+So B asks for a vote, it can vote for itself, and so eventually B becomes the leader for term number two.
+
+166
+00:16:30,032 --> 00:16:48,132
+and then at this point, B is now the leader, and so B can now start accepting client requests and start committing new entries to the change log, and then eventually when the network heals, it comes back up and it catches up, and it can uh you know A becomes a follower node for term two now and it can start replicating the same state.
+
+167
+00:16:48,990 --> 00:16:53,872
+And the same thing happens if you have other faults, like if node C goes down again, these faults are being injected by antithesis, right?
+
+168
+00:16:53,952 --> 00:17:04,900
+There's a fault injector doing random fault injection, node C goes down, and so uh you know these new messages that are being sent by the client only get replicated on A and B, and then when C reboots, eventually it's going to catch up.
+
+169
+00:17:05,232 --> 00:17:09,828
+And then the agent has also injected these safety property assertions.
+
+170
+00:17:10,157 --> 00:17:17,472
+So when the faults are turned off, it's going to check did the cluster actually converge, and it's going to make sure that the final state on each of these nodes is actually correct.
+
+171
+00:17:17,872 --> 00:17:20,228
+that's the final assertion to check that the state converges.
+
+172
+00:17:23,502 --> 00:17:35,232
+And now we can say run this particular simulation, but whenever you find some interesting events, also go back and do this operation I told you about earlier, which is injecting entropy and going through a fork of the multiverse and trying something else.
+
+173
+00:17:35,312 --> 00:17:40,196
+So this is how the first testing unit multiverse uh sort of keeps exploring the state space.
+
+174
+00:17:40,366 --> 00:17:52,068
+And eventually, if you do this many, many times, you might find one timeline where there's actually is a execution of that particular assertion, which shows that hey, this assertion failed, and maybe there's a safety violation.
+
+175
+00:17:52,366 --> 00:17:54,500
+And you can go and check what that safety violation looks like.
+
+176
+00:17:54,798 --> 00:18:01,632
+The safety violation in this case, it seems, is that these three nodes did not actually agree on the state, even though they all have the same sort of term number.
+
+177
+00:18:01,806 --> 00:18:09,348
+You can see that node A thinks the state is 49, while B and uh and so does node C, but node B thinks the state is 47.
+
+178
+00:18:09,632 --> 00:18:12,352
+three out of the five core safety properties in this case are violated.
+
+179
+00:18:12,622 --> 00:18:15,108
+This is a true bug that we found in the upstream raft implementation.
+
+180
+00:18:15,982 --> 00:18:18,912
+And then you might ask, okay, why did this bug actually like how did you get to this point?
+
+181
+00:18:19,022 --> 00:18:20,100
+This is kind of crazy.
+
+182
+00:18:20,622 --> 00:18:21,072
+this is a bug.
+
+183
+00:18:21,152 --> 00:18:21,956
+Can you explain it to me?
+
+184
+00:18:22,192 --> 00:18:23,232
+Well, guess what?
+
+185
+00:18:23,430 --> 00:18:24,196
+we got a time machine.
+
+186
+00:18:24,462 --> 00:18:35,044
+So we can go back to the multiverse, and the agent is going to roll back time, go back in time to a previous state, and it's gonna play it forward and show you all the logs, and you can pause at any point and you can debug what's going on.
+
+187
+00:18:35,278 --> 00:18:37,668
+And it in turns out I can explain what this bug actually looks like.
+
+188
+00:18:38,112 --> 00:18:41,732
+this is a situation where initially the state is consistent on all the nodes.
+
+189
+00:18:41,998 --> 00:18:49,872
+There's some network fault, like all the links are down, and in this case node C is the leader, and we are right now in term number four.
+
+190
+00:18:50,030 --> 00:18:54,596
+So both node A and B try to I guess be a leader for term number four.
+
+191
+00:18:55,072 --> 00:19:02,192
+eventually the network comes back, and node C can only vote for one node, so it votes for node A, and it says, okay, I'm going to give you the vote.
+
+192
+00:19:02,382 --> 00:19:05,124
+But it turns out this network was jammed, so the vote is kind of slow to arrive.
+
+193
+00:19:05,486 --> 00:19:11,300
+Because it's slow to arrive, each node has a timer also for how long it can wait, because the nodes have to be impatient.
+
+194
+00:19:11,566 --> 00:19:14,752
+And so B becomes impatient and says, Okay, nobody's winning an election for term four.
+
+195
+00:19:14,862 --> 00:19:21,472
+I'm going to now become a candidate for term number five, the new term, and it says, you know, I'm going to vote for myself, and then I ask node C for the vote.
+
+196
+00:19:21,806 --> 00:19:24,912
+Node C says, yeah, I haven't voted for anybody in term five, I'll vote for you.
+
+197
+00:19:25,230 --> 00:19:30,820
+And so node B gets two votes from itself and from C, and node B now becomes the leader for term number five.
+
+198
+00:19:31,342 --> 00:19:38,340
+The vote for term number four is kind of slow to reach, and eventually does reach node A, and node A now also thinks it's the leader for term number four.
+
+199
+00:19:38,766 --> 00:19:39,792
+So far, this is actually not bad.
+
+200
+00:19:39,872 --> 00:19:41,924
+The RAF protocol is designed to handle this kind of situation.
+
+201
+00:19:42,190 --> 00:19:51,844
+It's called a stale leader, and it's totally fine because even though node A thinks it's the leader for an older term, it cannot commit any new entries because it cannot get a quorum of nodes to agree for whatever it does.
+
+202
+00:19:52,334 --> 00:19:52,804
+So that's fine.
+
+203
+00:19:53,454 --> 00:19:55,172
+But what happens next is the problem.
+
+204
+00:19:55,470 --> 00:20:01,540
+Now, node A is getting a new client request, which ordinarily it'll accept and try to replicate and it won't make any progress.
+
+205
+00:20:01,806 --> 00:20:07,748
+At the same time, it's also getting this heartbeat message from node B saying, I'm the new leader, we're actually in term five, you've got to update your state.
+
+206
+00:20:08,238 --> 00:20:15,748
+And both of these things, independently, if they were to apply, node A will update its term number to five and also then start rejecting client requests.
+
+207
+00:20:16,032 --> 00:20:20,676
+But when they both arrive at the same time, there's a race condition in the implementation because of a data race.
+
+208
+00:20:20,942 --> 00:20:29,508
+And it turns out that node A does something bad, which is it updates its term number to five, but also accepts the client request, which it cannot do because it's not the leader for term number five.
+
+209
+00:20:29,870 --> 00:20:37,188
+And then it actually accepts that request, sends it to C, and then B might actually put some other data value in the same slot, and all hell breaks loose.
+
+210
+00:20:37,392 --> 00:20:38,980
+This whole cluster has now diverged.
+
+211
+00:20:39,232 --> 00:20:47,396
+So this is a violation of what the RAF protocol says, because the formally verified protocol does not have race conditions because you're not supposed to actually handle two different requests concurrently like that.
+
+212
+00:20:47,886 --> 00:20:49,828
+And so this is actually a bug in the implementation.
+
+213
+00:20:50,030 --> 00:20:51,684
+And we could replay all of this using the time machine.
+
+214
+00:20:52,558 --> 00:20:55,488
+And you can see that at the same term, same index, you have sort of different values.
+
+215
+00:20:55,888 --> 00:20:57,328
+that's the assertion failure.
+
+216
+00:20:58,350 --> 00:21:05,808
+The other cool thing you can do is you can say, okay, uh if I if I didn't understand how all this works, can you tell me what series of operations causes this bug to be more likely than others?
+
+217
+00:21:06,062 --> 00:21:16,868
+And what you can do is the agent can go back in time and run a limited sort of fuzzing exploration and check if I start from different interesting moments, what fraction of timelines actually do exhibit the same sort of safety violation.
+
+218
+00:21:17,326 --> 00:21:20,608
+And that's what's called sort of causal experimentation or causality analysis.
+
+219
+00:21:20,688 --> 00:21:27,648
+And it can tell you that when you have let's say stale leader election, which is supposed to be fine, but 30% of the cases you actually will end up seeing this violation.
+
+220
+00:21:27,886 --> 00:21:36,900
+Now, if you actually get a client request, that probability goes up to 70%, and then you get an async heartbeat with all this thing set up, now you're very, very likely to actually hit that particular bug.
+
+221
+00:21:37,134 --> 00:21:42,048
+So you can do this sort of causal experimentation for any event of interest because of the time machine.
+
+222
+00:21:44,302 --> 00:21:51,140
+The other thing that I really like about this whole time travel thing is you can search over these interesting events all over the multiverse.
+
+223
+00:21:51,534 --> 00:22:02,276
+So another thing I can ask my agent to do is to say, hey, use the search API that and Dithesis provides to find other events in the multiverse, not just this timeline, but other places where the state leader election happens.
+
+224
+00:22:02,448 --> 00:22:05,700
+Because I just saw one of these safety violations, what happens in other cases?
+
+225
+00:22:06,126 --> 00:22:08,356
+Does this happen in any other branches of the multiverse?
+
+226
+00:22:09,102 --> 00:22:10,532
+And so we can do that.
+
+227
+00:22:10,990 --> 00:22:15,844
+So to do that, let me first just explain what I mean by state leader election accepting client requests.
+
+228
+00:22:16,622 --> 00:22:20,644
+this is how, if I as a human were to explain it to you, this is the definition that I would provide.
+
+229
+00:22:21,774 --> 00:22:23,972
+notice I did not provide this to the agent, this is just me telling you.
+
+230
+00:22:24,448 --> 00:22:29,888
+what I actually wanted to do is to say at some time T1, you have a node X that wins an election for some term Q.
+
+231
+00:22:30,062 --> 00:22:33,636
+Then at a future time, another node wins an election for an older term P.
+
+232
+00:22:33,728 --> 00:22:38,048
+So node Y is like the stale leader because it won an election for a term P which is less than Q.
+
+233
+00:22:38,350 --> 00:22:40,368
+And then also node Y accepts a client request later.
+
+234
+00:22:40,558 --> 00:22:43,236
+That's kind of the scenario we saw in the bug.
+
+235
+00:22:43,694 --> 00:22:48,676
+And all I have to do the agent is to say, hey, find me instances in the multiverse where there's a state leader election.
+
+236
+00:22:48,768 --> 00:22:49,764
+I didn't explain any of this.
+
+237
+00:22:50,608 --> 00:22:58,564
+And it's going to have to look over all of these different histories of different timelines and figure out did this particular sequence of events ever occur.
+
+238
+00:22:58,830 --> 00:23:07,328
+Now, this is actually not trivial because you know you can't just have all the log messages and you know put them in a SQL database and kind of do this query because it's a complex temporal query.
+
+239
+00:23:07,408 --> 00:23:11,620
+So you need a nice abstraction or a nice language to sort of express these kinds of queries.
+
+240
+00:23:12,110 --> 00:23:14,244
+And antithesis provides a very nice abstraction for this.
+
+241
+00:23:14,478 --> 00:23:26,820
+So all of these events that are being generated during this multiverse exploration are getting stored in a database which is a tree-structured database that has these relationships between different events and what the histories are.
+
+242
+00:23:27,168 --> 00:23:34,048
+And the first class query operator, just like you have sort of seen a select queries in SQL, the first class query operator in this database is a fold function.
+
+243
+00:23:34,128 --> 00:23:36,612
+It's a fold down from starting from the root node down to the leaves.
+
+244
+00:23:37,294 --> 00:23:40,128
+And to explain what fold looks like, so fold has a signature that looks like this.
+
+245
+00:23:40,208 --> 00:23:41,168
+So it's a function.
+
+246
+00:23:41,248 --> 00:23:44,388
+If you're a functional programmer, you've probably seen this before.
+
+247
+00:23:44,768 --> 00:24:00,928
+you have an initial state, and then the way the function works is that you take the state from the previous ancestor node and an event that you're actually observing, you do some computation, and then you emit some set of other events as output, and then you have a new state that gets propagated down the tree.
+
+248
+00:24:01,102 --> 00:24:03,876
+And you bootstrap all of this with an initial state that starts at the root node.
+
+249
+00:24:04,718 --> 00:24:11,428
+And to give you an example of how this works with the simpler query before we go to state leader election, let's just say if I wanted to count elections, that's all.
+
+250
+00:24:11,918 --> 00:24:17,568
+So I can write a for function, which basically says, given an event, check if the event's message is election one.
+
+251
+00:24:17,728 --> 00:24:20,644
+That's that's what the system does when it wins an election, and increment a counter.
+
+252
+00:24:21,248 --> 00:24:26,052
+And pass this counter down as the state to the tree, and the initial count is zero.
+
+253
+00:24:26,638 --> 00:24:39,408
+And if you do that, and you run the for function, the qu the the database query is gonna sort of run along the tree, it's gonna keep counting where it sees election one, and you'll have different results at different leaf nodes based on how many elections you've seen in that particular timeline.
+
+254
+00:24:39,694 --> 00:24:46,820
+And there's another operator called reduce that will help you find aggregate stats like which timeline had the max or total number of events or so on and so forth.
+
+255
+00:24:48,270 --> 00:24:55,680
+So going back to the leader election, the stale leader election, if I wanted to see stale leader election accepting a client request, the fold is a little bit more complicated.
+
+256
+00:24:55,982 --> 00:25:03,108
+I don't expect you to read through the entire code over here, the code snippet here, but this is something that the agent can synthesize pretty trivially.
+
+257
+00:25:04,014 --> 00:25:14,308
+what it's basically doing is it's filtering again on these election one events and it's maintaining a running state of who the latest leader was based on which node won the last election and what term it won it in.
+
+258
+00:25:14,702 --> 00:25:22,180
+And then if you won an election but your term was actually less than that of the latest leader, it's going to mark you as the stale leader, and that's gonna be another state.
+
+259
+00:25:22,414 --> 00:25:29,988
+And both the stale leader state and the latest leader state are initialized to null, and you're gonna keep tracking this as you fold down the tree and propagate that particular state forward.
+
+260
+00:25:30,286 --> 00:25:41,700
+And then if you are in a state where the stale leader is not null and you see an incoming client request, then you're gonna emit that particular event out and say, this is the event I actually care about, because I have a stale leader election and I'm seeing a client request come in.
+
+261
+00:25:42,414 --> 00:25:55,396
+And then I can run this full query on top of the event history, and it's gonna keep tracking different states where you're different latest leaders, where you're different state leaders, and it's gonna say there are two timelines where I actually saw this particular state leader election and a client request.
+
+262
+00:25:55,982 --> 00:26:12,452
+And so this is an extremely powerful abstraction that you can use to do all sorts of cool temporal search queries, and I'm doing some research on what are some you know cool uh sort of uh cool kinds of temporal relationships that are interesting to extract out of these multiverses that can help us with improving our bug finding ability.
+
+263
+00:26:14,606 --> 00:26:29,680
+so to summarize what what antithesis has sort of enabled, you know, we can have an agent just uh you know infer safety properties automatically from documentation, from papers, set up a test workload completely automatically with an input generator, with a whole cluster of nodes using Docker containers, a virtual network.
+
+264
+00:26:29,902 --> 00:26:33,600
+We can do fuzzing with chaos testing, so you have a multiverse of different timelines.
+
+265
+00:26:33,840 --> 00:26:37,540
+you can do fault injection, identify violations of safety properties.
+
+266
+00:26:38,080 --> 00:26:43,140
+if you find any issue, you can do what's called multiverse debugging, which is go back in time, rewind and replay from any moment.
+
+267
+00:26:43,520 --> 00:26:56,228
+You can understand the causal history of any particular event by going back in time and doing limited explorations, and you can search over event histories using a database that is sort of as as as fold as sort of the native query language.
+
+268
+00:26:56,718 --> 00:27:04,880
+So I find all of this like you know incredibly cool, and and that's sort of why uh you know I am excited to be you know doing research with this kind of technology.
+
+269
+00:27:05,678 --> 00:27:11,236
+So now that I've explained all of this, um, you know, I sort of told you what was cooking in terms of uh you know what already existed out there.
+
+270
+00:27:11,520 --> 00:27:21,572
+Um you know, I sort of was reflecting when I decided to give this talk on like you know how what sort of message would I want to bring back because this is an academic conference, I'm also an academic.
+
+271
+00:27:21,934 --> 00:27:27,364
+what are the kinds of things I would want to tell my students after having seen all of this actually work in production and seeing all of these capabilities?
+
+272
+00:27:28,078 --> 00:27:42,020
+And so the next few slides are like you know, highly personal opinions, maybe slightly controversial, so bear with me, just letting you know these are personal opinions after being sort of frustrated with some kinds of uh you know research that I've struggled with before seeing all of this.
+
+273
+00:27:43,534 --> 00:27:57,680
+So the first thing I want to say is that I personally would love to see more of academia trying to confront the fact that all of these kinds of technologies do exist out there, and they may not always show up in the academic conferences we go to, but they do exist.
+
+274
+00:27:57,934 --> 00:28:03,600
+And so when you select a new problem to say, I'm gonna try to solve something, uh to at least try to do two things.
+
+275
+00:28:03,760 --> 00:28:12,772
+One is make as few assumptions as possible about the system under test, and try to make as many assumptions as you can about the power of the AI tools that a user is actually using.
+
+276
+00:28:13,120 --> 00:28:29,220
+Because in many cases, many of the problems that I've sort of seen uh you know being being sort of addressed in in academic research, you know, if you just imagine a powerful enough AI and and in a context for your few assumptions, you actually end up sort of evolving the kind of problem that you might actually want to work on.
+
+277
+00:28:29,582 --> 00:28:46,052
+And so, in terms of the research papers, it would be cool if we can sort of have better justifications of what kind of context some proposed technique is expected to work in and sort of vigorously justify why that is actually realistic and what kind of evidence there is for that problem actually to exist in the real world.
+
+278
+00:28:46,800 --> 00:28:56,868
+the second thing is, based on the figure I showed you earlier about the comparison with baselines, is I think we need to sort of upgrade our notion of what a baseline would be if somebody proposes a new technique.
+
+279
+00:28:57,200 --> 00:29:06,880
+This is a little bit challenging to do because it's sort of you know it's very natural to say I'm gonna compare whatever I do to a technique that I saw you know in the oopslaw or Istra that I went to three months ago.
+
+280
+00:29:06,960 --> 00:29:20,836
+But you've got to sort of think about the fact that if you went to this conference three months ago, this paper was accepted like six months ago, which means it was submitted about a year ago, maybe you resubmit it a couple of times, so the people who built it got the idea initially around two years ago, and that's likely not gonna be the state of the art.
+
+281
+00:29:21,870 --> 00:29:32,272
+And so we sort of got to upgrade our notion of what a baseline is and not just think about prototypes that we see in artifacts from academic papers, but basically just say, here's the problem that I'm working on, go ask your favorite agent.
+
+282
+00:29:32,432 --> 00:29:35,392
+What are the kinds of tools that are available out there to solve this problem?
+
+283
+00:29:35,662 --> 00:29:40,772
+Go scan blog posts, go scan hacker news, and find something that's a little bit more realistic in what people actually use out there.
+
+284
+00:29:41,230 --> 00:29:48,420
+And so I think both authors and reviewers in the academic research context should be a little bit more bold in recognizing these kind of capabilities that actually are out there.
+
+285
+00:29:51,086 --> 00:30:06,116
+The other thing I've been telling my students a lot as well is to be aware of this thing was called the spotlight effect, which is that it's easy to improve on things that we can measure easily, like for example, the benchmarks that we have available to us or the test paths that we have available to us.
+
+286
+00:30:06,670 --> 00:30:09,872
+And that kind of leaves out a lot of holes in things that we actually cannot target out there.
+
+287
+00:30:10,062 --> 00:30:16,644
+The real challenge often is not just like making the number go up slightly, but actually targeting things that are completely outside the spotlight that we actually see.
+
+288
+00:30:17,152 --> 00:30:34,512
+And I actually had a PhD student who did his entire thesis on trying to improve applicability of research, and it was an uphill battle for him to get some of his papers accepted through peer review, because his whole premise was like I can actually do more if I just like look outside the box, but then I have no baselines to compare against because nobody else can even do anything.
+
+289
+00:30:34,592 --> 00:30:35,748
+The number is like zero out there.
+
+290
+00:30:36,192 --> 00:30:41,092
+and that's a that's a challenging thing uh to challenging position to sort of take on in our current academic context.
+
+291
+00:30:41,712 --> 00:30:51,780
+Um and this is this is this is based on the observation that a lot of the successes that I've seen uh you know in in Tithesis is sort of ability to commercialize these techniques.
+
+292
+00:30:52,078 --> 00:30:57,668
+It's not because of like coming up with necessarily fancy new algorithms and like fuzzing or property-based testing or fault injection.
+
+293
+00:30:57,806 --> 00:31:02,916
+It's sort of building on many decades of cool uh academic work, you know, which I've also been part of this community.
+
+294
+00:31:03,152 --> 00:31:11,232
+But, but I think the crux has been in coming up with platforms that allow all of these techniques to be deployed effectively with as few assumptions as possible.
+
+295
+00:31:11,232 --> 00:31:23,472
+about, sort of, the system under test, everything from a deterministic hypervisor, you know, integrating with things like just Docker containers, and making no assumptions about what programming language you're actually working with, having an elastic sort of compute resource for doing these sort of fuzzing runs.
+
+296
+00:31:23,552 --> 00:31:29,872
+We often ignore some of these aspects in sort of academic approaches to these things.
+
+297
+00:31:30,062 --> 00:31:33,188
+Things like database for just storing logs of the things that you find.
+
+298
+00:31:33,952 --> 00:31:48,804
+I haven't really seen this much, but it's actually very, very important to figure out what do you do with the data that you actually collect when you apply your automated testing techniques, and how do you sort of expose that via a command line interface or an API to agents so that the powerful agents can make the most out of the capabilities that you're building.
+
+299
+00:31:48,974 --> 00:31:49,956
+And I think that's actually very, very important.
+
+300
+00:31:51,952 --> 00:32:03,312
+harping on this a little bit more, sort of reflecting again on my former student who struggled with this notion of applicability a lot, we got a lot of feedback that you know there's a difference between research and engineering, right?
+
+301
+00:32:03,502 --> 00:32:08,992
+We often tend to treat in academia research is like the important thing, and engineering is sort of the second class citizen, right?
+
+302
+00:32:09,072 --> 00:32:13,604
+Like all of the things outside the spotlight is just like somebody has to figure out how to build a system.
+
+303
+00:32:14,030 --> 00:32:19,172
+And so if you have a new algorithm or a heuristic, that's interesting, whereas building a platform or infrastructure is like second class.
+
+304
+00:32:20,078 --> 00:32:25,508
+I would argue now, in the age of LLMs, that we sort of actually need to flip this around a little bit.
+
+305
+00:32:25,742 --> 00:32:30,916
+Because if you think about it, uh coming up with algorithms and heuristics is something that actually can be automated pretty easily.
+
+306
+00:32:31,072 --> 00:32:34,832
+It's actually very easy to iterate on new kinds of heuristics and algorithms and make the number go up.
+
+307
+00:32:35,086 --> 00:32:44,004
+What's actually hard is to come up with good abstractions and platforms and infrastructures to make this actually work in a context that is really, really useful to someone who actually cares about this.
+
+308
+00:32:44,590 --> 00:32:48,356
+And I think that's actually where the core research challenges are, in my opinion.
+
+309
+00:32:51,792 --> 00:32:52,032
+right.
+
+310
+00:32:53,134 --> 00:32:59,472
+so I sort of told you about what sort of exists out there and this is, I told you about what you know, I think about in about you know my thoughts on academia versus industry.
+
+311
+00:32:59,758 --> 00:33:09,632
+I'm just gonna end this talk with a little bit of a sneak preview of the kinds of research projects that I'm sort of working on over there during my sabbatical, which I'm sort of excited about.
+
+312
+00:33:10,990 --> 00:33:23,428
+The first thing I think is this time travel capability provides us with some really cool new techniques that don't really exist when you don't have time travel, which is the fact that you can do causal experiments and not just rely on correlational studies.
+
+313
+00:33:23,758 --> 00:33:41,956
+So there are things that I have been studying for a long time, and the community has been studying for a long time, things like the test article problem, things like test adequacy, how do we compare something like code coverage versus mutation testing as a way of assessing test suites, things like heuristics for using dynamic analysis in guiding fuzzers.
+
+314
+00:33:42,542 --> 00:33:52,772
+Often the way we have studied this in the past is by doing observational studies on open source targets, because we all know correlation is not causation, but actually when you have time travel, you actually can get causation.
+
+315
+00:33:52,974 --> 00:34:11,808
+And so you can actually try things where you have a multiverse of possibilities that you explore, you rewind, go back in time, you perform some intervention, a new hypothesis that you have, and actually try out that hypothesis by executing from a fork in the multiverse, and because you have a shared history in the timeline, you actually eliminate a lot of the confounders.
+
+316
+00:34:11,888 --> 00:34:21,060
+And so you can get some confidence in terms of causal relationships, which is stronger than just correlation relationships using this kind of technique.
+
+317
+00:34:22,510 --> 00:34:32,768
+I'm also investigating using those temporal relationships to identify what kinds of temporal relationships might actually be useful for improving sort of fuzzer guidance going forward.
+
+318
+00:34:33,007 --> 00:34:43,364
+so if you've done any sort of uh uh you're sort of familiar with anything in the space of concurrency, you might have heard of something called the happens before relation, which came out of like lamport clocks, uh, think back in the 70s.
+
+319
+00:34:43,728 --> 00:34:59,108
+so I'm looking at something called happens between relation, which is uh which is a triple of three events, where you actually have like some some event A that sets up some state and some event C that might like regularize that state, but some other event B that comes in the middle and does something bad and you didn't really expect it to do so.
+
+320
+00:34:59,328 --> 00:35:09,008
+And so one example is what I showed you earlier where you have a stale election and this heartbeat would actually come and tell you that okay, you actually uh you're a stale leader and you should give up.
+
+321
+00:35:09,294 --> 00:35:15,588
+But what if a new client request comes in the middle and you haven't thought about handling that particular case properly?
+
+322
+00:35:15,822 --> 00:35:31,008
+And so um you know, exercise for the reader or the reader's agent is to write a four function that can capture this sort of generalized regular expression and see how that helps with things like bug localization or further guidance.
+
+323
+00:35:32,288 --> 00:35:36,288
+another thing that I've been working on is bringing mutation testing into industry.
+
+324
+00:35:36,494 --> 00:35:37,408
+Finally, maybe.
+
+325
+00:35:37,808 --> 00:35:51,328
+this is something that academics have long pursued as a means of assessing test suite quality, which is like if you inject artificial bugs in your system, you can check that the test inputs and the assertions actually make sense.
+
+326
+00:35:51,488 --> 00:36:00,164
+This is, I think, more and more important as we have AI tools that are actually inferring the properties and writing the assertions for you in the first place.
+
+327
+00:36:00,608 --> 00:36:05,636
+In this case, what I was working on, and we actually published a blog article on this.
+
+328
+00:36:05,648 --> 00:36:34,564
+uh, last week, is doing agentic mutation testing for distributed safety properties, which means not just doing syntactic changes where I just change a plus to a minus or a true to a false, but asking an agent to understand the context of a distributed system and asking it to inject bugs that induce subtle race conditions, which fail your core safety properties like consensus in some subset of edge cases, and then checking that your automated testing setup and workload can actually catch those kinds of issues.
+
+329
+00:36:34,990 --> 00:36:42,788
+so you inject those bugs and you check that with those particular bugs, you actually are able to catch the safety violation, but when you remove those bugs, your assertion passes.
+
+330
+00:36:42,928 --> 00:36:47,168
+That's how you sort of gain confidence in these automatically generated properties.
+
+331
+00:36:49,390 --> 00:36:55,044
+so I'm again going to sort of summarize and end with the same slide because I really like this sort of zoomed out view.
+
+332
+00:36:56,334 --> 00:37:00,208
+you know, the field of automated testing has changed quite a bit in the last couple of years.
+
+333
+00:37:00,528 --> 00:37:04,048
+I'm seeing some very exciting sort of developments in industry.
+
+334
+00:37:04,238 --> 00:37:10,528
+I think academia can benefit from time travel and you know chaos testing in a multiverse quite a bit.
+
+335
+00:37:10,734 --> 00:37:13,968
+I think this technology is a game changer, and I'm happy to take questions about any of this.
+
+336
+00:37:19,822 --> 00:37:20,928
+Yeah, thanks for the wonderful talk.
+
+337
+00:37:21,808 --> 00:37:22,052
+questions.
+
+338
+00:37:34,510 --> 00:37:39,428
+It seems to me that you're asking the agent to find bugs on its own without giving any structure.
+
+339
+00:37:40,206 --> 00:37:52,352
+and I was wondering if it's missing any bugs, because we all know in this this field that if you let if you ask somebody to find bugs in your system without any constraints, you'll find bugs that are on the hot path or bugs that are more obvious.
+
+340
+00:37:52,592 --> 00:37:55,472
+And you kind of alluded to that in your last slide.
+
+341
+00:37:56,352 --> 00:38:03,312
+you're letting agent inject bugs and test properties, but I wonder if these properties are something more obvious than
+
+342
+00:38:03,312 --> 00:38:04,752
+Yeah, that's a great question.
+
+343
+00:38:04,832 --> 00:38:04,992
+Yeah.
+
+344
+00:38:05,102 --> 00:38:10,084
+Uh so the question is like I think whether we're missing out on bugs by just asking the agent to come up with these properties.
+
+345
+00:38:10,272 --> 00:38:15,300
+And I think that's why I sort of use the term properties and not specifications throughout my talk.
+
+346
+00:38:15,552 --> 00:38:21,764
+Because the intention in all of this is not necessarily to have a complete specification of what your problem is and to find all possible kinds of bugs.
+
+347
+00:38:21,966 --> 00:38:30,032
+In fact, there are other testing paradigms that might be useful for finding other kinds of bugs, like parsing errors or JSON responses, incorrect or whatever.
+
+348
+00:38:30,190 --> 00:38:34,564
+I don't think you need this kind of overkill maybe to use such a powerful system for all of that.
+
+349
+00:38:34,832 --> 00:38:41,156
+And so this kind of approach is useful for understanding some kind of critical safety or liveness properties usually.
+
+350
+00:38:41,712 --> 00:38:55,312
+and the way to check that those properties either are sort of representative, they make sense, and that they can catch important things about a system is as you said, the mutation testing approach, which I've sort of been playing around with a little bit, which is that you can say, here are the things that I care about.
+
+351
+00:38:55,392 --> 00:38:57,572
+This is the category of bugs that I'm afraid of.
+
+352
+00:38:57,838 --> 00:39:03,716
+Because see, at the end of the day, when you're doing testing, you unlike with formal verification, you don't have any guarantees about what comes out of the end.
+
+353
+00:39:04,014 --> 00:39:06,884
+And so all you're trying to do as a user is improve, build confidence in your system.
+
+354
+00:39:07,246 --> 00:39:10,672
+And so you typically have an intent for what that con what kind of confidence you want.
+
+355
+00:39:10,926 --> 00:39:14,032
+And that intent can be expressed either in terms of properties or in terms of bugs.
+
+356
+00:39:14,112 --> 00:39:17,924
+You can say, like, I'm worried about consensus breaking, I'm worried about you know a node getting stuck.
+
+357
+00:39:18,272 --> 00:39:25,316
+And that's what you can express in this sort of mutation testing system and say what what would happen if my you know if my cluster did not make progress?
+
+358
+00:39:25,582 --> 00:39:28,992
+And then can you make sure that your test actually can catch that kind of bug?
+
+359
+00:39:29,262 --> 00:39:35,876
+So I think that the the the the boundary of like what kind of properties you actually care about is sort of part of this whole story as well.
+
+360
+00:39:37,518 --> 00:39:37,956
+It's a good question.
+
+361
+00:39:45,552 --> 00:39:45,860
+great talk.
+
+362
+00:39:46,094 --> 00:39:48,112
+Alistair Dawson, Imperial College London.
+
+363
+00:39:48,494 --> 00:39:52,032
+Yeah, I love the talk, and I have a bunch of technical questions I'll bother you with later.
+
+364
+00:39:52,432 --> 00:39:58,832
+I actually wanted to make a point about your what you said about academics being ambitious with what they do.
+
+365
+00:39:59,342 --> 00:40:02,340
+And in principle, of course, I agree, and I'm sure everyone would agree in principle.
+
+366
+00:40:02,542 --> 00:40:04,900
+The trouble is, in practice, with things changing so fast.
+
+367
+00:40:05,870 --> 00:40:11,300
+we can have a world of misery where people do work are held quite rightly to high account.
+
+368
+00:40:11,534 --> 00:40:16,996
+the work gets rejected, as most work does, and then they have this choice: between.
+
+369
+00:40:17,678 --> 00:40:29,152
+do they then just invest tons and tons and tons of more effort because everything's moved on in the last three months, or are they able to kind of improve things based on the feedback they got then and resubmit?
+
+370
+00:40:29,358 --> 00:40:38,912
+So I feel like we need something a little bit like you know, Postal's law, the robustness principle, where you're conservative about what you send but liberal about what you accept.
+
+371
+00:40:39,072 --> 00:40:45,380
+I feel like we need something where authors are ambitious about what they submit, but reviewers are quite liberal about what they accept.
+
+372
+00:40:45,792 --> 00:41:00,672
+Otherwise, we may have been in a situation where you just have a bunch of people who nine months later are just getting papers rejected because they're now deemed not exactly obsolete but out of date, but they'd have to burn a huge number of tokens to get them up to date again.
+
+373
+00:41:00,992 --> 00:41:01,872
+I just wonder what you think about that.
+
+374
+00:41:02,112 --> 00:41:11,632
+Yeah, I mean I have again many thoughts about this, and so I know I have a whole blog post on my personal website also about what I think about peer review can address some of these challenges.
+
+375
+00:41:11,712 --> 00:41:14,512
+I think the whole I mean you you rightly said if the papers are rejected, what do you do?
+
+376
+00:41:14,592 --> 00:41:15,152
+How do you resubmit them?
+
+377
+00:41:15,310 --> 00:41:17,540
+I think the crux is like, why are the papers being rejected?
+
+378
+00:41:17,774 --> 00:41:19,908
+And there are many reasons why papers are accepted and rejected.
+
+379
+00:41:20,942 --> 00:41:35,152
+right now I think the whole system of accept reject is serving many different functions from like trying to judge the merit of a piece of research independently versus trying to allocate like you know fixed resources for who gives a talk at a conference, and I think these things like kind of should be separated out.
+
+380
+00:41:35,342 --> 00:41:37,312
+There are many models that have been proposed to address that.
+
+381
+00:41:37,392 --> 00:41:42,192
+Things like I I like the, you know, there's a model about the registered reports, which I think is also interesting.
+
+382
+00:41:42,414 --> 00:41:48,752
+I would say maybe we need those kinds of approaches where a reviewer reads an introduction of a paper and says, is this actually interesting enough?
+
+383
+00:41:48,992 --> 00:42:08,272
+Is this a problem that we're solving, and sort of have a judgment call based on that, which is separate from what the results say and how well the paper is written, so that you're sort of making the decision on whether or not this is the kind of work that we want to have a discussion at a conference or it should be published in a journal, independently of the review on the scientific merits of the soundness of the technique.
+
+384
+00:42:08,352 --> 00:42:11,952
+And I think these things are right now conflated and probably should be separated.
+
+385
+00:42:12,206 --> 00:42:14,692
+This is a much longer discussion, so I might want to take that offline.
+
+386
+00:42:15,022 --> 00:42:22,692
+But I think I think the challenge is like right now we're we're overloading this one decision with many different functions, and and that's the source of the tension.
+
+387
+00:42:28,912 --> 00:42:29,156
+questions.
+
+388
+00:42:31,598 --> 00:42:32,672
+Just one technical question then.
+
+389
+00:42:32,832 --> 00:42:38,112
+So with the time travel, there must be surely some assumptions about the limited s the limited setting.
+
+390
+00:42:38,192 --> 00:42:44,752
+For example, you probably can't do this with real GPUs in the system, or like could you say a bit about the kind of limits?
+
+391
+00:42:45,232 --> 00:42:45,392
+Right.
+
+392
+00:42:45,678 --> 00:42:46,340
+That's a good question.
+
+393
+00:42:46,512 --> 00:42:52,432
+So the the right now, as it exists, this should work for the system that Antithesis has.
+
+394
+00:42:52,592 --> 00:42:54,884
+I believe it should work for anything that you can run on X86.
+
+395
+00:42:56,206 --> 00:42:59,076
+My understanding is it works really well for Linux-based systems.
+
+396
+00:42:59,950 --> 00:43:01,312
+there is some support for other operating systems.
+
+397
+00:43:01,392 --> 00:43:03,940
+I don't have an exhaustive list right now on top of my head.
+
+398
+00:43:04,302 --> 00:43:09,632
+But that's usually the assumptions are around the architecture of your instruction set and the operating system.
+
+399
+00:43:09,838 --> 00:43:11,300
+GPUs right now are not supported.
+
+400
+00:43:11,502 --> 00:43:14,352
+Uh maybe this, I don't think there's any like a theoretical bottleneck to do that.
+
+401
+00:43:14,512 --> 00:43:15,712
+It's just not something that exists.
+
+402
+00:43:16,112 --> 00:43:21,188
+the thing that becomes hard is what if you want external like network calls.
+
+403
+00:43:22,032 --> 00:43:30,372
+that would break determinism if you have an external network service that was non-deterministic, like if you depended on like an S3 uh you know bucket that was outside.
+
+404
+00:43:30,832 --> 00:43:39,300
+but you could do something like you know, go talk to an LLM outside, which is a stateless sort of API, and sort of do record replay on those kind of network services.
+
+405
+00:43:39,952 --> 00:43:41,952
+Could you just give us 15 seconds on how it works?
+
+406
+00:43:42,734 --> 00:43:43,632
+how do you make this efficient?
+
+407
+00:43:43,726 --> 00:43:45,952
+Is it some sort of whole system snapshot or
+
+408
+00:43:45,952 --> 00:43:47,392
+the the the determinism?
+
+409
+00:43:47,712 --> 00:43:47,792
+Yeah.
+
+410
+00:43:47,872 --> 00:43:55,632
+I mean it's so it's uh there is some snapshotting as a performance um uh sort of optimization, but you don't actually need snapshotting, you can do just uh it's just a record and replay.
+
+411
+00:43:55,712 --> 00:44:01,072
+So all of the sources of entropy are sort of being recorded and and and sort of replayed.
+
+412
+00:44:01,166 --> 00:44:03,552
+So any sort of fuzzer-driven inputs, for example.
+
+413
+00:44:04,272 --> 00:44:04,512
+I see.
+
+414
+00:44:04,592 --> 00:44:06,592
+So you may just go from the beginning of time again and again and again.
+
+415
+00:44:06,912 --> 00:44:07,872
+You could do that if you wanted to.
+
+416
+00:44:08,032 --> 00:44:14,192
+That's how you would like rewarm, like if I wanted to like something that I tested six months ago, if I wanted to get back, I could just go back from the beginning of time.
+
+417
+00:44:14,478 --> 00:44:18,436
+During fuzzing, there is some snapshotting that's done for prof like as a ca as a caching optimization.
+
+418
+00:44:19,072 --> 00:44:23,152
+the key thing here is that all of this, all of those clusters sort of run on one CPU.
+
+419
+00:44:23,310 --> 00:44:26,244
+And so they're sort of all being interleaved on one CPU.
+
+420
+00:44:26,542 --> 00:44:32,230
+And so all of the decision of the CPU scheduling decisions, the system clock, all of that is sort of deterministically playable.
+
+421
+00:44:32,718 --> 00:44:40,516
+So I think that the key thing, and that and there's actually many talks, deep dives into the deterministic hypervisors called the determinator, and that talks about how that works.
+
+422
+00:44:40,912 --> 00:44:42,564
+I would say the key thing there is handling time.
+
+423
+00:44:42,752 --> 00:44:53,540
+If you can if you can control the system clock, you actually get rid of many sources of non determinism, like choices of the CPU scheduler, which choose which thread to run at what point of time.
+
+424
+00:44:54,350 --> 00:44:55,552
+So that's I think the biggest part.
+
+425
+00:44:56,272 --> 00:44:56,432
+Great.
+
+426
+00:44:56,672 --> 00:44:56,992
+Thank you.
+
+427
+00:44:57,952 --> 00:44:58,192
+All right.
+
+428
+00:44:58,734 --> 00:44:58,980
+Thanks a lot.
+
+429
+00:44:59,072 --> 00:44:59,872
+Let's thank the speaker.
+

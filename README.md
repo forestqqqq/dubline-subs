@@ -4,6 +4,7 @@
 
 | 视频 | 原作者 | 更新 |
 |---|---|---|
+| [[REBASE'26] Autonomous Testing with Time-Traveling Agents in a Chaotic Multiverse](medias/WS90F/) | ACM SIGPLAN | 2026-11-27 |
 | [What Are AI Agents? Agentic Systems Explained \| Stanford CS329Z Lecture 1 with Diyi Yang](medias/WCGDN/) | Stanford Online | 2026-11-27 |
 | [Claude Built an Operating System, Meta's Ten Cent Agent Model, and Robots That Learn by Watching You](medias/W0KBC/) | Web Guy Nick Podcast | 2026-11-27 |
 | [Did LeCun Prove the Platonic Representation Hypothesis?](medias/VCR5E/) | Fine Print AI | 2026-11-27 |
